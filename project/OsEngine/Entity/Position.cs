@@ -1039,16 +1039,22 @@ namespace OsEngine.Entity
 
                 if(ProfitPortfolioPunkt != 0)
                 {
-                    result += OsLocalization.Trader.Label404 + ": " + ProfitPortfolioPunkt + "\n";
+                    decimal profit = Math.Round(ProfitPortfolioPunkt, 10);
+
+                    result += OsLocalization.Trader.Label404 + ": " + profit.ToStringWithNoEndZero() + "\n";
                 }
                 
                 if(State != PositionStateType.OpeningFail)
                 {
-                    result += OsLocalization.Trader.Label400 + ": " + EntryPrice;
+                    decimal entryPrice = Math.Round(EntryPrice, 10);
+
+                    result += OsLocalization.Trader.Label400 + ": " + entryPrice.ToStringWithNoEndZero();
 
                     if (State == PositionStateType.Done)
                     {
-                        result += ", " + OsLocalization.Trader.Label401 + ": " + ClosePrice + " ";
+                        decimal closePrice = Math.Round(ClosePrice, 10);
+
+                        result += ", " + OsLocalization.Trader.Label401 + ": " + closePrice.ToStringWithNoEndZero() + " ";
                     }
 
                     result += "\n";

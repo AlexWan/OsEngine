@@ -148,7 +148,7 @@ namespace OsEngine.Robots.High_Frequency
             {
                 if (marketDepth.Bids[i].Bid > lastVolume)
                 {
-                    buyPrice = marketDepth.Bids[i].Price + _tab.Securiti.PriceStep;
+                    buyPrice = marketDepth.Bids[i].Price + _tab.Security.PriceStep;
                     lastVolume = Convert.ToInt32(marketDepth.Bids[i].Bid);
                 }
             }
@@ -182,7 +182,7 @@ namespace OsEngine.Robots.High_Frequency
             {
                 if (marketDepth.Asks[i].Ask > lastVolumeInAsk)
                 {
-                    sellPrice = marketDepth.Asks[i].Price - _tab.Securiti.PriceStep;
+                    sellPrice = marketDepth.Asks[i].Price - _tab.Security.PriceStep;
                     lastVolumeInAsk = Convert.ToInt32(marketDepth.Asks[i].Ask);
                 }
             }
@@ -217,13 +217,13 @@ namespace OsEngine.Robots.High_Frequency
         {
             if (position.Direction == Side.Buy)
             {
-                _tab.CloseAtStop(position, position.EntryPrice - Stop.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice - Stop.ValueInt * _tab.Securiti.PriceStep);
-                _tab.CloseAtProfit(position, position.EntryPrice + Profit.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice + Profit.ValueInt * _tab.Securiti.PriceStep);
+                _tab.CloseAtStop(position, position.EntryPrice - Stop.ValueInt * _tab.Security.PriceStep, position.EntryPrice - Stop.ValueInt * _tab.Security.PriceStep);
+                _tab.CloseAtProfit(position, position.EntryPrice + Profit.ValueInt * _tab.Security.PriceStep, position.EntryPrice + Profit.ValueInt * _tab.Security.PriceStep);
             }
             if (position.Direction == Side.Sell)
             {
-                _tab.CloseAtStop(position, position.EntryPrice + Stop.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice + Stop.ValueInt * _tab.Securiti.PriceStep);
-                _tab.CloseAtProfit(position, position.EntryPrice - Profit.ValueInt * _tab.Securiti.PriceStep, position.EntryPrice - Profit.ValueInt * _tab.Securiti.PriceStep);
+                _tab.CloseAtStop(position, position.EntryPrice + Stop.ValueInt * _tab.Security.PriceStep, position.EntryPrice + Stop.ValueInt * _tab.Security.PriceStep);
+                _tab.CloseAtProfit(position, position.EntryPrice - Profit.ValueInt * _tab.Security.PriceStep, position.EntryPrice - Profit.ValueInt * _tab.Security.PriceStep);
             }
 
             List<Position> positions = _tab.PositionsOpenAll;

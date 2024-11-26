@@ -332,7 +332,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             if (tab.StartProgram == StartProgram.IsOsTrader)
             {
-                qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                qty = Math.Round(qty, tab.Security.DecimalsVolume);
             }
             else
             {

@@ -171,7 +171,7 @@ public class PriceChannelBreak : BotPanel
             {
                 if (_lastPrice > _lastPcUp)
                 {
-                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
 
@@ -180,7 +180,7 @@ public class PriceChannelBreak : BotPanel
             {
                 if (_lastPrice < _lastPcDown)
                 {
-                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
@@ -198,20 +198,20 @@ public class PriceChannelBreak : BotPanel
             if (openPositions[i].Direction == Side.Buy)
             {
                 decimal lowCandle = _tab.CandlesAll[_tab.CandlesAll.Count - 2].Low;
-                _tab.CloseAtStop(openPositions[i], lowCandle, lowCandle - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.CloseAtStop(openPositions[i], lowCandle, lowCandle - Slippage.ValueInt * _tab.Security.PriceStep);
 
                 _tab.CloseAtProfit(
                     openPositions[i], _lastPrice + (_lastPcUp - _lastPcDown),
-                    (_lastPrice + (_lastPcUp - _lastPcDown)) - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    (_lastPrice + (_lastPcUp - _lastPcDown)) - Slippage.ValueInt * _tab.Security.PriceStep);
             }
             else
             {
                 decimal highCandle = _tab.CandlesAll[_tab.CandlesAll.Count - 2].High;
-                _tab.CloseAtStop(openPositions[i], highCandle, highCandle + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                _tab.CloseAtStop(openPositions[i], highCandle, highCandle + Slippage.ValueInt * _tab.Security.PriceStep);
 
                 _tab.CloseAtProfit(
                     openPositions[i], _lastPrice - (_lastPcUp - _lastPcDown),
-                    (_lastPrice - (_lastPcUp - _lastPcDown)) + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    (_lastPrice - (_lastPcUp - _lastPcDown)) + Slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
     }

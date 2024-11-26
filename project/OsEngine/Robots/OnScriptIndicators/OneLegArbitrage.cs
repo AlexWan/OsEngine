@@ -148,7 +148,7 @@ public class OneLegArbitrage : BotPanel
             {
                 if (_lastIndex > _lastMa)
                 {
-                    _tab2.BuyAtLimit(Volume.ValueDecimal, _lastPrice + _tab2.Securiti.PriceStep * Slippage.ValueInt);
+                    _tab2.BuyAtLimit(Volume.ValueDecimal, _lastPrice + _tab2.Security.PriceStep * Slippage.ValueInt);
                 }
             }
 
@@ -156,7 +156,7 @@ public class OneLegArbitrage : BotPanel
             {
                 if (_lastIndex < _lastMa)
                 {
-                    _tab2.SellAtLimit(Volume.ValueDecimal, _lastPrice - _tab2.Securiti.PriceStep * Slippage.ValueInt);
+                    _tab2.SellAtLimit(Volume.ValueDecimal, _lastPrice - _tab2.Security.PriceStep * Slippage.ValueInt);
                 }
             }
             return;
@@ -185,7 +185,7 @@ public class OneLegArbitrage : BotPanel
                         _tab2.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
                         if (openPositions.Count < 2)
                         {
-                            _tab2.SellAtLimit(Volume.ValueDecimal, _lastPrice - _tab2.Securiti.PriceStep * Slippage.ValueInt);
+                            _tab2.SellAtLimit(Volume.ValueDecimal, _lastPrice - _tab2.Security.PriceStep * Slippage.ValueInt);
                         }
                     }
                 }
@@ -203,7 +203,7 @@ public class OneLegArbitrage : BotPanel
                         _tab2.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
                         if(openPositions.Count < 2)
                         {
-                            _tab2.BuyAtLimit(Volume.ValueDecimal, _lastPrice + _tab2.Securiti.PriceStep * Slippage.ValueInt);
+                            _tab2.BuyAtLimit(Volume.ValueDecimal, _lastPrice + _tab2.Security.PriceStep * Slippage.ValueInt);
                         }
                         
                     }

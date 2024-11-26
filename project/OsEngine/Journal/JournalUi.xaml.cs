@@ -1466,15 +1466,19 @@ namespace OsEngine.Journal
                 nameSeries.Points[0].Label = name;
                 nameSeries.Points[0].LabelForeColor = Color.White;
 
-
                 _chartVolume.Series.Add(nameSeries);
 
-                areaLineSecurity.AxisY2.Maximum = Convert.ToDouble(maxVolume + (maxVolume * 0.05m));
-                areaLineSecurity.AxisY2.Minimum = Convert.ToDouble(minVolume - (maxVolume * 0.05m));
+                if (minVolume != decimal.MaxValue &&
+                    maxVolume != 0 &&
+                    minVolume != maxVolume)
+                {
+                    areaLineSecurity.AxisY2.Maximum = Convert.ToDouble(maxVolume + (maxVolume * 0.05m));
+                    areaLineSecurity.AxisY2.Minimum = Convert.ToDouble(minVolume - (maxVolume * 0.05m));
+                    double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
+                    areaLineSecurity.AxisY2.Interval = interval;
+                }
 
-                double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
 
-                areaLineSecurity.AxisY2.Interval = interval;
             }
             catch (Exception error)
             {

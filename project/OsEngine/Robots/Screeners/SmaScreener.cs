@@ -161,7 +161,7 @@ namespace OsEngine.Robots.Screeners
                     return;
                 }
 
-                tab.BuyAtLimit(GetVolume(candles,tab), tab.PriceBestAsk + tab.Securiti.PriceStep * Slippage.ValueInt);
+                tab.BuyAtLimit(GetVolume(candles,tab), tab.PriceBestAsk + tab.Security.PriceStep * Slippage.ValueInt);
             }
             else
             {
@@ -174,7 +174,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal close = candles[candles.Count - 1].Low;
                 decimal priceActivation = close - close * TrailStop.ValueDecimal/100;
-                decimal priceOrder = priceActivation - tab.Securiti.PriceStep * Slippage.ValueInt;
+                decimal priceOrder = priceActivation - tab.Security.PriceStep * Slippage.ValueInt;
 
                 tab.CloseAtTrailingStop(pos, priceActivation, priceOrder);
             }
@@ -199,13 +199,13 @@ namespace OsEngine.Robots.Screeners
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Securiti.Lot != 0 &&
-                        tab.Securiti.Lot > 1)
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Securiti.Lot);
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
-                    volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
                 }
                 else // Tester or Optimizer
                 {

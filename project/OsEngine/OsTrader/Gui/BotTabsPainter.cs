@@ -849,9 +849,9 @@ colum10.HeaderText = "Action";
             row.Cells.Add(new DataGridViewTextBoxCell());
 
             if(bot.TabsSimple.Count != 0 &&
-                bot.TabsSimple[0].Securiti != null)
+                bot.TabsSimple[0].Security != null)
             {
-                row.Cells[3].Value = bot.TabsSimple[0].Securiti.Name;
+                row.Cells[3].Value = bot.TabsSimple[0].Security.Name;
             }
 
             row.Cells.Add(new DataGridViewTextBoxCell());
@@ -986,14 +986,14 @@ colum9.HeaderText = "Journal";
                     BotPanel bot = _master.PanelsArray[i];
 
                     if (bot.TabsSimple.Count != 0 &&
-                        bot.TabsSimple[0].Securiti != null)
+                        bot.TabsSimple[0].Security != null)
                     {
                         if(row.Cells[3].Value == null 
                             ||
                             (row.Cells[3].Value != null 
-                            && row.Cells[3].Value.ToString() != bot.TabsSimple[0].Securiti.Name))
+                            && row.Cells[3].Value.ToString() != bot.TabsSimple[0].Security.Name))
                         {
-                            row.Cells[3].Value = bot.TabsSimple[0].Securiti.Name;
+                            row.Cells[3].Value = bot.TabsSimple[0].Security.Name;
                         }
                     }
 

@@ -1273,24 +1273,24 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
-            if (pair.Tab1.Securiti != null)
+            if (pair.Tab1.Security != null)
             {
-                nRow.Cells[2].Value = pair.Tab1.Securiti.Name + " " + pair.Tab1TradeSide;
+                nRow.Cells[2].Value = pair.Tab1.Security.Name + " " + pair.Tab1TradeSide;
             }
 
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
-            if (pair.Tab2.Securiti != null)
+            if (pair.Tab2.Security != null)
             {
-                nRow.Cells[3].Value = pair.Tab2.Securiti.Name + " " + pair.Tab2TradeSide;
+                nRow.Cells[3].Value = pair.Tab2.Security.Name + " " + pair.Tab2TradeSide;
             }
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
-            if (pair.Tab3.Securiti != null)
+            if (pair.Tab3.Security != null)
             {
-                nRow.Cells[4].Value = pair.Tab3.Securiti.Name + " " + pair.Tab3TradeSide;
+                nRow.Cells[4].Value = pair.Tab3.Security.Name + " " + pair.Tab3TradeSide;
             }
 
 
@@ -2446,9 +2446,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 // обрезаем объёмы по кол-ву знаков
 
-                tradeQty1Buy = Math.Round(tradeQty1Buy, Tab1.Securiti.DecimalsVolume);
-                tradeQty2Sell = Math.Round(tradeQty2Sell, Tab2.Securiti.DecimalsVolume);
-                tradeQty3Sell = Math.Round(tradeQty3Sell, Tab3.Securiti.DecimalsVolume);
+                tradeQty1Buy = Math.Round(tradeQty1Buy, Tab1.Security.DecimalsVolume);
+                tradeQty2Sell = Math.Round(tradeQty2Sell, Tab2.Security.DecimalsVolume);
+                tradeQty3Sell = Math.Round(tradeQty3Sell, Tab3.Security.DecimalsVolume);
 
                 Tab1PosStatus = PolygonPositionStatus.None;
                 Tab2PosStatus = PolygonPositionStatus.None;

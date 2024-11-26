@@ -369,6 +369,8 @@ namespace OsEngine.Market
             }
         }
 
+        private static List<ServerType> _alreadyCreatedServers = new List<ServerType>(); 
+
         /// <summary>
         /// create server
         /// </summary>
@@ -387,6 +389,16 @@ namespace OsEngine.Market
                 {
                     return;
                 }
+
+                for(int i = 0;i < _alreadyCreatedServers.Count;i++)
+                {
+                    if (_alreadyCreatedServers[i] == type)
+                    {
+                        return;
+                    }
+                }
+
+                _alreadyCreatedServers.Add(type);  
 
                 SaveMostPopularServers(type);
 

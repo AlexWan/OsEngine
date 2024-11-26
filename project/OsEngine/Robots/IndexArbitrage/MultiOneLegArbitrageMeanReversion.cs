@@ -182,7 +182,7 @@ namespace OsEngine.Robots.IndexArbitrage
             if(SlippagePercent.ValueDecimal != 0)
             {
                 price = price + price * (SlippagePercent.ValueDecimal / 100);
-                price = Math.Round(price, tab.Securiti.Decimals);
+                price = Math.Round(price, tab.Security.Decimals);
             }
 
             decimal volume = GetVolume(tab);
@@ -203,7 +203,7 @@ namespace OsEngine.Robots.IndexArbitrage
             if (SlippagePercent.ValueDecimal != 0)
             {
                 price = price - price * (SlippagePercent.ValueDecimal / 100);
-                price = Math.Round(price, tab.Securiti.Decimals);
+                price = Math.Round(price, tab.Security.Decimals);
             }
 
             decimal volume = GetVolume(tab);
@@ -263,7 +263,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             if (tab.StartProgram == StartProgram.IsOsTrader)
             {
-                qty = Math.Round(qty, tab.Securiti.DecimalsVolume);
+                qty = Math.Round(qty, tab.Security.DecimalsVolume);
             }
             else
             {
@@ -366,7 +366,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 if (SlippagePercent.ValueDecimal != 0)
                 {
                     price = price - price * (SlippagePercent.ValueDecimal / 100);
-                    price = Math.Round(price, tab.Securiti.Decimals);
+                    price = Math.Round(price, tab.Security.Decimals);
                 }
             }
             else if(pos.Direction == Side.Sell)
@@ -376,7 +376,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 if (SlippagePercent.ValueDecimal != 0)
                 {
                     price = price + price * (SlippagePercent.ValueDecimal / 100);
-                    price = Math.Round(price, tab.Securiti.Decimals);
+                    price = Math.Round(price, tab.Security.Decimals);
                 }
             }
 

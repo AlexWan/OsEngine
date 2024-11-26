@@ -572,10 +572,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.ManualPositionSupport.SecondToClose = control.SecondToClose;
                 tab.ManualPositionSupport.SecondToOpen = control.SecondToOpen;
                 tab.ManualPositionSupport.DoubleExitIsOn = control.DoubleExitIsOn;
-                tab.ManualPositionSupport.DoubleExitSlipage = control.DoubleExitSlipage;
+                tab.ManualPositionSupport.DoubleExitSlippage = control.DoubleExitSlippage;
                 tab.ManualPositionSupport.ProfitDistance = control.ProfitDistance;
                 tab.ManualPositionSupport.ProfitIsOn = control.ProfitIsOn;
-                tab.ManualPositionSupport.ProfitSlipage = control.ProfitSlipage;
+                tab.ManualPositionSupport.ProfitSlippage = control.ProfitSlippage;
                 tab.ManualPositionSupport.SecondToCloseIsOn = control.SecondToCloseIsOn;
                 tab.ManualPositionSupport.SecondToOpenIsOn = control.SecondToOpenIsOn;
                 tab.ManualPositionSupport.SetbackToCloseIsOn = control.SetbackToCloseIsOn;
@@ -584,7 +584,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 tab.ManualPositionSupport.SetbackToOpenPosition = control.SetbackToOpenPosition;
                 tab.ManualPositionSupport.StopDistance = control.StopDistance;
                 tab.ManualPositionSupport.StopIsOn = control.StopIsOn;
-                tab.ManualPositionSupport.StopSlipage = control.StopSlipage;
+                tab.ManualPositionSupport.StopSlippage = control.StopSlippage;
                 tab.ManualPositionSupport.TypeDoubleExitOrder = control.TypeDoubleExitOrder;
                 tab.ManualPositionSupport.ValuesType = control.ValuesType;
                 tab.ManualPositionSupport.OrderTypeTime = control.OrderTypeTime;
@@ -920,16 +920,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             PairToTrade newPair = Pairs[Pairs.Count - 1];
 
-            newPair.Tab1.ComissionType = comissionType;
-            newPair.Tab1.ComissionValue = comissionValue;
+            newPair.Tab1.CommissionType = comissionType;
+            newPair.Tab1.CommissionValue = comissionValue;
             newPair.Tab1.Connector.ServerType = serverType;
             newPair.Tab1.Connector.TimeFrame = timeFrame;
             newPair.Tab1.Connector.SecurityName = sec1;
             newPair.Tab1.Connector.SecurityClass = secClass;
             newPair.Tab1.Connector.PortfolioName = portfolio;
 
-            newPair.Tab2.ComissionType = comissionType;
-            newPair.Tab2.ComissionValue = comissionValue;
+            newPair.Tab2.CommissionType = comissionType;
+            newPair.Tab2.CommissionValue = comissionValue;
             newPair.Tab2.Connector.ServerType = serverType;
             newPair.Tab2.Connector.TimeFrame = timeFrame;
             newPair.Tab2.Connector.SecurityName = sec2;
@@ -1519,7 +1519,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[4].Value = "pos: " + pair.Tab1.VolumeNetto.ToStringWithNoEndZero();
+            nRow.Cells[4].Value = "pos: " + pair.Tab1.VolumeNet.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
@@ -1557,7 +1557,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[4].Value = "pos: " + pair.Tab2.VolumeNetto.ToStringWithNoEndZero();
+            nRow.Cells[4].Value = "pos: " + pair.Tab2.VolumeNet.ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
@@ -2269,7 +2269,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 volume = volumeValue / lastPrice;
 
-                Security mySec = tab.Securiti;
+                Security mySec = tab.Security;
 
                 if(mySec.Lot > 1)
                 {
@@ -2288,7 +2288,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             else
             {
-                volume = Math.Round(volume, tab.Securiti.DecimalsVolume);
+                volume = Math.Round(volume, tab.Security.DecimalsVolume);
             }
             return volume;
         }

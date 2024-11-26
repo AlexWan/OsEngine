@@ -130,14 +130,14 @@ public class MacdRevers : BotPanel
             _lastMacdUp > _lastMacdDown
             && Regime.ValueString != "OnlyShort")
         {
-            _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+            _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
         }
 
         if (_lastMacdDown > 0 &&
             _lastMacdUp < _lastMacdDown
             && Regime.ValueString != "OnlyLong")
         {
-            _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+            _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
         }
     }
 
@@ -151,12 +151,12 @@ public class MacdRevers : BotPanel
         {
             if (_lastMacdDown > 0 && _lastMacdUp < _lastMacdDown)
             {
-                _tab.CloseAtLimit(position, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
+                _tab.CloseAtLimit(position, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
                 if (Regime.ValueString != "OnlyLong"
                     && Regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
@@ -165,12 +165,12 @@ public class MacdRevers : BotPanel
         {
             if (_lastMacdDown < 0 && _lastMacdUp > _lastMacdDown)
             {
-                _tab.CloseAtLimit(position, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
+                _tab.CloseAtLimit(position, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
                 if (Regime.ValueString != "OnlyShort"
                     && Regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }

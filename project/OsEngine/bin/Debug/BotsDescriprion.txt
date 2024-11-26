@@ -43,6 +43,11 @@ Lesson6Bot1&&Include&&Simple 1*&Bollinger*ATR*&
 Lesson7Bot1&&Include&&Simple 1*&&
 Lesson8Bot1&&Include&&Simple 1*&&
 Lesson8Bot2&&Include&&Simple 1*&&
+Lesson9Bot1&&Include&&Simple 1*&&
+Lesson9Bot2&&Include&&Simple 1*&&
+Lesson9Bot3&&Include&&Simple 1*&&
+Lesson10Bot1&&Include&&Simple 1*&&
+Lesson10Bot2&&Include&&Simple 1*&&
 MacdRevers&Trend strategy at the intersection of the MACD indicator Logic of the first Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Next: lastMacdDown > 0 and lastMacdUp < lastMacdDown close position and open Short. lastMacdDown < 0 and lastMacdUp > lastMacdDown close position and open Long.&Include&&Simple 1*&MACD*&
 MacdTrail&Trend strategy based on the Macd indicator and trail stop Logic Enter: lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell Exit: By TralingStop&Include&&Simple 1*&MacdLine*&
 MomentumMacd&Trend strategy based on 2 indicators Momentum and Macd. if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.&Include&&Simple 1*&MacdLine*Momentum*&

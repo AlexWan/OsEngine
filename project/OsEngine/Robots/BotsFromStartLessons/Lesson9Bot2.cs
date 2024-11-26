@@ -1,0 +1,472 @@
+﻿using System.Collections.Generic;
+using OsEngine.Entity;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.OsTrader.Panels.Tab;
+
+namespace OsEngine.Robots.BotsFromStartLessons
+{
+    [Bot("Lesson9Bot2")]
+    public class Lesson9Bot2 : BotPanel
+    {
+        BotTabSimple _tabToTrade;
+
+        public Lesson9Bot2(string name, StartProgram startProgram) : base(name, startProgram)
+        {
+            TabCreate(BotTabType.Simple);
+            _tabToTrade = TabsSimple[0];
+
+            // Close positions
+
+            _closeAllMarketButton = CreateParameterButton("Close all positions", "Close");
+            _closeAllMarketButton.UserClickOnButtonEvent += _closeAllMarketButton_UserClickOnButtonEvent;
+
+            // BuyAtMarket / SellAtMarket
+
+            _buyMarketButton = CreateParameterButton("Market Buy", "Open");
+            _buyMarketButton.UserClickOnButtonEvent += MarketBuy_UserClickOnButtonEvent;
+            _sellMarketButton = CreateParameterButton("Market Sell", "Open");
+            _sellMarketButton.UserClickOnButtonEvent += MarketSell_UserClickOnButtonEvent;
+
+            // BuyAtLimitToPosition / SellAtLimitToPosition
+
+            _buyLimitToPositionButton = CreateParameterButton("Buy at limit to position", "Limit");
+            _buyLimitToPositionButton.UserClickOnButtonEvent += _buyLimitToPositionButton_UserClickOnButtonEvent;
+            _sellLimitToPositionButton = CreateParameterButton("Sell at limit to position", "Limit");
+            _sellLimitToPositionButton.UserClickOnButtonEvent += _sellLimitToPositionButton_UserClickOnButtonEvent;
+
+            // BuyAtLimitToPositionUnsafe / SellAtLimitToPositionUnsafe
+
+            _buyLimitToPositionUnsafeButton = CreateParameterButton("Buy at limit to position Unsafe", "Unsafe");
+            _buyLimitToPositionUnsafeButton.UserClickOnButtonEvent += _buyLimitToPositionUnsafeButton_UserClickOnButtonEvent;
+            _sellLimitToPositionUnsafeButton = CreateParameterButton("Sell at limit to position Unsafe", "Unsafe");
+            _sellLimitToPositionUnsafeButton.UserClickOnButtonEvent += _sellLimitToPositionUnsafeButton_UserClickOnButtonEvent;
+
+            // BuyAtMarketToPosition / SellAtMarketToPosition
+
+            _buyMarketToPositionButton = CreateParameterButton("Buy at market to position", "Market");
+            _buyMarketToPositionButton.UserClickOnButtonEvent += _buyMarketToPositionButton_UserClickOnButtonEvent;
+            _sellMarketToPositionButton = CreateParameterButton("Sell at market to position", "Market");
+            _sellMarketToPositionButton.UserClickOnButtonEvent += _sellMarketToPositionButton_UserClickOnButtonEvent;
+            _addOrderToPositionAtMarketSignal = CreateParameter("With signal type", false, "Market");
+
+            // BuyAtIcebergToPosition / SellAtIcebergToPosition
+
+            _buyIcebergToPositionButton = CreateParameterButton("Buy at Iceberg to position", "Iceberg");
+            _buyIcebergToPositionButton.UserClickOnButtonEvent += _buyIcebergToPositionButton_UserClickOnButtonEvent;
+            _sellIcebergToPositionButton = CreateParameterButton("Sell at Iceberg to position", "Iceberg");
+            _sellIcebergToPositionButton.UserClickOnButtonEvent += _sellIcebergToPositionButton_UserClickOnButtonEvent;
+            _icebergToPositionOrdersCount = CreateParameter("Iceberg orders count to position", 2, 1, 10, 1, "Iceberg");
+        }
+
+        #region Close positions
+
+        private StrategyParameterButton _closeAllMarketButton;
+
+        private void _closeAllMarketButton_UserClickOnButtonEvent()
+        {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            _tabToTrade.BuyAtStopCancel();
+            _tabToTrade.SellAtStopCancel();
+
+            for (int i = 0; i < openPositions.Count; i++)
+            {
+                Position position = openPositions[i];
+
+                _tabToTrade.CloseAllOrderToPosition(position);
+
+                if (position.OpenVolume > 0)
+                {
+                    _tabToTrade.CloseAtMarket(position, position.OpenVolume);
+                }
+            }
+        }
+
+        #endregion
+
+        #region BuyAtMarket / SellAtMarket
+
+        private StrategyParameterButton _buyMarketButton;
+
+        private StrategyParameterButton _sellMarketButton;
+
+        private void MarketBuy_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            _tabToTrade.BuyAtMarket(volume);
+        }
+
+        private void MarketSell_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            _tabToTrade.SellAtMarket(volume);
+        }
+
+        #endregion
+
+        #region BuyAtLimitToPosition / SellAtLimitToPosition
+
+        private StrategyParameterButton _buyLimitToPositionButton;
+
+        private StrategyParameterButton _sellLimitToPositionButton;
+
+        private void _buyLimitToPositionButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            decimal price = _tabToTrade.PriceBestAsk;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            _tabToTrade.BuyAtLimitToPosition(pos, price, volume);
+        }
+
+        private void _sellLimitToPositionButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            decimal price = _tabToTrade.PriceBestAsk;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            _tabToTrade.SellAtLimitToPosition(pos, price, volume);
+        }
+
+        #endregion
+
+        #region BuyAtLimitToPositionUnsafe / SellAtLimitToPositionUnsafe
+
+        private StrategyParameterButton _buyLimitToPositionUnsafeButton;
+
+        private StrategyParameterButton _sellLimitToPositionUnsafeButton;
+
+        private void _buyLimitToPositionUnsafeButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            decimal price = _tabToTrade.PriceBestAsk;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            _tabToTrade.BuyAtLimitToPositionUnsafe(pos, price, volume);
+        }
+
+        private void _sellLimitToPositionUnsafeButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            decimal price = _tabToTrade.PriceBestAsk;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            _tabToTrade.SellAtLimitToPositionUnsafe(pos, price, volume);
+        }
+
+        #endregion
+
+        #region BuyAtMarketToPosition / SellAtMarketToPosition
+
+        private StrategyParameterButton _buyMarketToPositionButton;
+
+        private StrategyParameterButton _sellMarketToPositionButton;
+
+        private StrategyParameterBool _addOrderToPositionAtMarketSignal;
+
+        private void _buyMarketToPositionButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            if (_addOrderToPositionAtMarketSignal.ValueBool == false)
+            {
+                _tabToTrade.BuyAtMarketToPosition(pos, volume);
+            }
+            else if (_addOrderToPositionAtMarketSignal.ValueBool == true)
+            {
+                _tabToTrade.BuyAtMarketToPosition(pos, volume, "User click button BuyAtMarketToPosition");
+            }
+        }
+
+        private void _sellMarketToPositionButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            if (_addOrderToPositionAtMarketSignal.ValueBool == false)
+            {
+                _tabToTrade.SellAtMarketToPosition(pos, volume);
+            }
+            else if (_addOrderToPositionAtMarketSignal.ValueBool == true)
+            {
+                _tabToTrade.SellAtMarketToPosition(pos, volume, "User click button SellAtMarketToPosition");
+            }
+        }
+
+        #endregion
+
+        #region BuyAtIcebergToPosition / SellAtIcebergToPosition
+
+        private StrategyParameterButton _buyIcebergToPositionButton;
+
+        private StrategyParameterButton _sellIcebergToPositionButton;
+
+        private StrategyParameterInt _icebergToPositionOrdersCount;
+
+        private void _buyIcebergToPositionButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            decimal price = _tabToTrade.PriceBestAsk;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            int ordersCount = _icebergToPositionOrdersCount.ValueInt;
+
+            _tabToTrade.BuyAtIcebergToPosition(pos, price, volume, ordersCount);
+        }
+
+        private void _sellIcebergToPositionButton_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            List<Position> posesAll = _tabToTrade.PositionsOpenAll;
+
+            if (posesAll.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No position", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position pos = posesAll[0];
+
+            if (pos.State != PositionStateType.Open)
+            {
+                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            decimal price = _tabToTrade.PriceBestAsk;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            int ordersCount = _icebergToPositionOrdersCount.ValueInt;
+
+            _tabToTrade.SellAtIcebergToPosition(pos, price, volume, ordersCount);
+        }
+
+        #endregion
+
+        public override string GetNameStrategyType()
+        {
+            return "Lesson9Bot2";
+        }
+
+        public override void ShowIndividualSettingsDialog()
+        {
+
+        }
+    }
+}

@@ -92,9 +92,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport.LogMessageEvent += SetNewLogMessage;
                 ManualPositionSupport.DontOpenOrderDetectedEvent += _dealOpeningWatcher_DontOpenOrderDetectedEvent;
 
-                _acebergMaker = new IcebergMaker();
-                _acebergMaker.NewOrderNeedToExecute += _acebergMaker_NewOrderNeadToExecute;
-                _acebergMaker.NewOrderNeedToCancel += _acebergMaker_NewOrderNeadToCansel;
+                _icebergMaker = new IcebergMaker();
+                _icebergMaker.NewOrderNeedToExecute += _icebergMaker_NewOrderNeedToExecute;
+                _icebergMaker.NewOrderNeedToCancel += _icebergMaker_NewOrderNeedToCancel;
 
                 if (startProgram == StartProgram.IsOsTrader)
                 {// load the latest orders for robots to the general storage in ServerMaster
@@ -186,10 +186,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (Securiti != null
+                if (Security != null
                     && Portfolio != null)
                 {
-                    _chartMaster?.SetNewSecurity(Securiti.Name, _connector.TimeFrameBuilder, Portfolio.Number, Connector.ServerType);
+                    _chartMaster?.SetNewSecurity(Security.Name, _connector.TimeFrameBuilder, Portfolio.Number, Connector.ServerType);
                 }
 
                 _chartMaster?.StartPaint(gridChart, hostChart, rectangleChart);
@@ -300,7 +300,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                ClearAceberg();
+                ClearIceberg();
 
                 BuyAtStopCancel();
 
@@ -377,11 +377,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _alerts = null;
                 }
 
-                if (_acebergMaker != null)
+                if (_icebergMaker != null)
                 {
-                    _acebergMaker.NewOrderNeedToExecute -= _acebergMaker_NewOrderNeadToExecute;
-                    _acebergMaker.NewOrderNeedToCancel -= _acebergMaker_NewOrderNeadToCansel;
-                    _acebergMaker = null;
+                    _icebergMaker.NewOrderNeedToExecute -= _icebergMaker_NewOrderNeedToExecute;
+                    _icebergMaker.NewOrderNeedToCancel -= _icebergMaker_NewOrderNeedToCancel;
+                    _icebergMaker = null;
                 }
 
                 if (ManualPositionSupport != null)
@@ -772,7 +772,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Security to trading
         /// </summary>
-        public Security Securiti
+        public Security Security
         {
             get
             {
@@ -798,6 +798,36 @@ namespace OsEngine.OsTrader.Panels.Tab
             set { _security = value; }
         }
         private Security _security;
+
+        /// <summary>
+        /// Security to trading
+        /// </summary>
+        [Obsolete("Obsolete. Use Security")]
+        public Security Securiti
+        {
+            get
+            {
+                try
+                {
+                    if (_connector == null)
+                    {
+                        return null;
+                    }
+                    if (_security == null ||
+                        _security.Name != _connector.SecurityName)
+                    {
+                        _security = _connector.Security;
+                    }
+                    return _security;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+
+            set { _security = value; }
+        }
 
         /// <summary>
         /// Timeframe data received
@@ -842,9 +872,64 @@ namespace OsEngine.OsTrader.Panels.Tab
         private Portfolio _portfolio;
 
         /// <summary>
+        /// Exchange position for security
+        /// </summary>
+        public List<PositionOnBoard> PositionsOnBoard
+        {
+            get
+            {
+                try
+                {
+                    if (Portfolio == null
+                        || Security == null)
+                    {
+                        return null;
+                    }
+
+                    List<PositionOnBoard> positionsOnBoard = Portfolio.GetPositionOnBoard();
+
+                    List<PositionOnBoard> posesWithMySecurity = new List<PositionOnBoard>();
+
+                    for (int i = 0; positionsOnBoard != null && i < positionsOnBoard.Count; i++)
+                    {
+                        if (positionsOnBoard[i] == null)
+                        {
+                            continue;
+                        }
+
+                        if (positionsOnBoard[i].ValueCurrent == 0)
+                        {
+                            continue;
+                        }
+
+                        string nameShort = Security.Name + "_SHORT";
+                        string nameLong = Security.Name + "_LONG";
+                        string nameBoth = Security.Name + "_BOTH";
+
+                        if (positionsOnBoard[i].SecurityNameCode.Equals(Security.Name)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameShort)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameLong)
+                            || positionsOnBoard[i].SecurityNameCode.Equals(nameBoth))
+                        {
+                            posesWithMySecurity.Add(positionsOnBoard[i]);
+                        }
+                    }
+
+                    return posesWithMySecurity;
+                }
+                catch (Exception error)
+                {
+                    SetNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Commission type for positions
         /// </summary>
-        public ComissionType ComissionType
+        public ComissionType CommissionType
         {
             get
             {
@@ -864,7 +949,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Commission amount
         /// </summary>
-        public decimal ComissionValue
+        public decimal CommissionValue
         {
             get
             {
@@ -910,14 +995,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 return _journal.OpenPositions;
             }
-        }
-
-        /// <summary>
-        /// Stop-limit orders
-        /// </summary>
-        public List<PositionOpenerToStopLimit> PositionOpenerToStopsAll
-        {
-            get { return PositionOpenerToStop; }
         }
 
         /// <summary>
@@ -981,64 +1058,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Exchange position for security
-        /// </summary>
-        public List<PositionOnBoard> PositionsOnBoard
-        {
-            get
-            {
-                try
-                {
-                    if (Portfolio == null
-                        || Securiti == null)
-                    {
-                        return null;
-                    }
-
-                    List<PositionOnBoard> positionsOnBoard = Portfolio.GetPositionOnBoard();
-
-                    List<PositionOnBoard> posesWithMySecurity = new List<PositionOnBoard>();
-
-                    for (int i = 0; positionsOnBoard != null && i < positionsOnBoard.Count; i++)
-                    {
-                        if (positionsOnBoard[i] == null)
-                        {
-                            continue;
-                        }
-
-                        if (positionsOnBoard[i].ValueCurrent == 0)
-                        {
-                            continue;
-                        }
-
-                        string nameShort = Securiti.Name + "_SHORT";
-                        string nameLong = Securiti.Name + "_LONG";
-                        string nameBoth = Securiti.Name + "_BOTH";
-
-                        if (positionsOnBoard[i].SecurityNameCode.Equals(Securiti.Name)
-                            || positionsOnBoard[i].SecurityNameCode.Equals(nameShort)
-                            || positionsOnBoard[i].SecurityNameCode.Equals(nameLong)
-                            || positionsOnBoard[i].SecurityNameCode.Equals(nameBoth))
-                        {
-                            posesWithMySecurity.Add(positionsOnBoard[i]);
-                        }
-                    }
-
-                    return posesWithMySecurity;
-                }
-                catch (Exception error)
-                {
-                    SetNewLogMessage(error.ToString(), LogMessageType.Error);
-                }
-
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Net position recruited by the robot
         /// </summary>
-        public decimal VolumeNetto
+        public decimal VolumeNet
         {
             get
             {
@@ -1072,6 +1094,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return 0;
                 }
             }
+        }
+
+        /// <summary>
+        /// Stop-limit orders
+        /// </summary>
+        public List<PositionOpenerToStopLimit> PositionOpenerToStopsAll
+        {
+            get { return PositionOpenerToStop; }
         }
 
         /// <summary>
@@ -1267,11 +1297,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             bool stopIsOnStartValue = ManualPositionSupport.StopIsOn;
             decimal stopDistance = ManualPositionSupport.StopDistance;
-            decimal stopSlipage = ManualPositionSupport.StopSlipage;
+            decimal stopSlipage = ManualPositionSupport.StopSlippage;
 
             bool profitOnStartValue = ManualPositionSupport.ProfitIsOn;
             decimal profitDistance = ManualPositionSupport.ProfitDistance;
-            decimal profitSlipage = ManualPositionSupport.ProfitSlipage;
+            decimal profitSlipage = ManualPositionSupport.ProfitSlippage;
 
             ManualPositionSupport.ShowDialog();
 
@@ -1288,7 +1318,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 neadToReplaceStop = true;
             }
             if (ManualPositionSupport.StopIsOn == true
-                && stopSlipage != ManualPositionSupport.StopSlipage)
+                && stopSlipage != ManualPositionSupport.StopSlippage)
             {
                 neadToReplaceStop = true;
             }
@@ -1304,7 +1334,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 neadToReplaceStop = true;
             }
             if (ManualPositionSupport.ProfitIsOn == true
-                && profitSlipage != ManualPositionSupport.ProfitSlipage)
+                && profitSlipage != ManualPositionSupport.ProfitSlippage)
             {
                 neadToReplaceStop = true;
             }
@@ -1527,7 +1557,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (!Connector.EmulatorIsOn)
                 {
-                    price = price + Securiti.PriceStep * 40;
+                    price = price + Security.PriceStep * 40;
                 }
 
                 OrderPriceType type = OrderPriceType.Market;
@@ -1598,8 +1628,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Enter position Long at a limit price
         /// </summary>
         /// <param name="volume">volume</param>
-        /// <param name="priceLimit">opder price</param>
-        /// <param name="signalType">>open position signal nameа. Will be written to position property: SignalTypeOpen</param>
+        /// <param name="priceLimit">order price</param>
+        /// <param name="signalType">>open position signal name. Will be written to position property: SignalTypeOpen</param>
         public Position BuyAtLimit(decimal volume, decimal priceLimit, string signalType)
         {
             Position position = BuyAtLimit(volume, priceLimit);
@@ -1617,8 +1647,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volum</param>
         /// <param name="price">order price</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public Position BuyAtIceberg(decimal volume, decimal price, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public Position BuyAtIceberg(decimal volume, decimal price, int ordersCount)
         {
             try
             {
@@ -1629,7 +1659,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     return BuyAtLimit(volume, price);
                 }
@@ -1646,23 +1676,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
-                if (Securiti != null)
+                if (Security != null)
                 {
-                    if (Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
+                    if (Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     {
-                        int point = Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
+                        int point = Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
                         price = Math.Round(price, point);
                     }
                     else
                     {
                         price = Math.Round(price, 0);
-                        while (price % Securiti.PriceStep != 0)
+                        while (price % Security.PriceStep != 0)
                         {
                             price = price - 1;
                         }
@@ -1688,9 +1718,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.State = PositionStateType.Opening;
 
                 newDeal.NameBot = TabName;
-                newDeal.Lots = Securiti.Lot;
-                newDeal.PriceStepCost = Securiti.PriceStepCost;
-                newDeal.PriceStep = Securiti.PriceStep;
+                newDeal.Lots = Security.Lot;
+                newDeal.PriceStepCost = Security.PriceStepCost;
+                newDeal.PriceStep = Security.PriceStep;
 
                 if(StartProgram == StartProgram.IsOsTrader)
                 {
@@ -1703,7 +1733,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, newDeal, IcebergType.Open, volume, this);
 
                 return newDeal;
             }
@@ -1719,11 +1749,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="price">order price</param>
-        /// <param name="orderCount">iceberg orders count</param>
+        /// <param name="ordersCount">iceberg orders count</param>
         /// <param name="signalType">>open position signal nameа. Will be written to position property: SignalTypeOpen</param>
-        public Position BuyAtIceberg(decimal volume, decimal price, int orderCount, string signalType)
+        public Position BuyAtIceberg(decimal volume, decimal price, int ordersCount, string signalType)
         {
-            Position position = BuyAtIceberg(volume, price, orderCount);
+            Position position = BuyAtIceberg(volume, price, ordersCount);
 
             if (position != null)
             {
@@ -1731,6 +1761,105 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return position;
+        }
+
+        /// <summary>
+        /// Create a FAKE long position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        public Position BuyAtFake(decimal volume, decimal price, DateTime time)
+        {
+            try
+            {
+                Side direction = Side.Buy;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
+        }
+
+        /// <summary>
+        /// Create a FAKE long position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
+        public Position BuyAtFake(decimal volume, decimal price, DateTime time, string signalType)
+        {
+            try
+            {
+                Side direction = Side.Buy;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                newDeal.SignalTypeOpen = signalType;
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
         }
 
         /// <summary>
@@ -1758,7 +1887,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
 
                 positionOpener.Volume = volume;
-                positionOpener.Security = Securiti.Name;
+                positionOpener.Security = Security.Name;
                 positionOpener.Number = NumberGen.GetNumberDeal(StartProgram);
                 positionOpener.ExpiresBars = expiresBars;
                 positionOpener.TimeCreate = TimeServerCurrent;
@@ -1867,7 +1996,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
 
                 positionOpener.Volume = volume;
-                positionOpener.Security = Securiti.Name;
+                positionOpener.Security = Security.Name;
                 positionOpener.Number = NumberGen.GetNumberDeal(StartProgram);
                 positionOpener.ExpiresBars = expiresBars;
                 positionOpener.TimeCreate = TimeServerCurrent;
@@ -1891,6 +2020,34 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.OrderPriceType = OrderPriceType.Market;
 
                 PositionOpenerToStop.Add(positionOpener);
+                UpdateStopLimits();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Cancel all buyAtStop orders
+        /// </summary>
+        public void BuyAtStopCancel()
+        {
+            try
+            {
+                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
+                {
+                    if (PositionOpenerToStop[i].Side == Side.Buy)
+                    {
+                        PositionOpenerToStop.RemoveAt(i);
+                        i--;
+                    }
+                }
                 UpdateStopLimits();
             }
             catch (Exception error)
@@ -1995,15 +2152,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = price + price * 0.01m;
 
-                if (Securiti != null && Securiti.PriceStep < 1 && Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
+                if (Security != null && Security.PriceStep < 1 && Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                 {
-                    int countPoint = Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
+                    int countPoint = Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
                     price = Math.Round(price, countPoint);
                 }
-                else if (Securiti != null && Securiti.PriceStep >= 1)
+                else if (Security != null && Security.PriceStep >= 1)
                 {
                     price = Math.Round(price, 0);
-                    while (price % Securiti.PriceStep != 0)
+                    while (price % Security.PriceStep != 0)
                     {
                         price = price - 1;
                     }
@@ -2043,8 +2200,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to which the order will be added</param>
         /// <param name="price">order price</param>
         /// <param name="volume">volume</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public void BuyAtAcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void BuyAtIcebergToPosition(Position position, decimal price, decimal volume, int ordersCount)
         {
             try
             {
@@ -2055,7 +2212,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     if (position.Direction == Side.Sell)
                     {
@@ -2080,23 +2237,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
-                if (Securiti != null)
+                if (Security != null)
                 {
-                    if (Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
+                    if (Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     {
-                        int point = Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
+                        int point = Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
                         price = Math.Round(price, point);
                     }
                     else
                     {
                         price = Math.Round(price, 0);
-                        while (price % Securiti.PriceStep != 0)
+                        while (price % Security.PriceStep != 0)
                         {
                             price = price - 1;
                         }
@@ -2117,174 +2274,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifyBuy, volume, this);
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// Cancel all purchase requisitions at level cross
-        /// </summary>
-        public void BuyAtStopCancel()
-        {
-            try
-            {
-                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
-                {
-                    if (PositionOpenerToStop[i].Side == Side.Buy)
-                    {
-                        PositionOpenerToStop.RemoveAt(i);
-                        i--;
-                    }
-                }
-                UpdateStopLimits();
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// Enter a FAKE long position
-        /// </summary>
-        /// <param name="volume">volume</param>
-        public Position BuyAtFake(decimal volume, decimal price, DateTime time)
-        {
-            try
-            {
-                Side direction = Side.Buy;
-
-                if (volume == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label63,
-                        LogMessageType.System);
-                    return null;
-                }
-
-                if (price == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
-                    return null;
-                }
-
-                if (Securiti == null || Portfolio == null)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
-                    return null;
-                }
-                price = RoundPrice(price, Securiti, direction);
-
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Securiti, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
-
-                _journal.SetNewDeal(newDeal);
-
-                OrderFakeExecute(newDeal.OpenOrders[0], time);
-                return newDeal;
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            return null;
-
-        }
-
-        /// <summary>
-        /// Enter a FAKE long position
-        /// </summary>
-        /// <param name="volume">volume</param>
-        public Position SellAtFake(decimal volume, decimal price, DateTime time)
-        {
-            try
-            {
-                Side direction = Side.Sell;
-
-                if (volume == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label63,
-                        LogMessageType.System);
-                    return null;
-                }
-
-                if (price == 0)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
-                    return null;
-                }
-
-                if (Securiti == null || Portfolio == null)
-                {
-                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
-                    return null;
-                }
-
-                price = RoundPrice(price, Securiti, direction);
-
-                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
-                    ManualPositionSupport.SecondToOpen, Securiti, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
-
-                _journal.SetNewDeal(newDeal);
-
-                OrderFakeExecute(newDeal.OpenOrders[0], time);
-                return newDeal;
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            return null;
-
-        }
-
-        /// <summary>
-        /// Execute order in Fake mode
-        /// </summary>
-        public void OrderFakeExecute(Order order, DateTime timeExecute)
-        {
-            try
-            {
-                order.TimeCreate = timeExecute;
-                order.TimeCallBack = timeExecute;
-
-                Order newOrder = new Order();
-                newOrder.NumberMarket = "fakeOrder " + NumberGen.GetNumberOrder(StartProgram);
-                newOrder.NumberUser = order.NumberUser;
-                newOrder.State = OrderStateType.Done;
-                newOrder.Volume = order.Volume;
-                newOrder.VolumeExecute = order.Volume;
-                newOrder.Price = order.Price;
-                newOrder.TimeCreate = timeExecute;
-                newOrder.TypeOrder = order.TypeOrder;
-                newOrder.TimeCallBack = timeExecute;
-                newOrder.Side = order.Side;
-                newOrder.OrderTypeTime = order.OrderTypeTime;
-                newOrder.SecurityNameCode = order.SecurityNameCode;
-                newOrder.PortfolioNumber = order.PortfolioNumber;
-                newOrder.ServerType = order.ServerType;
-
-                _connector_OrderChangeEvent(newOrder);
-
-                MyTrade trade = new MyTrade();
-
-                trade.Volume = order.Volume;
-                trade.Time = timeExecute;
-                trade.Price = order.Price;
-                trade.SecurityNameCode = order.SecurityNameCode;
-                trade.NumberTrade = "fakeTrade " + NumberGen.GetNumberOrder(StartProgram);
-                trade.Side = order.Side;
-                trade.NumberOrderParent = newOrder.NumberMarket;
-
-                _connector_MyTradeEvent(trade);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifyBuy, volume, this);
             }
             catch (Exception error)
             {
@@ -2317,7 +2307,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (!Connector.EmulatorIsOn)
                 {
-                    price = price - Securiti.PriceStep * 40;
+                    price = price - Security.PriceStep * 40;
                 }
 
                 OrderPriceType type = OrderPriceType.Market;
@@ -2434,23 +2424,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
-                if (Securiti != null)
+                if (Security != null)
                 {
-                    if (Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
+                    if (Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     {
-                        int point = Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
+                        int point = Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
                         price = Math.Round(price, point);
                     }
                     else
                     {
                         price = Math.Round(price, 0);
-                        while (price % Securiti.PriceStep != 0)
+                        while (price % Security.PriceStep != 0)
                         {
                             price = price - 1;
                         }
@@ -2476,9 +2466,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.State = PositionStateType.Opening;
 
                 newDeal.NameBot = TabName;
-                newDeal.Lots = Securiti.Lot;
-                newDeal.PriceStepCost = Securiti.PriceStepCost;
-                newDeal.PriceStep = Securiti.PriceStep;
+                newDeal.Lots = Security.Lot;
+                newDeal.PriceStepCost = Security.PriceStepCost;
+                newDeal.PriceStep = Security.PriceStep;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -2491,7 +2481,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
 
                 return newDeal;
             }
@@ -2503,7 +2493,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// enter the short position at iceberg
+        /// Enter the short position at iceberg
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="price">price</param>
@@ -2526,6 +2516,107 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             return position;
+        }
+
+        /// <summary>
+        /// Create a FAKE short position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        public Position SellAtFake(decimal volume, decimal price, DateTime time)
+        {
+            try
+            {
+                Side direction = Side.Sell;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
+        }
+
+        /// <summary>
+        /// Create a FAKE short position
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="price">order price</param>
+        /// <param name="time">order time</param>
+        /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
+        public Position SellAtFake(decimal volume, decimal price, DateTime time, string signalType)
+        {
+            try
+            {
+                Side direction = Side.Sell;
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63,
+                        LogMessageType.System);
+                    return null;
+                }
+
+                if (price == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label291, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+
+                price = RoundPrice(price, Security, direction);
+
+                Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, OrderPriceType.Limit,
+                    ManualPositionSupport.SecondToOpen, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+
+                newDeal.SignalTypeOpen = signalType;
+
+                _journal.SetNewDeal(newDeal);
+
+                OrderFakeExecute(newDeal.OpenOrders[0], time);
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+
         }
 
         /// <summary>
@@ -2553,7 +2644,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
 
                 positionOpener.Volume = volume;
-                positionOpener.Security = Securiti.Name;
+                positionOpener.Security = Security.Name;
                 positionOpener.Number = NumberGen.GetNumberDeal(StartProgram);
                 positionOpener.TabName = TabName;
                 positionOpener.ExpiresBars = expiresBars;
@@ -2663,7 +2754,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 PositionOpenerToStopLimit positionOpener = new PositionOpenerToStopLimit();
 
                 positionOpener.Volume = volume;
-                positionOpener.Security = Securiti.Name;
+                positionOpener.Security = Security.Name;
                 positionOpener.Number = NumberGen.GetNumberDeal(StartProgram);
                 positionOpener.TabName = TabName;
                 positionOpener.ExpiresBars = expiresBars;
@@ -2687,6 +2778,35 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.OrderPriceType = OrderPriceType.Market;
 
                 PositionOpenerToStop.Add(positionOpener);
+                UpdateStopLimits();
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Cancel all sellAtStop orders
+        /// </summary>
+        public void SellAtStopCancel()
+        {
+            try
+            {
+                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
+                {
+                    if (PositionOpenerToStop[i].Side == Side.Sell)
+                    {
+                        PositionOpenerToStop.RemoveAt(i);
+                        i--;
+                    }
+                }
+
                 UpdateStopLimits();
             }
             catch (Exception error)
@@ -2791,15 +2911,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = price - price * 0.01m;
 
-                if (Securiti != null && Securiti.PriceStep < 1 && Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
+                if (Security != null && Security.PriceStep < 1 && Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                 {
-                    int countPoint = Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
+                    int countPoint = Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
                     price = Math.Round(price, countPoint);
                 }
-                else if (Securiti != null && Securiti.PriceStep >= 1)
+                else if (Security != null && Security.PriceStep >= 1)
                 {
                     price = Math.Round(price, 0);
-                    while (price % Securiti.PriceStep != 0)
+                    while (price % Security.PriceStep != 0)
                     {
                         price = price - 1;
                     }
@@ -2839,8 +2959,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to which the order will be added</param>
         /// <param name="price">order price</param>
         /// <param name="volume">volum</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public void SellAtAcebergToPosition(Position position, decimal price, decimal volume, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void SellAtIcebergToPosition(Position position, decimal price, decimal volume, int ordersCount)
         {
             try
             {
@@ -2851,7 +2971,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     if (position.Direction == Side.Buy)
                     {
@@ -2875,23 +2995,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
-                if (Securiti != null)
+                if (Security != null)
                 {// if we do not test, then we cut the price by the minimum step of the instrument
-                    if (Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
+                    if (Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                     { // truncate if decimal places
-                        int point = Convert.ToDouble(Securiti.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
+                        int point = Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',')[1].Length;
                         price = Math.Round(price, point);
                     }
                     else
                     {
                         price = Math.Round(price, 0);
-                        while (price % Securiti.PriceStep != 0)
+                        while (price % Security.PriceStep != 0)
                         {
                             price = price - 1;
                         }
@@ -2912,36 +3032,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _acebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, position, IcebergType.ModifySell, volume, this);
-            }
-            catch (Exception error)
-            {
-                SetNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-        /// Cancel all purchase requisitions at level cross
-        /// </summary>
-        public void SellAtStopCancel()
-        {
-            try
-            {
-                if (PositionOpenerToStop == null || PositionOpenerToStop.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count; i++)
-                {
-                    if (PositionOpenerToStop[i].Side == Side.Sell)
-                    {
-                        PositionOpenerToStop.RemoveAt(i);
-                        i--;
-                    }
-                }
-
-                UpdateStopLimits();
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifySell, volume, this);
             }
             catch (Exception error)
             {
@@ -3040,7 +3131,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if (Securiti == null)
+                if (Security == null)
                 {
                     return;
                 }
@@ -3052,7 +3143,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     sideCloseOrder = Side.Sell;
                 }
 
-                price = RoundPrice(price, Securiti, sideCloseOrder);
+                price = RoundPrice(price, Security, sideCloseOrder);
 
                 if (position.State == PositionStateType.Done &&
                     position.OpenVolume == 0)
@@ -3063,11 +3154,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.State = PositionStateType.Closing;
 
                 Order closeOrder
-                    = _dealCreator.CreateCloseOrderForDeal(Securiti, position, price, 
+                    = _dealCreator.CreateCloseOrderForDeal(Security, position, price, 
                     OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1), StartProgram, ManualPositionSupport.OrderTypeTime);
 
-                closeOrder.SecurityNameCode = Securiti.Name;
-                closeOrder.SecurityClassCode = Securiti.NameClass;
+                closeOrder.SecurityNameCode = Security.Name;
+                closeOrder.SecurityClassCode = Security.NameClass;
                 closeOrder.PortfolioNumber = Portfolio.Number;
 
                 if(volume < position.OpenVolume &&
@@ -3122,7 +3213,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (!Connector.EmulatorIsOn)
                     {
-                        price = _connector.BestBid - Securiti.PriceStep * 40;
+                        price = _connector.BestBid - Security.PriceStep * 40;
                     }
                     else
                     {
@@ -3133,7 +3224,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (!Connector.EmulatorIsOn)
                     {
-                        price = price + Securiti.PriceStep * 40;
+                        price = price + Security.PriceStep * 40;
                     }
                 }
 
@@ -3250,8 +3341,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceLimit">order price</param>
         /// <param name="volume">volume required to close</param>
-        /// <param name="orderCount">iceberg orders count</param>
-        public void CloseAtAceberg(Position position, decimal priceLimit, decimal volume, int orderCount)
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int ordersCount)
         {
             try
             {
@@ -3259,7 +3350,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
                     if (position.OpenVolume <= volume)
                     {
@@ -3274,11 +3365,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Buy)
                 {
-                    SellAtAcebergToPosition(position, priceLimit, volume, orderCount);
+                    SellAtIcebergToPosition(position, priceLimit, volume, ordersCount);
                 }
                 else
                 {
-                    BuyAtAcebergToPosition(position, priceLimit, volume, orderCount);
+                    BuyAtIcebergToPosition(position, priceLimit, volume, ordersCount);
                 }
             }
             catch (Exception error)
@@ -3293,12 +3384,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="priceLimit">order price</param>
         /// <param name="volume">volume required to close</param>
-        /// <param name="orderCount">iceberg orders count</param>
+        /// <param name="ordersCount">iceberg orders count</param>
         /// <param name="signalType">close position signal name</param>
-        public void CloseAtAceberg(Position position, decimal priceLimit, decimal volume, int orderCount, string signalType)
+        public void CloseAtIceberg(Position position, decimal priceLimit, decimal volume, int ordersCount, string signalType)
         {
             position.SignalTypeClose = signalType;
-            CloseAtAceberg(position, priceLimit, volume, orderCount);
+            CloseAtIceberg(position, priceLimit, volume, ordersCount);
         }
 
         /// <summary>
@@ -3711,6 +3802,52 @@ namespace OsEngine.OsTrader.Panels.Tab
             _connector.ChangeOrderPrice(order, newPrice);
         }
 
+        /// <summary>
+        /// Execute order in Fake mode
+        /// </summary>
+        public void OrderFakeExecute(Order order, DateTime timeExecute)
+        {
+            try
+            {
+                order.TimeCreate = timeExecute;
+                order.TimeCallBack = timeExecute;
+
+                Order newOrder = new Order();
+                newOrder.NumberMarket = "fakeOrder " + NumberGen.GetNumberOrder(StartProgram);
+                newOrder.NumberUser = order.NumberUser;
+                newOrder.State = OrderStateType.Done;
+                newOrder.Volume = order.Volume;
+                newOrder.VolumeExecute = order.Volume;
+                newOrder.Price = order.Price;
+                newOrder.TimeCreate = timeExecute;
+                newOrder.TypeOrder = order.TypeOrder;
+                newOrder.TimeCallBack = timeExecute;
+                newOrder.Side = order.Side;
+                newOrder.OrderTypeTime = order.OrderTypeTime;
+                newOrder.SecurityNameCode = order.SecurityNameCode;
+                newOrder.PortfolioNumber = order.PortfolioNumber;
+                newOrder.ServerType = order.ServerType;
+
+                _connector_OrderChangeEvent(newOrder);
+
+                MyTrade trade = new MyTrade();
+
+                trade.Volume = order.Volume;
+                trade.Time = timeExecute;
+                trade.Price = order.Price;
+                trade.SecurityNameCode = order.SecurityNameCode;
+                trade.NumberTrade = "fakeTrade " + NumberGen.GetNumberOrder(StartProgram);
+                trade.Side = order.Side;
+                trade.NumberOrderParent = newOrder.NumberMarket;
+
+                _connector_MyTradeEvent(trade);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         // internal position management functions
 
         /// <summary>
@@ -3741,16 +3878,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
-                price = RoundPrice(price, Securiti, Side.Sell);
+                price = RoundPrice(price, Security, Side.Sell);
 
                 Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, priceType,
-                    timeLife, Securiti, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                    timeLife, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
                 _journal.SetNewDeal(newDeal);
 
@@ -3792,13 +3929,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
-                price = RoundPrice(price, Securiti, Side.Sell);
+                price = RoundPrice(price, Security, Side.Sell);
 
                 if(safeRegime == true)
                 {
@@ -3815,13 +3952,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                Order newOrder = _dealCreator.CreateOrder(Securiti, Side.Sell, price, volume, orderType,
+                Order newOrder = _dealCreator.CreateOrder(Security, Side.Sell, price, volume, orderType,
                     ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open,ManualPositionSupport.OrderTypeTime);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
 
-                SetNewLogMessage(Securiti.Name + " short position modification", LogMessageType.Trade);
+                SetNewLogMessage(Security.Name + " short position modification", LogMessageType.Trade);
 
                 if (position.OpenOrders[0].SecurityNameCode.EndsWith(" TestPaper"))
                 {
@@ -3865,16 +4002,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return null;
                 }
 
-                price = RoundPrice(price, Securiti, Side.Buy);
+                price = RoundPrice(price, Security, Side.Buy);
 
                 Position newDeal = _dealCreator.CreatePosition(TabName, direction, price, volume, priceType,
-                    timeLife, Securiti, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
+                    timeLife, Security, Portfolio, StartProgram, ManualPositionSupport.OrderTypeTime);
                 newDeal.OpenOrders[0].IsStopOrProfit = isStopOrProfit;
                 _journal.SetNewDeal(newDeal);
 
@@ -3916,13 +4053,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (Securiti == null || Portfolio == null)
+                if (Security == null || Portfolio == null)
                 {
                     SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
                     return;
                 }
 
-                price = RoundPrice(price, Securiti, Side.Buy);
+                price = RoundPrice(price, Security, Side.Buy);
 
                 if(safeRegime == true)
                 {
@@ -3939,12 +4076,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                Order newOrder = _dealCreator.CreateOrder(Securiti, Side.Buy, price, volume, orderType,
+                Order newOrder = _dealCreator.CreateOrder(Security, Side.Buy, price, volume, orderType,
                     ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open, ManualPositionSupport.OrderTypeTime);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
-                newOrder.SecurityNameCode = Securiti.Name;
-                newOrder.SecurityClassCode = Securiti.NameClass;
+                newOrder.SecurityNameCode = Security.Name;
+                newOrder.SecurityClassCode = Security.NameClass;
 
                 position.AddNewOpenOrder(newOrder);
 
@@ -4000,7 +4137,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if (Securiti == null)
+                if (Security == null)
                 {
                     return;
                 }
@@ -4010,7 +4147,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     sideCloseOrder = Side.Sell;
                 }
-                price = RoundPrice(price, Securiti, sideCloseOrder);
+                price = RoundPrice(price, Security, sideCloseOrder);
 
                 if (position.State == PositionStateType.Done &&
                     position.OpenVolume == 0)
@@ -4020,11 +4157,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 position.State = PositionStateType.Closing;
 
-                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Securiti, position, price, 
+                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price, 
                     priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime);
 
-                closeOrder.SecurityNameCode = Securiti.Name;
-                closeOrder.SecurityClassCode = Securiti.NameClass;
+                closeOrder.SecurityNameCode = Security.Name;
+                closeOrder.SecurityClassCode = Security.NameClass;
 
                 if (closeOrder == null)
                 {
@@ -4103,7 +4240,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if (Securiti == null)
+                if (Security == null)
                 {
                     return;
                 }
@@ -4113,9 +4250,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     sideCloseOrder = Side.Sell;
                 }
-                price = RoundPrice(price, Securiti, sideCloseOrder);
+                price = RoundPrice(price, Security, sideCloseOrder);
 
-                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Securiti, position, price, 
+                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price, 
                     priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime);
 
                 if (closeOrder == null)
@@ -4339,14 +4476,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (Securiti.PriceStep == 0)
+                if (Security.PriceStep == 0)
                 {
                     return price;
                 }
 
                 if (security.Decimals > 0)
                 {
-                    price = Math.Round(price, Securiti.Decimals);
+                    price = Math.Round(price, Security.Decimals);
 
                     decimal minStep = 0.1m;
 
@@ -4355,7 +4492,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         minStep = minStep * 0.1m;
                     }
 
-                    while (price % Securiti.PriceStep != 0)
+                    while (price % Security.PriceStep != 0)
                     {
                         price = price - minStep;
                     }
@@ -4363,22 +4500,22 @@ namespace OsEngine.OsTrader.Panels.Tab
                 else
                 {
                     price = Math.Round(price, 0);
-                    while (price % Securiti.PriceStep != 0)
+                    while (price % Security.PriceStep != 0)
                     {
                         price = price - 1;
                     }
                 }
 
                 if (side == Side.Buy &&
-                    Securiti.PriceLimitHigh != 0 && price > Securiti.PriceLimitHigh)
+                    Security.PriceLimitHigh != 0 && price > Security.PriceLimitHigh)
                 {
-                    price = Securiti.PriceLimitHigh;
+                    price = Security.PriceLimitHigh;
                 }
 
                 if (side == Side.Sell &&
-                    Securiti.PriceLimitLow != 0 && price < Securiti.PriceLimitLow)
+                    Security.PriceLimitLow != 0 && price < Security.PriceLimitLow)
                 {
-                    price = Securiti.PriceLimitLow;
+                    price = Security.PriceLimitLow;
                 }
 
                 return price;
@@ -4460,7 +4597,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 if (ServerStatus != ServerConnectStatus.Connect ||
-                    Securiti == null ||
+                    Security == null ||
                     Portfolio == null)
                 {
                     return false;
@@ -4634,7 +4771,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (signal.SignalType == SignalType.CloseAll)
                 {
-                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label67 +
+                    SetNewLogMessage(Security.Name + OsLocalization.Trader.Label67 +
                                         _connector.BestBid, LogMessageType.Signal);
 
                     CloseAllAtMarket();
@@ -4649,7 +4786,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         return;
                     }
 
-                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label67 +
+                    SetNewLogMessage(Security.Name + OsLocalization.Trader.Label67 +
                                         _connector.BestBid, LogMessageType.Signal);
 
                     if (signal.PriceType == OrderPriceType.Market)
@@ -4675,7 +4812,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (signal.SignalType == SignalType.Buy)
                 {
-                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label69 + _connector.BestBid, LogMessageType.Signal);
+                    SetNewLogMessage(Security.Name + OsLocalization.Trader.Label69 + _connector.BestBid, LogMessageType.Signal);
 
                     if (signal.PriceType == OrderPriceType.Market)
                     {
@@ -4688,7 +4825,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (signal.SignalType == SignalType.Sell)
                 {
-                    SetNewLogMessage(Securiti.Name + OsLocalization.Trader.Label68 + _connector.BestBid, LogMessageType.Signal);
+                    SetNewLogMessage(Security.Name + OsLocalization.Trader.Label68 + _connector.BestBid, LogMessageType.Signal);
 
                     if (signal.PriceType == OrderPriceType.Market)
                     {
@@ -4764,7 +4901,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             if (ServerStatus != ServerConnectStatus.Connect ||
-                Securiti == null ||
+                Security == null ||
                 Portfolio == null)
             {
                 return;
@@ -4830,12 +4967,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Sell && position.OpenVolume < 0)
                 {
-                    ShortUpdate(position, PriceBestBid - Securiti.PriceStep * 30, 
+                    ShortUpdate(position, PriceBestBid - Security.PriceStep * 30, 
                         Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
                 if (position.Direction == Side.Buy && position.OpenVolume < 0)
                 {
-                    LongUpdate(position, PriceBestAsk + Securiti.PriceStep * 30, 
+                    LongUpdate(position, PriceBestAsk + Security.PriceStep * 30, 
                         Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
             }
@@ -4891,7 +5028,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void CheckStopOpener(decimal price)
         {
             if (ServerStatus != ServerConnectStatus.Connect ||
-                Securiti == null || Portfolio == null)
+                Security == null || Portfolio == null)
             {
                 return;
             }
@@ -4998,12 +5135,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Icebergs master
         /// </summary>
-        private IcebergMaker _acebergMaker;
+        private IcebergMaker _icebergMaker;
 
         /// <summary>
         /// Iceberg Master Requests To Cancel Order
         /// </summary>
-        void _acebergMaker_NewOrderNeadToCansel(Order order)
+        void _icebergMaker_NewOrderNeedToCancel(Order order)
         {
             _connector.OrderCancel(order);
         }
@@ -5011,7 +5148,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Icebergs master requires you to place an order
         /// </summary>
-        void _acebergMaker_NewOrderNeadToExecute(Order order)
+        void _icebergMaker_NewOrderNeedToExecute(Order order)
         {
             _connector.OrderExecute(order);
         }
@@ -5019,11 +5156,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Clear all icebergs from the system
         /// </summary>
-        public void ClearAceberg()
+        public void ClearIceberg()
         {
             try
             {
-                _acebergMaker?.ClearIcebergs();
+                _icebergMaker?.ClearIcebergs();
             }
             catch (Exception error)
             {
@@ -5047,7 +5184,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// New MarketDepth event handler
         /// </summary>
-        void _connector_GlassChangeEvent(MarketDepth marketDepth)
+        private void _connector_GlassChangeEvent(MarketDepth marketDepth)
         {
             if (_isDelete)
             {
@@ -5713,7 +5850,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
             _journal.SetNewOrder(order);
-            _acebergMaker.SetNewOrder(order);
+            _icebergMaker.SetNewOrder(order);
 
             if (OrderUpdateEvent != null)
             {
@@ -5784,10 +5921,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private static List<BotTabSimple> _tabsToCheckPositionEvent = new List<BotTabSimple>();
 
-        ConcurrentQueue<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsQueue 
+        private ConcurrentQueue<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsQueue 
             = new ConcurrentQueue<PositionAwaitMyTradesToSendEvent> ();
 
-        List<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsList 
+        private List<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsList 
             = new List<PositionAwaitMyTradesToSendEvent>();
 
         public void CheckAwaitPositionsArea()
@@ -5886,9 +6023,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
-        /// The morning session started. Send the first trades
+        /// Updated order
         /// </summary>
-        public event Action<Trade> FirstTickToDayEvent;
+        public event Action<Order> OrderUpdateEvent;
 
         /// <summary>
         /// New trades
@@ -5971,14 +6108,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         public event Action<Portfolio> PortfolioOnExchangeChangedEvent;
 
         /// <summary>
-        /// The robot is removed from the system
+        /// The morning session started. Send the first trades
         /// </summary>
-        public event Action<int> DeleteBotEvent;
-
-        /// <summary>
-        /// Updated order
-        /// </summary>
-        public event Action<Order> OrderUpdateEvent;
+        public event Action<Trade> FirstTickToDayEvent;
 
         /// <summary>
         /// Indicator parameters changed
@@ -5994,6 +6126,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Source removed
         /// </summary>
         public event Action TabDeletedEvent;
+
+        /// <summary>
+        /// The robot is removed from the system
+        /// </summary>
+        public event Action<int> DeleteBotEvent;
     }
 
     /// <summary>

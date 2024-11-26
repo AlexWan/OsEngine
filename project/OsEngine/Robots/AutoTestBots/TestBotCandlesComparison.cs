@@ -85,8 +85,8 @@ namespace OsEngine.Robots.AutoTestBots
 
             List<Candle> candlesFromServer
                 = server.GetCandleDataToSecurity(
-                    _tab.Securiti.Name,
-                    _tab.Securiti.NameClass,
+                    _tab.Security.Name,
+                    _tab.Security.NameClass,
                     _tab.TimeFrameBuilder,
                     DateTime.Now.AddDays(-2),
                     DateTime.Now.AddDays(1),
@@ -229,8 +229,8 @@ namespace OsEngine.Robots.AutoTestBots
 
             List<Candle> candlesFromServer
                 = server.GetCandleDataToSecurity(
-                    _tab.Securiti.Name,
-                    _tab.Securiti.NameClass,
+                    _tab.Security.Name,
+                    _tab.Security.NameClass,
                     _tab.TimeFrameBuilder,
                     DateTime.Now.AddDays(-2),
                     DateTime.Now.AddDays(1),

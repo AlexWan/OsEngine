@@ -1,0 +1,363 @@
+﻿using System.Collections.Generic;
+using OsEngine.Entity;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.OsTrader.Panels.Tab;
+using System;
+
+namespace OsEngine.Robots.BotsFromStartLessons
+{
+    [Bot("Lesson9Bot3")]
+    public class Lesson9Bot3 : BotPanel
+    {
+        BotTabSimple _tabToTrade;
+
+        public Lesson9Bot3(string name, StartProgram startProgram) : base(name, startProgram)
+        {
+            TabCreate(BotTabType.Simple);
+            _tabToTrade = TabsSimple[0];
+
+            // BuyAtMarket / SellAtMarket
+
+            _buyMarketButton = CreateParameterButton("Market Buy", "Open");
+            _buyMarketButton.UserClickOnButtonEvent += MarketBuy_UserClickOnButtonEvent;
+            _sellMarketButton = CreateParameterButton("Market Sell", "Open");
+            _sellMarketButton.UserClickOnButtonEvent += MarketSell_UserClickOnButtonEvent;
+
+            // CloseAllAtMarket
+
+            _closeAllMarketButton = CreateParameterButton("Close all at market", "Market all");
+            _closeAllMarketButton.UserClickOnButtonEvent += _closeAllMarketButton_UserClickOnButtonEvent;
+            _closeAllAtMarketSignal = CreateParameter("Close all at market have signal", false, "Market all");
+
+            // CloseAtFake
+
+            _closeAtFakeButton = CreateParameterButton("Close at fake", "Fake");
+            _closeAtFakeButton.UserClickOnButtonEvent += _closeAtFakeButton_UserClickOnButtonEvent;
+
+            // CloseAtMarket
+
+            _closeAtMarketButton = CreateParameterButton("Close at market", "Market one");
+            _closeAtMarketButton.UserClickOnButtonEvent += _closeAtMarketButton_UserClickOnButtonEvent;
+            _closeAtMarketSignal = CreateParameter("Close at market have signal", false, "Market one");
+
+            // CloseAtLimit
+
+            _closeAtLimitButton = CreateParameterButton("Close at Limit", "Limit");
+            _closeAtLimitButton.UserClickOnButtonEvent += _closeAtLimitButton_UserClickOnButtonEvent;
+            _closeAtLimitSignal = CreateParameter("Close at Limit have signal", false, "Limit");
+
+            // CloseAtLimit
+
+            _closeAtLimitUnsafeButton = CreateParameterButton("Close at Limit Unsafe", "LimitUnsafe");
+            _closeAtLimitUnsafeButton.UserClickOnButtonEvent += _closeAtLimitUnsafeButton_UserClickOnButtonEvent;
+
+            // CloseAtIceberg
+
+            _closeAtIcebergButton = CreateParameterButton("Close at Iceberg", "Iceberg");
+            _closeAtIcebergButton.UserClickOnButtonEvent += _closeAtIcebergButton_UserClickOnButtonEvent;
+            _closeAtIcebergSignal = CreateParameter("Close at Iceberg have signal", false, "Iceberg");
+            _icebergCount = CreateParameter("Iceberg orders count", 2, 1, 10, 1, "Iceberg");
+        }
+
+        #region BuyAtMarket / SellAtMarket
+
+        private StrategyParameterButton _buyMarketButton;
+
+        private StrategyParameterButton _sellMarketButton;
+
+        private void MarketBuy_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            _tabToTrade.BuyAtMarket(volume);
+        }
+
+        private void MarketSell_UserClickOnButtonEvent()
+        {
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            decimal volume = 1;
+
+            _tabToTrade.SellAtMarket(volume);
+        }
+
+        #endregion
+
+        #region CloseAllAtMarket
+
+        private StrategyParameterButton _closeAllMarketButton;
+
+        private StrategyParameterBool _closeAllAtMarketSignal;
+
+        private void _closeAllMarketButton_UserClickOnButtonEvent()
+        {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            for (int i = 0; i < openPositions.Count; i++)
+            {
+                Position position = openPositions[i];
+
+                _tabToTrade.CloseAllOrderToPosition(position);
+
+                if (position.OpenVolume == 0)
+                {
+                    continue;
+                }
+
+                if(_closeAllAtMarketSignal.ValueBool == false)
+                {
+                    _tabToTrade.CloseAtMarket(position, position.OpenVolume);
+                }
+                else if(_closeAllAtMarketSignal.ValueBool == false)
+                {
+                    _tabToTrade.CloseAtMarket(position, position.OpenVolume, "User click close ALL at market button");
+                }
+            }
+        }
+
+        #endregion
+
+        #region CloseAtFake
+
+        private StrategyParameterButton _closeAtFakeButton;
+
+        private void _closeAtFakeButton_UserClickOnButtonEvent()
+        {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
+            if(openPositions.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position position = openPositions[0];
+            _tabToTrade.CloseAllOrderToPosition(position);
+
+            DateTime time = _tabToTrade.TimeServerCurrent;
+
+            if(position.Direction == Side.Buy)
+            {
+                decimal price = _tabToTrade.PriceBestAsk;
+
+                _tabToTrade.CloseAtFake(position, position.OpenVolume, price, time);
+            }
+            else if(position.Direction == Side.Sell)
+            {
+                decimal price = _tabToTrade.PriceBestBid;
+
+                _tabToTrade.CloseAtFake(position, position.OpenVolume, price, time);
+            }
+        }
+
+        #endregion
+
+        #region CloseAtMarket
+
+        private StrategyParameterButton _closeAtMarketButton;
+
+        private StrategyParameterBool _closeAtMarketSignal;
+
+        private void _closeAtMarketButton_UserClickOnButtonEvent()
+        {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
+            if (openPositions.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position position = openPositions[0];
+            _tabToTrade.CloseAllOrderToPosition(position);
+
+            if(_closeAtMarketSignal.ValueBool == false)
+            {
+                _tabToTrade.CloseAtMarket(position, position.OpenVolume);
+            }
+            else if (_closeAtMarketSignal.ValueBool == true)
+            {
+                _tabToTrade.CloseAtMarket(position, position.OpenVolume, "User click close at market button");
+            }
+        }
+
+        #endregion
+
+        #region CloseAtLimit
+
+        private StrategyParameterButton _closeAtLimitButton;
+
+        private StrategyParameterBool _closeAtLimitSignal;
+
+        private void _closeAtLimitButton_UserClickOnButtonEvent()
+        {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
+            if (openPositions.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position position = openPositions[0];
+            _tabToTrade.CloseAllOrderToPosition(position);
+
+            decimal price = 0;
+
+            if(position.Direction == Side.Buy)
+            {
+                price = _tabToTrade.PriceBestAsk;
+            }
+            else if(position.Direction == Side.Sell)
+            {
+                price = _tabToTrade.PriceBestBid;
+            }
+
+            if (_closeAtLimitSignal.ValueBool == false)
+            {
+                _tabToTrade.CloseAtLimit(position, price, position.OpenVolume);
+            }
+            else if (_closeAtLimitSignal.ValueBool == true)
+            {
+                _tabToTrade.CloseAtLimit(position, price, position.OpenVolume, "User click close at Limit button");
+            }
+        }
+
+        #endregion
+
+        #region CloseAtLimitUnsafe
+
+        private StrategyParameterButton _closeAtLimitUnsafeButton;
+
+        private void _closeAtLimitUnsafeButton_UserClickOnButtonEvent()
+        {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
+            if (openPositions.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position position = openPositions[0];
+
+            decimal price = 0;
+
+            if (position.Direction == Side.Buy)
+            {
+                price = _tabToTrade.PriceBestAsk;
+            }
+            else if (position.Direction == Side.Sell)
+            {
+                price = _tabToTrade.PriceBestBid;
+            }
+
+            _tabToTrade.CloseAtLimitUnsafe(position, price, position.OpenVolume);
+        }
+
+        #endregion
+
+        #region CloseAtIceberg
+
+        private StrategyParameterButton _closeAtIcebergButton;
+
+        private StrategyParameterInt _icebergCount;
+
+        private StrategyParameterBool _closeAtIcebergSignal;
+
+        private void _closeAtIcebergButton_UserClickOnButtonEvent()
+        {
+            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+
+            if (openPositions.Count == 0)
+            {
+                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
+                return;
+            }
+
+            if (_tabToTrade.IsReadyToTrade == false)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                return;
+            }
+
+            Position position = openPositions[0];
+            _tabToTrade.CloseAllOrderToPosition(position);
+
+            decimal price = 0;
+
+            if (position.Direction == Side.Buy)
+            {
+                price = _tabToTrade.PriceBestAsk;
+            }
+            else if (position.Direction == Side.Sell)
+            {
+                price = _tabToTrade.PriceBestBid;
+            }
+
+            int ordersCount = _icebergCount.ValueInt;
+
+            if (_closeAtIcebergSignal.ValueBool == false)
+            {
+                _tabToTrade.CloseAtIceberg(position, price, position.OpenVolume, ordersCount);
+            }
+            else if (_closeAtIcebergSignal.ValueBool == true)
+            {
+                _tabToTrade.CloseAtIceberg(position, price, position.OpenVolume, ordersCount, "User click close at Iceberg button");
+            }
+        }
+
+        #endregion
+
+        public override string GetNameStrategyType()
+        {
+            return "Lesson9Bot3";
+        }
+
+        public override void ShowIndividualSettingsDialog()
+        {
+
+        }
+    }
+}

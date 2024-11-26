@@ -398,11 +398,11 @@ namespace OsEngine.Robots.MarketMaker
 
                 if (pos.Direction == Side.Buy)
                 {
-                    price = _tab1.CandlesAll[_tab1.CandlesAll.Count - 1].Close - _tab1.Securiti.PriceStep * 10;
+                    price = _tab1.CandlesAll[_tab1.CandlesAll.Count - 1].Close - _tab1.Security.PriceStep * 10;
                 }
                 else
                 {
-                    price = _tab1.CandlesAll[_tab1.CandlesAll.Count - 1].Close + _tab1.Securiti.PriceStep * 10;
+                    price = _tab1.CandlesAll[_tab1.CandlesAll.Count - 1].Close + _tab1.Security.PriceStep * 10;
                 }
 
                 _tab1.CloseAtLimit(pos, price, pos.OpenVolume);
@@ -417,11 +417,11 @@ namespace OsEngine.Robots.MarketMaker
 
                 if (pos.Direction == Side.Buy)
                 {
-                    price = _tab2.CandlesAll[_tab2.CandlesAll.Count - 1].Close - _tab2.Securiti.PriceStep * 10;
+                    price = _tab2.CandlesAll[_tab2.CandlesAll.Count - 1].Close - _tab2.Security.PriceStep * 10;
                 }
                 else
                 {
-                    price = _tab2.CandlesAll[_tab2.CandlesAll.Count - 1].Close + _tab2.Securiti.PriceStep * 10;
+                    price = _tab2.CandlesAll[_tab2.CandlesAll.Count - 1].Close + _tab2.Security.PriceStep * 10;
                 }
 
                 _tab2.CloseAtLimit(pos, price, pos.OpenVolume);

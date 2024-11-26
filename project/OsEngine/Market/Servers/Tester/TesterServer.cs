@@ -3951,9 +3951,9 @@ namespace OsEngine.Market.Servers.Tester
 
                 for (int i2 = 0; currentTabs != null && i2 < currentTabs.Count; i2++)
                 {
-                    if (currentTabs[i2].Securiti != null)
+                    if (currentTabs[i2].Security != null)
                     {
-                        namesSecurity.Add(currentTabs[i2].Securiti.Name);
+                        namesSecurity.Add(currentTabs[i2].Security.Name);
                     }
                 }
             }
@@ -3970,13 +3970,13 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         PairToTrade pair = pairs[i3];
 
-                        if (pair.Tab1.Securiti != null)
+                        if (pair.Tab1.Security != null)
                         {
-                            namesSecurity.Add(pair.Tab1.Securiti.Name);
+                            namesSecurity.Add(pair.Tab1.Security.Name);
                         }
-                        if (pair.Tab2.Securiti != null)
+                        if (pair.Tab2.Security != null)
                         {
-                            namesSecurity.Add(pair.Tab2.Securiti.Name);
+                            namesSecurity.Add(pair.Tab2.Security.Name);
                         }
                     }
                 }

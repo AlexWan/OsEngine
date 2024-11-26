@@ -86,27 +86,27 @@ namespace OsEngine.Robots.AutoTestBots
 
             if (candle.Open != open)
             {
-                tab.SetNewLogMessage("Open не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Securiti.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Open не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.High != high)
             {
-                tab.SetNewLogMessage("High не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Securiti.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("High не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.Low != low)
             {
-                tab.SetNewLogMessage("Low не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Securiti.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Low не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.Close != close)
             {
-                tab.SetNewLogMessage("Close не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Securiti.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Close не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.Volume != volume)
             {
-                tab.SetNewLogMessage("Volume не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Securiti.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Volume не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
         }

@@ -208,14 +208,14 @@ public class RsiTrade : BotPanel
                                             && Regime.ValueString != "OnlyShort")
         {
             _tab.BuyAtLimit(Volume.ValueDecimal,
-                _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
         }
 
         if (_secondRsi > Upline.Value && _firstRsi < Upline.Value
                                           && Regime.ValueString != "OnlyLong")
         {
             _tab.SellAtLimit(Volume.ValueDecimal,
-                _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
         }
     }
 
@@ -235,12 +235,12 @@ public class RsiTrade : BotPanel
             if (_secondRsi >= Upline.Value && _firstRsi <= Upline.Value)
             {
                 _tab.CloseAtLimit(position,
-                    _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
+                    _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
                 if (Regime.ValueString != "OnlyLong" && Regime.ValueString != "OnlyClosePosition")
                 {
                     _tab.SellAtLimit(Volume.ValueDecimal,
-                        _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                        _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
@@ -249,12 +249,12 @@ public class RsiTrade : BotPanel
             if (_secondRsi <= Downline.Value && _firstRsi >= Downline.Value)
             {
                 _tab.CloseAtLimit(position,
-                    _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep, position.OpenVolume);
+                    _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
                 if (Regime.ValueString != "OnlyShort" && Regime.ValueString != "OnlyClosePosition")
                 {
                     _tab.BuyAtLimit(Volume.ValueDecimal,
-                        _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                        _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }

@@ -285,11 +285,11 @@ namespace OsEngine.Robots.MarketMaker
         {
             if (lastRsi > Upline.ValueInt && Regime.ValueString != "OnlyLong")
             {
-                tab.SellAtLimit(Volume.ValueInt, tab.PriceBestBid - Slippage.ValueInt * tab.Securiti.PriceStep);
+                tab.SellAtLimit(Volume.ValueInt, tab.PriceBestBid - Slippage.ValueInt * tab.Security.PriceStep);
             }
             if (lastRsi < Downline.ValueInt && Regime.ValueString != "OnlyShort")
             {
-                tab.BuyAtLimit(Volume.ValueInt, tab.PriceBestAsk + Slippage.ValueInt * tab.Securiti.PriceStep);
+                tab.BuyAtLimit(Volume.ValueInt, tab.PriceBestAsk + Slippage.ValueInt * tab.Security.PriceStep);
             }
         }
 
@@ -303,14 +303,14 @@ namespace OsEngine.Robots.MarketMaker
             {
                 if (lastRsi > Upline.ValueInt)
                 {
-                    tab.CloseAtLimit(position, tab.PriceBestBid - Slippage.ValueInt * tab.Securiti.PriceStep, position.OpenVolume);
+                    tab.CloseAtLimit(position, tab.PriceBestBid - Slippage.ValueInt * tab.Security.PriceStep, position.OpenVolume);
                 }
             }
             if (position.Direction == Side.Sell)
             {
                 if (lastRsi < Downline.ValueInt)
                 {
-                    tab.CloseAtLimit(position, tab.PriceBestAsk + Slippage.ValueInt * tab.Securiti.PriceStep, position.OpenVolume);
+                    tab.CloseAtLimit(position, tab.PriceBestAsk + Slippage.ValueInt * tab.Security.PriceStep, position.OpenVolume);
                 }
             }
         }

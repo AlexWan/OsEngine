@@ -442,11 +442,11 @@ namespace OsEngine.Robots.Patterns
         {
             if (SideInter == Side.Buy)
             {
-                _tab.BuyAtLimit(OpenVolume, price + _tab.Securiti.PriceStep * InterToPatternSleepage);
+                _tab.BuyAtLimit(OpenVolume, price + _tab.Security.PriceStep * InterToPatternSleepage);
             }
             else
             {
-                _tab.SellAtLimit(OpenVolume, price - _tab.Securiti.PriceStep * InterToPatternSleepage);
+                _tab.SellAtLimit(OpenVolume, price - _tab.Security.PriceStep * InterToPatternSleepage);
             }
         }
 
@@ -461,14 +461,14 @@ namespace OsEngine.Robots.Patterns
                 if (position.Direction == Side.Buy)
                 {
                     decimal stopPrice = position.EntryPrice + position.EntryPrice * (ProfitOrderValue / 100);
-                    decimal stopOrderPrice = stopPrice - _tab.Securiti.PriceStep * ProfitOrderSleepage;
+                    decimal stopOrderPrice = stopPrice - _tab.Security.PriceStep * ProfitOrderSleepage;
 
                     _tab.CloseAtProfit(position, stopPrice, stopOrderPrice);
                 }
                 else if (position.Direction == Side.Sell)
                 {
                     decimal stopPrice = position.EntryPrice - position.EntryPrice * (ProfitOrderValue / 100);
-                    decimal stopOrderPrice = stopPrice + _tab.Securiti.PriceStep * ProfitOrderSleepage;
+                    decimal stopOrderPrice = stopPrice + _tab.Security.PriceStep * ProfitOrderSleepage;
                     _tab.CloseAtProfit(position, stopPrice, stopOrderPrice);
                 }
             }
@@ -478,13 +478,13 @@ namespace OsEngine.Robots.Patterns
                 if (position.Direction == Side.Buy)
                 {
                     decimal stopPrice = position.EntryPrice - position.EntryPrice * (StopOrderValue/100);
-                    decimal stopOrderPrice = stopPrice - _tab.Securiti.PriceStep * StopOrderSleepage;
+                    decimal stopOrderPrice = stopPrice - _tab.Security.PriceStep * StopOrderSleepage;
                     _tab.CloseAtStop(position, stopPrice, stopOrderPrice);
                 }
                 else if (position.Direction == Side.Sell)
                 {
                     decimal stopPrice = position.EntryPrice + position.EntryPrice * (StopOrderValue / 100);
-                    decimal stopOrderPrice = stopPrice + _tab.Securiti.PriceStep * StopOrderSleepage;
+                    decimal stopOrderPrice = stopPrice + _tab.Security.PriceStep * StopOrderSleepage;
                     _tab.CloseAtStop(position, stopPrice, stopOrderPrice);
                 }
             }
@@ -534,12 +534,12 @@ namespace OsEngine.Robots.Patterns
                 if (position.Direction == Side.Buy)
                 {
                     decimal newTrail = candles[candles.Count - 1].Close - candles[candles.Count - 1].Close * (TreilingStopValue / 100);
-                    _tab.CloseAtTrailingStop(position,newTrail,newTrail - _tab.Securiti.PriceStep * StopOrderSleepage);
+                    _tab.CloseAtTrailingStop(position,newTrail,newTrail - _tab.Security.PriceStep * StopOrderSleepage);
                 }
                 else
                 {
                     decimal newTrail = candles[candles.Count - 1].Close + candles[candles.Count - 1].Close * (TreilingStopValue / 100);
-                    _tab.CloseAtTrailingStop(position, newTrail, newTrail + _tab.Securiti.PriceStep * StopOrderSleepage);
+                    _tab.CloseAtTrailingStop(position, newTrail, newTrail + _tab.Security.PriceStep * StopOrderSleepage);
                 }
             }
 
@@ -579,11 +579,11 @@ namespace OsEngine.Robots.Patterns
         {
             if (position.Direction == Side.Buy)
             {
-                return price - _tab.Securiti.PriceStep*sleepage;
+                return price - _tab.Security.PriceStep*sleepage;
             }
             else // if (position.Direction == Side.Sell)
             {
-                return price + _tab.Securiti.PriceStep * sleepage;
+                return price + _tab.Security.PriceStep * sleepage;
             }
         }
     }
