@@ -4,6 +4,10 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
+using System;
+using OsEngine.Market.Servers;
+using OsEngine.Logging;
+using OsEngine.Market;
 
 /// <summary>
 /// Trend Strategy Based on Breaking Bollinger Lines
@@ -19,7 +23,11 @@ public class BollingerRevers : BotPanel
         _tab = TabsSimple[0];
 
         Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-        Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
+
+        VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+        Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+        TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
         Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
         BollingerLength = CreateParameter("Bollinger Length", 12, 4, 100, 2);
@@ -28,7 +36,7 @@ public class BollingerRevers : BotPanel
         _bol = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
         _bol = (Aindicator)_tab.CreateCandleIndicator(_bol, "Prime");
 
-        _bol.ParametersDigit[0].Value= BollingerLength.ValueInt;
+        _bol.ParametersDigit[0].Value = BollingerLength.ValueInt;
         _bol.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
 
         _bol.Save();
@@ -84,7 +92,9 @@ public class BollingerRevers : BotPanel
 
     public StrategyParameterInt Slippage;
 
-    public StrategyParameterDecimal Volume;
+    StrategyParameterString VolumeType;
+    StrategyParameterDecimal Volume;
+    StrategyParameterString TradeAssetInPortfolio;
 
     public StrategyParameterString Regime;
 
@@ -147,13 +157,13 @@ public class BollingerRevers : BotPanel
         if (_lastPrice > _bolLastUp
             && Regime.ValueString != "OnlyShort")
         {
-            _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+            _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
         }
 
         if (_lastPrice < _bolLastDown
             && Regime.ValueString != "OnlyLong")
         {
-            _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+            _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
         }
 
     }
@@ -166,7 +176,7 @@ public class BollingerRevers : BotPanel
     {
         if (position.State == PositionStateType.Closing ||
             position.CloseActiv == true ||
-            (position.CloseOrders != null &&  position.CloseOrders.Count > 0)) 
+            (position.CloseOrders != null && position.CloseOrders.Count > 0))
         {
             return;
         }
@@ -183,7 +193,7 @@ public class BollingerRevers : BotPanel
                 if (Regime.ValueString != "OnlyLong"
                     && Regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.SellAtLimit(Volume.ValueDecimal, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+                    _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
@@ -199,10 +209,100 @@ public class BollingerRevers : BotPanel
                 if (Regime.ValueString != "OnlyShort"
                     && Regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.BuyAtLimit(Volume.ValueDecimal, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+                    _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                 }
 
             }
         }
+    }
+
+    private decimal GetVolume(BotTabSimple tab)
+    {
+        decimal volume = 0;
+
+        if (VolumeType.ValueString == "Contracts")
+        {
+            volume = Volume.ValueDecimal;
+        }
+        else if (VolumeType.ValueString == "Contract currency")
+        {
+            decimal contractPrice = tab.PriceBestAsk;
+            volume = Volume.ValueDecimal / contractPrice;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                if (serverPermission != null &&
+                    serverPermission.IsUseLotToCalculateProfit &&
+                tab.Security.Lot != 0 &&
+                    tab.Security.Lot > 1)
+                {
+                    volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                }
+
+                volume = Math.Round(volume, tab.Security.DecimalsVolume);
+            }
+            else // Tester or Optimizer
+            {
+                volume = Math.Round(volume, 6);
+            }
+        }
+        else if (VolumeType.ValueString == "Deposit percent")
+        {
+            Portfolio myPortfolio = tab.Portfolio;
+
+            if (myPortfolio == null)
+            {
+                return 0;
+            }
+
+            decimal portfolioPrimeAsset = 0;
+
+            if (TradeAssetInPortfolio.ValueString == "Prime")
+            {
+                portfolioPrimeAsset = myPortfolio.ValueCurrent;
+            }
+            else
+            {
+                List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                if (positionOnBoard == null)
+                {
+                    return 0;
+                }
+
+                for (int i = 0; i < positionOnBoard.Count; i++)
+                {
+                    if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                    {
+                        portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                        break;
+                    }
+                }
+            }
+
+            if (portfolioPrimeAsset == 0)
+            {
+                SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, LogMessageType.Error);
+                return 0;
+            }
+            decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+
+            decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+            if (tab.StartProgram == StartProgram.IsOsTrader)
+            {
+                qty = Math.Round(qty, tab.Security.DecimalsVolume);
+            }
+            else
+            {
+                qty = Math.Round(qty, 7);
+            }
+
+            return qty;
+        }
+
+        return volume;
     }
 }
