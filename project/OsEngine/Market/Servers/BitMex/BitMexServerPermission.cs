@@ -113,7 +113,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 1; }
+            get { return 5; }
         }
 
         private TimeFramePermission _tradeTimeFramePermission
