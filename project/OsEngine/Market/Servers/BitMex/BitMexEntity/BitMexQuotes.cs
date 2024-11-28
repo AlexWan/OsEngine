@@ -10,7 +10,7 @@ namespace OsEngine.Market.Servers.BitMex.BitMexEntity
     public class DatumQuote
     {
         public string symbol { get; set; }
-        public long id { get; set; }
+        public string id { get; set; }
         public string side { get; set; }
         public string size { get; set; }
         public string price { get; set; }

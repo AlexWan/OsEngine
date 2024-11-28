@@ -451,6 +451,7 @@
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexAsset.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexCandle.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServerPermission.cs" />
     <Compile Include="Market\Servers\ComparePositionsModule.cs" />
@@ -614,7 +615,7 @@
     <Compile Include="Market\Servers\BitMax\BitMaxProClient.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxProServer.cs" />
     <Compile Include="Market\Servers\BitMax\BitMaxServerPermission.cs" />
-    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexMyOrders.cs" />
+    <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexMyTrade.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexOrder.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexPortfolio.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexPosition.cs" />
