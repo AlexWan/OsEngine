@@ -87,9 +87,9 @@ namespace OsEngine.Market.Servers.BitMex
                     }
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage($"Can`t run BitMex connector. No internet connection. {exeption.ToString()}", LogMessageType.Error);
+                SendLogMessage($"Can`t run BitMex connector. No internet connection. {exception.ToString()}", LogMessageType.Error);
                 return;
             }
         }
@@ -102,9 +102,9 @@ namespace OsEngine.Market.Servers.BitMex
                 _depths.Clear();
                 DeleteWebsocketConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             _fifoListWebSocketMessage = null;
@@ -317,9 +317,9 @@ namespace OsEngine.Market.Servers.BitMex
                     SendLogMessage($"Portfolio request error. Status: {json.StatusCode}, {json.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -355,9 +355,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                 return securityMultiplierForPortfolio;
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 return 1;
             }
         }
@@ -1010,9 +1010,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                 _fifoListWebSocketMessage.Enqueue(e.Message);
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1083,9 +1083,9 @@ namespace OsEngine.Market.Servers.BitMex
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -1126,10 +1126,10 @@ namespace OsEngine.Market.Servers.BitMex
                 _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"order:" + security.Name + "\"]}");   // Order
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
                 Thread.Sleep(5000);
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1214,9 +1214,9 @@ namespace OsEngine.Market.Servers.BitMex
                         SendLogMessage(message.ToString(), LogMessageType.Error);
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -1271,9 +1271,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1767,9 +1767,9 @@ namespace OsEngine.Market.Servers.BitMex
                     SendLogMessage($"Order created, but answer is wrong: {json.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1808,9 +1808,9 @@ namespace OsEngine.Market.Servers.BitMex
                     SendLogMessage($"Cancel order failed. Status: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1907,9 +1907,9 @@ namespace OsEngine.Market.Servers.BitMex
                     SendLogMessage($"Cancel all Orders to security failed. Status: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1983,9 +1983,9 @@ namespace OsEngine.Market.Servers.BitMex
                     SendLogMessage($"Get all orders myTrade error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
         }
 
@@ -2078,9 +2078,9 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 return null;
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
                 return null;
             }
         }
@@ -2172,9 +2172,9 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 return null;
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
                 return null;
             }
         }
@@ -2257,9 +2257,9 @@ namespace OsEngine.Market.Servers.BitMex
                 }
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
                 return 1;
             }
         }
