@@ -284,6 +284,45 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
         }
 
+        public int SmaShortLen
+        {
+            set
+            {
+                _maShort.Length = value;
+                ProcessAll(_myCandles);
+            }
+            get 
+            {
+                return _maShort.Length; 
+            }
+        }
+
+        public int SmaLongLen
+        {
+            set
+            {
+                _maLong.Length = value;
+                ProcessAll(_myCandles);
+            }
+            get 
+            { 
+                return _maLong.Length; 
+            }
+        }
+
+        public int SmaSignalLen
+        {
+            set
+            {
+                _maSignal.Length = value;
+                ProcessAll(_myCandles);
+            }
+            get
+            {
+                return _maSignal.Length;
+            }
+        }
+
         /// <summary>
         /// show short ma settings
         /// показать настройки короткой машки

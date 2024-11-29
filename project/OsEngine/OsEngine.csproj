@@ -1223,9 +1223,6 @@
     <Compile Include="Robots\CounterTrend\StrategyBollingerUi.xaml.cs">
       <DependentUpon>StrategyBollingerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Robots\Trend\MomentumMacdUi.xaml.cs">
-      <DependentUpon>MomentumMacdUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Robots\Trend\ParabolicSarTradeUi.xaml.cs">
       <DependentUpon>ParabolicSarTradeUi.xaml</DependentUpon>
     </Compile>
@@ -1788,10 +1785,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Robots\MarketMaker\PairTraderSimpleUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Robots\Trend\MomentumMacdUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

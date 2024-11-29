@@ -92,9 +92,9 @@ public class BollingerRevers : BotPanel
 
     public StrategyParameterInt Slippage;
 
-    StrategyParameterString VolumeType;
-    StrategyParameterDecimal Volume;
-    StrategyParameterString TradeAssetInPortfolio;
+    public StrategyParameterString VolumeType;
+    public StrategyParameterDecimal Volume;
+    public StrategyParameterString TradeAssetInPortfolio;
 
     public StrategyParameterString Regime;
 

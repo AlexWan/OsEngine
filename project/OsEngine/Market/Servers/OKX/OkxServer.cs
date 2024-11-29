@@ -67,7 +67,7 @@ namespace OsEngine.Market.Servers.OKX
         public void Connect()
         {
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
-            SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Password = ((ServerParameterPassword)ServerParameters[2]).Value;
 
             if (((ServerParameterEnum)ServerParameters[3]).Value == "On")
@@ -165,7 +165,7 @@ namespace OsEngine.Market.Servers.OKX
 
         private string PublicKey;
 
-        private string SeckretKey;
+        private string SecretKey;
 
         private string Password;
 
@@ -744,7 +744,7 @@ namespace OsEngine.Market.Servers.OKX
         { 
             try
             {
-                _webSocketPrivate.Send(Encryptor.MakeAuthRequest(PublicKey, SeckretKey, Password));                         
+                _webSocketPrivate.Send(Encryptor.MakeAuthRequest(PublicKey, SecretKey, Password));                         
             }
             catch (Exception ex)
             {
@@ -777,7 +777,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             string url = $"{_baseUrl}{"/api/v5/account/set-position-mode"}";
             string bodyStr = JsonConvert.SerializeObject(requestParams);
-            HttpClient client = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, bodyStr));
+            HttpClient client = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, bodyStr));
            
             HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
             string contentStr = res.Content.ReadAsStringAsync().Result;
@@ -1675,7 +1675,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, json));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -1724,7 +1724,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, json));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -1765,7 +1765,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/cancel-order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, json));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2006,7 +2006,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public HttpResponseMessage GetPrivateRequest(string url)
         {
-            HttpClient _client = new HttpClient(new HttpInterceptor(PublicKey, SeckretKey, Password, null)); 
+            HttpClient _client = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, null)); 
             return _client.GetAsync(url).Result;            
         }
 

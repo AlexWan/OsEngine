@@ -8,10 +8,13 @@ using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+
 
 namespace OsEngine.Robots.Trend
 {
@@ -28,20 +31,34 @@ namespace OsEngine.Robots.Trend
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            MomentumPeriod = CreateParameter("Momentum Period", 5, 0, 20, 1);
+
+            SmaShortLen = CreateParameter("Macd Sma Short", 12, 0, 20, 1);
+
+            SmaLongLen = CreateParameter("Macd Sma Long", 26, 0, 20, 1);
+
+            SmaSignalLen = CreateParameter("Macd Sma Signal", 9, 0, 20, 1);
+
+            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
+
+            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
             _macd = new MacdLine(name + "Macd", false);
+            _macd.SmaShortLen = SmaShortLen.ValueInt;
+            _macd.SmaLongLen = SmaLongLen.ValueInt;
+            _macd.SmaSignalLen = SmaSignalLen.ValueInt;
             _macd = (MacdLine)_tab.CreateCandleIndicator(_macd, "MacdArea");
             _macd.Save();
 
             _mom = new Momentum(name + "Momentum", false);
+            _mom.Nperiod = MomentumPeriod.ValueInt;
             _mom = (Momentum)_tab.CreateCandleIndicator(_mom, "Momentum");
             _mom.Save();
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-            Slipage = 0;
-            VolumeFix = 1;
-
-            Load();
 
 
             DeleteEvent += Strategy_DeleteEvent;
@@ -49,6 +66,27 @@ namespace OsEngine.Robots.Trend
             Description = "Trend strategy based on 2 indicators Momentum and Macd. " +
                 "if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. " +
                 "if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.";
+
+            this.ParametrsChangeByUser += MomentumMacd_ParametrsChangeByUser;
+        }
+
+        private void MomentumMacd_ParametrsChangeByUser()
+        {
+            if (_macd.SmaShortLen != SmaShortLen.ValueInt
+                || _macd.SmaLongLen != SmaLongLen.ValueInt
+                || _macd.SmaSignalLen != SmaSignalLen.ValueInt)
+            {
+                _macd.SmaShortLen = SmaShortLen.ValueInt;
+                _macd.SmaLongLen = SmaLongLen.ValueInt;
+                _macd.SmaSignalLen = SmaSignalLen.ValueInt;
+                _macd.Reload();
+            }
+
+            if(_mom.Nperiod != MomentumPeriod.ValueInt)
+            {
+                _mom.Nperiod = MomentumPeriod.ValueInt;
+                _mom.Reload();
+            }
         }
 
         /// <summary>
@@ -66,8 +104,7 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         public override void ShowIndividualSettingsDialog()
         {
-            MomentumMacdUi ui = new MomentumMacdUi(this);
-            ui.ShowDialog();
+
         }
 
         /// <summary>
@@ -84,80 +121,25 @@ namespace OsEngine.Robots.Trend
 
         //settings настройки публичные
 
-        /// <summary>
-        /// slippage
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
+        public StrategyParameterInt MomentumPeriod;
 
-        /// <summary>
-        /// volume
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
+        public StrategyParameterInt SmaShortLen;
 
-        /// <summary>
-        /// regime
-        /// режим работы
-        /// </summary>
+        public StrategyParameterInt SmaLongLen;
+
+        public StrategyParameterInt SmaSignalLen;
+
+        public StrategyParameterInt Slippage;
+
+        public StrategyParameterString VolumeType;
+
+        public StrategyParameterDecimal Volume;
+
+        public StrategyParameterString TradeAssetInPortfolio;
+
+
         public BotTradeRegime Regime;
 
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-
-        /// <summary>
-        /// load settings
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-
-        /// <summary>
-        /// delete save file
-        /// удаление файла с сохранением
-        /// </summary>
         private void Strategy_DeleteEvent()
         {
             if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -169,6 +151,7 @@ namespace OsEngine.Robots.Trend
         private decimal _lastClose;
 
         private decimal _lastMacdUp;
+
         private decimal _lastMacdDown;
 
         private decimal _lastMom;
@@ -226,11 +209,11 @@ namespace OsEngine.Robots.Trend
         {
             if (_lastMacdUp > _lastMacdDown && _lastMom > 100 && Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
+                _tab.BuyAtLimit(GetVolume(_tab), _lastClose + Slippage.ValueInt * _tab.Security.PriceStep);
             }
             if (_lastMacdUp < _lastMacdDown && _lastMom < 100 && Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
+                _tab.SellAtLimit(GetVolume(_tab), _lastClose - Slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
 
@@ -240,32 +223,131 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
+            if(position.State != PositionStateType.Open)
+            {
+                return;
+            }
+
             if (position.Direction == Side.Buy)
             {
+                decimal exitPrice = _lastClose - Slippage.ValueInt * _tab.Security.PriceStep;
+
                 if (_lastMacdUp < _lastMacdDown && _lastMom < 100)
                 {
-                    _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, exitPrice, position.OpenVolume);
 
                     if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
                     {
-                        _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
+                        _tab.SellAtLimit(GetVolume(_tab), exitPrice);
                     }
                 }
             }
 
             if (position.Direction == Side.Sell)
             {
+                decimal exitPrice = _lastClose + Slippage.ValueInt * _tab.Security.PriceStep;
+
                 if (_lastMacdUp > _lastMacdDown && _lastMom > 100)
                 {
-                    _tab.CloseAtLimit(position, _lastClose + Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, exitPrice, position.OpenVolume);
 
                     if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
                     {
-                        _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
+                        _tab.BuyAtLimit(GetVolume(_tab), exitPrice);
                     }
                 }
             }
 
+        }
+
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (VolumeType.ValueString == "Contracts")
+            {
+                volume = Volume.ValueDecimal;
+            }
+            else if (VolumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (VolumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, LogMessageType.Error);
+                    return 0;
+                }
+                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 
