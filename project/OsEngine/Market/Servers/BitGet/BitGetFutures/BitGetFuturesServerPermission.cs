@@ -164,7 +164,16 @@
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT",
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames

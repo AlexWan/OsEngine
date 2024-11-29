@@ -1254,7 +1254,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                         if (positions.data[i].posMode == "hedge_mode")
                         {
-                            pos.SecurityNameCode = positions.data[i].instId + "_" + positions.data[i].holdSide;
+                            if(positions.data[i].holdSide == "long")
+                            {
+                                pos.SecurityNameCode = positions.data[i].instId + "_" + "LONG";
+                            }
+                            if (positions.data[i].holdSide == "short")
+                            {
+                                pos.SecurityNameCode = positions.data[i].instId + "_" + "SHORT";
+                            }
                         }
 
                         if (positions.data[i].holdSide == "long")
@@ -1301,7 +1308,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 {
                                     if (positions.data[indData].posMode == "hedge_mode")
                                     {
-                                        if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId + "_" + positions.data[indData].holdSide)
+                                        if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId + "_" + positions.data[indData].holdSide.ToUpper())
                                         {
                                             isInData = true;
                                             break;
