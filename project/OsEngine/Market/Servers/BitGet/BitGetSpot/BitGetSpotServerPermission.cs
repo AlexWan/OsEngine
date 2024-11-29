@@ -174,7 +174,16 @@
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT",
+                    "USDC",
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect
