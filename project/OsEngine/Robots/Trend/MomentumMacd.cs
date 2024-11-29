@@ -31,6 +31,8 @@ namespace OsEngine.Robots.Trend
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+
             MomentumPeriod = CreateParameter("Momentum Period", 5, 0, 20, 1);
 
             SmaShortLen = CreateParameter("Macd Sma Short", 12, 0, 20, 1);
@@ -121,6 +123,8 @@ namespace OsEngine.Robots.Trend
 
         //settings настройки публичные
 
+        public StrategyParameterString Regime;
+
         public StrategyParameterInt MomentumPeriod;
 
         public StrategyParameterInt SmaShortLen;
@@ -136,9 +140,6 @@ namespace OsEngine.Robots.Trend
         public StrategyParameterDecimal Volume;
 
         public StrategyParameterString TradeAssetInPortfolio;
-
-
-        public BotTradeRegime Regime;
 
         private void Strategy_DeleteEvent()
         {
@@ -164,7 +165,7 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime == BotTradeRegime.Off)
+            if (Regime.ValueString == "Off")
             {
                 return;
             }
@@ -191,7 +192,7 @@ namespace OsEngine.Robots.Trend
                 }
             }
 
-            if (Regime == BotTradeRegime.OnlyClosePosition)
+            if (Regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -207,11 +208,11 @@ namespace OsEngine.Robots.Trend
         /// </summary>
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
-            if (_lastMacdUp > _lastMacdDown && _lastMom > 100 && Regime != BotTradeRegime.OnlyShort)
+            if (_lastMacdUp > _lastMacdDown && _lastMom > 100 && Regime.ValueString != "OnlyShort")
             {
                 _tab.BuyAtLimit(GetVolume(_tab), _lastClose + Slippage.ValueInt * _tab.Security.PriceStep);
             }
-            if (_lastMacdUp < _lastMacdDown && _lastMom < 100 && Regime != BotTradeRegime.OnlyLong)
+            if (_lastMacdUp < _lastMacdDown && _lastMom < 100 && Regime.ValueString != "OnlyLong")
             {
                 _tab.SellAtLimit(GetVolume(_tab), _lastClose - Slippage.ValueInt * _tab.Security.PriceStep);
             }
@@ -236,7 +237,8 @@ namespace OsEngine.Robots.Trend
                 {
                     _tab.CloseAtLimit(position, exitPrice, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime.ValueString != "OnlyLong"
+                        && Regime.ValueString != "OnlyClosePosition")
                     {
                         _tab.SellAtLimit(GetVolume(_tab), exitPrice);
                     }
@@ -251,7 +253,8 @@ namespace OsEngine.Robots.Trend
                 {
                     _tab.CloseAtLimit(position, exitPrice, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime.ValueString != "OnlyShort" 
+                        && Regime.ValueString != "OnlyClosePosition")
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), exitPrice);
                     }
