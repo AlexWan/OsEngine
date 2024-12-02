@@ -934,6 +934,12 @@
     <Compile Include="Market\Servers\Miner\OsMinerServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServer.cs" />
     <Compile Include="Market\Servers\TinkoffInvestments\TinkoffServerPermission.cs" />
+    <Compile Include="Market\Servers\TraderNet\Entity\RequestCandle.cs" />
+    <Compile Include="Market\Servers\TraderNet\Entity\RequestSecurity.cs" />
+    <Compile Include="Market\Servers\TraderNet\Entity\ResponseRestMessage.cs" />
+    <Compile Include="Market\Servers\TraderNet\Entity\ResponseWebSocketMessageAction.cs" />
+    <Compile Include="Market\Servers\TraderNet\TraderNetServer.cs" />
+    <Compile Include="Market\Servers\TraderNet\TraderNetServerPermission.cs" />
     <Compile Include="Market\Servers\Transaq\ChangeTransaqPassword.xaml.cs">
       <DependentUpon>ChangeTransaqPassword.xaml</DependentUpon>
     </Compile>
