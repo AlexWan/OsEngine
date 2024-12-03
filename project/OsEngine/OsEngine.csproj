@@ -644,11 +644,10 @@
     <Compile Include="Market\Servers\Entity\ServerParameter.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoClient.cs" />
     <Compile Include="Market\Servers\ExMo\ExmoServer.cs" />
+    <Compile Include="Market\Servers\Finam\Entity\FinamDataSeries.cs" />
+    <Compile Include="Market\Servers\Finam\Entity\FinamSecurity.cs" />
     <Compile Include="Market\Servers\Finam\FinamServer.cs" />
     <Compile Include="Market\Servers\Finam\FinamServerPermission.cs" />
-    <Compile Include="Market\Servers\Finam\FinamServerUi.xaml.cs">
-      <DependentUpon>FinamServerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Market\Servers\FixProtocolEntities\Field.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\FixEntity.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\FixMessage.cs" />
@@ -1579,10 +1578,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\ComparePositionsModuleUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Market\Servers\Finam\FinamServerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
