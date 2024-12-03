@@ -4,441 +4,128 @@
 */
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Windows;
 using OsEngine.Entity;
-using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.Finam.Entity;
 using Action = System.Action;
 
 namespace OsEngine.Market.Servers.Finam
 {
 
-    /// <summary>
-    /// class-server for connection to Finam
-    /// класс - сервер для подключения к Финам
-    /// </summary>
-    public class FinamServer : IServer
+    public class FinamServer : AServer
     {
-
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
         public FinamServer()
         {
+            FinamServerRealization realization = new FinamServerRealization();
+            ServerRealization = realization;
+            NeedToHideParams = true;
+        }
+    }
+
+    public class FinamServerRealization : IServerRealization
+    {
+        #region 1 Constructor, Status, Connection
+
+        public FinamServerRealization()
+        {
+            ServerStatus = ServerConnectStatus.Disconnect;
+
             if (!Directory.Exists(@"Data\Temp\"))
             {
                 Directory.CreateDirectory(@"Data\Temp\");
             }
-
-            ServerAdress = "export.finam.ru";
-            ServerStatus = ServerConnectStatus.Disconnect;
-            ServerType = ServerType.Finam;
-
-            Load();
-
-            _logMaster = new Log("FinamServer", StartProgram.IsOsData);
-            _logMaster.Listen(this);
-
-            _serverStatusNead = ServerConnectStatus.Disconnect;
-
-            _threadPrime = new Thread(PrimeThreadArea);
-            _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
-            _threadPrime.IsBackground = true;
-            _threadPrime.Start();
-
-
-            Thread threadDataSender = new Thread(SenderThreadArea);
-            threadDataSender.CurrentCulture = new CultureInfo("ru-RU");
-            threadDataSender.IsBackground = true;
-            threadDataSender.Start();
-
-            _tradesToSend = new ConcurrentQueue<List<Trade>>();
-            _securitiesToSend = new ConcurrentQueue<List<Security>>();
-            _candleSeriesToSend = new ConcurrentQueue<CandleSeries>();
-            _marketDepthsToSend = new ConcurrentQueue<MarketDepth>();
-            _portfolioToSend = new ConcurrentQueue<List<Portfolio>>();
-            _bidAskToSend = new ConcurrentQueue<BidAskSender>();
-
-            Thread worker = new Thread(ThreadDownLoaderArea);
-            worker.Name = "ThinamLoaderThread";
-            worker.IsBackground = true;
-            worker.Start();
         }
 
-        /// <summary>
-        /// take server type
-        /// взять тип сервера
-        /// </summary>
-        /// <returns></returns>
-        public ServerType ServerType { get; set; }
-
-        /// <summary>
-        /// show settings
-        /// показать настройки
-        /// </summary>
-        public void ShowDialog()
+        public void Connect()
         {
-            if (_ui == null)
+            // проверка соединения
+            HttpWebResponse response = CheckFinamServer();
+
+            if (response.StatusCode == HttpStatusCode.OK)
             {
-                _ui = new FinamServerUi(this, _logMaster);
-                _ui.Show();
-                _ui.Closing += (sender, args) => { _ui = null; };
+
+                ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent();
             }
             else
             {
-                _ui.Activate();
+                SendLogMessage($"Connect server error: {response.StatusCode}", LogMessageType.Error);
             }
 
+            response.Dispose();
         }
 
-        /// <summary>
-        /// item control window
-        /// окно управления элемента
-        /// </summary>
-        private FinamServerUi _ui;
-
-        /// <summary>
-        /// server address to connect to server
-        /// адрес сервера по которому нужно соединяться с сервером
-        /// </summary>
-        public string ServerAdress;
-
-        /// <summary>
-        /// take server settings from file
-        /// загрузить настройки сервера из файла
-        /// </summary>
-        public void Load()
+        public void Dispose()
         {
-            if (!File.Exists(@"Engine\" + @"FinamServer.txt"))
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
-                return;
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
+        }
+
+        private HttpWebResponse CheckFinamServer()
+        {
+            string url = "https://www.finam.ru/profile/moex-akcii/sberbank/export/old/";
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+            // Добавление User-Agent  так как сервер разрешает заходить только из браузера
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3";
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"FinamServer.txt"))
-                {
-                    ServerAdress = reader.ReadLine();
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
-        /// <summary>
-        /// save server settings in file
-        /// сохранить настройки сервера в файл
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"FinamServer.txt", false))
-                {
-                    writer.WriteLine(ServerAdress);
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignored
-            }
-        }
-
-        // server status
-        // статус сервера
-
-        private ServerConnectStatus _serverConnectStatus;
-
-        /// <summary>
-        /// server status
-        /// статус сервера
-        /// </summary>
-        public ServerConnectStatus ServerStatus
-        {
-            get { return _serverConnectStatus; }
-            private set
-            {
-                if (value != _serverConnectStatus)
-                {
-                    _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// called when connection status changed
-        /// вызывается когда статус соединения изменяется
-        /// </summary>
-        public event Action<string> ConnectStatusChangeEvent;
-
-        public int CountDaysTickNeadToSave { get; set; }
-
-        public bool NeadToSaveTicks { get; set; }
-
-        // connection / disconnection
-        // подключение / отключение
-
-        /// <summary>
-        /// start server
-        /// запустить сервер
-        /// </summary>
-        public void StartServer()
-        {
-            if (ServerStatus == ServerConnectStatus.Connect)
-            {
-                SendLogMessage(OsLocalization.Market.Message2, LogMessageType.System);
-                return;
-            }
-            _serverStatusNead = ServerConnectStatus.Connect;
-        }
-
-        /// <summary>
-        /// stop server
-        /// остановить сервер
-        /// </summary>
-        public void StopServer()
-        {
-            _serverStatusNead = ServerConnectStatus.Disconnect;
-        }
-
-        /// <summary>
-        /// needed server status. Need a thread that monitors the connection. Depending on this field controls the connection
-        /// нужный статус сервера. Нужен потоку который следит за соединением
-        /// В зависимости от этого поля управляет соединением
-        /// </summary>
-        private ServerConnectStatus _serverStatusNead;
-
-        // main thread work !!!!!!
-        // работа основного потока !!!!!!
-
-        /// <summary>
-        /// main thread that controls connection, downloading portfolios and securities, sending to up
-        /// основной поток, следящий за подключением, загрузкой портфелей и бумаг, пересылкой данных на верх
-        /// </summary>
-        private Thread _threadPrime;
-
-        /// <summary>
-        /// the place where the connection is controlled. listen to data streams
-        /// место в котором контролируется соединение. опрашиваются потоки данных
-        /// </summary>
-        [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        private void PrimeThreadArea()
-        {
-            while (true)
-            {
-                Thread.Sleep(1000);
-                try
-                {
-                    if (_serverStatusNead == ServerConnectStatus.Connect &&
-                        _serverConnectStatus == ServerConnectStatus.Disconnect)
-                    {
-                        SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
-                        CheckServer();
-                        continue;
-                    }
-                    if (_serverConnectStatus == ServerConnectStatus.Disconnect)
-                    {
-                        continue;
-                    }
-
-                    if (_serverStatusNead == ServerConnectStatus.Disconnect &&
-                        _serverConnectStatus == ServerConnectStatus.Connect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        continue;
-                    }
-
-                    if (_getSecurities == false)
-                    {
-                        SendLogMessage(OsLocalization.Market.Message50, LogMessageType.System);
-                        GetSecurities();
-                        CreatePortfolio();
-                        _getSecurities = true;
-                        continue;
-                    }
-
-                    if (Securities == null)
-                    {
-                        _getSecurities = false;
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-
-                    Thread.Sleep(5000);
-                    // reconect / переподключаемся
-                    _threadPrime = new Thread(PrimeThreadArea);
-                    _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
-                    _threadPrime.IsBackground = true;
-                    _threadPrime.Start();
-
-                    if (NeedToReconnectEvent != null)
-                    {
-                        NeedToReconnectEvent();
-                    }
-
-                    return;
-                }
-            }
-        }
-
-        /// <summary>
-        /// server time of last starting
-        /// время последнего старта сервера
-        /// </summary>
-        public DateTime LastStartServerTime { get; set; }
-
-        /// <summary>
-        /// shows whether portfolios and securities downloaded
-        /// скачаны ли портфели и бумаги
-        /// </summary>
-        private bool _getSecurities;
-
-        /// <summary>
-        /// start connection
-        /// начать процесс подключения
-        /// </summary>
-        private void CheckPing()
-        {
-            Ping ping = new Ping();
-
-            PingReply pingReply = ping.Send(ServerAdress);
-
-            if (pingReply == null || pingReply.Status != IPStatus.Success ||
-                pingReply.RoundtripTime > 1000)
-            { // if something is wrong, we exit / если что-то не так - выходим
-                SendLogMessage("Server response fail, ping is " + pingReply.Status + ". wrong address or internet fail", LogMessageType.Error);
-                return;
-            }
-
-            ServerStatus = ServerConnectStatus.Connect;
-
-            Thread.Sleep(10000);
-        }
-
-        /// <summary>
-        /// check server page availability
-        /// проверка доступности страницы сервера
-        /// </summary>
-        private void CheckServer()
-        {
-            ServerStatus = ServerConnectStatus.Connect;
-
-            Thread.Sleep(10000);
-        }
-
-        public static string GetPage(string uri)
-        {
-            try
-            {
-                if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
-                {
-                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                }
-
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+                // Получение ответа от сервера
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
-                string resultPage = "";
+                return response;
 
-                using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
-                {
-                    resultPage = sr.ReadToEnd();
-                    sr.Close();
-                }
-
-
-                return resultPage;
             }
-            catch
+            catch (Exception ex)
             {
+                SendLogMessage($"Connect server error: {ex.Message}", LogMessageType.Error);
                 return null;
             }
         }
 
-        private static string GetSecFromFile()
+        public ServerType ServerType
         {
-            if (!File.Exists(@"FinamSecurities.txt"))
-            {
-                return "";
-            }
-
-            // Как обновить данные по бумагам
-            // 1. Идём на сайт Финам: https://www.finam.ru/profile/moex-akcii/sberbank/export/old/
-            // 2. Заходим в источники страницы, через инструменты разработчика
-            // 3. В кэше находим файл icharts.js
-            // 4. Копируем содержимое этого файла в текстовик FinamSecurities.txt, который рядом с exe файлом OsEngine
-
-            string result = "";
-
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"FinamSecurities.txt"))
-                {
-                    result = reader.ReadToEnd();
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-
-            if(result != null)
-            {
-                result = result.Replace("\n", "");
-                result = result.Replace("\r", "");
-            }
-
-            return result;
+            get { return ServerType.Finam; }
         }
 
-        /// <summary>
-        /// get path to the latest cashed version of icharts.js
-        /// получить путь к последней кешированной версии icharts.js
-        /// </summary>
-        public static string GetIchartsPath()
+        public ServerConnectStatus ServerStatus { get; set; }
+
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
+
+        #endregion
+
+        #region 2 Properties
+
+        private string _serverAddress = "export.finam.ru";
+
+        public DateTime ServerTime { get; set; }
+
+        public List<IServerParameter> ServerParameters { get; set; }
+
+        #endregion
+
+        #region 3 Securities
+
+        List<Security> _securities = new List<Security>();
+
+        private List<FinamSecurity> _finamSecurities;
+
+        public void GetSecurities()
         {
-            var response = GetPage("https://www.finam.ru/profile/moex-akcii/sberbank/export/old/");
+            SendLogMessage("Downloading the list of securities...", LogMessageType.System);
 
-            if(response == null)
-            {
-                return null;
-            }
-
-            return Regex.Match(response, @"\/cache\/.*\/icharts\/icharts\.js", RegexOptions.IgnoreCase).Value;
-        }
-
-        /// <summary>
-        /// includes loading of tools and portfolios
-        /// включает загрузку инструментов и портфелей
-        /// </summary>
-        private void GetSecurities()
-        {
             string response = "";
             bool errorOnPage = false;
 
@@ -451,13 +138,13 @@ namespace OsEngine.Market.Servers.Finam
             catch (Exception e)
             {
                 SendLogMessage("Tools data loading error.\r\nLoading tools data from cache.\r\nTools data may be obsolete. Error data:\r\n" + e, LogMessageType.System);
-                //response = GetSecFromFile();
                 errorOnPage = true;
             }
 
-            if (response == null 
-                || response == "" 
+            if (response == null
+                || response == ""
                 || response.Contains("Страница недоступна")
+                || response.Contains("<!DOCTYPE html>")
                 || errorOnPage)
             {
                 response = GetSecFromFile();
@@ -498,9 +185,9 @@ namespace OsEngine.Market.Servers.Finam
             }
             string[] arrayCodes = arraySets[3].Split('[')[1].Split(']')[0].Split(',');
             arrayCodes[0] = arrayCodes[0].Substring(1, arrayCodes[0].Length - 1);
-            for (int i = 1;i < arrayCodes.Length;i++)
+            for (int i = 1; i < arrayCodes.Length; i++)
             {
-                arrayCodes[i] = arrayCodes[i].Substring(2, arrayCodes[i].Length-2);
+                arrayCodes[i] = arrayCodes[i].Substring(2, arrayCodes[i].Length - 2);
             }
 
             string[] arrayMarkets = arraySets[4].Split('[')[1].Split(']')[0].Split(',');
@@ -533,7 +220,7 @@ namespace OsEngine.Market.Servers.Finam
             {
                 string url = arrayEmitentUrls[i].Split(':')[1];
 
-                if(url.Contains("-smal")
+                if (url.Contains("-smal")
                     || url.Contains("-fqbr")
                     || url.Contains("-tqbd"))
                 {
@@ -709,14 +396,14 @@ namespace OsEngine.Market.Servers.Finam
                     finamSecurity.Market = "Криптовалюты";
                 }
 
-                if(finamSecurity.Market == null)
+                if (finamSecurity.Market == null)
                 {
                     continue;
                 }
 
                 bool isInArray = false;
 
-                for(int j = 0; j< _finamSecurities.Count;j++)
+                for (int j = 0; j < _finamSecurities.Count; j++)
                 {
                     FinamSecurity secInArray = _finamSecurities[j];
 
@@ -735,13 +422,12 @@ namespace OsEngine.Market.Servers.Finam
                     }
                 }
 
-                if(isInArray == false)
+                if (isInArray == false)
                 {
                     _finamSecurities.Add(finamSecurity);
                 }
             }
 
-         
             _securities = new List<Security>();
 
             for (int i = 0; i < _finamSecurities.Count; i++)
@@ -762,1657 +448,263 @@ namespace OsEngine.Market.Servers.Finam
                 _securities.Add(sec);
             }
 
-            _securitiesToSend.Enqueue(_securities);
-
-            SendLogMessage(OsLocalization.Market.Message52 + " " + _securities.Count, LogMessageType.System);
-        }
-
-        private void CreatePortfolio()
-        {
-            if (Portfolios != null && Portfolios.Count != 0)
+            if (_securities.Count > 0)
             {
-                return;
+                SendLogMessage($"{_securities.Count} securities loaded", LogMessageType.System);
             }
-            _portfolios = new List<Portfolio>();
-            Portfolio fakePortfolio = new Portfolio();
-            fakePortfolio.Number = "FakeFinamPortfolio";
-            fakePortfolio.ValueBegin = 1000000;
-            _portfolios.Add(fakePortfolio);
 
-            SendLogMessage(OsLocalization.Market.Message53 + fakePortfolio.Number, LogMessageType.System);
-
-            _portfolioToSend.Enqueue(Portfolios);
-        }
-
-        // work of sending thread
-        // работа потока рассылки !!!!!
-
-        /// <summary>
-        /// queue of ticks
-        /// очередь тиков
-        /// </summary>
-        private ConcurrentQueue<List<Trade>> _tradesToSend;
-
-        /// <summary>
-        /// queue of new instruments
-        /// очередь новых инструментов
-        /// </summary>
-        private ConcurrentQueue<List<Security>> _securitiesToSend;
-
-        /// <summary>
-        /// queue of upsated candle series
-        /// очередь обновлённых серий свечек
-        /// </summary>
-        private ConcurrentQueue<CandleSeries> _candleSeriesToSend;
-
-        /// <summary>
-        /// queue of new depths
-        /// очередь новых стаканов
-        /// </summary>
-        private ConcurrentQueue<MarketDepth> _marketDepthsToSend;
-
-        /// <summary>
-        /// queue of new portfolios
-        /// очередь новых портфелей
-        /// </summary>
-        private ConcurrentQueue<List<Portfolio>> _portfolioToSend;
-
-        /// <summary>
-        /// queue of updated bid/ask on instruments
-        /// очередь обновлений бида с аска по инструментам 
-        /// </summary>
-        private ConcurrentQueue<BidAskSender> _bidAskToSend;
-
-        /// <summary>
-        /// place where the connection is controlled
-        /// место в котором контролируется соединение
-        /// </summary>
-        private void SenderThreadArea()
-        {
-            while (true)
-            {
-                try
-                {
-                    if (_tradesToSend != null && _tradesToSend.Count != 0)
-                    {
-                        List<Trade> trades;
-
-                        if (_tradesToSend.TryDequeue(out trades))
-                        {
-                            if (NewTradeEvent != null)
-                            {
-                                NewTradeEvent(trades);
-                            }
-                        }
-                    }
-                    else if (_securitiesToSend != null && _securitiesToSend.Count != 0)
-                    {
-                        List<Security> security;
-
-                        if (_securitiesToSend.TryDequeue(out security))
-                        {
-                            if (SecuritiesChangeEvent != null)
-                            {
-                                SecuritiesChangeEvent(security);
-                            }
-                        }
-                    }
-                    else if (_candleSeriesToSend != null && _candleSeriesToSend.Count != 0)
-                    {
-                        CandleSeries series;
-
-                        if (_candleSeriesToSend.TryDequeue(out series))
-                        {
-                            if (NewCandleIncomeEvent != null)
-                            {
-                                NewCandleIncomeEvent(series);
-                            }
-                        }
-                    }
-                    else if (_marketDepthsToSend != null && _marketDepthsToSend.Count != 0)
-                    {
-                        MarketDepth depth;
-
-                        if (_marketDepthsToSend.TryDequeue(out depth))
-                        {
-                            if (NewMarketDepthEvent != null)
-                            {
-                                NewMarketDepthEvent(depth);
-                            }
-                        }
-                    }
-                    else if (_portfolioToSend != null && _portfolioToSend.Count != 0)
-                    {
-                        List<Portfolio> portfolio;
-
-                        if (_portfolioToSend.TryDequeue(out portfolio))
-                        {
-                            if (PortfoliosChangeEvent != null)
-                            {
-                                PortfoliosChangeEvent(portfolio);
-                            }
-                        }
-                    }
-                    else if (_bidAskToSend != null && _bidAskToSend.Count != 0)
-                    {
-                        BidAskSender bidAsk;
-
-                        if (_bidAskToSend.TryDequeue(out bidAsk))
-                        {
-                            if (NewBidAscIncomeEvent != null)
-                            {
-                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Thread.Sleep(1);
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                }
-            }
-        }
-
-        // security / бумаги
-        private List<FinamSecurity> _finamSecurities;
-
-        private List<Security> _securities;
-
-        /// <summary>
-        /// all instruments in the system
-        /// все инструменты в системе
-        /// </summary>
-        public List<Security> Securities
-        {
-            get { return _securities; }
+            SecurityEvent(_securities);
         }
 
         /// <summary>
-        /// take the instrument as a Security class by the name of the tool
-        /// взять инструмент в виде класса Security, по имени инструмента 
+        /// get path to the latest cashed version of icharts.js
+        /// получить путь к последней кешированной версии icharts.js
         /// </summary>
-        public Security GetSecurityForName(string name, string securityClass)
+        public static string GetIchartsPath()
         {
-            if (_securities == null)
+            string response = GetPage("https://www.finam.ru/profile/moex-akcii/sberbank/export/old/");
+
+            if (response == null)
             {
                 return null;
             }
-            return _securities.Find(securiti => securiti.Name == name || securiti.NameClass == name);
+
+            string resultString = Regex.Match(response, @"\/cache\/.*\/icharts\/icharts\.js", RegexOptions.IgnoreCase).Value;
+
+            return resultString;
         }
 
-        /// <summary>
-        /// called when new tools appear
-        /// вызывается при появлении новых инструментов
-        /// </summary>
-        public event Action<List<Security>> SecuritiesChangeEvent;
-
-        /// <summary>
-        /// show instruments
-        /// показать инструменты 
-        /// </summary>
-        public void ShowSecuritiesDialog()
-        {
-            SecuritiesUi ui = new SecuritiesUi(this);
-            ui.ShowDialog();
-        }
-
-        // portfolios. It is sent for trading in the emulator on Finam server
-        // портфели. Рассылается для торговли в эмуляторе на сервере финам
-
-        private List<Portfolio> _portfolios;
-
-        /// <summary>
-        /// all accounts in the system
-        /// все счета в системе
-        /// </summary>
-        public List<Portfolio> Portfolios
-        {
-            get { return _portfolios; }
-        }
-
-        /// <summary>
-        /// take portfolio by his number/name
-        /// взять портфель по его номеру/имени
-        /// </summary>
-        public Portfolio GetPortfolioForName(string name)
+        public static string GetPage(string uri)
         {
             try
             {
-                if (_portfolios == null)
+                if (ServicePointManager.SecurityProtocol != SecurityProtocolType.Tls12)
+                {
+                    ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                }
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uri);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+
+                string resultPage = "";
+
+                using (StreamReader sr = new StreamReader(response.GetResponseStream(), Encoding.Default, true))
+                {
+                    resultPage = sr.ReadToEnd();
+                    sr.Close();
+                }
+
+                return resultPage;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static string GetSecFromFile()
+        {
+            if (!File.Exists(@"FinamSecurities.txt"))
+            {
+                return "";
+            }
+
+            // Как обновить данные по бумагам
+            // 1. Идём на сайт Финам: https://www.finam.ru/profile/moex-akcii/sberbank/export/old/
+            // 2. Заходим в источники страницы, через инструменты разработчика
+            // 3. В кэше находим файл icharts.js
+            // 4. Копируем содержимое этого файла в текстовик FinamSecurities.txt, который рядом с exe файлом OsEngine
+
+            string result = "";
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"FinamSecurities.txt"))
+                {
+                    result = reader.ReadToEnd();
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+
+            if (result != null)
+            {
+                result = result.Replace("\n", "");
+                result = result.Replace("\r", "");
+            }
+
+            return result;
+        }
+
+        public event Action<List<Security>> SecurityEvent;
+        #endregion
+
+        #region 4 Portfolios
+
+        private List<Portfolio> _myPortfolios = new List<Portfolio>();
+
+        public void GetPortfolios()
+        {
+            Portfolio newPortfolio = new Portfolio();
+            newPortfolio.Number = "Finam Virtual Portfolio";
+            newPortfolio.ValueCurrent = 1;
+            _myPortfolios.Add(newPortfolio);
+
+            if (_myPortfolios.Count != 0)
+            {
+                PortfolioEvent(_myPortfolios);
+            }
+        }
+
+        public event Action<List<Portfolio>> PortfolioEvent;
+        #endregion
+
+        #region 5 Data
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            try
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
                     return null;
                 }
-                return _portfolios.Find(portfolio => portfolio.Number == name);
+
+                FinamDataSeries finamDataSeries = new FinamDataSeries();
+
+                finamDataSeries.ServerPrefics = "http://" + _serverAddress;
+                finamDataSeries.TimeActual = actualTime;
+                finamDataSeries.Security = security;
+                finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
+                finamDataSeries.Candles = new List<Candle>();
+                finamDataSeries.TimeEnd = endTime;
+                finamDataSeries.TimeStart = startTime;
+                finamDataSeries.TimeFrame = timeFrameBuilder.TimeFrame;
+
+                finamDataSeries.Process();
+
+                if (finamDataSeries.Candles != null)
+                {
+                    return finamDataSeries.Candles;
+                }
+                else
+                {
+                    return null;
+                }
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage($"Candles data downloading error: {error}", LogMessageType.Error);
                 return null;
             }
-
         }
 
-        /// <summary>
-        /// called when new portfolios appear
-        /// вызывается когда в системе появляются новые портфели
-        /// </summary>
-        public event Action<List<Portfolio>> PortfoliosChangeEvent;
-
-        // Subscribe to data
-        // Подпись на данные
-
-        private List<FinamDataSeries> _finamDataSeries;
-
-        /// <summary>
-        /// multi-threaded access locker in StartThisSecurity
-        /// объект блокирующий многопоточный доступ в StartThisSecurity
-        /// </summary>
-        private object _lockerStarter = new object();
-
-        /// <summary>
-        /// start uploading data on instrument
-        /// Начать выгрузку данных по инструменту. 
-        /// </summary>
-        /// <param name="securityName"> security name for running / имя бумаги которую будем запускать</param>
-        /// <param name="timeFrameBuilder"> object that has data about timeframe / объект несущий в себе данные о таймФрейме</param>
-        /// <param name="securityClass"> security class for running / класс бумаги которую будем запускать</param>
-        /// <returns> returns CandleSeries if successful else null / В случае удачи возвращает CandleSeries в случае неудачи null</returns>
-        public CandleSeries StartThisSecurity(string securityName, TimeFrameBuilder timeFrameBuilder, string securityClass)
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             return null;
         }
 
-        void series_СandleFinishedEvent(CandleSeries series)
-        {
-            _candleSeriesToSend.Enqueue(series);
-
-            List<Candle> candles = series.CandlesAll;
-
-            if (candles == null || candles.Count == 0)
-            {
-                return;
-            }
-
-            MarketDepth depth = new MarketDepth();
-            depth.SecurityNameCode = series.Security.Name;
-            MarketDepthLevel ask = new MarketDepthLevel();
-            ask.Bid = 10;
-            ask.Price = candles[candles.Count - 1].Close;
-
-            depth.Bids = new List<MarketDepthLevel>();
-            depth.Bids.Add(ask);
-
-
-            MarketDepthLevel bid = new MarketDepthLevel();
-            bid.Ask = 10;
-            bid.Price = candles[candles.Count - 1].Close;
-
-            depth.Asks = new List<MarketDepthLevel>();
-            depth.Asks.Add(bid);
-
-            _marketDepthsToSend.Enqueue(depth);
-
-            Trade newtTrade = new Trade();
-            newtTrade.Id = "0";
-            newtTrade.Price = candles[candles.Count - 1].Close;
-            newtTrade.Time = candles[candles.Count - 1].TimeStart.Add(series.TimeFrameSpan);
-            newtTrade.SecurityNameCode = series.Security.NameFull;
-
-            List<Trade> tradeList = new List<Trade>();
-            tradeList.Add(newtTrade);
-
-            TradesUpdateEvent(tradeList);
-
-            ServerTime = newtTrade.Time;
-
-            BidAskSender bidAskSender = new BidAskSender();
-            bidAskSender.Ask = ask.Price;
-            bidAskSender.Bid = bid.Price;
-            bidAskSender.Security = series.Security;
-
-            _bidAskToSend.Enqueue(bidAskSender);
-        }
-
-        /// <summary>
-        /// Start uploading data on the instrument
-        /// Начать выгрузку данных по инструменту. 
-        /// </summary>
-        /// <param name="namePaper">security id/айди бумаги</param>
-        /// <param name="timeFrameBuilder">object with timeframe / объект несущий в себе данные по таймФреймам</param>
-        /// <param name="startTime">start downloading time / время начала загрузки</param>
-        /// <param name="endTime">finish downloading time /время завершения работы</param>
-        /// <param name="actualTime">time of the last data load / время последней загрузки данных</param>
-        /// <param name="neadToUpdate">whether to automatically update / нужно ли автоматически обновлять</param>
-        /// <returns>In case of luck, returns CandleSeries / В случае удачи возвращает CandleSeries
-        /// in case of failure null / в случае неудачи null</returns>
-        public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             try
             {
-                if (LastStartServerTime.AddSeconds(5) > DateTime.Now)
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
+
                     return null;
                 }
 
-                // one by one / дальше по одному
-                lock (_lockerStarter)
+                FinamDataSeries finamDataSeries = new FinamDataSeries();
+
+                finamDataSeries.ServerPrefics = "http://" + _serverAddress;
+                finamDataSeries.TimeActual = actualTime;
+                finamDataSeries.Security = security;
+                finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
+                finamDataSeries.TimeEnd = endTime;
+                finamDataSeries.TimeStart = startTime;
+                finamDataSeries.IsTick = true;
+
+                finamDataSeries.Process();
+
+                if (finamDataSeries.Trades != null)
                 {
-                    if (securityName == null)
-                    {
-                        return null;
-                    }
-                    // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
-                    if (ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
-                        return null;
-                    }
-
-                    if (_securities == null)
-                    {
-                        Thread.Sleep(5000);
-                        return null;
-                    }
-                    if (LastStartServerTime != DateTime.MinValue &&
-                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
-                    {
-                        return null;
-                    }
-
-                    Security security = null;
-
-                    for (int i = 0; _securities != null && i < _securities.Count; i++)
-                    {
-                        if (_securities[i].NameId == securityName
-                            && _securities[i].NameClass == securityClass)
-                        {
-                            security = _securities[i];
-                            break;
-                        }
-                    }
-
-                    if (security == null)
-                    {
-                        return null;
-                    }
-
-                    _candles = null;
-
-                    CandleSeries series = new CandleSeries(timeFrameBuilder, security, StartProgram.IsOsData)
-                    {
-                        CandlesAll = _candles,
-                        IsStarted = true
-                    };
-
-                    FinamDataSeries finamDataSeries = new FinamDataSeries();
-
-                    finamDataSeries.ServerPrefics = "http://" + ServerAdress;
-                    finamDataSeries.TimeActual = actualTime;
-                    finamDataSeries.Security = security;
-                    finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
-                    finamDataSeries.Series = series;
-                    finamDataSeries.TimeEnd = endTime;
-                    finamDataSeries.TimeStart = startTime;
-                    finamDataSeries.TimeFrame = timeFrameBuilder.TimeFrame;
-                    finamDataSeries.LogMessageEvent += SendLogMessage;
-                    finamDataSeries.NeadToUpdeate = neadToUpdate;
-
-
-                    if (_finamDataSeries == null)
-                    {
-                        _finamDataSeries = new List<FinamDataSeries>();
-                    }
-
-                    // _finamDataSeries.Add(finamDataSeries);
-                    finamDataSeries.Process();
-                    Thread.Sleep(2000);
-
-                    /*SendLogMessage(OsLocalization.Market.Label7 + series.Security.Name +
-                                   OsLocalization.Market.Label10 + series.TimeFrame +
-                                   OsLocalization.Market.Message16,
-                        LogMessageType.System);*/
-
-                    return series.CandlesAll;
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// take ticks data on instrument for period
-        /// взять тиковые данные по инструменту за определённый период
-        /// </summary>
-        /// <returns></returns>
-        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
-        {
-            try
-            {
-                if (LastStartServerTime.AddSeconds(5) > DateTime.Now)
-                {
-                    return null;
-                }
-
-                // one by one / дальше по одному
-                lock (_lockerStarter)
-                {
-                    if (securityName == null)
-                    {
-                        return null;
-                    }
-                    // need to start the server if it is still disabled / надо запустить сервер если он ещё отключен
-                    if (ServerStatus != ServerConnectStatus.Connect)
-                    {
-                        //MessageBox.Show("Сервер не запущен. Скачивание данных прервано. Инструмент: " + namePaper);
-                        return null;
-                    }
-
-                    if (_securities == null)
-                    {
-                        Thread.Sleep(5000);
-                        return null;
-                    }
-                    if (LastStartServerTime != DateTime.MinValue &&
-                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
-                    {
-                        return null;
-                    }
-
-                    Security security = null;
-
-
-                    for (int i = 0; _securities != null && i < _securities.Count; i++)
-                    {
-                        if (_securities[i].NameId == securityName)
-                        {
-                            security = _securities[i];
-                            break;
-                        }
-                    }
-
-                    if (security == null)
-                    {
-                        return null;
-                    }
-
-
-                    FinamDataSeries finamDataSeries = new FinamDataSeries();
-
-                    finamDataSeries.ServerPrefics = "http://" + ServerAdress;
-                    finamDataSeries.TimeActual = actualTime;
-                    finamDataSeries.Security = security;
-                    finamDataSeries.SecurityFinam = _finamSecurities.Find(s => s.Id == security.NameId);
-                    finamDataSeries.TimeEnd = endTime;
-                    finamDataSeries.TimeStart = startTime;
-                    finamDataSeries.IsTick = true;
-                    finamDataSeries.NeadToUpdeate = neadToUpdete;
-                    finamDataSeries.LogMessageEvent += SendLogMessage;
-
-                    finamDataSeries.Process();
-
-
                     return finamDataSeries.Trades;
                 }
+                else
+                {
+                    return null;
+                }
+
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage($"Trades data downloading error: {error}", LogMessageType.Error);
                 return null;
             }
         }
 
-        /// <summary>
-        /// start depth downloading on instrument 
-        /// запустить скачивание стакана по инструменту
-        /// </summary>
-        /// <returns></returns>
-        public bool StartMarketDepthDataToSecurity(string namePaper)
+        #endregion
+
+        #region 6 Log
+
+        private void SendLogMessage(string message, LogMessageType messageType)
         {
-            return true;
+            LogMessageEvent(message, messageType);
         }
 
-        /// <summary>
-        /// stop downloading on instrument
-        /// остановить скачивание инструмента
-        /// </summary>
-        public void StopThisSecurity(CandleSeries series)
-        {
-            if (series == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _finamDataSeries.Count; i++)
-            {
-                if (_finamDataSeries[i].Series == series)
-                {
-                    _finamDataSeries.Remove(_finamDataSeries[i]);
-                    break;
-                }
-            }
-        }
-
-        // depth. Sent for trading in the emulator on Finam server
-        // стакан. Рассылается для торговли в эмуляторе на сервере Финам
-
-        /// <summary>
-        /// called when bid or ask changes
-        /// вызывается когда изменяется бид или аск по инструменту
-        /// </summary>
-        public event Action<decimal, decimal, Security> NewBidAscIncomeEvent;
-
-        /// <summary>
-        /// called when depth changes
-        /// вызывается когда изменяется стакан
-        /// </summary>
-        public event Action<MarketDepth> NewMarketDepthEvent;
-
-        // candle downloading / выгрузка свечей
-
-        private void ThreadDownLoaderArea()
-        {
-            return;
-            while (true)
-            {
-
-                Thread.Sleep(5000);
-
-                if (LastStartServerTime.AddSeconds(15) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                for (int i = 0; _finamDataSeries != null && i < _finamDataSeries.Count; i++)
-                {
-                    if (_finamDataSeries[i].NeadToUpdeate == false &&
-                        _finamDataSeries[i].LoadedOnce == true)
-                    {
-                        continue;
-                    }
-                    _finamDataSeries[i].Process();
-                    Thread.Sleep(10000);
-                }
-            }
-        }
-
-        /// <summary>
-        /// called at the time of changing candle series
-        /// вызывается в момент изменения серий свечек
-        /// </summary>
-        public event Action<CandleSeries> NewCandleIncomeEvent;
-
-        /// <summary>
-        /// connectors connected to server need to reload data
-        /// коннекторам подключеным к серверу необходимо перезаказать данные
-        /// </summary>
-        public event Action NeedToReconnectEvent;
-
-        /// <summary>
-        /// candles downloading from method GetSmartComCandleHistory
-        /// свечи скаченные из метода GetSmartComCandleHistory
-        /// </summary>
-        private List<Candle> _candles;
-
-        // ticks / тики
-
-        /// <summary>
-        /// file names downloaded from Finam with trades
-        /// имена файлов загруженных из финам с трейдами
-        /// </summary>
-        private List<List<string>> _downLoadFilesWhithTrades;
-
-        private void finamDataSecies_TradesFilesUpdateEvent(List<string> files)
-        {
-            if (_downLoadFilesWhithTrades == null)
-            {
-                _downLoadFilesWhithTrades = new List<List<string>>();
-            }
-
-            for (int i = 0; i < files.Count; i++)
-            {
-                if (files[i] == null)
-                {
-                    continue;
-                }
-                string name = files[i].Split('_')[0];
-
-                List<string> myList = _downLoadFilesWhithTrades.Find(f => f[0].Split('_')[0] == name);
-
-                if (myList == null)
-                {
-                    myList = new List<string>();
-                    _downLoadFilesWhithTrades.Add(myList);
-                }
-                myList.Add(files[i]);
-            }
-        }
-
-        private void TradesUpdateEvent(List<Trade> tradesNew)
-        {
-            if (_allTrades == null)
-            {
-                _allTrades = new List<Trade>[1];
-                _allTrades[0] = new List<Trade>(tradesNew);
-            }
-            else
-            {
-                // sort trades by storages / сортируем сделки по хранилищам
-                for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
-                {
-                    Trade trade = tradesNew[indTrade];
-                    bool isSave = false;
-                    for (int i = 0; i < _allTrades.Length; i++)
-                    {
-                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                            _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode)
-                        {
-                            // if there is already a storage for this instrument, we save and everything / если для этого инструметна уже есть хранилище, сохраняем и всё
-                            isSave = true;
-                            if (_allTrades[i][_allTrades[i].Count - 1].Time > trade.Time)
-                            {
-                                break;
-                            }
-                            _allTrades[i].Add(trade);
-                            break;
-                        }
-                    }
-                    if (isSave == false)
-                    {
-                        // there is no storage for the instrument / хранилища для инструмента нет
-                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
-                        for (int i = 0; i < _allTrades.Length; i++)
-                        {
-                            allTradesNew[i] = _allTrades[i];
-                        }
-                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                        allTradesNew[allTradesNew.Length - 1].Add(trade);
-                        _allTrades = allTradesNew;
-                    }
-                }
-            }
-
-            foreach (var trades in _allTrades)
-            {
-                if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode)
-                {
-                    _tradesToSend.Enqueue(trades);
-                    break;
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// all ticks
-        /// все тики
-        /// </summary>
-        private List<Trade>[] _allTrades;
-
-        /// <summary>
-        /// all server ticks
-        /// все тики имеющиеся у сервера
-        /// </summary>
-        public List<Trade>[] AllTrades
-        {
-            get { return _allTrades; }
-        }
-
-        /// <summary>
-        /// take ticks by instruments
-        /// взять тики по инструменту
-        /// </summary>
-        public List<Trade> GetAllTradesToSecurity(Security security)
-        {
-            if (_allTrades != null)
-            {
-                foreach (var tradesList in _allTrades)
-                {
-                    if (tradesList.Count > 1 &&
-                        tradesList[0] != null &&
-                        tradesList[0].SecurityNameCode == security.NameFull)
-                    {
-                        return tradesList;
-                    }
-                }
-            }
-
-            return new List<Trade>();
-        }
-
-        public List<string> GetAllFilesWhithTradeToSecurity(string security)
-        {
-            if (_downLoadFilesWhithTrades == null)
-            {
-                _downLoadFilesWhithTrades = new List<List<string>>();
-            }
-
-            return _downLoadFilesWhithTrades.Find(s => s[0].Split('_')[0] == @"Data\Temp\" + security);
-        }
-
-        /// <summary>
-        /// called at the time of appearance of new trades on instrument
-        /// вызывается в момет появления новых трейдов по инструменту
-        /// </summary>
-        public event Action<List<Trade>> NewTradeEvent;
-
-        // log messages
-        // обработка лога
-
-        /// <summary>
-        /// add a new log message
-        /// добавить в лог новое сообщение
-        /// </summary>
-        private void SendLogMessage(string message, LogMessageType type)
-        {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
-        }
-
-        /// <summary>
-        /// log manager
-        /// менеджер лога
-        /// </summary>
-        private Log _logMaster;
-
-        /// <summary>
-        /// outgoing message for log
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+        #endregion
 
+        #region 7 Unused methods
 
-        #region the rest of the server interface is not implemented, because Finam isn't a full server /остальное из интерфейса сервера не реализовано, т.к. Финам не полный сервер
-
-        // my trades / мои сделки
-
-        /// <summary>
-        /// my trades
-        /// мои сделки
-        /// </summary>
-        public List<MyTrade> MyTrades
-        {
-            get { return null; }
-        }
-
-        /// <summary>
-        /// called when my new deal comes
-        /// вызывается когда приходит новая моя сделка
-        /// </summary>
-        public event Action<MyTrade> NewMyTradeEvent;
-
-        // work with orders
-        // работа с ордерами
-
-        /// <summary>
-        /// execute order
-        /// исполнить ордер
-        /// </summary>
-        public void ExecuteOrder(Order order)
+        public void Subscrible(Security security)
         {
 
         }
 
-        /// <summary>
-        /// Order price change
-        /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
-        public void ChangeOrderPrice(Order order, decimal newPrice)
+        public void SendOrder(Order order)
         {
 
         }
 
-        /// <summary>
-        /// cancel order
-        /// отменить ордер
-        /// </summary>
-        public void CancelOrder(Order order)
-        {
-
-        }
-
-        /// <summary>
-        /// cancel all orders from trading system
-        /// отозвать все ордера из торговой системы
-        /// </summary>
         public void CancelAllOrders()
         {
 
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        public void CancelAllOrdersToSecurity(Security security)
         {
-            throw new NotImplementedException();
+
         }
 
-        /// <summary>
-        /// called when new order appear in the system
-        /// вызывается когда в системе появляется новый ордер
-        /// </summary>
-        public event Action<Order> NewOrderIncomeEvent;
-
-        private DateTime _serverTime;
-
-        /// <summary>
-        /// server time
-        /// время сервера
-        /// </summary>
-        public DateTime ServerTime
+        public void CancelOrder(Order order)
         {
-            get { return _serverTime; }
-            set
-            {
-                if (_serverTime > value)
-                {
-                    return;
-                }
-                _serverTime = value;
 
-            }
         }
 
-        /// <summary>
-        /// called when server time is changed
-        /// вызывается когда изменяется время сервера
-        /// </summary>
-        public event Action<DateTime> TimeServerChangeEvent;
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
 
+        }
+
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<Trade> NewTradesEvent;
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
         #endregion
 
-    }
-
-    /// <summary>
-    /// data series for the load history at Finam
-    /// серия данных для подгрузки истории в финам
-    /// </summary>
-    public class FinamDataSeries
-    {
-
-        /// <summary>
-        /// prefix for the server address
-        /// префикс для адреса сервера
-        /// </summary>
-        public string ServerPrefics;
-
-        /// <summary>
-        /// security in the Finam specification
-        /// контракт в финам спецификации
-        /// </summary>
-        public FinamSecurity SecurityFinam;
-
-        /// <summary>
-        /// security in Os.Engine format
-        /// контракт в формате Os.Engine
-        /// </summary>
-        public Security Security;
-
-        /// <summary>
-        /// timeframe
-        /// таймФрейм
-        /// </summary>
-        public TimeFrame TimeFrame
-        {
-            get { return _timeFrame; }
-            set
-            {
-                _timeFrame = value;
-
-                if (_timeFrame == TimeFrame.Day)
-                {
-                    _timeFrameFinam = 8.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 24, 0, 0);
-                }
-                else if (_timeFrame == TimeFrame.Hour1)
-                {
-                    _timeFrameFinam = 7.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 1, 0, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min30)
-                {
-                    _timeFrameFinam = 6.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 30, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min15)
-                {
-                    _timeFrameFinam = 5.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 15, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min10)
-                {
-                    _timeFrameFinam = 4.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 10, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min5)
-                {
-                    _timeFrameFinam = 3.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 5, 0);
-                }
-                else if (_timeFrame == TimeFrame.Min1)
-                {
-                    _timeFrameFinam = 2.ToString();
-                    _timeFrameSpan = new TimeSpan(0, 0, 1, 0);
-                }
-            }
-        }
-        private TimeFrame _timeFrame;
-
-        /// <summary>
-        /// timeframe in Finam format
-        /// таймфрейм в формате финам
-        /// </summary>
-        private string _timeFrameFinam;
-
-        /// <summary>
-        /// timeframe in TimeSpan format
-        /// таймфрейм в формате TimeSpan
-        /// </summary>
-        private TimeSpan _timeFrameSpan;
-
-        /// <summary>
-        /// candle series
-        /// серия свечек
-        /// </summary>
-        public CandleSeries Series;
-
-        /// <summary>
-        /// start time of the download
-        /// время начала скачивания
-        /// </summary>
-        public DateTime TimeStart;
-
-        /// <summary>
-        /// finish time of the download
-        /// время завершения скачивания
-        /// </summary>
-        public DateTime TimeEnd;
-
-        /// <summary>
-        /// current time
-        /// актуальное время
-        /// </summary>
-        public DateTime TimeActual;
-
-        /// <summary>
-        /// candle updated
-        /// обновились свечи
-        /// </summary>
-        public event Action<CandleSeries> CandleUpdateEvent;
-
-        /// <summary>
-        /// trades updated
-        /// обновились трейды
-        /// </summary>
-        public event Action<List<string>> TradesUpdateEvent;
-
-        /// <summary>
-        /// is current object a downloading tick
-        /// является ли текущий объект скачивающим тики
-        /// </summary>
-        public bool IsTick;
-
-        /// <summary>
-        /// update data
-        /// обновить данные
-        /// </summary>
-        public void Process()
-        {
-            try
-            {
-                if (NeadToUpdeate == false &&
-                    LoadedOnce)
-                {
-                    return;
-                }
-
-                if (IsTick == false)
-                {
-                    if (Series == null)
-                    {
-                        return;
-                    }
-
-                    Series.IsStarted = true;
-                }
-
-                LoadedOnce = true;
-
-                //SendLogMessage(SecurityFinam.Name + OsLocalization.Market.Message54 + _timeFrame, LogMessageType.System);
-
-                if (IsTick == false)
-                {
-                    List<Candle> candles = GetCandles();
-
-                    for (int i = 0; candles != null && i < candles.Count; i++)
-                    {
-                        Series.SetNewCandleInArray(candles[i]);
-                    }
-
-                    if (CandleUpdateEvent != null)
-                    {
-                        CandleUpdateEvent(Series);
-                    }
-                }
-                else //if (IsTick == true)
-                {
-                    List<string> trades = GetTradesPath();
-
-                    List<Trade> listTrades = new List<Trade>();
-
-                    for (int i = 0; trades != null && i < trades.Count; i++)
-                    {
-                        if (trades[i] == null)
-                        {
-                            continue;
-                        }
-                        StreamReader reader = new StreamReader(trades[i]);
-
-                        while (!reader.EndOfStream)
-                        {
-                            try
-                            {
-                                Trade newTrade = new Trade();
-                                newTrade.SetTradeFromString(reader.ReadLine());
-                                listTrades.Add(newTrade);
-                                TimeActual = newTrade.Time;
-                            }
-                            catch
-                            {
-                                // ignore
-                            }
-
-                        }
-                        reader.Close();
-                    }
-
-                    if (listTrades.Count == 0)
-                    {
-                        return;
-                    }
-
-                    Trades = listTrades;
-                }
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            //SendLogMessage(SecurityFinam.Name + OsLocalization.Market.Message55 + _timeFrame, LogMessageType.System);
-        }
-
-        private List<Trade> GetTradesFromFolder(string pathToFolder)
-        {
-            /*if (files.Length != 0)
-            {
-                if (writer != null)
-                {
-                    writer.Close();
-                    writer = null;
-                }
-
-                try
-                {
-                    using (StreamReader reader = new StreamReader(files[0]))
-                    {
-                        string str = "";
-                        while (!reader.EndOfStream)
-                        {
-
-                            str = reader.ReadLine();
-
-                        }
-                        if (str != "")
-                        {
-                            Trade trade = new Trade();
-                            trade.SetTradeFromString(str);
-                            tradeSaveInfo.LastSaveObjectTime = trade.Time;
-                            tradeSaveInfo.LastTradeId = trade.Id;
-                        }
-
-                    }
-                }
-                catch (Exception error)
-                {
-                    if (NewLogMessageEvent != null)
-                    {
-                        NewLogMessageEvent(error.ToString(), LogMessageType.Error);
-                    }
-
-                    return;
-                }
-            }*/
-            return null;
-        }
-
-        public List<Trade> Trades;
-
-        /// <summary>
-        /// whether need to update the series automatically
-        /// нужно ли обновлять серию автоматически
-        /// </summary>
-        public bool NeadToUpdeate;
-
-        /// <summary>
-        /// set had once loaded
-        /// сет уже один раз подгружался
-        /// </summary>
-        public bool LoadedOnce;
-
-        /// <summary>
-        /// update trades
-        /// обновить трейды
-        /// </summary>
-        /// <returns></returns>
-        private List<string> GetTradesPath()
-        {
-            DateTime timeStart = TimeStart;
-
-            DateTime timeEnd = TimeEnd;
-
-            if (timeEnd.Date > DateTime.Now.Date)
-            {
-                timeEnd = DateTime.Now;
-            }
-
-            if (TimeActual != DateTime.MinValue)
-            {
-                timeStart = TimeActual;
-            }
-
-            List<string> trades = new List<string>();
-
-            while (timeStart.Date < timeEnd.Date)
-            {
-                string tradesOneDay = GetTrades(timeStart.Date, timeStart.Date,1);
-                timeStart = timeStart.AddDays(1);
-
-                if (tradesOneDay != null)
-                {
-                    trades.Add(tradesOneDay);
-                }
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-            }
-
-            string tradesToday = GetTrades(timeStart.Date, timeStart.Date,1);
-
-            if (tradesToday != null)
-            {
-                trades.Add(tradesToday);
-            }
-
-            return trades;
-        }
-
-        /// <summary>
-        /// take trade for period
-        /// взять трейды за период
-        /// </summary>
-        /// <param name="timeStart"></param>
-        /// <param name="timeEnd"></param>
-        /// <returns></returns>
-        private string GetTrades(DateTime timeStart, DateTime timeEnd, int iteration)
-        {
-           /* SendLogMessage(OsLocalization.Market.Message56 + SecurityFinam.Name +
-                           OsLocalization.Market.Message57 + timeStart.Date, LogMessageType.System);*/
-            //http://195.128.78.52/GBPUSD_141201_141206.csv?market=5&em=86&code=GBPUSD&df=1&mf=11&yf=2014&from=01.12.2014&dt=6&mt=11&yt=2014&to=06.12.2014&
-            //p=2&f=GBPUSD_141201_141206&e=.csv&cn=GBPUSD&dtf=1&tmf=3&MSOR=1&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=1
-
-            string monthStart = "";
-            string dayStart = "";
-
-            if (timeStart.Month.ToString().Length == 1)
-            {
-                monthStart += "0" + timeStart.Month;
-            }
-            else
-            {
-                monthStart += timeStart.Month;
-            }
-
-            if (TimeStart.Day.ToString().Length == 1)
-            {
-                dayStart += "0" + TimeStart.Day;
-            }
-            else
-            {
-                dayStart += TimeStart.Day;
-            }
-
-
-            string timeStartInStrToName =
-                timeStart.Year.ToString()[2].ToString()
-                + timeStart.Year.ToString()[3].ToString()
-                + monthStart + dayStart;
-
-            string monthEnd = "";
-            string dayEnd = "";
-
-            if (timeEnd.Month.ToString().Length == 1)
-            {
-                monthEnd += "0" + timeEnd.Month;
-            }
-            else
-            {
-                monthEnd += timeEnd.Month;
-            }
-
-            if (timeEnd.Day.ToString().Length == 1)
-            {
-                dayEnd += "0" + timeEnd.Day;
-            }
-            else
-            {
-                dayEnd += timeEnd.Day;
-            }
-
-            string timeEndInStrToName = timeEnd.Year.ToString()[2].ToString()
-                                        + timeEnd.Year.ToString()[3].ToString()
-                                        + monthEnd
-                                        + dayEnd;
-
-            string timeFrom = timeStart.ToShortDateString();
-            string timeTo = timeEnd.ToShortDateString();
-
-            string urlToSec = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
-
-            string url = ServerPrefics + "/" + "export9.out?";
-
-            url += "market=" + SecurityFinam.MarketId + "&";
-            url += "em=" + SecurityFinam.Id + "&";
-            url += "code=" + SecurityFinam.Code + "&";
-            url += "df=" + (timeStart.Day) + "&";
-            url += "mf=" + (timeStart.Month - 1) + "&";
-            url += "yf=" + (timeStart.Year) + "&";
-            url += "from=" + timeFrom + "&";
-            url += "apply=0&";
-            url += "dt=" + (timeEnd.Day) + "&";
-            url += "mt=" + (timeEnd.Month - 1) + "&";
-            url += "yt=" + (timeEnd.Year) + "&";
-            url += "to=" + timeTo + "&";
-
-            url += "p=" + 1 + "&";
-            url += "f=" + urlToSec + "&";
-            url += "e=" + ".txt" + "&";
-            url += "cn=" + SecurityFinam.Name + "&";
-            url += "dtf=" + 1 + "&";
-            url += "tmf=" + 1 + "&";
-            url += "MSOR=" + 1 + "&";
-            url += "mstime=" + "on" + "&";
-            url += "mstimever=" + "1" + "&";
-            url += "sep=" + "1" + "&";
-            url += "sep2=" + "1" + "&";
-            url += "datf=" + "12" + "&";
-            url += "at=" + "0";
-
-            // if we have already downloaded this trades series, try to get it from the general storage
-            // если мы уже эту серию трейдов качали, пробуем достать её из общего хранилища
-
-            string secName = SecurityFinam.Name;
-
-            if (secName.Contains("/"))
-            {
-                secName = Extensions.RemoveExcessFromSecurityName(secName);
-            }
-
-            string fileName = @"Data\Temp\" + secName + "_" + timeStart.ToShortDateString() + ".txt";
-
-            if (timeStart.Date != DateTime.Now.Date &&
-                File.Exists(fileName))
-            {
-                return fileName;
-            }
-
-            // request data
-            // запрашиваем данные
-
-            WebClient wb = new WebClient();
-
-            try
-            {
-                _tickLoaded = false;
-                wb.DownloadFileAsync(new Uri(url, UriKind.Absolute), fileName);
-                wb.DownloadFileCompleted += wb_DownloadFileCompleted;
-            }
-            catch (Exception)
-            {
-                wb.Dispose();
-                return null;
-            }
-
-            DateTime timeWhaiting = DateTime.Now;
-
-            while (true)
-            {
-                Thread.Sleep(1000);
-                if (_tickLoaded)
-                {
-                    break;
-                }
-
-                if(timeWhaiting.AddMinutes(10) < DateTime.Now)
-                {
-                    // пытаемся дважды запросить данные рекурсией
-                    // если не выходит, возвращаем null
-                    if(iteration == 1)
-                    {
-                        iteration++;
-                        wb.CancelAsync();
-                        wb.Dispose();
-                        wb.DownloadFileCompleted -= wb_DownloadFileCompleted;
-                        try
-                        {
-                            File.Delete(fileName);
-                        }
-                        catch
-                        {
-
-                        }
-                        
-                        Thread.Sleep(5000);
-                        return GetTrades(timeStart, timeEnd, iteration);
-                    }
-                    else
-                    {
-                        wb.CancelAsync();
-                        wb.DownloadFileCompleted -= wb_DownloadFileCompleted;
-                        wb.Dispose();
-                        try
-                        {
-                            File.Delete(fileName);
-                        }
-                        catch
-                        {
-
-                        }
-                        Thread.Sleep(5000);
-                        return null;
-                    }
-                }
-            }
-            wb.Dispose();
-
-            if (!File.Exists(fileName))
-            { // file is not uploaded / файл не загружен
-                return null;
-            }
-
-            StringBuilder list = new StringBuilder();
-
-            StreamReader reader = new StreamReader(fileName);
-
-            while (!reader.EndOfStream)
-            {
-                string[] s = reader.ReadLine().Split(',');
-
-                if(s.Length < 5)
-                {
-                    continue;
-                }
-
-                StringBuilder builder = new StringBuilder();
-
-                builder.Append(s[0] + ",");
-                builder.Append(s[1] + ",");
-                builder.Append(s[2] + ",");
-                builder.Append(s[3] + ",");
-
-                if (s[5] == "S")
-                {
-                    builder.Append("Sell");
-                }
-                else
-                {
-                    builder.Append("Buy");
-                }
-
-                list.Append(builder + "\r\n");
-            }
-
-            reader.Close();
-
-            StreamWriter writer = new StreamWriter(fileName);
-            writer.Write(list);
-            writer.Close();
-
-            return fileName;
-        }
-
-        void wb_DownloadFileCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-        {
-            _tickLoaded = true;
-        }
-
-        private bool _tickLoaded;
-
-        /// <summary>
-        /// update candles
-        /// обновить свечи
-        /// </summary>
-        /// <returns></returns>
-        private List<Candle> GetCandles()
-        {
-
-            DateTime timeStart = TimeStart;
-
-            DateTime timeEnd = TimeEnd;
-
-            if (timeEnd.Date > DateTime.Now.Date)
-            {
-                timeEnd = DateTime.Now;
-            }
-
-            if (TimeActual != DateTime.MinValue)
-            {
-                TimeActual = timeStart;
-            }
-
-            List<Candle> candles = new List<Candle>();
-
-            const int FinamDataMonthsAvailable = 3; // Финам позволяет грузить данные внутредневных свеч не более 4 месяцев на запрос. Ставим на месяц меньше для надежности.
-
-            while (timeStart.AddMonths(FinamDataMonthsAvailable) < timeEnd)
-            {
-                List<Candle> candlesOneDay = GetCandles(timeStart, timeStart.AddMonths(FinamDataMonthsAvailable));
-
-                timeStart = timeStart.AddMonths(FinamDataMonthsAvailable);
-
-                if (candlesOneDay != null)
-                {
-                    candles.AddRange(candlesOneDay);
-                }
-                Thread.Sleep(5000);
-            }
-            List<Candle> candlesToday = GetCandles(timeStart, timeEnd);
-
-            if (candlesToday != null)
-            {
-                candles.AddRange(candlesToday);
-            }
-
-            if (candles.Count != 0)
-            {
-                TimeActual = candles[candles.Count - 1].TimeStart;
-            }
-
-            return candles;
-        }
-
-        /// <summary>
-        /// take candles for period
-        /// взять свечи за период
-        /// </summary>
-        /// <param name="timeStart"></param>
-        /// <param name="timeEnd"></param>
-        /// <returns></returns>
-        private List<Candle> GetCandles(DateTime timeStart, DateTime timeEnd)
-        {
-            /*SendLogMessage(OsLocalization.Market.Message58 + SecurityFinam.Name +
-                           OsLocalization.Market.Label10 + TimeFrame +
-                           OsLocalization.Market.Label26 + timeStart.Date +
-                           OsLocalization.Market.Label27 + timeEnd.Date, LogMessageType.System);*/
-            //http://195.128.78.52/GBPUSD_141201_141206.csv?market=5&em=86&code=GBPUSD&df=1&mf=11&yf=2014&from=01.12.2014&dt=6&mt=11&yt=2014&to=06.12.2014&
-            //p=2&f=GBPUSD_141201_141206&e=.csv&cn=GBPUSD&dtf=1&tmf=3&MSOR=1&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=1
-
-            if (string.IsNullOrEmpty(_timeFrameFinam))
-            {
-                return null;
-            }
-
-            string timeStartInStrToName = timeStart.Year.ToString()[2].ToString() + timeStart.Year.ToString()[3].ToString() + timeStart.Month + TimeStart.Day;
-            
-            string timeEndInStrToName = timeEnd.Year.ToString()[2].ToString() + timeEnd.Year.ToString()[3].ToString() + timeEnd.Month + timeEnd.Day;
-
-            string timeFrom = timeStart.ToShortDateString();
-            string timeTo = timeEnd.ToShortDateString();
-
-            string fileName = SecurityFinam.Name + "_" + timeStartInStrToName + "_" + timeEndInStrToName;
-
-            string url = ServerPrefics + "/" + "export9.out?";
-
-            url += "market=" + SecurityFinam.MarketId + "&";
-            url += "em=" + SecurityFinam.Id + "&";
-            url += "code=" + SecurityFinam.Code + "&";
-            url += "df=" + (timeStart.Day) + "&";
-            url += "mf=" + (timeStart.Month - 1) + "&";
-            url += "yf=" + (timeStart.Year) + "&";
-            url += "from=" + timeFrom + "&";
-
-            url += "dt=" + (timeEnd.Day) + "&";
-            url += "mt=" + (timeEnd.Month - 1) + "&";
-            url += "yt=" + (timeEnd.Year) + "&";
-            url += "to=" + timeTo + "&";
-            url += "apply=0&";
-            url += "p=" + _timeFrameFinam + "&";
-            url += "f=" + fileName + "&";
-            url += "e=" + ".txt" + "&";
-            url += "cn=" + SecurityFinam.Name + "&";
-            url += "dtf=" + 1 + "&";
-            url += "tmf=" + 1 + "&";
-            url += "MSOR=" + 1 + "&";
-            url += "mstime=" + "on" + "&";
-            url += "mstimever=" + "1" + "&";
-            url += "sep=" + "1" + "&";
-            url += "sep2=" + "1" + "&";
-            url += "datf=" + "5" + "&";
-            url += "at=" + "0";
-
-            WebClient wb = new WebClient();
-
-            //url = "http://export.finam.ru/export9.out?market=1&em=16842&code=GAZP&df=26&mf=8&yf=2023&from=26.09.2023&dt=28&mt=8&yt=2023&to=28.09.2023&p=3&f=GAZP_20230926_20230928&e=.txt&cn=GAZP&dtf=1&tmf=1&MSOR=0&mstime=on&mstimever=1&sep=3&sep2=1&datf=5&at=0";
-
-            string response = wb.DownloadString(url);
-
-            if (response != "")
-            {
-                List<Candle> candles = new List<Candle>();
-
-                response = response.Replace("\r\n", "&");
-
-                string[] tradesInStr = response.Split('&');
-
-                if (tradesInStr.Length == 1)
-                {
-                    return null;
-                }
-
-                for (int i = 0; i < tradesInStr.Length; i++)
-                {
-                    if (tradesInStr[i] == "")
-                    {
-                        continue;
-                    }
-                    candles.Add(new Candle());
-                    candles[candles.Count - 1].SetCandleFromString(tradesInStr[i]);
-                    candles[candles.Count - 1].TimeStart = candles[candles.Count - 1].TimeStart.Add(-_timeFrameSpan);
-                }
-                return candles;
-            }
-
-            return null;
-        }
-
-        /// <summary>
-        /// add a new log message
-        /// добавить в лог новое сообщение
-        /// </summary>
-        private void SendLogMessage(string message, LogMessageType type)
-        {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
-            else
-            {
-                MessageBox.Show(message);
-            }
-        }
-
-        /// <summary>
-        /// outgoin log message
-        /// исходящее сообщение для лога
-        /// </summary>
-        public event Action<string, LogMessageType> LogMessageEvent;
-    }
-
-    /// <summary>
-    /// security in Finam specification
-    /// контракт в спецификации финам
-    /// </summary>
-    public class FinamSecurity
-    {
-        /// <summary>
-        /// unique number
-        /// уникальный номер
-        /// </summary>
-        public string Id;
-
-        /// <summary>
-        /// name
-        /// имя
-        /// </summary>
-        public string Name;
-
-        /// <summary>
-        /// код контракта
-        /// </summary>
-        public string Code;
-
-        /// <summary>
-        /// name of market
-        /// название рынка 
-        /// </summary>
-        public string Market;
-
-        /// <summary>
-        /// name of market as a number
-        /// название рынка в виде цифры
-        /// </summary>
-        public string MarketId;
-
-        /// <summary>
-        /// хз
-        /// </summary>
-        public string Decp;
-
-        /// <summary>
-        /// хз
-        /// </summary>
-        public string EmitentChild;
-
-        /// <summary>
-        /// web-site adress
-        /// адрес на сайте
-        /// </summary>
-        public string Url;
     }
 }

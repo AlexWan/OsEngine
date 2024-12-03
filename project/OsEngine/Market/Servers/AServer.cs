@@ -1328,7 +1328,8 @@ namespace OsEngine.Market.Servers
                     if (_securities.Find(s =>
                             s != null &&
                             s.NameId == securities[i].NameId &&
-                            s.Name == securities[i].Name) == null)
+                            s.Name == securities[i].Name &&
+                            s.NameClass == securities[i].NameClass) == null)
                     {
                         bool isInArray = false;
 
