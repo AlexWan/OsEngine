@@ -62,9 +62,8 @@ namespace OsEngine.Market.Servers.Alor
         {
             try
             {
-                
                 _securities.Clear();
-                _myPortfolious.Clear();
+                _myPortfolios.Clear();
                 _subscribledSecurities.Clear();
                 _lastGetLiveTimeToketTime = DateTime.MinValue;
 
@@ -170,7 +169,7 @@ namespace OsEngine.Market.Servers.Alor
         public void Dispose()
         {
             _securities.Clear();
-            _myPortfolious.Clear();
+            _myPortfolios.Clear();
             _lastGetLiveTimeToketTime = DateTime.MinValue;
 
             DeleteWebSocketConnection();
@@ -583,7 +582,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #region 4 Portfolios
 
-        private List<Portfolio> _myPortfolious = new List<Portfolio>();
+        private List<Portfolio> _myPortfolios = new List<Portfolio>();
 
         public void GetPortfolios()
         {
@@ -607,11 +606,11 @@ namespace OsEngine.Market.Servers.Alor
                 GetCurrentPortfolio(_portfolioSpareId, "SPARE");
             }
 
-            if(_myPortfolious.Count != 0)
+            if(_myPortfolios.Count != 0)
             {
                 if(PortfolioEvent != null)
                 {
-                    PortfolioEvent(_myPortfolious);
+                    PortfolioEvent(_myPortfolios);
                 }
             }
 
@@ -655,7 +654,7 @@ namespace OsEngine.Market.Servers.Alor
             Portfolio newPortfolio = new Portfolio();
             newPortfolio.Number = name + "_" + prefix;
             newPortfolio.ValueCurrent = portfolio.buyingPower.ToDecimal();
-            _myPortfolious.Add(newPortfolio);
+            _myPortfolios.Add(newPortfolio);
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -985,16 +984,9 @@ namespace OsEngine.Market.Servers.Alor
 
         private string GetGuid()
         {
-            lock (_guidLocker)
-            {
-                iterator++;
-                return iterator.ToString();
-            }
+            Guid newUid = Guid.NewGuid();
+            return newUid.ToString();
         }
-
-        int iterator = 0;
-
-        string _guidLocker = "guidLocker";
 
         private void CreateWebSocketConnection()
         {
@@ -1757,12 +1749,12 @@ namespace OsEngine.Market.Servers.Alor
 
             Portfolio portf = null;
 
-            for (int i = 0; i < _myPortfolious.Count; i++)
+            for (int i = 0; i < _myPortfolios.Count; i++)
             {
-                string realPortfName = _myPortfolious[i].Number.Split('_')[0];
+                string realPortfName = _myPortfolios[i].Number.Split('_')[0];
                 if (realPortfName == portfolioName)
                 {
-                    portf = _myPortfolious[i];
+                    portf = _myPortfolios[i];
                     break;
                 }
             }
@@ -1780,7 +1772,7 @@ namespace OsEngine.Market.Servers.Alor
 
             if (PortfolioEvent != null)
             {
-                PortfolioEvent(_myPortfolious);
+                PortfolioEvent(_myPortfolios);
             }
         }
 
@@ -2046,12 +2038,12 @@ namespace OsEngine.Market.Servers.Alor
 
             Portfolio portf = null;
 
-            for(int i = 0;i < _myPortfolious.Count;i++)
+            for(int i = 0;i < _myPortfolios.Count;i++)
             {
-                string realPortfName = _myPortfolious[i].Number.Split('_')[0];
+                string realPortfName = _myPortfolios[i].Number.Split('_')[0];
                 if (realPortfName == portfolioName)
                 {
-                    portf = _myPortfolious[i];
+                    portf = _myPortfolios[i];
                     break;
                 }
             }
@@ -2074,7 +2066,7 @@ namespace OsEngine.Market.Servers.Alor
             
             if (PortfolioEvent != null)
             {
-                PortfolioEvent(_myPortfolious);
+                PortfolioEvent(_myPortfolios);
             }
         }
 
@@ -2086,13 +2078,13 @@ namespace OsEngine.Market.Servers.Alor
 
         #region 10 Trade
 
-        private RateGate rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private RateGate rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private RateGate rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private List<AlorSecuritiesAndPortfolious> _securitiesAndPortfolious = new List<AlorSecuritiesAndPortfolious>();
+        private List<AlorSecuritiesAndPortfolios> _securitiesAndPortfolios = new List<AlorSecuritiesAndPortfolios>();
 
         private List<Order> _sendOrders = new List<Order>();
 
@@ -2102,7 +2094,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public void SendOrder(Order order)
         {
-            rateGateSendOrder.WaitToProceed();
+            _rateGateSendOrder.WaitToProceed();
 
             try
             {
@@ -2138,7 +2130,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.POST);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("X-REQID", order.NumberUser.ToString());
+                requestRest.AddHeader("X-REQID", order.NumberUser.ToString() + "|" + GetGuid());
                 requestRest.AddHeader("accept", "application/json");
 
                 if(order.TypeOrder == OrderPriceType.Market)
@@ -2159,9 +2151,9 @@ namespace OsEngine.Market.Servers.Alor
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     bool isInArray = false;
-                    for(int i = 0;i < _securitiesAndPortfolious.Count;i++)
+                    for(int i = 0;i < _securitiesAndPortfolios.Count;i++)
                     {
-                        if (_securitiesAndPortfolious[i].Security == order.SecurityNameCode)
+                        if (_securitiesAndPortfolios[i].Security == order.SecurityNameCode)
                         {
                             isInArray = true;
                             break;
@@ -2169,10 +2161,10 @@ namespace OsEngine.Market.Servers.Alor
                     }
                     if(isInArray == false)
                     {
-                        AlorSecuritiesAndPortfolious newValue = new AlorSecuritiesAndPortfolious();
+                        AlorSecuritiesAndPortfolios newValue = new AlorSecuritiesAndPortfolios();
                         newValue.Security = order.SecurityNameCode;
                         newValue.Portfolio = order.PortfolioNumber;
-                        _securitiesAndPortfolious.Add(newValue);
+                        _securitiesAndPortfolios.Add(newValue);
                     }
 
                     return;
@@ -2263,7 +2255,7 @@ namespace OsEngine.Market.Servers.Alor
         {
             try
             {
-                rateGateChangePriceOrder.WaitToProceed();
+                _rateGateChangePriceOrder.WaitToProceed();
 
                 if (order.TypeOrder == OrderPriceType.Market)
                 {
@@ -2277,7 +2269,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.PUT);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("X-REQID", order.NumberUser.ToString() + GetGuid()); ;
+                requestRest.AddHeader("X-REQID", order.NumberUser.ToString() + "|" + GetGuid()); ;
                 requestRest.AddHeader("accept", "application/json");
 
                 LimitOrderAlorRequest body = GetLimitRequestObj(order);
@@ -2288,7 +2280,7 @@ namespace OsEngine.Market.Servers.Alor
                 if(qty <= 0 ||
                     order.State != OrderStateType.Active)
                 {
-                    SendLogMessage("Can`t change price to order. It`s don`t in Activ state", LogMessageType.Error);
+                    SendLogMessage("Can`t change price to order. It's not in Activ state", LogMessageType.Error);
                     return;
                 }
 
@@ -2297,7 +2289,7 @@ namespace OsEngine.Market.Servers.Alor
                 RestClient client = new RestClient(_restApiHost);
 
                 AlorChangePriceOrder alorChangePriceOrder = new AlorChangePriceOrder();
-                alorChangePriceOrder.MarketId = order.NumberMarket.ToString();
+                alorChangePriceOrder.MarketId = order.NumberMarket;
                 alorChangePriceOrder.TimeChangePriceOrder = DateTime.Now;
 
                 lock(_changePriceOrdersArrayLocker)
@@ -2343,7 +2335,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public void CancelOrder(Order order)
         {
-            rateGateCancelOrder.WaitToProceed();
+            _rateGateCancelOrder.WaitToProceed();
 
             //curl -X DELETE "/commandapi/warptrans/TRADE/v2/client/orders/93713183?portfolio=D39004&exchange=MOEX&stop=false&format=Simple" -H "accept: application/json"
 
@@ -2603,7 +2595,7 @@ namespace OsEngine.Market.Servers.Alor
 
         private List<Order> GetAllOrdersFromExchangeByPortfolio(string portfolio)
         {
-            rateGateSendOrder.WaitToProceed();
+            _rateGateSendOrder.WaitToProceed();
 
             try
             {
@@ -2855,7 +2847,7 @@ namespace OsEngine.Market.Servers.Alor
         public DateTime TimeChangePriceOrder;
     }
 
-    public class AlorSecuritiesAndPortfolious
+    public class AlorSecuritiesAndPortfolios
     {
        public string Security;
 
