@@ -2138,7 +2138,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.POST);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("X-ALOR-REQID", order.NumberUser.ToString());
+                requestRest.AddHeader("X-REQID", order.NumberUser.ToString());
                 requestRest.AddHeader("accept", "application/json");
 
                 if(order.TypeOrder == OrderPriceType.Market)
@@ -2277,7 +2277,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.PUT);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                requestRest.AddHeader("X-ALOR-REQID", order.NumberUser.ToString() + GetGuid()); ;
+                requestRest.AddHeader("X-REQID", order.NumberUser.ToString() + GetGuid()); ;
                 requestRest.AddHeader("accept", "application/json");
 
                 LimitOrderAlorRequest body = GetLimitRequestObj(order);
