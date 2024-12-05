@@ -296,7 +296,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 12. Order whith state NONE");
+                this.SetNewError("Error 12. Order with state NONE");
                 return;
             }
 
@@ -350,7 +350,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 13. Order Type is note Liimt. Real type: " + order.TypeOrder);
+                this.SetNewError("Error 13. Order Type is not Limit. Real type: " + order.TypeOrder);
                 return false;
             }
 
