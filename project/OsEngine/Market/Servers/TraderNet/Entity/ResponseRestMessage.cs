@@ -19,7 +19,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public List<string> tickers;
     }
        
-    public class ResponceMessageSecurities
+    public class ResponseMessageSecurities
     {
         public string total;
         public List<ListSecurities> securities;
@@ -46,7 +46,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public Dictionary<string, List<string>> xSeries { get; set; }
     }
 
-    public class ResponceRestOrders
+    public class ResponseRestOrders
     {
         public Result result;        
     }
@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
 
     public class ResultOrders
     {
-        public List<ResponceOrders> order;       
+        public List<ResponseOrders> order;       
     }
 
 }

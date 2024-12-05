@@ -2,7 +2,7 @@
 
 namespace OsEngine.Market.Servers.TraderNet.Entity
 {
-    public class ResponceTrade
+    public class ResponseTrade
     {
         public string c;//тикер
         public string ltp; // цена последней сделки
@@ -20,7 +20,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public string ltt; // время
     }
 
-    public class ResponceDepth
+    public class ResponseDepth
     {
         public string i;//тикер
         public string n;
@@ -80,7 +80,7 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public string s;
     }
 
-    public class ResponceOrders
+    public class ResponseOrders
     {
         public string instr;
         public string date;
@@ -91,10 +91,10 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public string userOrderId;
         public string oper; // направление сделки
         public string type; // тип сделки
-        public List<ResponceOrdersTrades> trade; // кол-во
+        public List<ResponseOrdersTrades> trade; // кол-во
     }
 
-    public class ResponceOrdersTrades
+    public class ResponseOrdersTrades
     {
         public string date;
         public string id;
