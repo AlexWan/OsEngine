@@ -59,9 +59,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             //6.1.3.Дата старта запроса должна совпадать с данными первых свечей, если данные точно есть.
             //6.1.4.Дата конца запроса должна совпадать с данными последней свечи, если данные точно есть.
 
-            DateTime lastMidnightTime = StartDate.Date;
-
-            lastMidnightTime = lastMidnightTime + new TimeSpan(0, 0, 1, 1); // 1 минута и 1 секунда
+            DateTime lastMidnightTime = StartDate.Date + new TimeSpan(0, 0, 1, 1); // 1 минута и 1 секунда
 
             DateTime startTime = lastMidnightTime.AddDays(-3);
             DateTime endTime = lastMidnightTime.AddDays(-1).AddHours(-1);
