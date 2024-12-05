@@ -731,11 +731,16 @@ namespace OsEngine.Market.Servers.Alor
                 startTime = actualTime;
             }
 
+            DateTime requestedStartTime = startTime;
+
             List<Candle> candles = new List<Candle>();
 
             TimeSpan additionTime = TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 2500);
 
             DateTime endTimeReal = startTime.Add(additionTime);
+
+            if (endTimeReal > endTime) 
+                endTimeReal = endTime;
 
             while (startTime < endTime)
             {
@@ -766,6 +771,9 @@ namespace OsEngine.Market.Servers.Alor
 
                 startTime = realStart;
                 endTimeReal = realStart.Add(additionTime);
+
+                if (endTimeReal > endTime)
+                    endTimeReal = endTime;
             }
 
             while (candles != null &&
@@ -773,6 +781,13 @@ namespace OsEngine.Market.Servers.Alor
                 candles[candles.Count - 1].TimeStart > endTime)
             {
                 candles.RemoveAt(candles.Count - 1);
+            }
+
+            while (candles != null &&
+                candles.Count != 0 && 
+                candles[0].TimeStart < requestedStartTime)
+            {
+                candles.RemoveAt(0);
             }
 
             return candles;
@@ -868,6 +883,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            return null; // так как указано, что данные не поддерживаются
 
             List<Trade> trades = new List<Trade>();
 
@@ -1395,7 +1411,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #region 8 WebSocket Security subscrible
 
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
         List<Security> _subscribledSecurities = new List<Security>();
 
@@ -1411,7 +1427,7 @@ namespace OsEngine.Market.Servers.Alor
                     }
                 }
 
-                rateGateSubscrible.WaitToProceed();
+                _rateGateSubscrible.WaitToProceed();
 
                 _subscribledSecurities.Add(security);
 
@@ -2760,7 +2776,7 @@ namespace OsEngine.Market.Servers.Alor
 
         private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
         {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             DateTime result = origin.AddSeconds(seconds.ToDouble()).ToLocalTime();
 
             return result;
@@ -2768,7 +2784,7 @@ namespace OsEngine.Market.Servers.Alor
 
         private DateTime ConvertToDateTimeFromUnixFromMilliseconds(string seconds)
         {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
             DateTime result = origin.AddMilliseconds(seconds.ToDouble());
 
             return result.ToLocalTime();
