@@ -70,7 +70,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    FIFOListWebSocketMessage = new ConcurrentQueue<string>();
+                    _FIFOListWebSocketMessage = new ConcurrentQueue<string>();
                     CreateWebSocketConnection();
                 }
                 else
@@ -101,7 +101,7 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                _subscribledSecutiries.Clear();
+                _subscribedSecurities.Clear();
                 _listMD.Clear();
                 _listTrades.Clear();
 
@@ -112,7 +112,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 SendLogMessage(exeption.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketMessage = null;
+            _FIFOListWebSocketMessage = null;
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -246,7 +246,7 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                _rateGateSendOrder.WaitToProceed(100);
+                _rateGateSecurity.WaitToProceed(100);
 
                 RequestSecurity reqData = new RequestSecurity();
                 reqData.q = new RequestSecurity.Q();
@@ -275,7 +275,7 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                ResponceMessageSecurities result = JsonConvert.DeserializeObject<ResponceMessageSecurities>(jsonResponse);
+                ResponseMessageSecurities result = JsonConvert.DeserializeObject<ResponseMessageSecurities>(jsonResponse);
 
                 List<Security> securities = new List<Security>();
 
@@ -683,7 +683,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     _listMD = new Dictionary<string, List<ListMdTiker>>();
                     _listTrades = new Dictionary<string, ListTrades>();
 
-                    CreateSubcriblePrivate();
+                    CreateSubcribePrivate();
                 }
             }
             catch (Exception ex)
@@ -727,12 +727,12 @@ namespace OsEngine.Market.Servers.TraderNet
                     return;
                 }*/
 
-                if (FIFOListWebSocketMessage == null)
+                if (_FIFOListWebSocketMessage == null)
                 {
                     return;
                 }
 
-                FIFOListWebSocketMessage.Enqueue(e.Message);
+                _FIFOListWebSocketMessage.Enqueue(e.Message);
             }
             catch (Exception error)
             {
@@ -756,13 +756,13 @@ namespace OsEngine.Market.Servers.TraderNet
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(550));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(550));
 
-        private List<string> _subscribledSecutiries = new List<string>();
+        private List<string> _subscribedSecurities = new List<string>();
 
-        private void CreateSubcriblePrivate()
+        private void CreateSubcribePrivate()
         {
-            _rateGateSubscrible.WaitToProceed();
+            _rateGateSubscribe.WaitToProceed();
 
             try
             {
@@ -785,8 +785,8 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
 
             }
             catch (Exception exeption)
@@ -795,7 +795,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             try
             {
@@ -804,24 +804,24 @@ namespace OsEngine.Market.Servers.TraderNet
                     return;
                 }
 
-                if (_subscribledSecutiries != null)
+                if (_subscribedSecurities != null)
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
                     {
-                        if (_subscribledSecutiries[i].Equals(security.Name))
+                        if (_subscribedSecurities[i].Equals(security.Name))
                         {
                             return;
                         }
                     }
                 }
 
-                _subscribledSecutiries.Add(security.Name);
+                _subscribedSecurities.Add(security.Name);
 
-                string quotesResponce = $"[\"quotes\", {GetStringFromList(_subscribledSecutiries)}]";
-                string orderbookResponce = $"[\"orderBook\", {GetStringFromList(_subscribledSecutiries)}]";
+                string quotesResponse = $"[\"quotes\", {GetStringFromList(_subscribedSecurities)}]";
+                string orderbookResponse = $"[\"orderBook\", {GetStringFromList(_subscribedSecurities)}]";
 
-                _webSocket.Send(quotesResponce);
-                _webSocket.Send(orderbookResponce);
+                _webSocket.Send(quotesResponse);
+                _webSocket.Send(orderbookResponse);
             }
             catch (Exception ex)
             {
@@ -852,7 +852,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
         #region 10 WebSocket parsing the messages
 
-        private ConcurrentQueue<string> FIFOListWebSocketMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _FIFOListWebSocketMessage = new ConcurrentQueue<string>();
 
         private void MessageReader()
         {
@@ -868,7 +868,7 @@ namespace OsEngine.Market.Servers.TraderNet
                         continue;
                     }
 
-                    if (FIFOListWebSocketMessage.IsEmpty)
+                    if (_FIFOListWebSocketMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
                         continue;
@@ -876,7 +876,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
                     string message = null;
 
-                    FIFOListWebSocketMessage.TryDequeue(out message);
+                    _FIFOListWebSocketMessage.TryDequeue(out message);
 
                     if (message == null)
                     {
@@ -989,7 +989,7 @@ namespace OsEngine.Market.Servers.TraderNet
         {
             try
             {
-                List<ResponceOrders> responseOrder = GetJsonString(message);
+                List<ResponseOrders> responseOrder = GetJsonString(message);
 
                 for (int i = 0; i < responseOrder.Count; i++)
                 {
@@ -1058,7 +1058,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 string str = message.Remove(0, count);
                 str = str.Remove(str.Length - 1);
 
-                ResponceTrade responseTrade = JsonConvert.DeserializeObject<ResponceTrade>(str);
+                ResponseTrade responseTrade = JsonConvert.DeserializeObject<ResponseTrade>(str);
 
                 if (responseTrade == null)
                 {
@@ -1088,7 +1088,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private void GetSnapshotTrades(ResponceTrade responseTrade)
+        private void GetSnapshotTrades(ResponseTrade responseTrade)
         {
             if (!_listTrades.ContainsKey(responseTrade.c))
             {
@@ -1109,7 +1109,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 string str = message.Remove(0, count);
                 str = str.Remove(str.Length - 1);
 
-                ResponceDepth responseDepth = JsonConvert.DeserializeObject<ResponceDepth>(str);
+                ResponseDepth responseDepth = JsonConvert.DeserializeObject<ResponseDepth>(str);
 
                 if (responseDepth == null)
                 {
@@ -1171,7 +1171,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private void GetSnapshotMD(ResponceDepth responseDepth)
+        private void GetSnapshotMD(ResponseDepth responseDepth)
         {               
             if (_listMD.ContainsKey(responseDepth.i) && responseDepth.n == "0")
             {
@@ -1345,11 +1345,11 @@ namespace OsEngine.Market.Servers.TraderNet
                     return;
                 }
 
-                ResponceRestOrders response = JsonConvert.DeserializeObject<ResponceRestOrders>(JsonResponse);
+                ResponseRestOrders response = JsonConvert.DeserializeObject<ResponseRestOrders>(JsonResponse);
 
                 for (int i = 0; i < response.result.orders.order.Count; i++)
                 {
-                    ResponceOrders item = response.result.orders.order[i];
+                    ResponseOrders item = response.result.orders.order[i];
 
                     Int32.TryParse(item.userOrderId.Split(':')[1], out int number);
 
@@ -1391,13 +1391,13 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private List<ResponceOrders> GetJsonString(string jsonResponse)
+        private List<ResponseOrders> GetJsonString(string jsonResponse)
         {
             int count = jsonResponse.IndexOf(",");
             string str = jsonResponse.Remove(0, count+1);
             str = str.Remove(str.Length - 1);
 
-            List<ResponceOrders> responseOrder = JsonConvert.DeserializeObject<List<ResponceOrders>>(str);
+            List<ResponseOrders> responseOrder = JsonConvert.DeserializeObject<List<ResponseOrders>>(str);
 
             if (responseOrder == null)
             {
@@ -1407,7 +1407,7 @@ namespace OsEngine.Market.Servers.TraderNet
             return responseOrder;
         }
 
-        private Order ConvertResponseToOrder(ResponceOrders responseOrder)
+        private Order ConvertResponseToOrder(ResponseOrders responseOrder)
         {
             if (string.IsNullOrEmpty(responseOrder.id))
             {
@@ -1478,7 +1478,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     return null;
                 }
 
-                ResponceRestOrders response = JsonConvert.DeserializeObject<ResponceRestOrders>(JsonResponse);
+                ResponseRestOrders response = JsonConvert.DeserializeObject<ResponseRestOrders>(JsonResponse);
                                 
                 List<Order> orders = new List<Order>();
 
