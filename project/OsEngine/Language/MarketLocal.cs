@@ -667,6 +667,10 @@ namespace OsEngine.Language
           "Eng:Number_" +
           "Ru:Номер_");
 
+        public string Label158 => OsLocalization.ConvertToLocString(
+          "Eng:Ignore_" +
+          "Ru:Игнор_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");

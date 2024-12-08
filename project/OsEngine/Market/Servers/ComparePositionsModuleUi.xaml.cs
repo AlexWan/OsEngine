@@ -6,28 +6,14 @@
 using OsEngine.Language;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using OsEngine.Entity;
-using System.Windows.Forms.DataVisualization.Charting;
 using System.Threading;
-using OsEngine.Market.Servers.MoexAlgopack.Entity;
 
 namespace OsEngine.Market.Servers
 {
-    /// <summary>
-    /// Interaction logic for ComparePositionsModuleUi.xaml
-    /// </summary>
     public partial class ComparePositionsModuleUi : Window
     {
         ComparePositionsModule _comparePositionsModule;
@@ -86,6 +72,30 @@ namespace OsEngine.Market.Servers
 
             Thread worker = new Thread(RePainterThread);
             worker.Start();
+        }
+
+        private void ComparePositionsModuleUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _isClosed = true;
+
+                if (GuiClosed != null)
+                {
+                    GuiClosed(PortfolioName);
+                }
+
+                _comparePositionsModule = null;
+
+                DataGridFactory.ClearLinks(_grid);
+                _grid.CellClick -= _grid_CellClick;
+                Host.Child = null;
+
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void CheckBoxAutoLogMessageOnError_Click(object sender, RoutedEventArgs e)
@@ -149,18 +159,6 @@ namespace OsEngine.Market.Servers
 
         }
 
-        private void ComparePositionsModuleUi_Closed(object sender, EventArgs e)
-        {
-            _isClosed = true;
-
-            if (GuiClosed != null)
-            {
-                GuiClosed(PortfolioName);
-            }
-
-            _comparePositionsModule = null;
-        }
-
         public event Action<string> GuiClosed;
 
         private bool _isClosed;
@@ -171,7 +169,7 @@ namespace OsEngine.Market.Servers
 
         public void CreateTable()
         {
-            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+            _grid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
                          DataGridViewAutoSizeRowsMode.AllCells);
 
             _grid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
@@ -251,7 +249,17 @@ namespace OsEngine.Market.Servers
             colum8.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
             _grid.Columns.Add(colum8);
 
+            // Is Ignored
+            DataGridViewColumn colum9 = new DataGridViewColumn();
+            colum9.CellTemplate = cell0;
+            colum9.HeaderText = OsLocalization.Market.Label158;
+            colum9.ReadOnly = false;
+            colum9.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            _grid.Columns.Add(colum9);
+
             Host.Child = _grid;
+
+            _grid.CellClick += _grid_CellClick;
         }
 
         private void RePainterThread()
@@ -260,7 +268,7 @@ namespace OsEngine.Market.Servers
             {
                 try
                 {
-                    Thread.Sleep(10000);
+                    Thread.Sleep(5000);
 
                     if (MainWindow.ProccesIsWorked == false)
                     {
@@ -378,13 +386,16 @@ namespace OsEngine.Market.Servers
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[2].Value = portfolio.CompareSecurities[i].Status.ToString();
 
-                if(portfolio.CompareSecurities[i].Status == ComparePositionsStatus.Normal)
+                if(portfolio.CompareSecurities[i].IsIgnored == false)
                 {
-                    nRow.Cells[2].Style.ForeColor = System.Drawing.Color.Green;
-                }
-                else
-                {
-                    nRow.Cells[2].Style.ForeColor = System.Drawing.Color.Red;
+                    if (portfolio.CompareSecurities[i].Status == ComparePositionsStatus.Normal)
+                    {
+                        nRow.Cells[2].Style.ForeColor = System.Drawing.Color.Green;
+                    }
+                    else
+                    {
+                        nRow.Cells[2].Style.ForeColor = System.Drawing.Color.Red;
+                    }
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -405,12 +416,90 @@ namespace OsEngine.Market.Servers
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[8].Value = portfolio.CompareSecurities[i].PortfolioCommon.ToString();
 
+                DataGridViewCheckBoxCell checkBox = new DataGridViewCheckBoxCell();
+                checkBox.Value = portfolio.CompareSecurities[i].IsIgnored;
+                nRow.Cells.Add(checkBox);
+
+                if (portfolio.CompareSecurities[i].IsIgnored == true)
+                {
+                    for (int j = 0; j < nRow.Cells.Count; j++)
+                    {
+                        nRow.Cells[j].Style.ForeColor = System.Drawing.Color.Gray;
+                    }
+                }
+
                 rows.Add(nRow);
             }
 
             return rows;
         }
 
+        private void _grid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.ColumnIndex != 9)
+                {
+                    return;
+                }
+
+
+                if (e.RowIndex >= _grid.Rows.Count)
+                {
+                    return;
+                }
+
+                DataGridViewCheckBoxCell cell = (DataGridViewCheckBoxCell)_grid.Rows[e.RowIndex].Cells[e.ColumnIndex];
+
+                string value = cell.Value.ToString();
+
+                if (value == "True")
+                {
+                    // удаляем бумагу из списка заблокированных к проверке
+                    ComparePositionsSecurity security = new ComparePositionsSecurity();
+                    security.Security = _grid.Rows[e.RowIndex].Cells[1].Value.ToString();
+                    security.IsIgnored = false;
+
+                    for (int i = 0; i < _comparePositionsModule.IgnoredSecurities.Count; i++)
+                    {
+                        if (_comparePositionsModule.IgnoredSecurities[i].Security == security.Security)
+                        {
+                            _comparePositionsModule.IgnoredSecurities.RemoveAt(i);
+                            _comparePositionsModule.SaveIgnoredSecurities();
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    // добавляем бумагу к списку заблокированных к проверке
+                    ComparePositionsSecurity security = new ComparePositionsSecurity();
+                    security.Security = _grid.Rows[e.RowIndex].Cells[1].Value.ToString();
+                    security.IsIgnored = true;
+
+                    bool isInArray = false;
+
+                    for (int i = 0; i < _comparePositionsModule.IgnoredSecurities.Count; i++)
+                    {
+                        if (_comparePositionsModule.IgnoredSecurities[i].Security == security.Security)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        _comparePositionsModule.IgnoredSecurities.Add(security);
+                        _comparePositionsModule.SaveIgnoredSecurities();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _comparePositionsModule.Server.Log.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
 

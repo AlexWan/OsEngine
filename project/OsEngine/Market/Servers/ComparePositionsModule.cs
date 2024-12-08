@@ -21,6 +21,8 @@ namespace OsEngine.Market.Servers
             Server = server;
 
             Load();
+            
+            LoadIgnoredSecurities();
 
             Thread worker = new Thread(UpdaterThreadWorker);
             worker.Start();
@@ -202,6 +204,11 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
+                if(security.IsIgnored == true)
+                {
+                    continue;
+                }
+
                 haveError = true;
 
                 string securityError = "Security: " + security.Security + "\n";
@@ -312,8 +319,15 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
-                result.Add(newSecurity);
+                for(int j = 0;j < IgnoredSecurities.Count;j++)
+                {
+                    if (IgnoredSecurities[j].Security == newSecurity.Security)
+                    {
+                        newSecurity.IsIgnored = IgnoredSecurities[j].IsIgnored;
+                    }
+                }
 
+                result.Add(newSecurity);
             }
 
             return result;
@@ -536,6 +550,66 @@ namespace OsEngine.Market.Servers
             return openPositions;
         }
 
+        #region Ignored securities selected by the user
+
+        public List<ComparePositionsSecurity> IgnoredSecurities = new List<ComparePositionsSecurity>();
+
+        public void SaveIgnoredSecurities()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + Server.ServerType.ToString() + @"CompareModule_IgnoreSec.txt", false))
+                {
+                    for (int i = 0; i < IgnoredSecurities.Count; i++)
+                    {
+                        writer.WriteLine(IgnoredSecurities[i].GetSaveString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public void LoadIgnoredSecurities()
+        {
+            if (!File.Exists(@"Engine\" + Server.ServerType.ToString() + @"CompareModule_IgnoreSec.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + Server.ServerType.ToString() + @"CompareModule_IgnoreSec.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string sec = reader.ReadLine();
+
+                        if (string.IsNullOrEmpty(sec) == true)
+                        {
+                            continue;
+                        }
+
+                        ComparePositionsSecurity newCompareSecurity = new ComparePositionsSecurity();
+                        newCompareSecurity.LoadFromString(sec);
+                        IgnoredSecurities.Add(newCompareSecurity);
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
         #region Log
 
         /// <summary>
@@ -583,6 +657,25 @@ namespace OsEngine.Market.Servers
 
         public decimal PortfolioCommon;
 
+        public bool IsIgnored;
+
+        public string GetSaveString()
+        {
+            string result = "";
+
+            result += Security + "%";
+            result += IsIgnored + "%";
+
+            return result;
+        }
+
+        public void LoadFromString(string str)
+        {
+            string[] array = str.Split('%');
+
+            Security = array[0];
+            IsIgnored = Convert.ToBoolean(array[1]);
+        }
     }
 
     public enum ComparePositionsStatus

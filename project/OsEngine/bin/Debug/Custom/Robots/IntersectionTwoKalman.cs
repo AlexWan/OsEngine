@@ -87,8 +87,8 @@ namespace OsEngine.Robots.AO
             // Create indicator KalmanFilter Slow
             _KalmanSlow = IndicatorsFactory.CreateIndicatorByName("KalmanFilter", name + "KalmanFilter Slow", false);
             _KalmanSlow = (Aindicator)_tab.CreateCandleIndicator(_KalmanSlow, "Prime");
-            ((IndicatorParameterDecimal)_KalmanFast.Parameters[0]).ValueDecimal = SharpnessSlow.ValueDecimal;
-            ((IndicatorParameterDecimal)_KalmanFast.Parameters[1]).ValueDecimal = CoefKSlow.ValueDecimal;
+            ((IndicatorParameterDecimal)_KalmanSlow.Parameters[0]).ValueDecimal = SharpnessSlow.ValueDecimal;
+            ((IndicatorParameterDecimal)_KalmanSlow.Parameters[1]).ValueDecimal = CoefKSlow.ValueDecimal;
             _KalmanSlow.Save();
 
             // Exit
@@ -114,8 +114,9 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterDecimal)_KalmanFast.Parameters[1]).ValueDecimal = CoefKFast.ValueDecimal;
             _KalmanFast.Save();
             _KalmanFast.Reload();
-            ((IndicatorParameterDecimal)_KalmanFast.Parameters[0]).ValueDecimal = SharpnessSlow.ValueDecimal;
-            ((IndicatorParameterDecimal)_KalmanFast.Parameters[1]).ValueDecimal = CoefKSlow.ValueDecimal;
+
+            ((IndicatorParameterDecimal)_KalmanSlow.Parameters[0]).ValueDecimal = SharpnessSlow.ValueDecimal;
+            ((IndicatorParameterDecimal)_KalmanSlow.Parameters[1]).ValueDecimal = CoefKSlow.ValueDecimal;
             _KalmanSlow.Save();
             _KalmanSlow.Reload();
         }
