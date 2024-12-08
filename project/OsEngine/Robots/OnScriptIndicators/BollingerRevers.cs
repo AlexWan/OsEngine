@@ -91,15 +91,11 @@ public class BollingerRevers : BotPanel
     //settings настройки публичные
 
     public StrategyParameterInt Slippage;
-
     public StrategyParameterString VolumeType;
     public StrategyParameterDecimal Volume;
     public StrategyParameterString TradeAssetInPortfolio;
-
     public StrategyParameterString Regime;
-
     public StrategyParameterDecimal BollingerDeviation;
-
     public StrategyParameterInt BollingerLength;
 
     private decimal _lastPrice;

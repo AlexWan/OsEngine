@@ -5,20 +5,17 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.Trend
 {
-    /// <summary>
-    /// Trend strategy at the intersection of the ParabolicSar indicator
-    /// Трендовая стратегия на пересечение индикатора ParabolicSar
-    /// </summary>
     [Bot("ParabolicSarTrade")]
     public class ParabolicSarTrade : BotPanel
     {
@@ -28,18 +25,21 @@ namespace OsEngine.Robots.Trend
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
+            ParabolicAf = CreateParameter("Parabolic Af", 0.02m, 0.02m, 0.1m, 0.01m);
+            ParabolicMaxAf = CreateParameter("Parabolic Max Af", 0.2m, 0.2m, 0.5m, 0.1m);
+
             _sar = new ParabolicSaR(name + "Prime", false);
             _sar = (ParabolicSaR)_tab.CreateCandleIndicator(_sar, "Prime");
+            _sar.Af = Convert.ToDouble(ParabolicAf.ValueDecimal);
+            _sar.MaxAf = Convert.ToDouble(ParabolicMaxAf.ValueDecimal);
             _sar.Save();
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
-            Slipage = 0;
-            VolumeFix = 1;
-
-            Load();
-
-            DeleteEvent += Strategy_DeleteEvent;
 
             Description = "Trend strategy at the intersection of the ParabolicSar indicator. " +
                 "if Price < lastSar - close position and open Short. " +
@@ -47,11 +47,33 @@ namespace OsEngine.Robots.Trend
 
             //Подписка на получение событий/команд из телеграма - Subscribe to receive events/commands from Telegram
             ServerTelegram.GetServer().TelegramCommandEvent += TelegramCommandHandler;
-            
+
+            ParametrsChangeByUser += ParabolicSarTrade_ParametrsChangeByUser;
         }
-        //Последний режим работы бота перед выключением по команде
-        private BotTradeRegime _lastRegime = BotTradeRegime.Off;
-        
+
+        private void ParabolicSarTrade_ParametrsChangeByUser()
+        {
+            double af = Convert.ToDouble(ParabolicAf.ValueDecimal);
+            double maxAf = Convert.ToDouble(ParabolicMaxAf.ValueDecimal);
+
+            if(_sar.Af != af ||
+                _sar.MaxAf != maxAf)
+            {
+                _sar.Af = Convert.ToDouble(ParabolicAf.ValueDecimal);
+                _sar.MaxAf = Convert.ToDouble(ParabolicMaxAf.ValueDecimal);
+                _sar.Reload();
+                _sar.Save();
+            }
+        }
+
+        public StrategyParameterInt Slippage;
+        public StrategyParameterString VolumeType;
+        public StrategyParameterDecimal Volume;
+        public StrategyParameterString TradeAssetInPortfolio;
+        public StrategyParameterString Regime;
+        public StrategyParameterDecimal ParabolicAf;
+        public StrategyParameterDecimal ParabolicMaxAf;
+       
         private void TelegramCommandHandler(string botName, Command cmd)
         {
             if (botName != null && !_tab.TabName.Equals(botName)) 
@@ -59,24 +81,15 @@ namespace OsEngine.Robots.Trend
             
             if (cmd == Command.StopAllBots || cmd == Command.StopBot)
             {
-                _lastRegime = Regime;
-                Regime = BotTradeRegime.Off;
+                Regime.ValueString = BotTradeRegime.Off.ToString();
                 
                 SendNewLogMessage($"Changed Bot {_tab.TabName} Regime to Off " +
                                   $"by telegram command {cmd}", LogMessageType.User);
             }
             else if (cmd == Command.StartAllBots || cmd == Command.StartBot)
             {
+                Regime.ValueString = BotTradeRegime.On.ToString();
 
-                if (_lastRegime != BotTradeRegime.Off)
-                {
-                    Regime = _lastRegime;
-                }
-                else
-                {
-                    Regime = BotTradeRegime.On;
-                }
-                
                 //changing bot mode to its previous state or On
                 SendNewLogMessage($"Changed bot {_tab.TabName} mode to state {Regime} " +
                                   $"by telegram command {cmd}", LogMessageType.User);
@@ -92,130 +105,31 @@ namespace OsEngine.Robots.Trend
             }
         }
         
-        /// <summary>
-        /// strategy name
-        /// взять уникальное имя
-        /// </summary>
         public override string GetNameStrategyType()
         {
             return "ParabolicSarTrade";
         }
-        /// <summary>
-        /// settings GUI
-        /// показать окно настроек
-        /// </summary>
+
         public override void ShowIndividualSettingsDialog()
         {
-            ParabolicSarTradeUi ui = new ParabolicSarTradeUi(this);
-            ui.ShowDialog();
+
         }
-        /// <summary>
-        /// tab to trade
-        /// вкладка для торговли
-        /// </summary>
+
         private BotTabSimple _tab;
 
         private ParabolicSaR _sar;
 
-        //settings настройки публичные
-
-        /// <summary>
-        /// slippage
-        /// проскальзывание
-        /// </summary>
-        public decimal Slipage;
-
-        /// <summary>
-        /// volume
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// regime
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
-                {
-                    writer.WriteLine(Slipage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Regime);
-
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-
-        /// <summary>
-        /// load settings
-        /// загрузить настройки
-        /// </summary>
-        private void Load()
-        {
-            if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-                {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-
-        /// <summary>
-        /// delete save file
-        /// удаление файла с сохранением
-        /// </summary>
-        void Strategy_DeleteEvent()
-        {
-            if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
-            {
-                File.Delete(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt");
-            }
-        }
-
         private decimal _lastPrice;
+
         private decimal _lastSar;
 
         // logic логика
 
-        /// <summary>
-        /// candle finished event
-        /// событие завершения свечи
-        /// </summary>
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
             //SendNewLogMessage("Candle finished event", LogMessageType.User);
 
-            if (Regime == BotTradeRegime.Off)
+            if (Regime.ValueString == "Off")
             {
                 return;
             }
@@ -234,52 +148,52 @@ namespace OsEngine.Robots.Trend
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    LogicClosePosition(candles, openPositions[i]);
+                    LogicClosePosition(candles, openPositions[i], openPositions);
                 }
             }
 
-            if (Regime == BotTradeRegime.OnlyClosePosition)
+            if (Regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
-            if (openPositions == null || openPositions.Count == 0)
+            if (openPositions == null 
+                || openPositions.Count == 0)
             {
-                LogicOpenPosition(candles, openPositions);
+                LogicOpenPosition(candles);
             }
         }
 
-        /// <summary>
-        /// logic open position
-        /// логика открытия первой позиции
-        /// </summary>
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
+        private void LogicOpenPosition(List<Candle> candles)
         {
-            if (_lastPrice > _lastSar && Regime != BotTradeRegime.OnlyShort)
+            if (_lastPrice > _lastSar && Regime.ValueString != "OnlyShort")
             {
-                _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
+                _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
             }
 
-            if (_lastPrice < _lastSar && Regime != BotTradeRegime.OnlyLong)
+            if (_lastPrice < _lastSar && Regime.ValueString != "OnlyLong")
             {
-                _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
+                _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
 
-        /// <summary>
-        /// logic close position
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
-        private void LogicClosePosition(List<Candle> candles, Position position)
+        private void LogicClosePosition(List<Candle> candles, Position position, List<Position> positionsAll)
         {
+            if(position.State != PositionStateType.Open)
+            {
+                return;
+            }
+
             if (position.Direction == Side.Buy)
             {
                 if (_lastPrice < _lastSar)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice - Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyLong && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime.ValueString != "OnlyLong" 
+                        && Regime.ValueString != "OnlyClosePosition"
+                        && positionsAll.Count == 1)
                     {
-                        _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
+                        _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
             }
@@ -288,14 +202,106 @@ namespace OsEngine.Robots.Trend
             {
                 if (_lastPrice > _lastSar)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice + Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
-                    if (Regime != BotTradeRegime.OnlyShort && Regime != BotTradeRegime.OnlyClosePosition)
+                    if (Regime.ValueString != "OnlyShort"
+                        && Regime.ValueString != "OnlyClosePosition"
+                        && positionsAll.Count == 1)
                     {
-                        _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
             }
+        }
+
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (VolumeType.ValueString == "Contracts")
+            {
+                volume = Volume.ValueDecimal;
+            }
+            else if (VolumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (VolumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, LogMessageType.Error);
+                    return 0;
+                }
+                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 }
