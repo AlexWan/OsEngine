@@ -26,7 +26,7 @@ namespace OsEngine.Market.Servers.Alor
             AlorServerRealization realization = new AlorServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString(OsLocalization.Market.ServerParamToken, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParamToken, ""); //
             CreateParameterString(OsLocalization.Market.Label112, "");
             CreateParameterString(OsLocalization.Market.Label113, "");
             CreateParameterString(OsLocalization.Market.Label114, "");
@@ -69,7 +69,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 SendLogMessage("Start Alor Connection", LogMessageType.System);
 
-                _apiTokenRefresh = ((ServerParameterString)ServerParameters[0]).Value;
+                _apiTokenRefresh = ((ServerParameterPassword)ServerParameters[0]).Value;
                 _portfolioSpotId = ((ServerParameterString)ServerParameters[1]).Value;
                 _portfolioFutId = ((ServerParameterString)ServerParameters[2]).Value;
                 _portfolioCurrencyId = ((ServerParameterString)ServerParameters[3]).Value;

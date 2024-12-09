@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Forms;
@@ -280,13 +281,37 @@ namespace OsEngine.Market.Servers
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[0].Value = param.Name;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[1].Value = param.Value;
+            if (string.IsNullOrEmpty(param.Value))
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[1].Value = param.Value;
+
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[2].Value = "";
+            }
+            else
+            {
+                string value = "";
+
+                for(int i = 0; i< param.Value.Length; i++)
+                {
+                    value += "*";
+                }
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[1].ReadOnly = true;
+                nRow.Cells[1].Value = value;
+
+                DataGridViewImageCell imageCell = new DataGridViewImageCell();
+                Bitmap bmp = new Bitmap(System.Windows.Forms.Application.StartupPath + "\\Images\\eye.png");
+                imageCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                imageCell.Value = bmp;
+
+                nRow.Cells.Add(imageCell);
+            }
 
             if (param.Comment != null)
             {
-                nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[2].Value = "";
+
 
                 DataGridViewButtonCell button = new DataGridViewButtonCell();
                 button.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -421,29 +446,49 @@ namespace OsEngine.Market.Servers
 
         void _newGrid_Click(object sender, EventArgs e)
         {
-            var s = e.GetType();
+            try
+            {
 
-            var mouse = (MouseEventArgs)e;
+                var s = e.GetType();
 
-            int clickRow = _paramsGrid.SelectedCells[0].RowIndex;
+                var mouse = (MouseEventArgs)e;
 
-            int clickColumn = _paramsGrid.SelectedCells[0].ColumnIndex;
+                int clickRow = _paramsGrid.SelectedCells[0].RowIndex;
 
-            List<IServerParameter> param =
-            _server.ServerParameters;
+                int clickColumn = _paramsGrid.SelectedCells[0].ColumnIndex;
 
-            if (clickRow < param.Count &&
-                param[clickRow].Type == ServerParameterType.Path &&
+                List<IServerParameter> param =
+                _server.ServerParameters;
+
+                if (clickRow >= param.Count)
+                {
+                    return;
+                }
+
+                if (param[clickRow].Type == ServerParameterType.Path &&
+                    clickColumn == 2)
+                {
+                    ((ServerParameterPath)param[clickRow]).ShowPathDialog();
+                    UpdateParamDataGrid();
+                }
+                else if (param[clickRow].Type == ServerParameterType.Button &&
+                    clickColumn == 1)
+                {
+                    ((ServerParameterButton)param[clickRow]).ActivateButtonClick();
+                }
+                else if (param[clickRow].Type == ServerParameterType.Password &&
                 clickColumn == 2)
-            {
-                ((ServerParameterPath)param[clickRow]).ShowPathDialog();
-                UpdateParamDataGrid();
+                {
+                    _paramsGrid.CellValueChanged -= _newGrid_CellValueChanged;
+                    _paramsGrid.Rows[clickRow].Cells[1].Value = ((ServerParameterPassword)param[clickRow]).Value;
+                    _paramsGrid.Rows[clickRow].Cells[1].ReadOnly = false;
+                    _paramsGrid.Rows[clickRow].Cells[2] = new DataGridViewTextBoxCell();
+                    _paramsGrid.CellValueChanged += _newGrid_CellValueChanged;
+                }
             }
-            if (clickRow < param.Count &&
-                param[clickRow].Type == ServerParameterType.Button &&
-                clickColumn == 1)
+            catch(Exception ex)
             {
-                ((ServerParameterButton)param[clickRow]).ActivateButtonClick();
+                ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
             }
         }
 
@@ -467,7 +512,7 @@ namespace OsEngine.Market.Servers
                     string str = _paramsGrid.Rows[i].Cells[1].Value.ToString().Replace("*", "");
                     if (str != "")
                     {
-                        ((ServerParameterPassword)param[i]).Value = str;
+                        ((ServerParameterPassword)param[i]).Value = _paramsGrid.Rows[i].Cells[1].Value.ToString();
                     }
                 }
                 else if (param[i].Type == ServerParameterType.Enum)
