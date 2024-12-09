@@ -1767,7 +1767,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 foreach (var trades in _allTrades)
                 {
-                    if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode)
+                    if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode
+                        && tradesNew[0].TimeFrameInTester == trades[0].TimeFrameInTester)
                     {
                         NewTradeEvent(trades);
                         break;
