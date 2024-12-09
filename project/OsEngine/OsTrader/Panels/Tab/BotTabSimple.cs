@@ -5642,7 +5642,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
             }
-            else if(StartProgram == StartProgram.IsTester)
+            else if(StartProgram == StartProgram.IsTester ||
+                StartProgram == StartProgram.IsOsOptimizer)
             {
                 if(trades[trades.Count - 1].TimeFrameInTester != Entity.TimeFrame.Sec1 &&
                     trades[trades.Count - 1].TimeFrameInTester != Connector.TimeFrame)
