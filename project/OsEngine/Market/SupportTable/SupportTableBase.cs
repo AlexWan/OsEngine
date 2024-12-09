@@ -125,6 +125,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(ib);
 
+            SupportConnection traderNet = new SupportConnection()
+            {
+                ServerType = ServerType.TraderNet,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\International\\Tradernet.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(traderNet);
+
             SupportConnection ninja = new SupportConnection()
             {
                 ServerType = ServerType.NinjaTrader,
