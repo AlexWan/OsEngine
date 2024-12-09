@@ -791,6 +791,15 @@
     <Compile Include="Market\Servers\Lmax\LmaxFixClient.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxServer.cs" />
     <Compile Include="Market\Servers\Lmax\Tags.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcClient.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcOrdersRest.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcPortfolioRest.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcPortfolioSocket.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcSecurityRest.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcSecuritySocket.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcSubscribleSocket.cs" />
+    <Compile Include="Market\Servers\Mexc\Mexc.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcPermission.cs" />
     <Compile Include="Market\Servers\MFD\MfdServer.cs" />
     <Compile Include="Market\Servers\MFD\MfdServerPermission.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\Entity\MoexAlgopackAuth.cs" />

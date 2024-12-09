@@ -64,6 +64,7 @@ using OsEngine.Market.Servers.BitMartFutures;
 using OsEngine.Market.Servers.MoexFixFastCurrency;
 using OsEngine.Market.Servers.MoexFixFastTwimeFutures;
 using OsEngine.Market.Servers.TraderNet;
+using OsEngine.Market.Servers.Mexc;
 
 namespace OsEngine.Market
 {
@@ -213,6 +214,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexFixFastCurrency);
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
                 serverTypes.Add(ServerType.TraderNet);
+                serverTypes.Add(ServerType.Mexc);
 
                 serverTypes.Add(ServerType.AstsBridge);
 
@@ -603,6 +605,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.TraderNet)
                 {
                     newServer = new TraderNetServer();
+                }
+                else if (type == ServerType.Mexc)
+                {
+                    newServer = new MexcServer();
                 }
 
                 if (newServer == null)
@@ -1216,6 +1222,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new TraderNetServerPermission();
                 }
+                else if (type == ServerType.Mexc)
+                {
+                    serverPermission = new MexcServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1664,5 +1674,10 @@ namespace OsEngine.Market
         /// TraderNet
         /// </summary>
         TraderNet,
+
+        /// <summary>
+        /// Mexc Spot
+        /// </summary>
+        Mexc,
     }
 }
