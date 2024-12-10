@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using OsEngine.Entity;
 using System.Net.Sockets;
 using System.Text;
+using OsEngine.OsTrader.Gui.BlockInterface;
 
 namespace OsEngine
 {
@@ -129,7 +130,83 @@ namespace OsEngine
             ImageAlor.MouseEnter += ImageAlor_MouseEnter;
             ImageAlor2.MouseLeave += ImageAlor_MouseLeave;
             ImageAlor2.MouseDown += ImageAlor2_MouseDown;
+
+            if(BlockMaster.IsBlocked == true)
+            {
+                BlockInterface();
+            }
+            else
+            {
+                UnblockInterface();
+            }
         }
+
+        #region Block and Unblock interface
+
+        private void BlockInterface()
+        {
+            ImageData.Visibility = Visibility.Hidden;
+            ImageTests.Visibility = Visibility.Hidden;
+            ImageTrading.Visibility = Visibility.Hidden;
+
+            ImagePadlock.Visibility = Visibility.Visible;
+            ImagePadlock.MouseEnter += ImagePadlock_MouseEnter;
+            ImagePadlock.MouseLeave += ImagePadlock_MouseLeave;
+            ImagePadlock.MouseDown += ImagePadlock_MouseDown;
+            ButtonSettings.IsEnabled = false;
+            ButtonRobot.IsEnabled = false;
+            ButtonTester.IsEnabled = false;
+            ButtonData.IsEnabled = false;
+            ButtonCandleConverter.IsEnabled = false;
+            ButtonConverter.IsEnabled = false;
+            ButtonOptimizer.IsEnabled = false;
+            ButtonMiner.IsEnabled = false;
+            ButtonTesterLight.IsEnabled = false;
+            ButtonRobotLight.IsEnabled = false;
+        }
+
+        private void ImagePadlock_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            RobotsUiLightUnblock ui = new RobotsUiLightUnblock();
+
+            ui.ShowDialog();
+
+            if (ui.IsUnBlocked == true)
+            {
+                UnblockInterface();
+            }
+        }
+
+        private void ImagePadlock_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            ImagePadlock.Cursor = System.Windows.Input.Cursors.Arrow;
+        }
+
+        private void ImagePadlock_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            ImagePadlock.Cursor = System.Windows.Input.Cursors.Hand;
+        }
+
+        private void UnblockInterface()
+        {
+            ImageData.Visibility = Visibility.Visible;
+            ImageTests.Visibility = Visibility.Visible;
+            ImageTrading.Visibility = Visibility.Visible;
+
+            ImagePadlock.Visibility = Visibility.Hidden;
+            ButtonSettings.IsEnabled = true;
+            ButtonRobot.IsEnabled = true;
+            ButtonTester.IsEnabled = true;
+            ButtonData.IsEnabled = true;
+            ButtonCandleConverter.IsEnabled = true;
+            ButtonConverter.IsEnabled = true;
+            ButtonOptimizer.IsEnabled = true;
+            ButtonMiner.IsEnabled = true;
+            ButtonTesterLight.IsEnabled = true;
+            ButtonRobotLight.IsEnabled = true;
+        }
+
+        #endregion
 
         private void ImageAlor2_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {

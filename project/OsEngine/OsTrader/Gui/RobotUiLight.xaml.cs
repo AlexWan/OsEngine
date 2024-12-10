@@ -9,6 +9,8 @@ using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Layout;
 using OsEngine.Market.SupportTable;
+using OsEngine.OsTrader.Gui.BlockInterface;
+using System;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -51,6 +53,17 @@ namespace OsEngine.OsTrader.Gui
             rectToMove.MouseEnter += GreedChartPanel_MouseEnter;
             rectToMove.MouseLeave += GreedChartPanel_MouseLeave;
             rectToMove.MouseDown += GreedChartPanel_MouseDown;
+
+            ImagePadlock.MouseEnter += ImagePadlock_MouseEnter;
+            ImagePadlock.MouseLeave += ImagePadlock_MouseLeave;
+            ImagePadlock.MouseDown += ImagePadlock_MouseDown;
+
+            ImagePadlockOpen.MouseEnter += ImagePadlockOpen_MouseEnter;
+            ImagePadlockOpen.MouseLeave += ImagePadlockOpen_MouseLeave;
+            ImagePadlockOpen.MouseDown += ImagePadlockOpen_MouseDown;
+
+            UnBlockInterface();
+            this.Closing += RobotsUiLightUnblock_Closing;
         }
 
         ServerMasterSourcesPainter _painterServer;
@@ -128,6 +141,79 @@ namespace OsEngine.OsTrader.Gui
         {
             SupportTableUi supportTableUi = new SupportTableUi();
             supportTableUi.ShowDialog();
+        }
+
+        // Block interface
+
+        private void ImagePadlock_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            RobotUiLightBlock ui = new RobotUiLightBlock();
+            ui.ShowDialog();
+
+            if(ui.InterfaceIsBlock == true)
+            {
+                BlockInterface();
+
+            }
+        }
+
+        private void ImagePadlock_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            ImagePadlock.Cursor = System.Windows.Input.Cursors.Arrow;
+        }
+
+        private void ImagePadlock_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            ImagePadlock.Cursor = System.Windows.Input.Cursors.Hand;
+        }
+
+        private void BlockInterface()
+        {
+            GreedChartPanel.IsEnabled = false;
+            TabControlPrime.IsEnabled = false;
+            ImagePadlock.Visibility = Visibility.Hidden;
+            ImagePadlockOpen.Visibility = Visibility.Visible;
+        }
+
+        // UnBlock interface
+
+        private void ImagePadlockOpen_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            RobotsUiLightUnblock ui = new RobotsUiLightUnblock();
+
+            ui.ShowDialog();
+
+            if (ui.IsUnBlocked == true)
+            {
+                UnBlockInterface();
+            }
+        }
+
+        private void ImagePadlockOpen_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            ImagePadlockOpen.Cursor = System.Windows.Input.Cursors.Arrow;
+        }
+
+        private void ImagePadlockOpen_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            ImagePadlockOpen.Cursor = System.Windows.Input.Cursors.Hand;
+        }
+
+        private void UnBlockInterface()
+        {
+            GreedChartPanel.IsEnabled = true;
+            TabControlPrime.IsEnabled = true;
+            ImagePadlock.Visibility = Visibility.Visible;
+            ImagePadlockOpen.Visibility = Visibility.Hidden;
+        }
+
+        private void RobotsUiLightUnblock_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (BlockMaster.IsBlocked == true)
+            {
+                ServerMaster.SendNewLogMessage("User block interface. Unblock it. ", Logging.LogMessageType.Error);
+                e.Cancel = true;
+            }
         }
     }
 }

@@ -1380,7 +1380,7 @@ namespace OsEngine.OsData
                 id = SecName;
             }
 
-            SendNewLogMessage("Try load sec: " + id + " , tf: " + TimeFrame +
+            SendNewLogMessage("Try load sec: " + id + " " + SecName + " , tf: " + TimeFrame +
                 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
 
             List<Candle> candles =
@@ -1391,7 +1391,7 @@ namespace OsEngine.OsData
             if (candles == null ||
                 candles.Count == 0)
             {
-                SendNewLogMessage("Error. No candles. sec: " + id + " , tf: " + TimeFrame +
+                SendNewLogMessage("Error. No candles. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
     " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToString(), LogMessageType.System);
 
                 return;
@@ -1399,7 +1399,7 @@ namespace OsEngine.OsData
 
             pie.SetNewCandlesInPie(candles);
 
-            SendNewLogMessage("Candles Load Successfully. sec: " + id + " , tf: " + TimeFrame +
+            SendNewLogMessage("Candles Load Successfully. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToString(), LogMessageType.System);
             pie.Status = DataPieStatus.Load;
         }
@@ -1592,7 +1592,7 @@ namespace OsEngine.OsData
                 id = SecName;
             }
 
-            SendNewLogMessage("Try load sec: " + id + " , tf: " + TimeFrame +
+            SendNewLogMessage("Try load sec: " + id + " " + SecName + " , tf: " + TimeFrame +
                 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
 
             List<Trade> trades =
@@ -1602,7 +1602,7 @@ namespace OsEngine.OsData
             if (trades == null ||
                 trades.Count == 0)
             {
-                SendNewLogMessage("Error. No trades. sec: " + id + " , tf: " + TimeFrame +
+                SendNewLogMessage("Error. No trades. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
     " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
 
                 return;
@@ -1610,7 +1610,7 @@ namespace OsEngine.OsData
 
             pie.SetNewTradesInPie(trades);
 
-            SendNewLogMessage("Trades Load Successfully. sec: " + id + " , tf: " + TimeFrame +
+            SendNewLogMessage("Trades Load Successfully. sec: " + id + " " + SecName + " , tf: " + TimeFrame +
 " , start: " + pie.Start.ToShortDateString() + " , end: " + pie.End.ToShortDateString(), LogMessageType.System);
             pie.Status = DataPieStatus.Load;
         }

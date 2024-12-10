@@ -11,8 +11,7 @@
             <RowDefinition Height="466*"/>
             <RowDefinition Height="190"/>
         </Grid.RowDefinitions>
-
-        <Grid x:Name="GreedPozitonLogHost" Margin="25,13,10,10" Grid.Row="1">
+        <Grid x:Name="GreedPozitonLogHost" Margin="25,13,5,5" Grid.Row="1">
             <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0"   >
                 <TabItem Name="TabItemAllPos" Header="Positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
@@ -78,7 +77,7 @@
 
             </TabControl>
         </Grid>
-        <Rectangle Fill="#FCEE21" Height="174" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0" Grid.Row="1">
+        <Rectangle Fill="#FCEE21" Height="146" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,28" Grid.Row="1">
             <Rectangle.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -88,7 +87,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,102" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -112,5 +111,7 @@
                 <Rectangle Name="rectToMove" Fill="#FCEE21" Margin="722,0,0,0" RadiusX="0" RadiusY="0"/>
             </Grid>
         </Grid>
+        <Image Name="ImagePadlock" Source="/Images/padlockOpened.png" HorizontalAlignment="Left" Height="26" Width="25" Margin="0,0,0,5" Grid.Row="1" VerticalAlignment="Bottom" />
+        <Image Name="ImagePadlockOpen" Source="/Images/padlockClosed.png" HorizontalAlignment="Left" Height="26" Width="25" Margin="0,0,0,5" Grid.Row="1" VerticalAlignment="Bottom" />
     </Grid>
 </Window>

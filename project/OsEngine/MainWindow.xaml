@@ -16,9 +16,9 @@
         <Label Name="BlockDataLabel" Content="Work with data" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="12,64,0,0" VerticalAlignment="Top" Width="202" Height="36" FontSize="28" Foreground="#FFA7A8AA"/>
         <Label Name="BlockTestingLabel" Content="Testing" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="223,64,0,0" VerticalAlignment="Top" Width="197" FontSize="28" Foreground="#FFA7A8AA" Height="36"/>
         <Label Name="BlockTradingLabel" Content="Trading" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="430,64,0,0" VerticalAlignment="Top"  FontSize="28" Foreground="#FFA7A8AA" Height="36" Width="182"/>
-        <Image HorizontalAlignment="Left" Source="Images/MainWIndow/test.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
-        <Image HorizontalAlignment="Left" Source="Images/MainWIndow/data.png" Height="68" Margin="76,7,0,0" VerticalAlignment="Top" Width="68"/>
-        <Image HorizontalAlignment="Left" Source="Images/MainWIndow/Trading.png" Height="85" Margin="484,0,0,0" VerticalAlignment="Top" Width="85"/>
+        <Image Name="ImageData" HorizontalAlignment="Left" Source="Images/MainWIndow/test.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
+        <Image Name="ImageTests" HorizontalAlignment="Left" Source="Images/MainWIndow/data.png" Height="68" Margin="76,7,0,0" VerticalAlignment="Top" Width="68"/>
+        <Image Name="ImageTrading" HorizontalAlignment="Left" Source="Images/MainWIndow/Trading.png" Height="85" Margin="484,0,0,0" VerticalAlignment="Top" Width="85"/>
         <Rectangle Margin="10,220,10,10" />
         <Button Name="ButtonSettings" HorizontalAlignment="Left" Margin="268,231,0,0" VerticalAlignment="Top" Width="100" Height="28" Click="ButtonSettings_Click">
             <Image x:Name="ImageGear" HorizontalAlignment="Left" Source="Images/MainWIndow/gear.png" Width="24" Height="24"/>
@@ -27,5 +27,6 @@
         <Button  x:Name="ButtonRobotLight" Content="Bot Station Light" Margin="448,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonRobotLight_Click" />
         <Image Name="ImageAlor" Source="/Images/MainWIndow/alor1.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
         <Image Name="ImageAlor2" Source="/Images/MainWIndow/alor2.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
+        <Image Name="ImagePadlock" HorizontalAlignment="Left" Source="/Images/padlockClosed.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
     </Grid>
 </Window>

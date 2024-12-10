@@ -1064,9 +1064,16 @@
     <Compile Include="OsData\OsDataSetUi.xaml.cs">
       <DependentUpon>OsDataSetUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Gui\BlockInterface\BlockMaster.cs" />
+    <Compile Include="OsTrader\Gui\BlockInterface\RobotsUiLightUnblock.xaml.cs">
+      <DependentUpon>RobotsUiLightUnblock.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Gui\BotTabsPainter.cs" />
     <Compile Include="OsTrader\Gui\RobotUiLight.xaml.cs">
       <DependentUpon>RobotUiLight.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OsTrader\Gui\BlockInterface\RobotUiLightBlock.xaml.cs">
+      <DependentUpon>RobotUiLightBlock.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Gui\TesterUiLight.xaml.cs">
       <DependentUpon>TesterUiLight.xaml</DependentUpon>
@@ -1727,7 +1734,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="OsTrader\Gui\BlockInterface\RobotsUiLightUnblock.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="OsTrader\Gui\RobotUiLight.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Gui\BlockInterface\RobotUiLightBlock.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -1978,6 +1993,10 @@
     <Resource Include="Images\MainWIndow\gear.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\padlockClosed.png" />
+    <Resource Include="Images\padlockOpened.png" />
+    <Resource Include="Images\eye.png" />
+    <Resource Include="Images\eyeBig.png" />
     <Content Include="lua\clibs64\5.1_MD\socket\core.dll" />
     <Content Include="lua\clibs64\5.1_MT\socket\core.dll" />
     <Content Include="lua\clibs64\53_MD\socket\core.dll" />

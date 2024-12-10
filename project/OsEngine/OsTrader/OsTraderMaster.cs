@@ -80,7 +80,7 @@ namespace OsEngine.OsTrader
                 ServerMaster.ActivateAutoConnection();
             }
 
-            ServerMaster.LogMessageEvent += SendNewLogMessage;
+            //ServerMaster.LogMessageEvent += SendNewLogMessage;
 
             _tabBotTab = tabBotTab;
 

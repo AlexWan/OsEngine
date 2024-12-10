@@ -1591,5 +1591,38 @@ namespace OsEngine.Language
         public string Label422 => OsLocalization.ConvertToLocString(
           "Eng:Orders life time_" +
           "Ru:Время жизни ордера_");
+
+        public string Label423 => OsLocalization.ConvertToLocString(
+          "Eng:Password_" +
+          "Ru:Пароль_");
+
+        public string Label424 => OsLocalization.ConvertToLocString(
+          "Eng:Repeat_" +
+          "Ru:Повтор_");
+
+        public string Label425 => OsLocalization.ConvertToLocString(
+          "Eng:Cancel_" +
+          "Ru:Отмена_");
+
+        public string Label426 => OsLocalization.ConvertToLocString(
+          "Eng:Lock the interface_" +
+          "Ru:Заблокировать интерфейс_");
+
+        public string Label427 => OsLocalization.ConvertToLocString(
+          "Eng:Interface lock window_" +
+          "Ru:Окно блокировки интерфейса_");
+
+        public string Label428 => OsLocalization.ConvertToLocString(
+          "Eng:You're blocking the interface. If you forget your password, you cannot regain access. Do you understand that?_" +
+          "Ru:Вы блокируете интерфейс. Если Вы забудете пароль, восстановить доступ не получится. Вы понимаете это?_");
+
+        public string Label429 => OsLocalization.ConvertToLocString(
+          "Eng:Unlock the interface_" +
+          "Ru:Разблокировать интерфейс_");
+
+        public string Label430 => OsLocalization.ConvertToLocString(
+          "Eng:Program unlock window_" +
+          "Ru:Окно разблокировки программы_");
+
     }
 }

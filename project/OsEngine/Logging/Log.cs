@@ -995,7 +995,6 @@ namespace OsEngine.Logging
                 return;
             }
 
-
             DataGridViewRow row = new DataGridViewRow();
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[0].Value = DateTime.Now.ToString(OsLocalization.CurCulture);

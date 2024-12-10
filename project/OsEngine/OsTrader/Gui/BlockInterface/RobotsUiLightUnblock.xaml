@@ -1,0 +1,16 @@
+﻿<Window x:Class="OsEngine.OsTrader.Gui.BlockInterface.RobotsUiLightUnblock"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.OsTrader.Gui.BlockInterface"
+        mc:Ignorable="d"
+       Title="Unblock interface UI" Height="206" Width="482" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Rectangle Margin="5,5,5,40"/>
+        <Button Name="ButtonAccept" Content="Unblock interface" FontWeight="Bold" Margin="5,0,5,10" VerticalAlignment="Bottom" Click="ButtonAccept_Click"/>
+        <Label Name="LabelPassword" Content="Password" HorizontalAlignment="Left" Margin="26,0,0,79" VerticalAlignment="Bottom" FontSize="16" />
+        <TextBox Name="TextBoxPassword" Margin="119,0,81,79" TextWrapping="Wrap" VerticalAlignment="Bottom"/>
+        <Image Name="ImageEye" Source="/Images/padlockOpened.png"  Height="52" Margin="199,10,199,0" VerticalAlignment="Top"/>
+    </Grid>
+</Window>
