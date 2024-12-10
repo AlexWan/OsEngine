@@ -522,7 +522,7 @@ namespace OsEngine.Entity
             string secId = row.Cells[3].Value.ToString();
             string secClass = row.Cells[4].Value.ToString();
             string secType = row.Cells[5].Value.ToString();
-            int lot = Convert.ToInt32(row.Cells[6].Value);
+            decimal lot = row.Cells[6].Value.ToString().ToDecimal();
             decimal priceStep = row.Cells[7].Value.ToString().ToDecimal();
             decimal priceStepCost = row.Cells[8].Value.ToString().ToDecimal();
             int priceDecimals = Convert.ToInt32(row.Cells[9].Value);
