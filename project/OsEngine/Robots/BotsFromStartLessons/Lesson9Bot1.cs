@@ -46,6 +46,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _sellIcebergButton.UserClickOnButtonEvent += _sellIcebergButton_UserClickOnButtonEvent;
             _icebergCount = CreateParameter("Iceberg orders count", 2, 1, 10, 1, "Iceberg");
             _icebergSignal = CreateParameter("Iceberg with signal type", false, "Iceberg");
+            _icebergVolume = CreateParameter("Iceberg volume", 10m, 1, 10, 1, "Iceberg");
 
             //  BuyAtFake / SellAtFake
 
@@ -224,6 +225,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private StrategyParameterInt _icebergCount;
 
+        private StrategyParameterDecimal _icebergVolume;
+
         private void _buyIcebergButton_UserClickOnButtonEvent()
         {
             if (_tabToTrade.IsReadyToTrade == false)
@@ -232,7 +235,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            decimal volume = 1;
+            decimal volume = _icebergVolume.ValueDecimal;
 
             decimal price = _tabToTrade.PriceBestAsk;
 
@@ -262,7 +265,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            decimal volume = 1;
+            decimal volume = _icebergVolume.ValueDecimal;
 
             decimal price = _tabToTrade.PriceBestBid;
 
@@ -274,11 +277,11 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergCount.ValueInt;
 
-            if (_limitSignal.ValueBool == false)
+            if (_icebergSignal.ValueBool == false)
             {
                 _tabToTrade.SellAtIceberg(volume, price, ordersCount);
             }
-            else if (_limitSignal.ValueBool == true)
+            else if (_icebergSignal.ValueBool == true)
             {
                 _tabToTrade.SellAtIceberg(volume, price, ordersCount, "User click button sell iceberg");
             }

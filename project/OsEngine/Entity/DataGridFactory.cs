@@ -677,7 +677,7 @@ positionOpener.LifeTimeType
                 colum02.CellTemplate = cell0;
                 colum02.HeaderText = OsLocalization.Entity.TradeColumn4;
                 colum02.ReadOnly = true;
-                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
                 newGrid.Columns.Add(colum02);
             }
             else
@@ -685,7 +685,7 @@ positionOpener.LifeTimeType
                 DataGridViewButtonColumn colum02 = new DataGridViewButtonColumn();
                 colum02.HeaderText = OsLocalization.Entity.TradeColumn4;
                 colum02.ReadOnly = true;
-                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                colum02.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
                 newGrid.Columns.Add(colum02);
             }
 
