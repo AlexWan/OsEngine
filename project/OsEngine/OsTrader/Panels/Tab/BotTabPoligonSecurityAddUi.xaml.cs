@@ -119,9 +119,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _connectorBot.ComissionType.ToString();
+                ComboBoxComissionType.SelectedItem = _connectorBot.CommissionType.ToString();
 
-                TextBoxComissionValue.Text = _connectorBot.ComissionValue.ToString();
+                TextBoxComissionValue.Text = _connectorBot.CommissionValue.ToString();
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
                 Label1.Content = OsLocalization.Market.Label1;

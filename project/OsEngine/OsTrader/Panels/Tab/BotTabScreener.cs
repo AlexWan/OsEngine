@@ -824,8 +824,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.Connector.TimeFrame = this.TimeFrame;
             tab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
-            tab.Connector.ComissionType = ComissionType;
-            tab.Connector.ComissionValue = ComissionValue;
+            tab.Connector.CommissionType = ComissionType;
+            tab.Connector.CommissionValue = ComissionValue;
             tab.CommissionType = ComissionType;
             tab.CommissionValue = ComissionValue;
             tab.IsCreatedByScreener = true;

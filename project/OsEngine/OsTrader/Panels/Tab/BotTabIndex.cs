@@ -293,8 +293,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 creator.CandleCreateMethodType = connector.CandleCreateMethodType;
                 creator.CandleMarketDataType = connector.CandleMarketDataType;
-                creator.ComissionType = connector.ComissionType;
-                creator.ComissionValue = connector.ComissionValue;
+                creator.ComissionType = connector.CommissionType;
+                creator.ComissionValue = connector.CommissionValue;
                 creator.CandleSeriesRealization.SetSaveString(connector.TimeFrameBuilder.CandleSeriesRealization.GetSaveString());
             }
 
@@ -391,7 +391,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < Tabs.Count; i++)
                 {
-                    if (Tabs[i].UniqName == TabName + num)
+                    if (Tabs[i].UniqueName == TabName + num)
                     {
                         num++;
                         isNotInArray = false;
@@ -413,14 +413,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.SecurityClass = security.SecurityClass;
             connector.TimeFrame = creator.TimeFrame;
             connector.EmulatorIsOn = creator.EmulatorIsOn;
-            connector.NeadToLoadServerData = false;
+            connector.NeedToLoadServerData = false;
             connector.CandleCreateMethodType = creator.CandleCreateMethodType;
             connector.CandleMarketDataType = creator.CandleMarketDataType;
             connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(creator.CandleSeriesRealization.GetSaveString());
             connector.TimeFrameBuilder.Save();
 
-            connector.ComissionType = creator.ComissionType;
-            connector.ComissionValue = creator.ComissionValue;
+            connector.CommissionType = creator.ComissionType;
+            connector.CommissionValue = creator.ComissionValue;
 
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
@@ -470,7 +470,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     string save = "";
                     for (int i = 0; i < Tabs.Count; i++)
                     {
-                        save += Tabs[i].UniqName + "#";
+                        save += Tabs[i].UniqueName + "#";
                     }
                     writer.WriteLine(save);
 
@@ -512,7 +512,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (newConnector.CandleMarketDataType != CandleMarketDataType.MarketDepth)
                         {
-                            newConnector.NeadToLoadServerData = false;
+                            newConnector.NeedToLoadServerData = false;
                         }
 
                         Tabs.Add(newConnector);

@@ -20,8 +20,6 @@ namespace OsEngine.Market.Connectors
     /// <summary>
     /// class that provides a universal interface for connecting to the servers of the exchange for bots
     /// terminals and tabs that can trade
-    /// класс предоставляющий универсальный интерфейс для подключения к серверам биржи для роботов, 
-    /// терминалов и вкладок, которые могут торговать
     /// </summary>
     public class ConnectorCandles
     {
@@ -29,10 +27,9 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// constructor
-        /// конструктор
         /// </summary>
-        /// <param name="name"> bot name / имя робота </param>
-        /// <param name="startProgram"> program that created the bot which created this connection / программа создавшая робота который создал это подключение </param>
+        /// <param name="name"> bot name</param>
+        /// <param name="startProgram"> program that created the bot which created this connection</param>
         public ConnectorCandles(string name, StartProgram startProgram, bool createEmulator)
         {
             _name = name;
@@ -59,7 +56,7 @@ namespace OsEngine.Market.Connectors
             if (!string.IsNullOrWhiteSpace(SecurityName))
             {
                 _taskIsDead = false;
-                Task.Run(Subscrable);
+                Task.Run(Subscribe);
             }
             else
             {
@@ -74,19 +71,16 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// program that created the bot which created this connection
-        /// программа создавшая робота который создал это подключение
         /// </summary>
         public StartProgram StartProgram;
 
         /// <summary>
         /// shows whether it is possible to save settings
-        /// можно ли сохранять настройки
         /// </summary>
         private bool _canSave;
 
         /// <summary>
-        /// upload
-        /// загрузить
+        /// upload settings
         /// </summary>
         private void Load()
         {
@@ -125,8 +119,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// save object settings in file
-        /// сохранить настройки объекта в файл
+        /// save settings in file
         /// </summary>
         public void Save()
         {
@@ -159,18 +152,26 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// delete object settings
-        /// удалить настройки объекта
+        /// delete object and clear memory
         /// </summary>
         public void Delete()
         {
+            _needToStopThread = true;
+
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
                 TimeFrameBuilder.Delete();
 
-                if (File.Exists(@"Engine\" + _name + @"ConnectorPrime.txt"))
+                try
                 {
-                    File.Delete(@"Engine\" + _name + @"ConnectorPrime.txt");
+                    if (File.Exists(@"Engine\" + _name + @"ConnectorPrime.txt"))
+                    {
+                        File.Delete(@"Engine\" + _name + @"ConnectorPrime.txt");
+                    }
+                }
+                catch
+                {
+                    // ignore
                 }
 
                 ServerMaster.RevokeOrderToEmulatorEvent -= ServerMaster_RevokeOrderToEmulatorEvent;
@@ -204,16 +205,13 @@ namespace OsEngine.Market.Connectors
                 _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
                 _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
                 _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-                _myServer.NeedToReconnectEvent -= _myServer_NeadToReconnectEvent;
+                _myServer.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
                 _myServer = null;
             }
-
-            _neadToStopThread = true;
         }
 
         /// <summary>
         /// show settings window
-        /// показать окно настроек
         /// </summary>
         public void ShowDialog(bool canChangeSettingsSaveCandlesIn)
         {
@@ -244,9 +242,8 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// name of bot that owns the connector
-        /// имя робота которому принадлежит коннектор
         /// </summary>
-        public string UniqName
+        public string UniqueName
         {
             get { return _name; }
         }
@@ -254,7 +251,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// trade server
-        /// сервер через который идёт торговля
         /// </summary>
         public IServer MyServer
         {
@@ -264,15 +260,16 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// connector's server type 
-        /// тип сервера на который подписан коннектор
         /// </summary>
         public ServerType ServerType;
 
+        /// <summary>
+        /// unique server number. Service data for the optimizer
+        /// </summary>
         public int ServerUid;
 
         /// <summary>
-        /// shows whether connector is connected to download data 
-        /// подключен ли коннектор на скачивание данных
+        /// whether the object is connected to the server
         /// </summary>
         public bool IsConnected
         {
@@ -287,8 +284,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// connector is ready to send Orders / 
-        /// готов ли коннектор к выставленю заявок
+        /// connector is ready to send Orders it true
         /// </summary>
         public bool IsReadyToTrade
         {
@@ -319,14 +315,12 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// connector's account number
-        /// номер счёта к которому подключен коннектор
+        /// connector's portfolio number
         /// </summary>
         public string PortfolioName;
 
         /// <summary>
-        /// connector's account
-        /// счёт к которому подключен коннектор
+        /// connector's portfolio object
         /// </summary>
         public Portfolio Portfolio
         {
@@ -351,7 +345,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// connector's security name
-        /// Название бумаги к которой подключен коннектор
         /// </summary>
         public string SecurityName
         {
@@ -369,8 +362,7 @@ namespace OsEngine.Market.Connectors
         private string _securityName;
 
         /// <summary>
-        /// connector's security class name
-        /// класс бумаги к которой подключен коннектор
+        /// connector's security class
         /// </summary>
         public string SecurityClass
         {
@@ -388,8 +380,7 @@ namespace OsEngine.Market.Connectors
         private string _securityClass;
 
         /// <summary>
-        /// connector's security
-        /// бумага к которой подключен коннектор
+        /// connector's security object
         /// </summary>
         public Security Security
         {
@@ -412,7 +403,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// Does the server support market orders
+        /// does the server supports Market type orders. Support = true
         /// </summary>
         public bool MarketOrdersIsSupport
         {
@@ -442,7 +433,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// Does the server support order price change
+        /// does the server support order price change. Support = true
         /// </summary>
         public bool IsCanChangeOrderPrice
         {
@@ -465,19 +456,17 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// shows whether execution of trades in emulation mode is enabled
-        /// включено ли исполнение сделок в режиме эмуляции
+        /// shows whether execution of orders in emulation mode is enabled
         /// </summary>
         public bool EmulatorIsOn;
 
         /// <summary>
-        /// emulator. It's for order execution in the emulation mode 
-        /// эмулятор. В нём исполняются ордера в режиме эмуляции
+        /// emulator. Object for order execution in the emulation mode 
         /// </summary>
         private readonly OrderExecutionEmulator _emulator;
 
         /// <summary>
-        /// включена ли подача событий на верх или нет
+        /// whether event feeding is enabled in the robot
         /// </summary>
         public bool EventsIsOn
         {
@@ -495,43 +484,38 @@ namespace OsEngine.Market.Connectors
                 Save();
             }
         }
-
         private bool _eventsIsOn = true;
 
         /// <summary>
-        /// тип комиссии для позиций
+        /// commission type for positions
         /// </summary>
-        public ComissionType ComissionType;
+        public ComissionType CommissionType;
 
         /// <summary>
-        /// размер комиссии
+        /// commission rate
         /// </summary>
-        public decimal ComissionValue;
+        public decimal CommissionValue;
 
         #endregion
 
         #region Candle series settings
 
+        /// <summary>
+        /// candle series that collects candles  
+        /// </summary>
         public CandleSeries CandleSeries
         {
             get { return _mySeries; }
         }
-
-        /// <summary>
-        /// candle series that collects candles  
-        /// серия свечек которая собирает для нас свечки
-        /// </summary>
         private CandleSeries _mySeries;
 
         /// <summary>
         /// object preserving settings for building candles
-        /// объект сохраняющий в себе настройки для построения свечек
         /// </summary>
         public TimeFrameBuilder TimeFrameBuilder;
 
         /// <summary>
         /// method of creating candles: from ticks or from depths 
-        /// способ создания свечей: из тиков или из стаканов
         /// </summary>
         public CandleMarketDataType CandleMarketDataType
         {
@@ -545,7 +529,7 @@ namespace OsEngine.Market.Connectors
 
                 if (value == CandleMarketDataType.MarketDepth)
                 {
-                    NeadToLoadServerData = true;
+                    NeedToLoadServerData = true;
                 }
 
                 Reconnect();
@@ -554,8 +538,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// method of creating candles: from ticks or from depths 
-        /// способ создания свечей: из тиков или из стаканов
+        /// method of creating candles: Simple / Volume / Range / etc
         /// </summary>
         public string CandleCreateMethodType
         {
@@ -572,8 +555,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// cadles timeframe on which the connector is subscribed
-        /// ТаймФрейм свечек на который подписан коннектор
+        /// candles timeframe on which the connector is subscribed
         /// </summary>
         public TimeFrame TimeFrame
         {
@@ -599,13 +581,15 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// candle timeframe in the form of connector' s Timespan
-        /// ТаймФрейм свечек в виде TimeSpan на который подписан коннектор
         /// </summary>
         public TimeSpan TimeFrameTimeSpan
         {
             get { return TimeFrameBuilder.TimeFrameTimeSpan; }
         }
 
+        /// <summary>
+        /// whether the trades tape is saved inside the candles
+        /// </summary>
         public bool SaveTradesInCandles
         {
             get { return TimeFrameBuilder.SaveTradesInCandles; }
@@ -670,7 +654,7 @@ namespace OsEngine.Market.Connectors
                 if (_taskIsDead == true)
                 {
                     _taskIsDead = false;
-                    Task.Run(Subscrable);
+                    Task.Run(Subscribe);
 
                     if (NewCandlesChangeEvent != null)
                     {
@@ -718,7 +702,7 @@ namespace OsEngine.Market.Connectors
 
         private bool _taskIsDead;
 
-        private bool _neadToStopThread;
+        private bool _needToStopThread;
 
         private object _myServerLocker = new object();
 
@@ -726,17 +710,17 @@ namespace OsEngine.Market.Connectors
 
         private static string _aliveTasksArrayLocker = "aliveTasksArrayLocker";
 
-        private bool _alreadCheckedInAliveTasksArray = false;
+        private bool _alreadyCheckedInAliveTasksArray = false;
 
-        private static int _tasksCountOnSubscruble = 0;
+        private static int _tasksCountOnSubscribe = 0;
 
         private static string _tasksCountLocker = "_tasksCountOnLocker";
 
-        private async void Subscrable()
+        private async void Subscribe()
         {
             try
             {
-                _alreadCheckedInAliveTasksArray = false;
+                _alreadyCheckedInAliveTasksArray = false;
 
                 while (true)
                 {
@@ -754,10 +738,10 @@ namespace OsEngine.Market.Connectors
 
                         lock (_aliveTasksArrayLocker)
                         {
-                            if (_alreadCheckedInAliveTasksArray == false)
+                            if (_alreadyCheckedInAliveTasksArray == false)
                             {
                                 _aliveTasks++;
-                                _alreadCheckedInAliveTasksArray = true;
+                                _alreadyCheckedInAliveTasksArray = true;
                             }
 
                             if (millisecondsToDelay < 500)
@@ -769,7 +753,7 @@ namespace OsEngine.Market.Connectors
                         await Task.Delay(millisecondsToDelay);
                     }
 
-                    if (_neadToStopThread)
+                    if (_needToStopThread)
                     {
                         lock (_aliveTasksArrayLocker)
                         {
@@ -846,7 +830,7 @@ namespace OsEngine.Market.Connectors
                         continue;
                     }
 
-                    SubscribleOnServer(_myServer);
+                    SubscribeOnServer(_myServer);
 
                     if (_myServer.ServerType == ServerType.Tester)
                     {
@@ -858,7 +842,7 @@ namespace OsEngine.Market.Connectors
                     {
                         while (_mySeries == null)
                         {
-                            if (_neadToStopThread)
+                            if (_needToStopThread)
                             {
                                 lock (_aliveTasksArrayLocker)
                                 {
@@ -891,14 +875,14 @@ namespace OsEngine.Market.Connectors
                                 await Task.Delay(1);
                             }
 
-                            if (_tasksCountOnSubscruble > 20)
+                            if (_tasksCountOnSubscribe > 20)
                             {
                                 continue;
                             }
 
                             lock (_tasksCountLocker)
                             {
-                                _tasksCountOnSubscruble++;
+                                _tasksCountOnSubscribe++;
                             }
 
                             lock (_myServerLocker)
@@ -911,7 +895,7 @@ namespace OsEngine.Market.Connectors
 
                             lock (_tasksCountLocker)
                             {
-                                _tasksCountOnSubscruble--;
+                                _tasksCountOnSubscribe--;
                             }
 
                             OptimizerServer myOptimizerServer = _myServer as OptimizerServer;
@@ -925,9 +909,9 @@ namespace OsEngine.Market.Connectors
                                     if (servers[i].ServerType == ServerType.Optimizer &&
                                         ((OptimizerServer)servers[i]).NumberServer == this.ServerUid)
                                     {
-                                        UnSubscribleOnServer(_myServer);
+                                        UnSubscribeOnServer(_myServer);
                                         _myServer = servers[i];
-                                        SubscribleOnServer(_myServer);
+                                        SubscribeOnServer(_myServer);
                                         break;
                                     }
                                 }
@@ -964,7 +948,7 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        private void UnSubscribleOnServer(IServer server)
+        private void UnSubscribeOnServer(IServer server)
         {
             server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
@@ -972,11 +956,11 @@ namespace OsEngine.Market.Connectors
             server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-            server.NeedToReconnectEvent -= _myServer_NeadToReconnectEvent;
+            server.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
         }
 
-        private void SubscribleOnServer(IServer server)
+        private void SubscribeOnServer(IServer server)
         {
             server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
@@ -984,10 +968,10 @@ namespace OsEngine.Market.Connectors
             server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-            server.NeedToReconnectEvent -= _myServer_NeadToReconnectEvent;
+            server.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
 
-            if (NeadToLoadServerData)
+            if (NeedToLoadServerData)
             {
                 server.NewMarketDepthEvent += ConnectorBot_NewMarketDepthEvent;
                 server.NewBidAscIncomeEvent += ConnectorBotNewBidAscIncomeEvent;
@@ -998,12 +982,12 @@ namespace OsEngine.Market.Connectors
                 server.PortfoliosChangeEvent += Server_PortfoliosChangeEvent;
             }
 
-            server.NeedToReconnectEvent += _myServer_NeadToReconnectEvent;
+            server.NeedToReconnectEvent += _myServer_NeedToReconnectEvent;
         }
 
-        public bool NeadToLoadServerData = true;
+        public bool NeedToLoadServerData = true;
 
-        void _myServer_NeadToReconnectEvent()
+        private void _myServer_NeedToReconnectEvent()
         {
             Reconnect();
         }
@@ -1013,8 +997,7 @@ namespace OsEngine.Market.Connectors
         #region Incoming data
 
         /// <summary>
-        /// test finished
-        /// тест завершился
+        /// test finished. Event from tester
         /// </summary>
         void ConnectorReal_TestingEndEvent()
         {
@@ -1031,13 +1014,15 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        DateTime _timeLastEndCandle = DateTime.MinValue;
+        /// <summary>
+        /// time of the last completed candle
+        /// </summary>
+        private DateTime _timeLastEndCandle = DateTime.MinValue;
 
         /// <summary>
         /// the candle has just ended
-        /// свеча только что завершилась
         /// </summary>
-        void MySeries_СandleFinishedEvent(CandleSeries candleSeries)
+        private void MySeries_СandleFinishedEvent(CandleSeries candleSeries)
         {
             try
             {
@@ -1075,9 +1060,8 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// the candle updated
-        /// свеча обновилась
         /// </summary>
-        void MySeries_СandleUpdeteEvent(CandleSeries candleSeries)
+        private void MySeries_СandleUpdeteEvent(CandleSeries candleSeries)
         {
             try
             {
@@ -1094,9 +1078,8 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// incoming order
-        /// входящий ордер
         /// </summary>
-        void ConnectorBot_NewOrderIncomeEvent(Order order)
+        private void ConnectorBot_NewOrderIncomeEvent(Order order)
         {
             try
             {
@@ -1115,9 +1098,8 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// incoming my trade
-        /// входящая моя сделка
         /// </summary>
-        void ConnectorBot_NewMyTradeEvent(MyTrade trade)
+        private void ConnectorBot_NewMyTradeEvent(MyTrade trade)
         {
             if (_myServer.ServerStatus != ServerConnectStatus.Connect)
             {
@@ -1138,9 +1120,8 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// incoming best bid with ask
-        /// входящие лучшие бид с аском
         /// </summary>
-        void ConnectorBotNewBidAscIncomeEvent(decimal bestBid, decimal bestAsk, Security namePaper)
+        private void ConnectorBotNewBidAscIncomeEvent(decimal bestBid, decimal bestAsk, Security namePaper)
         {
             try
             {
@@ -1180,7 +1161,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// incoming depth
-        /// входящий стакан
         /// </summary>
         private void ConnectorBot_NewMarketDepthEvent(MarketDepth glass)
         {
@@ -1234,9 +1214,8 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// incoming trades
-        /// входящие трейды
         /// </summary>
-        void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
+        private void ConnectorBot_NewTradeEvent(List<Trade> tradesList)
         {
             try
             {
@@ -1276,10 +1255,9 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// incoming night server time
-        /// входящее новое время сервера
+        /// incoming server time
         /// </summary>
-        void myServer_TimeServerChangeEvent(DateTime time)
+        private void myServer_TimeServerChangeEvent(DateTime time)
         {
             try
             {
@@ -1336,8 +1314,7 @@ namespace OsEngine.Market.Connectors
         #region Trade data access interface
 
         /// <summary>
-        /// conector's ticks
-        /// тики коннектора
+        /// trades feed
         /// </summary>
         public List<Trade> Trades
         {
@@ -1361,7 +1338,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// connector's candles
-        /// свечи коннектора
         /// </summary>
         public List<Candle> Candles(bool onlyReady)
         {
@@ -1392,8 +1368,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// take the best price of seller in the depth
-        /// взять лучшую цену продавца в стакане
+        /// best price of seller in the depth
         /// </summary>
         public decimal BestAsk
         {
@@ -1405,8 +1380,7 @@ namespace OsEngine.Market.Connectors
         private decimal _bestAsk;
 
         /// <summary>
-        /// take the best price of buyer in the depth
-        /// взять лучшую цену покупателя в стакане
+        /// best price of buyer in the depth
         /// </summary>
         public decimal BestBid
         {
@@ -1418,8 +1392,7 @@ namespace OsEngine.Market.Connectors
         private decimal _bestBid;
 
         /// <summary>
-        /// take server time
-        /// взять время сервера
+        /// server time
         /// </summary>
         public DateTime MarketTime
         {
@@ -1447,7 +1420,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// execute order
-        /// исполнить ордер
         /// </summary>
         public void OrderExecute(Order order, bool isEmulator = false)
         {
@@ -1500,7 +1472,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// cancel order
-        /// отменить ордер
         /// </summary>
         public void OrderCancel(Order order)
         {
@@ -1606,6 +1577,9 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        /// <summary>
+        /// incoming event: need to cancel the order
+        /// </summary>
         private void ServerMaster_RevokeOrderToEmulatorEvent(Order order)
         {
             if (order.SecurityNameCode != SecurityName + " TestPaper"
@@ -1624,6 +1598,10 @@ namespace OsEngine.Market.Connectors
             OrderCancel(order);
         }
 
+        /// <summary>
+        /// upload the order to the repository
+        /// </summary>
+        /// <param name="order"></param>
         public void LoadOrderInOrderStorage(Order order)
         {
             ServerMaster.InsertOrder(order);
@@ -1634,67 +1612,57 @@ namespace OsEngine.Market.Connectors
         #region Events
 
         /// <summary>
-        /// orders are changed
-        /// изменились Ордера
+        /// order are changed
         /// </summary>
         public event Action<Order> OrderChangeEvent;
 
         /// <summary>
-        /// candles are changed
-        /// изменились Свечки
+        /// another candle has closed
         /// </summary>
         public event Action<List<Candle>> NewCandlesChangeEvent;
 
         /// <summary>
-        /// изменились Свечки
+        /// candles are changed
         /// </summary>
         public event Action<List<Candle>> LastCandlesChangeEvent;
 
         /// <summary>
-        /// depth is changed
-        /// изменился Стакан
+        /// market depth is changed
         /// </summary>
         public event Action<MarketDepth> GlassChangeEvent;
 
         /// <summary>
-        /// my trades are changed
-        /// изменились мои сделки
+        /// myTrade are changed
         /// </summary>
         public event Action<MyTrade> MyTradeEvent;
 
         /// <summary>
-        /// tick is changed
-        /// изменился тик
+        /// new trade in the trades feed
         /// </summary>
         public event Action<List<Trade>> TickChangeEvent;
 
         /// <summary>
         /// bid or ask is changed
-        /// изменился бид с аском
         /// </summary>
         public event Action<decimal, decimal> BestBidAskChangeEvent;
 
         /// <summary>
         /// testing finished
-        /// завершилось тестирование
         /// </summary>
         public event Action TestOverEvent;
 
         /// <summary>
         /// server time is changed
-        /// изменилось время сервера
         /// </summary>
         public event Action<DateTime> TimeChangeEvent;
 
         /// <summary>
         /// connector is starting to reconnect
-        /// коннектор начинает процедуру переподключения
         /// </summary>
         public event Action<string, TimeFrame, TimeSpan, string, ServerType> ConnectorStartedReconnectEvent;
 
         /// <summary>
         /// security for connector defined
-        /// бумага для коннектора определена
         /// </summary>
         public event Action<Security> SecuritySubscribeEvent;
 
@@ -1709,7 +1677,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// send new message to up
-        /// выслать новое сообщение на верх
         /// </summary>
         public void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -1725,7 +1692,6 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// outgoing log message
-        /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
@@ -1734,19 +1700,16 @@ namespace OsEngine.Market.Connectors
 
     /// <summary>
     /// connector work type
-    /// тип работы коннектора
     /// </summary>
     public enum ConnectorWorkType
     {
         /// <summary>
         /// real connection
-        /// реальное подключение
         /// </summary>
         Real,
 
         /// <summary>
         /// test trading
-        /// тестовая торговля
         /// </summary>
         Tester
     }

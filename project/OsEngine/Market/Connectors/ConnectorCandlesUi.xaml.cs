@@ -112,9 +112,9 @@ namespace OsEngine.Market.Connectors
                 ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _connectorBot.ComissionType.ToString();
+                ComboBoxComissionType.SelectedItem = _connectorBot.CommissionType.ToString();
 
-                TextBoxComissionValue.Text = _connectorBot.ComissionValue.ToString();
+                TextBoxComissionValue.Text = _connectorBot.CommissionValue.ToString();
 
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _connectorBot.SaveTradesInCandles;
                 CheckBoxSaveTradeArrayInCandle.Click += CheckBoxSaveTradeArrayInCandle_Click;
@@ -273,11 +273,11 @@ namespace OsEngine.Market.Connectors
 
                 ComissionType typeComission;
                 Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-                _connectorBot.ComissionType = typeComission;
+                _connectorBot.CommissionType = typeComission;
 
                 try
                 {
-                    _connectorBot.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+                    _connectorBot.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
                 }
                 catch
                 {
