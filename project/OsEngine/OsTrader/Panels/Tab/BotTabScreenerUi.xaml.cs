@@ -1194,7 +1194,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ComissionType typeComission;
             Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-            curCreator.ComissionType = typeComission;
+            curCreator.CommissionType = typeComission;
 
             if (ComboBoxClass.SelectedItem != null)
             {
@@ -1203,7 +1203,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                curCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+                curCreator.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
             }
             catch
             {
@@ -1276,9 +1276,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxTypeServer.Text = curCreator.ServerType.ToString();
                 ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
                 ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
-                ComboBoxComissionType.Text = curCreator.ComissionType.ToString();
+                ComboBoxComissionType.Text = curCreator.CommissionType.ToString();
                 ComboBoxClass.SelectedItem = curCreator.SecuritiesClass.ToString();
-                TextBoxComissionValue.Text = curCreator.ComissionValue.ToString();
+                TextBoxComissionValue.Text = curCreator.CommissionValue.ToString();
 
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {

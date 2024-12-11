@@ -12,13 +12,10 @@ using OsEngine.Entity;
 
 namespace OsEngine.Market.Connectors
 {
-
-    /// <summary>
-    /// emulator execution of exchange orders. It's used in real trading to emulate trading
-    /// Эмулятор исполнения заявок биржи. Используется при реальных торгах, для эмуляции торговли 
-    /// </summary>
     public class OrderExecutionEmulator
     {
+        #region Static part
+
         private static List<OrderExecutionEmulator> _emulators = new List<OrderExecutionEmulator>();
 
         private static void Listen(OrderExecutionEmulator emulator)
@@ -36,23 +33,35 @@ namespace OsEngine.Market.Connectors
         {
             while (true)
             {
-                await Task.Delay(250); 
-
-                if (MainWindow.ProccesIsWorked == false)
+                try
                 {
-                    return;
-                }
+                    await Task.Delay(250);
 
-                for (int i = 0; i < _emulators.Count; i++)
-                {
-                    if (_emulators[i] == null)
+                    if (MainWindow.ProccesIsWorked == false)
                     {
-                        continue;
+                        return;
                     }
-                    _emulators[i].CheckOrders();
+
+                    for (int i = 0; i < _emulators.Count; i++)
+                    {
+                        if (_emulators[i] == null)
+                        {
+                            continue;
+                        }
+                        _emulators[i].CheckOrders();
+                    }
+                }
+                catch(Exception e)
+                {
+                    ServerMaster.SendNewLogMessage(e.ToString(),Logging.LogMessageType.Error);
+                    await Task.Delay(2000);
                 }
             }
         }
+
+        #endregion
+
+        #region Public interface
 
         public OrderExecutionEmulator()
         {
@@ -60,12 +69,8 @@ namespace OsEngine.Market.Connectors
             Listen(this);
         }
 
-        // order management
-        // менеджмент ордеров
-
         /// <summary>
-        /// place order to the exchange
-        /// выставить ордер на биржу
+        /// place an order on the virtual exchange
         /// </summary>
         public void OrderExecute(Order order)
         {
@@ -91,10 +96,10 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// Order price change
+        /// change the order price on the virtual exchange
         /// </summary>
-        /// <param name="order">An order that will have a new price</param>
-        /// <param name="newPrice">New price</param>
+        /// <param name="order">an order that will have a new price</param>
+        /// <param name="newPrice">new price</param>
         public bool ChangeOrderPrice(Order order, decimal newPrice)
         {
 
@@ -115,8 +120,7 @@ namespace OsEngine.Market.Connectors
         }
 
         /// <summary>
-        /// cancel order from the exchange
-        /// отозвать ордер с биржи
+        /// cancel an order on a virtual exchange
         /// </summary>
         public void OrderCancel(Order order)
         {
@@ -167,9 +171,19 @@ namespace OsEngine.Market.Connectors
             _ordersToSend.Enqueue(newOrder);
         }
 
-        private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
+        /// <summary>
+        /// my trades are changed
+        /// </summary>
+        public event Action<MyTrade> MyTradeEvent;
 
-        private ConcurrentQueue<MyTrade> _myTradesToSend = new ConcurrentQueue<MyTrade>();
+        /// <summary>
+        /// orders are changed
+        /// </summary>
+        public event Action<Order> OrderChangeEvent;
+
+        #endregion
+
+        #region Orders management internal
 
         private void CheckOrders()
         {
@@ -208,20 +222,14 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// my orders placed on the exchange
-        /// мои ордера выставленные на бирже
-        /// </summary>
+        private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
+
+        private ConcurrentQueue<MyTrade> _myTradesToSend = new ConcurrentQueue<MyTrade>();
+
         private List<Order> ordersOnBoard;
 
         private string _executorLocker = "lockerOrderExecutor";
 
-        /// <summary>
-        /// check whether any orders are executed 
-        /// проверить исполнился ли какой-нибудь ордер
-        /// </summary>
-        /// <param name="isFirstTime"> if value == true then we check the execution immediately after placing / когда проверяем ордер. если true, то проверяем исполнение сразу после выставления </param>
-        /// <param name="order"> execution order / проверяемый на исполнение ордер </param>
         private bool CheckExecution(bool isFirstTime, Order order)
         {
             if (order.NumberMarket == "")
@@ -339,12 +347,6 @@ namespace OsEngine.Market.Connectors
             return false;
         }
 
-        /// <summary>
-        /// send up the order execution notification on exchange 
-        /// выслать наверх оповещение об исполнении ордера на бирже
-        /// </summary>
-        /// <param name="order"> order / ордер </param>
-        /// <param name="price"> execution price / цена исполнения </param>
         private void ExecuteSimple(Order order, decimal price)
         {
             Order newOrder = new Order();
@@ -396,11 +398,6 @@ namespace OsEngine.Market.Connectors
 
         }
 
-        /// <summary>
-        /// send up the order execution notification on exchange
-        /// выслать наверх оповещение о выставлении ордера на биржу
-        /// </summary>
-        /// <param name="order"> order / ордер </param>
         private void ActivateSimple(Order order)
         {
             Order newOrder = new Order();
@@ -435,48 +432,24 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        // server needs to be loaded with new data to execute stop- and profit-orders
-        // сервер нужно прогружать новыми данными, чтобы исполнялись стопы и профиты
+        #endregion
 
-        /// <summary>
-        /// buy price
-        /// цена покупки
-        /// </summary>
-        private decimal _bestBuy;
-
-        /// <summary>
-        /// sell price
-        /// цена продажи
-        /// </summary>
-        private decimal _bestSell;
-
-        /// <summary>
-        /// server time
-        /// время сервера
-        /// </summary>
-        private DateTime _serverTime;
+        #region Best bid and ask managment
 
         public void ProcessTime(DateTime time)
         {
             _serverTime = time;
         }
 
-        /// <summary>
-        /// get new last prices
-        /// провести новые последние цены
-        /// </summary>
-        /// <param name="sell"> best sell price / лучшая цена продажи </param>
-        /// <param name="buy"> best buy price / лучшая цена покупки </param>
-        /// <param name="time"> time / время </param>
         public void ProcessBidAsc(decimal sell, decimal buy)
         {
-            if (sell == 0 
+            if (sell == 0
                 && buy == 0)
             {
                 return;
             }
 
-            if(buy != 0 && sell != 0)
+            if (buy != 0 && sell != 0)
             {
                 if (buy > sell)
                 {
@@ -495,7 +468,6 @@ namespace OsEngine.Market.Connectors
                 _bestSell = sell;
             }
 
-
             for (int i = 0; ordersOnBoard != null && i < ordersOnBoard.Count; i++)
             {
                 if (CheckExecution(false, ordersOnBoard[i]))
@@ -505,16 +477,13 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        /// <summary>
-        /// my trades are changed
-        /// изменились мои сделки
-        /// </summary>
-        public event Action<MyTrade> MyTradeEvent;
+        private decimal _bestBuy;
 
-        /// <summary>
-        /// orders are changed
-        /// изменились ордера
-        /// </summary>
-        public event Action<Order> OrderChangeEvent;
+        private decimal _bestSell;
+
+        private DateTime _serverTime;
+
+        #endregion
+
     }
 }

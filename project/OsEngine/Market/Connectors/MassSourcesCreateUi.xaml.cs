@@ -159,9 +159,9 @@ namespace OsEngine.Market.Connectors
             ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
             ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
             ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-            ComboBoxComissionType.SelectedItem = SourcesCreator.ComissionType.ToString();
+            ComboBoxComissionType.SelectedItem = SourcesCreator.CommissionType.ToString();
 
-            TextBoxComissionValue.Text = SourcesCreator.ComissionValue.ToString();
+            TextBoxComissionValue.Text = SourcesCreator.CommissionValue.ToString();
 
             CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles;
 
@@ -247,8 +247,8 @@ namespace OsEngine.Market.Connectors
                 MassSourcesCreator curSettings = GetCurSettings();
 
                 SourcesCreator.CandleCreateMethodType = curSettings.CandleCreateMethodType;
-                SourcesCreator.ComissionType = curSettings.ComissionType;
-                SourcesCreator.ComissionValue = curSettings.ComissionValue;
+                SourcesCreator.CommissionType = curSettings.CommissionType;
+                SourcesCreator.CommissionValue = curSettings.CommissionValue;
                 SourcesCreator.EmulatorIsOn = curSettings.EmulatorIsOn;
                 SourcesCreator.PortfolioName = curSettings.PortfolioName;
                 SourcesCreator.SaveTradesInCandles = curSettings.SaveTradesInCandles;
@@ -287,7 +287,7 @@ namespace OsEngine.Market.Connectors
 
             ComissionType typeComission;
             Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-            curCreator.ComissionType = typeComission;
+            curCreator.CommissionType = typeComission;
 
             if (ComboBoxClass.SelectedItem != null)
             {
@@ -296,7 +296,7 @@ namespace OsEngine.Market.Connectors
 
             try
             {
-                curCreator.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+                curCreator.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
             }
             catch
             {
@@ -1668,9 +1668,9 @@ namespace OsEngine.Market.Connectors
                 ComboBoxTypeServer.Text = curCreator.ServerType.ToString();
                 ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
                 ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
-                ComboBoxComissionType.Text = curCreator.ComissionType.ToString();
+                ComboBoxComissionType.Text = curCreator.CommissionType.ToString();
                 ComboBoxClass.SelectedItem = curCreator.SecuritiesClass.ToString();
-                TextBoxComissionValue.Text = curCreator.ComissionValue.ToString();
+                TextBoxComissionValue.Text = curCreator.CommissionValue.ToString();
 
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {

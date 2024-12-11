@@ -23,8 +23,8 @@ namespace OsEngine.Market.Connectors
             result += ServerType + "\n";
             result += EmulatorIsOn + "\n";
             result += CandleMarketDataType + "\n";
-            result += ComissionType + "\n";
-            result += ComissionValue + "\n";
+            result += CommissionType + "\n";
+            result += CommissionValue + "\n";
             result += SaveTradesInCandles + "\n";
             result += CandleCreateMethodType + "\n";
             result += CandleSeriesRealization.GetSaveString() + "\n";
@@ -47,8 +47,8 @@ namespace OsEngine.Market.Connectors
             Enum.TryParse(values[3], out ServerType);
             EmulatorIsOn = Convert.ToBoolean(values[4]);
             Enum.TryParse(values[5], out CandleMarketDataType);
-            Enum.TryParse(values[6], out ComissionType);
-            ComissionValue = values[7].ToDecimal();
+            Enum.TryParse(values[6], out CommissionType);
+            CommissionValue = values[7].ToDecimal();
             SaveTradesInCandles = Convert.ToBoolean(values[8]);
             CandleCreateMethodType = values[9];
             CandleSeriesRealization.SetSaveString(values[10]);
@@ -132,37 +132,23 @@ namespace OsEngine.Market.Connectors
         }
         private string _candleCreateMethodType;
 
-        public ComissionType ComissionType;
+        public ComissionType CommissionType;
 
-        public decimal ComissionValue;
+        public decimal CommissionValue;
 
         public bool SaveTradesInCandles;
 
     }
 
-    /// <summary>
-    /// класс для хранения бумаги активированной к подключению во время массового добавления бумаг в скринере и индексах
-    /// </summary>
     public class ActivatedSecurity
     {
-        /// <summary>
-        /// имя бумаги
-        /// </summary>
+
         public string SecurityName;
 
-        /// <summary>
-        /// имя класса
-        /// </summary>
         public string SecurityClass;
 
-        /// <summary>
-        /// включена ли бумага к активации
-        /// </summary>
         public bool IsOn;
 
-        /// <summary>
-        /// взять строку сохранения
-        /// </summary>
         public string GetSaveStr()
         {
             string result = "";
@@ -172,9 +158,6 @@ namespace OsEngine.Market.Connectors
             return result;
         }
 
-        /// <summary>
-        /// настроить класс из строки сохранения
-        /// </summary>
         public void SetFromStr(string str)
         {
             string[] strArray = str.Split('^');

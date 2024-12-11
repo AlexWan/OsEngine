@@ -293,8 +293,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 creator.CandleCreateMethodType = connector.CandleCreateMethodType;
                 creator.CandleMarketDataType = connector.CandleMarketDataType;
-                creator.ComissionType = connector.CommissionType;
-                creator.ComissionValue = connector.CommissionValue;
+                creator.CommissionType = connector.CommissionType;
+                creator.CommissionValue = connector.CommissionValue;
                 creator.CandleSeriesRealization.SetSaveString(connector.TimeFrameBuilder.CandleSeriesRealization.GetSaveString());
             }
 
@@ -419,8 +419,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(creator.CandleSeriesRealization.GetSaveString());
             connector.TimeFrameBuilder.Save();
 
-            connector.CommissionType = creator.ComissionType;
-            connector.CommissionValue = creator.ComissionValue;
+            connector.CommissionType = creator.CommissionType;
+            connector.CommissionValue = creator.CommissionValue;
 
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
