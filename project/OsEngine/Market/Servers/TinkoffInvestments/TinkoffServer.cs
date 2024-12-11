@@ -31,12 +31,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             TinkoffInvestmentsServerRealization realization = new TinkoffInvestmentsServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString(OsLocalization.Market.ServerParamToken, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParamToken, "");
             CreateParameterBoolean(OsLocalization.Market.UseStock, true);
             CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false); // с некоторого времени торговля опционами не доступна по API Т-Инвестиций
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
-            CreateParameterString("Custom unique terminal id (order prefix <= 3 symbols)", "000");
             CreateParameterBoolean("Filter out non-market data (holiday trading)", true);
             CreateParameterBoolean("Filter out dealer trades", false);
         }
@@ -87,10 +86,9 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
              
                 SendLogMessage("Start T-Invest Connection", LogMessageType.System);
 
-                _accessToken = ((ServerParameterString)ServerParameters[0]).Value;
-                _customTerminalId = ((ServerParameterString)ServerParameters[5]).Value;
-                _filterOutNonMarketData = ((ServerParameterBool)ServerParameters[6]).Value;
-                _filterOutDealerTrades = ((ServerParameterBool)ServerParameters[7]).Value;
+                _accessToken = ((ServerParameterPassword)ServerParameters[0]).Value;
+                _filterOutNonMarketData = ((ServerParameterBool)ServerParameters[5]).Value;
+                _filterOutDealerTrades = ((ServerParameterBool)ServerParameters[6]).Value;
 
                 if (string.IsNullOrEmpty(_accessToken))
                 {
@@ -286,7 +284,6 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         private bool _useOptions = false;
         private bool _useOther = false;
 
-        private string _customTerminalId; // id to avoid duplicate order error
         private bool _filterOutNonMarketData; // отфльтровать кухню выходного дня
         private bool _filterOutDealerTrades; // отфльтровать кухонные сделки (дилерские, внутренние)
         private string _accessToken;
