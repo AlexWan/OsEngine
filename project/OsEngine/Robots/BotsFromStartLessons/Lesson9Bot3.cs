@@ -23,6 +23,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _buyMarketButton.UserClickOnButtonEvent += MarketBuy_UserClickOnButtonEvent;
             _sellMarketButton = CreateParameterButton("Market Sell", "Open");
             _sellMarketButton.UserClickOnButtonEvent += MarketSell_UserClickOnButtonEvent;
+            _volumeOpenPosition = CreateParameter("Volume open position", 10m, 1, 20, 1, "Open");
 
             // CloseAllAtMarket
 
@@ -70,6 +71,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private StrategyParameterButton _sellMarketButton;
 
+        private StrategyParameterDecimal _volumeOpenPosition;
+
         private void MarketBuy_UserClickOnButtonEvent()
         {
             if (_tabToTrade.IsReadyToTrade == false)
@@ -78,7 +81,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            decimal volume = 1;
+            decimal volume = _volumeOpenPosition.ValueDecimal;
 
             _tabToTrade.BuyAtMarket(volume);
         }
@@ -91,7 +94,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            decimal volume = 1;
+            decimal volume = _volumeOpenPosition.ValueDecimal;
 
             _tabToTrade.SellAtMarket(volume);
         }

@@ -152,12 +152,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             Position pos = posesAll[0];
 
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
-
             decimal volume = 1;
 
             decimal price = _tabToTrade.PriceBestAsk;
@@ -188,12 +182,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
             }
 
             Position pos = posesAll[0];
-
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
 
             decimal volume = 1;
 
@@ -234,12 +222,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             Position pos = posesAll[0];
 
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
-
             decimal volume = 1;
 
             decimal price = _tabToTrade.PriceBestAsk;
@@ -270,12 +252,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
             }
 
             Position pos = posesAll[0];
-
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
 
             decimal volume = 1;
 
@@ -318,12 +294,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             Position pos = posesAll[0];
 
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
-
             decimal volume = 1;
 
             if (_addOrderToPositionAtMarketSignal.ValueBool == false)
@@ -353,12 +323,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
             }
 
             Position pos = posesAll[0];
-
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
 
             decimal volume = 1;
 
@@ -406,12 +370,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             Position pos = posesAll[0];
 
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
-
             decimal volume = _icebergVolume.ValueDecimal;
 
             decimal price = _tabToTrade.PriceBestAsk;
@@ -451,12 +409,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
             }
 
             Position pos = posesAll[0];
-
-            if (pos.State != PositionStateType.Open)
-            {
-                _tabToTrade.SetNewLogMessage("Position is not in State Open", Logging.LogMessageType.Error);
-                return;
-            }
 
             decimal volume = _icebergVolume.ValueDecimal;
 
