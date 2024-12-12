@@ -58,6 +58,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _closeAtIcebergButton.UserClickOnButtonEvent += _closeAtIcebergButton_UserClickOnButtonEvent;
             _closeAtIcebergSignal = CreateParameter("Close at Iceberg have signal", false, "Iceberg");
             _icebergCount = CreateParameter("Iceberg orders count", 2, 1, 10, 1, "Iceberg");
+            _icebergMarket = CreateParameter("Iceberg market", false, "Iceberg");
+            _icebergMarketMinMillisecondsDistance = CreateParameter("Iceberg market min milliseconds distance", 500, 1, 10, 1, "Iceberg");
+
+
         }
 
         #region BuyAtMarket / SellAtMarket
@@ -306,6 +310,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private StrategyParameterBool _closeAtIcebergSignal;
 
+        private StrategyParameterBool _icebergMarket;
+
+        private StrategyParameterInt _icebergMarketMinMillisecondsDistance;
+
         private void _closeAtIcebergButton_UserClickOnButtonEvent()
         {
             List<Position> openPositions = _tabToTrade.PositionsOpenAll;
@@ -338,13 +346,31 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergCount.ValueInt;
 
-            if (_closeAtIcebergSignal.ValueBool == false)
-            {
-                _tabToTrade.CloseAtIceberg(position, price, position.OpenVolume, ordersCount);
+            if(_icebergMarket.ValueBool == false)
+            { // Limit
+
+                if (_closeAtIcebergSignal.ValueBool == false)
+                {
+                    _tabToTrade.CloseAtIceberg(position, price, position.OpenVolume, ordersCount);
+                }
+                else if (_closeAtIcebergSignal.ValueBool == true)
+                {
+                    _tabToTrade.CloseAtIceberg(position, price, position.OpenVolume, ordersCount, "User click close at Iceberg Limit");
+                }
+
             }
-            else if (_closeAtIcebergSignal.ValueBool == true)
-            {
-                _tabToTrade.CloseAtIceberg(position, price, position.OpenVolume, ordersCount, "User click close at Iceberg button");
+            else if(_icebergMarket.ValueBool == true)
+            { // Market
+
+                if (_closeAtIcebergSignal.ValueBool == false)
+                {
+                    _tabToTrade.CloseAtIcebergMarket(position, position.OpenVolume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt);
+                }
+                else if (_closeAtIcebergSignal.ValueBool == true)
+                {
+                    _tabToTrade.CloseAtIcebergMarket(position, position.OpenVolume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt, "User click close at Iceberg Market");
+                }
+
             }
         }
 

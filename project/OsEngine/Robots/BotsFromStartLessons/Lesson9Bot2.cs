@@ -57,6 +57,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _sellIcebergToPositionButton = CreateParameterButton("Sell at Iceberg to position", "Iceberg");
             _sellIcebergToPositionButton.UserClickOnButtonEvent += _sellIcebergToPositionButton_UserClickOnButtonEvent;
             _icebergToPositionOrdersCount = CreateParameter("Iceberg orders count to position", 2, 1, 10, 1, "Iceberg");
+            _icebergVolume = CreateParameter("Iceberg volume", 10m, 1, 10, 1, "Iceberg");
+            _icebergMarket = CreateParameter("Iceberg market", false, "Iceberg");
+            _icebergMarketMinMillisecondsDistance = CreateParameter("Iceberg market min milliseconds distance", 500, 1, 10, 1, "Iceberg");
         }
 
         #region Close positions
@@ -379,6 +382,12 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private StrategyParameterInt _icebergToPositionOrdersCount;
 
+        private StrategyParameterDecimal _icebergVolume;
+
+        private StrategyParameterBool _icebergMarket;
+
+        private StrategyParameterInt _icebergMarketMinMillisecondsDistance;
+
         private void _buyIcebergToPositionButton_UserClickOnButtonEvent()
         {
             if (_tabToTrade.IsReadyToTrade == false)
@@ -403,7 +412,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            decimal volume = 1;
+            decimal volume = _icebergVolume.ValueDecimal;
 
             decimal price = _tabToTrade.PriceBestAsk;
 
@@ -415,7 +424,14 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergToPositionOrdersCount.ValueInt;
 
-            _tabToTrade.BuyAtIcebergToPosition(pos, price, volume, ordersCount);
+            if(_icebergMarket.ValueBool == true)
+            { // Market
+                _tabToTrade.BuyAtIcebergToPositionMarket(pos, volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt);
+            }
+            else if(_icebergMarket.ValueBool == false)
+            { // Limit
+                _tabToTrade.BuyAtIcebergToPosition(pos, price, volume, ordersCount);
+            }
         }
 
         private void _sellIcebergToPositionButton_UserClickOnButtonEvent()
@@ -442,7 +458,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            decimal volume = 1;
+            decimal volume = _icebergVolume.ValueDecimal;
 
             decimal price = _tabToTrade.PriceBestAsk;
 
@@ -454,7 +470,14 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergToPositionOrdersCount.ValueInt;
 
-            _tabToTrade.SellAtIcebergToPosition(pos, price, volume, ordersCount);
+            if (_icebergMarket.ValueBool == true)
+            { // Market
+                _tabToTrade.SellAtIcebergToPositionMarket(pos, volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt);
+            }
+            else if (_icebergMarket.ValueBool == false)
+            { // Limit
+                _tabToTrade.SellAtIcebergToPosition(pos, price, volume, ordersCount);
+            }
         }
 
         #endregion

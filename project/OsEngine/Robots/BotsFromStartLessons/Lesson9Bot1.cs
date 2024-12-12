@@ -47,6 +47,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _icebergCount = CreateParameter("Iceberg orders count", 2, 1, 10, 1, "Iceberg");
             _icebergSignal = CreateParameter("Iceberg with signal type", false, "Iceberg");
             _icebergVolume = CreateParameter("Iceberg volume", 10m, 1, 10, 1, "Iceberg");
+            _icebergMarket = CreateParameter("Iceberg market", false, "Iceberg");
+            _icebergMarketMinMillisecondsDistance = CreateParameter("Iceberg market min milliseconds distance", 500, 1, 10, 1, "Iceberg");
 
             //  BuyAtFake / SellAtFake
 
@@ -223,6 +225,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private StrategyParameterBool _icebergSignal;
 
+        private StrategyParameterBool _icebergMarket;
+
+        private StrategyParameterInt _icebergMarketMinMillisecondsDistance;
+
         private StrategyParameterInt _icebergCount;
 
         private StrategyParameterDecimal _icebergVolume;
@@ -247,13 +253,33 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergCount.ValueInt;
 
-            if (_icebergSignal.ValueBool == false)
-            {
-                _tabToTrade.BuyAtIceberg(volume, price, ordersCount);
+            if (_icebergMarket.ValueBool == true)
+            { // Market iceberg
+
+                if (_icebergSignal.ValueBool == false)
+                {
+                    _tabToTrade.BuyAtIcebergMarket(volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt);
+                }
+                else if (_icebergSignal.ValueBool == true)
+                {
+                    _tabToTrade.BuyAtIcebergMarket(volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt, "User click button buy iceberg Market");
+                }
+
             }
-            else if (_icebergSignal.ValueBool == true)
-            {
-                _tabToTrade.BuyAtIceberg(volume, price, ordersCount, "User click button buy iceberg");
+
+
+            else if (_icebergMarket.ValueBool == false)
+            { // Limit iceberg
+
+                if (_icebergSignal.ValueBool == false)
+                {
+                    _tabToTrade.BuyAtIceberg(volume, price, ordersCount);
+                }
+                else if (_icebergSignal.ValueBool == true)
+                {
+                    _tabToTrade.BuyAtIceberg(volume, price, ordersCount, "User click button buy iceberg Limit");
+                }
+
             }
         }
 
@@ -277,13 +303,34 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergCount.ValueInt;
 
-            if (_icebergSignal.ValueBool == false)
-            {
-                _tabToTrade.SellAtIceberg(volume, price, ordersCount);
+
+            if (_icebergMarket.ValueBool == true)
+            { // Market iceberg
+
+                if (_icebergSignal.ValueBool == false)
+                {
+                    _tabToTrade.SellAtIcebergMarket(volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt);
+                }
+                else if (_icebergSignal.ValueBool == true)
+                {
+                    _tabToTrade.SellAtIcebergMarket(volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt, "User click button sell iceberg Market");
+                }
+
             }
-            else if (_icebergSignal.ValueBool == true)
-            {
-                _tabToTrade.SellAtIceberg(volume, price, ordersCount, "User click button sell iceberg");
+
+
+            else if (_icebergMarket.ValueBool == false)
+            { // Limit iceberg
+
+                if (_icebergSignal.ValueBool == false)
+                {
+                    _tabToTrade.SellAtIceberg(volume, price, ordersCount);
+                }
+                else if (_icebergSignal.ValueBool == true)
+                {
+                    _tabToTrade.SellAtIceberg(volume, price, ordersCount, "User click button sell iceberg Limit");
+                }
+
             }
         }
 

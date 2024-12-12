@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Entity;
+using System.Threading;
+using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
 {
@@ -29,20 +31,20 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <param name="volume">volume</param>
         /// <param name="bot">bot</param>
         public void MakeNewIceberg(decimal price, TimeSpan lifeTime, int ordersCount, 
-            Position position, IcebergType type, decimal volume, BotTabSimple bot, OrderPriceType priceType)
+            Position position, IcebergType type, decimal volume, BotTabSimple bot, OrderPriceType priceType, int minMillisecondsDistanceMarketOrders)
         {
             if (_icebergOrders == null)
             {
                 _icebergOrders = new List<Iceberg>();
             }
 
-            Iceberg newIceberg  = new Iceberg(price, lifeTime, ordersCount, position, bot, type, volume, priceType);
+            Iceberg newIceberg  = new Iceberg(price, lifeTime, ordersCount, position, 
+                bot, type, volume, priceType, minMillisecondsDistanceMarketOrders);
 
             newIceberg.NewOrderNeedToCancel += newIceberg_newOrderNeedToCancel;
             newIceberg.NewOrderNeedToExecute += newIceberg_newOrderNeedToExecute;
-
             _icebergOrders.Add(newIceberg);
-            newIceberg.Check();
+
         }
 
         /// <summary>
@@ -80,7 +82,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             for (int i = 0; i < _icebergOrders.Count; i++)
             {
                 _icebergOrders[i].SetNewOrder(order);
-                _icebergOrders[i].Check();
             }
         }
 
@@ -136,7 +137,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <param name="type">iceberg type</param>
         /// <param name="volume">sum volume</param>
         public Iceberg(decimal price, TimeSpan lifeTime, int ordersCount, 
-            Position position, BotTabSimple bot, IcebergType type, decimal volume, OrderPriceType priceType)
+            Position position, BotTabSimple bot, IcebergType type, 
+            decimal volume, OrderPriceType priceType, int minMillisecondsDistanceMarketOrders)
         {        
             _bot = bot;
             _price = price;
@@ -146,6 +148,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             _type = type;
             _volume = volume;
             _priceType = priceType;
+            _minMillisecondsDistanceMarketOrders = minMillisecondsDistanceMarketOrders;
 
             if (type == IcebergType.Open)
             {
@@ -163,6 +166,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 CreateModifyOrdersSell();
             }
+
+            Thread worker = new Thread(WorkerPlace);
+            worker.Start();
         }
 
         private OrderPriceType _priceType;
@@ -170,6 +176,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Life time
         private TimeSpan _lifeTime;
+
+        /// <summary>
+        /// Minimum time interval between orders in milliseconds
+        /// </summary>
+        private int _minMillisecondsDistanceMarketOrders;
 
         /// <summary>
         /// Position
@@ -443,6 +454,29 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             _position = null;
         }
 
+        private void WorkerPlace()
+        {
+            while(true)
+            {
+                try
+                {
+                    Thread.Sleep(50);
+                    Check();
+
+                    if (_ordersNeedToCreate == null ||
+                        _ordersNeedToCreate.Count == 0)
+                    {
+                        return;
+                    }
+                }
+                catch(Exception e)
+                {
+                    ServerMaster.SendNewLogMessage("Iceberg internal error!!! " + e.ToString(), Logging.LogMessageType.Error);
+                    return;
+                }
+            }
+        }
+
         /// <summary>
         /// Check whether it is time to send a new order
         /// </summary>
@@ -458,7 +492,18 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 _ordersInSystem.State == OrderStateType.Done)
             {
                 _ordersInSystem = _ordersNeedToCreate[0];
-                _ordersNeedToCreate.Remove(_ordersInSystem);
+
+                if(_ordersInSystem.TypeOrder == OrderPriceType.Market 
+                    && _lastSendOrderTime != DateTime.MinValue &&
+                    _minMillisecondsDistanceMarketOrders != 0)
+                {
+                    if(_lastSendOrderTime.AddMilliseconds(_minMillisecondsDistanceMarketOrders) > DateTime.Now)
+                    {
+                        return;
+                    }
+                }
+
+                _ordersNeedToCreate.RemoveAt(0);
 
                 if (_type == IcebergType.Open)
                 {
@@ -470,8 +515,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
                 else if (_type == IcebergType.ModifyBuy)
                 {
-                    if (_position.Direction == Side.Buy && _ordersInSystem.Side == Side.Buy||
-                        _position.Direction == Side.Sell && _ordersInSystem.Side == Side.Sell)
+                    if ((_position.Direction == Side.Buy && _ordersInSystem.Side == Side.Buy)
+                        ||
+                        (_position.Direction == Side.Sell && _ordersInSystem.Side == Side.Sell))
                     {
                         _position.AddNewOpenOrder(_ordersInSystem);
                     }
@@ -482,8 +528,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
                 else if (_type == IcebergType.ModifySell)
                 {
-                    if (_position.Direction == Side.Buy && _ordersInSystem.Side == Side.Buy ||
-                        _position.Direction == Side.Sell && _ordersInSystem.Side == Side.Sell)
+                    if ((_position.Direction == Side.Buy && _ordersInSystem.Side == Side.Buy)
+                        ||
+                        (_position.Direction == Side.Sell && _ordersInSystem.Side == Side.Sell))
                     {
                         _position.AddNewOpenOrder(_ordersInSystem);
                     }
@@ -497,8 +544,12 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 {
                     NewOrderNeedToExecute(_ordersInSystem);
                 }
+
+                _lastSendOrderTime = DateTime.Now;
             }
         }
+
+        private DateTime _lastSendOrderTime;
 
         /// <summary>
         /// Order must be executed

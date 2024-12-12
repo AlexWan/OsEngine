@@ -1733,7 +1733,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, 
+                    ordersCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit, 0);
 
                 return newDeal;
             }
@@ -1768,7 +1769,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="ordersCount">iceberg orders count</param>
-        public Position BuyAtIcebergMarket(decimal volume, int ordersCount)
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
+        public Position BuyAtIcebergMarket(decimal volume, int ordersCount, int minMillisecondsDistance)
         {
             try
             {
@@ -1819,7 +1821,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestAsk;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Market);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, 
+                    newDeal, IcebergType.Open, volume, this, OrderPriceType.Market, minMillisecondsDistance);
 
                 return newDeal;
             }
@@ -1835,10 +1838,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="ordersCount">iceberg orders count</param>
-        /// <param name="signalType">>open position signal nameа. Will be written to position property: SignalTypeOpen</param>
-        public Position BuyAtIcebergMarket(decimal volume, int ordersCount, string signalType)
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
+        /// <param name="signalType">>open position signal name. Will be written to position property: SignalTypeOpen</param>
+        public Position BuyAtIcebergMarket(decimal volume, int ordersCount, int minMillisecondsDistance, string signalType)
         {
-            Position position = BuyAtIcebergMarket(volume, ordersCount);
+            Position position = BuyAtIcebergMarket(volume, ordersCount, minMillisecondsDistance);
 
             if (position != null)
             {
@@ -2359,7 +2363,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Limit);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, 
+                    position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Limit, 0);
             }
             catch (Exception error)
             {
@@ -2373,7 +2378,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to which the order will be added</param>
         /// <param name="volume">volume</param>
         /// <param name="ordersCount">iceberg orders count</param>
-        public void BuyAtIcebergToPositionMarket(Position position, decimal volume, int ordersCount)
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
+        public void BuyAtIcebergToPositionMarket(Position position, decimal volume, int ordersCount, int minMillisecondsDistance)
         {
             try
             {
@@ -2404,7 +2410,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestAsk;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Market);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, 
+                    ordersCount, position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Market, minMillisecondsDistance);
             }
             catch (Exception error)
             {
@@ -2611,7 +2618,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, 
+                    newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit, 0);
 
                 return newDeal;
             }
@@ -2653,7 +2661,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="orderCount">iceberg orders count</param>
-        public Position SellAtIcebergMarket(decimal volume, int orderCount)
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
+        public Position SellAtIcebergMarket(decimal volume, int orderCount, int minMillisecondsDistance)
         {
             try
             {
@@ -2705,7 +2714,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestBid;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Market);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, 
+                    newDeal, IcebergType.Open, volume, this, OrderPriceType.Market, minMillisecondsDistance);
 
                 return newDeal;
             }
@@ -2721,8 +2731,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="orderCount">orders count</param>
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
         /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
-        public Position SellAtIcebergMarket(decimal volume, int orderCount, string signalType)
+        public Position SellAtIcebergMarket(decimal volume, int orderCount, int minMillisecondsDistance, string signalType)
         {
             if (_connector.IsConnected == false
                 || _connector.IsReadyToTrade == false)
@@ -2731,7 +2742,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return null;
             }
 
-            Position position = SellAtIcebergMarket(volume, orderCount);
+            Position position = SellAtIcebergMarket(volume, orderCount, minMillisecondsDistance);
 
             if (position != null)
             {
@@ -3255,7 +3266,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifySell, volume, this, OrderPriceType.Limit);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, 
+                    ordersCount, position, IcebergType.ModifySell, volume, this, OrderPriceType.Limit, 0);
             }
             catch (Exception error)
             {
@@ -3269,7 +3281,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to which the order will be added</param>
         /// <param name="volume">volume</param>
         /// <param name="ordersCount">iceberg orders count</param>
-        public void SellAtIcebergToPositionMarket(Position position, decimal volume, int ordersCount)
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
+        public void SellAtIcebergToPositionMarket(Position position, decimal volume, int ordersCount, int minMillisecondsDistance)
         {
             try
             {
@@ -3300,7 +3313,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestBid;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifySell, volume, this, OrderPriceType.Market);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, 
+                    position, IcebergType.ModifySell, volume, this, OrderPriceType.Market, minMillisecondsDistance);
             }
             catch (Exception error)
             {
@@ -3659,7 +3673,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="volume">volume required to close</param>
         /// <param name="ordersCount">iceberg orders count</param>
-        public void CloseAtIcebergMarket(Position position, decimal volume, int ordersCount)
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
+        public void CloseAtIcebergMarket(Position position, decimal volume, int ordersCount, int minMillisecondsDistance)
         {
             try
             {
@@ -3675,11 +3690,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Buy)
                 {
-                    SellAtIcebergToPositionMarket(position, volume, ordersCount);
+                    SellAtIcebergToPositionMarket(position, volume, ordersCount, minMillisecondsDistance);
                 }
                 else
                 {
-                    BuyAtIcebergToPositionMarket(position, volume, ordersCount);
+                    BuyAtIcebergToPositionMarket(position, volume, ordersCount, minMillisecondsDistance);
                 }
             }
             catch (Exception error)
@@ -3694,11 +3709,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="position">position to be closed</param>
         /// <param name="volume">volume required to close</param>
         /// <param name="ordersCount">iceberg orders count</param>
+        /// <param name="minMillisecondsDistance">minimum time interval between orders in milliseconds</param>
         /// <param name="signalType">close position signal name</param>
-        public void CloseAtIcebergMarket(Position position, decimal volume, int ordersCount, string signalType)
+        public void CloseAtIcebergMarket(Position position, decimal volume, int ordersCount, int minMillisecondsDistance, string signalType)
         {
             position.SignalTypeClose = signalType;
-            CloseAtIcebergMarket(position, volume, ordersCount);
+            CloseAtIcebergMarket(position, volume, ordersCount, minMillisecondsDistance);
         }
 
         /// <summary>
