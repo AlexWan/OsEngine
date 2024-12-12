@@ -29,14 +29,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <param name="volume">volume</param>
         /// <param name="bot">bot</param>
         public void MakeNewIceberg(decimal price, TimeSpan lifeTime, int ordersCount, 
-            Position position, IcebergType type, decimal volume, BotTabSimple bot)
+            Position position, IcebergType type, decimal volume, BotTabSimple bot, OrderPriceType priceType)
         {
             if (_icebergOrders == null)
             {
                 _icebergOrders = new List<Iceberg>();
             }
 
-            Iceberg newIceberg  = new Iceberg(price, lifeTime, ordersCount, position, bot, type, volume);
+            Iceberg newIceberg  = new Iceberg(price, lifeTime, ordersCount, position, bot, type, volume, priceType);
 
             newIceberg.NewOrderNeedToCancel += newIceberg_newOrderNeedToCancel;
             newIceberg.NewOrderNeedToExecute += newIceberg_newOrderNeedToExecute;
@@ -136,7 +136,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <param name="type">iceberg type</param>
         /// <param name="volume">sum volume</param>
         public Iceberg(decimal price, TimeSpan lifeTime, int ordersCount, 
-            Position position, BotTabSimple bot, IcebergType type, decimal volume)
+            Position position, BotTabSimple bot, IcebergType type, decimal volume, OrderPriceType priceType)
         {        
             _bot = bot;
             _price = price;
@@ -145,6 +145,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             _ordersCount = ordersCount;
             _type = type;
             _volume = volume;
+            _priceType = priceType;
 
             if (type == IcebergType.Open)
             {
@@ -163,6 +164,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 CreateModifyOrdersSell();
             }
         }
+
+        private OrderPriceType _priceType;
 
         /// <summary>
         /// Life time
@@ -236,6 +239,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].SecurityClassCode = _bot.Security.NameClass;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
+                orders[i].TypeOrder = _priceType;
   
                 if (i + 1 == orders.Length)
                 {
@@ -289,6 +293,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].SecurityClassCode = _bot.Security.NameClass;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
+                orders[i].TypeOrder = _priceType;
 
                 if (i + 1 == orders.Length)
                 {
@@ -332,6 +337,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].SecurityNameCode = _bot.Security.Name;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
+                orders[i].TypeOrder = _priceType;
 
                 if (i + 1 == orders.Length)
                 {
@@ -375,6 +381,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 orders[i].SecurityNameCode = _bot.Security.Name;
                 orders[i].OrderTypeTime = _bot.ManualPositionSupport.OrderTypeTime;
                 orders[i].NumberUser = NumberGen.GetNumberOrder(_bot.StartProgram);
+                orders[i].TypeOrder = _priceType;
 
                 if (i + 1 == orders.Length)
                 {

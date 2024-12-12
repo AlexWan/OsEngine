@@ -6,12 +6,12 @@ using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.BotsFromStartLessons
 {
-    [Bot("Lesson10Bot2")]
-    public class Lesson10Bot2 : BotPanel
+    [Bot("Lesson9Bot4")]
+    public class Lesson9Bot4 : BotPanel
     {
         BotTabSimple _tabToTrade;
 
-        public Lesson10Bot2(string name, StartProgram startProgram) : base(name, startProgram)
+        public Lesson9Bot4(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
@@ -198,7 +198,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         public override string GetNameStrategyType()
         {
-            return "Lesson10Bot2";
+            return "Lesson9Bot4";
         }
 
         public override void ShowIndividualSettingsDialog()

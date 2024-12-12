@@ -1645,7 +1645,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Enter position Long at iceberg
         /// </summary>
-        /// <param name="volume">volum</param>
+        /// <param name="volume">volume</param>
         /// <param name="price">order price</param>
         /// <param name="ordersCount">iceberg orders count</param>
         public Position BuyAtIceberg(decimal volume, decimal price, int ordersCount)
@@ -1733,7 +1733,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, newDeal, IcebergType.Open, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit);
 
                 return newDeal;
             }
@@ -1754,6 +1754,91 @@ namespace OsEngine.OsTrader.Panels.Tab
         public Position BuyAtIceberg(decimal volume, decimal price, int ordersCount, string signalType)
         {
             Position position = BuyAtIceberg(volume, price, ordersCount);
+
+            if (position != null)
+            {
+                position.SignalTypeOpen = signalType;
+            }
+
+            return position;
+        }
+
+        /// <summary>
+        /// Enter position Long at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="ordersCount">iceberg orders count</param>
+        public Position BuyAtIcebergMarket(decimal volume, int ordersCount)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
+
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
+                {
+                    return BuyAtMarket(volume);
+                }
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+
+                Position newDeal = new Position();
+                newDeal.Number = NumberGen.GetNumberDeal(StartProgram);
+                newDeal.Direction = Side.Buy;
+                newDeal.State = PositionStateType.Opening;
+
+                newDeal.NameBot = TabName;
+                newDeal.Lots = Security.Lot;
+                newDeal.PriceStepCost = Security.PriceStepCost;
+                newDeal.PriceStep = Security.PriceStep;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    newDeal.PortfolioValueOnOpenPosition = Portfolio.ValueCurrent;
+                }
+                else
+                { // Tester, Optimizer, etc
+                    newDeal.PortfolioValueOnOpenPosition = Math.Round(Portfolio.ValueCurrent, 2);
+                }
+
+                _journal.SetNewDeal(newDeal);
+
+                decimal price = PriceBestAsk;
+
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Market);
+
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Enter position Long at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="ordersCount">iceberg orders count</param>
+        /// <param name="signalType">>open position signal nameа. Will be written to position property: SignalTypeOpen</param>
+        public Position BuyAtIcebergMarket(decimal volume, int ordersCount, string signalType)
+        {
+            Position position = BuyAtIcebergMarket(volume, ordersCount);
 
             if (position != null)
             {
@@ -2274,7 +2359,52 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifyBuy, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Limit);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Add new order to Long position at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="position">position to which the order will be added</param>
+        /// <param name="volume">volume</param>
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void BuyAtIcebergToPositionMarket(Position position, decimal volume, int ordersCount)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
+                {
+                    BuyAtMarketToPosition(position, volume);
+                    return;
+                }
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
+                    return;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return;
+                }
+
+                decimal price = PriceBestAsk;
+
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Market);
             }
             catch (Exception error)
             {
@@ -2481,7 +2611,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit);
 
                 return newDeal;
             }
@@ -2493,7 +2623,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Enter the short position at iceberg
+        /// Enter the short position at iceberg 
         /// </summary>
         /// <param name="volume">volume</param>
         /// <param name="price">price</param>
@@ -2509,6 +2639,99 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             Position position = SellAtIceberg(volume, price, orderCount);
+
+            if (position != null)
+            {
+                position.SignalTypeOpen = signalType;
+            }
+
+            return position;
+        }
+
+        /// <summary>
+        /// Enter the short position at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="orderCount">iceberg orders count</param>
+        public Position SellAtIcebergMarket(decimal volume, int orderCount)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                    || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return null;
+                }
+
+                if (StartProgram != StartProgram.IsOsTrader || orderCount <= 1)
+                {
+                    return SellAtMarket(volume);
+                }
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
+                    return null;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return null;
+                }
+
+
+                Position newDeal = new Position();
+                newDeal.Number = NumberGen.GetNumberDeal(StartProgram);
+                newDeal.Direction = Side.Sell;
+                newDeal.State = PositionStateType.Opening;
+
+                newDeal.NameBot = TabName;
+                newDeal.Lots = Security.Lot;
+                newDeal.PriceStepCost = Security.PriceStepCost;
+                newDeal.PriceStep = Security.PriceStep;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    newDeal.PortfolioValueOnOpenPosition = Portfolio.ValueCurrent;
+                }
+                else
+                { // Tester, Optimizer, etc
+                    newDeal.PortfolioValueOnOpenPosition = Math.Round(Portfolio.ValueCurrent, 2);
+                }
+
+                _journal.SetNewDeal(newDeal);
+
+                decimal price = PriceBestBid;
+
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Market);
+
+                return newDeal;
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Enter the short position at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="volume">volume</param>
+        /// <param name="orderCount">orders count</param>
+        /// <param name="signalType">open position signal name. Will be written to position property: SignalTypeOpen</param>
+        public Position SellAtIcebergMarket(decimal volume, int orderCount, string signalType)
+        {
+            if (_connector.IsConnected == false
+                || _connector.IsReadyToTrade == false)
+            {
+                SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                return null;
+            }
+
+            Position position = SellAtIcebergMarket(volume, orderCount);
 
             if (position != null)
             {
@@ -3032,7 +3255,52 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifySell, volume, this);
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifySell, volume, this, OrderPriceType.Limit);
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Add new order to Short position at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="position">position to which the order will be added</param>
+        /// <param name="volume">volume</param>
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void SellAtIcebergToPositionMarket(Position position, decimal volume, int ordersCount)
+        {
+            try
+            {
+                if (_connector.IsConnected == false
+                   || _connector.IsReadyToTrade == false)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label191, LogMessageType.Error);
+                    return;
+                }
+
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
+                {
+                    SellAtMarketToPosition(position, volume);
+                    return;
+                }
+
+                if (volume == 0)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
+                    return;
+                }
+
+                if (Security == null || Portfolio == null)
+                {
+                    SetNewLogMessage(OsLocalization.Trader.Label64, LogMessageType.System);
+                    return;
+                }
+
+                decimal price = PriceBestBid;
+
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, position, IcebergType.ModifySell, volume, this, OrderPriceType.Market);
             }
             catch (Exception error)
             {
@@ -3352,14 +3620,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
                 {
-                    if (position.OpenVolume <= volume)
-                    {
-                        CloseDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, false, true);
-                    }
-                    else if (position.OpenVolume > volume)
-                    {
-                        ClosePeaceOfDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, volume, true);
-                    }
+                    CloseAtLimit(position, priceLimit, volume);
                     return;
                 }
 
@@ -3390,6 +3651,54 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             position.SignalTypeClose = signalType;
             CloseAtIceberg(position, priceLimit, volume, ordersCount);
+        }
+
+        /// <summary>
+        /// Close position at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="volume">volume required to close</param>
+        /// <param name="ordersCount">iceberg orders count</param>
+        public void CloseAtIcebergMarket(Position position, decimal volume, int ordersCount)
+        {
+            try
+            {
+                if (volume <= 0 || position.OpenVolume <= 0)
+                {
+                    return;
+                }
+                if (StartProgram != StartProgram.IsOsTrader || ordersCount <= 1)
+                {
+                    CloseAtMarket(position, volume);
+                    return;
+                }
+
+                if (position.Direction == Side.Buy)
+                {
+                    SellAtIcebergToPositionMarket(position, volume, ordersCount);
+                }
+                else
+                {
+                    BuyAtIcebergToPositionMarket(position, volume, ordersCount);
+                }
+            }
+            catch (Exception error)
+            {
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Close position at iceberg with MARKET orders
+        /// </summary>
+        /// <param name="position">position to be closed</param>
+        /// <param name="volume">volume required to close</param>
+        /// <param name="ordersCount">iceberg orders count</param>
+        /// <param name="signalType">close position signal name</param>
+        public void CloseAtIcebergMarket(Position position, decimal volume, int ordersCount, string signalType)
+        {
+            position.SignalTypeClose = signalType;
+            CloseAtIcebergMarket(position, volume, ordersCount);
         }
 
         /// <summary>
