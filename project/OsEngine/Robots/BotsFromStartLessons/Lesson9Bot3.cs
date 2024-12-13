@@ -48,7 +48,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _closeAtLimitButton.UserClickOnButtonEvent += _closeAtLimitButton_UserClickOnButtonEvent;
             _closeAtLimitSignal = CreateParameter("Close at Limit have signal", false, "Limit");
 
-            // CloseAtLimit
+            // CloseAtLimitUnsafe
 
             _closeAtLimitUnsafeButton = CreateParameterButton("Close at Limit Unsafe", "LimitUnsafe");
             _closeAtLimitUnsafeButton.UserClickOnButtonEvent += _closeAtLimitUnsafeButton_UserClickOnButtonEvent;

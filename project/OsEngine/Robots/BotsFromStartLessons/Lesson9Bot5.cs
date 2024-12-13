@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Threading;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -16,54 +16,36 @@ namespace OsEngine.Robots.BotsFromStartLessons
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
 
-            // BuyAtMarket / SellAtMarket
-
-            _buyMarketButton = CreateParameterButton("Market Buy", "Open");
-            _buyMarketButton.UserClickOnButtonEvent += MarketBuy_UserClickOnButtonEvent;
-            _sellMarketButton = CreateParameterButton("Market Sell", "Open");
-            _sellMarketButton.UserClickOnButtonEvent += MarketSell_UserClickOnButtonEvent;
-
             // CloseAllAtMarket
 
-            _closeAllMarketButton = CreateParameterButton("Close all at market", "Market all");
-            _closeAllMarketButton.UserClickOnButtonEvent += _closeAllMarketButton_UserClickOnButtonEvent;
-            _closeAllAtMarketSignal = CreateParameter("Close all at market have signal", false, "Market all");
+            _closeAllOrderToPositionButton = CreateParameterButton("Close orders to position", "Close to position");
+            _closeAllOrderToPositionButton.UserClickOnButtonEvent += _closeAllOrderToPositionButton_UserClickOnButtonEvent;
+            _closeAllOrderToPositionSignal = CreateParameter("Close orders to position have signal", false, "Close to position");
 
-            // CloseAtStop
+            // CloseAllOrderInSystem
 
-            _closeAtStopButton = CreateParameterButton("Close at Stop", "Stop");
-            _closeAtStopButton.UserClickOnButtonEvent += _closeAtStopButton_UserClickOnButtonEvent;
-            _closeAtStopCancelButton = CreateParameterButton("Cancel Stop order", "Stop");
-            _closeAtStopCancelButton.UserClickOnButtonEvent += _closeAtStopCancelButton_UserClickOnButtonEvent;
-            _closeAtStopSignal = CreateParameter("Close at Stop have signal", false, "Stop");
-            _closeAtStopIsMarket = CreateParameter("Close at Stop is market", false, "Stop");
+            _closeAllOrderInSystemButton = CreateParameterButton("Close orders in system", "Close all orders");
+            _closeAllOrderInSystemButton.UserClickOnButtonEvent += _closeAllOrderInSystemButton_UserClickOnButtonEvent;
+            _closeAllOrderInSystemSignal = CreateParameter("Close orders to in system", false, "Close all orders");
 
-            // CloseAtTrailingStop
+            // CloseOrder
 
-            _closeAtTrailingStopButton = CreateParameterButton("Close at Trailing Stop", "Trailing Stop");
-            _closeAtTrailingStopButton.UserClickOnButtonEvent += _closeAtTrailingStopButton_UserClickOnButtonEvent;
-            _closeAtTrailingStopCancelButton = CreateParameterButton("Cancel Trailing Stop order", "Trailing Stop");
-            _closeAtTrailingStopCancelButton.UserClickOnButtonEvent += _closeAtTrailingStopCancelButton_UserClickOnButtonEvent;
-           _closeAtTrailingStopSignal = CreateParameter("Close at Trailing Stop have signal", false, "Trailing Stop");
-            _closeAtTrailingStopIsMarket = CreateParameter("Close at Trailing Stop is market", false, "Trailing Stop");
+            _closeCloseOrderButton = CreateParameterButton("Close order", "Close order");
+            _closeCloseOrderButton.UserClickOnButtonEvent += _closeCloseOrderButton_UserClickOnButtonEvent;
 
-            // CloseAtProfit
+            // ChangeOrderPrice
 
-            _closeAtProfitButton = CreateParameterButton("Close at Profit", "Profit");
-            _closeAtProfitButton.UserClickOnButtonEvent += _closeAtProfitButton_UserClickOnButtonEvent;
-            _closeAtProfitCancelButton = CreateParameterButton("Cancel Profit order", "Profit");
-            _closeAtProfitCancelButton.UserClickOnButtonEvent += _closeAtProfitCancelButton_UserClickOnButtonEvent;
-            _closeAtProfitSignal = CreateParameter("Close at Profit have signal", false, "Profit");
-            _closeAtProfitIsMarket = CreateParameter("Close at Profit is market", false, "Profit");
+            _changeOrderPriceButton = CreateParameterButton("Change order price", "ChangeOrderPrice");
+            _changeOrderPriceButton.UserClickOnButtonEvent += _changeOrderPriceButton_UserClickOnButtonEvent;
         }
 
-        #region BuyAtMarket / SellAtMarket
+        #region CloseAllOrderToPosition
 
-        private StrategyParameterButton _buyMarketButton;
+        private StrategyParameterButton _closeAllOrderToPositionButton;
 
-        private StrategyParameterButton _sellMarketButton;
+        private StrategyParameterBool _closeAllOrderToPositionSignal;
 
-        private void MarketBuy_UserClickOnButtonEvent()
+        private void _closeAllOrderToPositionButton_UserClickOnButtonEvent()
         {
             if (_tabToTrade.IsReadyToTrade == false)
             {
@@ -73,10 +55,39 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             decimal volume = 1;
 
-            _tabToTrade.BuyAtMarket(volume);
+            decimal price = _tabToTrade.PriceBestAsk;
+
+            if (price == 0)
+            {
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
+                return;
+            }
+
+            price = price - price * 0.01m;
+
+            Position newPosition = _tabToTrade.BuyAtLimit(volume, price);
+
+            Thread.Sleep(5000);
+
+            if(_closeAllOrderToPositionSignal.ValueBool == false)
+            {
+                _tabToTrade.CloseAllOrderToPosition(newPosition);
+            }
+            else if (_closeAllOrderToPositionSignal.ValueBool == true)
+            {
+                _tabToTrade.CloseAllOrderToPosition(newPosition,"User click close orders to position");
+            }
         }
 
-        private void MarketSell_UserClickOnButtonEvent()
+        #endregion
+
+        #region CloseAllOrderInSystem
+
+        private StrategyParameterButton _closeAllOrderInSystemButton;
+
+        private StrategyParameterBool _closeAllOrderInSystemSignal;
+
+        private void _closeAllOrderInSystemButton_UserClickOnButtonEvent()
         {
             if (_tabToTrade.IsReadyToTrade == false)
             {
@@ -86,443 +97,101 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             decimal volume = 1;
 
-            _tabToTrade.SellAtMarket(volume);
-        }
+            decimal price = _tabToTrade.PriceBestAsk;
 
-        #endregion
-
-        #region CloseAllAtMarket
-
-        private StrategyParameterButton _closeAllMarketButton;
-
-        private StrategyParameterBool _closeAllAtMarketSignal;
-
-        private void _closeAllMarketButton_UserClickOnButtonEvent()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            if (_tabToTrade.IsReadyToTrade == false)
+            if (price == 0)
             {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
                 return;
             }
 
-            for (int i = 0; i < openPositions.Count; i++)
+            price = price - price * 0.01m;
+
+            Position newPosition = _tabToTrade.BuyAtLimit(volume, price);
+            Position newPosition2 = _tabToTrade.BuyAtLimit(volume, price);
+
+            Thread.Sleep(5000);
+
+            if (_closeAllOrderInSystemSignal.ValueBool == false)
             {
-                Position position = openPositions[i];
-
-                _tabToTrade.CloseAllOrderToPosition(position);
-
-                if (position.OpenVolume == 0)
-                {
-                    continue;
-                }
-
-                if (_closeAllAtMarketSignal.ValueBool == false)
-                {
-                    _tabToTrade.CloseAtMarket(position, position.OpenVolume);
-                }
-                else if (_closeAllAtMarketSignal.ValueBool == false)
-                {
-                    _tabToTrade.CloseAtMarket(position, position.OpenVolume, "User click close ALL at market button");
-                }
+                _tabToTrade.CloseAllOrderInSystem();
+            }
+            else if (_closeAllOrderInSystemSignal.ValueBool == true)
+            {
+                _tabToTrade.CloseAllOrderInSystem("User click close all orders in system");
             }
         }
 
         #endregion
 
-        #region CloseAtStop
+        #region CloseOrder
 
-        private StrategyParameterButton _closeAtStopButton;
+        private StrategyParameterButton _closeCloseOrderButton;
 
-        private StrategyParameterButton _closeAtStopCancelButton;
-
-        private StrategyParameterBool _closeAtStopSignal;
-
-        private StrategyParameterBool _closeAtStopIsMarket;
-
-        private void _closeAtStopButton_UserClickOnButtonEvent()
+        private void _closeCloseOrderButton_UserClickOnButtonEvent()
         {
-            if(_closeAtStopIsMarket.ValueBool == false)
-            {
-                CloseAtStopLimitMethod();
-            }
-            else if(_closeAtStopIsMarket.ValueBool == true)
-            {
-                CloseAtStopMarketMethod();
-            }
-        }
-
-        private void _closeAtStopCancelButton_UserClickOnButtonEvent()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            for (int i = 0; i < openPositions.Count; i++)
-            {
-                Position position = openPositions[i];
-
-                position.StopOrderIsActiv = false;
-            }
-        }
-
-        private void CloseAtStopLimitMethod()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            if (openPositions.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
-                return;
-            }
-
             if (_tabToTrade.IsReadyToTrade == false)
             {
                 _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
                 return;
             }
 
-            Position position = openPositions[0];
-            _tabToTrade.CloseAllOrderToPosition(position);
+            decimal volume = 1;
 
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
+            decimal price = _tabToTrade.PriceBestAsk;
 
-            if (candles.Count == 0)
+            if (price == 0)
             {
-                _tabToTrade.SetNewLogMessage("No candles", Logging.LogMessageType.Error);
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
                 return;
             }
 
-            decimal price = 0;
+            price = price - price * 0.01m;
 
-            if (position.Direction == Side.Buy)
-            {
-                price = candles[candles.Count - 1].Low;
-            }
-            else if (position.Direction == Side.Sell)
-            {
-                price = candles[candles.Count - 1].High;
-            }
+            Position newPosition = _tabToTrade.BuyAtLimit(volume, price);
 
-            if (_closeAtStopSignal.ValueBool == false)
-            {
-                _tabToTrade.CloseAtStop(position, price, price);
-            }
-            else if (_closeAtStopSignal.ValueBool == true)
-            {
-                _tabToTrade.CloseAtStop(position, price, price, "User click close at Stop button");
-            }
-        }
+            Thread.Sleep(5000);
 
-        private void CloseAtStopMarketMethod()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+            Order order = newPosition.OpenOrders[0];
 
-            if (openPositions.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
-                return;
-            }
-
-            if (_tabToTrade.IsReadyToTrade == false)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            Position position = openPositions[0];
-            _tabToTrade.CloseAllOrderToPosition(position);
-
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
-
-            if (candles.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No candles", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal price = 0;
-
-            if (position.Direction == Side.Buy)
-            {
-                price = candles[candles.Count - 1].Low;
-            }
-            else if (position.Direction == Side.Sell)
-            {
-                price = candles[candles.Count - 1].High;
-            }
-
-            if (_closeAtStopSignal.ValueBool == false)
-            {
-                _tabToTrade.CloseAtStopMarket(position, price);
-            }
-            else if (_closeAtStopSignal.ValueBool == true)
-            {
-                _tabToTrade.CloseAtStopMarket(position, price, "User click close at Stop button");
-            }
+            _tabToTrade.CloseOrder(order);
         }
 
         #endregion
 
-        #region CloseAtTrailingStop
+        #region ChangeOrderPrice
 
-        private StrategyParameterButton _closeAtTrailingStopButton;
+        private StrategyParameterButton _changeOrderPriceButton;
 
-        private StrategyParameterButton _closeAtTrailingStopCancelButton;
-
-        private StrategyParameterBool _closeAtTrailingStopSignal;
-
-        private StrategyParameterBool _closeAtTrailingStopIsMarket;
-
-        private void _closeAtTrailingStopButton_UserClickOnButtonEvent()
+        private void _changeOrderPriceButton_UserClickOnButtonEvent()
         {
-            if (_closeAtTrailingStopIsMarket.ValueBool == false)
-            {
-                CloseAtTrailingStopLimitMethod();
-            }
-            else if (_closeAtTrailingStopIsMarket.ValueBool == true)
-            {
-                CloseAtTrailingStopMarketMethod();
-            }
-        }
-
-        private void _closeAtTrailingStopCancelButton_UserClickOnButtonEvent()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            for (int i = 0; i < openPositions.Count; i++)
-            {
-                Position position = openPositions[i];
-
-                position.StopOrderIsActiv = false;
-            }
-        }
-
-        private void CloseAtTrailingStopLimitMethod()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            if (openPositions.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
-                return;
-            }
-
             if (_tabToTrade.IsReadyToTrade == false)
             {
                 _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
                 return;
             }
 
-            Position position = openPositions[0];
-            _tabToTrade.CloseAllOrderToPosition(position);
+            decimal volume = 1;
 
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
+            decimal price = _tabToTrade.PriceBestAsk;
 
-            if (candles.Count == 0)
+            if (price == 0)
             {
-                _tabToTrade.SetNewLogMessage("No candles", Logging.LogMessageType.Error);
+                _tabToTrade.SetNewLogMessage("Connection not ready to trade. No price", Logging.LogMessageType.Error);
                 return;
             }
 
-            decimal price = 0;
+            price = price - price * 0.01m;
 
-            if (position.Direction == Side.Buy)
-            {
-                price = candles[candles.Count - 1].Low;
-            }
-            else if (position.Direction == Side.Sell)
-            {
-                price = candles[candles.Count - 1].High;
-            }
+            decimal newPrice = price - price * 0.02m;
 
-            if (_closeAtTrailingStopSignal.ValueBool == false)
-            {
-                _tabToTrade.CloseAtTrailingStop(position, price, price);
-            }
-            else if (_closeAtTrailingStopSignal.ValueBool == true)
-            {
-                _tabToTrade.CloseAtTrailingStop(position, price, price, "User click close at Trailing Stop button");
-            }
-        }
+            Position newPosition = _tabToTrade.BuyAtLimit(volume, price);
 
-        private void CloseAtTrailingStopMarketMethod()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
+            Thread.Sleep(5000);
 
-            if (openPositions.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
-                return;
-            }
+            Order order = newPosition.OpenOrders[0];
 
-            if (_tabToTrade.IsReadyToTrade == false)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            Position position = openPositions[0];
-            _tabToTrade.CloseAllOrderToPosition(position);
-
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
-
-            if (candles.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No candles", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal price = 0;
-
-            if (position.Direction == Side.Buy)
-            {
-                price = candles[candles.Count - 1].Low;
-            }
-            else if (position.Direction == Side.Sell)
-            {
-                price = candles[candles.Count - 1].High;
-            }
-
-            if (_closeAtTrailingStopSignal.ValueBool == false)
-            {
-                _tabToTrade.CloseAtTrailingStopMarket(position, price);
-            }
-            else if (_closeAtTrailingStopSignal.ValueBool == true)
-            {
-                _tabToTrade.CloseAtTrailingStopMarket(position, price, "User click close at Trailing Stop button");
-            }
-        }
-
-        #endregion
-
-        #region CloseAtProfit
-
-        private StrategyParameterButton _closeAtProfitButton;
-
-        private StrategyParameterButton _closeAtProfitCancelButton;
-
-        private StrategyParameterBool _closeAtProfitSignal;
-
-        private StrategyParameterBool _closeAtProfitIsMarket;
-
-        private void _closeAtProfitButton_UserClickOnButtonEvent()
-        {
-            if (_closeAtProfitIsMarket.ValueBool == false)
-            {
-                CloseAtProfitLimitMethod();
-            }
-            else if (_closeAtProfitIsMarket.ValueBool == true)
-            {
-                CloseAtProfitMarketMethod();
-            }
-        }
-
-        private void _closeAtProfitCancelButton_UserClickOnButtonEvent()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            for (int i = 0; i < openPositions.Count; i++)
-            {
-                Position position = openPositions[i];
-
-                position.ProfitOrderIsActiv = false;
-            }
-        }
-
-        private void CloseAtProfitLimitMethod()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            if (openPositions.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
-                return;
-            }
-
-            if (_tabToTrade.IsReadyToTrade == false)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            Position position = openPositions[0];
-            _tabToTrade.CloseAllOrderToPosition(position);
-
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
-
-            if (candles.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No candles", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal price = 0;
-
-            if (position.Direction == Side.Buy)
-            {
-                price = candles[candles.Count - 1].High;
-            }
-            else if (position.Direction == Side.Sell)
-            {
-                price = candles[candles.Count - 1].Low;
-            }
-
-            if (_closeAtProfitSignal.ValueBool == false)
-            {
-                _tabToTrade.CloseAtProfit(position, price, price);
-            }
-            else if (_closeAtProfitSignal.ValueBool == true)
-            {
-                _tabToTrade.CloseAtProfit(position, price, price, "User click close at Profit button");
-            }
-        }
-
-        private void CloseAtProfitMarketMethod()
-        {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
-            if (openPositions.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No positions", Logging.LogMessageType.Error);
-                return;
-            }
-
-            if (_tabToTrade.IsReadyToTrade == false)
-            {
-                _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
-                return;
-            }
-
-            Position position = openPositions[0];
-            _tabToTrade.CloseAllOrderToPosition(position);
-
-            List<Candle> candles = _tabToTrade.CandlesFinishedOnly;
-
-            if (candles.Count == 0)
-            {
-                _tabToTrade.SetNewLogMessage("No candles", Logging.LogMessageType.Error);
-                return;
-            }
-
-            decimal price = 0;
-
-            if (position.Direction == Side.Buy)
-            {
-                price = candles[candles.Count - 1].High;
-            }
-            else if (position.Direction == Side.Sell)
-            {
-                price = candles[candles.Count - 1].Low;
-            }
-
-            if (_closeAtProfitSignal.ValueBool == false)
-            {
-                _tabToTrade.CloseAtProfitMarket(position, price);
-            }
-            else if (_closeAtProfitSignal.ValueBool == true)
-            {
-                _tabToTrade.CloseAtProfitMarket(position, price, "User click close at Profit button");
-            }
+            _tabToTrade.ChangeOrderPrice(order, newPrice);
         }
 
         #endregion
