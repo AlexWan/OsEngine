@@ -340,9 +340,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             Values = null;
             ProcessAll(_myCandles);
 
-            if (NeadToReloadEvent != null)
+            if (NeedToReloadEvent != null)
             {
-                NeadToReloadEvent(this);
+                NeedToReloadEvent(this);
             }
         }
 
@@ -483,6 +483,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator rebooted
         /// индикатор перезагрузился
         /// </summary>
-        public event Action<IIndicator> NeadToReloadEvent;
+        public event Action<IIndicator> NeedToReloadEvent;
     }
 }

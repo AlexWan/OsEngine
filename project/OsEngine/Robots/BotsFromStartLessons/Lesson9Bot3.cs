@@ -109,33 +109,19 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void _closeAllMarketButton_UserClickOnButtonEvent()
         {
-            List<Position> openPositions = _tabToTrade.PositionsOpenAll;
-
             if (_tabToTrade.IsReadyToTrade == false)
             {
                 _tabToTrade.SetNewLogMessage("Connection not ready to trade", Logging.LogMessageType.Error);
                 return;
             }
 
-            for (int i = 0; i < openPositions.Count; i++)
+            if (_closeAllAtMarketSignal.ValueBool == false)
             {
-                Position position = openPositions[i];
-
-                _tabToTrade.CloseAllOrderToPosition(position);
-
-                if (position.OpenVolume == 0)
-                {
-                    continue;
-                }
-
-                if(_closeAllAtMarketSignal.ValueBool == false)
-                {
-                    _tabToTrade.CloseAtMarket(position, position.OpenVolume);
-                }
-                else if(_closeAllAtMarketSignal.ValueBool == false)
-                {
-                    _tabToTrade.CloseAtMarket(position, position.OpenVolume, "User click close ALL at market button");
-                }
+                _tabToTrade.CloseAllAtMarket();
+            }
+            else if (_closeAllAtMarketSignal.ValueBool == false)
+            {
+                _tabToTrade.CloseAllAtMarket("User click close ALL at market button");
             }
         }
 

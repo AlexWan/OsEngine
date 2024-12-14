@@ -280,9 +280,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
             }
             ProcessAll(_myCandles);
 
-            if (NeadToReloadEvent != null)
+            if (NeedToReloadEvent != null)
             {
-                NeadToReloadEvent(this);
+                NeedToReloadEvent(this);
             }
         }
 
@@ -313,7 +313,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// it's necessary to redraw indicator
         /// необходимо перерисовать индикатор
         /// </summary>
-        public event Action<IIndicator> NeadToReloadEvent;
+        public event Action<IIndicator> NeedToReloadEvent;
 
         /// <summary>
         /// candles used to build indicator

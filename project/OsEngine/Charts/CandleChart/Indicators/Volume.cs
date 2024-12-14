@@ -233,9 +233,9 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             if (ui.IsChange)
             {
-                if (NeadToReloadEvent != null)
+                if (NeedToReloadEvent != null)
                 {
-                    NeadToReloadEvent(this);
+                    NeedToReloadEvent(this);
                 }
             }
         }
@@ -244,7 +244,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// нужно перерисовать индикатор
         /// </summary>
-        public event Action<IIndicator> NeadToReloadEvent;
+        public event Action<IIndicator> NeedToReloadEvent;
         // calculating
         // вычисления
 

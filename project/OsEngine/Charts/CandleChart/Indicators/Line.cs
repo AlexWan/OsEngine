@@ -230,7 +230,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
         /// indicator needs to be redrawn
         /// индикатор нужно перерисовать
         /// </summary>
-        public event Action<IIndicator> NeadToReloadEvent;
+        public event Action<IIndicator> NeedToReloadEvent;
 
         /// <summary>
         /// recalculate indicator. This indicator blocked.

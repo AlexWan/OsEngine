@@ -446,7 +446,7 @@ namespace OsEngine.Charts.CandleChart
                 {
                     for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                     {
-                        _indicators[i].NeadToReloadEvent -= indicator_NeadToReloadEvent;
+                        _indicators[i].NeedToReloadEvent -= indicator_NeadToReloadEvent;
                         _indicators[i].Clear();
                         _indicators[i].Delete();
                     }
@@ -1016,7 +1016,7 @@ namespace OsEngine.Charts.CandleChart
 
                 LoadIndicatorOnChart(indicator);
 
-                indicator.NeadToReloadEvent += indicator_NeadToReloadEvent;
+                indicator.NeedToReloadEvent += indicator_NeadToReloadEvent;
                 indicator_NeadToReloadEvent(indicator);
 
                 return indicator;
