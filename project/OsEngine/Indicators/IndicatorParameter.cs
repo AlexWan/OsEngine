@@ -10,10 +10,13 @@ using System.Collections.Generic;
 namespace OsEngine.Indicators
 {
     /// <summary>
-    /// parameter interface
+    /// Indicator parameter interface
     /// </summary>
     public abstract class IndicatorParameter
     {
+        /// <summary>
+        /// set the default value of the parameter
+        /// </summary>
         public void DoDefault()
         {
             if (this.Type == IndicatorParameterType.Bool)
@@ -34,6 +37,9 @@ namespace OsEngine.Indicators
             }
         }
 
+        /// <summary>
+        /// link a parameter value to another
+        /// </summary>
         public void Bind(IndicatorParameter parameter)
         {
             if (parameter.Type != Type)

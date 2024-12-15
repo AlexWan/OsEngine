@@ -104,7 +104,7 @@ namespace OsEngine.Indicators
             }
 
             Indicator.CanDelete = canDelete;
-            Indicator.Init(name);
+            Indicator.Init(name, OsEngine.Entity.StartProgram.IsOsTrader);
 
             return Indicator;
         }
