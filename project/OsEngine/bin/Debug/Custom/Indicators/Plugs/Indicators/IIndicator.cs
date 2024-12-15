@@ -100,7 +100,7 @@ namespace OsEngine.Indicators
         /// indicator needs to be redrawn
         /// требуется перерисовать индикатор
         /// </summary>
-        event Action<IIndicator> NeadToReloadEvent;
+        event Action<IIndicator> NeedToReloadEvent;
 
         /// <summary>
         /// Update indicator values

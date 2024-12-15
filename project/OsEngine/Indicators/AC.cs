@@ -9,7 +9,9 @@ namespace OsEngine.Indicators
     internal class AC : Aindicator
     {
         private IndicatorParameterInt _lengthFastLine; 
+
         private IndicatorParameterInt _lengthSlowLine;
+
         public IndicatorParameterString _candlePoint;
 
         private IndicatorDataSeries _series;
@@ -75,4 +77,3 @@ namespace OsEngine.Indicators
         }
     }
 }
-

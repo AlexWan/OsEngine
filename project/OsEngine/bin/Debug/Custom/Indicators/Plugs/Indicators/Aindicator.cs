@@ -455,13 +455,13 @@ namespace OsEngine.Indicators
 
             ProcessAll(_myCandles);
 
-            if (NeadToReloadEvent != null)
+            if (NeedToReloadEvent != null)
             {
-                NeadToReloadEvent(this);
+                NeedToReloadEvent(this);
             }
         }
 
-        public event Action<IIndicator> NeadToReloadEvent;
+        public event Action<IIndicator> NeedToReloadEvent;
 
         public void Clear()
         {

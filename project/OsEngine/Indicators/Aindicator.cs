@@ -345,7 +345,7 @@ namespace OsEngine.Indicators
         /// <summary>
         /// parameter has changed settings
         /// </summary>
-        void Parameter_ValueChange()
+        private void Parameter_ValueChange()
         {
             if (ParametersChangeByUser != null)
             {
@@ -961,5 +961,4 @@ namespace OsEngine.Indicators
             }
         }
     }
-
 }
