@@ -200,25 +200,25 @@ namespace OsEngine.Robots.CMO
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                Position positions = openPositions[i];
+                Position position = openPositions[i];
 
-                if (positions.State != PositionStateType.Open)
+                if (position.State != PositionStateType.Open)
                 {
                     continue;
                 }
 
-                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
+                if (position.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     if (_lastCMO > -50 && _prevCMO < -50)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(position, lastPrice - _slippage, position.OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
                     if (_lastCMO < 50 && _prevCMO > 50)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(position, lastPrice + _slippage, position.OpenVolume);
                     }
                 }
             }

@@ -232,7 +232,7 @@ namespace OsEngine.Robots.AO
                     if (_lastUltimate < 45 || _lastUltimate > 70)
                     {
 
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
@@ -240,7 +240,7 @@ namespace OsEngine.Robots.AO
 
                     if (_lastUltimate > 65 || _lastUltimate < 30)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                     }
                 }
             }

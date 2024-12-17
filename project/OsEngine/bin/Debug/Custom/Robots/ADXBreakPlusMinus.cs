@@ -208,8 +208,7 @@ namespace OsEngine.Robots.AO
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            Position pos = openPositions[0];
-
+           
             // The last value of the indicator
             _lastPlus = _ADX.DataSeries[1].Last;
             _lastMinus = _ADX.DataSeries[2].Last;
@@ -220,14 +219,14 @@ namespace OsEngine.Robots.AO
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                Position positions = openPositions[i];
+                Position pos = openPositions[i];
 
-                if (positions.State != PositionStateType.Open)
+                if (pos.State != PositionStateType.Open)
                 {
                     continue;
                 }
 
-                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     if (_lastMinus > _lastPlus)
                     {

@@ -205,40 +205,35 @@ namespace OsEngine.Robots.ZZAO
         //  logic close position
         private void LogicClosePosition(List<Candle> candles)
         {
-
             List<Position> openPositions = _tab.PositionsOpenAll;
-            Position pos = openPositions[0];
-
+           
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
-
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                Position positions = openPositions[i];
+                Position pos = openPositions[i];
 
-                if (openPositions[i].State != PositionStateType.Open)
+                if (pos.State != PositionStateType.Open)
                 {
                     continue;
                 }
 
                 List<Candle> candles1 = new List<Candle>();
 
-                
-
-                if (!NeedClosePosition(positions, candles))
+                if (!NeedClosePosition(pos, candles))
                 {
                     continue;
                 }
 
                 if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                    _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                 }
                 else // If the direction of the position is sale
                 {
-                    _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                    _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
                 }
             }
         }

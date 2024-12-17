@@ -195,16 +195,17 @@ namespace OsEngine.Robots.MyRobots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            Position pos = openPositions[0];
-
+            
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                if (openPositions[i].State != PositionStateType.Open)
+                Position pos = openPositions[i];
+
+                if (pos.State != PositionStateType.Open)
                 {
                     continue;
                 }
                 decimal stopPriсe;
-                if (openPositions[i].Direction == Side.Buy) // if the direction of the position is buy
+                if (pos.Direction == Side.Buy) // if the direction of the position is buy
                 {
                     decimal low = candles[candles.Count - 1].Low;
                     stopPriсe = low - low * TrailingValue.ValueDecimal / 100;

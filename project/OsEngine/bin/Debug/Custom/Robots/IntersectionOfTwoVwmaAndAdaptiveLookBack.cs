@@ -231,14 +231,14 @@ namespace OsEngine.Robots.myRobots
             {
                 if (_lastVwmaFasts < _lastVwmaSlow)
                 {
-                    _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                    _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                 }
             }
             else // If the direction of the position is sale
             {
                 if (_lastVwmaFasts > _lastVwmaSlow)
                 {
-                    _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                    _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                 }
             }
         }

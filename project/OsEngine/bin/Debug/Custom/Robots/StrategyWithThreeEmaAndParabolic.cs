@@ -242,7 +242,7 @@ namespace OsEngine.Robots.MyRobots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            Position pos = openPositions[0];
+            
 
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
@@ -250,7 +250,9 @@ namespace OsEngine.Robots.MyRobots
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                if (openPositions[i].State != PositionStateType.Open)
+                Position pos = openPositions[i];
+
+                if (pos.State != PositionStateType.Open)
                 {
                     continue;
                 }
@@ -258,7 +260,7 @@ namespace OsEngine.Robots.MyRobots
                 // He last value of the indicators
                 _lastEmaMiddle = _ema2.DataSeries[0].Last;
 
-                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     _tab.CloseAtTrailingStop(pos, _lastEmaMiddle, _lastEmaMiddle - _slippage);
                 }

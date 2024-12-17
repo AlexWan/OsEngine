@@ -238,21 +238,21 @@ namespace OsEngine.Robots.My_bots
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                Position positions = openPositions[i];
+                Position position = openPositions[i];
 
-                if (positions.State != PositionStateType.Open)
+                if (position.State != PositionStateType.Open)
                 {
                     continue;
                 }
 
-                if (positions.Direction == Side.Buy) // If the direction of the position is purchase
+                if (position.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
                     if (price == 0)
                     {
                         return;
                     }
-                    _tab.CloseAtTrailingStop(openPositions[0], price, price - _slippage);
+                    _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is sale
                 {
@@ -261,7 +261,7 @@ namespace OsEngine.Robots.My_bots
                     {
                         return;
                     }
-                    _tab.CloseAtTrailingStop(openPositions[0], price, price + _slippage);
+                    _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
 
             }

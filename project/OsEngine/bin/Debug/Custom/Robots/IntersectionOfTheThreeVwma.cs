@@ -228,7 +228,7 @@ namespace OsEngine.Robots.Vwma
                     if (_lastVwmaFast < _lastVwmaMiddle && _lastVwmaMiddle < _lastVwmaSlow)
                     {
                         decimal lastPrice = candles[candles.Count - 1].Close;
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
@@ -236,7 +236,7 @@ namespace OsEngine.Robots.Vwma
                     if (_lastVwmaFast > _lastVwmaMiddle && _lastVwmaMiddle > _lastVwmaSlow)
                     {
                         decimal lastPrice = candles[candles.Count - 1].Close;
-                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                     }
                 }
             }

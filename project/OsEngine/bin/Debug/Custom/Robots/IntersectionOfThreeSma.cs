@@ -228,7 +228,7 @@ namespace OsEngine.Robots.SMA
                     if (_lastSmaFast < _lastSmaMiddle && _lastSmaMiddle < _lastSmaSlow)
                     {
                         decimal lastPrice = candles[candles.Count - 1].Close;
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
 
                 }
@@ -237,7 +237,7 @@ namespace OsEngine.Robots.SMA
                     if (_lastSmaFast > _lastSmaMiddle && _lastSmaMiddle > _lastSmaSlow)
                     {
                         decimal lastPrice = candles[candles.Count - 1].Close;
-                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                     }
                 }
             }

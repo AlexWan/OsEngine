@@ -13,6 +13,14 @@ namespace OsEngine.Indicators
 {
     public abstract class Aindicator : IIndicator
     {
+        #region Mandatory overload members
+
+        public abstract void OnStateChange(IndicatorState state);
+
+        public abstract void OnProcess(List<Candle> source, int index);
+
+        #endregion
+
         #region Service
 
         public void Init(string name, StartProgram startProgram)
@@ -20,17 +28,13 @@ namespace OsEngine.Indicators
             Name = name;
             CanDelete = true;
 
-            if(startProgram != StartProgram.IsOsOptimizer)
+            if (startProgram != StartProgram.IsOsOptimizer)
             {
                 Load();
             }
 
             OnStateChange(IndicatorState.Configure);
         }
-
-        public abstract void OnStateChange(IndicatorState state);
-
-        public abstract void OnProcess(List<Candle> source, int index);
 
         public void Clear()
         {
@@ -73,7 +77,7 @@ namespace OsEngine.Indicators
                 }
             }
 
-            if(IncludeIndicators != null)
+            if (IncludeIndicators != null)
             {
                 for (int i = 0; i < IncludeIndicators.Count; i++)
                 {
@@ -84,7 +88,7 @@ namespace OsEngine.Indicators
                 IncludeIndicators = null;
             }
 
-            if(_parameters != null)
+            if (_parameters != null)
             {
                 for (int i = 0; i < _parameters.Count; i++)
                 {
@@ -94,13 +98,13 @@ namespace OsEngine.Indicators
                 _parameters = null;
             }
 
-            if(ParametersDigit != null)
+            if (ParametersDigit != null)
             {
                 ParametersDigit.Clear();
                 ParametersDigit = null;
             }
 
-            if(DataSeries != null)
+            if (DataSeries != null)
             {
                 for (int i = 0; i < DataSeries.Count; i++)
                 {
@@ -108,7 +112,7 @@ namespace OsEngine.Indicators
                     DataSeries[i].Delete();
                 }
                 DataSeries.Clear();
-               
+
                 DataSeries = null;
             }
 
@@ -152,10 +156,6 @@ namespace OsEngine.Indicators
                 Save();
             }
         }
-
-        #endregion
-
-        #region Service information
 
         public StartProgram StartProgram;
 
@@ -507,7 +507,7 @@ namespace OsEngine.Indicators
 
         #endregion
 
-        #region Candlestick loading
+        #region Candles loading
 
         private List<Candle> _myCandles = new List<Candle>();
 

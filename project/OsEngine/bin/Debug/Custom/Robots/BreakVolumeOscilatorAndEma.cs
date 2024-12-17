@@ -223,7 +223,7 @@ namespace OsEngine.Robots.MyRobots
                     if (lastPrice < _lastEma && _lastVolume < 0)
                     {
 
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
@@ -231,7 +231,7 @@ namespace OsEngine.Robots.MyRobots
 
                     if (lastPrice > _lastEma && _lastVolume > 0)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                     }
                 }
             }

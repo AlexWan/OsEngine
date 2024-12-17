@@ -220,6 +220,7 @@ namespace OsEngine.Robots.My_bots
             // He last value of the indicator
             _lastBearsPrice = _bearsPower.DataSeries[0].Values[_bearsPower.DataSeries[0].Values.Count - 1];
             _lastBullsPrice = _bullsPower.DataSeries[0].Values[_bullsPower.DataSeries[0].Values.Count - 1];
+
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 if (openPositions[i].State != PositionStateType.Open)
@@ -231,14 +232,14 @@ namespace OsEngine.Robots.My_bots
                 {
                     if (_lastBearsPrice < 0 && _lastBullsPrice < 0 && _lastBullsPrice + _lastBearsPrice < -Step.ValueDecimal)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice - _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
                     if (_lastBearsPrice > 0 && _lastBullsPrice > 0 && _lastBullsPrice + _lastBearsPrice > Step.ValueDecimal)
                     {
-                        _tab.CloseAtLimit(openPositions[0], lastPrice + _slippage, openPositions[0].OpenVolume);
+                        _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                     }
                 }
             }

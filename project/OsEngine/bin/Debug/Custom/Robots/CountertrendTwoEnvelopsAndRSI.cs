@@ -256,8 +256,7 @@ namespace OsEngine.Robots.My_bots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            Position pos = openPositions[0];
-
+          
             _lastUpLineLoc = _EnvelopsLoc.DataSeries[0].Last;
             _lastDownLineLoc = _EnvelopsLoc.DataSeries[1].Last;
             _lastUpLineGlob = _EnvelopsGlob.DataSeries[0].Last;
@@ -272,19 +271,20 @@ namespace OsEngine.Robots.My_bots
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                Position positions = openPositions[i];
+                Position pos = openPositions[i];
+
                 decimal lastPrice = candles[candles.Count - 1].Close;
                 decimal prevPrice = candles[candles.Count - 2].Close;
 
                 // Slippage
                 decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
-                if (positions.State != PositionStateType.Open)
+                if (pos.State != PositionStateType.Open)
                 {
                     continue;
                 }
 
-                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     if (prevPrice > _prevUpLineLoc && prevPrice < _prevUpLineGlob && lastPrice < _lastUpLineLoc
                         && _lastRSI > OverboughtLine.ValueInt || prevPrice > _prevUpLineGlob && lastPrice < _lastUpLineLoc
