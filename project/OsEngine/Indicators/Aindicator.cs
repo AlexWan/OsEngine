@@ -515,34 +515,40 @@ namespace OsEngine.Indicators
         {
             //lock(_indicatorUpdateLocker)
             //{
-                if (candles.Count == 0)
-                {
-                    return;
-                }
-                if (_myCandles == null ||
-                candles.Count < _myCandles.Count ||
-                candles.Count > _myCandles.Count + 1)
-                {
-                    ProcessAll(candles);
-                }
-                else if (candles.Count < DataSeries[0].Values.Count)
-                {
-                    foreach (var ds in DataSeries)
-                    {
-                        ds.Values.Clear();
-                    }
-                    ProcessAll(candles);
-                }
-                else if (_myCandles.Count == candles.Count)
-                {
-                    ProcessLast(candles);
-                }
-                else if (_myCandles.Count + 1 == candles.Count)
-                {
-                    ProcessNew(candles, candles.Count - 1);
-                }
+            if (candles.Count == 0)
+            {
+                return;
+            }
 
-                _myCandles = candles;
+            if (DataSeries == null || DataSeries.Count == 0)
+            {
+                return;
+            }
+
+            if (_myCandles == null ||
+            candles.Count < _myCandles.Count ||
+            candles.Count > _myCandles.Count + 1)
+            {
+                ProcessAll(candles);
+            }
+            else if (candles.Count < DataSeries[0].Values.Count)
+            {
+                foreach (var ds in DataSeries)
+                {
+                    ds.Values.Clear();
+                }
+                ProcessAll(candles);
+            }
+            else if (_myCandles.Count == candles.Count)
+            {
+                ProcessLast(candles);
+            }
+            else if (_myCandles.Count + 1 == candles.Count)
+            {
+                ProcessNew(candles, candles.Count - 1);
+            }
+
+            _myCandles = candles;
             //}
         }
 
