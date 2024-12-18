@@ -2115,9 +2115,27 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 var res = CreateQuery(Method.POST, "/" + type_str_selector + "/v1/order", param, true);
 
-                if (res != null && res.Contains("clientOrderId"))
+                if (res != null 
+                    && res.Contains("clientOrderId"))
                 {
-                    SendLogMessage(res, LogMessageType.Trade);
+                    OrderActionResponse orderResponse =
+                    JsonConvert.DeserializeAnonymousType(res, new OrderActionResponse());
+
+                    if(orderResponse.status == "NEW"
+                        || orderResponse.status == "PARTIALLY_FILLED"
+                        || orderResponse.status == "FILLED")
+                    {
+                        SendLogMessage(res, LogMessageType.Trade);
+                    }
+                    else
+                    {
+                        order.State = OrderStateType.Fail;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                    }
                 }
                 else
                 {
