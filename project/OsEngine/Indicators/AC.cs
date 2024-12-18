@@ -6,7 +6,7 @@ using System.Drawing;
 namespace OsEngine.Indicators
 {
     [Indicator("AC")]
-    internal class AC : Aindicator
+    public class AC : Aindicator
     {
         private IndicatorParameterInt _lengthFastLine; 
 
@@ -20,17 +20,20 @@ namespace OsEngine.Indicators
 
         public override void OnStateChange(IndicatorState state)
         {
-            _lengthFastLine = CreateParameterInt("Fast line length", 5);
-            _lengthSlowLine = CreateParameterInt("Slow line length", 34);
-            _candlePoint = CreateParameterStringCollection("Candle point", "Typical", Entity.CandlePointsArray);
+            if(state == IndicatorState.Configure)
+            {
+                _lengthFastLine = CreateParameterInt("Fast line length", 5);
+                _lengthSlowLine = CreateParameterInt("Slow line length", 34);
+                _candlePoint = CreateParameterStringCollection("Candle point", "Typical", Entity.CandlePointsArray);
 
-            _series = CreateSeries("AC2", Color.DarkGreen, IndicatorChartPaintType.Column, true);
+                _series = CreateSeries("AC2", Color.DarkGreen, IndicatorChartPaintType.Column, true);
 
-            _ao = IndicatorsFactory.CreateIndicatorByName("AO", Name + "AO", false);
-            ((IndicatorParameterInt)_ao.Parameters[0]).Bind(_lengthFastLine);
-            ((IndicatorParameterInt)_ao.Parameters[1]).Bind(_lengthSlowLine);
-            ((IndicatorParameterString)_ao.Parameters[2]).Bind(_candlePoint);
-            ProcessIndicator("AO", _ao);
+                _ao = IndicatorsFactory.CreateIndicatorByName("AO", Name + "AO", false);
+                ((IndicatorParameterInt)_ao.Parameters[0]).Bind(_lengthFastLine);
+                ((IndicatorParameterInt)_ao.Parameters[1]).Bind(_lengthSlowLine);
+                ((IndicatorParameterString)_ao.Parameters[2]).Bind(_candlePoint);
+                ProcessIndicator("AO", _ao);
+            }
         }
 
         public override void OnProcess(List<Candle> candles, int index)

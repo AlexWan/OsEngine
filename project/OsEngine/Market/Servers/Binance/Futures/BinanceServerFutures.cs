@@ -1451,7 +1451,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
             _subscribledSecurities.Add(security);
 
             string urlStrDepth = wss_point + "/stream?streams="
-                             + security.Name.ToLower() + "@depth20";
+                             + security.Name.ToLower() + "@depth20"
+                             + "/" + security.Name.ToLower() + "@trade";
 
             WebSocket wsClientDepth = new WebSocket(urlStrDepth);
 
@@ -1462,7 +1463,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             _socketsArray.Add(security.Name + "_depth20", wsClientDepth);
 
-            string urlStrTrades = wss_point + "/stream?streams="
+            /*  string urlStrTrades = wss_point + "/stream?streams="
                  + security.Name.ToLower() + "@trade";
 
             WebSocket wsClientTrades = new WebSocket(urlStrTrades);
@@ -1472,7 +1473,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             wsClientTrades.MessageReceived += new EventHandler<MessageReceivedEventArgs>(_socket_PublicMessage);
             wsClientTrades.Open();
 
-            _socketsArray.Add(security.Name + "_trades", wsClientTrades);
+            _socketsArray.Add(security.Name + "_trades", wsClientTrades);*/
         }
 
         #endregion
