@@ -1,11 +1,10 @@
 ﻿using OsEngine.Entity;
 using System.Collections.Generic;
 
-
 namespace OsEngine.Indicators.Samples
 {
-    [Indicator("SampleIndicatorParameters")]
-    public class SampleIndicatorParameters : Aindicator
+    [Indicator("Sample1IndicatorParameters")]
+    public class Sample1IndicatorParameters : Aindicator
     {
         public IndicatorParameterInt ParameterLen;
 
