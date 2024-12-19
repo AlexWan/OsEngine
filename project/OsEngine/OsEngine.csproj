@@ -448,8 +448,9 @@
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Indicators\IndicatorDataSeries.cs" />
-    <Compile Include="Indicators\Samples\Sample1IndicatorParameters.cs" />
-    <Compile Include="Indicators\Samples\Sample2IndicatorDataSeries.cs" />
+    <Compile Include="Indicators\Samples\Sample1Blank.cs" />
+    <Compile Include="Indicators\Samples\Sample2IndicatorParameters.cs" />
+    <Compile Include="Indicators\Samples\Sample3IndicatorDataSeries.cs" />
     <Compile Include="Logging\ServerTelegram.cs" />
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
