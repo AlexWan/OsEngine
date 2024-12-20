@@ -1240,22 +1240,25 @@ namespace OsEngine.Market.Servers
                 return null;
             }
 
-            for (int i = 0; i < _frequentlyUsedSecurities.Count; i++)
+            if(string.IsNullOrEmpty(securityClass) == false)
             {
-                if (_frequentlyUsedSecurities[i].Name == securityName &&
-                    _frequentlyUsedSecurities[i].NameClass == securityClass)
+                for (int i = 0; i < _frequentlyUsedSecurities.Count; i++)
                 {
-                    return _frequentlyUsedSecurities[i];
+                    if (_frequentlyUsedSecurities[i].Name == securityName &&
+                        _frequentlyUsedSecurities[i].NameClass == securityClass)
+                    {
+                        return _frequentlyUsedSecurities[i];
+                    }
                 }
-            }
 
-            for (int i = 0; i < _securities.Count; i++)
-            {
-                if (_securities[i].Name == securityName &&
-                    _securities[i].NameClass == securityClass)
+                for (int i = 0; i < _securities.Count; i++)
                 {
-                    _frequentlyUsedSecurities.Add(_securities[i]);
-                    return _securities[i];
+                    if (_securities[i].Name == securityName &&
+                        _securities[i].NameClass == securityClass)
+                    {
+                        _frequentlyUsedSecurities.Add(_securities[i]);
+                        return _securities[i];
+                    }
                 }
             }
 

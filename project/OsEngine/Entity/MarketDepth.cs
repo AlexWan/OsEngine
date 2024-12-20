@@ -161,7 +161,6 @@ namespace OsEngine.Entity
             {
                 newDepth.Asks.Add(new MarketDepthLevel());
                 newDepth.Asks[i].Ask = Asks[i].Ask;
-                newDepth.Asks[i].Bid = Asks[i].Bid;
                 newDepth.Asks[i].Price = Asks[i].Price;
             }
 
@@ -171,7 +170,6 @@ namespace OsEngine.Entity
             for (int i = 0; Bids != null && i < Bids.Count; i++)
             {
                 newDepth.Bids.Add(new MarketDepthLevel());
-                newDepth.Bids[i].Ask = Bids[i].Ask;
                 newDepth.Bids[i].Bid = Bids[i].Bid;
                 newDepth.Bids[i].Price = Bids[i].Price;
             }
