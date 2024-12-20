@@ -1578,7 +1578,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                             if(category == Category.spot)
                             {
-                                _concurrentQueueMessageOrderBookSpot.Enqueue(_message);
+                                _concurrentQueueMessageOrderBookSpot?.Enqueue(_message);
                             }
                             else if (category == Category.linear)
                             {
@@ -1836,7 +1836,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     UpdateOrderBook(message, response, category);
 
-                    while(_concurrentQueueMessageOrderBookSpot.Count > 500)
+                    while(_concurrentQueueMessageOrderBookSpot?.Count > 10000)
                     {
                         _concurrentQueueMessageOrderBookSpot.TryDequeue(out _message);
                     }
@@ -1883,7 +1883,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     UpdateOrderBook(message, response, category);
 
-                    while (_concurrentQueueMessageOrderBookLinear.Count > 500)
+                    while (_concurrentQueueMessageOrderBookLinear.Count > 10000)
                     {
                         _concurrentQueueMessageOrderBookLinear.TryDequeue(out message);
                     }
