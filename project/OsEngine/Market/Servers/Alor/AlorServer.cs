@@ -1456,6 +1456,11 @@ namespace OsEngine.Market.Servers.Alor
                 subObjMarketDepth.guid = GetGuid();
                 subObjMarketDepth.token = _apiTokenReal;
 
+                if (((ServerParameterBool)ServerParameters[17]).Value == false)
+                {
+                    subObjMarketDepth.depth = "1";
+                }
+
                 AlorSocketSubscription mdSub = new AlorSocketSubscription();
                 mdSub.SubType = AlorSubType.MarketDepth;
                 mdSub.ServiceInfo = security.Name;
