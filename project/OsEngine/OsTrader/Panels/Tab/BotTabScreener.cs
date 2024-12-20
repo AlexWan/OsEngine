@@ -816,19 +816,86 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void UpdateTabSettings(BotTabSimple tab)
         {
-            tab.Connector.PortfolioName = PortfolioName;
-            tab.Connector.ServerType = ServerType;
-            tab.Connector.EmulatorIsOn = _emulatorIsOn;
-            tab.Connector.CandleMarketDataType = CandleMarketDataType;
-            tab.Connector.CandleCreateMethodType = CandleCreateMethodType;
-            tab.Connector.TimeFrame = this.TimeFrame;
-            tab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
-            tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
-            tab.Connector.CommissionType = ComissionType;
-            tab.Connector.CommissionValue = ComissionValue;
-            tab.CommissionType = ComissionType;
-            tab.CommissionValue = ComissionValue;
+            bool haveNewSettings = false;
+
+            if(tab.Connector.PortfolioName != PortfolioName)
+            {
+                tab.Connector.PortfolioName = PortfolioName;
+                haveNewSettings = true;
+            }
+            
+            if (tab.Connector.ServerType != ServerType)
+            {
+                tab.Connector.ServerType = ServerType;
+                haveNewSettings = true;
+            }
+
+            if(tab.Connector.EmulatorIsOn != _emulatorIsOn)
+            {
+                tab.Connector.EmulatorIsOn = _emulatorIsOn;
+                haveNewSettings = true;
+            }
+            
+            if(tab.Connector.CandleMarketDataType != CandleMarketDataType)
+            {
+                tab.Connector.CandleMarketDataType = CandleMarketDataType;
+                haveNewSettings = true;
+            }
+            
+            if(tab.Connector.CandleCreateMethodType != CandleCreateMethodType)
+            {
+                tab.Connector.CandleCreateMethodType = CandleCreateMethodType;
+                haveNewSettings = true;
+            }
+            
+            if(tab.Connector.TimeFrame != this.TimeFrame)
+            {
+                tab.Connector.TimeFrame = this.TimeFrame;
+                haveNewSettings = true;
+            }
+            
+            if (tab.Connector.TimeFrameBuilder.CandleSeriesRealization.GetSaveString() != CandleSeriesRealization.GetSaveString())
+            {
+                tab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
+                haveNewSettings = true;
+            }
+            
+            if (tab.Connector.SaveTradesInCandles != SaveTradesInCandles)
+            {
+                tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
+                haveNewSettings = true;
+            }
+           
+            if(tab.Connector.CommissionType != ComissionType)
+            {
+                tab.Connector.CommissionType = ComissionType;
+                haveNewSettings = true;
+            }
+            
+            if(tab.Connector.CommissionValue != ComissionValue)
+            {
+                tab.Connector.CommissionValue = ComissionValue;
+                haveNewSettings = true;
+            }
+           
+            if(tab.CommissionType != ComissionType)
+            {
+                tab.CommissionType = ComissionType;
+                haveNewSettings = true;
+            }
+            
+            if(tab.CommissionValue != ComissionValue)
+            {
+                tab.CommissionValue = ComissionValue;
+                haveNewSettings = true;
+            }
+           
             tab.IsCreatedByScreener = true;
+
+            if(haveNewSettings)
+            {
+                tab.Connector.ReconnectHard();
+            }
         }
 
         /// <summary>
