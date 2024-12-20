@@ -1263,18 +1263,18 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    if (webSocketPrivate?.ReadyState == WebSocketState.Open)
+                    if (webSocketPrivate.ReadyState == WebSocketState.Open)
                     {
                         // отписка от потока, unsubscribe
-                        webSocketPrivate?.Send("{\"req_id\": \"order_1\", \"op\": \"unsubscribe\",\"args\": [\"order\"]}");
-                        webSocketPrivate?.Send("{\"req_id\": \"ticketInfo_1\", \"op\": \"unsubscribe\", \"args\": [ \"ticketInfo\"]}");
-                        webSocketPrivate?.Close();
+                        webSocketPrivate.Send("{\"req_id\": \"order_1\", \"op\": \"unsubscribe\",\"args\": [\"order\"]}");
+                        webSocketPrivate.Send("{\"req_id\": \"ticketInfo_1\", \"op\": \"unsubscribe\", \"args\": [ \"ticketInfo\"]}");
                     }
                     webSocketPrivate.OnMessage -= WebSocketPrivate_MessageReceived;
                     webSocketPrivate.OnClose -= WebSocketPrivate_Closed;
                     webSocketPrivate.OnError -= WebSocketPrivate_Error;
                     webSocketPrivate.OnOpen -= WebSocketPrivate_Opened;
-                    webSocketPrivate.Close();
+
+                    webSocketPrivate.CloseAsync();
                     webSocketPrivate = null;
                 }
                 catch (Exception ex)
@@ -1316,9 +1316,9 @@ namespace OsEngine.Market.Servers.Bybit
                         HandlerExeption(ex);
                     }
 
-                    if (webSocketPublicSpot?.ReadyState == WebSocketState.Open)
+                    if (webSocketPublicSpot.ReadyState == WebSocketState.Open)
                     {
-                        webSocketPublicSpot?.Close();
+                        webSocketPublicSpot.CloseAsync();
                     }
                     webSocketPublicSpot = null;
                 }
@@ -1357,9 +1357,9 @@ namespace OsEngine.Market.Servers.Bybit
                         HandlerExeption(ex);
                     }
 
-                    if (webSocketPublicLinear?.ReadyState == WebSocketState.Open)
+                    if (webSocketPublicLinear.ReadyState == WebSocketState.Open)
                     {
-                        webSocketPublicLinear?.Close();
+                        webSocketPublicLinear.CloseAsync();
                     }
 
                     webSocketPublicLinear = null;

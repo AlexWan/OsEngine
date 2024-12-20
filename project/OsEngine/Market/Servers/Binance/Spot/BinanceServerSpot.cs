@@ -19,7 +19,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
-using WebSocket4Net;
+using WebSocketSharp;
 using TradeResponse = OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity.TradeResponse;
 
 namespace OsEngine.Market.Servers.Binance.Spot
@@ -1090,7 +1090,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     return;
                 }
 
-                _spotSocketClient.MessageReceived += _spotSocketClient_MessageReceived;
+                _spotSocketClient.OnMessage += _spotSocketClient_MessageReceived;
             }
 
             try
@@ -1101,7 +1101,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                     if (_marginSocketClient != null)
                     {
-                        _marginSocketClient.MessageReceived += _marginSocketClient_MessageReceived;
+                        _marginSocketClient.OnMessage += _marginSocketClient_MessageReceived;
                     }
                     else
                     {
@@ -1123,23 +1123,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if (_spotSocketClient != null)
                 {
-                    _spotSocketClient.Opened -= Client_Opened;
-                    _spotSocketClient.Closed -= Client_Closed;
-                    _spotSocketClient.Error -= Client_Error;
-                    _spotSocketClient.MessageReceived -= _spotSocketClient_MessageReceived;
-                    _spotSocketClient.Close();
-                }
-            }
-            catch
-            {
-                // ignore
-            }
 
-            try
-            {
-                if (_spotSocketClient != null)
-                {
-                    _spotSocketClient.Dispose();
+                    _spotSocketClient.OnOpen -= Client_Opened;
+                    _spotSocketClient.OnClose -= Client_Closed;
+                    _spotSocketClient.OnError -= Client_Error;
+                    _spotSocketClient.OnMessage -= _spotSocketClient_MessageReceived;
+                    _spotSocketClient.CloseAsync();
                 }
             }
             catch
@@ -1153,23 +1142,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
             {
                 if (_marginSocketClient != null)
                 {
-                    _marginSocketClient.Opened -= Client_Opened;
-                    _marginSocketClient.Closed -= Client_Closed;
-                    _marginSocketClient.Error -= Client_Error;
-                    _marginSocketClient.MessageReceived -= _marginSocketClient_MessageReceived;
-                    _marginSocketClient.Close();
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-
-            try
-            {
-                if (_marginSocketClient != null)
-                {
-                    _marginSocketClient.Dispose();
+                    _marginSocketClient.OnOpen -= Client_Opened;
+                    _marginSocketClient.OnClose -= Client_Closed;
+                    _marginSocketClient.OnError -= Client_Error;
+                    _marginSocketClient.OnMessage -= _spotSocketClient_MessageReceived;
+                    _marginSocketClient.CloseAsync();
                 }
             }
             catch
@@ -1185,9 +1162,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     foreach (var ws in _wsStreamsSecurityData)
                     {
-                        ws.Value.Closed -= new EventHandler(Client_Closed);
-                        ws.Value.Error -= new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(Client_Error);
-                        ws.Value.MessageReceived -= new EventHandler<MessageReceivedEventArgs>(_publicSocketClient_RessageReceived);
+                        ws.Value.OnMessage -= _publicSocketClient_RessageReceived;
+                        ws.Value.OnError -= Client_Error;
+                        ws.Value.OnClose -= Client_Closed;
                     }
                 }
             }
@@ -1204,35 +1181,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     {
                         try
                         {
-                            ws.Value.Close();
+                            ws.Value.CloseAsync();
                         }
                         catch
                         {
                             // ignore
                         }
 
-                    }
-                }
-            }
-            catch
-            {
-                // ignore
-            }
-
-            try
-            {
-                if (_wsStreamsSecurityData != null)
-                {
-                    foreach (var ws in _wsStreamsSecurityData)
-                    {
-                        try
-                        {
-                            ws.Value.Dispose();
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
                     }
                 }
             }
@@ -1259,6 +1214,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             try
             {
                 var res = CreateQuery(BinanceExchangeType.SpotExchange, Method.POST, url, null, false);
+
                 string urlStr = "";
 
                 if (string.IsNullOrEmpty(res))
@@ -1280,10 +1236,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 WebSocket client = new WebSocket(urlStr); //create a web socket / создаем вебсокет
 
-                client.Opened += Client_Opened;
-                client.Closed += Client_Closed;
-                client.Error += Client_Error;
-                client.Open();
+                client.OnOpen += Client_Opened;
+                client.OnError += Client_Error;
+                client.OnClose += Client_Closed;
+                client.ConnectAsync();
 
                 return client;
             }
@@ -1324,7 +1280,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
-        private void Client_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        private void Client_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             SendLogMessage("Error websocket :" + e.ToString(), LogMessageType.Error);
         }
@@ -1337,17 +1293,17 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private ConcurrentQueue<string> _newMessagePublic = new ConcurrentQueue<string>();
 
-        private void _marginSocketClient_MessageReceived(object sender, MessageReceivedEventArgs args)
+        private void _marginSocketClient_MessageReceived(object sender, MessageEventArgs e)
         {
-            UserDataMessageHandler(sender, args, BinanceExchangeType.MarginExchange);
+            UserDataMessageHandler(sender, e, BinanceExchangeType.MarginExchange);
         }
 
-        private void _spotSocketClient_MessageReceived(object sender, MessageReceivedEventArgs args)
+        private void _spotSocketClient_MessageReceived(object sender, MessageEventArgs e)
         {
-            UserDataMessageHandler(sender, args, BinanceExchangeType.SpotExchange);
+            UserDataMessageHandler(sender, e, BinanceExchangeType.SpotExchange);
         }
 
-        private void UserDataMessageHandler(object sender, MessageReceivedEventArgs e, BinanceExchangeType type)
+        private void UserDataMessageHandler(object sender, MessageEventArgs e, BinanceExchangeType type)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
@@ -1355,19 +1311,19 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
 
             BinanceUserMessage message = new BinanceUserMessage();
-            message.MessageStr = e.Message;
+            message.MessageStr = e.Data;
             message.ExchangeType = type;
 
             _newMessagePrivate.Enqueue(message);
         }
 
-        private void _publicSocketClient_RessageReceived(object sender, MessageReceivedEventArgs e)
+        private void _publicSocketClient_RessageReceived(object sender, MessageEventArgs e)
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
                 return;
             }
-            _newMessagePublic.Enqueue(e.Message);
+            _newMessagePublic.Enqueue(e.Data);
         }
 
         #endregion
@@ -1444,17 +1400,33 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             _subscribledSecurities.Add(security);
 
-            string urlStr = "wss://stream.binance.com:9443/stream?streams="
-                            + security.Name.ToLower()
-                            + "@depth20/"
-                            + security.Name.ToLower() + "@trade";
+            string urlStr = null;
+
+            if (((ServerParameterBool)ServerParameters[9]).Value == false)
+            {
+                urlStr = "wss://stream.binance.com:9443/stream?streams="
+                                            + security.Name.ToLower()
+                                            + "@depth5/"
+                                            + security.Name.ToLower() + "@trade";
+            }
+            else
+            {
+                urlStr = "wss://stream.binance.com:9443/stream?streams="
+                                            + security.Name.ToLower()
+                                            + "@depth20/"
+                                            + security.Name.ToLower() + "@trade";
+            }
+
 
             WebSocket _wsClient = new WebSocket(urlStr); // create web-socket / создаем вебсокет
+            _wsClient.EmitOnPing = true;
+            _wsClient.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
 
-            _wsClient.Closed += new EventHandler(Client_Closed);
-            _wsClient.Error += new EventHandler<SuperSocket.ClientEngine.ErrorEventArgs>(Client_Error);
-            _wsClient.MessageReceived += new EventHandler<MessageReceivedEventArgs>(_publicSocketClient_RessageReceived);
-            _wsClient.Open();
+            _wsClient.OnMessage += _publicSocketClient_RessageReceived;
+            _wsClient.OnError += Client_Error;
+            _wsClient.OnClose += Client_Closed;
+            _wsClient.ConnectAsync();
+
             _wsStreamsSecurityData.Add(security.Name, _wsClient);
         }
 
@@ -2005,7 +1977,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if (MarketDepthEvent != null)
                 {
-                    MarketDepthEvent(needDepth.GetCopy());
+                    if(_newMessagePublic.Count < 1000)
+                    {
+                        MarketDepthEvent(needDepth.GetCopy());
+                    }
+                    else
+                    {
+                        MarketDepthEvent(needDepth);
+                    }
                 }
 
             }
