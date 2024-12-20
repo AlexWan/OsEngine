@@ -76,8 +76,8 @@ namespace OsEngine.OsTrader.Panels
             _riskManager = new RiskManager.RiskManager(NameStrategyUniq, startProgram);
             _riskManager.RiskManagerAlarmEvent += _riskManager_RiskManagerAlarmEvent;
 
-            _log = new Log(name, startProgram);
-            _log.Listen(this);
+            Log = new Log(name, startProgram);
+            Log.Listen(this);
 
             ParamGuiSettings = new ParamGuiSettings();
             ParamGuiSettings.LogMessageEvent += SendNewLogMessage;
@@ -296,7 +296,7 @@ namespace OsEngine.OsTrader.Panels
                     return;
                 }
 
-                _log.StartPaint(boxLog);
+                Log.StartPaint(boxLog);
 
                 _isPainting = true;
 
@@ -352,7 +352,7 @@ namespace OsEngine.OsTrader.Panels
 
                 try
                 {
-                    _log.StopPaint();
+                    Log.StopPaint();
                 }
                 catch (Exception error)
                 {
@@ -450,9 +450,9 @@ namespace OsEngine.OsTrader.Panels
                     _botTabs[i].Clear();
                 }
 
-                if (_log != null)
+                if (Log != null)
                 {
-                    _log.Clear();
+                    Log.Clear();
                 }
             }
             catch (Exception error)
@@ -543,10 +543,10 @@ namespace OsEngine.OsTrader.Panels
                     }
                 }
 
-                if (_log != null)
+                if (Log != null)
                 {
-                    _log.Delete();
-                    _log = null;
+                    Log.Delete();
+                    Log = null;
                 }
 
                 if (_parameters != null)
@@ -2076,7 +2076,7 @@ position => position.State != PositionStateType.OpeningFail
 
         // log
 
-        private Log _log;
+        public Log Log;
 
         /// <summary>
         /// send new message
