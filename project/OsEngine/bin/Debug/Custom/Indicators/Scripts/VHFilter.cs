@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("VHFilter")]
     public class VHFilter: Aindicator
     {
         private IndicatorDataSeries _series;

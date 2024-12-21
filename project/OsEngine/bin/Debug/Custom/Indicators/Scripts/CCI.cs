@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("CCI")]
     public class CCI : Aindicator
     {
-
         private IndicatorParameterInt _length;
 
         private IndicatorParameterString _candlePoint;

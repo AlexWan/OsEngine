@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
 namespace OsEngine.Indicators
 {
-    internal class PriceChannelOffset : Aindicator
+    [Indicator("PriceChannelOffset")]
+    public class PriceChannelOffset : Aindicator
     {
         private IndicatorParameterInt _length;
         private IndicatorParameterDecimal _offset;

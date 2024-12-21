@@ -1,13 +1,12 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("Mass_Index_MI")]
-    internal class Mass_Index_MI : Aindicator
+    [Indicator("Mass_Index_MI")]
+    public class Mass_Index_MI : Aindicator
     {
         private IndicatorParameterInt _lengthEma;
         private IndicatorParameterInt _periodSum;

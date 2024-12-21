@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("Ssma")]
     public class Ssma : Aindicator
     {
         private IndicatorParameterInt _length;

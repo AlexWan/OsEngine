@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Windows;
 using Microsoft.CSharp;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 
 namespace OsEngine.Indicators
 {

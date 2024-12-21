@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-   // [IndicatorAttribute("COG_CentreOfGravity_Oscr")]
-    internal class COG_CentreOfGravity_Oscr : Aindicator
+    [Indicator("COG_CentreOfGravity_Oscr")]
+    public class COG_CentreOfGravity_Oscr : Aindicator
     {
         ///period for which the indicator is calculated
         /// </summary>

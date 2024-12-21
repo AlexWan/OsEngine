@@ -3,8 +3,9 @@ using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("OffsetSma")]
     public class OffsetSma : Aindicator
     {
         private IndicatorParameterInt _lengthSma;

@@ -4,9 +4,10 @@ using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
 
-namespace OsEngine.Indicators.My_ind
+namespace OsEngine.Indicators
 {
-    internal class ZigZagStochastic : Aindicator
+    [Indicator("ZigZagStochastic")]
+    public class ZigZagStochastic : Aindicator
     {
         private Aindicator _Stochastic;
         private IndicatorParameterInt StochasticPeriod1;

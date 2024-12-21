@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-   //[IndicatorAttribute("LinearRegressionChannel")]
-    internal class LinearRegressionChannel : Aindicator
+   [Indicator("LinearRegressionChannel")]
+    public class LinearRegressionChannel : Aindicator
     {
         private IndicatorParameterInt _period;
         private IndicatorParameterDecimal _upDeviation;

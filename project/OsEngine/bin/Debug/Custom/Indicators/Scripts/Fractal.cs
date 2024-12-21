@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("Fractal")]
     public class Fractal: Aindicator
     {
         private IndicatorDataSeries _seriesUp;

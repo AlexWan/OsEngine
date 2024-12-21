@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("StochasticMomentumIndex")]
-    internal class StochasticMomentumIndex : Aindicator
+    [Indicator("StochasticMomentumIndex")]
+    public class StochasticMomentumIndex : Aindicator
     {
         public IndicatorParameterInt Period1;
         public IndicatorParameterInt Period2;

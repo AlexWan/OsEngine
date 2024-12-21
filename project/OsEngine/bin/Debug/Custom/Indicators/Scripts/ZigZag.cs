@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("ZigZag")]
     public class ZigZag : Aindicator
     {
         private IndicatorParameterInt _period;

@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("ParabolicSAR")]
     public class ParabolicSAR : Aindicator
     {
         private IndicatorParameterDecimal _maxAf;

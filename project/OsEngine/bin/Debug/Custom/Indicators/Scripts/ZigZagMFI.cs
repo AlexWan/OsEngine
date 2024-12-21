@@ -4,9 +4,10 @@ using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
 
-namespace OsEngine.Indicators.ind
+namespace OsEngine.Indicators
 {
-    internal class ZigZagMFI : Aindicator
+    [Indicator("ZigZagMFI")]
+    public class ZigZagMFI : Aindicator
     {
         private Aindicator _MFI;
 

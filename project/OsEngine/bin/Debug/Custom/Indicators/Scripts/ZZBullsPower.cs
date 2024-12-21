@@ -4,9 +4,10 @@ using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
 
-namespace OsEngine.Indicators.My_ind
+namespace OsEngine.Indicators
 {
-    internal class ZZBullsPower : Aindicator
+    [Indicator("ZZBullsPower")]
+    public class ZZBullsPower : Aindicator
     {
         private Aindicator _bullsPower;
         private IndicatorParameterInt _lengthBullsPower;

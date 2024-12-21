@@ -4,9 +4,10 @@ using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
 
-namespace OsEngine.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    internal class ZigZagVolume : Aindicator
+    [Indicator("ZigZagVolume")]
+    public class ZigZagVolume : Aindicator
     {
         private Aindicator _VolumeOscillator;
 

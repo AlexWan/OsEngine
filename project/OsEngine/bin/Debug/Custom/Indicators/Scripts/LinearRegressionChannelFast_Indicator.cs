@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace OsEngine.Robots.FoundBots.Indicators
+namespace OsEngine.Indicators
 {
+    [Indicator("LinearRegressionChannelFast_Indicator")]
     public class LinearRegressionChannelFast_Indicator : Aindicator
     {
         private IndicatorParameterInt _period;

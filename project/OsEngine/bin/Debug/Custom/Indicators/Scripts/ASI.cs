@@ -1,13 +1,12 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("ASI")]
-    internal class ASI : Aindicator
+    [Indicator("ASI")]
+    public class ASI : Aindicator
     {
         /// <summary>
         /// Period for which the calculation is performed 

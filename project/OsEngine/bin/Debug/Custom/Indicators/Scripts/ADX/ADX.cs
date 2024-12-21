@@ -2,12 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OsEngine.Indicators;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("ADX")]
-    internal class ADX : Aindicator
+    [Indicator("ADX")]
+    public class ADX : Aindicator
     {
         public IndicatorParameterInt _length;
         public IndicatorDataSeries _series;

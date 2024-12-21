@@ -1,14 +1,11 @@
 using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
-    /// <summary>
-    /// индикатор волатильности свеч в %-ах
-    /// </summary>
+    [Indicator("VolatilityCandles")]
     public class VolatilityCandles : Aindicator
     {
 

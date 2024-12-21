@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("RVI")]
     public class RVI : Aindicator
     {
         private IndicatorParameterInt _p1;

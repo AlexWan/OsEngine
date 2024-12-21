@@ -1,12 +1,11 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("DPO_Detrended_Price_Oscillator")]
-    internal class DPO_Detrended_Price_Oscillator : Aindicator
+    [Indicator("DPO_Detrended_Price_Oscillator")]
+    public class DPO_Detrended_Price_Oscillator : Aindicator
     {
         ///period for which the indicator is calculated
         /// </summary>

@@ -1,13 +1,12 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-   // [IndicatorAttribute("RAVI")]
-    internal class RAVI : Aindicator
+    [Indicator("RAVI")]
+    public class RAVI : Aindicator
     {
         /// <summary>
         ///Slow sma period

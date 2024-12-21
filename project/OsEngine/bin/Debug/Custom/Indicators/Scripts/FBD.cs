@@ -2,14 +2,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
-    /// <summary>
-    /// индикатор Fund Balance Divergenсe
-    /// тест идеи вот от сюда https://smart-lab.ru/blog/610172.php
-    /// </summary>
+    [Indicator("FBD")]
     public class FBD : Aindicator
     {
 

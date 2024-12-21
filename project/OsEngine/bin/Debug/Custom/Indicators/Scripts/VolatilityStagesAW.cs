@@ -1,11 +1,11 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("VolatilityStagesAW")]
     public class VolatilityStagesAW : Aindicator
     {
         private IndicatorParameterString _volatilityStagesRegime;

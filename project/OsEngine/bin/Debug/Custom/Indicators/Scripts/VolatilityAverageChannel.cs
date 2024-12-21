@@ -1,11 +1,11 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("VolatilityAverageChannel")]
     public class VolatilityAverageChannel : Aindicator
     {
         private IndicatorParameterString _typeVolatilityPeriod;

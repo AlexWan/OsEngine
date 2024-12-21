@@ -1,12 +1,11 @@
-﻿using OsEngine.Indicators;
-using OsEngine.Entity;
+﻿using OsEngine.Entity;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("DeMarker_DeM")]
-    internal class DeMarker_DeM : Aindicator
+    [Indicator("DeMarker_DeM")]
+    public class DeMarker_DeM : Aindicator
     {
         /// <summary>
         /// Calculation period Sma

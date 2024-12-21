@@ -4,10 +4,10 @@ using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
 
-namespace OsEngine.Indicators.indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("ZigZagOsMa")]
-    internal class ZigZagOsMa : Aindicator
+    [Indicator("ZigZagOsMa")]
+    public class ZigZagOsMa : Aindicator
     {
         private Aindicator _OsMa;
         private IndicatorParameterInt _lengthFastLine;

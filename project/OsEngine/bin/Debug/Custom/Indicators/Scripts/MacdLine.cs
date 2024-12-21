@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("MacdLine")]
     public class MacdLine : Aindicator
     {
         private IndicatorParameterInt _lengthFastLine;

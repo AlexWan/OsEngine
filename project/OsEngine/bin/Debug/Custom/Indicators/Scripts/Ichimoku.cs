@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("Ichimoku")]
     public class Ichimoku : Aindicator
     {
         private IndicatorParameterInt _first;

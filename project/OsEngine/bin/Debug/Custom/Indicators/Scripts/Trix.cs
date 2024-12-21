@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-
-namespace CustomIndicators.Scripts
+namespace OsEngine.Indicators
 {
+    [Indicator("Trix")]
     public class Trix:Aindicator
     {
         public IndicatorDataSeries _series;

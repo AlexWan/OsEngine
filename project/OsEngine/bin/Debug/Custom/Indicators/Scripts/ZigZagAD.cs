@@ -4,9 +4,10 @@ using System.Linq;
 using System.Drawing;
 using OsEngine.Entity;
 
-namespace OsEngine.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    internal class ZigZagAD : Aindicator
+    [Indicator("ZigZagAD")]
+    public class ZigZagAD : Aindicator
     {
         private Aindicator _AD;
 

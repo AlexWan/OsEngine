@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace OsEngine.Indicators.indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("SuperTrend_indicator")]
-    internal class SuperTrend_indicator : Aindicator
+    [Indicator("SuperTrend_indicator")]
+    public class SuperTrend_indicator : Aindicator
     {
         private IndicatorParameterInt _period;
         private IndicatorParameterDecimal _deviation;

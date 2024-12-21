@@ -1,13 +1,12 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("OsMa")]
-    internal class OsMa : Aindicator
+    [Indicator("OsMa")]
+    public class OsMa : Aindicator
     {
         /// <summary>
         /// indicator data series

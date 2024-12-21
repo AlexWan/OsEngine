@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 
-namespace OsEngine.Indicators.indicator
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("NRTR")]
-    internal class NRTR : Aindicator
+    [Indicator("NRTR")]
+    public class NRTR : Aindicator
     {
         private IndicatorParameterInt _period;
         private IndicatorParameterDecimal _deviation;

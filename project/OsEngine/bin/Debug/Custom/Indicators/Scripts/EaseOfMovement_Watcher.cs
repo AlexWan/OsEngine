@@ -1,14 +1,13 @@
 ﻿using OsEngine.Entity;
-using OsEngine.Indicators;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 
 
-namespace OsEngine.Indicators.indicator
+namespace OsEngine.Indicators
 {
-   // [IndicatorAttribute("EaseOfMovement_Watcher")]
-    internal class EaseOfMovement_Watcher : Aindicator
+    [Indicator("EaseOfMovement_Watcher")]
+    public class EaseOfMovement_Watcher : Aindicator
     {
         public IndicatorParameterInt _periodMA;
 

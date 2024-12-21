@@ -2,13 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OsEngine.Indicators;
 
-
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-   // [IndicatorAttribute("QStick")]
-    internal class QStick : Aindicator
+    [Indicator("QStick")]
+    public class QStick : Aindicator
     {
         private IndicatorParameterInt _length;
 

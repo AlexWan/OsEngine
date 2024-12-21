@@ -2,12 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using OsEngine.Indicators;
 
-namespace OsEngine.Charts.CandleChart.Indicators.Indicator
+namespace OsEngine.Indicators
 {
-   // [IndicatorAttribute("Aroon")]
-    internal class Aroon : Aindicator
+    [Indicator("Aroon")]
+    public class Aroon : Aindicator
     {
         /// <summary>
         /// Period for which the calculation is performed

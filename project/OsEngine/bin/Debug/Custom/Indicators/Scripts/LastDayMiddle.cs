@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 
-namespace OsEngine.Indicators.Custom
+namespace OsEngine.Indicators
 {
-    //[IndicatorAttribute("LastDayMiddle")]
+    [Indicator("LastDayMiddle")]
     public class LastDayMiddle : Aindicator
     {
         private decimal _high;
