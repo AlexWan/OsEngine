@@ -8,37 +8,20 @@ namespace OsEngine.Indicators
     [Indicator("RAVI")]
     public class RAVI : Aindicator
     {
-        /// <summary>
-        ///Slow sma period
-        /// </summary>
         private IndicatorParameterInt _lengthSlow;
-        /// <summary>
-        /// fast sma period
-        /// </summary>
+
         private IndicatorParameterInt _lengthFast;
-        /// <summary>
-        /// candlestick closing price type
-        /// </summary>
+
         private IndicatorParameterString _candlePoint;
-        /// <summary>
-        ///Slow sma period
-        /// </summary>
-        private IndicatorParameterDecimal _UpLineParam;
-        /// <summary>
-        ///Slow sma period
-        /// </summary>
-        private IndicatorParameterDecimal _DownLineParam;
-        /// <summary>
-        /// data series indicator
-        /// </summary>
+
+        private IndicatorParameterDecimal _upLineParam;
+
+        private IndicatorParameterDecimal _downLineParam;
+
         private IndicatorDataSeries _seriesSma;
-        /// <summary>
-        /// data series indicator
-        /// </summary>
+
         private IndicatorDataSeries _seriesUp;
-        /// <summary>
-        /// data series indicator
-        /// </summary>
+
         private IndicatorDataSeries _seriesDown;
 
         public override void OnStateChange(IndicatorState state)
@@ -48,8 +31,8 @@ namespace OsEngine.Indicators
                 _lengthSlow = CreateParameterInt("Slow line length", 65);
                 _lengthFast = CreateParameterInt("Fast line length", 7);
 
-                _UpLineParam = CreateParameterDecimal("Up line", 3m);
-                _DownLineParam = CreateParameterDecimal("Down line", -3m);
+                _upLineParam = CreateParameterDecimal("Up line", 3m);
+                _downLineParam = CreateParameterDecimal("Down line", -3m);
 
                 _candlePoint = CreateParameterStringCollection("Candle Point", "Close", OsEngine.Indicators.Entity.CandlePointsArray);
 
@@ -60,15 +43,11 @@ namespace OsEngine.Indicators
 
             }
         }
-        /// <summary>
-        /// an iterator method to fill the indicator 
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         public override void OnProcess(List<Candle> candles, int index)
         {
-            _seriesUp.Values[index] = _UpLineParam.ValueDecimal;
-            _seriesDown.Values[index] = _DownLineParam.ValueDecimal;
+            _seriesUp.Values[index] = _upLineParam.ValueDecimal;
+            _seriesDown.Values[index] = _downLineParam.ValueDecimal;
 
             if (_lengthFast.ValueInt + 3 > index || _lengthSlow.ValueInt + 3 > index)
             {
@@ -84,13 +63,6 @@ namespace OsEngine.Indicators
 
         }
 
-        /// <summary>
-        /// Moving Average Calculation
-        /// </summary>
-        /// <param name="candles">candle collection</param>
-        /// <param name="index">candlestick index</param>
-        /// <param name="length">the period for which Sma is calculated</param>
-        /// <returns></returns>
         public decimal CalcSma(List<Candle> candles, int index, int length)
         {
             decimal sma = 0;

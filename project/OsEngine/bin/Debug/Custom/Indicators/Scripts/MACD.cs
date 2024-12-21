@@ -9,14 +9,19 @@ namespace OsEngine.Indicators
     public class MACD : Aindicator
     {
         private IndicatorParameterInt _lengthFastLine;
+
         private IndicatorParameterInt _lengthSlowLine;
+
         private IndicatorParameterInt _lengthSignalLine;
 
         private IndicatorDataSeries _seriesMacd;
+
         private IndicatorDataSeries _seriesSignalLine;
-        private IndicatorDataSeries _seriesMacdHistogramm;
+
+        private IndicatorDataSeries _seriesMacdHistogram;
 
         private Aindicator _emaSlow;
+
         private Aindicator _emaFast;
 
         public override void OnStateChange(IndicatorState state)
@@ -27,7 +32,7 @@ namespace OsEngine.Indicators
                 _lengthSlowLine = CreateParameterInt("Slow line length", 26);
                 _lengthSignalLine = CreateParameterInt("Signal line length", 9);
 
-                _seriesMacdHistogramm = CreateSeries("MACD Histogramm", Color.DodgerBlue, IndicatorChartPaintType.Column, true);
+                _seriesMacdHistogram = CreateSeries("MACD Histogram", Color.DodgerBlue, IndicatorChartPaintType.Column, true);
                 _seriesMacd = CreateSeries("MACD", Color.DarkGreen, IndicatorChartPaintType.Line, false);
                 _seriesSignalLine = CreateSeries("Signal line", Color.DarkRed, IndicatorChartPaintType.Line, true);
 
@@ -53,7 +58,7 @@ namespace OsEngine.Indicators
 
             ProcessSignalLine(_seriesMacd.Values, index);
 
-            _seriesMacdHistogramm.Values[index] = _seriesMacd.Values[index] - _seriesSignalLine.Values[index];
+            _seriesMacdHistogram.Values[index] = _seriesMacd.Values[index] - _seriesSignalLine.Values[index];
         }
 
         private void ProcessSignalLine(List<decimal> values, int index)

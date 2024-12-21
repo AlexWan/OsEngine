@@ -22,11 +22,7 @@ namespace OsEngine.Indicators
             _typeMA = CreateParameterStringCollection("Type MA", "SMA", typeMA);
             _series = CreateSeries("QStick", Color.Red, IndicatorChartPaintType.Line, true);
         }
-        /// <summary>
-        /// Calculate the MAMA value
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         public override void OnProcess(List<Candle> candles, int index)
         {
             if (_typeMA.ValueString == "SMA")
@@ -34,11 +30,7 @@ namespace OsEngine.Indicators
             else
                 CalcQstickForEMA(candles, index);
         }
-        /// <summary>
-        /// Calculate the Qstick For EMA value
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         private void CalcQstickForEMA(List<Candle> candles, int index)
         {
             decimal result = 0;
@@ -63,11 +55,7 @@ namespace OsEngine.Indicators
             }
             _series.Values[index] = Math.Round(result, 8);
         }
-        /// <summary>
-        /// Calculate the Qstick For Sma value 
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         public void CaclQstickForSMA(List<Candle> candles, int index)
         {
             if (_length.ValueInt > index)

@@ -15,7 +15,6 @@ namespace OsEngine.Indicators
 
         private Aindicator _OffsetVwma;
 
-
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)

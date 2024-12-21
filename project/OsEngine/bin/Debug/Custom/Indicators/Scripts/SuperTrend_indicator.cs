@@ -9,15 +9,21 @@ namespace OsEngine.Indicators
     public class SuperTrend_indicator : Aindicator
     {
         private IndicatorParameterInt _period;
+
         private IndicatorParameterDecimal _deviation;
+
         private IndicatorParameterString _candlePoint;
+
         private IndicatorParameterBool _wicks;
 
         private IndicatorDataSeries _seriesLower;
+
         private IndicatorDataSeries _seriesUpper;
+
         private IndicatorDataSeries _seriesCenter;
+
         private Aindicator _atr;
-        int direction;
+
         public override void OnStateChange(IndicatorState state)
         {
             _period = CreateParameterInt("Length", 15);
@@ -38,6 +44,9 @@ namespace OsEngine.Indicators
             ((IndicatorParameterInt)_atr.Parameters[0]).Bind(_period);
             ProcessIndicator("ATR", _atr);        
         }
+
+        private int _direction;
+
         public override void OnProcess(List<Candle> candles, int index)
         {
             if (index < _period.ValueInt)
@@ -88,10 +97,10 @@ namespace OsEngine.Indicators
             {
                 _seriesUpper.Values[index] = _seriesUpper.Values[index - 1];
             }
-            direction = (highPrice > _seriesUpper.Values[index - 1]) ? 1 :
-                    (lowPrice < _seriesLower.Values[index - 1]) ? -1 : direction;
+            _direction = (highPrice > _seriesUpper.Values[index - 1]) ? 1 :
+                    (lowPrice < _seriesLower.Values[index - 1]) ? -1 : _direction;
 
-            _seriesCenter.Values[index] = direction == 1 ? _seriesLower.Values[index] : _seriesUpper.Values[index];
+            _seriesCenter.Values[index] = _direction == 1 ? _seriesLower.Values[index] : _seriesUpper.Values[index];
         } 
     }
 }

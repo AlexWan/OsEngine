@@ -8,7 +8,6 @@ namespace OsEngine.Indicators
     [Indicator("FBD")]
     public class FBD : Aindicator
     {
-
         private IndicatorParameterInt _lookBack;
 
         private IndicatorParameterInt _lookUp;
@@ -21,14 +20,13 @@ namespace OsEngine.Indicators
             {
                 _lookUp = CreateParameterInt("Look Up", 10);
                 _lookBack = CreateParameterInt("Look Back", 10);
-
                 _series = CreateSeries("FBD value", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
             }
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            decimal priceInter = GetMeadlePriceInter(candles, index);
+            decimal priceInter = GetMiddlePriceInter(candles, index);
             if (priceInter == 0)
             {
                 return;
@@ -36,11 +34,13 @@ namespace OsEngine.Indicators
             _series.Values[index] = (candles[index].Close - priceInter) / priceInter * 100;
         }
 
-        private decimal _fundsMeadlePriceInter;
+        private decimal _fundsMiddlePriceInter;
+
         private int _quarterNum;
+
         private bool _fullCheckPriceInter;
 
-        private decimal GetMeadlePriceInter(List<Candle> candles, int index)
+        private decimal GetMiddlePriceInter(List<Candle> candles, int index)
         {
             if ((candles[index].TimeStart - candles[0].TimeStart).TotalDays < 90)
             {
@@ -52,7 +52,7 @@ namespace OsEngine.Indicators
             if (_quarterNum == curQuarter &&
                 _fullCheckPriceInter == true)
             {
-                return _fundsMeadlePriceInter;
+                return _fundsMiddlePriceInter;
             }
 
             _fullCheckPriceInter = false;
@@ -118,7 +118,7 @@ namespace OsEngine.Indicators
 
             meadlePriceInter = meadlePriceInter / candlesUp.Count;
 
-            _fundsMeadlePriceInter = meadlePriceInter;
+            _fundsMiddlePriceInter = meadlePriceInter;
 
             if (candles[index].TimeStart.Month == 2 ||
                 candles[index].TimeStart.Month == 4 ||
@@ -128,7 +128,7 @@ namespace OsEngine.Indicators
                 _fullCheckPriceInter = true;
             }
 
-            return _fundsMeadlePriceInter;
+            return _fundsMiddlePriceInter;
         }
 
         private List<Candle> Cut(List<Candle> candles, int dayCount, bool fromStart)

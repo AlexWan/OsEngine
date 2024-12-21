@@ -20,7 +20,7 @@ namespace OsEngine.Indicators
 
         private IndicatorDataSeries _deviationUp;
 
-        private IndicatorDataSeries _deviationDownp;
+        private IndicatorDataSeries _deviationDown;
 
         private IndicatorParameterDecimal _deviationPercent;
 
@@ -32,7 +32,7 @@ namespace OsEngine.Indicators
 
             _deviationUp = CreateSeries("Up deviation", Color.Green, IndicatorChartPaintType.Point, true);
 
-            _deviationDownp = CreateSeries("Downp deviation", Color.Red, IndicatorChartPaintType.Point, true);
+            _deviationDown = CreateSeries("Downp deviation", Color.Red, IndicatorChartPaintType.Point, true);
 
             _deviationPercent = CreateParameterDecimal("Deviation %", 1);
 
@@ -40,7 +40,7 @@ namespace OsEngine.Indicators
 
             _calcMethodType = CreateParameterStringCollection("Calculation method", methods[0], methods);
 
-            SetDefoltHighLow();
+            SetDefaultHighLow();
         }
 
         public override void OnProcess(List<Candle> source, int index)
@@ -55,13 +55,13 @@ namespace OsEngine.Indicators
             if (lastCandle.TimeStart < _lastHandledCandleTime)
             {
                 _dayMid = 0;
-                SetDefoltHighLow();
+                SetDefaultHighLow();
             }
 
             if (lastCandle.TimeStart.Day != prevCandle.TimeStart.Day)
             {
                 _dayMid = (_low + _high) / 2;
-                SetDefoltHighLow();
+                SetDefaultHighLow();
             }
 
             CalcMaximumMinimum(lastCandle);
@@ -70,7 +70,7 @@ namespace OsEngine.Indicators
 
             _deviationUp.Values[index] = _dayMid + CalcDeviation();
 
-            _deviationDownp.Values[index] = _dayMid - CalcDeviation();
+            _deviationDown.Values[index] = _dayMid - CalcDeviation();
 
             _lastHandledCandleTime = lastCandle.TimeStart;
         }
@@ -108,7 +108,7 @@ namespace OsEngine.Indicators
             return _dayMid / 100 * _deviationPercent.ValueDecimal;
         }
 
-        private void SetDefoltHighLow()
+        private void SetDefaultHighLow()
         {
             _high = Decimal.MinValue;
             _low = Decimal.MaxValue;

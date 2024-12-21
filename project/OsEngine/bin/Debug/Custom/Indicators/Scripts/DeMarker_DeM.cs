@@ -7,38 +7,26 @@ namespace OsEngine.Indicators
     [Indicator("DeMarker_DeM")]
     public class DeMarker_DeM : Aindicator
     {
-        /// <summary>
-        /// Calculation period Sma
-        /// </summary>
         public IndicatorParameterInt _lengthSma;
-        /// <summary>
-        /// Up line parameter
-        /// </summary>
-        public IndicatorParameterDecimal _UpLineParam;
-        /// <summary>
-        /// Down line parameter
-        /// </summary>
-        public IndicatorParameterDecimal _DownLineParam;
-        /// <summary>
-        /// Data series for indicator output
-        /// </summary>
+
+        public IndicatorParameterDecimal _upLineParam;
+
+        public IndicatorParameterDecimal _downLineParam;
+
         public IndicatorDataSeries _seriesDMark;
-        /// <summary>
-        /// Data series for indicator output
-        /// </summary>
+
         public IndicatorDataSeries _seriesUpLine;
-        /// <summary>
-        /// Data series for indicator output
-        /// </summary>
+
         public IndicatorDataSeries _seriesDownLine;
+
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
             {
                 _lengthSma = CreateParameterInt("Period Sma", 14);
 
-                _UpLineParam = CreateParameterDecimal("Up Line parameter", 0.7m);
-                _DownLineParam = CreateParameterDecimal("Down line parameter", 0.3m);
+                _upLineParam = CreateParameterDecimal("Up Line parameter", 0.7m);
+                _downLineParam = CreateParameterDecimal("Down line parameter", 0.3m);
 
                 _seriesDMark = CreateSeries("Series DMark", Color.Aqua, IndicatorChartPaintType.Line, true);
 
@@ -46,17 +34,13 @@ namespace OsEngine.Indicators
                 _seriesDownLine = CreateSeries("Down line", Color.Yellow, IndicatorChartPaintType.Line, true);
             }
         }
-        /// <summary>
-        /// An iterator method to fill the indicator 
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         public override void OnProcess(List<Candle> candles, int index)
         {
             if (index == 0)
             {
-                listDeMax.Clear();
-                listDeMin.Clear();
+                _listDeMax.Clear();
+                _listDeMin.Clear();
             }
 
             if (index < _lengthSma.ValueInt)
@@ -66,14 +50,14 @@ namespace OsEngine.Indicators
 
             FillInValuesList(candles, index);
 
-            if (listDeMax.Count < _lengthSma.ValueInt || listDeMin.Count < _lengthSma.ValueInt)
+            if (_listDeMax.Count < _lengthSma.ValueInt || _listDeMin.Count < _lengthSma.ValueInt)
                 return;
 
-            _seriesUpLine.Values[index] = _UpLineParam.ValueDecimal;
-            _seriesDownLine.Values[index] = _DownLineParam.ValueDecimal;
+            _seriesUpLine.Values[index] = _upLineParam.ValueDecimal;
+            _seriesDownLine.Values[index] = _downLineParam.ValueDecimal;
 
-            decimal smaDeMax = CalcSmaDem(listDeMax, index);
-            decimal smaDeMin = CalcSmaDem(listDeMin, index);
+            decimal smaDeMax = CalcSmaDem(_listDeMax, index);
+            decimal smaDeMin = CalcSmaDem(_listDeMin, index);
 
             if (smaDeMax + smaDeMin == 0)
             {
@@ -86,13 +70,10 @@ namespace OsEngine.Indicators
             _seriesDMark.Values[index] = DMark;
         }
 
-        private List<decimal> listDeMax = new List<decimal>();
-        private List<decimal> listDeMin = new List<decimal>();
-        /// <summary>
-        /// Fill an List with values
-        /// </summary>
-        /// <param name="candles"></param>
-        /// <param name="index"></param>
+        private List<decimal> _listDeMax = new List<decimal>();
+
+        private List<decimal> _listDeMin = new List<decimal>();
+
         public void FillInValuesList(List<Candle> candles, int index)
         {
             decimal _lastHigh = candles[index].High;
@@ -109,14 +90,14 @@ namespace OsEngine.Indicators
             else
                 DeMax = 0;
 
-            if (listDeMax.Count < _lengthSma.ValueInt)
+            if (_listDeMax.Count < _lengthSma.ValueInt)
             {
-                listDeMax.Add(DeMax);
+                _listDeMax.Add(DeMax);
             }
             else
             {
-                listDeMax.RemoveAt(0);
-                listDeMax.Add(DeMax);
+                _listDeMax.RemoveAt(0);
+                _listDeMax.Add(DeMax);
             }
 
             decimal DeMin;
@@ -128,27 +109,22 @@ namespace OsEngine.Indicators
             else
                 DeMin = 0;
 
-            if (listDeMin.Count < _lengthSma.ValueInt)
+            if (_listDeMin.Count < _lengthSma.ValueInt)
             {
-                listDeMin.Add(DeMin);
+                _listDeMin.Add(DeMin);
             }
             else
             {
-                listDeMin.RemoveAt(0);
-                listDeMin.Add(DeMin);
+                _listDeMin.RemoveAt(0);
+                _listDeMin.Add(DeMin);
             }
         }
-        /// <summary>
-        /// calculation of smoothed DeMark max and min
-        /// </summary>
-        /// <param name="listD"></param>
-        /// <param name="index"></param>
-        /// <returns></returns>
+
         public decimal CalcSmaDem(List<decimal> listD, int index)
         {
             decimal smaD = 0;
 
-            for (int i = 0; i < listDeMax.Count && i < listDeMin.Count; i++)
+            for (int i = 0; i < _listDeMax.Count && i < _listDeMin.Count; i++)
             {
                 smaD += listD[i];
             }

@@ -9,6 +9,7 @@ namespace OsEngine.Indicators
     public class VHFilter: Aindicator
     {
         private IndicatorDataSeries _series;
+
         private IndicatorParameterInt _period;
 
         public override void OnStateChange(IndicatorState state)
@@ -29,11 +30,11 @@ namespace OsEngine.Indicators
         {
             if (index == 0)
             {
-                _highlow.Clear();
+                _highLow.Clear();
             }
-            while(index >= _highlow.Count)
+            while(index >= _highLow.Count)
             {
-                _highlow.Add(GetHighLow(candles,index));
+                _highLow.Add(GetHighLow(candles,index));
             }
 
             if (index < _period.ValueInt)
@@ -54,7 +55,7 @@ namespace OsEngine.Indicators
             }
             else
             {
-                value = _highlow[index] / sum;
+                value = _highLow[index] / sum;
             }
 
             return Math.Round(value, 2);
@@ -87,6 +88,6 @@ namespace OsEngine.Indicators
             return (maxhigh - maxlow);
         }
 
-        private List<decimal> _highlow = new List<decimal>();
+        private List<decimal> _highLow = new List<decimal>();
     }
 }

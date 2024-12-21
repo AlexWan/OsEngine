@@ -9,7 +9,7 @@ namespace OsEngine.Indicators
     {
         private IndicatorParameterInt _first;
         private IndicatorParameterInt _second;
-        private IndicatorParameterInt _fird;
+        private IndicatorParameterInt _third;
         private IndicatorParameterInt _sdvig;
         private IndicatorParameterInt _chinkou;
 
@@ -25,7 +25,7 @@ namespace OsEngine.Indicators
             {
                 _first = CreateParameterInt("Tenkan", 9);
                 _second = CreateParameterInt("Kijun", 26);
-                _fird = CreateParameterInt("Sencou", 52);
+                _third = CreateParameterInt("Sencou", 52);
                 _sdvig = CreateParameterInt("Chinkou", 26);
                 _chinkou = CreateParameterInt("Deviation", 26);
 
@@ -94,7 +94,6 @@ namespace OsEngine.Indicators
             _seriesSecond.Values[index] = _valuesLineSecond_Senkou_span_B[index];
         }
 
-
         private List<decimal> _valuesEtalonLine_Kejun_sen = new List<decimal>();
         private List<decimal> _valuesLineRounded_Teken_sen = new List<decimal>();
         private List<decimal> _valuesLineLate_Chinkou_span = new List<decimal>();
@@ -119,11 +118,6 @@ namespace OsEngine.Indicators
             }
         }
 
-
-        /// <summary>
-        /// load only last candle
-        /// прогрузить только последнюю свечку
-        /// </summary>
         private void ProcessOne(List<Candle> candles)
         {
             if (candles == null)
@@ -149,13 +143,9 @@ namespace OsEngine.Indicators
             }
 
             _valuesLineFirst_Senkkou_span_A.Add(GetLineFirst(candles, candles.Count - 1));
-            _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, candles.Count - 1, _fird.ValueInt, _sdvig.ValueInt));
+            _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, candles.Count - 1, _third.ValueInt, _sdvig.ValueInt));
         }
 
-        /// <summary>
-        /// to upload from the beginning
-        /// прогрузить с самого начала
-        /// </summary>
         private void ProcessAll(List<Candle> candles)
         {
             if (candles == null)
@@ -181,14 +171,10 @@ namespace OsEngine.Indicators
                 }
 
                 _valuesLineFirst_Senkkou_span_A.Add(GetLineFirst(candles, i));
-                _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, i, _fird.ValueInt, _sdvig.ValueInt));
+                _valuesLineSecond_Senkou_span_B.Add(GetLine(candles, i, _third.ValueInt, _sdvig.ValueInt));
             }
         }
 
-        /// <summary>
-        /// overload last value
-        /// перегрузить последнее значение
-        /// </summary>
         private void ProcessLast(List<Candle> candles)
         {
             if (candles == null)
@@ -210,7 +196,7 @@ namespace OsEngine.Indicators
             _valuesLineFirst_Senkkou_span_A[_valuesLineFirst_Senkkou_span_A.Count - 1] =
                 (GetLineFirst(candles, candles.Count - 1));
             _valuesLineSecond_Senkou_span_B[_valuesLineSecond_Senkou_span_B.Count - 1] =
-                (GetLine(candles, candles.Count - 1, _fird.ValueInt, _sdvig.ValueInt));
+                (GetLine(candles, candles.Count - 1, _third.ValueInt, _sdvig.ValueInt));
         }
 
         private decimal GetLine(List<Candle> candles, int index, int length, int shift)

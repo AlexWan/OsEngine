@@ -8,25 +8,28 @@ namespace OsEngine.Indicators
     [Indicator("UltimateOscilator")]
     public class UltimateOscilator:Aindicator
     {
-        private IndicatorDataSeries series1;
-        private IndicatorParameterInt period1;
-        private IndicatorParameterInt period2;
-        private IndicatorParameterInt period3;
+        private IndicatorDataSeries _series1;
+
+        private IndicatorParameterInt _period1;
+
+        private IndicatorParameterInt _period2;
+
+        private IndicatorParameterInt _period3;
 
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
             {
-                period1 = CreateParameterInt("Period 1", 7);
-                period2 = CreateParameterInt("Period 2", 14);
-                period3 = CreateParameterInt("Period 3", 28);
-                series1 = CreateSeries("UO", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
+                _period1 = CreateParameterInt("Period 1", 7);
+                _period2 = CreateParameterInt("Period 2", 14);
+                _period3 = CreateParameterInt("Period 3", 28);
+                _series1 = CreateSeries("UO", Color.DodgerBlue, IndicatorChartPaintType.Line, true);
             }
         }
 
         public override void OnProcess(List<Candle> candles, int index)
         {
-            series1.Values[index] = GetValue(candles, index);
+            _series1.Values[index] = GetValue(candles, index);
         }
 
         private decimal GetValue(List<Candle> candles, int index)
@@ -37,9 +40,9 @@ namespace OsEngine.Indicators
                 _tr = new List<decimal>();
             }
 
-            if (index < period1.ValueInt ||
-                index < period2.ValueInt ||
-                index < period3.ValueInt)
+            if (index < _period1.ValueInt ||
+                index < _period2.ValueInt ||
+                index < _period3.ValueInt)
             {
                 return 0;
             }
@@ -47,14 +50,14 @@ namespace OsEngine.Indicators
             ReloadBuyingPressure(candles, index);
             ReloadTrueRange(candles, index);
 
-            decimal bpPer1 = SummList(index - period1.ValueInt, index, _bp);
-            decimal trPer1 = SummList(index - period1.ValueInt, index, _tr);
+            decimal bpPer1 = SummList(index - _period1.ValueInt, index, _bp);
+            decimal trPer1 = SummList(index - _period1.ValueInt, index, _tr);
 
-            decimal bpPer2 = SummList(index - period2.ValueInt, index, _bp);
-            decimal trPer2 = SummList(index - period2.ValueInt, index, _tr);
+            decimal bpPer2 = SummList(index - _period2.ValueInt, index, _bp);
+            decimal trPer2 = SummList(index - _period2.ValueInt, index, _tr);
 
-            decimal bpPer3 = SummList(index - period3.ValueInt, index, _bp);
-            decimal trPer3 = SummList(index - period3.ValueInt, index, _tr);
+            decimal bpPer3 = SummList(index - _period3.ValueInt, index, _bp);
+            decimal trPer3 = SummList(index - _period3.ValueInt, index, _tr);
 
             if (trPer1 == 0 ||
                 trPer2 == 0 ||

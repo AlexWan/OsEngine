@@ -8,32 +8,20 @@ namespace OsEngine.Indicators
     [Indicator("OsMa")]
     public class OsMa : Aindicator
     {
-        /// <summary>
-        /// indicator data series
-        /// </summary>
         private IndicatorDataSeries _seriesOsMa;
-        /// <summary>
-        /// indicator data series
-        /// </summary>
+
         private IndicatorDataSeries _seriesSignalLine;
-        /// <summary>
-        /// indicator data series
-        /// </summary>
-        private IndicatorDataSeries _seriesHistogramm;
-        /// <summary>
-        /// signal line length
-        /// </summary>
+
+        private IndicatorDataSeries _seriesHistogram;
+
         private IndicatorParameterInt _lengthSignalLine;
-        /// <summary>
-        /// Long line length
-        /// </summary>
+
         private IndicatorParameterInt _lengthSlowLine;
-        /// <summary>
-        /// Short line length
-        /// </summary>
+
         private IndicatorParameterInt _lengthFastLine;
 
         private Aindicator _MACD;
+
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -44,7 +32,7 @@ namespace OsEngine.Indicators
 
                 _seriesOsMa = CreateSeries("OsMa", Color.Yellow, IndicatorChartPaintType.Line, true);
                 _seriesSignalLine = CreateSeries("Signal Line", Color.Red, IndicatorChartPaintType.Line, true);
-                _seriesHistogramm = CreateSeries("Histogramm", Color.DodgerBlue, IndicatorChartPaintType.Column, true);
+                _seriesHistogram = CreateSeries("Histogram", Color.DodgerBlue, IndicatorChartPaintType.Column, true);
 
                 _MACD = IndicatorsFactory.CreateIndicatorByName("MACD", Name + "MACD", false);
                 ((IndicatorParameterInt)_MACD.Parameters[0]).Bind(_lengthFastLine);
@@ -53,6 +41,7 @@ namespace OsEngine.Indicators
                 ProcessIndicator("MACD", _MACD);
             }
         }
+
         public override void OnProcess(List<Candle> candles, int index)
         {
             if (index < _lengthFastLine.ValueInt || index < _lengthSlowLine.ValueInt || index < _lengthSignalLine.ValueInt)
@@ -68,7 +57,7 @@ namespace OsEngine.Indicators
 
             ProcessSignalLine(_seriesOsMa.Values, index);
 
-            _seriesHistogramm.Values[index] = _seriesOsMa.Values[index] - _seriesSignalLine.Values[index];
+            _seriesHistogram.Values[index] = _seriesOsMa.Values[index] - _seriesSignalLine.Values[index];
         }
 
         private void ProcessSignalLine(List<decimal> values, int index)

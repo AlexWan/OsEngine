@@ -8,10 +8,13 @@ namespace OsEngine.Indicators
     public class ChaikinOsc : Aindicator
     {
         private IndicatorDataSeries _seriesLine;
+
         private IndicatorDataSeries _seriesVi;
+
         private IndicatorDataSeries _seriesAccDistr;
 
         private IndicatorParameterInt _longPeriod;
+
         private IndicatorParameterInt _shortPeriod;
 
         public override void OnStateChange(IndicatorState state)

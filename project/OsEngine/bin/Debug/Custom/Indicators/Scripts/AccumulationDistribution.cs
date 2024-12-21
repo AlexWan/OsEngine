@@ -10,7 +10,6 @@ namespace OsEngine.Indicators
     {
         private IndicatorDataSeries _series;
 
-
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -18,6 +17,7 @@ namespace OsEngine.Indicators
                 _series = CreateSeries("A D", Color.Aqua, IndicatorChartPaintType.Line, true);
             }
         }
+
         public override void OnProcess(List<Candle> candles, int index)
         {
             _series.Values[index] = GetValue(candles, index);

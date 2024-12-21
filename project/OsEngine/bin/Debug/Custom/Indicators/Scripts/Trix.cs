@@ -9,7 +9,9 @@ namespace OsEngine.Indicators
     public class Trix:Aindicator
     {
         public IndicatorDataSeries _series;
+
         public IndicatorParameterInt _period;
+
         public IndicatorParameterString _candlePoint;
 
         public override void OnStateChange(IndicatorState state)
@@ -26,6 +28,7 @@ namespace OsEngine.Indicators
         {
             _series.Values[index] = GetValue(candles,index);
         }
+
         private decimal GetValue(List<Candle> candles, int index)
         {
             if (index == 1)
@@ -93,6 +96,7 @@ namespace OsEngine.Indicators
             }
             return Math.Round(result, 8);
         }
+
         private decimal GetEma2(int index, List<decimal> list)
         {
             decimal result = 0;
@@ -123,6 +127,7 @@ namespace OsEngine.Indicators
             }
             return Math.Round(result, 8);
         }
+
         private decimal GetEma3(int index, List<decimal> list)
         {
             decimal result = 0;

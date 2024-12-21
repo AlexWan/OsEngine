@@ -9,6 +9,7 @@ namespace OsEngine.Indicators
     public class EfficiencyRatio:Aindicator
     {
         private IndicatorDataSeries _series;
+
         private IndicatorParameterInt _length;
 
         public override void OnStateChange(IndicatorState state)

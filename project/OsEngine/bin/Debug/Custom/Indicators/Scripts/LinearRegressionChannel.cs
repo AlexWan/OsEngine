@@ -9,12 +9,17 @@ namespace OsEngine.Indicators
     public class LinearRegressionChannel : Aindicator
     {
         private IndicatorParameterInt _period;
+
         private IndicatorParameterDecimal _upDeviation;
+
         private IndicatorParameterDecimal _downDeviation;
 
         private IndicatorDataSeries _seriesCentralLine;
-        private IndicatorDataSeries _seriesUpperband;
-        private IndicatorDataSeries _seriesLowerband;
+
+        private IndicatorDataSeries _seriesUpperBand;
+
+        private IndicatorDataSeries _seriesLowerBand;
+
         private IndicatorParameterString _candlePoint;
 
         public override void OnStateChange(IndicatorState state)
@@ -27,17 +32,17 @@ namespace OsEngine.Indicators
                 _upDeviation = CreateParameterDecimal("Up channel deviation", 2);
                 _downDeviation = CreateParameterDecimal("Down channel deviation", 2);
 
-                _seriesUpperband = CreateSeries("Up channel", Color.Aqua,
+                _seriesUpperBand = CreateSeries("Up channel", Color.Aqua,
                     IndicatorChartPaintType.Line, true);
-                _seriesUpperband.CanReBuildHistoricalValues = true;
+                _seriesUpperBand.CanReBuildHistoricalValues = true;
 
                 _seriesCentralLine = CreateSeries("Regression Line ", Color.Gold,
                     IndicatorChartPaintType.Line, true);
                 _seriesCentralLine.CanReBuildHistoricalValues = true;
 
-                _seriesLowerband = CreateSeries("Down channel", Color.OrangeRed,
+                _seriesLowerBand = CreateSeries("Down channel", Color.OrangeRed,
                     IndicatorChartPaintType.Line, true);
-                _seriesLowerband.CanReBuildHistoricalValues = true;
+                _seriesLowerBand.CanReBuildHistoricalValues = true;
             }
         }
 
@@ -121,10 +126,10 @@ namespace OsEngine.Indicators
 
             for (int i = index - _period.ValueInt + 1; i < index + 1; i++)
             {
-                _seriesUpperband.Values[i] = _seriesCentralLine.Values[i] +
+                _seriesUpperBand.Values[i] = _seriesCentralLine.Values[i] +
                                              (standartError * _upDeviation.ValueDecimal);
 
-                _seriesLowerband.Values[i] = _seriesCentralLine.Values[i] -
+                _seriesLowerBand.Values[i] = _seriesCentralLine.Values[i] -
                                              (standartError * _downDeviation.ValueDecimal);
             }
         }
@@ -136,14 +141,14 @@ namespace OsEngine.Indicators
                 _seriesCentralLine.Values[i] = 0;
             }
 
-            for (int i = index - _period.ValueInt + 1; i < _seriesUpperband.Values.Count; i++)
+            for (int i = index - _period.ValueInt + 1; i < _seriesUpperBand.Values.Count; i++)
             {
-                _seriesUpperband.Values[i] = 0;
+                _seriesUpperBand.Values[i] = 0;
             }
 
-            for (int i = index - _period.ValueInt + 1; i < _seriesLowerband.Values.Count; i++)
+            for (int i = index - _period.ValueInt + 1; i < _seriesLowerBand.Values.Count; i++)
             {
-                _seriesLowerband.Values[i] = 0;
+                _seriesLowerBand.Values[i] = 0;
             }
         }
     }

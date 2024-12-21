@@ -8,7 +8,9 @@ namespace OsEngine.Indicators
     public class BullsPower : Aindicator
     {
         private IndicatorParameterInt _length;
+
         private Aindicator _sma;
+
         private IndicatorDataSeries _series;
 
         public override void OnStateChange(IndicatorState state)

@@ -8,20 +8,12 @@ namespace OsEngine.Indicators
     [Indicator("COG_CentreOfGravity_Oscr")]
     public class COG_CentreOfGravity_Oscr : Aindicator
     {
-        ///period for which the indicator is calculated
-        /// </summary>
         private IndicatorParameterInt _length;
-        /// <summary>
-        /// indicator data series
-        /// </summary>
-        private IndicatorDataSeries _LastCOG_series;
-        /// <summary>
-        /// indicator data series
-        /// </summary>
-        private IndicatorDataSeries PrevCOG_series;
-        /// <summary>
-        /// Type close price
-        /// </summary>
+
+        private IndicatorDataSeries _lastCOG_series;
+
+        private IndicatorDataSeries _prevCOG_series;
+
         private IndicatorParameterString _candlePoint;
 
         public override void OnStateChange(IndicatorState state)
@@ -31,34 +23,25 @@ namespace OsEngine.Indicators
                 _length = CreateParameterInt("Length", 14);
                 _candlePoint = CreateParameterStringCollection("Candle Point", "Close", OsEngine.Indicators.Entity.CandlePointsArray);
 
-                _LastCOG_series = CreateSeries("COG series", Color.Red, IndicatorChartPaintType.Line, true);
-                PrevCOG_series = CreateSeries("Prev COG", Color.Aqua, IndicatorChartPaintType.Line, true);
+                _lastCOG_series = CreateSeries("COG series", Color.Red, IndicatorChartPaintType.Line, true);
+                _prevCOG_series = CreateSeries("Prev COG", Color.Aqua, IndicatorChartPaintType.Line, true);
             }
         }
-        /// <summary>
-        /// an iterator method to fill the indicator 
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         public override void OnProcess(List<Candle> candles, int index)
         {
             if (index < _length.ValueInt)
                 return;
 
-            decimal COG = cacl(candles, index); ;
-            decimal PrevCOG = _LastCOG_series.Values[index - 1];
+            decimal COG = Cacl(candles, index);
+            decimal PrevCOG = _lastCOG_series.Values[index - 1];
 
-            _LastCOG_series.Values[index] = Math.Round(COG, 3);
-            PrevCOG_series.Values[index] = Math.Round(PrevCOG, 3);
+            _lastCOG_series.Values[index] = Math.Round(COG, 3);
+            _prevCOG_series.Values[index] = Math.Round(PrevCOG, 3);
         }
-        /// <summary>
-        /// COG calculation
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>        
-        public decimal cacl(List<Candle> candles, int index)
+     
+        public decimal Cacl(List<Candle> candles, int index)
         {
-            decimal result = 0;
             decimal temp = 0;
             decimal temp2 = 0;
 
@@ -68,10 +51,9 @@ namespace OsEngine.Indicators
                 temp2 += candles[i].GetPoint(_candlePoint.ValueString);
             }
 
-            result = temp / temp2 - (_length.ValueInt + 1) / 2;
+            decimal result = temp / temp2 - (_length.ValueInt + 1) / 2;
 
             return result;
         }
     }
 }
-

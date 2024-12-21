@@ -9,8 +9,8 @@ namespace OsEngine.Indicators
     public class CMO:Aindicator
     {
         private IndicatorDataSeries _series;
+
         private IndicatorParameterInt _period;
-        
 
         public override void OnStateChange(IndicatorState state)
         {
@@ -123,10 +123,10 @@ namespace OsEngine.Indicators
             return cmo2;
 
         }
+
         private List<decimal> _cmo1 = new List<decimal>();
 
         private List<decimal> _cmo2 = new List<decimal>();
 
-       
     }
 }

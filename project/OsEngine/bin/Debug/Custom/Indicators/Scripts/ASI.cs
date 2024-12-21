@@ -8,21 +8,12 @@ namespace OsEngine.Indicators
     [Indicator("ASI")]
     public class ASI : Aindicator
     {
-        /// <summary>
-        /// Period for which the calculation is performed 
-        /// </summary>
         public IndicatorParameterDecimal _limitMoves;
-        /// <summary>
-        /// calculation period Sma
-        /// </summary>
+
         public IndicatorParameterInt _lengthSma;
-        /// <summary>
-        /// Data series for indicator output
-        /// </summary>
+
         public IndicatorDataSeries _seriesASI;
-        /// <summary>
-        /// Data series for indicator output
-        /// </summary>
+
         public IndicatorDataSeries _seriesSma;
 
         public override void OnStateChange(IndicatorState state)
@@ -36,11 +27,7 @@ namespace OsEngine.Indicators
                 _seriesSma = CreateSeries("Series Sma", Color.Aqua, IndicatorChartPaintType.Line, true);
             }
         }
-        /// <summary>
-        /// an iterator method to fill the indicator 
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         public override void OnProcess(List<Candle> candles, int index)
         {
 
@@ -62,11 +49,8 @@ namespace OsEngine.Indicators
 
             _seriesSma.Values[index] = CaclSMAFromASI(index);
 
-        }/// <summary>
-         /// SI calculation
-         /// </summary>
-         /// <param name="candles">collection candles </param>
-         /// <param name="index">index to use in the collection of candles</param>
+        }
+        
         public decimal CaclSI(List<Candle> candles, int index)
         {
             decimal _lastClose = candles[index].Close;
@@ -107,10 +91,6 @@ namespace OsEngine.Indicators
             return SI;
         }
 
-        /// <summary>
-        /// Calculation of Sma from ASI
-        /// </summary>    
-        /// <param name="index">index to use in the collection of candles</param>
         public decimal CaclSMAFromASI(int index)
         {
             decimal sma = 0;

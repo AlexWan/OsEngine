@@ -9,10 +9,13 @@ namespace OsEngine.Indicators
     public class Stochastic : Aindicator
     {
         public IndicatorParameterInt Period1;
+
         public IndicatorParameterInt Period2;
+
         public IndicatorParameterInt Period3;
 
         public IndicatorDataSeries SeriesOne;
+
         public IndicatorDataSeries SeriesTwo;
 
         public override void OnStateChange(IndicatorState state)
@@ -42,40 +45,16 @@ namespace OsEngine.Indicators
             }
         }
 
-        /// <summary>
-        /// to keep the difference Close- Low
-        /// для хранения разницы клоуз - лоу
-        /// </summary>
         private List<decimal> _t1;
 
-        /// <summary>
-        /// to keep the difference High - Low
-        /// для хранения разницы хай - лоу
-        /// </summary>
         private List<decimal> _t2;
 
-        /// <summary>
-        /// ma for smoothing Close - Low
-        /// машка для сглаживания клоуз - лоу
-        /// </summary>
         private List<decimal> _tM1;
 
-        /// <summary>
-        /// ma for smoothing High - low
-        /// машка для сглаживания хай - лоу
-        /// </summary>
         private List<decimal> _tM2;
 
-        /// <summary>
-        /// first line
-        /// первая линия
-        /// </summary>
         private List<decimal> _k;
 
-        /// <summary>
-        /// ma for smoothing K
-        /// машкая для сглаживания К
-        /// </summary>
         private List<decimal> _kM;
 
         public override void OnProcess(List<Candle> candles, int index)

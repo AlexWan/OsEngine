@@ -8,9 +8,13 @@ namespace OsEngine.Indicators
     public class OffsetEma : Aindicator
     {
         private IndicatorParameterInt _length;
+
         private IndicatorParameterInt _offSet;
+
         private IndicatorDataSeries _shift;
+
         private Aindicator _emaOffset;
+
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -24,13 +28,13 @@ namespace OsEngine.Indicators
                 ProcessIndicator("EmaOffset", _emaOffset);
             }
         }
+
         public override void OnProcess(List<Candle> source, int index)
         {
             if (index - _offSet.ValueInt >= 0)
             {
                 _shift.Values[index] = _emaOffset.DataSeries[0].Values[index - _offSet.ValueInt];
             }
-        }             
+        }
     }
-    }
-
+}

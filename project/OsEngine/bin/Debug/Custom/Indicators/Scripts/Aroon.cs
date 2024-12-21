@@ -8,43 +8,22 @@ namespace OsEngine.Indicators
     [Indicator("Aroon")]
     public class Aroon : Aindicator
     {
-        /// <summary>
-        /// Period for which the calculation is performed
-        /// </summary>
         public IndicatorParameterInt _lengthPeriod;
-        /// <summary>
-        /// Horizontal line parameter 
-        /// </summary>
+
         public IndicatorParameterInt UpHorizontalLineLevel;
-        /// <summary>
-        /// Horizontal line parameter 
-        /// </summary>
+
         public IndicatorParameterInt DownHorizontalLineLevel;
-        /// <summary>
-        /// Data series for indicator output 
-        /// </summary>
+
         public IndicatorDataSeries _seriesUp;
-        /// <summary>
-        ///  Data series for indicator output
-        /// </summary>
+
         public IndicatorDataSeries _seriesDown;
-        /// <summary>
-        ///  Data series for indicator output Osc
-        /// </summary>
+
         public IndicatorDataSeries _seriesOsc;
-        /// <summary>
-        ///Data series for horizontal line output
-        /// </summary>
+
         public IndicatorDataSeries _seriesHorizontalUpLine;
-        /// <summary>
-        /// Data series for horizontal line output
-        /// </summary>
+
         public IndicatorDataSeries _seriesHorizontalDownLine;
 
-        /// <summary>
-        /// initialization
-        /// </summary>
-        /// <param name="state">Indicator Configure</param>  
         public override void OnStateChange(IndicatorState state)
         {
             if (state == IndicatorState.Configure)
@@ -67,11 +46,6 @@ namespace OsEngine.Indicators
             }
         }
 
-        /// <summary>
-        /// an iterator method to fill the indicator
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
         public override void OnProcess(List<Candle> candles, int index)
         {
             if (_lengthPeriod.ValueInt >= index)
@@ -89,14 +63,11 @@ namespace OsEngine.Indicators
         }
 
         decimal AroonUp;
+
         decimal AroonDown;
+
         decimal AroonOsc;
 
-        /// <summary>
-        ///Calculating the indicator
-        /// </summary>
-        /// <param name="candles"></param>
-        /// <param name="index"></param>
         public void CalcAroon(List<Candle> candles, int index)
         {
             int numBarUp = 0;

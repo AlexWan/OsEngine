@@ -9,8 +9,11 @@ namespace OsEngine.Indicators
     public class ADX : Aindicator
     {
         public IndicatorParameterInt _length;
+
         public IndicatorDataSeries _series;
+
         public IndicatorDataSeries _seriesPlus;
+
         public IndicatorDataSeries _seriesMinus;
 
         public override void OnStateChange(IndicatorState state)
@@ -55,7 +58,7 @@ namespace OsEngine.Indicators
             {
                 return;
             }
-            _series.Values[index] = GetValueStandart(candles, index);
+            _series.Values[index] = GetValueStandard(candles, index);
         }
 
         public List<decimal> ValuesDiPlus
@@ -74,7 +77,7 @@ namespace OsEngine.Indicators
             }
         }
 
-        public decimal GetValueStandart(List<Candle> candles, int index)
+        public decimal GetValueStandard(List<Candle> candles, int index)
         {
             if (index == 0)
             {
@@ -185,6 +188,7 @@ namespace OsEngine.Indicators
 
             _trueRange[_trueRange.Count - 1] = Math.Max(Math.Max(hiToLow, closeToHigh), closeToLow);
         }
+
         private void SdijReload(int index)
         {
             //if/если TRj не = 0, so/то +SDIj = +DMj / TRj; -SDIj = -DMj / TRj,
@@ -227,7 +231,6 @@ namespace OsEngine.Indicators
             _seriesPlus.Values[index] = _sDIjPlus[_sDIjPlus.Count - 1];
             _seriesMinus.Values[index] = _sDIjMinus[_sDIjMinus.Count - 1];
         }
-
 
         private List<decimal> MovingAverageWild(List<decimal> valuesSeries, List<decimal> moving, int length, int index)
         {

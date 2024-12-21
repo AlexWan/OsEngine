@@ -8,9 +8,10 @@ namespace OsEngine.Indicators
     [Indicator("VolatilityCandles")]
     public class VolatilityCandles : Aindicator
     {
-
-        private IndicatorParameterInt _length;              
-        private IndicatorParameterDecimal _koeff;           
+        private IndicatorParameterInt _length;         
+        
+        private IndicatorParameterDecimal _koeff;      
+        
         private IndicatorDataSeries _series;                
 
         public override void OnStateChange(IndicatorState state)

@@ -9,12 +9,15 @@ namespace OsEngine.Indicators
     public class AO:Aindicator
     {
         private IndicatorParameterInt _lengthFastLine;
+
         private IndicatorParameterInt _lengthSlowLine;
+
         public IndicatorParameterString _candlePoint;
 
         private IndicatorDataSeries _series;
 
         private Aindicator _emaSlow;
+
         private Aindicator _emaFast;
 
         public override void OnStateChange(IndicatorState state)

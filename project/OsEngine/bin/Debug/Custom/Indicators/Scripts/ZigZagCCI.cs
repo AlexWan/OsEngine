@@ -14,14 +14,19 @@ namespace OsEngine.Indicators
         private IndicatorDataSeries _seriesCCI;
 
         private IndicatorParameterInt _lengthCCI;
+
         private IndicatorParameterInt _lengthZigZag;
 
         private IndicatorDataSeries _seriesZigZag;
+
         private IndicatorDataSeries _seriesToLine;
+
         private IndicatorDataSeries _seriesZigZagHighs;
+
         private IndicatorDataSeries _seriesZigZagLows;
 
         private IndicatorDataSeries _seriesZigZagUpChannel;
+
         private IndicatorDataSeries _seriesZigZagDownChannel;
 
         public override void OnStateChange(IndicatorState state)
@@ -66,11 +71,11 @@ namespace OsEngine.Indicators
 
             if (index < _lengthZigZag.ValueInt * 2)
             {
-                currentZigZagHigh = 0;
-                currentZigZagLow = 0;
-                lastSwingIndex = -1;
-                lastSwingPrice = 0;
-                trendDir = 0;
+                _currentZigZagHigh = 0;
+                _currentZigZagLow = 0;
+                _lastSwingIndex = -1;
+                _lastSwingPrice = 0;
+                _trendDir = 0;
                 return;
             }
 
@@ -88,8 +93,8 @@ namespace OsEngine.Indicators
             Low = valuesCCI[valuesCCI.Count - 1];
 
 
-            if (lastSwingPrice == 0)
-                lastSwingPrice = Low + (High - Low) / 2;
+            if (_lastSwingPrice == 0)
+                _lastSwingPrice = Low + (High - Low) / 2;
 
             bool isSwingHigh = High == GetExtremum(values, _lengthZigZag.ValueInt, "High", index);
             bool isSwingLow = Low == GetExtremum(values, _lengthZigZag.ValueInt, "Low", index);
@@ -105,59 +110,59 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            if (trendDir == 1 && isSwingHigh && High >= lastSwingPrice)
+            if (_trendDir == 1 && isSwingHigh && High >= _lastSwingPrice)
             {
                 saveValue = High;
                 updateHigh = true;
             }
-            else if (trendDir == -1 && isSwingLow && Low <= lastSwingPrice)
+            else if (_trendDir == -1 && isSwingLow && Low <= _lastSwingPrice)
             {
                 saveValue = Low;
                 updateLow = true;
             }
-            else if (trendDir <= 0 && isSwingHigh)
+            else if (_trendDir <= 0 && isSwingHigh)
             {
                 saveValue = High;
                 addHigh = true;
-                trendDir = 1;
+                _trendDir = 1;
             }
-            else if (trendDir >= 0 && isSwingLow)
+            else if (_trendDir >= 0 && isSwingLow)
             {
                 saveValue = Low;
                 addLow = true;
-                trendDir = -1;
+                _trendDir = -1;
             }
 
             if (addHigh || addLow || updateHigh || updateLow)
             {
-                if (updateHigh && lastSwingIndex >= 0)
+                if (updateHigh && _lastSwingIndex >= 0)
                 {
-                    _seriesZigZag.Values[lastSwingIndex] = 0;
-                    _seriesZigZagHighs.Values[lastSwingIndex] = 0;
+                    _seriesZigZag.Values[_lastSwingIndex] = 0;
+                    _seriesZigZagHighs.Values[_lastSwingIndex] = 0;
                 }
-                else if (updateLow && lastSwingIndex >= 0)
+                else if (updateLow && _lastSwingIndex >= 0)
                 {
-                    _seriesZigZag.Values[lastSwingIndex] = 0;
-                    _seriesZigZagLows.Values[lastSwingIndex] = 0;
+                    _seriesZigZag.Values[_lastSwingIndex] = 0;
+                    _seriesZigZagLows.Values[_lastSwingIndex] = 0;
                 }
 
                 if (addHigh || updateHigh)
                 {
-                    currentZigZagHigh = saveValue;
-                    _seriesZigZag.Values[index] = currentZigZagHigh;
-                    _seriesZigZagHighs.Values[index] = currentZigZagHigh;
+                    _currentZigZagHigh = saveValue;
+                    _seriesZigZag.Values[index] = _currentZigZagHigh;
+                    _seriesZigZagHighs.Values[index] = _currentZigZagHigh;
 
                 }
                 else if (addLow || updateLow)
                 {
-                    currentZigZagLow = saveValue;
-                    _seriesZigZag.Values[index] = currentZigZagLow;
-                    _seriesZigZagLows.Values[index] = currentZigZagLow;
+                    _currentZigZagLow = saveValue;
+                    _seriesZigZag.Values[index] = _currentZigZagLow;
+                    _seriesZigZagLows.Values[index] = _currentZigZagLow;
 
                 }
 
-                lastSwingIndex = index;
-                lastSwingPrice = saveValue;
+                _lastSwingIndex = index;
+                _lastSwingPrice = saveValue;
 
                 if (updateHigh || updateLow)
                 {
@@ -167,12 +172,15 @@ namespace OsEngine.Indicators
             ReBuildChannel(_seriesZigZagUpChannel, _seriesZigZagDownChannel, _seriesZigZagHighs.Values, _seriesZigZagLows.Values, index);
         }
 
-        private decimal currentZigZagHigh = 0;
-        private decimal currentZigZagLow = 0;
-        private int lastSwingIndex = -1;
-        private decimal lastSwingPrice = 0;
-        private int trendDir = 0;
+        private decimal _currentZigZagHigh = 0;
 
+        private decimal _currentZigZagLow = 0;
+
+        private int _lastSwingIndex = -1;
+
+        private decimal _lastSwingPrice = 0;
+
+        private int _trendDir = 0;
 
         private decimal GetExtremum(List<decimal> values, int period, string points, int index)
         {
@@ -195,7 +203,6 @@ namespace OsEngine.Indicators
 
             return 0;
         }
-
 
         private void ReBuildLine(List<decimal> zigZag, List<decimal> line)
         {
@@ -235,7 +242,6 @@ namespace OsEngine.Indicators
                 lastPointIndex = i;
             }
         }
-
 
         private void ReBuildChannel(IndicatorDataSeries _seriesZigZagUpChannel, IndicatorDataSeries _seriesZigZagDownChannel,
        List<decimal> _seriesZigZagHighs, List<decimal> _seriesZigZagLows, int index)

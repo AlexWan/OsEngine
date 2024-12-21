@@ -11,6 +11,7 @@ namespace OsEngine.Indicators
         private IndicatorParameterInt _p1;
 
         private IndicatorDataSeries _seriesOne;
+
         private IndicatorDataSeries _seriesTwo;
 
         public override void OnStateChange(IndicatorState state)
@@ -34,7 +35,9 @@ namespace OsEngine.Indicators
         }
 
         private List<decimal> _moveAverage;
+
         private List<decimal> _rangeAverage;
+
         private List<decimal> _rvi;
 
         public override void OnProcess(List<Candle> candles, int index)

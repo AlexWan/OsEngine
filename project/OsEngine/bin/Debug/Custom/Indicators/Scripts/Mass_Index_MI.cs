@@ -9,15 +9,21 @@ namespace OsEngine.Indicators
     public class Mass_Index_MI : Aindicator
     {
         private IndicatorParameterInt _lengthEma;
+
         private IndicatorParameterInt _periodSum;
 
-        private IndicatorParameterDecimal _paramSeries27;
-        private IndicatorParameterDecimal _paramSeries26_5;
+        private IndicatorParameterDecimal _paramSeriesUp;
+
+        private IndicatorParameterDecimal _paramSeriesDown;
 
         private IndicatorDataSeries _series1;
+
         private IndicatorDataSeries _series2;
+
         private IndicatorDataSeries _seriesMI;
+
         private IndicatorDataSeries _series27;
+
         private IndicatorDataSeries _series26_5;
 
         public override void OnStateChange(IndicatorState state)
@@ -27,8 +33,8 @@ namespace OsEngine.Indicators
                 _lengthEma = CreateParameterInt("Length EMA", 9);
                 _periodSum = CreateParameterInt("Summing period EMA", 25);
 
-                _paramSeries27 = CreateParameterDecimal("Parameter line up", 27);
-                _paramSeries26_5 = CreateParameterDecimal("Parameter line down", 26.5m);
+                _paramSeriesUp = CreateParameterDecimal("Parameter line up", 27);
+                _paramSeriesDown = CreateParameterDecimal("Parameter line down", 26.5m);
 
                 _series1 = CreateSeries("Ema1", Color.Red, IndicatorChartPaintType.Line, false);
                 _series2 = CreateSeries("Ema2", Color.Red, IndicatorChartPaintType.Line, false);
@@ -37,15 +43,11 @@ namespace OsEngine.Indicators
                 _series26_5 = CreateSeries("Line 26.5 series", Color.LightBlue, IndicatorChartPaintType.Line, true);
             }
         }
-        /// <summary>
-        /// an iterator method to fill the indicator 
-        /// </summary>
-        /// <param name="candles">collection candles</param>
-        /// <param name="index">index to use in the collection of candles</param>
+
         public override void OnProcess(List<Candle> candles, int index)
         {
-            _series27.Values[index] = _paramSeries27.ValueDecimal;
-            _series26_5.Values[index] = _paramSeries26_5.ValueDecimal;
+            _series27.Values[index] = _paramSeriesUp.ValueDecimal;
+            _series26_5.Values[index] = _paramSeriesDown.ValueDecimal;
 
             if (index < _lengthEma.ValueInt || index < _periodSum.ValueInt)
                 return;
@@ -64,6 +66,7 @@ namespace OsEngine.Indicators
 
             _seriesMI.Values[index] = Math.Round(MI, 3);
         }
+
         public void CalcFirstEMA(List<Candle> candles, int index)
         {
             decimal result = 0;
@@ -121,6 +124,7 @@ namespace OsEngine.Indicators
 
             _series2.Values[index] = result;
         }
+
         public decimal SumEma(List<decimal> ema1, List<decimal> ema2, int index)
         {
             decimal result = 0;

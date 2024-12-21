@@ -8,9 +8,13 @@ namespace OsEngine.Indicators
     public class DeltaByCandles : Aindicator
     {
         private IndicatorDataSeries _seriesSmaDelta;
+
         private IndicatorDataSeries _seriesTrade;
+
         private IndicatorDataSeries _seriesBuy;
+
         private IndicatorDataSeries _seriesSell;
+
         private IndicatorDataSeries _seriesDelta;
 
         private IndicatorParameterInt _lengthSmaDelta;

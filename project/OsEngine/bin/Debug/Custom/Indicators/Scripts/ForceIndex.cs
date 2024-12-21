@@ -9,7 +9,9 @@ namespace OsEngine.Indicators
     public class ForceIndex:Aindicator
     {
         private IndicatorParameterInt _period;
+
         private IndicatorDataSeries _series;
+
         private IndicatorParameterString _candlePoint;
 
         public override void OnStateChange(IndicatorState state)
@@ -112,6 +114,7 @@ namespace OsEngine.Indicators
         }
 
         private List<decimal> _movingAverage = new List<decimal>();
+
         private List<decimal> _range = new List<decimal>();
 
     }

@@ -9,6 +9,7 @@ namespace OsEngine.Indicators
     public class EaseOfMovement : Aindicator
     {
         private IndicatorDataSeries _seriesLine;
+
         private IndicatorDataSeries _seriesEomRaw;
 
         private IndicatorParameterInt _period;

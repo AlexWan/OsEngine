@@ -9,7 +9,9 @@ namespace OsEngine.Indicators
     public class KalmanFilter:Aindicator
     {
         private IndicatorDataSeries _series;
+
         private IndicatorParameterDecimal _sharpness;
+
         private IndicatorParameterDecimal K;
 
         public override void OnStateChange(IndicatorState state)

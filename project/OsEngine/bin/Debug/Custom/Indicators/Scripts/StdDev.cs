@@ -9,7 +9,9 @@ namespace OsEngine.Indicators
     public class StdDev: Aindicator
     {
         private IndicatorDataSeries _series;
+
         private IndicatorParameterInt _period;
+
         private IndicatorParameterString _candlePoint;
 
         public override void OnStateChange(IndicatorState state)

@@ -9,10 +9,13 @@ namespace OsEngine.Indicators
     public class Bollinger : Aindicator
     {
         private IndicatorParameterInt _length;
+
         private IndicatorParameterDecimal _deviation;
 
         private IndicatorDataSeries _seriesUp;
+
         private IndicatorDataSeries _seriesDown;
+
         private IndicatorDataSeries _seriesCenter;
 
         private Aindicator _sma;
