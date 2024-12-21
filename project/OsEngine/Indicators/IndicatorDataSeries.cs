@@ -7,6 +7,8 @@ namespace OsEngine.Indicators
 
     public class IndicatorDataSeries
     {
+        #region Service
+
         /// <summary>
         /// constructor
         /// </summary>
@@ -28,50 +30,9 @@ namespace OsEngine.Indicators
         public string Name;
 
         /// <summary>
-        /// color of the data series on the chart
-        /// </summary>
-        public Color Color;
-
-        /// <summary>
-        /// graph type for data series. Line, column, etc...
-        /// </summary>
-        public IndicatorChartPaintType ChartPaintType;
-
-        /// <summary>
-        /// whether this series of data needs to be plotted on a chart
-        /// </summary>
-        public bool IsPaint;
-
-        /// <summary>
         /// name of data series on the chart
         /// </summary>
         public string NameSeries;
-
-        /// <summary>
-        /// do you have to redraw the series on the chart every time from start to finish.
-        /// </summary>
-        public bool CanReBuildHistoricalValues;
-
-        /// <summary>
-        /// series data points
-        /// </summary>
-        public List<decimal> Values = new List<decimal>();
-
-        /// <summary>
-        /// the last value of the series
-        /// </summary>
-        public decimal Last
-        {
-            get
-            {
-                if (Values.Count == 0)
-                {
-                    return 0;
-                }
-
-                return Values[Values.Count - 1];
-            }
-        }
 
         /// <summary>
         /// object string for saving settings
@@ -121,5 +82,53 @@ namespace OsEngine.Indicators
             Values.Clear();
             Values = null;
         }
+
+        #endregion
+
+        #region Settings and data
+
+        /// <summary>
+        /// color of the data series on the chart
+        /// </summary>
+        public Color Color;
+
+        /// <summary>
+        /// graph type for data series. Line, column, etc...
+        /// </summary>
+        public IndicatorChartPaintType ChartPaintType;
+
+        /// <summary>
+        /// whether this series of data needs to be plotted on a chart
+        /// </summary>
+        public bool IsPaint;
+
+        /// <summary>
+        /// do you have to redraw the series on the chart every time from start to finish.
+        /// </summary>
+        public bool CanReBuildHistoricalValues;
+
+        /// <summary>
+        /// series data points
+        /// </summary>
+        public List<decimal> Values = new List<decimal>();
+
+        /// <summary>
+        /// the last value of the series
+        /// </summary>
+        public decimal Last
+        {
+            get
+            {
+                if (Values.Count == 0)
+                {
+                    return 0;
+                }
+
+                return Values[Values.Count - 1];
+            }
+        }
+
+        #endregion
+
     }
 }
