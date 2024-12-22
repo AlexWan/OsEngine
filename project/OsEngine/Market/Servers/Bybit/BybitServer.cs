@@ -1023,7 +1023,7 @@ namespace OsEngine.Market.Servers.Bybit
             webSocketPublicLinear.EmitOnPing = true;
             webSocketPublicLinear.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
             webSocketPublicLinear.OnOpen += WebSocketPublic_Opened;
-            webSocketPublicLinear.OnMessage += WebSocketPublic_MessageReceivedSpot;
+            webSocketPublicLinear.OnMessage += WebSocketPublic_MessageReceivedLinear;
             webSocketPublicLinear.OnError += WebSocketPublic_Error;
             webSocketPublicLinear.OnClose += WebSocketPublic_Opened;
 
@@ -1336,7 +1336,7 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     WebSocket webSocketPublicLinear = _webSocketPublicLinear[i];
                     webSocketPublicLinear.OnOpen -= WebSocketPublic_Opened;
-                    webSocketPublicLinear.OnMessage -= WebSocketPublic_MessageReceivedSpot;
+                    webSocketPublicLinear.OnMessage -= WebSocketPublic_MessageReceivedLinear;
                     webSocketPublicLinear.OnError -= WebSocketPublic_Error;
                     webSocketPublicLinear.OnClose -= WebSocketPublic_Opened;
 

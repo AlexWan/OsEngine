@@ -61,8 +61,6 @@ namespace OsEngine.Robots.Trend
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-
-
             DeleteEvent += Strategy_DeleteEvent;
 
             Description = "Trend strategy based on 2 indicators Momentum and Macd. " +
