@@ -865,7 +865,15 @@ namespace OsEngine.Market.Servers.OKX
         {
             if (error.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                string exception = error.Exception.ToString();
+
+                if (exception.Contains("0x80004005")
+                    || exception.Contains("no address was supplied"))
+                {
+                    return;
+                }
+
+                SendLogMessage(exception, LogMessageType.Error);
             }
         }
 
@@ -934,7 +942,15 @@ namespace OsEngine.Market.Servers.OKX
         {
             if (error.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                string exception = error.Exception.ToString();
+
+                if(exception.Contains("0x80004005") 
+                    || exception.Contains("no address was supplied"))
+                {
+                    return;
+                }
+
+                SendLogMessage(exception, LogMessageType.Error);
             }
         }
      
@@ -1101,7 +1117,8 @@ namespace OsEngine.Market.Servers.OKX
 
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic != null)
+            if (_webSocketPublic != null
+                && _webSocketPublic.State == WebSocketState.Open)
             {
                 try
                 {
@@ -1120,7 +1137,8 @@ namespace OsEngine.Market.Servers.OKX
                 }
             }
 
-            if (_webSocketPrivate != null)
+            if (_webSocketPrivate != null 
+                && _webSocketPrivate.State == WebSocketState.Open)
             {
                 try
                 {

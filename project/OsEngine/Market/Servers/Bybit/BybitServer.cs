@@ -419,9 +419,11 @@ namespace OsEngine.Market.Servers.Bybit
                 for (int i = 0; i < symbols.result.list.Count - 1; i++)
                 {
                     Symbols oneSec = symbols.result.list[i];
+
                     if (oneSec.status.ToLower() == "trading")
                     {
-                        if (category == Category.spot && !spotFilter.Exists((f) => f == oneSec.quoteCoin))
+                        if (category == Category.spot 
+                            && !spotFilter.Exists((f) => f == oneSec.quoteCoin))
                         {
                             continue;
                         }
@@ -434,7 +436,16 @@ namespace OsEngine.Market.Servers.Bybit
                         security.NameFull = oneSec.symbol;
                         security.NameClass = category == Category.spot ? oneSec.quoteCoin : oneSec.contractType;
                         security.NameId = oneSec.symbol;
-                        security.SecurityType = SecurityType.CurrencyPair;
+
+                        if(category == Category.linear)
+                        {
+                            security.SecurityType = SecurityType.Futures;
+                        }
+                        else
+                        {
+                            security.SecurityType = SecurityType.CurrencyPair;
+                        }
+
                         security.PriceStep = oneSec.priceFilter.tickSize.ToDecimal();
                         security.PriceStepCost = oneSec.priceFilter.tickSize.ToDecimal();
                         security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
