@@ -5,7 +5,6 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
-using SuperSocket.ClientEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -14,7 +13,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
+using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 {
@@ -604,13 +603,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
 
                 _webSocketPublic = new WebSocket(_webSocketUrlPublic);
-                _webSocketPublic.EnableAutoSendPing = true;
-                _webSocketPublic.AutoSendPingInterval = 10;
-                _webSocketPublic.Opened += WebSocketPublic_Opened;
-                _webSocketPublic.Closed += WebSocketPublic_Closed;
-                _webSocketPublic.MessageReceived += WebSocketPublic_MessageReceived;
-                _webSocketPublic.Error += WebSocketPublic_Error;
-                _webSocketPublic.Open();
+                _webSocketPublic.EmitOnPing = true;
+                _webSocketPublic.SslConfiguration.EnabledSslProtocols
+                    = System.Security.Authentication.SslProtocols.Ssl3
+                    | System.Security.Authentication.SslProtocols.Tls11
+                    | System.Security.Authentication.SslProtocols.Tls12
+                    | System.Security.Authentication.SslProtocols.Tls13
+                    | System.Security.Authentication.SslProtocols.Tls;
+                _webSocketPublic.OnOpen += WebSocketPublic_Opened;
+                _webSocketPublic.OnClose += WebSocketPublic_Closed;
+                _webSocketPublic.OnMessage += WebSocketPublic_MessageReceived;
+                _webSocketPublic.OnError += WebSocketPublic_Error;
+                _webSocketPublic.Connect();
 
                 if (_webSocketPrivate != null)
                 {
@@ -618,13 +622,18 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
 
                 _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
-                _webSocketPrivate.EnableAutoSendPing = true;
-                _webSocketPrivate.AutoSendPingInterval = 10;
-                _webSocketPrivate.Opened += WebSocketPrivate_Opened;
-                _webSocketPrivate.Closed += WebSocketPrivate_Closed;
-                _webSocketPrivate.MessageReceived += WebSocketPrivate_MessageReceived;
-                _webSocketPrivate.Error += WebSocketPrivate_Error;
-                _webSocketPrivate.Open();
+                _webSocketPrivate.EmitOnPing = true;
+                _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                    = System.Security.Authentication.SslProtocols.Ssl3
+                   | System.Security.Authentication.SslProtocols.Tls11
+                   | System.Security.Authentication.SslProtocols.Tls12
+                   | System.Security.Authentication.SslProtocols.Tls13
+                   | System.Security.Authentication.SslProtocols.Tls;
+                _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
+                _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
+                _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
+                _webSocketPrivate.OnError += WebSocketPrivate_Error;
+                _webSocketPrivate.Connect();
             }
             catch (Exception exeption)
             {
@@ -638,11 +647,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
-                    _webSocketPublic.Opened -= WebSocketPublic_Opened;
-                    _webSocketPublic.Closed -= WebSocketPublic_Closed;
-                    _webSocketPublic.MessageReceived -= WebSocketPublic_MessageReceived;
-                    _webSocketPublic.Error -= WebSocketPublic_Error;
-                    _webSocketPublic.Close();
+                    _webSocketPublic.OnOpen -= WebSocketPublic_Opened;
+                    _webSocketPublic.OnClose -= WebSocketPublic_Closed;
+                    _webSocketPublic.OnMessage -= WebSocketPublic_MessageReceived;
+                    _webSocketPublic.OnError -= WebSocketPublic_Error;
+                    _webSocketPublic.CloseAsync();
                 }
                 catch
                 {
@@ -656,11 +665,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
-                    _webSocketPrivate.Opened -= WebSocketPrivate_Opened;
-                    _webSocketPrivate.Closed -= WebSocketPrivate_Closed;
-                    _webSocketPrivate.MessageReceived -= WebSocketPrivate_MessageReceived;
-                    _webSocketPrivate.Error -= WebSocketPrivate_Error;
-                    _webSocketPrivate.Close();
+                    _webSocketPrivate.OnOpen -= WebSocketPrivate_Opened;
+                    _webSocketPrivate.OnClose -= WebSocketPrivate_Closed;
+                    _webSocketPrivate.OnMessage -= WebSocketPrivate_MessageReceived;
+                    _webSocketPrivate.OnError -= WebSocketPrivate_Error;
+                    _webSocketPrivate.CloseAsync();
                 }
                 catch
                 {
@@ -757,7 +766,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPublic_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void WebSocketPublic_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -765,11 +774,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     return;
                 }
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
-                if (e.Message.Length == 4)
+                if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
@@ -780,7 +789,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     return;
                 }
 
-                FIFOListWebSocketPublicMessage.Enqueue(e.Message);
+                FIFOListWebSocketPublicMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -788,11 +797,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPublic_Error(object sender, ErrorEventArgs error)
+        private void WebSocketPublic_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -822,7 +831,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPrivate_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void WebSocketPrivate_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -830,16 +839,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     return;
                 }
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
-                if (e.Message.Length == 4)
+                if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
 
-                if (e.Message.Contains("login"))
+                if (e.Data.Contains("login"))
                 {
                     SubscriblePrivate();
                 }
@@ -849,7 +858,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     return;
                 }
 
-                FIFOListWebSocketPrivateMessage.Enqueue(e.Message);
+                FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -857,11 +866,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPrivate_Error(object sender, ErrorEventArgs error)
+        private void WebSocketPrivate_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -886,8 +895,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
 
                     if (_webSocketPublic != null &&
-                        (_webSocketPublic.State == WebSocketState.Open ||
-                        _webSocketPublic.State == WebSocketState.Connecting)
+                        (_webSocketPublic.ReadyState == WebSocketState.Open ||
+                        _webSocketPublic.ReadyState == WebSocketState.Connecting)
                         )
                     {
                         if (TimeToSendPingPublic.AddSeconds(25) < DateTime.Now)
@@ -906,8 +915,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
 
                     if (_webSocketPrivate != null &&
-                        (_webSocketPrivate.State == WebSocketState.Open ||
-                        _webSocketPrivate.State == WebSocketState.Connecting)
+                        (_webSocketPrivate.ReadyState == WebSocketState.Open ||
+                        _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                         )
                     {
                         if (TimeToSendPingPrivate.AddSeconds(25) < DateTime.Now)

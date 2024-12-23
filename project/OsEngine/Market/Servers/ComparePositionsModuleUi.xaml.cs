@@ -443,6 +443,10 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
+                if(e.RowIndex < 0)
+                {
+                    return;
+                }
 
                 if (e.RowIndex >= _grid.Rows.Count)
                 {

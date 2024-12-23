@@ -1063,6 +1063,10 @@ namespace OsEngine.Market.Servers.Alor
                     {
                         try
                         {
+                            _webSocketData.OnOpen -= WebSocketData_Opened;
+                            _webSocketData.OnClose -= WebSocketData_Closed;
+                            _webSocketData.OnMessage -= WebSocketData_MessageReceived;
+                            _webSocketData.OnError -= WebSocketData_Error;
                             _webSocketData.CloseAsync();
                         }
                         catch
@@ -1072,22 +1076,16 @@ namespace OsEngine.Market.Servers.Alor
 
                         try
                         {
+                            _webSocketPortfolio.OnOpen -= _webSocketPortfolio_Opened;
+                            _webSocketPortfolio.OnClose -= _webSocketPortfolio_Closed;
+                            _webSocketPortfolio.OnMessage -= _webSocketPortfolio_MessageReceived;
+                            _webSocketPortfolio.OnError -= _webSocketPortfolio_Error;
                             _webSocketPortfolio.CloseAsync();
                         }
                         catch
                         {
                             // ignore
                         }
-
-                        _webSocketData.OnOpen -= WebSocketData_Opened;
-                        _webSocketData.OnClose -= WebSocketData_Closed;
-                        _webSocketData.OnMessage -= WebSocketData_MessageReceived;
-                        _webSocketData.OnError -= WebSocketData_Error;
-
-                        _webSocketPortfolio.OnOpen -= _webSocketPortfolio_Opened;
-                        _webSocketPortfolio.OnClose -= _webSocketPortfolio_Closed;
-                        _webSocketPortfolio.OnMessage -= _webSocketPortfolio_MessageReceived;
-                        _webSocketPortfolio.OnError -= _webSocketPortfolio_Error;
                     }
                 }
             }
