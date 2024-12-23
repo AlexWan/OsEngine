@@ -41,6 +41,7 @@ namespace OsEngine.Robots.Screeners
             _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
             _tabScreener.CreateCandleIndicator(1, "Bollinger", new List<string>() { "100" }, "Prime");
+
             _tabScreener.CreateCandleIndicator(2, "Momentum", new List<string>() { "15" }, "Second");
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });

@@ -19,6 +19,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             _volatilityStagesOnIndex 
                 = IndicatorsFactory.CreateIndicatorByName("VolatilityStagesAW", name + "VolatilityStagesAW", false);
+
             _volatilityStagesOnIndex = (Aindicator)_index.CreateCandleIndicator(_volatilityStagesOnIndex, "VolaStagesArea");
             _volatilityStagesOnIndex.Save();
 
@@ -45,9 +46,9 @@ namespace OsEngine.Robots.IndexArbitrage
 
             CointegrationCandlesLookBack = CreateParameter("Cointegration candles look back", 100, 1, 50, 4);
 
-            CointegrationStandartDeviationMult = CreateParameter("Deviation mult", 1m, 0.1m, 50, 0.1m);
+            CointegrationStandardDeviationMult = CreateParameter("Deviation mult", 1m, 0.1m, 50, 0.1m);
 
-            CorrelatioinMinValue = CreateParameter("Correlatioin min value", 0.8m, 0.1m, 1, 0.1m);
+            CorrelationMinValue = CreateParameter("Correlation min value", 0.8m, 0.1m, 1, 0.1m);
 
             Description =
                     "Securities that deviate from the broad market with momentum trade on a widening gap, in a certain stage of volatility.";
@@ -84,9 +85,9 @@ namespace OsEngine.Robots.IndexArbitrage
 
         public StrategyParameterInt CointegrationCandlesLookBack;
 
-        public StrategyParameterDecimal CointegrationStandartDeviationMult;
+        public StrategyParameterDecimal CointegrationStandardDeviationMult;
 
-        public StrategyParameterDecimal CorrelatioinMinValue;
+        public StrategyParameterDecimal CorrelationMinValue;
 
         public StrategyParameterInt VolatilityStageToTrade;
 
@@ -171,14 +172,14 @@ namespace OsEngine.Robots.IndexArbitrage
                 correlationIndicator.ReloadCorrelationLast(candlesIndex, candlesSecurity, CorrelationCandlesLookBack.ValueInt);
 
             if (correlation == null ||
-                correlation.Value < CorrelatioinMinValue.ValueDecimal)
+                correlation.Value < CorrelationMinValue.ValueDecimal)
             {
                 return;
             }
 
             CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
             cointegrationIndicator.CointegrationLookBack = CointegrationCandlesLookBack.ValueInt;
-            cointegrationIndicator.CointegrationDeviation = CointegrationStandartDeviationMult.ValueDecimal;
+            cointegrationIndicator.CointegrationDeviation = CointegrationStandardDeviationMult.ValueDecimal;
             cointegrationIndicator.ReloadCointegration(candlesIndex, candlesSecurity, false);
 
             if (cointegrationIndicator.Cointegration == null

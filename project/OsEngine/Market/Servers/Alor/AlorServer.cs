@@ -15,7 +15,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
-using WebSocket4Net;
+using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -46,16 +46,20 @@ namespace OsEngine.Market.Servers.Alor
         public AlorServerRealization()
         {
             Thread worker = new Thread(ConnectionCheckThread);
-            worker.Name = "CheckAliveAlor";
+            worker.Name = "AlorCheckAlive";
             worker.Start();
 
             Thread worker2 = new Thread(DataMessageReader);
-            worker2.Name = "DataMessageReaderAlor";
+            worker2.Name = "AlorDataMessageReader";
             worker2.Start();
 
             Thread worker3 = new Thread(PortfolioMessageReader);
-            worker3.Name = "PortfolioMessageReaderAlor";
+            worker3.Name = "AlorPortfolioMessageReader";
             worker3.Start();
+
+            Thread worker4 = new Thread(KeepaliveUserDataStream);
+            worker4.Name = "AlorKeepaliveUserDataStream";
+            worker4.Start();
         }
 
         public void Connect()
@@ -1025,23 +1029,20 @@ namespace OsEngine.Market.Servers.Alor
                     WebSocketPortfolioMessage = new ConcurrentQueue<string>();
 
                     _webSocketData = new WebSocket(_wsHost);
-                    _webSocketData.EnableAutoSendPing = true;
-                    _webSocketData.AutoSendPingInterval = 10;
-                    _webSocketData.Opened += WebSocketData_Opened;
-                    _webSocketData.Closed += WebSocketData_Closed;
-                    _webSocketData.MessageReceived += WebSocketData_MessageReceived;
-                    _webSocketData.Error += WebSocketData_Error;
-                    _webSocketData.Open();
-
+                    _webSocketData.EmitOnPing = true;
+                    _webSocketData.OnOpen += WebSocketData_Opened;
+                    _webSocketData.OnClose += WebSocketData_Closed;
+                    _webSocketData.OnMessage += WebSocketData_MessageReceived;
+                    _webSocketData.OnError += WebSocketData_Error;
+                    _webSocketData.Connect();
 
                     _webSocketPortfolio = new WebSocket(_wsHost);
-                    _webSocketPortfolio.EnableAutoSendPing = true;
-                    _webSocketPortfolio.AutoSendPingInterval = 10;
-                    _webSocketPortfolio.Opened += _webSocketPortfolio_Opened;
-                    _webSocketPortfolio.Closed += _webSocketPortfolio_Closed;
-                    _webSocketPortfolio.MessageReceived += _webSocketPortfolio_MessageReceived;
-                    _webSocketPortfolio.Error += _webSocketPortfolio_Error;
-                    _webSocketPortfolio.Open();
+                    _webSocketPortfolio.EmitOnPing = true;
+                    _webSocketPortfolio.OnOpen += _webSocketPortfolio_Opened;
+                    _webSocketPortfolio.OnClose += _webSocketPortfolio_Closed;
+                    _webSocketPortfolio.OnMessage += _webSocketPortfolio_MessageReceived;
+                    _webSocketPortfolio.OnError += _webSocketPortfolio_Error;
+                    _webSocketPortfolio.Connect();
 
                 }
 
@@ -1062,7 +1063,7 @@ namespace OsEngine.Market.Servers.Alor
                     {
                         try
                         {
-                            _webSocketData.Close();
+                            _webSocketData.CloseAsync();
                         }
                         catch
                         {
@@ -1071,24 +1072,22 @@ namespace OsEngine.Market.Servers.Alor
 
                         try
                         {
-                            _webSocketPortfolio.Close();
+                            _webSocketPortfolio.CloseAsync();
                         }
                         catch
                         {
                             // ignore
                         }
 
-                        _webSocketData.Opened -= WebSocketData_Opened;
-                        _webSocketData.Closed -= WebSocketData_Closed;
-                        _webSocketData.MessageReceived -= WebSocketData_MessageReceived;
-                        _webSocketData.Error -= WebSocketData_Error;
-                        _webSocketData = null;
+                        _webSocketData.OnOpen -= WebSocketData_Opened;
+                        _webSocketData.OnClose -= WebSocketData_Closed;
+                        _webSocketData.OnMessage -= WebSocketData_MessageReceived;
+                        _webSocketData.OnError -= WebSocketData_Error;
 
-                        _webSocketPortfolio.Opened -= _webSocketPortfolio_Opened;
-                        _webSocketPortfolio.Closed -= _webSocketPortfolio_Closed;
-                        _webSocketPortfolio.MessageReceived -= _webSocketPortfolio_MessageReceived;
-                        _webSocketPortfolio.Error -= _webSocketPortfolio_Error;
-                        _webSocketPortfolio = null;
+                        _webSocketPortfolio.OnOpen -= _webSocketPortfolio_Opened;
+                        _webSocketPortfolio.OnClose -= _webSocketPortfolio_Closed;
+                        _webSocketPortfolio.OnMessage -= _webSocketPortfolio_MessageReceived;
+                        _webSocketPortfolio.OnError -= _webSocketPortfolio_Error;
                     }
                 }
             }
@@ -1099,6 +1098,7 @@ namespace OsEngine.Market.Servers.Alor
             finally
             {
                 _webSocketData = null;
+                _webSocketPortfolio = null;
             }
         }
 
@@ -1268,7 +1268,7 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void WebSocketData_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        private void WebSocketData_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             try
             {
@@ -1285,7 +1285,7 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void WebSocketData_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void WebSocketData_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -1293,16 +1293,16 @@ namespace OsEngine.Market.Servers.Alor
                 {
                     return;
                 }
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
-                if (e.Message.Length == 4)
+                if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
 
-                if (e.Message.StartsWith("{\"requestGuid"))
+                if (e.Data.StartsWith("{\"requestGuid"))
                 {
                     return;
                 }
@@ -1317,7 +1317,7 @@ namespace OsEngine.Market.Servers.Alor
                     return;
                 }
 
-                WebSocketDataMessage.Enqueue(e.Message);
+                WebSocketDataMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -1350,7 +1350,7 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void _webSocketPortfolio_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        private void _webSocketPortfolio_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             try
             {
@@ -1367,7 +1367,7 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void _webSocketPortfolio_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void _webSocketPortfolio_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -1375,16 +1375,16 @@ namespace OsEngine.Market.Servers.Alor
                 {
                     return;
                 }
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
-                if (e.Message.Length == 4)
+                if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
 
-                if (e.Message.StartsWith("{\"requestGuid"))
+                if (e.Data.StartsWith("{\"requestGuid"))
                 {
                     return;
                 }
@@ -1399,7 +1399,7 @@ namespace OsEngine.Market.Servers.Alor
                     return;
                 }
 
-                WebSocketPortfolioMessage.Enqueue(e.Message);
+                WebSocketPortfolioMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -1409,7 +1409,38 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 8 WebSocket Security subscrible
+        #region 8 WebSocket check alive
+
+        private void KeepaliveUserDataStream()
+        {
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(30000);
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        continue;
+                    }
+
+                    if (_webSocketData.Ping() == false &&
+                        _webSocketPortfolio.Ping() == false)
+                    {
+                        SendLogMessage("Alor connector. WARNING. Sockets Ping Pong not work. No internet or the server ALOR is not available", LogMessageType.Error);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        #endregion
+
+        #region 9 WebSocket Security subscrible
 
         private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
@@ -1480,7 +1511,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 9 WebSocket parsing the messages
+        #region 10 WebSocket parsing the messages
 
         private List<AlorSocketSubscription> _subscriptionsData = new List<AlorSocketSubscription>();
 
@@ -2097,7 +2128,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 10 Trade
+        #region 11 Trade
 
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
@@ -2770,7 +2801,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 11 Helpers
+        #region 12 Helpers
 
         public long ConvertToUnixTimestamp(DateTime date)
         {
@@ -2834,7 +2865,7 @@ namespace OsEngine.Market.Servers.Alor
 
         #endregion
 
-        #region 12 Log
+        #region 13 Log
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
