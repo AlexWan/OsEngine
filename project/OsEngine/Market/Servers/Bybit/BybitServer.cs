@@ -109,7 +109,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
 
             }
         }
@@ -171,7 +171,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -192,7 +192,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 catch (Exception ex)
                 {
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
             catch
@@ -401,7 +401,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -459,7 +459,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -502,7 +502,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 catch (Exception ex)
                 {
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
 
@@ -591,7 +591,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -787,7 +787,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
             return null;
         }
@@ -850,7 +850,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
             return null;
         }
@@ -911,7 +911,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
                 return trades;
             }
         }
@@ -1009,7 +1009,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -1062,7 +1062,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -1083,7 +1083,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -1118,7 +1118,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -1130,7 +1130,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -1181,7 +1181,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
 
         }
@@ -1201,7 +1201,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
 
 
@@ -1262,7 +1262,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 catch (Exception ex)
                 {
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
         }
@@ -1290,7 +1290,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 catch (Exception ex)
                 {
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
             webSocketPrivate = null;
@@ -1324,7 +1324,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                     catch (Exception ex)
                     {
-                        HandlerExeption(ex);
+                        HandlerException(ex);
                     }
 
                     if (webSocketPublicSpot.ReadyState == WebSocketState.Open)
@@ -1336,7 +1336,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
 
             _webSocketPublicSpot.Clear();
@@ -1365,7 +1365,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                     catch (Exception ex)
                     {
-                        HandlerExeption(ex);
+                        HandlerException(ex);
                     }
 
                     if (webSocketPublicLinear.ReadyState == WebSocketState.Open)
@@ -1378,7 +1378,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
 
             _webSocketPublicLinear.Clear();
@@ -1513,7 +1513,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
 
@@ -1614,7 +1614,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(3000);
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
         }
@@ -1678,7 +1678,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(3000);
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
         }
@@ -1728,7 +1728,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
         
@@ -1794,7 +1794,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
         }
       
@@ -1844,7 +1844,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
         }
@@ -1891,7 +1891,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
         }
@@ -2106,7 +2106,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
         }
@@ -2143,7 +2143,7 @@ namespace OsEngine.Market.Servers.Bybit
                 catch (Exception ex)
                 {
                     Thread.Sleep(5000);
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
             }
         }
@@ -2266,7 +2266,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
             }
          
         }
@@ -2858,7 +2858,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
                 return null;
             }
 
@@ -2884,7 +2884,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
                 return false;
             }
             return true;
@@ -2963,7 +2963,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
 
                 return null;
             }
@@ -3013,7 +3013,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
             catch (Exception ex)
             {
-                HandlerExeption(ex);
+                HandlerException(ex);
                 return null; 
             }
         }
@@ -3064,7 +3064,7 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 catch (Exception ex)
                 {
-                    HandlerExeption(ex);
+                    HandlerException(ex);
                 }
                 return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             }
@@ -3106,7 +3106,7 @@ namespace OsEngine.Market.Servers.Bybit
             LogMessageEvent?.Invoke(message, messageType);
         }
 
-        private void HandlerExeption(Exception exception, [CallerMemberName] string caller = "")
+        private void HandlerException(Exception exception, [CallerMemberName] string caller = "")
         {
             try
             {

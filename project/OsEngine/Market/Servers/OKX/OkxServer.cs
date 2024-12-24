@@ -10,9 +10,8 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.OKX.Entity;
 using OsEngine.Market.Servers.Entity;
-using WebSocket4Net;
+using WebSocketSharp;
 using System.Net.Http;
-using SuperSocket.ClientEngine;
 using OsEngine.Language;
 
 namespace OsEngine.Market.Servers.OKX
@@ -135,12 +134,12 @@ namespace OsEngine.Market.Servers.OKX
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _subscribledSecurities.Clear();
+                _subscribedSecurities.Clear();
                 DeleteWebSocketConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
                         
             FIFOListWebSocketPublicMessage = null;
@@ -236,11 +235,11 @@ namespace OsEngine.Market.Servers.OKX
 
         private List<Security> _securities = new List<Security>();
 
-        private void UpdatePairs(SecurityResponce securityResponce)
+        private void UpdatePairs(SecurityResponce securityResponse)
         {
-            for (int i = 0; i < securityResponce.data.Count; i++)
+            for (int i = 0; i < securityResponse.data.Count; i++)
             {
-                SecurityResponceItem item = securityResponce.data[i];
+                SecurityResponceItem item = securityResponse.data[i];
 
                 Security security = new Security();
 
@@ -338,7 +337,7 @@ namespace OsEngine.Market.Servers.OKX
         }
 
         public List<Candle> GetLastCandleHistoryRecursive(
-            Security security, TimeFrameBuilder timeFrameBuilder, int candleCount, int recurseNumber)
+            Security security, TimeFrameBuilder timeFrameBuilder, int candleCount, int countOfCalls)
         {
             try
             {
@@ -384,10 +383,10 @@ namespace OsEngine.Market.Servers.OKX
 
             }
 
-            if(recurseNumber < 5)
+            if(countOfCalls < 5)
             {
-                recurseNumber++;
-                return GetLastCandleHistoryRecursive(security, timeFrameBuilder, candleCount, recurseNumber);
+                countOfCalls++;
+                return GetLastCandleHistoryRecursive(security, timeFrameBuilder, candleCount, countOfCalls);
             }
 
             return null;
@@ -452,21 +451,21 @@ namespace OsEngine.Market.Servers.OKX
             return 100;
         }
 
-        private void ConvertCandles(CandlesResponce candlesResponce, List<Candle> candles)
+        private void ConvertCandles(CandlesResponce candlesResponse, List<Candle> candles)
         {
-            for (int j = 0; j < candlesResponce.data.Count; j++)
+            for (int j = 0; j < candlesResponse.data.Count; j++)
             {
                 Candle candle = new Candle();
                 try
                 {
-                    candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(candlesResponce.data[j][0]));
+                    candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(candlesResponse.data[j][0]));
 
-                    candle.Open = candlesResponce.data[j][1].ToDecimal();
-                    candle.High = candlesResponce.data[j][2].ToDecimal();
-                    candle.Low = candlesResponce.data[j][3].ToDecimal();
-                    candle.Close = candlesResponce.data[j][4].ToDecimal();
-                    candle.Volume = candlesResponce.data[j][5].ToDecimal();
-                    string VolCcy = candlesResponce.data[j][6];
+                    candle.Open = candlesResponse.data[j][1].ToDecimal();
+                    candle.High = candlesResponse.data[j][2].ToDecimal();
+                    candle.Low = candlesResponse.data[j][3].ToDecimal();
+                    candle.Close = candlesResponse.data[j][4].ToDecimal();
+                    candle.Volume = candlesResponse.data[j][5].ToDecimal();
+                    string VolCcy = candlesResponse.data[j][6];
 
                     candles.Add(candle);
                 }
@@ -653,13 +652,18 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 _webSocketPublic = new WebSocket(_webSocketUrlPublic);
-                _webSocketPublic.EnableAutoSendPing = true;
-                _webSocketPublic.AutoSendPingInterval = 10;
-                _webSocketPublic.Opened += WebSocketPublic_Opened;
-                _webSocketPublic.Closed += WebSocketPublic_Closed;
-                _webSocketPublic.MessageReceived += WebSocketPublic_MessageReceived;
-                _webSocketPublic.Error += WebSocketPublic_Error;
-                _webSocketPublic.Open();
+                _webSocketPublic.SslConfiguration.EnabledSslProtocols
+                    = System.Security.Authentication.SslProtocols.Ssl3
+                    | System.Security.Authentication.SslProtocols.Tls11
+                    | System.Security.Authentication.SslProtocols.Tls12
+                    | System.Security.Authentication.SslProtocols.Tls13
+                    | System.Security.Authentication.SslProtocols.Tls;
+                _webSocketPublic.EmitOnPing = true;
+                _webSocketPublic.OnOpen += WebSocketPublic_Opened;
+                _webSocketPublic.OnClose += WebSocketPublic_Closed;
+                _webSocketPublic.OnMessage += WebSocketPublic_MessageReceived;
+                _webSocketPublic.OnError += WebSocketPublic_Error;
+                _webSocketPublic.Connect();
 
                 if (_webSocketPrivate != null)
                 {
@@ -667,17 +671,22 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
-                _webSocketPrivate.EnableAutoSendPing = true;
-                _webSocketPrivate.AutoSendPingInterval = 10;
-                _webSocketPrivate.Opened += WebSocketPrivate_Opened;
-                _webSocketPrivate.Closed += WebSocketPrivate_Closed;
-                _webSocketPrivate.MessageReceived += WebSocketPrivate_MessageReceived;
-                _webSocketPrivate.Error += WebSocketPrivate_Error;
-                _webSocketPrivate.Open();
+                _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                    = System.Security.Authentication.SslProtocols.Ssl3
+                   | System.Security.Authentication.SslProtocols.Tls11
+                   | System.Security.Authentication.SslProtocols.Tls12
+                   | System.Security.Authentication.SslProtocols.Tls13
+                   | System.Security.Authentication.SslProtocols.Tls;
+                _webSocketPrivate.EmitOnPing = true;
+                _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
+                _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
+                _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
+                _webSocketPrivate.OnError += WebSocketPrivate_Error;
+                _webSocketPrivate.Connect();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -687,11 +696,11 @@ namespace OsEngine.Market.Servers.OKX
             {
                 try
                 {
-                    _webSocketPublic.Opened -= WebSocketPublic_Opened;
-                    _webSocketPublic.Closed -= WebSocketPublic_Closed;
-                    _webSocketPublic.MessageReceived -= WebSocketPublic_MessageReceived;
-                    _webSocketPublic.Error -= WebSocketPublic_Error;
-                    _webSocketPublic.Close();
+                    _webSocketPublic.OnOpen -= WebSocketPublic_Opened;
+                    _webSocketPublic.OnClose -= WebSocketPublic_Closed;
+                    _webSocketPublic.OnMessage -= WebSocketPublic_MessageReceived;
+                    _webSocketPublic.OnError -= WebSocketPublic_Error;
+                    _webSocketPublic.CloseAsync();
                 }
                 catch
                 {
@@ -705,11 +714,11 @@ namespace OsEngine.Market.Servers.OKX
             {
                 try
                 {
-                    _webSocketPrivate.Opened -= WebSocketPrivate_Opened;
-                    _webSocketPrivate.Closed -= WebSocketPrivate_Closed;
-                    _webSocketPrivate.MessageReceived -= WebSocketPrivate_MessageReceived;
-                    _webSocketPrivate.Error -= WebSocketPrivate_Error;
-                    _webSocketPrivate.Close();
+                    _webSocketPrivate.OnOpen -= WebSocketPrivate_Opened;
+                    _webSocketPrivate.OnClose -= WebSocketPrivate_Closed;
+                    _webSocketPrivate.OnMessage -= WebSocketPrivate_MessageReceived;
+                    _webSocketPrivate.OnError -= WebSocketPrivate_Error;
+                    _webSocketPrivate.CloseAsync();
                 }
                 catch
                 {
@@ -720,7 +729,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private string _socketActivateLocker = "socketAcvateLocker";
+        private string _socketActivateLocker = "socketActivateLocker";
 
         private void CheckSocketsActivate()
         {
@@ -740,7 +749,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void CreateAuthMessageWebSocekt()
+        private void CreateAuthMessageWebSockets()
         { 
             try
             {
@@ -831,7 +840,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPublic_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void WebSocketPublic_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -839,11 +848,11 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     return;
                 }
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
-                if (e.Message.Length == 4)
+                if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
@@ -853,7 +862,7 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                FIFOListWebSocketPublicMessage.Enqueue(e.Message);
+                FIFOListWebSocketPublicMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -861,11 +870,11 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPublic_Error(object sender, ErrorEventArgs error)
+        private void WebSocketPublic_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                string exception = error.Exception.ToString();
+                string exception = e.Exception.ToString();
 
                 if (exception.Contains("0x80004005")
                     || exception.Contains("no address was supplied"))
@@ -884,7 +893,7 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage("OKX WebSocket Private connection open", LogMessageType.System);
                 _privateSocketOpen = true;
                 CheckSocketsActivate();
-                CreateAuthMessageWebSocekt();
+                CreateAuthMessageWebSockets();
             }
             catch (Exception error)
             {
@@ -903,7 +912,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPrivate_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void WebSocketPrivate_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -911,18 +920,18 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     return;
                 }
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
-                if (e.Message.Length == 4)
+                if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
 
-                if (e.Message.Contains("login"))
+                if (e.Data.Contains("login"))
                 {
-                    SubscriblePrivate();
+                    SubscribePrivate();
                 }
 
                 if (FIFOListWebSocketPrivateMessage == null)
@@ -930,7 +939,7 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                FIFOListWebSocketPrivateMessage.Enqueue(e.Message);
+                FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -938,11 +947,11 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPrivate_Error(object sender, ErrorEventArgs error)
+        private void WebSocketPrivate_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                string exception = error.Exception.ToString();
+                string exception = e.Exception.ToString();
 
                 if(exception.Contains("0x80004005") 
                     || exception.Contains("no address was supplied"))
@@ -975,7 +984,7 @@ namespace OsEngine.Market.Servers.OKX
                     }
                                        
                     if (_webSocketPublic != null &&
-                    (_webSocketPublic.State == WebSocketState.Open)
+                    (_webSocketPublic.ReadyState == WebSocketState.Open)
                     )
                     {
                         if (TimeToSendPingPublic.AddSeconds(25) < DateTime.Now)
@@ -994,7 +1003,7 @@ namespace OsEngine.Market.Servers.OKX
                     }
                    
                     if (_webSocketPrivate != null &&
-                    (_webSocketPrivate.State == WebSocketState.Open)
+                    (_webSocketPrivate.ReadyState == WebSocketState.Open)
                     )
                     {
                         if (TimeToSendPingPrivate.AddSeconds(25) < DateTime.Now)
@@ -1025,25 +1034,25 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 9 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
-        private List<Security> _subscribledSecurities = new List<Security>();
+        private List<Security> _subscribedSecurities = new List<Security>();
 
         public void Subscrible(Security security)
         {
             try
             {
-                _rateGateSubscrible.WaitToProceed();
-                CreateSubscribleSecurityMessageWebSocket(security);
+                _rateGateSubscribe.WaitToProceed();
+                CreateSubscribeSecurityMessageWebSocket(security);
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
-        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        private void CreateSubscribeSecurityMessageWebSocket(Security security)
         {
             try
             {
@@ -1052,19 +1061,19 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    if (_subscribledSecurities[i].Name == security.Name
-                        && _subscribledSecurities[i].NameClass == security.NameClass)
+                    if (_subscribedSecurities[i].Name == security.Name
+                        && _subscribedSecurities[i].NameClass == security.NameClass)
                     {
                         return;
                     }
                 }
 
-                _subscribledSecurities.Add(security);
+                _subscribedSecurities.Add(security);
 
-                SubscribleTrades(security);
-                SubscribleDepths(security);
+                SubscribeTrades(security);
+                SubscribeDepths(security);
             }
             catch (Exception ex)
             {
@@ -1072,7 +1081,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public void SubscribleTrades(Security security)
+        public void SubscribeTrades(Security security)
         {           
             RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
             requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
@@ -1084,7 +1093,7 @@ namespace OsEngine.Market.Servers.OKX
             _webSocketPublic.Send(json);                      
         }
 
-        public void SubscribleDepths(Security security)
+        public void SubscribeDepths(Security security)
         {
             RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
             requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
@@ -1096,7 +1105,7 @@ namespace OsEngine.Market.Servers.OKX
             _webSocketPublic.Send(json);           
         }
 
-        private void SubscriblePrivate()
+        private void SubscribePrivate()
         {
             try
             {
@@ -1109,25 +1118,25 @@ namespace OsEngine.Market.Servers.OKX
                 _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
                 _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");                              
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
         }
 
         private void UnsubscribeFromAllWebSockets()
         {
             if (_webSocketPublic != null
-                && _webSocketPublic.State == WebSocketState.Open)
+                && _webSocketPublic.ReadyState == WebSocketState.Open)
             {
                 try
                 {
-                    if (_subscribledSecurities != null)
+                    if (_subscribedSecurities != null)
                     {
-                        for (int i = 0; i < _subscribledSecurities.Count; i++)
+                        for (int i = 0; i < _subscribedSecurities.Count; i++)
                         {
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{_subscribledSecurities[i].Name}\"}}]}}");
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{_subscribledSecurities[i].Name}\"}}]}}");                                                      
+                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{_subscribedSecurities[i].Name}\"}}]}}");
+                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{_subscribedSecurities[i].Name}\"}}]}}");                                                      
                         }
                     }
                 }
@@ -1138,7 +1147,7 @@ namespace OsEngine.Market.Servers.OKX
             }
 
             if (_webSocketPrivate != null 
-                && _webSocketPrivate.State == WebSocketState.Open)
+                && _webSocketPrivate.ReadyState == WebSocketState.Open)
             {
                 try
                 {
@@ -1206,9 +1215,9 @@ namespace OsEngine.Market.Servers.OKX
                         }
                     }                    
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(3000);
                 }
             }
@@ -1264,9 +1273,9 @@ namespace OsEngine.Market.Servers.OKX
                         }
                     }                   
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(3000);
                 }
             }
@@ -1688,6 +1697,7 @@ namespace OsEngine.Market.Servers.OKX
                 orderRequest.Add("ordType", "limit");
                 orderRequest.Add("px", order.Price.ToString().Replace(",", "."));
                 orderRequest.Add("sz", order.Volume.ToString().Replace(",", "."));
+                orderRequest.Add("tag", "5faf8b0e85c1BCDE");
 
                 string json = JsonConvert.SerializeObject(orderRequest);
 
@@ -1737,6 +1747,7 @@ namespace OsEngine.Market.Servers.OKX
                 orderRequest.Add("px", order.Price.ToString().Replace(",", "."));
                 orderRequest.Add("sz", order.Volume.ToString().Replace(",", "."));
                 orderRequest.Add("posSide", posSide);
+                orderRequest.Add("tag", "5faf8b0e85c1BCDE");
 
                 string json = JsonConvert.SerializeObject(orderRequest);
 
@@ -1807,7 +1818,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public void CancelAllOrders()
         {
-            List<Order> orders = GetActivOrders();
+            List<Order> orders = GetActiveOrders();
 
             if (orders == null)
             {
@@ -1822,7 +1833,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetActivOrders();
+            List<Order> orders = GetActiveOrders();
 
             if(orders == null)
             {
@@ -1869,7 +1880,7 @@ namespace OsEngine.Market.Servers.OKX
             UpdateOrder(contentStr);
         }
 
-        private List<Order> GetActivOrders()
+        private List<Order> GetActiveOrders()
         {
             try
             {
@@ -1913,18 +1924,18 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private RateGate _rateGateGenerateToTrate = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate _rateGateGenerateToTrade = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
-        private List<MyTrade> GenerateTradesToOrder(Order order, int SeriasCalls)
+        private List<MyTrade> GenerateTradesToOrder(Order order, int CountOfCalls)
         {
             try
             {
 
-                _rateGateGenerateToTrate.WaitToProceed();
+                _rateGateGenerateToTrade.WaitToProceed();
 
                 List<MyTrade> myTrades = new List<MyTrade>();
 
-                if (SeriasCalls >= 8)
+                if (CountOfCalls >= 8)
                 {
                     SendLogMessage($"Trade is not found to order: {order.NumberUser}", LogMessageType.Error);
                     return myTrades;
@@ -1949,11 +1960,11 @@ namespace OsEngine.Market.Servers.OKX
                     quotes.data == null ||
                     quotes.data.Count == 0)
                 {
-                    Thread.Sleep(500 * SeriasCalls);
+                    Thread.Sleep(500 * CountOfCalls);
 
-                    SeriasCalls++;
+                    CountOfCalls++;
 
-                    return GenerateTradesToOrder(order, SeriasCalls);
+                    return GenerateTradesToOrder(order, CountOfCalls);
                 }
 
                 CreateListTrades(myTrades, quotes);
