@@ -712,6 +712,11 @@
     <Compile Include="Market\Servers\IServerPermission.cs" />
     <Compile Include="Market\Servers\IServerRealization.cs" />
     <Compile Include="Market\Servers\Entity\RateGate.cs" />
+    <Compile Include="Market\Servers\KiteConnect\Json\DepthItem.cs" />
+    <Compile Include="Market\Servers\KiteConnect\Json\ResponseRestKite.cs" />
+    <Compile Include="Market\Servers\KiteConnect\Json\ResponseWebSocketKiteConnect.cs" />
+    <Compile Include="Market\Servers\KiteConnect\KiteConnectServer.cs" />
+    <Compile Include="Market\Servers\KiteConnect\KiteConnectServerPermission.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenClient.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\EnumerableExtensions.cs" />
     <Compile Include="Market\Servers\Kraken\KrakenEntity\KrakenOrder.cs" />
