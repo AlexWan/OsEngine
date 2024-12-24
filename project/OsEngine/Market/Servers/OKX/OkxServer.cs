@@ -655,6 +655,7 @@ namespace OsEngine.Market.Servers.OKX
                 _webSocketPublic.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Ssl3
                     | System.Security.Authentication.SslProtocols.Tls11
+                    | System.Security.Authentication.SslProtocols.None
                     | System.Security.Authentication.SslProtocols.Tls12
                     | System.Security.Authentication.SslProtocols.Tls13
                     | System.Security.Authentication.SslProtocols.Tls;
@@ -674,6 +675,7 @@ namespace OsEngine.Market.Servers.OKX
                 _webSocketPrivate.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Ssl3
                    | System.Security.Authentication.SslProtocols.Tls11
+                   | System.Security.Authentication.SslProtocols.None
                    | System.Security.Authentication.SslProtocols.Tls12
                    | System.Security.Authentication.SslProtocols.Tls13
                    | System.Security.Authentication.SslProtocols.Tls;
