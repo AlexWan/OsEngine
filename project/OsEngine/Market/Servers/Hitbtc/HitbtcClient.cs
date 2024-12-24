@@ -1026,7 +1026,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         }
 
         /// <summary>
-        /// send exeptions
+        /// send exceptions
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

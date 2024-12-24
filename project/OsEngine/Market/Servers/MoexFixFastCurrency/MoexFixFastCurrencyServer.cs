@@ -408,9 +408,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                     }
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage("Error delete sockets:" + exeption.ToString(), LogMessageType.Error);
+                SendLogMessage("Error delete sockets:" + exception.ToString(), LogMessageType.Error);
             }
             finally
             {
@@ -717,9 +717,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                     }
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -908,9 +908,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
                     _timeLastDataReceipt = DateTime.Now;
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -2441,9 +2441,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
                 fixMsgValues.Clear();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 Thread.Sleep(3000);
             }
         }

@@ -98,9 +98,9 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 _subscribledSecutiries.Clear();
                 DeleteWebscoektConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             _fifoListWebSocketMessage = new ConcurrentQueue<string>();
@@ -626,7 +626,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 try
                 {
-                    _webSocket.Close();
+                    _webSocket.CloseAsync();
                 }
                 catch
                 {
@@ -827,10 +827,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
         }

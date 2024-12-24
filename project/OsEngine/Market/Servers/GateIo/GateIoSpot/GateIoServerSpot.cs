@@ -106,9 +106,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 DeleteWebSocketConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             _fifoListWebSocketMessage = new ConcurrentQueue<string>();
@@ -790,9 +790,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 SubscribeOrders(security.Name);
                 SubscribeUserTrades(security.Name);
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1029,10 +1029,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1255,6 +1255,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 client.DefaultRequestHeaders.Add("KEY", key);
                 client.DefaultRequestHeaders.Add("SIGN", sign);
                 client.DefaultRequestHeaders.Add("Timestamp", timeStamp);
+                client.DefaultRequestHeaders.Add("X-Gate-Channel-Id", "osa");
 
                 response = client.PostAsync(fullUrl, content).Result;
             }

@@ -85,9 +85,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreateWebSocketConnection();
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. HTXFutures. Error request", LogMessageType.Error);
                     
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -134,9 +134,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
             {
                 DeleteWebscoektConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
@@ -564,7 +564,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
                     _webSocketPublic.OnError -= webSocketPublic_OnError;
                     _webSocketPublic.OnClose -= webSocketPublic_OnClose;
-                    _webSocketPublic.Close();
+                    _webSocketPublic.CloseAsync();
                 }
                 catch
                 {
@@ -581,7 +581,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
                     _webSocketPrivate.OnError -= webSocketPrivate_OnError;
                     _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
-                    _webSocketPrivate.Close();
+                    _webSocketPrivate.CloseAsync();
                 }
                 catch
                 {
@@ -771,9 +771,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 _rateGateSubscrible.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -830,16 +830,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
                             continue;
                         }
                     }
-                    catch (Exception exeption)
+                    catch (Exception exception)
                     {
-                        SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
                         SendLogMessage("message str: \n" + message, LogMessageType.Error);
                         Thread.Sleep(5000);
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -904,16 +904,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
                             continue;
                         }
                     }
-                    catch (Exception exeption)
+                    catch (Exception exception)
                     {
-                        SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
                         SendLogMessage("Message str: \n" + message, LogMessageType.Error);
                         Thread.Sleep(5000);
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }

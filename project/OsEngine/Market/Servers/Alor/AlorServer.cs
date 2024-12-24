@@ -1047,9 +1047,9 @@ namespace OsEngine.Market.Servers.Alor
                 }
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1089,7 +1089,7 @@ namespace OsEngine.Market.Servers.Alor
                     }
                 }
             }
-            catch (Exception exeption)
+            catch
             {
 
             }
@@ -1501,9 +1501,9 @@ namespace OsEngine.Market.Servers.Alor
                 _webSocketData.Send(messageMdSub);
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(),LogMessageType.Error);
+                SendLogMessage(exception.ToString(),LogMessageType.Error);
             }
         }
 
@@ -1575,9 +1575,9 @@ namespace OsEngine.Market.Servers.Alor
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -1739,9 +1739,9 @@ namespace OsEngine.Market.Servers.Alor
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }

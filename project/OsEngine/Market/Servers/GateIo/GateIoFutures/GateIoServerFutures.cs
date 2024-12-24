@@ -170,9 +170,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
                 DeleteWebsocketConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(),LogMessageType.Error);
+                SendLogMessage(exception.ToString(),LogMessageType.Error);
             }
 
             _fifoListWebSocketMessage = new ConcurrentQueue<string>();
@@ -954,9 +954,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 SubscribeOrders(security.Name);
                 SubscribeMyTrades(security.Name);
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1142,10 +1142,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
                     Thread.Sleep(5000);
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
         }

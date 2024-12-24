@@ -669,9 +669,9 @@ namespace OsEngine.Market.Servers.BitMart
                 }
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -716,7 +716,7 @@ namespace OsEngine.Market.Servers.BitMart
                     }
                 }
             }
-            catch (Exception exeption)
+            catch
             {
 
             }
@@ -1105,9 +1105,9 @@ namespace OsEngine.Market.Servers.BitMart
                 _webSocketData.Send(messageMdSub);
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(),LogMessageType.Error);
+                SendLogMessage(exception.ToString(),LogMessageType.Error);
             }
         }
 
@@ -1166,9 +1166,9 @@ namespace OsEngine.Market.Servers.BitMart
                     }
 
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(2000);
                 }
             }
@@ -1343,9 +1343,9 @@ namespace OsEngine.Market.Servers.BitMart
                     }
 
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(2000);
                 }
             }

@@ -68,9 +68,9 @@ namespace OsEngine.Market.Servers.Woo
                     _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreateWebSocketConnection();
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. Woo. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -104,9 +104,9 @@ namespace OsEngine.Market.Servers.Woo
             {
                 DeleteWebscoektConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
@@ -663,9 +663,9 @@ namespace OsEngine.Market.Servers.Woo
                 _rateGateSubscrible.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -724,17 +724,17 @@ namespace OsEngine.Market.Servers.Woo
                             continue;
                         }     
                     }
-                    catch (Exception exeption)
+                    catch (Exception exception)
                     {
-                        SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
                         SendLogMessage("message str: \n" + message, LogMessageType.Error);
                         Thread.Sleep(5000);
                     }
 
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -801,16 +801,16 @@ namespace OsEngine.Market.Servers.Woo
                             }
                         }      
                     }
-                    catch (Exception exeption)
+                    catch (Exception exception)
                     {
-                        SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
                         SendLogMessage("message str: \n" + message, LogMessageType.Error);
                         Thread.Sleep(5000);
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }

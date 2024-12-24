@@ -545,9 +545,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1046,7 +1046,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                 CloseMFIXTradeConnection();                
             }
-            catch (Exception exeption)
+            catch
             {
 
             }

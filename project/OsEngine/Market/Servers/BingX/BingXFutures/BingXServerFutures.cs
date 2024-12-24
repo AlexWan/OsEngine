@@ -710,6 +710,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             if (_webSocket != null)
             {
+                _webSocket.Opened -= WebSocket_Opened;
+                _webSocket.Closed -= WebSocket_Closed;
+                _webSocket.DataReceived -= WebSocket_DataReceived;
+                _webSocket.Error -= WebSocket_Error;
+
                 try
                 {
                     _webSocket.Close();
@@ -719,10 +724,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     // ignore
                 }
 
-                _webSocket.Opened -= WebSocket_Opened;
-                _webSocket.Closed -= WebSocket_Closed;
-                _webSocket.DataReceived -= WebSocket_DataReceived;
-                _webSocket.Error -= WebSocket_Error;
                 _webSocket = null;
             }
         }

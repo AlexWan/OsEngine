@@ -101,9 +101,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     }
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -122,9 +122,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 _subscribledSecutiries.Clear();
                 DeleteWebSocketConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             FIFOListWebSocketPublicMessage = null;
@@ -656,9 +656,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 _webSocketPrivate.OnError += WebSocketPrivate_Error;
                 _webSocketPrivate.Connect();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -980,9 +980,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 CreateSubscribleSecurityMessageWebSocket(security);
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1025,9 +1025,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"account\",\"coin\": \"default\"}}]}}");
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
         }
 
@@ -1153,9 +1153,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(3000);
                 }
             }
@@ -1240,9 +1240,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         }
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(3000);
                 }
             }

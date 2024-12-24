@@ -2284,9 +2284,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 CreateQuery(Method.DELETE, "/" + type_str_selector + "/v1/allOpenOrders", param, true);
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
         }
 
@@ -2438,9 +2438,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 return orderOnBoard;
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.Message, LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
             return null;
         }

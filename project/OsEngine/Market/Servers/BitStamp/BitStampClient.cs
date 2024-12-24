@@ -1030,7 +1030,7 @@ namespace OsEngine.Market.Servers.BitStamp
         }
 
         /// <summary>
-        /// send exeptions
+        /// send exceptions
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

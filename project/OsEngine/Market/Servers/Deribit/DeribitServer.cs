@@ -85,9 +85,9 @@ namespace OsEngine.Market.Servers.Deribit
                     FIFOListWebSocketMessage = new ConcurrentQueue<string>();
                     CreateWebSocketConnection();
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. Deribit. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -127,9 +127,9 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 DeleteWebscoektConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             FIFOListWebSocketMessage = new ConcurrentQueue<string>();            
@@ -650,9 +650,9 @@ namespace OsEngine.Market.Servers.Deribit
                 _rateGateSubscrible.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -756,17 +756,17 @@ namespace OsEngine.Market.Servers.Deribit
                             }
                         }
                     }
-                    catch (Exception exeption)
+                    catch (Exception exception)
                     {
-                        SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
                         SendLogMessage("message str: \n" + message, LogMessageType.Error);
                         Thread.Sleep(5000);
                     }
 
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }

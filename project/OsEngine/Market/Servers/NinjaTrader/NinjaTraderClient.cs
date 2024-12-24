@@ -1023,7 +1023,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
         }
 
         /// <summary>
-		/// send exeptions
+		/// send exceptions
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

@@ -112,8 +112,7 @@ namespace OsEngine.Market.Servers.Transaq
         {
             DateTime nowInMoscow = DateTime.Now.ToUniversalTime().AddHours(3);
 
-            if (nowInMoscow.Hour > 5 &&
-                nowInMoscow.Hour < 6)
+            if (nowInMoscow.Hour == 5)
             {
                 return;
             }

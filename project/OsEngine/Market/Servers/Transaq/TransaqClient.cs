@@ -663,7 +663,7 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         /// <summary>
-        /// send exeptions
+        /// send exceptions
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;

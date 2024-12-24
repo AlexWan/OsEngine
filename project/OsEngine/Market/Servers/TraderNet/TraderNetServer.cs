@@ -84,9 +84,9 @@ namespace OsEngine.Market.Servers.TraderNet
                     }
                 }
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 SendLogMessage("Connection can be open. TraderNet. Error request", LogMessageType.Error);
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -107,9 +107,9 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 DeleteWebSocketConnection();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
             _FIFOListWebSocketMessage = null;
@@ -641,9 +641,9 @@ namespace OsEngine.Market.Servers.TraderNet
                 _webSocket.OnError += WebSocket_Error;
                 _webSocket.Connect();
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -796,9 +796,9 @@ namespace OsEngine.Market.Servers.TraderNet
                 CreateSubscribeSecurityMessageWebSocket(security);
 
             }
-            catch (Exception exeption)
+            catch (Exception exception)
             {
-                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -914,9 +914,9 @@ namespace OsEngine.Market.Servers.TraderNet
                         continue;
                     }
                 }
-                catch (Exception exeption)
+                catch (Exception exception)
                 {
-                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(3000);
                 }
             }
