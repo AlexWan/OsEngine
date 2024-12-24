@@ -11,7 +11,7 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using WebSocket4Net;
+using WebSocketSharp;
 using System.Threading;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
@@ -91,7 +91,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             try
             {
                 _subscribledSecutiries.Clear();
-                DeleteWebscoektConnection();
+                DeleteWebSocketConnection();
             }
             catch (Exception exception)
             {
@@ -690,34 +690,40 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
             if (_listenKey == null)
             {
-                SendLogMessage("Autorization error. Listen key is note created", LogMessageType.Error);
+                SendLogMessage("Authorization error. Listen key is note created", LogMessageType.Error);
                 return;
             }
 
             string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
 
             _webSocket = new WebSocket(urlStr);
+            _webSocket.SslConfiguration.EnabledSslProtocols
+                = System.Security.Authentication.SslProtocols.Ssl3
+                | System.Security.Authentication.SslProtocols.Tls11
+                | System.Security.Authentication.SslProtocols.None
+                | System.Security.Authentication.SslProtocols.Tls12
+                | System.Security.Authentication.SslProtocols.Tls13
+                | System.Security.Authentication.SslProtocols.Tls;
+            _webSocket.OnOpen += WebSocket_Opened;
+            _webSocket.OnClose += WebSocket_Closed;
+            _webSocket.OnMessage += WebSocket_DataReceived;
+            _webSocket.OnError += WebSocket_Error;
 
-            _webSocket.Opened += WebSocket_Opened;
-            _webSocket.Closed += WebSocket_Closed;
-            _webSocket.DataReceived += WebSocket_DataReceived;
-            _webSocket.Error += WebSocket_Error;
-
-            _webSocket.Open();
+            _webSocket.Connect();
         }
 
-        private void DeleteWebscoektConnection()
+        private void DeleteWebSocketConnection()
         {
             if (_webSocket != null)
             {
-                _webSocket.Opened -= WebSocket_Opened;
-                _webSocket.Closed -= WebSocket_Closed;
-                _webSocket.DataReceived -= WebSocket_DataReceived;
-                _webSocket.Error -= WebSocket_Error;
+                _webSocket.OnOpen -= WebSocket_Opened;
+                _webSocket.OnClose -= WebSocket_Closed;
+                _webSocket.OnMessage -= WebSocket_DataReceived;
+                _webSocket.OnError -= WebSocket_Error;
 
                 try
                 {
-                    _webSocket.Close();
+                    _webSocket.CloseAsync();
                 }
                 catch
                 {
@@ -743,7 +749,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        private void WebSocket_Error(object sender, ErrorEventArgs e)
+        private void WebSocket_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -766,7 +772,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        private void WebSocket_DataReceived(object sender, DataReceivedEventArgs e)
+        private void WebSocket_DataReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -780,7 +786,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     return;
                 }
 
-                if (string.IsNullOrEmpty(e.ToString()))
+                if (e.RawData == null 
+                    || e.RawData.Length == 0)
                 {
                     return;
                 }
@@ -790,17 +797,15 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     return;
                 }
 
-                if (e.Data is byte[])
-                {
-                    string item = Decompress(e.Data);
+                string item = Decompress(e.RawData);
 
-                    if (item.Contains("Ping")) // отправлять сразу после получения. 
-                    {
-                        _webSocket.Send("Pong");
-                        return;
-                    }
-                    _fifoListWebSocketMessage.Enqueue(item);
+                if (item.Contains("Ping")) // отправлять сразу после получения. 
+                {
+                    _webSocket.Send("Pong");
+                    return;
                 }
+                _fifoListWebSocketMessage.Enqueue(item);
+
             }
             catch (Exception exception)
             {
@@ -1643,9 +1648,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         private const string _baseUrl = "https://open-api.bingx.com";
 
         private readonly HttpClient _httpPublicClient = new HttpClient();
-
-
-        private RateGate _createListenKeyRateGate = new RateGate(10, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
 
         private string CreateListenKey()
         {
