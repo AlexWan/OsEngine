@@ -110,6 +110,14 @@ namespace OsEngine.Market.Servers.Transaq
 
         public void Connect()
         {
+            DateTime nowInMoscow = DateTime.Now.ToUniversalTime().AddHours(3);
+
+            if (nowInMoscow.Hour > 5 &&
+                nowInMoscow.Hour < 6)
+            {
+                return;
+            }
+
             _client = new TransaqClient(((ServerParameterString)ServerParameters[0]).Value,
                 ((ServerParameterPassword)ServerParameters[1]).Value,
                 ((ServerParameterString)ServerParameters[2]).Value,
