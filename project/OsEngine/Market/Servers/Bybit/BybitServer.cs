@@ -379,6 +379,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 List<Security> securities = new List<Security>();
                 Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs.Add("limit", "1000");
                 parametrs.Add("category", Category.spot);
 
                 JToken sec = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
@@ -409,32 +410,18 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                List<string> spotFilter = new List<string>();
-                spotFilter.Add("USDT");
-                spotFilter.Add("USDC");
-                spotFilter.Add("BTC");
-                spotFilter.Add("ETH");  // остальное неторгуемые инструменты 
-
-
                 for (int i = 0; i < symbols.result.list.Count - 1; i++)
                 {
                     Symbols oneSec = symbols.result.list[i];
 
                     if (oneSec.status.ToLower() == "trading")
                     {
-                        if (category == Category.spot 
-                            && !spotFilter.Exists((f) => f == oneSec.quoteCoin))
-                        {
-                            continue;
-                        }
-
                         Security security = new Security();
                         int.TryParse(oneSec.priceScale, out int ps);
                         security.Decimals = ps;
                         security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.minOrderQty);
                         security.Name = oneSec.symbol + (category == Category.linear ? ".P" : "");
                         security.NameFull = oneSec.symbol;
-                        security.NameClass = category == Category.spot ? oneSec.quoteCoin : oneSec.contractType;
                         security.NameId = oneSec.symbol;
 
                         if(category == Category.linear)
@@ -445,6 +432,28 @@ namespace OsEngine.Market.Servers.Bybit
                         {
                             security.SecurityType = SecurityType.CurrencyPair;
                         }
+
+                        if(category == Category.spot)
+                        {
+                            security.NameClass = oneSec.quoteCoin;
+                        }
+                        else if(category == Category.linear)
+                        {
+                            if(security.NameFull.EndsWith("PERP"))
+                            {
+                                security.NameClass = oneSec.contractType + "_PERP";
+                            }
+                            else
+                            {
+                                security.NameClass = oneSec.contractType;
+                            }
+                        }
+                        else
+                        {
+                            security.NameClass = oneSec.contractType;
+                        }
+                     
+
 
                         security.PriceStep = oneSec.priceFilter.tickSize.ToDecimal();
                         security.PriceStepCost = oneSec.priceFilter.tickSize.ToDecimal();
