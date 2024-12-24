@@ -17,7 +17,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
-using WebSocket4Net;
+using WebSocketSharp;
 
 
 namespace OsEngine.Market.Servers.BitMex
@@ -100,7 +100,7 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 _subscribedSec.Clear();
                 _depths.Clear();
-                DeleteWebsocketConnection();
+                DeleteWebSocketConnection();
             }
             catch (Exception exception)
             {
@@ -929,34 +929,41 @@ namespace OsEngine.Market.Servers.BitMex
                 return;
             }
             _webSocket = new WebSocket(_serverAdress);
-            _webSocket.EnableAutoSendPing = true;
-            _webSocket.AutoSendPingInterval = 10;
+            _webSocket.SslConfiguration.EnabledSslProtocols
+                = System.Security.Authentication.SslProtocols.Ssl3
+                | System.Security.Authentication.SslProtocols.Tls11
+                | System.Security.Authentication.SslProtocols.None
+                | System.Security.Authentication.SslProtocols.Tls12
+                | System.Security.Authentication.SslProtocols.Tls13
+                | System.Security.Authentication.SslProtocols.Tls;
+            _webSocket.EmitOnPing = true;
 
-            _webSocket.Opened += _webSocket_Opened;
-            _webSocket.Closed += _webSocket_Closed;
-            _webSocket.MessageReceived += _webSocket_MessageReceived;
-            _webSocket.Error += _webSocket_Error;
+            _webSocket.OnOpen += _webSocket_Opened;
+            _webSocket.OnClose += _webSocket_Closed;
+            _webSocket.OnMessage += _webSocket_MessageReceived;
+            _webSocket.OnError += _webSocket_Error;
 
-            _webSocket.Open();
+            _webSocket.Connect();
         }
 
-        private void DeleteWebsocketConnection()
+        private void DeleteWebSocketConnection()
         {
             if (_webSocket != null)
             {
+                _webSocket.OnOpen -= _webSocket_Opened;
+                _webSocket.OnClose -= _webSocket_Closed;
+                _webSocket.OnMessage -= _webSocket_MessageReceived;
+                _webSocket.OnError -= _webSocket_Error;
+
                 try
                 {
-                    _webSocket.Close();
+                    _webSocket.CloseAsync();
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocket.Opened -= _webSocket_Opened;
-                _webSocket.Closed -= _webSocket_Closed;
-                _webSocket.MessageReceived -= _webSocket_MessageReceived;
-                _webSocket.Error -= _webSocket_Error;
                 _webSocket = null;
             }
         }
@@ -974,17 +981,15 @@ namespace OsEngine.Market.Servers.BitMex
 
         #region 7 WebSocket events
 
-        private void _webSocket_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        private void _webSocket_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            SuperSocket.ClientEngine.ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
-
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
-        private void _webSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void _webSocket_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -993,12 +998,13 @@ namespace OsEngine.Market.Servers.BitMex
                     return;
                 }
 
-                if (e == null)
+                if (e == null
+                    || e.Data == null)
                 {
                     return;
                 }
 
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
@@ -1008,7 +1014,7 @@ namespace OsEngine.Market.Servers.BitMex
                     return;
                 }
 
-                _fifoListWebSocketMessage.Enqueue(e.Message);
+                _fifoListWebSocketMessage.Enqueue(e.Data);
             }
             catch (Exception exception)
             {
@@ -1034,7 +1040,7 @@ namespace OsEngine.Market.Servers.BitMex
 
             if (ServerStatus != ServerConnectStatus.Connect
                 && _webSocket != null
-                && _webSocket.State == WebSocketState.Open)
+                && _webSocket.ReadyState == WebSocketState.Open)
             {
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent();
@@ -1065,8 +1071,8 @@ namespace OsEngine.Market.Servers.BitMex
                         continue;
                     }
 
-                    if (_webSocket != null && _webSocket.State == WebSocketState.Open ||
-                        _webSocket.State == WebSocketState.Connecting)
+                    if (_webSocket != null && _webSocket.ReadyState == WebSocketState.Open ||
+                        _webSocket.ReadyState == WebSocketState.Connecting)
                     {
                         if (_timeLastSendPing.AddSeconds(25) < DateTime.Now)
                         {
