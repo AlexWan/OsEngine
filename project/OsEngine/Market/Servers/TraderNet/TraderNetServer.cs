@@ -12,7 +12,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
+using WebSocketSharp;
 using System.Collections;
 
 namespace OsEngine.Market.Servers.TraderNet
@@ -626,13 +626,20 @@ namespace OsEngine.Market.Servers.TraderNet
                 }
 
                 string url = _webSocketUrl + $"/?SID={_sid}";
-
-                _webSocket = new WebSocket(url);                
-                _webSocket.Opened += WebSocket_Opened;
-                _webSocket.Closed += WebSocket_Closed;
-                _webSocket.MessageReceived += WebSocket_MessageReceived;
-                _webSocket.Error += WebSocket_Error;
-                _webSocket.Open();
+                
+                _webSocket = new WebSocket(url);
+                _webSocket.SslConfiguration.EnabledSslProtocols
+                    = System.Security.Authentication.SslProtocols.Ssl3
+                   | System.Security.Authentication.SslProtocols.Tls11
+                   | System.Security.Authentication.SslProtocols.Tls12
+                   | System.Security.Authentication.SslProtocols.Tls13
+                   | System.Security.Authentication.SslProtocols.Tls;
+                _webSocket.EmitOnPing = true;
+                _webSocket.OnOpen += WebSocket_Opened;
+                _webSocket.OnClose += WebSocket_Closed;
+                _webSocket.OnMessage += WebSocket_MessageReceived;
+                _webSocket.OnError += WebSocket_Error;
+                _webSocket.Connect();
             }
             catch (Exception exeption)
             {
@@ -646,11 +653,11 @@ namespace OsEngine.Market.Servers.TraderNet
             {
                 try
                 {
-                    _webSocket.Opened -= WebSocket_Opened;
-                    _webSocket.Closed -= WebSocket_Closed;
-                    _webSocket.MessageReceived -= WebSocket_MessageReceived;
-                    _webSocket.Error -= WebSocket_Error;
-                    _webSocket.Close();
+                    _webSocket.OnOpen -= WebSocket_Opened;
+                    _webSocket.OnClose -= WebSocket_Closed;
+                    _webSocket.OnMessage -= WebSocket_MessageReceived;
+                    _webSocket.OnError -= WebSocket_Error;
+                    _webSocket.CloseAsync();
                 }
                 catch
                 {
@@ -710,7 +717,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void WebSocket_MessageReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -718,7 +725,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 {
                     return;
                 }
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
@@ -732,7 +739,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     return;
                 }
 
-                _FIFOListWebSocketMessage.Enqueue(e.Message);
+                _FIFOListWebSocketMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -740,11 +747,11 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private void WebSocket_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs error)
+        private void WebSocket_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
