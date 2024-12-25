@@ -65,6 +65,7 @@ using OsEngine.Market.Servers.MoexFixFastCurrency;
 using OsEngine.Market.Servers.MoexFixFastTwimeFutures;
 using OsEngine.Market.Servers.TraderNet;
 using OsEngine.Market.Servers.Mexc;
+using OsEngine.Market.Servers.KiteConnect;
 
 namespace OsEngine.Market
 {
@@ -215,7 +216,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
                 serverTypes.Add(ServerType.TraderNet);
                 serverTypes.Add(ServerType.Mexc);
-
+                serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.AstsBridge);
 
 
@@ -317,6 +318,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitGetSpot);
                 serverTypes.Add(ServerType.BitGetFutures);
                 serverTypes.Add(ServerType.TraderNet);
+                serverTypes.Add(ServerType.KiteConnect);
 
                 return serverTypes;
             }
@@ -609,6 +611,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Mexc)
                 {
                     newServer = new MexcServer();
+                }
+                else if (type == ServerType.KiteConnect)
+                {
+                    newServer = new KiteConnectServer();
                 }
 
                 if (newServer == null)
@@ -1226,6 +1232,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new MexcServerPermission();
                 }
+                else if (type == ServerType.KiteConnect)
+                {
+                    serverPermission = new KiteConnectServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1679,5 +1689,10 @@ namespace OsEngine.Market
         /// Mexc Spot
         /// </summary>
         Mexc,
+
+        /// <summary>
+        /// Mexc Spot
+        /// </summary>
+        KiteConnect,
     }
 }
