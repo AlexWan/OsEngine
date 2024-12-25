@@ -1210,6 +1210,12 @@ namespace OsEngine.OsData
                 DataPie newPie = new DataPie(_pathMyTempPieInTfFolder);
                 newPie.Start = timeStart;
                 newPie.End = timeNow;
+
+                if(newPie.End > TimeEnd)
+                {
+                    newPie.End = TimeEnd;
+                }
+
                 newPie.LoadPieSettings();
 
                 if (newPie.End > DateTime.Now.AddDays(1))
