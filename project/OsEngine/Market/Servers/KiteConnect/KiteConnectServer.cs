@@ -1188,11 +1188,11 @@ namespace OsEngine.Market.Servers.KiteConnect
 
             Trade trade = new Trade();
 
-            Security security = GetNameSecurity(instrumentToken.ToString());
+            Security securityTrade = GetNameSecurity(instrumentToken.ToString());
 
-            if (security != null)
+            if (securityTrade != null)
             {
-                trade.SecurityNameCode = security.Name;
+                trade.SecurityNameCode = securityTrade.Name;
             }
 
             trade.Id = instrumentToken.ToString();
@@ -1207,7 +1207,14 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
 
             MarketDepth depth = new MarketDepth();
-            depth.SecurityNameCode = security.Name;
+
+            Security securityDepth = GetNameSecurity(instrumentToken.ToString());
+
+            if (securityDepth != null)
+            {
+                depth.SecurityNameCode = securityDepth.Name;
+            }
+            
             depth.Time = Timestamp;
 
             Bids = new DepthItem[5];
