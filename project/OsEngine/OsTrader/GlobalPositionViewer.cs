@@ -69,6 +69,11 @@ namespace OsEngine.OsTrader
                     _journals = new List<Journal.Journal>();
                 }
 
+                if(journal == null)
+                {
+                    return;
+                }
+
                 for(int i = 0;i < _journals.Count;i++)
                 {
                     if(_journals[i].Name == journal.Name)

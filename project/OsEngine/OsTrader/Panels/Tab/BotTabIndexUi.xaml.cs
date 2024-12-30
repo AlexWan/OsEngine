@@ -98,6 +98,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxDepth.Text = spread.CalculationDepth.ToString();
             TextBoxDepth.TextChanged += TextBoxDepth_TextChanged;
 
+            CheckBoxPercentNormalization.IsChecked = spread.PercentNormalization;
 
             CheckDayComboBox();
             CheckHourComboBox();
@@ -121,6 +122,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             LabelIndexMultType.Content = OsLocalization.Trader.Label383;
             LabelDaysLookBackInBuilding.Content = OsLocalization.Trader.Label384;
 
+            CheckBoxPercentNormalization.Content = OsLocalization.Trader.Label431;
+            CheckBoxPercentNormalization.Click += CheckBoxPercentNormalization_Click;
             ButtonRebuildFormulaNow.Content = OsLocalization.Trader.Label385;
 
             this.Closed += BotTabIndexUi_Closed;
@@ -131,6 +134,33 @@ namespace OsEngine.OsTrader.Panels.Tab
             worker.Name = "BotTabIndexPricePainter";
             worker.Start();
         }
+
+        private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
+        {
+            _windowIsClosed = true;
+
+            ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
+            ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
+            ComboBoxHourInDayToRebuildIndex.SelectionChanged -= ComboBoxHourInDayToRebuildIndex_SelectionChanged;
+            CheckBoxWriteLogMessageOnRebuild.Click -= CheckBoxWriteLogMessageOnRebuild_Click;
+            ComboBoxIndexSortType.SelectionChanged -= ComboBoxIndexSortType_SelectionChanged;
+            ComboBoxIndexSecCount.SelectionChanged -= ComboBoxIndexSecCount_SelectionChanged;
+            ComboBoxIndexMultType.SelectionChanged -= ComboBoxIndexMultType_SelectionChanged;
+            ComboBoxDaysLookBackInBuilding.SelectionChanged -= ComboBoxDaysLookBackInBuilding_SelectionChanged;
+            ButtonRebuildFormulaNow.Click -= ButtonRebuildFormulaNow_Click;
+
+            _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
+            _sourcesGrid.CellClick -= _sourcesGrid_CellClick;
+
+            this.Closed -= BotTabIndexUi_Closed;
+
+            DataGridFactory.ClearLinks(_sourcesGrid);
+            _sourcesGrid.Rows.Clear();
+            _sourcesGrid = null;
+            _spread = null;
+        }
+
+        private bool _windowIsClosed;
 
         private void TextBoxDepth_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
@@ -153,6 +183,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             catch
             {
                 TextBoxDepth.Text = _spread.CalculationDepth.ToString();
+            }
+        }
+
+        private void CheckBoxPercentNormalization_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _spread.PercentNormalization = CheckBoxPercentNormalization.IsChecked.Value;
+                _spread.Save();
+            }
+            catch
+            {
+                // ignore
             }
         }
 
@@ -267,33 +310,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         public bool IndexOrSourcesChanged = false;
-
-        private void BotTabIndexUi_Closed(object sender, System.EventArgs e)
-        {
-            _windowIsClosed = true;
-
-            ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
-            ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
-            ComboBoxHourInDayToRebuildIndex.SelectionChanged -= ComboBoxHourInDayToRebuildIndex_SelectionChanged;
-            CheckBoxWriteLogMessageOnRebuild.Click -= CheckBoxWriteLogMessageOnRebuild_Click;
-            ComboBoxIndexSortType.SelectionChanged -= ComboBoxIndexSortType_SelectionChanged;
-            ComboBoxIndexSecCount.SelectionChanged -= ComboBoxIndexSecCount_SelectionChanged;
-            ComboBoxIndexMultType.SelectionChanged -= ComboBoxIndexMultType_SelectionChanged;
-            ComboBoxDaysLookBackInBuilding.SelectionChanged -= ComboBoxDaysLookBackInBuilding_SelectionChanged;
-            ButtonRebuildFormulaNow.Click -= ButtonRebuildFormulaNow_Click;
-
-            _sourcesGrid.CellDoubleClick -= Grid1CellValueChangeClick;
-            _sourcesGrid.CellClick -= _sourcesGrid_CellClick;
-
-            this.Closed -= BotTabIndexUi_Closed;
-
-            DataGridFactory.ClearLinks(_sourcesGrid);
-            _sourcesGrid.Rows.Clear();
-            _sourcesGrid = null;
-            _spread = null;
-        }
-
-        private bool _windowIsClosed;
 
         private BotTabIndex _spread;
 
@@ -591,7 +607,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ButtonRebuildFormulaNow_Click(object sender, RoutedEventArgs e)
         {
-            _spread.AutoFormulaBuilder.RebuildHard();
+            _spread.AutoFormulaBuilder.RebuildHard(_spread.PercentNormalization);
             TextboxUserFormula.Text = _spread.UserFormula;
 
             ReloadSecurityTable();
@@ -671,5 +687,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             }
         }
+
     }
 }

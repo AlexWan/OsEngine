@@ -1624,5 +1624,8 @@ namespace OsEngine.Language
           "Eng:Program unlock window_" +
           "Ru:Окно разблокировки программы_");
 
+        public string Label431 => OsLocalization.ConvertToLocString(
+         "Eng:Normalize in %_" +
+         "Ru:Нормализовать в %_");
     }
 }
