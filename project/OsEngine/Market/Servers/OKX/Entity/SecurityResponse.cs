@@ -3,14 +3,14 @@
 
 namespace OsEngine.Market.Servers.OKX.Entity
 {
-    public class SecurityResponce
+    public class SecurityResponse
     {
         public string code;
-        public List<SecurityResponceItem> data;
+        public List<SecurityResponseItem> data;
     }
 
 
-    public class SecurityResponceItem
+    public class SecurityResponseItem
     {
         public string alias;
         public string baseCcy;

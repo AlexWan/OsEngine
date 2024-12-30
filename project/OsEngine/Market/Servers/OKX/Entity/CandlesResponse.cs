@@ -3,7 +3,7 @@
 
 namespace OsEngine.Market.Servers.OKX.Entity
 {
-    public class CandlesResponce
+    public class CandlesResponse
     {
         public string code;
         public string msg;
