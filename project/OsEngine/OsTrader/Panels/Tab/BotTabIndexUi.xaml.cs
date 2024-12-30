@@ -607,7 +607,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ButtonRebuildFormulaNow_Click(object sender, RoutedEventArgs e)
         {
-            _spread.AutoFormulaBuilder.RebuildHard(_spread.PercentNormalization);
+            _spread.RebuildHard();
             TextboxUserFormula.Text = _spread.UserFormula;
 
             ReloadSecurityTable();
