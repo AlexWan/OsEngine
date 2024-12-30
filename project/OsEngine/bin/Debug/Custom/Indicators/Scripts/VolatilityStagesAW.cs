@@ -227,6 +227,13 @@ namespace OsEngine.Indicators
                     break;
                 }
 
+                if (i >= _seriesSmaSlow.Values.Count
+                    || i >= _seriesUpChannel.Values.Count
+                    || i >= _seriesDownChannel.Values.Count)
+                {
+                    continue;
+                }
+
                 _seriesSmaSlow.Values[i] = valueSma;
                 _seriesUpChannel.Values[i] = Math.Round(valueSma + valueSma * _channelDeviation.ValueDecimal, 5);
                 _seriesDownChannel.Values[i] = Math.Round(valueSma - valueSma * _channelDeviation.ValueDecimal, 5);
