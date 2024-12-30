@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string ts;
     }
 
-    public class ResponseWebSocketMessageSubscrible
+    public class ResponseWebSocketMessageSubscribe
     {
         public string Event;
         public string code;

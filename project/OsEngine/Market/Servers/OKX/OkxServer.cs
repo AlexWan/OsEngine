@@ -65,9 +65,9 @@ namespace OsEngine.Market.Servers.OKX
 
         public void Connect()
         {
-            PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
-            SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-            Password = ((ServerParameterPassword)ServerParameters[2]).Value;
+            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _password = ((ServerParameterPassword)ServerParameters[2]).Value;
 
             if (((ServerParameterEnum)ServerParameters[3]).Value == "On")
             {
@@ -162,11 +162,11 @@ namespace OsEngine.Market.Servers.OKX
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private string PublicKey;
+        private string _publicKey;
 
-        private string SecretKey;
+        private string _secretKey;
 
-        private string Password;
+        private string _password;
 
         private string _baseUrl = "https://www.okx.com";
 
@@ -186,10 +186,10 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                SecurityResponce securityResponceFutures = GetFuturesSecurities();
-                SecurityResponce securityResponceSpot = GetSpotSecurities();
-                securityResponceFutures.data.AddRange(securityResponceSpot.data);
-                UpdatePairs(securityResponceFutures);
+                SecurityResponse securityResponseFutures = GetFuturesSecurities();
+                SecurityResponse securityResponseSpot = GetSpotSecurities();
+                securityResponseFutures.data.AddRange(securityResponseSpot.data);
+                UpdatePairs(securityResponseFutures);
             }
             catch (Exception error)
             {
@@ -202,7 +202,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private SecurityResponce GetFuturesSecurities()
+        private SecurityResponse GetFuturesSecurities()
         {
             HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SWAP").Result;
 
@@ -213,12 +213,12 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage($"GetFuturesSecurities - {json}", LogMessageType.Error);
             }
 
-            SecurityResponce securityResponce = JsonConvert.DeserializeAnonymousType(json, new SecurityResponce());
+            SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
 
-            return securityResponce;
+            return securityResponse;
         }
 
-        private SecurityResponce GetSpotSecurities()
+        private SecurityResponse GetSpotSecurities()
         {
             HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SPOT").Result;
             string json = response.Content.ReadAsStringAsync().Result;
@@ -228,18 +228,18 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage($"GetSpotSecurities - {json}", LogMessageType.Error);
             }
 
-            SecurityResponce securityResponce = JsonConvert.DeserializeAnonymousType(json, new SecurityResponce());
+            SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
 
-            return securityResponce;
+            return securityResponse;
         }
 
         private List<Security> _securities = new List<Security>();
 
-        private void UpdatePairs(SecurityResponce securityResponse)
+        private void UpdatePairs(SecurityResponse securityResponse)
         {
             for (int i = 0; i < securityResponse.data.Count; i++)
             {
-                SecurityResponceItem item = securityResponse.data[i];
+                SecurityResponseItem item = securityResponse.data[i];
 
                 Security security = new Security();
 
@@ -343,21 +343,21 @@ namespace OsEngine.Market.Servers.OKX
             {
                 _rateGateCandles.WaitToProceed();
 
-                CandlesResponce securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
+                CandlesResponse securityResponse = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
 
-                if (securityResponce == null)
+                if (securityResponse == null)
                 {
-                    securityResponce = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
+                    securityResponse = GetResponseCandles(security.Name, timeFrameBuilder.TimeFrameTimeSpan);
                 }
 
-                if (securityResponce == null)
+                if (securityResponse == null)
                 {
                     return null;
                 }
 
                 List<Candle> candles = new List<Candle>();
 
-                ConvertCandles(securityResponce, candles);
+                ConvertCandles(securityResponse, candles);
 
                 if (candles == null ||
                    candles.Count == 0)
@@ -392,15 +392,15 @@ namespace OsEngine.Market.Servers.OKX
             return null;
         }
 
-        private CandlesResponce GetResponseCandles(string nameSec, TimeSpan tf)
+        private CandlesResponse GetResponseCandles(string nameSec, TimeSpan tf)
         {
 
             int NumberCandlesToLoad = GetCountCandlesToLoad();
 
             string bar = GetStringBar(tf);
 
-            CandlesResponce candlesResponce = new CandlesResponce();
-            candlesResponce.data = new List<List<string>>();
+            CandlesResponse candlesResponse = new CandlesResponse();
+            candlesResponse.data = new List<List<string>>();
 
             do
             {
@@ -412,18 +412,18 @@ namespace OsEngine.Market.Servers.OKX
 
                 string after = String.Empty;
 
-                if (candlesResponce.data.Count != 0)
+                if (candlesResponse.data.Count != 0)
                 {
-                    after = $"&after={candlesResponce.data[candlesResponce.data.Count - 1][0]}";
+                    after = $"&after={candlesResponse.data[candlesResponse.data.Count - 1][0]}";
                 }
 
                 string url = _baseUrl + $"/api/v5/market/history-candles?instId={nameSec}&bar={bar}&limit={limit}" + after;
 
-                HttpResponseMessage responce = _httpClient.GetAsync(url).Result;
-                string json = responce.Content.ReadAsStringAsync().Result;
-                candlesResponce.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponce()).data);
+                HttpResponseMessage Response = _httpClient.GetAsync(url).Result;
+                string json = Response.Content.ReadAsStringAsync().Result;
+                candlesResponse.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponse()).data);
 
-                if (responce.StatusCode != HttpStatusCode.OK)
+                if (Response.StatusCode != HttpStatusCode.OK)
                 {
                     SendLogMessage($"GetResponseCandles - {json}", LogMessageType.Error);
                 }
@@ -432,7 +432,7 @@ namespace OsEngine.Market.Servers.OKX
 
             } while (NumberCandlesToLoad > 0);
 
-            return candlesResponce;
+            return candlesResponse;
         }
 
         private int GetCountCandlesToLoad()
@@ -451,7 +451,7 @@ namespace OsEngine.Market.Servers.OKX
             return 100;
         }
 
-        private void ConvertCandles(CandlesResponce candlesResponse, List<Candle> candles)
+        private void ConvertCandles(CandlesResponse candlesResponse, List<Candle> candles)
         {
             for (int j = 0; j < candlesResponse.data.Count; j++)
             {
@@ -545,23 +545,23 @@ namespace OsEngine.Market.Servers.OKX
 
         public List<Candle> GetCandleDataHistory(string nameSec, TimeSpan tf, int NumberCandlesToLoad, long DataEnd)
         {
-            CandlesResponce securityResponce = GetResponseDataCandles(nameSec, tf, NumberCandlesToLoad, DataEnd);
+            CandlesResponse securityResponse = GetResponseDataCandles(nameSec, tf, NumberCandlesToLoad, DataEnd);
 
             List<Candle> candles = new List<Candle>();
 
-            ConvertCandles(securityResponce, candles);
+            ConvertCandles(securityResponse, candles);
 
             candles.Reverse();
 
             return candles;
         }
 
-        private CandlesResponce GetResponseDataCandles(string nameSec, TimeSpan tf, int NumberCandlesToLoad, long DataEnd)
+        private CandlesResponse GetResponseDataCandles(string nameSec, TimeSpan tf, int NumberCandlesToLoad, long DataEnd)
         {
             string bar = GetStringBar(tf);
 
-            CandlesResponce candlesResponce = new CandlesResponce();
-            candlesResponce.data = new List<List<string>>();
+            CandlesResponse candlesResponse = new CandlesResponse();
+            candlesResponse.data = new List<List<string>>();
 
             do
             {
@@ -573,19 +573,19 @@ namespace OsEngine.Market.Servers.OKX
 
                 string after = $"&after={Convert.ToString(DataEnd)}";
 
-                if (candlesResponce.data.Count != 0)
+                if (candlesResponse.data.Count != 0)
                 {
-                    after = $"&after={candlesResponce.data[candlesResponce.data.Count - 1][0]}";
+                    after = $"&after={candlesResponse.data[candlesResponse.data.Count - 1][0]}";
                 }
 
 
                 string url = _baseUrl + $"/api/v5/market/history-candles?instId={nameSec}&bar={bar}&limit={limit}" + after;
 
-                HttpResponseMessage responce = _httpClient.GetAsync(url).Result;
-                string json = responce.Content.ReadAsStringAsync().Result;
-                candlesResponce.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponce()).data);
+                HttpResponseMessage Response = _httpClient.GetAsync(url).Result;
+                string json = Response.Content.ReadAsStringAsync().Result;
+                candlesResponse.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponse()).data);
 
-                if (responce.StatusCode != HttpStatusCode.OK)
+                if (Response.StatusCode != HttpStatusCode.OK)
                 {
                     SendLogMessage($"GetResponseDataCandles - {json}", LogMessageType.Error);
                 }
@@ -594,7 +594,7 @@ namespace OsEngine.Market.Servers.OKX
 
             } while (NumberCandlesToLoad > 0);
 
-            return candlesResponce;
+            return candlesResponse;
         }
 
         private string GetStringBar(TimeSpan tf)
@@ -755,7 +755,7 @@ namespace OsEngine.Market.Servers.OKX
         { 
             try
             {
-                _webSocketPrivate.Send(Encryptor.MakeAuthRequest(PublicKey, SecretKey, Password));                         
+                _webSocketPrivate.Send(Encryptor.MakeAuthRequest(_publicKey, _secretKey, _password));                         
             }
             catch (Exception ex)
             {
@@ -788,7 +788,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             string url = $"{_baseUrl}{"/api/v5/account/set-position-mode"}";
             string bodyStr = JsonConvert.SerializeObject(requestParams);
-            HttpClient client = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, bodyStr));
+            HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr));
            
             HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
             string contentStr = res.Content.ReadAsStringAsync().Result;
@@ -969,8 +969,8 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 8 WebSocket check alive
 
-        private DateTime TimeToSendPingPublic = DateTime.Now;
-        private DateTime TimeToSendPingPrivate = DateTime.Now;
+        private DateTime _timeToSendPingPublic = DateTime.Now;
+        private DateTime _timeToSendPingPrivate = DateTime.Now;
 
         private void CheckAliveWebSocket()
         {
@@ -989,10 +989,10 @@ namespace OsEngine.Market.Servers.OKX
                     (_webSocketPublic.ReadyState == WebSocketState.Open)
                     )
                     {
-                        if (TimeToSendPingPublic.AddSeconds(25) < DateTime.Now)
+                        if (_timeToSendPingPublic.AddSeconds(25) < DateTime.Now)
                         {
                             _webSocketPublic.Send("ping");
-                            TimeToSendPingPublic = DateTime.Now;
+                            _timeToSendPingPublic = DateTime.Now;
                         }
                     }
                     else
@@ -1008,10 +1008,10 @@ namespace OsEngine.Market.Servers.OKX
                     (_webSocketPrivate.ReadyState == WebSocketState.Open)
                     )
                     {
-                        if (TimeToSendPingPrivate.AddSeconds(25) < DateTime.Now)
+                        if (_timeToSendPingPrivate.AddSeconds(25) < DateTime.Now)
                         {
                             _webSocketPrivate.Send("ping");
-                            TimeToSendPingPrivate = DateTime.Now;
+                            _timeToSendPingPrivate = DateTime.Now;
                         }
                     }
 
@@ -1034,7 +1034,7 @@ namespace OsEngine.Market.Servers.OKX
 
         #endregion
 
-        #region 9 Security subscrible
+        #region 9 Security subscribe
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
@@ -1705,7 +1705,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -1755,7 +1755,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -1796,7 +1796,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/cancel-order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -1956,7 +1956,7 @@ namespace OsEngine.Market.Servers.OKX
                     SendLogMessage($"GenerateTradesToOrder - {contentStr}", LogMessageType.Error);
                 }
 
-                TradeDetailsResponce quotes = JsonConvert.DeserializeAnonymousType(contentStr, new TradeDetailsResponce());
+                TradeDetailsResponse quotes = JsonConvert.DeserializeAnonymousType(contentStr, new TradeDetailsResponse());
 
                 if (quotes == null ||
                     quotes.data == null ||
@@ -1980,7 +1980,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void CreateListTrades(List<MyTrade> myTrades, TradeDetailsResponce quotes)
+        private void CreateListTrades(List<MyTrade> myTrades, TradeDetailsResponse quotes)
         {
             for (int i = 0; i < quotes.data.Count; i++)
             {
@@ -2037,7 +2037,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public HttpResponseMessage GetPrivateRequest(string url)
         {
-            HttpClient _client = new HttpClient(new HttpInterceptor(PublicKey, SecretKey, Password, null)); 
+            HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null)); 
             return _client.GetAsync(url).Result;            
         }
 
