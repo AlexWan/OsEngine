@@ -42,13 +42,18 @@
                 </TabItem>
                 <TabItem Name="TabItem5" Header="Open positions" Width="140" Margin="41,0,-140,0">
                     <Grid>
-                        <WindowsFormsHost x:Name="HostOpenPosition" Foreground="Black" Margin="10"/>
+                        <WindowsFormsHost x:Name="HostOpenPosition" Foreground="Black" Margin="10,10,10,42"/>
+
+                        <ComboBox Name="ComboBoxOpenPosesOnPage" HorizontalAlignment="Right" Margin="0,0,153,10" VerticalAlignment="Bottom" Width="170"/>
+                        <ComboBox x:Name="ComboBoxOpenPosesShowNumbers" HorizontalAlignment="Right" Margin="0,0,328,10" VerticalAlignment="Bottom" Width="170"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem6" Header="Closed positions" Width="140" Margin="41,0,-140,0" >
                     <Grid>
-                        <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" Margin="10,10,10,30"/>
-                        <CheckBox Name="CheckBoxShowDontOpenPoses" Content="Show don`t open positions" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Bottom"/>
+                        <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" Margin="10,10,10,40"/>
+                        <CheckBox Name="CheckBoxShowDontOpenPoses" Content="Show don`t open positions" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom"/>
+                        <ComboBox x:Name="ComboBoxClosePosesOnPage" HorizontalAlignment="Right" Margin="0,0,153,10" VerticalAlignment="Bottom" Width="170"/>
+                        <ComboBox x:Name="ComboBoxClosePosesShowNumbers" HorizontalAlignment="Right" Margin="0,0,328,10" VerticalAlignment="Bottom" Width="170"/>
                     </Grid>
                 </TabItem>
             </TabControl>
