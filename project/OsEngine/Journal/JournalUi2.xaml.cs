@@ -91,15 +91,15 @@ namespace OsEngine.Journal
             ComboBoxOpenPosesOnPage.SelectionChanged += ComboBoxOpenPosesOnPage_SelectionChanged;
             ComboBoxOpenPosesShowNumbers.SelectionChanged += ComboBoxOpenPosesShowNumbers_SelectionChanged;
 
-            SelectOpenPosesPages();
-            SelectCLosePosesPages();
-
             ButtonAutoReload.Click += ButtonAutoReload_Click;
             ButtonAutoReload.IsChecked = false;
 
             LabelEqutyCharteType.Content = OsLocalization.Journal.Label8;
             
             CreatePositionsLists();
+
+            SelectOpenPosesPages();
+            SelectCLosePosesPages();
 
             Closing += JournalUi_Closing;
 
@@ -2201,7 +2201,7 @@ namespace OsEngine.Journal
             }
 
             DeletePosition(number);
-
+            SelectOpenPosesPages();
             RePaint();
         }
 
@@ -2233,6 +2233,7 @@ namespace OsEngine.Journal
             {
                 DeletePosition(numbers[i]);
             }
+            SelectOpenPosesPages();
             RePaint();
         }
 
@@ -2296,7 +2297,7 @@ namespace OsEngine.Journal
 
             List<Position> allSortPoses = new List<Position>();
 
-            for (int i = 0; i < _allPositions.Count; i++)
+            for (int i = 0; _allPositions != null && i < _allPositions.Count; i++)
             {
                 if (_allPositions[i] == null)
                 {
@@ -2307,7 +2308,11 @@ namespace OsEngine.Journal
                 {
                     continue;
                 }
-                allSortPoses.Add(_allPositions[i]);
+                if (_allPositions[i].State != PositionStateType.Done &&
+                    _allPositions[i].State != PositionStateType.OpeningFail)
+                {
+                    allSortPoses.Add(_allPositions[i]);
+                }
             }
 
             if (allSortPoses.Count == 0)
@@ -3914,7 +3919,16 @@ namespace OsEngine.Journal
 
         private void ButtonReload_Click(object sender, RoutedEventArgs e)
         {
-            RePaint();
+            try
+            {
+                SelectOpenPosesPages();
+                SelectCLosePosesPages();
+                RePaint();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
