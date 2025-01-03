@@ -1855,8 +1855,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private List<Candle> Normalization(List<Candle> candles, string name)
         {
-          
-
             ValueSave myCandles = null;
 
             for (int i = 0; i < _normalizeCandles.Count; i++)
@@ -2536,24 +2534,34 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void SetFormulaVolumeWeighted(List<SecurityInIndex> secInIndex, int daysLookBack, bool percentNormalization)
         {
-            // 1. Делаем всё равномерно
-            decimal maxPriceInSecs = 0;
+            
+            if(percentNormalization == false)
+            {// 1. Делаем всё равномерно, если нормализация отключена
+                decimal maxPriceInSecs = 0;
 
-            for (int i = 0; i < secInIndex.Count; i++)
-            {
-                if (maxPriceInSecs < secInIndex[i].LastPrice)
+                for (int i = 0; i < secInIndex.Count; i++)
                 {
-                    maxPriceInSecs = secInIndex[i].LastPrice;
+                    if (maxPriceInSecs < secInIndex[i].LastPrice)
+                    {
+                        maxPriceInSecs = secInIndex[i].LastPrice;
+                    }
+                }
+
+                for (int i = 0; i < secInIndex.Count; i++)
+                {
+                    if (secInIndex[i].LastPrice == 0)
+                    {
+                        continue;
+                    }
+                    secInIndex[i].Mult = Math.Round(maxPriceInSecs / secInIndex[i].LastPrice, 8);
                 }
             }
-
-            for (int i = 0; i < secInIndex.Count; i++)
+            else if(percentNormalization == true)
             {
-                if (secInIndex[i].LastPrice == 0)
+                for (int i = 0; i < secInIndex.Count; i++)
                 {
-                    continue;
+                    secInIndex[i].Mult = 1;
                 }
-                secInIndex[i].Mult = Math.Round(maxPriceInSecs / secInIndex[i].LastPrice, 8);
             }
 
             // 2. считаем для каждого инструмента объём
