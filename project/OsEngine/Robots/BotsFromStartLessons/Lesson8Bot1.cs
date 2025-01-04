@@ -59,85 +59,93 @@ namespace OsEngine.Robots.BotsFromStartLessons
         {
             while (true) // Цикл с условием в скобках. Если в скобках true, то цикл - продолжается
             {
-                Thread.Sleep(_millisecondsToSleepWorker.ValueInt);
-
-                if (_regime.ValueString == "Off")
+                try
                 {
-                    continue;
+                    Thread.Sleep(_millisecondsToSleepWorker.ValueInt);
+
+                    if (_regime.ValueString == "Off")
+                    {
+                        continue;
+                    }
+
+                    if (_tabToTrade.IsConnected == false)
+                    { // если источник ещё не готов. И не подключен к данным
+                        continue;
+                    }
+
+                    if (_tabToTrade.IsReadyToTrade == false)
+                    { // если источник не готов торговать
+                        continue;
+                    }
+
+                    List<Position> positions = _tabToTrade.PositionsOpenAll;
+
+                    if (positions.Count == 0)
+                    { // логика открытия
+                        MarketDepth md = _tabToTrade.MarketDepth;
+
+                        if (md == null)
+                        {
+                            continue;
+                        }
+
+                        md = md.GetCopy();
+
+                        if (md.Bids == null
+                            || md.Bids.Count < _countBidsToCheck.ValueInt + 2)
+                        {
+                            continue;
+                        }
+
+                        decimal firstBidVolume = md.Bids[0].Bid; // берём объём в лучшем уровне покупки стакана
+
+                        decimal checkBidsVolume = 0;
+
+                        for (int i = 1; i < _countBidsToCheck.ValueInt; i++)
+                        {// считаем суммарный объём в бидах под лучшим, на глубину countBidsToCheck
+                            checkBidsVolume += md.Bids[i].Bid;
+                        }
+
+                        if (firstBidVolume / (checkBidsVolume / 100) >= _percentInFirstBid.ValueDecimal)
+                        {
+                            decimal volume = GetVolume(_tabToTrade);
+                            decimal price = md.Bids[0].Price;
+                            price += _tabToTrade.Security.PriceStep * _slippagePriceStep.ValueInt;
+
+                            _tabToTrade.BuyAtLimit(volume, price);
+                        }
+                    }
+                    else
+                    {// логика закрытия
+                        Position pos = positions[0];
+
+                        if (pos.OpenVolume == 0)
+                        {
+                            continue;
+                        }
+                        if (pos.State != PositionStateType.Open)
+                        {
+                            continue;
+                        }
+                        if (pos.StopOrderPrice != 0)
+                        {
+                            continue;
+                        }
+
+                        decimal stopPrice =
+                            pos.EntryPrice - _tabToTrade.Security.PriceStep * _stopPriceStep.ValueInt;
+
+                        decimal profitPrice =
+                            pos.EntryPrice + _tabToTrade.Security.PriceStep * _profitPriceStep.ValueInt;
+
+                        _tabToTrade.CloseAtStopMarket(pos, stopPrice);
+                        _tabToTrade.CloseAtProfitMarket(pos, profitPrice);
+                    }
                 }
-
-                if (_tabToTrade.IsConnected == false)
-                { // если источник ещё не готов. И не подключен к данным
-                    continue;
-                }
-
-                if (_tabToTrade.IsReadyToTrade == false)
-                { // если источник не готов торговать
-                    continue;
-                }
-
-                List<Position> positions = _tabToTrade.PositionsOpenAll;
-
-                if (positions.Count == 0)
-                { // логика открытия
-                    MarketDepth md = _tabToTrade.MarketDepth;
-
-                    if (md == null)
-                    {
-                        continue;
-                    }
-
-                    md = md.GetCopy();
-
-                    if (md.Bids == null
-                        || md.Bids.Count < _countBidsToCheck.ValueInt + 2)
-                    {
-                        continue;
-                    }
-
-                    decimal firstBidVolume = md.Bids[0].Bid; // берём объём в лучшем уровне покупки стакана
-
-                    decimal checkBidsVolume = 0;
-
-                    for (int i = 1; i < _countBidsToCheck.ValueInt; i++)
-                    {// считаем суммарный объём в бидах под лучшим, на глубину countBidsToCheck
-                        checkBidsVolume += md.Bids[i].Bid;
-                    }
-
-                    if (firstBidVolume / (checkBidsVolume / 100) >= _percentInFirstBid.ValueDecimal)
-                    {
-                        decimal volume = GetVolume(_tabToTrade);
-                        decimal price = md.Bids[0].Price;
-                        price += _tabToTrade.Security.PriceStep * _slippagePriceStep.ValueInt;
-
-                        _tabToTrade.BuyAtLimit(volume, price);
-                    }
-                }
-                else
-                {// логика закрытия
-                    Position pos = positions[0];
-
-                    if (pos.OpenVolume == 0)
-                    {
-                        continue;
-                    }
-                    if (pos.State != PositionStateType.Open)
-                    {
-                        continue;
-                    }
-                    if (pos.StopOrderPrice != 0)
-                    {
-                        continue;
-                    }
-
-                    decimal stopPrice =
-                        pos.EntryPrice - _tabToTrade.Security.PriceStep * _stopPriceStep.ValueInt;
-
-                    decimal profitPrice =
-                        pos.EntryPrice + _tabToTrade.Security.PriceStep * _profitPriceStep.ValueInt;
-
-                    _tabToTrade.CloseAtStopMarket(pos, stopPrice);
-                    _tabToTrade.CloseAtProfitMarket(pos, profitPrice);
+                catch (Exception e)
+                {
+                    Thread.Sleep(10000);
+                    SendNewLogMessage("Worker thread error " + e.ToString(), Logging.LogMessageType.Error);
                 }
             }
         }
