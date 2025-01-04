@@ -184,7 +184,7 @@ namespace OsEngine.Journal.Internal
                     {
                         positions.Add(new Position());
                         positions[i].SetDealFromString(deal);
-                        UpdeteOpenPositionArray(positions[i]);
+                        UpdateOpenPositionArray(positions[i], false);
                     }
                     catch (Exception error)
                     {
@@ -443,7 +443,7 @@ namespace OsEngine.Journal.Internal
                     continue;
                 }
 
-                UpdeteOpenPositionArray(_deals[i]);
+                UpdateOpenPositionArray(_deals[i]);
             }
            
             _openLongChanged = true;
@@ -665,7 +665,7 @@ namespace OsEngine.Journal.Internal
                         _closeShortChanged = true;
                         _closeLongChanged = true;
 
-                        UpdeteOpenPositionArray(curPosition);
+                        UpdateOpenPositionArray(curPosition);
                     }
 
                     if (positionState != curPosition.State && PositionStateChangeEvent != null)
@@ -747,7 +747,7 @@ namespace OsEngine.Journal.Internal
                     if (positionState != position.State ||
                         lastPosVolume != position.OpenVolume)
                     {
-                        UpdeteOpenPositionArray(position);
+                        UpdateOpenPositionArray(position);
                         _openLongChanged = true;
                         _openShortChanged = true;
                         _closePositionChanged = true;
@@ -991,13 +991,20 @@ namespace OsEngine.Journal.Internal
             }
         }
 
-        private void UpdeteOpenPositionArray(Position position)
+        private void UpdateOpenPositionArray(Position position, bool checkNum = true)
         {
             if (position.State != PositionStateType.Done && position.State != PositionStateType.OpeningFail)
             {
                 // then the open position
                 // это открытая позиция
-                if (_openPositions.Find(pos => pos.Number == position.Number) == null)
+                if(checkNum == true)
+                {
+                    if (_openPositions.Find(pos => pos.Number == position.Number) == null)
+                    {
+                        _openPositions.Add(position);
+                    }
+                }
+                else
                 {
                     _openPositions.Add(position);
                 }
@@ -1782,6 +1789,13 @@ namespace OsEngine.Journal.Internal
                 if(_startProgram == StartProgram.IsTester)
                 {
                     if(_positionsToPaint.Count > 200)
+                    {
+                        _positionsToPaint.RemoveAt(0);
+                    }
+                }
+                else if (_startProgram == StartProgram.IsOsTrader)
+                {
+                    if (_positionsToPaint.Count > 500)
                     {
                         _positionsToPaint.RemoveAt(0);
                     }

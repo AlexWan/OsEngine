@@ -224,8 +224,12 @@ namespace OsEngine.Journal
                     _openPositionGrid.Click -= _openPositionGrid_Click;
                     _openPositionGrid.DoubleClick -= _openPositionGrid_DoubleClick;
                     _openPositionGrid = null;
-                    HostOpenPosition.Child.Hide();
-                    HostOpenPosition.Child = null;
+                    if (HostOpenPosition.Child != null)
+                    {
+                        HostOpenPosition.Child.Hide();
+                        HostOpenPosition.Child = null;
+                    }
+
                     HostOpenPosition = null;
                 }
 
@@ -236,8 +240,12 @@ namespace OsEngine.Journal
                     _closePositionGrid.Click -= _closePositionGrid_Click;
                     _closePositionGrid.DoubleClick -= _closePositionGrid_DoubleClick;
                     _closePositionGrid = null;
-                    HostClosePosition.Child.Hide();
-                    HostClosePosition.Child = null;
+                    if(HostClosePosition.Child != null)
+                    {
+                        HostClosePosition.Child.Hide();
+                        HostClosePosition.Child = null;
+                    }
+
                     HostClosePosition = null;
                 }
 
@@ -1944,27 +1952,51 @@ namespace OsEngine.Journal
                 {
                     CreateOpenPositionTable();
                 }
-                _openPositionGrid.Rows.Clear();
 
-                if (positionsAll == null
-                    || positionsAll.Count == 0)
-                {
-                    return;
-                }
+                List<Position> openPositions = new List<Position>();
 
-                for (int i = 0; i < positionsAll.Count; i++)
+                for (int i = 0; i < positionsAll.Count;i++)
                 {
                     if (positionsAll[i].State != PositionStateType.Done &&
                         positionsAll[i].State != PositionStateType.OpeningFail)
                     {
-                        _openPositionGrid.Rows.Insert(0, GetRow(positionsAll[i]));
+                        openPositions.Add(positionsAll[i]);
                     }
+                }
+
+                HostOpenPosition.Child = null;
+
+                _openPositionGrid.Rows.Clear();
+
+                if (openPositions == null
+                    || openPositions.Count == 0)
+                {
+                    HostOpenPosition.Child = _openPositionGrid;
+                    return;
+                }
+
+                int startNum = 0;
+                int endNum = openPositions.Count;
+
+                if (ComboBoxOpenPosesShowNumbers.SelectedItem != null)
+                {
+                    string selectNum = ComboBoxOpenPosesShowNumbers.SelectedItem.ToString().Replace(" ", "");
+
+                    startNum = Convert.ToInt32(selectNum.Split('>')[0]);
+                    endNum = Convert.ToInt32(selectNum.Split('>')[1]);
+                }
+
+                for (int i = startNum; i < endNum && i < openPositions.Count; i++)
+                {
+                    _openPositionGrid.Rows.Insert(0, GetRow(openPositions[i]));
                 }
             }
             catch( Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error); 
             }
+
+            HostOpenPosition.Child = _openPositionGrid;
         }
 
         private DataGridView CreateNewTable()
@@ -2339,6 +2371,7 @@ namespace OsEngine.Journal
         {
             try
             {
+                _volumeControlUpdated = true;
                 RePaint();
             }
             catch (Exception error)
@@ -2378,6 +2411,8 @@ namespace OsEngine.Journal
                     CreateClosePositionTable();
                 }
 
+                HostClosePosition.Child = null;
+
                 _closePositionGrid.Rows.Clear();
                 _closePositionGrid.ClearSelection();
 
@@ -2397,6 +2432,7 @@ namespace OsEngine.Journal
                 if(closePositions == null ||
                     closePositions.Count == 0)
                 {
+                    HostClosePosition.Child = _openPositionGrid;
                     return;
                 }
 
@@ -2412,12 +2448,14 @@ namespace OsEngine.Journal
                     HostClosePosition.Child = null;
                     _closePositionGrid.Rows.AddRange(rows.ToArray());
                     HostClosePosition.Child = _closePositionGrid;
+                    return;
                 }
             }
             catch(Exception ex )
             {
                 SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
+            HostClosePosition.Child = _openPositionGrid;
         }
 
         private List<Position> GetClosePositions()
@@ -2806,6 +2844,7 @@ namespace OsEngine.Journal
         {
             try
             {
+                _volumeControlUpdated = true;
                 RePaint();
             }
             catch (Exception error)

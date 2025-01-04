@@ -958,7 +958,8 @@ namespace OsEngine.Entity
                 SaveMyTrades();
 
                 PositionChanged = true;
-                Close();
+
+                RePaint();
             }
             catch(Exception ex)
             {

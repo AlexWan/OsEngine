@@ -62,7 +62,7 @@ namespace OsEngine.OsTrader.Gui
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Trader.Label165; //"Num";
             colum0.ReadOnly = true;
-            colum0.Width = 70;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colum01 = new DataGridViewColumn();
@@ -97,13 +97,13 @@ namespace OsEngine.OsTrader.Gui
             column06.HeaderText = OsLocalization.Trader.Label184; // On/off
             column06.ReadOnly = false;
             column06.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            column06.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column06.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             newGrid.Columns.Add(column06);
 
             DataGridViewCheckBoxColumn column07 = new DataGridViewCheckBoxColumn();
             column07.HeaderText = OsLocalization.Trader.Label185; // Emulator on/off
             column07.ReadOnly = false;
-            column07.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column07.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             column07.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             newGrid.Columns.Add(column07);
 
