@@ -1104,6 +1104,62 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
+        /// Operator overloading allows you to compare instances of this class with structures DateTime
+        /// </summary>
+        /// <param name="c1">An instance of the TimeOfDay class</param>
+        /// <param name="c2"></param>
+        /// <returns></returns>
+        public static bool operator ==(TimeOfDay c1, DateTime c2)
+        {
+            if (c1.Hour != c2.Hour)
+            {
+                return false;
+            }
+            if (c1.Minute != c2.Minute)
+            {
+                return false;
+            }
+            if (c1.Second != c2.Second)
+            {
+                return false;
+            }
+            if (c1.Millisecond != c2.Millisecond)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Operator overloading allows you to compare instances of this class with structures DateTime
+        /// </summary>
+        /// <param name="c1">An instance of the TimeOfDay class</param>
+        /// <param name="c2"></param>
+        /// <returns></returns>
+        public static bool operator !=(TimeOfDay c1, DateTime c2)
+        {
+            if (c1.Hour != c2.Hour)
+            {
+                return true;
+            }
+            if (c1.Minute != c2.Minute)
+            {
+                return true;
+            }
+            if (c1.Second != c2.Second)
+            {
+                return true;
+            }
+            if (c1.Millisecond != c2.Millisecond)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Represents the time interval since the beginning of the day
         /// </summary>
         public TimeSpan TimeSpan
