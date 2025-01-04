@@ -1414,6 +1414,21 @@ namespace OsEngine.Charts.CandleChart
                     AddCandleInArray(history, history.Count - 1);
                     RePaintToIndex(history, history.Count - 2);
                 }
+                else if (oldcandleSeries.Points.Count > 1 &&
+                    history.Count == oldcandleSeries.Points.Count
+                    && oldcandleSeries.Points[0].YValues[0] != Convert.ToDouble(history[0].Low))
+                { // другой массив свечек
+                    if (history.Count < oldcandleSeries.Points.Count)
+                    {
+                        ClearZoom();
+                    }
+
+                    ReloadAreaSizes();
+                    PaintAllCandles(history);
+                    ResizeSeriesLabels();
+                    RePaintRightLebels();
+                    ResizeYAxisOnArea("Prime", true);
+                }
                 else if (history.Count == oldcandleSeries.Points.Count)
                 {
                     RePaintToIndex(history, history.Count - 1);
@@ -4130,9 +4145,11 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
+            bool isMyValues = mySeries.Points.Count != 0 && Convert.ToDouble(values[0]) == mySeries.Points[0].YValues[0];
 
             if (mySeries.Points.Count != 0 &&
-               values.Count - 1 == mySeries.Points.Count)
+               values.Count - 1 == mySeries.Points.Count
+               && isMyValues)
             {
                 // if draw only last point
                 // если прорисовываем только последнюю точку
@@ -4140,7 +4157,8 @@ namespace OsEngine.Charts.CandleChart
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count &&
-                fullReloadOnNewCandle == false)
+                fullReloadOnNewCandle == false
+                && isMyValues)
             {
                 // redrawing the last point
                 // перерисовываем последнюю точку
@@ -4256,16 +4274,20 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
+            bool isMyValues = mySeries.Points.Count != 0 && Convert.ToDouble(values[0]) == mySeries.Points[0].YValues[0];
+
             if (mySeries.Points.Count != 0 &&
                 values.Count - 1 == mySeries.Points.Count &&
-                fullReloadOnNewCandle == false)
+                fullReloadOnNewCandle == false &&
+                isMyValues)
             {
                 // if only draw last point
                 // если прорисовываем только последнюю точку
                 PaintLikeLineLast(values, nameSeries, color);
             }
             else if (mySeries.Points.Count != 0 &&
-                values.Count == mySeries.Points.Count )
+                values.Count == mySeries.Points.Count &&
+                isMyValues)
             {
                 // redraw last point
                 // перерисовываем последнюю точку
@@ -4413,8 +4435,11 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
+            bool isMyValues = mySeries.Points.Count != 0 && Convert.ToDouble(values[0]) == mySeries.Points[0].YValues[0];
+
             if (mySeries.Points.Count != 0 &&
-                values.Count - 1 == mySeries.Points.Count)
+                values.Count - 1 == mySeries.Points.Count
+                && isMyValues)
             {
                 // if only draw last point
                 // если прорисовываем только последнюю точку
@@ -4422,7 +4447,8 @@ namespace OsEngine.Charts.CandleChart
             }
             else if (mySeries.Points.Count != 0 &&
                 values.Count == mySeries.Points.Count &&
-                fullReloadOnNewCandle == false)
+                fullReloadOnNewCandle == false 
+                && isMyValues)
             {
                 // redrawing last point
                 // перерисовываем последнюю точку
@@ -6830,7 +6856,7 @@ namespace OsEngine.Charts.CandleChart
         /// изменить представление оси Y у области данных
         /// </summary>
         /// <param name="areaName">data area name/имя области данных</param>
-        private void ResizeYAxisOnArea(string areaName)
+        private void ResizeYAxisOnArea(string areaName, bool full = false)
         {
             if(areaName == "TradeArea")
             {
@@ -6849,7 +6875,7 @@ namespace OsEngine.Charts.CandleChart
                 }
                 if (_chart.InvokeRequired)
                 {
-                    _chart.Invoke(new Action<string>(ResizeYAxisOnArea), areaName);
+                    _chart.Invoke(new Action<string, bool>(ResizeYAxisOnArea), areaName,full);
                     return;
                 }
 
@@ -6980,7 +7006,7 @@ namespace OsEngine.Charts.CandleChart
                    {
                        continue;
                    }
-                   SeriesYLength yLength = GetSeriesYLength(seriesOnArea[serIterator], firstX, lastX, candleSeries);
+                   SeriesYLength yLength = GetSeriesYLength(seriesOnArea[serIterator], firstX, lastX, candleSeries, full);
 
                    double minOnSeries = yLength.Ymin;
 
@@ -7059,7 +7085,7 @@ namespace OsEngine.Charts.CandleChart
         
         private List<SeriesYLength> _seriesYLengths = new List<SeriesYLength>();
 
-        private SeriesYLength GetSeriesYLength(Series series, int start, int end, Series candleSeries)
+        private SeriesYLength GetSeriesYLength(Series series, int start, int end, Series candleSeries, bool full)
         {
             SeriesYLength currentLength = null;
 
@@ -7096,7 +7122,8 @@ namespace OsEngine.Charts.CandleChart
 
 
             if (series.Points.Count < 100 ||
-                end - start < 400)
+                end - start < 400 ||
+                full == true)
             {
                 // if we have a small display window, we do everything in forehead
                 // если у нас малое окно отображения, делаем всё в лоб

@@ -511,6 +511,8 @@ namespace OsEngine.Indicators
 
         private List<Candle> _myCandles = new List<Candle>();
 
+        private Candle _lastFirstCandle = null;
+
         public void Process(List<Candle> candles)
         {
             //lock(_indicatorUpdateLocker)
@@ -527,7 +529,8 @@ namespace OsEngine.Indicators
 
             if (_myCandles == null ||
             candles.Count < _myCandles.Count ||
-            candles.Count > _myCandles.Count + 1)
+            candles.Count > _myCandles.Count + 1 ||
+            (_lastFirstCandle != null && _lastFirstCandle.TimeStart != candles[0].TimeStart))
             {
                 ProcessAll(candles);
             }
@@ -549,6 +552,7 @@ namespace OsEngine.Indicators
             }
 
             _myCandles = candles;
+            _lastFirstCandle = candles[0];
             //}
         }
 

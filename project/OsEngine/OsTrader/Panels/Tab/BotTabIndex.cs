@@ -823,19 +823,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                             // ignore
                         }
                     }
-                    if (_startProgram == StartProgram.IsOsTrader && Tabs.Count > 0)
-                    {
-                        var candlesToKeep = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._neadToSaveCandlesCountParam.Value;
-                        var needToRemove = ((OsEngine.Market.Servers.AServer)Tabs[0].MyServer)._needToRemoveCandlesFromMemory.Value;
-
-                        if (needToRemove
-                            && Candles[Candles.Count - 1].TimeStart.Minute % 15 == 0
-                            && Candles[Candles.Count - 1].TimeStart.Second == 0
-                            && Candles.Count > candlesToKeep)
-                        {
-                            Candles.RemoveRange(0, Candles.Count - 1 - candlesToKeep);
-                        }
-                    }
 
                     _chartMaster.SetCandles(Candles);
 
@@ -1181,7 +1168,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (valOne[0] == 'A')
             {
-                int iOne = Convert.ToInt32(valOne.Split('A')[1]);
+                 int iOne = Convert.ToInt32(valOne.Split('A')[1]);
                 if (iOne >= Tabs.Count)
                 {
                     return "";
@@ -1292,6 +1279,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 exitVal.Name = "B" + valOne + znak + valTwo;
                 exitVal.ValueCandles = new List<Candle>();
                 _valuesToFormula.Add(exitVal);
+            }
+
+            if(PercentNormalization == true 
+                && exitVal.ValueCandles != null &&
+                exitVal.ValueCandles.Count > 0)
+            {
+                exitVal.ValueCandles.Clear();
             }
 
             List<Candle> exitCandles = exitVal.ValueCandles;
@@ -1460,6 +1454,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _valuesToFormula.Add(exitVal);
             }
 
+            if (PercentNormalization == true
+                && exitVal.ValueCandles != null &&
+                exitVal.ValueCandles.Count > 0)
+            {
+                exitVal.ValueCandles.Clear();
+            }
+
             List<Candle> exitCandles = exitVal.ValueCandles;
 
             int lastOper = -1;
@@ -1580,6 +1581,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 exitVal.Name = "B" + valOne + znak + valTwo;
                 exitVal.ValueCandles = new List<Candle>();
                 _valuesToFormula.Add(exitVal);
+            }
+
+            if (PercentNormalization == true
+                && exitVal.ValueCandles != null &&
+                exitVal.ValueCandles.Count > 0)
+            {
+                exitVal.ValueCandles.Clear();
             }
 
             List<Candle> exitCandles = exitVal.ValueCandles;
@@ -1870,6 +1878,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private List<Candle> Normalization(List<Candle> candles, string name)
         {
+            if(candles == null ||
+                candles.Count == 0)
+            {
+                return null;
+            }
+
             ValueSave myCandles = null;
 
             for (int i = 0; i < _normalizeCandles.Count; i++)
@@ -1889,7 +1903,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             if(myCandles.ValueCandles == null
-                || myCandles.ValueCandles.Count == 0)
+                || myCandles.ValueCandles.Count == 0
+                || myCandles.ValueCandles.Count == CalculationDepth)
             {// 1 normalization from zero
                 List<Candle> result = new List<Candle>();
 
