@@ -114,7 +114,7 @@ namespace OsEngine.Market.Servers.Mexc
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 20; }
+            get { return 5; }
         }
 
         public bool IsCanChangeOrderPrice

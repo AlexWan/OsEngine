@@ -142,7 +142,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if(startAwait.AddMinutes(5) < DateTime.Now)
                 {
-                    SetNewError("Error 8. Server status is not change in 5 minutes");
+                    SetNewError("Error 8. Server status did not change in 5 minutes");
                     TestEnded();
                     return;
                 }
@@ -164,7 +164,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             for(int i = 0;i < _ordersActive.Count;i++)
             {
-                SetNewServiceInfo("API send Activ order. NumUser: " + _ordersActive[i].NumberUser + 
+                SetNewServiceInfo("API sent Active order. NumUser: " + _ordersActive[i].NumberUser + 
                      " NumMarket: "  + _ordersActive[i].NumberMarket + 
                      " Security: " + _ordersActive[i].SecurityNameCode);
             }
@@ -197,14 +197,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             Order order = null;
 
             // нужно дождаться когда будет Active order
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 10. No Active order from server BuyLimit");
                     return null;
@@ -233,11 +233,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // нужно дождаться когда будет Active order
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 11. No reject order from server CancelOrder");
                     return;

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.Mexc.Json
 {
-
     public class MexcSecurity
     {
         public string symbol { get; set; }
@@ -43,7 +42,6 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public List<object> exchangeFilters { get; set; }
         public List<MexcSecurity> symbols { get; set; }
     }
-
 
     public class MexcCandlesHistory : List<List<object>>
     {

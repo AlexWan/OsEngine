@@ -12,16 +12,11 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO.Compression;
-using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Globalization;
 using WebSocket4Net;
-using System.Security.Policy;
-using System.Windows.Media.Animation;
 using System.Linq;
 
 namespace OsEngine.Market.Servers.Mexc
@@ -61,11 +56,9 @@ namespace OsEngine.Market.Servers.Mexc
         {
             try
             {
-                
                 _securities.Clear();
-                _myPortfolious.Clear();
-                _activeSecurities.Clear();
-
+                _myPortfolios.Clear();
+                //_activeSecurities.Clear();
 
                 SendLogMessage("Start Mexc Connection", LogMessageType.System);
 
@@ -108,8 +101,8 @@ namespace OsEngine.Market.Servers.Mexc
             try
             {
                 _securities.Clear();
-                _myPortfolious.Clear();
-                _activeSecurities.Clear();
+                _myPortfolios.Clear();
+                //_activeSecurities.Clear();
 
                 DeleteWebSocketConnection();
 
@@ -206,7 +199,7 @@ namespace OsEngine.Market.Servers.Mexc
                     return;
                 }
 
-                for(int i = 0; i < securities.symbols.Count; i++)
+                for (int i = 0; i < securities.symbols.Count; i++)
                 {
                     MexcSecurity sec = securities.symbols[i];
 
@@ -223,7 +216,7 @@ namespace OsEngine.Market.Servers.Mexc
                     security.SecurityType = SecurityType.CurrencyPair;
                     security.Exchange = ServerType.Mexc.ToString();
                     security.Lot = 1;
-                    security.PriceStep = GetPriceStep(sec.baseAssetPrecision); 
+                    security.PriceStep = GetPriceStep(sec.baseAssetPrecision);
                     security.PriceStepCost = security.PriceStep;
 
 
@@ -240,17 +233,14 @@ namespace OsEngine.Market.Servers.Mexc
                     if (sec.status == "1")
                     {
                         security.State = SecurityStateType.Activ;
-                    } 
+                    }
                     else
                     {
                         security.State = SecurityStateType.Close;
                     }
 
-                    {
-                        _securities.Add(security);
-                    }
+                    _securities.Add(security);
                 }
-                   
             }
             catch (Exception e)
             {
@@ -281,7 +271,7 @@ namespace OsEngine.Market.Servers.Mexc
 
         #region 4 Portfolios
 
-        private List<Portfolio> _myPortfolious = new List<Portfolio>();
+        private List<Portfolio> _myPortfolios = new List<Portfolio>();
 
         private string _portfolioName = "Mexc";
 
@@ -356,19 +346,19 @@ namespace OsEngine.Market.Servers.Mexc
                 portfolio.SetNewPosition(pos);
             }
 
-            if (_myPortfolious.Count > 0)
+            if (_myPortfolios.Count > 0)
             {
-                _myPortfolious[0] = portfolio;
+                _myPortfolios[0] = portfolio;
             }
             else
             {
-                _myPortfolious.Add(portfolio);
+                _myPortfolios.Add(portfolio);
             }
             
 
             if (PortfolioEvent != null)
             {
-                PortfolioEvent(_myPortfolious);
+                PortfolioEvent(_myPortfolios);
             }
         }
 
@@ -573,13 +563,19 @@ namespace OsEngine.Market.Servers.Mexc
                 List<object> curCandle = candles[i];
 
                 Candle newCandle = new Candle();
-                newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp( (long) curCandle[0]); 
-                newCandle.Open = curCandle[1].ToString().ToDecimal();
-                newCandle.High = curCandle[2].ToString().ToDecimal();
-                newCandle.Low = curCandle[3].ToString().ToDecimal();
-                newCandle.Close = curCandle[4].ToString().ToDecimal();
-                newCandle.Volume = curCandle[5].ToString().ToDecimal();
-
+                newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp( (long) curCandle[0]);
+                try
+                {
+                    newCandle.Open = curCandle[1].ToString().ToDecimal();
+                    newCandle.High = curCandle[2].ToString().ToDecimal();
+                    newCandle.Low = curCandle[3].ToString().ToDecimal();
+                    newCandle.Close = curCandle[4].ToString().ToDecimal();
+                    newCandle.Volume = curCandle[5].ToString().ToDecimal();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Candles conversion error:" + ex.ToString(), LogMessageType.Error);
+                }
 
                 //fix candle
                 if (newCandle.Open < newCandle.Low)
@@ -759,7 +755,6 @@ namespace OsEngine.Market.Servers.Mexc
 
             try
             {
-
                 string endPoint = "/api/v3/userDataStream";
 
                 Dictionary<string, string> query = new Dictionary<string, string>
@@ -846,8 +841,8 @@ namespace OsEngine.Market.Servers.Mexc
 
         private void SubcribeToPortfolio()
         {
-            Thread.Sleep(2000);
-
+            Thread.Sleep(2000); 
+            
             WSRequestBalance bObj = new WSRequestBalance();
             string message = bObj.GetJson();
             SendLogMessage("Porfolio Send: " + message, LogMessageType.Connect);
@@ -997,7 +992,7 @@ namespace OsEngine.Market.Servers.Mexc
                 if (e == null)
                 {
                     SendLogMessage("PorfolioWebSocket DataReceived Empty message: State=" + ServerStatus.ToString(),
-    LogMessageType.Connect);
+                        LogMessageType.Connect);
 
                     return;
                 }
@@ -1034,7 +1029,6 @@ namespace OsEngine.Market.Servers.Mexc
         {
             try
             {
-
                 if (string.IsNullOrEmpty(e.Message))
                 {
                     return;
@@ -1121,9 +1115,9 @@ namespace OsEngine.Market.Servers.Mexc
 
         #endregion
 
-        #region 9 WebSocket Security subscrible
+        #region 9 WebSocket Security subscribe
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(150));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(150));
 
         public void Subscrible(Security security)
         {
@@ -1131,7 +1125,7 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 _activeSecurities.TryAdd(security.Name, true);
 
-                _rateGateSubscrible.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
                 // trades subscription
                 string name = security.Name;
@@ -1141,7 +1135,7 @@ namespace OsEngine.Market.Servers.Mexc
                 SendLogMessage("Send to WS: " + messageTradeSub, LogMessageType.Connect);
                 _webSocketData.Send(messageTradeSub);
 
-                Thread.Sleep(30);
+                _rateGateSubscribe.WaitToProceed();
 
                 // market depth subscription
                 WSRequestSubscribe depthSubscribe = new WSRequestSubscribe(WSRequestSubscribe.Channel.Depth, security.Name);
@@ -1482,9 +1476,9 @@ namespace OsEngine.Market.Servers.Mexc
                 JsonConvert.DeserializeAnonymousType(baseMessage.d.ToString(), new MexcSocketBalance());
 
             Portfolio portf = null;
-            if (_myPortfolious != null && _myPortfolious.Count > 0)
+            if (_myPortfolios != null && _myPortfolios.Count > 0)
             {
-                portf = _myPortfolious[0];
+                portf = _myPortfolios[0];
             }
 
             if(portf == null)
@@ -1503,7 +1497,7 @@ namespace OsEngine.Market.Servers.Mexc
                 portf.SetNewPosition(pos);
             }
 
-            PortfolioEvent?.Invoke(_myPortfolious);
+            PortfolioEvent?.Invoke(_myPortfolios);
         }
 
         public event Action<Order> MyOrderEvent;
@@ -1549,12 +1543,10 @@ namespace OsEngine.Market.Servers.Mexc
 
                 string content = response.Content.ReadAsStringAsync().Result;
 
-
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-
                     MexcNewOrderResponse parsed =
-        JsonConvert.DeserializeAnonymousType(content, new MexcNewOrderResponse());
+                        JsonConvert.DeserializeAnonymousType(content, new MexcNewOrderResponse());
 
                     if (parsed != null &&  !string.IsNullOrEmpty(parsed.orderId))
                     {
@@ -1643,7 +1635,6 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 SendLogMessage("Cancel order error." + exception.ToString(), LogMessageType.Error);
             }
-
         }
 
         public void ResearchTradesToOrders(List<Order> orders)
@@ -1654,6 +1645,9 @@ namespace OsEngine.Market.Servers.Mexc
         public void CancelAllOrders()
         {
             List<Order> orders = GetAllOrdersFromExchange();
+
+            if (orders == null)
+                return;
 
             for (int i = 0; i < orders.Count;i++)
             {
@@ -1748,7 +1742,6 @@ namespace OsEngine.Market.Servers.Mexc
                             }
 
                             return osEngineOrders;
-
                         }
 
                     }
@@ -1838,7 +1831,6 @@ namespace OsEngine.Market.Servers.Mexc
 
         public void GetAllActivOrders()
         {
-
             List<Order> ordersOnBoard = GetAllOrdersFromExchange();
 
             if (ordersOnBoard == null)
@@ -1923,7 +1915,6 @@ namespace OsEngine.Market.Servers.Mexc
                 order.Side = Side.Sell;
             }
 
-
             if (baseOrder.status == "NEW")
             {
                 order.State = OrderStateType.Active;
@@ -1947,7 +1938,6 @@ namespace OsEngine.Market.Servers.Mexc
                     order.State = OrderStateType.Cancel;
                 }
             }
-
 
             return order;
         }
