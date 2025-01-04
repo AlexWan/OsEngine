@@ -13,6 +13,7 @@ using OsEngine.Market.Connectors;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
@@ -38,7 +39,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             Load();
 
             AutoFormulaBuilder = new IndexFormulaBuilder(this, TabName, _startProgram);
-            AutoFormulaBuilder.PercentNormalizationLastValue = PercentNormalization;
             AutoFormulaBuilder.LogMessageEvent += SendNewLogMessage;
         }
 
@@ -242,7 +242,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Tabs.RemoveAt(i);
                     isDeleteTab = true;
                 }
-             }
+            }
 
             if (isDeleteTab == true)
             {
@@ -487,8 +487,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 EventsIsOn = true;
                 // ignore
             }
-
-            AutoFormulaBuilder.PercentNormalizationLastValue = PercentNormalization;
         }
 
         /// <summary>
@@ -682,9 +680,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void RebuildHard()
         {
             _normalizeCandles.Clear();
-            AutoFormulaBuilder.RebuildHard(PercentNormalization);
+            AutoFormulaBuilder.RebuildHard();
 
-            if(_lastRecalculateTime.AddSeconds(1) < DateTime.Now)
+            if (_lastRecalculateTime.AddSeconds(1) < DateTime.Now)
             {
                 FullRecalculateIndex();
             }
@@ -789,7 +787,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(AutoFormulaBuilder.TryRebuidFormula(timeCandle, false, PercentNormalization))
+            if (AutoFormulaBuilder.TryRebuidFormula(timeCandle, false))
             {
                 _normalizeCandles.Clear();
             }
@@ -1168,7 +1166,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (valOne[0] == 'A')
             {
-                 int iOne = Convert.ToInt32(valOne.Split('A')[1]);
+                int iOne = Convert.ToInt32(valOne.Split('A')[1]);
                 if (iOne >= Tabs.Count)
                 {
                     return "";
@@ -1183,11 +1181,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TryAddTradeSecurity(Tabs[iOne].Security);
 
-                if(PercentNormalization)
+                if (PercentNormalization)
                 {
                     candlesOne = Normalization(candlesOne, valOne);
                 }
-               
+
             }
             if (candlesOne == null)
             {
@@ -1206,10 +1204,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            
+
 
             // take the second value
-            List <Candle> candlesTwo = null;
+            List<Candle> candlesTwo = null;
 
             if (valTwo[0] == 'A')
             {
@@ -1233,7 +1231,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     candlesTwo = Normalization(candlesTwo, valTwo);
                 }
-                
+
             }
             if (candlesTwo == null)
             {
@@ -1281,7 +1279,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _valuesToFormula.Add(exitVal);
             }
 
-            if(PercentNormalization == true 
+            if (PercentNormalization == true
                 && exitVal.ValueCandles != null &&
                 exitVal.ValueCandles.Count > 0)
             {
@@ -1533,7 +1531,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (PercentNormalization)
                 {
-                    candlesTwo = Normalization(candlesTwo,valTwo);
+                    candlesTwo = Normalization(candlesTwo, valTwo);
                 }
             }
             if (candlesTwo == null)
@@ -1878,7 +1876,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private List<Candle> Normalization(List<Candle> candles, string name)
         {
-            if(candles == null ||
+            if (candles == null ||
                 candles.Count == 0)
             {
                 return null;
@@ -1895,14 +1893,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(myCandles == null)
+            if (myCandles == null)
             {
                 myCandles = new ValueSave();
                 myCandles.Name = name;
                 _normalizeCandles.Add(myCandles);
             }
 
-            if(myCandles.ValueCandles == null
+            if (myCandles.ValueCandles == null
                 || myCandles.ValueCandles.Count == 0
                 || myCandles.ValueCandles.Count == CalculationDepth)
             {// 1 normalization from zero
@@ -1951,7 +1949,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = candles.Count - 1; i >= 0; i--)
                 {
-                    if (candles[i].TimeStart <= result[result.Count-1].TimeStart)
+                    if (candles[i].TimeStart <= result[result.Count - 1].TimeStart)
                     {
                         startIndex = i + 1;
                         break;
@@ -1986,7 +1984,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     result.Add(newCandle);
                 }
 
-                while(result.Count > CalculationDepth)
+                while (result.Count > CalculationDepth)
                 {
                     result.RemoveAt(0);
                 }
@@ -2321,22 +2319,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Logic
 
-        public void RebuildHard()
-        {
-            RebuildHard(PercentNormalizationLastValue);
-        }
-
-        public bool PercentNormalizationLastValue;
-
         /// <summary>
         /// query to instantly recalculate the index formula at the moment. 
         /// </summary>
-        public void RebuildHard(bool percentNormalization)
+        public void RebuildHard()
         {
             try
             {
-                PercentNormalizationLastValue = percentNormalization;
-
                 List<ConnectorCandles> tabsInIndex = _index.Tabs;
 
                 // 2 проверяем чтобы было больше одной бумаги
@@ -2379,7 +2368,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                TryRebuidFormula(endTime, true, percentNormalization);
+                TryRebuidFormula(endTime, true);
             }
             catch (Exception ex)
             {
@@ -2395,10 +2384,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// standard query to try to rebuild the index formula
         /// </summary>
-        public bool TryRebuidFormula(DateTime timeCandle, bool isHardRebiuld, bool percentNormalization)
+        public bool TryRebuidFormula(DateTime timeCandle, bool isHardRebiuld)
         {
-            PercentNormalizationLastValue = percentNormalization;
-
             if (_regime == IndexAutoFormulaBuilderRegime.Off)
             {
                 return false;
@@ -2476,25 +2463,25 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             // 3 берём бумаги которые должны войти в индекс
 
-            List<SecurityInIndex> secInIndex = GetSecuritiesToIndex(tabsInIndex, _daysLookBackInBuilding, percentNormalization);
+            List<SecurityInIndex> secInIndex = GetSecuritiesToIndex(tabsInIndex, _daysLookBackInBuilding);
 
             // 4 рассчитываем у бумаг мультипликаторы
 
             if (_indexMultType == IndexMultType.PriceWeighted)
             {
-                SetFormulaPriceWeighted(secInIndex, _daysLookBackInBuilding, percentNormalization);
+                SetFormulaPriceWeighted(secInIndex, _daysLookBackInBuilding);
             }
             else if (_indexMultType == IndexMultType.EqualWeighted)
             {
-                SetFormulaEqualWeighted(secInIndex, _daysLookBackInBuilding, percentNormalization);
+                SetFormulaEqualWeighted(secInIndex, _daysLookBackInBuilding);
             }
             else if (_indexMultType == IndexMultType.VolumeWeighted)
             {
-                SetFormulaVolumeWeighted(secInIndex, _daysLookBackInBuilding, percentNormalization);
+                SetFormulaVolumeWeighted(secInIndex, _daysLookBackInBuilding);
             }
             else if (_indexMultType == IndexMultType.Cointegration)
             {
-                SetFormulaCointegrationWeighted(secInIndex, _daysLookBackInBuilding, percentNormalization);
+                SetFormulaCointegrationWeighted(secInIndex, _daysLookBackInBuilding);
             }
 
             _lastTimeUpdate = timeCandle;
@@ -2519,7 +2506,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             return true;
         }
 
-        private void SetFormulaPriceWeighted(List<SecurityInIndex> secInIndex, int daysLookBack, bool percentNormalization)
+        private void SetFormulaPriceWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
         {
             string formula = "";
 
@@ -2536,7 +2523,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _index.UserFormula = formula;
         }
 
-        private void SetFormulaEqualWeighted(List<SecurityInIndex> secInIndex, int daysLookBack, bool percentNormalization)
+        private void SetFormulaEqualWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
         {
             decimal maxPriceInSecs = 0;
 
@@ -2573,10 +2560,10 @@ namespace OsEngine.OsTrader.Panels.Tab
             _index.UserFormula = formula;
         }
 
-        private void SetFormulaVolumeWeighted(List<SecurityInIndex> secInIndex, int daysLookBack, bool percentNormalization)
+        private void SetFormulaVolumeWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
         {
-            
-            if(percentNormalization == false)
+
+            if (_index.PercentNormalization == false)
             {// 1. Делаем всё равномерно, если нормализация отключена
                 decimal maxPriceInSecs = 0;
 
@@ -2597,7 +2584,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     secInIndex[i].Mult = Math.Round(maxPriceInSecs / secInIndex[i].LastPrice, 8);
                 }
             }
-            else if(percentNormalization == true)
+            else if (_index.PercentNormalization == true)
             {
                 for (int i = 0; i < secInIndex.Count; i++)
                 {
@@ -2653,7 +2640,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _index.UserFormula = formula;
         }
 
-        private void SetFormulaCointegrationWeighted(List<SecurityInIndex> secInIndex, int daysLookBack, bool percentNormalization)
+        private void SetFormulaCointegrationWeighted(List<SecurityInIndex> secInIndex, int daysLookBack)
         {
             if (secInIndex.Count < 2)
             {
@@ -2733,8 +2720,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// select securities for the index formula
         /// </summary>
-        private List<SecurityInIndex> GetSecuritiesToIndex(List<ConnectorCandles> tabsInIndex, 
-            int daysLookBack, bool percentNormalization)
+        private List<SecurityInIndex> GetSecuritiesToIndex(List<ConnectorCandles> tabsInIndex,
+            int daysLookBack)
         {
             List<SecurityInIndex> secInIndex = new List<SecurityInIndex>();
 
@@ -2744,8 +2731,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     List<Candle> candles = tabsInIndex[i].Candles(false);
 
-                    if(percentNormalization == true)
+                    if (_index.PercentNormalization == true)
                     {
+                        if (candles.Count > _index.CalculationDepth)
+                        {
+                            candles = candles.GetRange(candles.Count - 1 - _index.CalculationDepth, _index.CalculationDepth);
+                        }
+
                         candles = Normalization(candles);
                     }
 
@@ -2764,8 +2756,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     List<Candle> candles = tabsInIndex[i].Candles(false);
 
-                    if (percentNormalization == true)
+                    if (_index.PercentNormalization == true)
                     {
+
+                        if (candles.Count > _index.CalculationDepth)
+                        {
+                            candles = candles.GetRange(candles.Count - 1 - _index.CalculationDepth, _index.CalculationDepth);
+                        }
+
                         candles = Normalization(candles);
                     }
 
@@ -2817,8 +2815,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     List<Candle> candles = tabsInIndex[i].Candles(false);
 
-                    if (percentNormalization == true)
+                    if (_index.PercentNormalization == true)
                     {
+                        if (candles.Count > _index.CalculationDepth)
+                        {
+                            candles = candles.GetRange(candles.Count - 1 - _index.CalculationDepth, _index.CalculationDepth);
+                        }
                         candles = Normalization(candles);
                     }
 
@@ -2904,7 +2906,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 allVolume += candlesToVol[i].Center * candlesToVol[i].Volume;
             }
 
-            if(security.Security.Lot > 1)
+            if (security.Security.Lot > 1)
             {
                 allVolume = allVolume * security.Security.Lot;
             }
