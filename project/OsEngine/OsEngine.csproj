@@ -806,7 +806,7 @@
     <Compile Include="Market\Servers\Mexc\Entity\MexcPortfolioSocket.cs" />
     <Compile Include="Market\Servers\Mexc\Entity\MexcSecurityRest.cs" />
     <Compile Include="Market\Servers\Mexc\Entity\MexcSecuritySocket.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcSubscribleSocket.cs" />
+    <Compile Include="Market\Servers\Mexc\Entity\MexcSubscribeSocket.cs" />
     <Compile Include="Market\Servers\Mexc\Mexc.cs" />
     <Compile Include="Market\Servers\Mexc\MexcPermission.cs" />
     <Compile Include="Market\Servers\MFD\MfdServer.cs" />
