@@ -38,6 +38,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             Load();
 
             AutoFormulaBuilder = new IndexFormulaBuilder(this, TabName, _startProgram);
+            AutoFormulaBuilder.PercentNormalizationLastValue = PercentNormalization;
             AutoFormulaBuilder.LogMessageEvent += SendNewLogMessage;
         }
 
@@ -486,6 +487,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 EventsIsOn = true;
                 // ignore
             }
+
+            AutoFormulaBuilder.PercentNormalizationLastValue = PercentNormalization;
         }
 
         /// <summary>
@@ -582,53 +585,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 _userFormula = value;
                 Save();
-
-                _valuesToFormula = new List<ValueSave>();
-                Candles = new List<Candle>();
-                _chartMaster.Clear();
-
-                if (_startProgram == StartProgram.IsOsTrader)
-                {
-                    Thread.Sleep(1000);
-                }
-
-                if (Tabs == null || Tabs.Count == 0)
-                {
-                    return;
-                }
-
-                ConvertedFormula = ConvertFormula(_userFormula);
-
-                SecuritiesInIndex.Clear();
-
-                _iteration = 0;
-
-                string nameArray = Calculate(ConvertedFormula);
-
-                if (_valuesToFormula != null
-                    && !string.IsNullOrWhiteSpace(nameArray))
-                {
-                    ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
-
-                    if (val != null)
-                    {
-                        Candles = val.ValueCandles;
-
-                        _chartMaster.SetCandles(Candles);
-
-                        if (_startProgram == StartProgram.IsOsTrader)
-                        {
-                            Thread.Sleep(1000);
-                        }
-
-                        _chartMaster.SetCandles(Candles);
-
-                        if (SpreadChangeEvent != null && EventsIsOn == true)
-                        {
-                            SpreadChangeEvent(Candles);
-                        }
-                    }
-                }
+                FullRecalculateIndex();
             }
         }
         private string _userFormula;
@@ -726,6 +683,61 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _normalizeCandles.Clear();
             AutoFormulaBuilder.RebuildHard(PercentNormalization);
+
+            if(_lastRecalculateTime.AddSeconds(1) < DateTime.Now)
+            {
+                FullRecalculateIndex();
+            }
+        }
+
+        private void FullRecalculateIndex()
+        {
+            _valuesToFormula = new List<ValueSave>();
+            Candles = new List<Candle>();
+            _chartMaster.Clear();
+
+            if (_startProgram == StartProgram.IsOsTrader)
+            {
+                Thread.Sleep(1000);
+            }
+
+            if (Tabs == null || Tabs.Count == 0)
+            {
+                return;
+            }
+
+            ConvertedFormula = ConvertFormula(_userFormula);
+
+            SecuritiesInIndex.Clear();
+
+            _iteration = 0;
+
+            string nameArray = Calculate(ConvertedFormula);
+
+            if (_valuesToFormula != null
+                && !string.IsNullOrWhiteSpace(nameArray))
+            {
+                ValueSave val = _valuesToFormula.Find(v => v.Name == nameArray);
+
+                if (val != null)
+                {
+                    Candles = val.ValueCandles;
+
+                    _chartMaster.SetCandles(Candles);
+
+                    if (_startProgram == StartProgram.IsOsTrader)
+                    {
+                        Thread.Sleep(1000);
+                    }
+
+                    _chartMaster.SetCandles(Candles);
+
+                    if (SpreadChangeEvent != null && EventsIsOn == true)
+                    {
+                        SpreadChangeEvent(Candles);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -837,6 +849,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private int _iteration = 0;
 
+        DateTime _lastRecalculateTime = DateTime.MinValue;
+
         /// <summary>
         /// recalculate values to index. Recursive function that parses the formula and calculates the index.
         /// </summary>
@@ -846,6 +860,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                _lastRecalculateTime = DateTime.Now;
+
                 _iteration++;
 
                 if (_iteration > 1000)
@@ -2290,6 +2306,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Logic
 
+        public void RebuildHard()
+        {
+            RebuildHard(PercentNormalizationLastValue);
+        }
+
+        public bool PercentNormalizationLastValue;
+
         /// <summary>
         /// query to instantly recalculate the index formula at the moment. 
         /// </summary>
@@ -2297,6 +2320,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                PercentNormalizationLastValue = percentNormalization;
+
                 List<ConnectorCandles> tabsInIndex = _index.Tabs;
 
                 // 2 проверяем чтобы было больше одной бумаги
@@ -2357,6 +2382,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public bool TryRebuidFormula(DateTime timeCandle, bool isHardRebiuld, bool percentNormalization)
         {
+            PercentNormalizationLastValue = percentNormalization;
+
             if (_regime == IndexAutoFormulaBuilderRegime.Off)
             {
                 return false;

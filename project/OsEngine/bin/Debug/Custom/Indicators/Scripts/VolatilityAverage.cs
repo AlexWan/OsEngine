@@ -158,7 +158,7 @@ namespace OsEngine.Indicators
                     break;
                 }
 
-                _seriesSma.Values[i] = valueSma;
+                _seriesSma.Values[i] = Math.Round(valueSma, 5);
             }
 
 
@@ -270,7 +270,7 @@ namespace OsEngine.Indicators
                     break;
                 }
 
-                _seriesSma.Values[i] = valueSma;
+                _seriesSma.Values[i] = Math.Round(valueSma, 5);
             }
         }
 
@@ -306,7 +306,7 @@ namespace OsEngine.Indicators
 
             decimal valueSma = summValue / countChangeVola;
 
-            _seriesSma.Values[index] = valueSma;
+            _seriesSma.Values[index] = Math.Round(valueSma, 5);
 
         }
     }

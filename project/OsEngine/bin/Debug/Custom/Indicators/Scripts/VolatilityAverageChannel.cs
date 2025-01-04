@@ -179,7 +179,7 @@ namespace OsEngine.Indicators
                     break;
                 }
 
-                _seriesSmaFast.Values[i] = valueSma;
+                _seriesSmaFast.Values[i] = Math.Round(valueSma, 5);
             }
 
             // SMA Slow / Channel
@@ -215,7 +215,7 @@ namespace OsEngine.Indicators
                     break;
                 }
 
-                _seriesSmaSlow.Values[i] = valueSma;
+                _seriesSmaSlow.Values[i] = Math.Round(valueSma, 5);
                 _seriesUpChannel.Values[i] = Math.Round(valueSma + valueSma * _channelDeviation.ValueDecimal,5);
                 _seriesDownChannel.Values[i] = Math.Round(valueSma - valueSma * _channelDeviation.ValueDecimal, 5);
             }

@@ -173,12 +173,23 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 int value = Convert.ToInt32(TextBoxDepth.Text);
 
-                if (value < 50)
+                if (value < 5)
                 {
                     return;
                 }
-                _spread.CalculationDepth = value;
-                _spread.Save();
+
+                if(_spread.CalculationDepth != value)
+                {
+                    _spread.CalculationDepth = value;
+                    _spread.Save();
+
+                    if (_spread.Candles != null &&
+                        _spread.Candles.Count > 0)
+                    {
+                        _spread.RebuildHard();
+                    }
+                }
+
             }
             catch
             {
@@ -190,8 +201,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                _spread.PercentNormalization = CheckBoxPercentNormalization.IsChecked.Value;
-                _spread.Save();
+                if(_spread.PercentNormalization != CheckBoxPercentNormalization.IsChecked.Value)
+                {
+                    _spread.PercentNormalization = CheckBoxPercentNormalization.IsChecked.Value;
+                    _spread.Save();
+
+                    if(_spread.Candles != null &&
+                        _spread.Candles.Count > 0)
+                    {
+                        _spread.RebuildHard();
+                    }
+                }
             }
             catch
             {

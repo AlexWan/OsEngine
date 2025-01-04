@@ -191,7 +191,7 @@ namespace OsEngine.Indicators
                     break;
                 }
 
-                _seriesSmaFast.Values[i] = valueSma;
+                _seriesSmaFast.Values[i] = Math.Round(valueSma, 5);
             }
 
             // SMA Slow / Channel
@@ -234,7 +234,7 @@ namespace OsEngine.Indicators
                     continue;
                 }
 
-                _seriesSmaSlow.Values[i] = valueSma;
+                _seriesSmaSlow.Values[i] = Math.Round(valueSma, 5);
                 _seriesUpChannel.Values[i] = Math.Round(valueSma + valueSma * _channelDeviation.ValueDecimal, 5);
                 _seriesDownChannel.Values[i] = Math.Round(valueSma - valueSma * _channelDeviation.ValueDecimal, 5);
             }
@@ -359,7 +359,7 @@ namespace OsEngine.Indicators
                     break;
                 }
 
-                _seriesSmaFast.Values[i] = valueSma;
+                _seriesSmaFast.Values[i] = Math.Round(valueSma, 5);
             }
 
             // SMA Slow / Channel
@@ -395,7 +395,7 @@ namespace OsEngine.Indicators
                     break;
                 }
 
-                _seriesSmaSlow.Values[i] = valueSma;
+                _seriesSmaSlow.Values[i] = Math.Round(valueSma, 5);
                 _seriesUpChannel.Values[i] = Math.Round(valueSma + valueSma * _channelDeviation.ValueDecimal, 5);
                 _seriesDownChannel.Values[i] = Math.Round(valueSma - valueSma * _channelDeviation.ValueDecimal, 5);
             }
@@ -448,7 +448,7 @@ namespace OsEngine.Indicators
             }
 
             decimal valueSma = summValue / countChangeVola;
-            _seriesSmaFast.Values[index] = valueSma;
+            _seriesSmaFast.Values[index] = Math.Round(valueSma, 5);
 
             // Sma slow
 
@@ -467,7 +467,7 @@ namespace OsEngine.Indicators
             }
 
             valueSma = summValue / countChangeVola;
-            _seriesSmaSlow.Values[index] = valueSma;
+            _seriesSmaSlow.Values[index] = Math.Round(valueSma, 5);
             _seriesUpChannel.Values[index] = Math.Round(valueSma + valueSma * _channelDeviation.ValueDecimal, 5);
             _seriesDownChannel.Values[index] = Math.Round(valueSma - valueSma * _channelDeviation.ValueDecimal, 5);
 
