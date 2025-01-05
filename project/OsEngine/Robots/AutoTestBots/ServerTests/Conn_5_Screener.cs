@@ -348,7 +348,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             newScreener.SecuritiesNames = securitiesToScreener;
 
-            _screener.NeadToReloadTabs = true;
+            _screener.NeedToReloadTabs = true;
         }
 
         List<AwaitableSecurities> _awaitableSecurities = new List<AwaitableSecurities>();

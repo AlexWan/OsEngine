@@ -114,7 +114,7 @@ namespace OsEngine.Robots.AutoTestBots
             _screener.SecuritiesNames.Clear();
             _screener.PortfolioName = String.Empty;
             bool IsNeedDrop = Wait(2);
-            _screener.NeadToReloadTabs = true;
+            _screener.NeedToReloadTabs = true;
 
             if (IsNeedDrop)
             {
@@ -173,7 +173,7 @@ namespace OsEngine.Robots.AutoTestBots
 
         private void SetParamsScreener(IServer server)
         {
-            _screener.NeadToReloadTabs = true;
+            _screener.NeedToReloadTabs = true;
             _screener.ServerType = server.ServerType;
             _screener.PortfolioName = server.Portfolios[0].Number; // добавить проверку подключен ли портфель
         }

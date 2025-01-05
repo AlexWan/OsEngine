@@ -445,8 +445,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(_emulatorIsOn);
                     writer.WriteLine(CandleMarketDataType);
                     writer.WriteLine(CandleCreateMethodType);
-                    writer.WriteLine(ComissionType);
-                    writer.WriteLine(ComissionValue);
+                    writer.WriteLine(CommissionType);
+                    writer.WriteLine(CommissionValue);
                     writer.WriteLine(SaveTradesInCandles);
                     writer.WriteLine(_eventsIsOn);
 
@@ -495,8 +495,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     try
                     {
-                        Enum.TryParse(reader.ReadLine(), out ComissionType);
-                        ComissionValue = reader.ReadLine().ToDecimal();
+                        Enum.TryParse(reader.ReadLine(), out CommissionType);
+                        CommissionValue = reader.ReadLine().ToDecimal();
                         SaveTradesInCandles = Convert.ToBoolean(reader.ReadLine());
                         _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
 
@@ -689,12 +689,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Commission type for positions
         /// </summary>
-        public ComissionType ComissionType;
+        public ComissionType CommissionType;
 
         /// <summary>
         /// Commission amount
         /// </summary>
-        public decimal ComissionValue;
+        public decimal CommissionValue;
 
         /// <summary>
         /// Whether it is necessary to save trades inside the candle they belong to
@@ -705,7 +705,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public bool IsLoadTabs = false;
 
-        public bool NeadToReloadTabs = false;
+        public bool NeedToReloadTabs = false;
 
         /// <summary>
         /// Reload tabs
@@ -714,7 +714,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (NeadToReloadTabs == false)
+                if (NeedToReloadTabs == false)
                 {
                     return;
                 }
@@ -803,7 +803,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 SaveTabs();
 
-                NeadToReloadTabs = false;
+                NeedToReloadTabs = false;
             }
             catch (Exception ex)
             {
@@ -866,27 +866,27 @@ namespace OsEngine.OsTrader.Panels.Tab
                 haveNewSettings = true;
             }
            
-            if(tab.Connector.CommissionType != ComissionType)
+            if(tab.Connector.CommissionType != CommissionType)
             {
-                tab.Connector.CommissionType = ComissionType;
+                tab.Connector.CommissionType = CommissionType;
                 haveNewSettings = true;
             }
             
-            if(tab.Connector.CommissionValue != ComissionValue)
+            if(tab.Connector.CommissionValue != CommissionValue)
             {
-                tab.Connector.CommissionValue = ComissionValue;
+                tab.Connector.CommissionValue = CommissionValue;
                 haveNewSettings = true;
             }
            
-            if(tab.CommissionType != ComissionType)
+            if(tab.CommissionType != CommissionType)
             {
-                tab.CommissionType = ComissionType;
+                tab.CommissionType = CommissionType;
                 haveNewSettings = true;
             }
             
-            if(tab.CommissionValue != ComissionValue)
+            if(tab.CommissionValue != CommissionValue)
             {
-                tab.CommissionValue = ComissionValue;
+                tab.CommissionValue = CommissionValue;
                 haveNewSettings = true;
             }
            
@@ -936,8 +936,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
             newTab.Connector.TimeFrameBuilder.CandleSeriesRealization.OnStateChange(CandleSeriesState.ParametersChange);
             newTab.Connector.SaveTradesInCandles = SaveTradesInCandles;
-            newTab.CommissionType = ComissionType;
-            newTab.CommissionValue = ComissionValue;
+            newTab.CommissionType = CommissionType;
+            newTab.CommissionValue = CommissionValue;
             newTab.IsCreatedByScreener = true;
 
             curTabs.Add(newTab);
@@ -1102,7 +1102,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     && SecuritiesNames[i].SecurityClass == securityClass)
                 {
                     SecuritiesNames.RemoveAt(i);
-                    NeadToReloadTabs = true;
+                    NeedToReloadTabs = true;
                     break;
                 }
             }
@@ -1156,11 +1156,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Show GUI
         /// </summary>
-        public void ShowChart(int tabyNum)
+        public void ShowChart(int tabNum)
         {
             try
             {
-                string botName = Tabs[tabyNum].TabName + "_Engine";
+                string botName = Tabs[tabNum].TabName + "_Engine";
 
                 if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
                 {
@@ -1169,7 +1169,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 CandleEngine bot = new CandleEngine(botName, _startProgram);
 
-                BotTabSimple myTab = Tabs[tabyNum];
+                BotTabSimple myTab = Tabs[tabNum];
 
                 //bot.TabCreate(BotTabType.Simple);
                 bot.GetTabs().Clear();
@@ -1545,7 +1545,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (_indicators.Find(ind => ind.Num == num) != null)
                 {
-                    NeadToReloadTabs = true;
+                    NeedToReloadTabs = true;
                     return;
                 }
 

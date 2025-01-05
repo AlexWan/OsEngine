@@ -105,9 +105,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
                 ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _screener.ComissionType.ToString();
+                ComboBoxComissionType.SelectedItem = _screener.CommissionType.ToString();
 
-                TextBoxComissionValue.Text = _screener.ComissionValue.ToString();
+                TextBoxComissionValue.Text = _screener.CommissionValue.ToString();
 
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _screener.SaveTradesInCandles;
                 CheckBoxSaveTradeArrayInCandle.Click += CheckBoxSaveTradeArrayInCandle_Click;
@@ -255,7 +255,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ComissionType typeComission;
                 Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-                _screener.ComissionType = typeComission;
+                _screener.CommissionType = typeComission;
 
                 if (ComboBoxClass.SelectedItem != null)
                 {
@@ -264,7 +264,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 try
                 {
-                    _screener.ComissionValue = TextBoxComissionValue.Text.ToDecimal();
+                    _screener.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
                 }
                 catch
                 {
@@ -335,7 +335,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _screener.SecuritiesNames = securities;
                 _screener.SaveSettings();
 
-                _screener.NeadToReloadTabs = true;
+                _screener.NeedToReloadTabs = true;
 
                 Close();
             }
