@@ -265,6 +265,12 @@ namespace OsEngine.OsOptimizer
 
             while (true)
             {
+                if (countBots > 5000000)
+                {
+                    SendLogMessage("Iteration count > 5000000. Warning!!!", LogMessageType.Error);
+                    return countBots;
+                }
+
                 bool isAndOfFaze = false; // all parameters passed/все параметры пройдены
 
                 for (int i2 = 0; i2 < optimizedParamToCheckCount.Count + 1; i2++)
