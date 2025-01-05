@@ -94,7 +94,7 @@ namespace OsEngine.Market.Servers.YahooFinance
 
             List<Security> securities = new List<Security>();
 
-            if (!File.Exists("YahooSecurities.txt"))
+            if (!File.Exists(@"Engine\YahooSecurities.txt"))
             {
                 return;
             }
@@ -102,7 +102,7 @@ namespace OsEngine.Market.Servers.YahooFinance
             {
                 List<string> list = new List<string>();
 
-                using (StreamReader reader = new StreamReader("YahooSecurities.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\YahooSecurities.txt"))
                 {
                     string line;
 
@@ -115,8 +115,29 @@ namespace OsEngine.Market.Servers.YahooFinance
                             {
                                 Security security = new Security();
                                 security.Name = split[1];
-                                security.NameFull = security.Name;
-                                security.NameClass = "";
+                                security.NameFull = split[2];
+
+                                if (security.NameFull.Contains("ETF"))
+                                {
+                                    security.NameClass = "ETF";
+                                }
+                                else if (security.NameFull.Contains("Common Stock")
+                                    || security.NameFull.Contains("ordinary share")
+                                    || security.NameFull.Contains("Ordinary Shares")
+                                    || security.NameFull.Contains("Ordinary Share")
+                                    //|| security.NameFull.Contains("Inc")
+                                    || security.NameFull.Contains("Shares")
+                                    || security.NameFull.Contains("Units")
+                                    || security.NameFull.Contains("Common Share")
+                                    || security.NameFull.Contains("common shares"))
+                                {
+                                    security.NameClass = "Stock";
+                                }
+                                else
+                                {
+                                    security.NameClass = "Else";
+                                }
+
                                 security.NameId = security.Name;
                                 security.SecurityType = SecurityType.Stock;
                                 security.Lot = 1;
@@ -160,7 +181,7 @@ namespace OsEngine.Market.Servers.YahooFinance
                 client.Connect(TimeoutFtp, ftpServer, ftpPort);
                 client.Login(TimeoutFtp, ftpUser, ftpPassword);
 
-                client.GetFile(TimeoutFtp, "YahooSecurities.txt", "/symboldirectory/nasdaqtraded.txt");
+                client.GetFile(TimeoutFtp, "Engine/YahooSecurities.txt", "/symboldirectory/nasdaqtraded.txt");
 
                 client.Disconnect(TimeoutFtp);
             }
