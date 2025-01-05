@@ -613,6 +613,15 @@ namespace OsEngine.Market.Servers.Finam.Entity
                     candles.Add(new Candle());
                     candles[candles.Count - 1].SetCandleFromString(tradesInStr[i]);
                     candles[candles.Count - 1].TimeStart = candles[candles.Count - 1].TimeStart.Add(-_timeFrameSpan);
+
+                    if (candles.Count > 1)
+                    {
+                        if (candles[candles.Count - 1].TimeStart <= candles[candles.Count - 2].TimeStart)
+                        {
+                            candles.RemoveAt(candles.Count - 1);
+                            continue;
+                        }
+                    }
                 }
                 return candles;
             }
