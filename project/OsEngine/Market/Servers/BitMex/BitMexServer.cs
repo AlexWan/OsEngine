@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.BitMart.Json;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
@@ -1759,7 +1760,9 @@ namespace OsEngine.Market.Servers.BitMex
 
                 if (json.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"Order created, but answer is wrong: {json.Content}", LogMessageType.Error);
+                    SendLogMessage($"Order failed. Details: {json.Content}", LogMessageType.Error);
+                    order.State = OrderStateType.Fail;
+                    MyOrderEvent(order);
                 }
             }
             catch (Exception exception)
