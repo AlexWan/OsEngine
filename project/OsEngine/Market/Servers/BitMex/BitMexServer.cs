@@ -1042,7 +1042,7 @@ namespace OsEngine.Market.Servers.BitMex
                 ConnectEvent();
             }
 
-            _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"margin\", \"position\", \"order\"]}");  // Portfolio, Position, Orders
+            _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"margin\", \"position\", \"order\", \"execution\"]}");  // Portfolio, Position, Orders, MyTrades
         }
 
         #endregion
@@ -1123,8 +1123,6 @@ namespace OsEngine.Market.Servers.BitMex
 
                 _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"orderBookL2_25:" + security.Name + "\"]}"); // MarketDepth
                 _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"trade:" + security.Name + "\"]}");  // Trade
-                _webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"execution:" + security.Name + "\"]}"); // MyTrade
-                //_webSocket.Send("{\"op\": \"subscribe\", \"args\": [\"order:" + security.Name + "\"]}");   // Order
 
             }
             catch (Exception exception)
@@ -1168,8 +1166,6 @@ namespace OsEngine.Market.Servers.BitMex
                     {
                         continue;
                     }
-
-                    SendLogMessage(message, LogMessageType.System);
 
                     if (message.Equals("pong"))
                     {
