@@ -1091,6 +1091,23 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Correct program removal of security from the screener
+        /// </summary>
+        public void RemoveTabBySecurityName(string securityName, string securityClass)
+        {
+            for (int i = 0; i < SecuritiesNames.Count; i++)
+            {
+                if (SecuritiesNames[i].SecurityName == securityName
+                    && SecuritiesNames[i].SecurityClass == securityClass)
+                {
+                    SecuritiesNames.RemoveAt(i);
+                    NeadToReloadTabs = true;
+                    break;
+                }
+            }
+        }
+
         #endregion
 
         #region drawing and working with the GUI
