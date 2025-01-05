@@ -155,7 +155,7 @@ namespace OsEngine.OsOptimizer
 
                 for (int i = 0; i < reports.Count; i++)
                 {
-                    SortResults(reports[i].Reports);
+                    OptimazerFazeReport.SortResults(reports[i].Reports, _sortBotsType);
                 }
 
                 GetBestBotNum(reports[0].Reports);
@@ -169,23 +169,6 @@ namespace OsEngine.OsOptimizer
             catch (Exception e)
             {
                 SendLogMessage(e.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void SortResults(List<OptimizerReport> reports)
-        {
-            for (int i = 0; i < reports.Count; i++)
-            {
-                for (int i2 = 0; i2 < reports.Count - 1; i2++)
-                {
-                    if (FirstLessSecond(reports[i2], reports[i2 + 1], _sortBotsType))
-                    {
-                        // сортировка пузыриком // фаталити
-                        OptimizerReport glass = reports[i2];
-                        reports[i2] = reports[i2 + 1];
-                        reports[i2 + 1] = glass;
-                    }
-                }
             }
         }
 
@@ -208,57 +191,6 @@ namespace OsEngine.OsOptimizer
                 _sortBotNumber = reports.Count - 1;
             }
         }
-
-        private bool FirstLessSecond(OptimizerReport rep1, OptimizerReport rep2, SortBotsType sortType)
-        {
-            if (sortType == SortBotsType.TotalProfit &&
-                rep1.TotalProfit < rep2.TotalProfit)
-            {
-                return true;
-            }
-            else if (sortType == SortBotsType.PositionCount &&
-                     rep1.PositionsCount < rep2.PositionsCount)
-            {
-                return true;
-            }
-            else if (sortType == SortBotsType.MaxDrowDawn &&
-                     rep1.MaxDrowDawn < rep2.MaxDrowDawn)
-            {
-                return true;
-            }
-            else if (sortType == SortBotsType.AverageProfit &&
-                     rep1.AverageProfit < rep2.AverageProfit)
-            {
-                return true;
-            }
-            else if (sortType == SortBotsType.AverageProfitPercent &&
-                     rep1.AverageProfitPercentOneContract < rep2.AverageProfitPercentOneContract)
-            {
-                return true;
-            }
-            else if (sortType == SortBotsType.ProfitFactor &&
-                     rep1.ProfitFactor < rep2.ProfitFactor)
-            {
-                return true;
-            }
-            else if (sortType == SortBotsType.PayOffRatio &&
-                     rep1.PayOffRatio < rep2.PayOffRatio)
-            {
-                return true;
-            }
-            else if (sortType == SortBotsType.Recovery &&
-                     rep1.Recovery < rep2.Recovery)
-            {
-                return true;
-            }
-             else if (sortType == SortBotsType.SharpRatio &&
-                     rep1.SharpRatio < rep2.SharpRatio)
-            {
-                return true;
-            }
-
-            return false;
-        } 
 
         private SortBotsType _sortBotsType;
 
