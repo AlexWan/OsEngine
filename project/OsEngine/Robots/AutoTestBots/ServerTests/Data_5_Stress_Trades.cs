@@ -109,22 +109,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             //3.Скачать по 2 инструментам трейды. За последние 10 дней.Просмотреть входящие в сет данные.Проверить время старта и конца данных.
             //4.Скачать трейды по 2 инструментам за 10 дней три месяца назад. Просмотреть входящие в сет данные.Проверить время старта и конца данных.
 
-            DateTime lastMidnightTime = DateTime.Now;
-
-            while (lastMidnightTime.Hour != 0)
-            {
-                lastMidnightTime = lastMidnightTime.AddMinutes(-1);
-            }
-
-            while (lastMidnightTime.Minute != 1)
-            {
-                lastMidnightTime = lastMidnightTime.AddMinutes(-1);
-            }
-
-            while (lastMidnightTime.Second != 1)
-            {
-                lastMidnightTime = lastMidnightTime.AddSeconds(-1);
-            }
+            DateTime lastMidnightTime = DateTime.Now.Date.AddMinutes(1).AddSeconds(1);
 
             SetNewServiceInfo("Security to load: " + security.Name);
 
@@ -135,7 +120,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 SetNewError("Error 2. No server permission to server. Type: " + Server.ServerType.ToString());
                 return;
             }
-
 
             // трейды за последние 10 дней
 
@@ -201,9 +185,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             if (startTime.Date != startTimeReal.Date ||
                 endTime.Date != endTimeReal.Date)
             {
-                SetNewError("Error 6. Time Start on time End in real data is wrong. Tf " + timeFrame.ToString() + "\n"
+                SetNewError("Error 6. Time Start or time End in real data is wrong. Tf " + timeFrame.ToString() + "\n"
                     + " StartTimeReal: " + startTimeReal.ToString()
-                    + " EndTimeReal: " + endTimeReal.ToString());
+                    + " EndTimeReal: " + endTimeReal.ToString() + "| Security: " + secName);
             }
         }
 
