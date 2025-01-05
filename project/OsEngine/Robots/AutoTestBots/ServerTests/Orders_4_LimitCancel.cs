@@ -155,7 +155,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _md = md;
         }
 
-        Side _whaitSide;
+        Side _WaitSide;
 
         private Order SendBuyOrder(Security mySec, decimal price)
         {
@@ -164,18 +164,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             price = Math.Round(price - price * 0.01m, mySec.Decimals); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
-            _whaitSide = Side.Buy;
+            _WaitSide = Side.Buy;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             Order order = null;
 
             // нужно дождаться когда будет Active order
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 8. No Active order from server BuyLimit");
                     return null;
@@ -205,18 +205,18 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             price = Math.Round(price + price * 0.01m, mySec.Decimals); // проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
-            _whaitSide = Side.Sell;
+            _WaitSide = Side.Sell;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             Order order = null;
 
             // нужно дождаться когда будет Active order
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 9. No reject order from server SellLimit");
                     return null;
@@ -245,11 +245,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // нужно дождаться когда будет Active order
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 10. No reject order from server CancelOrder");
                     return;
@@ -308,7 +308,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 11. Order whith state NONE");
+                this.SetNewError("Error 11. Order with state NONE");
                 return;
             }
 
@@ -360,16 +360,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             12.TimeCancel – время сервера когда ордер получил статус Cancel
             */
 
-            if (order.Side != _whaitSide)
+            if (order.Side != _WaitSide)
             {
-                this.SetNewError("Error 12. Whait side note equal. Whait: " + _whaitSide
+                this.SetNewError("Error 12. Wait side not equal. Wait: " + _WaitSide
                     + " Side in order: " + order.Side);
                 return false;
             }
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 13. Order Type is note Liimt. Real type: " + order.TypeOrder);
+                this.SetNewError("Error 13. Order Type is not Limit. Real type: " + order.TypeOrder);
                 return false;
             }
 
