@@ -63,6 +63,10 @@
     <ApplicationIcon>OsLogo.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BytesRoad.Net.Ftp, Version=2.0.0.0, Culture=neutral">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
+    </Reference>
     <Reference Include="cgate_net64, Version=5.10.0.36987, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Vendors\cgate_net64.dll</HintPath>
@@ -977,6 +981,10 @@
     <Compile Include="Market\Servers\XT\XTSpot\Entity\ResponseWebSocketMessageAction.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\XTServerSpot.cs" />
     <Compile Include="Market\Servers\XT\XTSpot\XTSpotServerPermission.cs" />
+    <Compile Include="Market\Servers\YahooFinance\Entity\CandlesResponce.cs" />
+    <Compile Include="Market\Servers\YahooFinance\Entity\SecurityResponce.cs" />
+    <Compile Include="Market\Servers\YahooFinance\YahooServer.cs" />
+    <Compile Include="Market\Servers\YahooFinance\YahooServerPermission.cs" />
     <Compile Include="Market\Servers\ZB\EntityCreators\ZbMarketDepthCreator.cs" />
     <Compile Include="Market\Servers\ZB\EntityCreators\ZbOrderCreator.cs" />
     <Compile Include="Market\Servers\ZB\EntityCreators\ZbPortfolioCreator.cs" />
