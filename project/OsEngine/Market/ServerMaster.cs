@@ -66,6 +66,8 @@ using OsEngine.Market.Servers.MoexFixFastTwimeFutures;
 using OsEngine.Market.Servers.TraderNet;
 using OsEngine.Market.Servers.Mexc;
 using OsEngine.Market.Servers.KiteConnect;
+using OsEngine.Market.Servers.YahooFinance;
+
 
 namespace OsEngine.Market
 {
@@ -319,6 +321,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitGetFutures);
                 serverTypes.Add(ServerType.TraderNet);
                 serverTypes.Add(ServerType.KiteConnect);
+                serverTypes.Add(ServerType.YahooFinance);
 
                 return serverTypes;
             }
@@ -615,6 +618,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.KiteConnect)
                 {
                     newServer = new KiteConnectServer();
+                }
+                else if (type == ServerType.YahooFinance)
+                {
+                    newServer = new YahooServer();
                 }
 
                 if (newServer == null)
@@ -1236,6 +1243,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new KiteConnectServerPermission();
                 }
+                else if (type == ServerType.YahooFinance)
+                {
+                    serverPermission = new YahooServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1694,5 +1705,10 @@ namespace OsEngine.Market
         /// Mexc Spot
         /// </summary>
         KiteConnect,
+
+        /// <summary>
+        /// Yahoo Finance
+        /// </summary>
+        YahooFinance,
     }
 }
