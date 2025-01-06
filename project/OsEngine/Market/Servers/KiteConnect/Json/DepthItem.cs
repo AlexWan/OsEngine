@@ -1,11 +1,10 @@
-﻿using System;
-
+﻿
 namespace OsEngine.Market.Servers.KiteConnect.Json
 {
     public class DepthItem
     {
-        public UInt32 Quantity { get; set; }
-        public decimal Price { get; set; }
-        public UInt32 Orders { get; set; }
+        public string Quantity { get; set; }
+        public string Price { get; set; }
+        public string Orders { get; set; }
     }
 }
