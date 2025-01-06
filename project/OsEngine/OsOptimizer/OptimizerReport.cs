@@ -51,6 +51,85 @@ namespace OsEngine.OsOptimizer
 
         }
 
+        public static void SortResults(List<OptimizerReport> reports, SortBotsType sortType)
+        {
+            if (reports ==  null || reports.Count == 0) 
+            { 
+                return; 
+            }
+
+            if (sortType == SortBotsType.BotName)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return Convert.ToInt32(rep1.BotName.Split(' ')[0]).CompareTo(Convert.ToInt32(rep2.BotName.Split(' ')[0]));
+                });
+            }
+            else if (sortType == SortBotsType.TotalProfit)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.TotalProfit.CompareTo(rep1.TotalProfit);
+                });
+            }
+            else if (sortType == SortBotsType.PositionCount)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.PositionsCount.CompareTo(rep1.PositionsCount);
+                });
+            }
+            else if (sortType == SortBotsType.MaxDrowDawn)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.MaxDrowDawn.CompareTo(rep1.MaxDrowDawn);
+                });
+            }
+            else if (sortType == SortBotsType.AverageProfit)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.AverageProfit.CompareTo(rep1.AverageProfit);
+                });
+            }
+            else if (sortType == SortBotsType.AverageProfitPercent)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.AverageProfitPercentOneContract.CompareTo(rep1.AverageProfitPercentOneContract);
+                });
+            }
+            else if (sortType == SortBotsType.ProfitFactor)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.ProfitFactor.CompareTo(rep1.ProfitFactor);
+                });
+            }
+            else if (sortType == SortBotsType.PayOffRatio)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.PayOffRatio.CompareTo(rep1.PayOffRatio);
+                });
+            }
+            else if (sortType == SortBotsType.Recovery)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.Recovery.CompareTo(rep1.Recovery);
+                });
+            }
+            else if (sortType == SortBotsType.SharpRatio)
+            {
+                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
+                {
+                    return rep2.SharpRatio.CompareTo(rep1.SharpRatio);
+                });
+            }
+        }
+
     }
 
     public class OptimizerReport
