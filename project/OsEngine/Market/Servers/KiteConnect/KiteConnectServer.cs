@@ -45,18 +45,13 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public KiteServerRealization()
         {
-            //Thread worker = new Thread(CheckAliveWebSocket);
-            //worker.Name = "CheckAliveWebSocketKite";
-            //worker.Start();
+            Thread threadUpdatePortfolio = new Thread(GetUpdatePortfolio);
+            threadUpdatePortfolio.Name = "UpdatePortfolioKiteConnect";
+            threadUpdatePortfolio.Start();
 
-            Thread thread = new Thread(GetUpdatePortfolio);
-            thread.Name = "UpdatePortfolioKiteConnect";
-            thread.Start();
-
-            Thread converter = new Thread(MessageReader);
-            converter.Name = "MessageReaderKiteConnect";
-            converter.Start();
-
+            Thread threadMessageReader = new Thread(MessageReader);
+            threadMessageReader.Name = "MessageReaderKiteConnect";
+            threadMessageReader.Start();
         }
 
         public void Connect()
@@ -102,12 +97,11 @@ namespace OsEngine.Market.Servers.KiteConnect
                     }
                     else
                     {
-                        SendLogMessage($"User profile request error. Status: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                        SendLogMessage($"Error requesting user profile. Status: {response.StatusCode} - {response.Content}", LogMessageType.Error);
                     }
                 }
 
                 CreateWebSocketConnection();
-
             }
             catch (Exception exception)
             {
@@ -137,17 +131,16 @@ namespace OsEngine.Market.Servers.KiteConnect
                     if (responseUserAuthentication.status == "success")
                     {
                         _accessToken = responseUserAuthentication.data.access_token;
-                        _publicToken = responseUserAuthentication.data.public_token;
                         ((ServerParameterPassword)ServerParameters[3]).Value = _accessToken;
                     }
                     else
                     {
-                        SendLogMessage($"Access Token error type: {responseUserAuthentication.error_type}, {responseUserAuthentication.message}", LogMessageType.Error);
+                        SendLogMessage($"Access token error type: {responseUserAuthentication.error_type}, {responseUserAuthentication.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"Authentication request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Authentication request failed. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
                 }
 
                 return true;
@@ -215,15 +208,11 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         private string _baseUrl = "https://api.kite.trade";
 
-        private string _login = "https://kite.zerodha.com/connect/login";
-
         private string _webSocketUrl = "wss://ws.kite.trade";
 
         private string _accessToken;
 
         private string _requestToken;
-
-        private string _publicToken;
 
         private bool _useSubscribeToHistoricalData = false;
 
@@ -346,8 +335,8 @@ namespace OsEngine.Market.Servers.KiteConnect
                         Security newSecurity = new Security();
 
                         newSecurity.Exchange = ServerType.KiteConnect.ToString();
-                        newSecurity.Name = security[2];
-                        newSecurity.NameFull = $"{security[11]}_{security[9]}_{security[2]}";
+                        newSecurity.Name = $"{security[2]}_{security[9]}_{security[11]}";
+                        newSecurity.NameFull = security[0];
                         newSecurity.NameClass = $"{security[11]}_{security[9]}";
                         newSecurity.NameId = $"{security[0]}_{security[1]}";
                         newSecurity.SecurityType = instrumentType;
@@ -360,28 +349,33 @@ namespace OsEngine.Market.Servers.KiteConnect
                         if (newSecurity.SecurityType == SecurityType.Option
                             || newSecurity.SecurityType == SecurityType.Futures)
                         {
-                            //newSecurity.Expiration = security[5].ToDecimal();
+                            newSecurity.Expiration = DateTimeOffset.Parse(security[5]).DateTime;
                         }
 
-                        newSecurity.DecimalsVolume = Convert.ToInt32(security[8]);
+                        newSecurity.DecimalsVolume = 0;
                         newSecurity.Lot = security[8].ToDecimal();
                         newSecurity.PriceStep = security[7].ToDecimal();
+
+                        if (newSecurity.PriceStep == 0)
+                        {
+                            continue;
+                        }
+
                         newSecurity.Decimals = security[7].DecimalsCount();
                         newSecurity.PriceStepCost = newSecurity.PriceStep;
                         newSecurity.State = SecurityStateType.Activ;
-                        //newSecurity.MinTradeAmount = responseOrder.minov.ToDecimal();
 
                         _securities.Add(newSecurity);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"Securities request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Error requesting securities. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage("Securities request error: " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Error requesting securities: " + exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -447,22 +441,29 @@ namespace OsEngine.Market.Servers.KiteConnect
                     {
                         if (Convert.ToBoolean(responsePortfolio.data.equity.enabled) == true)
                         {
-                            Portfolio myPortfolio = new Portfolio();
-                            myPortfolio.Number = "EquityPortfolio";
-                            myPortfolio.ValueBegin = responsePortfolio.data.equity.available.opening_balance.ToDecimal();
-                            myPortfolio.ValueCurrent = responsePortfolio.data.equity.available.live_balance.ToDecimal();
-                            myPortfolio.ValueBlocked = responsePortfolio.data.equity.utilised.debits.ToDecimal();
-                            _myPortfolios.Add(myPortfolio);
+                            Portfolio equityPortfolio = new Portfolio();
+                            equityPortfolio.Number = "EquityPortfolio";
+                            equityPortfolio.ValueBegin = responsePortfolio.data.equity.available.opening_balance.ToDecimal();
+                            equityPortfolio.ValueCurrent = responsePortfolio.data.equity.available.live_balance.ToDecimal();
+                            equityPortfolio.ValueBlocked = 0;
+                            _myPortfolios.Add(equityPortfolio);
                         }
                         if (Convert.ToBoolean(responsePortfolio.data.commodity.enabled) == true)
                         {
-                            Portfolio myPortfolio = new Portfolio();
-                            myPortfolio.Number = "CommodityPortfolio";
-                            myPortfolio.ValueBegin = responsePortfolio.data.equity.available.opening_balance.ToDecimal();
-                            myPortfolio.ValueCurrent = responsePortfolio.data.equity.available.live_balance.ToDecimal();
-                            myPortfolio.ValueBlocked = responsePortfolio.data.equity.utilised.debits.ToDecimal();
-                            _myPortfolios.Add(myPortfolio);
+                            Portfolio commodityPortfolio = new Portfolio();
+                            commodityPortfolio.Number = "CommodityPortfolio";
+                            commodityPortfolio.ValueBegin = responsePortfolio.data.equity.available.opening_balance.ToDecimal();
+                            commodityPortfolio.ValueCurrent = responsePortfolio.data.equity.available.live_balance.ToDecimal();
+                            commodityPortfolio.ValueBlocked = 0;
+                            _myPortfolios.Add(commodityPortfolio);
                         }
+
+                        Portfolio holdings = new Portfolio();
+                        holdings.Number = "HoldingsPortfolio";
+                        holdings.ValueBegin = 0;
+                        holdings.ValueCurrent = 0;
+                        holdings.ValueBlocked = 0;
+                        _myPortfolios.Add(holdings);
 
                         if (PortfolioEvent != null)
                         {
@@ -529,19 +530,27 @@ namespace OsEngine.Market.Servers.KiteConnect
                     {
                         for (int i = 0; i < _myPortfolios.Count; i++)
                         {
-                            if (Convert.ToBoolean(responsePortfolio.data.equity.enabled) == true)
+                            if (_myPortfolios[i].Number == "EquityPortfolio")
                             {
                                 _myPortfolios[i].Number = "EquityPortfolio";
                                 _myPortfolios[i].ValueBegin = responsePortfolio.data.equity.available.opening_balance.ToDecimal();
                                 _myPortfolios[i].ValueCurrent = responsePortfolio.data.equity.available.live_balance.ToDecimal();
-                                _myPortfolios[i].ValueBlocked = responsePortfolio.data.equity.utilised.debits.ToDecimal();
+                                _myPortfolios[i].ValueBlocked = 0;
                             }
-                            if (Convert.ToBoolean(responsePortfolio.data.commodity.enabled) == true)
+
+                            if (_myPortfolios[i].Number == "CommodityPortfolio")
                             {
                                 _myPortfolios[i].Number = "CommodityPortfolio";
                                 _myPortfolios[i].ValueBegin = responsePortfolio.data.equity.available.opening_balance.ToDecimal();
                                 _myPortfolios[i].ValueCurrent = responsePortfolio.data.equity.available.live_balance.ToDecimal();
-                                _myPortfolios[i].ValueBlocked = responsePortfolio.data.equity.utilised.debits.ToDecimal();
+                                _myPortfolios[i].ValueBlocked = 0;
+                            }
+
+                            if (_myPortfolios[i].Number == "HoldingsPortfolio")
+                            {
+                                _myPortfolios[i].Number = "HoldingsPortfolio";
+                                _myPortfolios[i].ValueBegin = 0;
+                                _myPortfolios[i].ValueCurrent = 0;
                             }
                         }
 
@@ -552,17 +561,17 @@ namespace OsEngine.Market.Servers.KiteConnect
                     }
                     else
                     {
-                        SendLogMessage($"Update Portfolio error type: {responsePortfolio.error_type}, {responsePortfolio.message}", LogMessageType.Error);
+                        SendLogMessage($"Portfolio update error type: {responsePortfolio.error_type}, {responsePortfolio.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"Update Portfolio request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Portfolio update request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage("Update Portfolio request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Portfolio update request error " + exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -598,14 +607,11 @@ namespace OsEngine.Market.Servers.KiteConnect
                     {
                         Portfolio portf = null;
 
+                        List<PositionOnBoard> sectionPoses = new List<PositionOnBoard>();
+
                         for (int i = 0; i < _myPortfolios.Count; i++)
                         {
-                            if (_myPortfolios[i].Number == "EquityPortfolio")
-                            {
-                                portf = _myPortfolios[i];
-
-                            }
-                            else if (_myPortfolios[i].Number == "CommodityPortfolio")
+                            if (_myPortfolios[i].Number == "HoldingsPortfolio")
                             {
                                 portf = _myPortfolios[i];
                             }
@@ -622,7 +628,12 @@ namespace OsEngine.Market.Servers.KiteConnect
                             newPos.PortfolioName = portf.Number;
                             newPos.ValueCurrent = responsePortfolio.data[i].quantity.ToDecimal();
                             newPos.SecurityNameCode = responsePortfolio.data[i].tradingsymbol;
-                            portf.SetNewPosition(newPos);
+                            sectionPoses.Add(newPos);
+                        }
+
+                        for (int i = 0; i < sectionPoses.Count; i++)
+                        {
+                            portf.SetNewPosition(sectionPoses[i]);
                         }
 
                         if (PortfolioEvent != null)
@@ -668,9 +679,17 @@ namespace OsEngine.Market.Servers.KiteConnect
                 {
                     ResponseRestKite<ResponsePositions> responsePositions = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestKite<ResponsePositions>());
 
+                    if (responsePositions.data.day.Count == 0
+                        && responsePositions.data.net.Count == 0)
+                    {
+                        return;
+                    }
+
                     if (responsePositions.status == "success")
                     {
                         Portfolio portf = null;
+
+                        List<PositionOnBoard> sectionPoses = new List<PositionOnBoard>();
 
                         for (int i = 0; i < _myPortfolios.Count; i++)
                         {
@@ -678,25 +697,33 @@ namespace OsEngine.Market.Servers.KiteConnect
                             {
                                 portf = _myPortfolios[i];
 
+                                for (int j = 0; j < responsePositions.data.net.Count; j++)
+                                {
+                                    PositionOnBoard newPos = new PositionOnBoard();
+                                    newPos.PortfolioName = portf.Number;
+                                    newPos.ValueCurrent = responsePositions.data.net[j].quantity.ToDecimal();
+                                    newPos.SecurityNameCode = responsePositions.data.net[j].tradingsymbol;
+                                    sectionPoses.Add(newPos);
+                                }
                             }
                             else if (_myPortfolios[i].Number == "CommodityPortfolio")
                             {
                                 portf = _myPortfolios[i];
+
+                                for (int j = 0; j < responsePositions.data.net.Count; j++)
+                                {
+                                    PositionOnBoard newPos = new PositionOnBoard();
+                                    newPos.PortfolioName = portf.Number;
+                                    newPos.ValueCurrent = responsePositions.data.net[j].quantity.ToDecimal();
+                                    newPos.SecurityNameCode = responsePositions.data.net[j].tradingsymbol;
+                                    sectionPoses.Add(newPos);
+                                }
                             }
                         }
 
-                        if (portf == null)
+                        for (int i = 0; i < sectionPoses.Count; i++)
                         {
-                            return;
-                        }
-
-                        for (int i = 0; i < responsePositions.data.net.Count; i++)
-                        {
-                            PositionOnBoard newPos = new PositionOnBoard();
-                            newPos.PortfolioName = portf.Number;
-                            newPos.ValueCurrent = responsePositions.data.net[i].quantity.ToDecimal();
-                            newPos.SecurityNameCode = responsePositions.data.net[i].tradingsymbol;
-                            portf.SetNewPosition(newPos);
+                            portf.SetNewPosition(sectionPoses[i]);
                         }
 
                         if (PortfolioEvent != null)
@@ -711,12 +738,12 @@ namespace OsEngine.Market.Servers.KiteConnect
                 }
                 else
                 {
-                    SendLogMessage($"Positions request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Error requesting positions. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage("Positions request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Error requesting positions " + exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -735,12 +762,67 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            //int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
             DateTime endTime = DateTime.Now;
-            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
+            //DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
-            return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
+            int candlesInDay = 0;
+
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes >= 1)
+            {
+                candlesInDay = 900 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
+            }
+            else
+            {
+                candlesInDay = 54000 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
+            }
+
+            if (candlesInDay == 0)
+            {
+                candlesInDay = 1;
+            }
+
+            int daysCount = candleCount / candlesInDay;
+
+            if (daysCount == 0)
+            {
+                daysCount = 1;
+            }
+
+            daysCount++;
+
+            if (daysCount > 5)
+            {
+                daysCount = daysCount + (daysCount / 5) * 2;
+            }
+
+            DateTime startTime = endTime.AddDays(-daysCount);
+
+            if (endTime.DayOfWeek == DayOfWeek.Monday)
+            {
+                startTime = startTime.AddDays(-2);
+            }
+            if (endTime.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                startTime = startTime.AddDays(-1);
+            }
+
+            List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
+
+            if (candles == null)
+            {
+                return null;
+            }
+
+            while (candles.Count > candleCount)
+            {
+                candles.RemoveAt(0);
+            }
+
+            return candles;
         }
+
+        // private int limitSecurityToLoad = 0;
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
@@ -749,6 +831,111 @@ namespace OsEngine.Market.Servers.KiteConnect
                 return null;
             }
 
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Local);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Local);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Local);
+
+            if (timeFrameBuilder.TimeFrame == TimeFrame.Min2
+                || timeFrameBuilder.TimeFrame == TimeFrame.Min10
+                || timeFrameBuilder.TimeFrame == TimeFrame.Hour2
+                || timeFrameBuilder.TimeFrame == TimeFrame.Hour4)
+            {
+                return null;
+            }
+
+            if (startTime != actualTime)
+            {
+                startTime = actualTime;
+            }
+
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
+
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            string tf = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
+
+            List<Candle> allCandles = new List<Candle>();
+
+            double countDays = (endTime - startTime).TotalDays;
+            DateTime startTimeData = startTime;
+            DateTime endTimeData = endTime;
+
+            if (countDays > 59)
+            {
+                countDays = 59;
+            }
+
+            if (timeFrameBuilder.TimeFrame != TimeFrame.Day)
+            {
+                endTimeData = startTimeData.AddDays(countDays + 1);
+            }
+            else
+            {
+                endTimeData = startTimeData.AddDays(countDays);
+            }
+
+            while (countDays > 0)
+            {
+
+                List<Candle> candles = RequestCandleHistory(security, tf, startTimeData, endTimeData);
+
+                if (candles == null)
+                {
+                    return null;
+                }
+
+                if (candles.Count == 0)
+                {
+                    countDays = 0;
+                    continue;
+                }
+
+                allCandles.AddRange(candles);
+
+                startTimeData = allCandles[allCandles.Count - 1].TimeStart.AddMinutes(tfTotalMinutes);
+                countDays = (endTime - startTimeData).TotalDays;
+
+                if (countDays > 59)
+                {
+                    countDays = 59;
+                }
+
+                if (timeFrameBuilder.TimeFrame != TimeFrame.Day)
+                {
+                    endTimeData = startTimeData.AddDays(countDays);
+                }
+                else
+                {
+                    endTimeData = startTimeData.AddDays(countDays);
+                }
+            }
+
+            while (allCandles != null &&
+                allCandles.Count != 0 &&
+                allCandles[0].TimeStart < startTime)
+            {
+                allCandles.RemoveAt(0);
+            }
+
+            if (allCandles != null && allCandles.Count > 0)
+            {
+                for (int i = 1; i < allCandles.Count; i++)
+                {
+                    if (allCandles[i - 1].TimeStart == allCandles[i].TimeStart)
+                    {
+                        allCandles.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
+            return allCandles;
+        }
+
+        private List<Candle> RequestCandleHistory(Security security, string tf, DateTime startTime, DateTime endTime)
+        {
             _rateGateHistoricalCandle.WaitToProceed();
 
             try
@@ -756,7 +943,6 @@ namespace OsEngine.Market.Servers.KiteConnect
                 string end = endTime.ToString("yyyy-MM-dd HH:mm:ss");
                 string start = startTime.ToString("yyyy-MM-dd HH:mm:ss");
 
-                string tf = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
                 string instrumentToken = security.NameId.Split('_')[0];
                 string path = $"/instruments/historical/{instrumentToken}/{tf}";
 
@@ -790,7 +976,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                             newCandle.Low = curCandle[3].ToDecimal();
                             newCandle.Close = curCandle[4].ToDecimal();
                             newCandle.Volume = curCandle[5].ToDecimal();
-                            newCandle.TimeStart = Convert.ToDateTime(curCandle[0]);
+                            newCandle.TimeStart = DateTimeOffset.Parse(curCandle[0]).DateTime;
 
                             result.Add(newCandle);
                         }
@@ -805,15 +991,28 @@ namespace OsEngine.Market.Servers.KiteConnect
                 }
                 else
                 {
-                    SendLogMessage($"Last Candle request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Candle request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
                 }
                 return null;
             }
             catch (Exception exception)
             {
-                SendLogMessage("Last Candle request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Candle request error " + exception.ToString(), LogMessageType.Error);
                 return null;
             }
+        }
+
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if (startTime > endTime ||
+                startTime >= DateTime.Now ||
+                actualTime > endTime ||
+                actualTime > DateTime.Now ||
+                endTime < DateTime.Now.AddYears(-20))
+            {
+                return false;
+            }
+            return true;
         }
 
         private string GetInterval(TimeSpan timeFrame)
@@ -822,16 +1021,24 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 case 1:
                     return "minute";
+                case 2:
+                    return "2minute";
                 case 3:
                     return "3minute";
                 case 5:
                     return "5minute";
+                case 10:
+                    return "10minute";
                 case 15:
                     return "15minute";
                 case 30:
                     return "30minute";
                 case 60:
                     return "60minute";
+                case 120:
+                    return "2hour";
+                case 240:
+                    return "4hour";
                 case 1440:
                     return "day";
                 default:
@@ -952,54 +1159,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         #endregion 7
 
-        #region 8 WebSocket check alive
-
-        private DateTime _timeLastSendPing = DateTime.Now;
-
-        private void CheckAliveWebSocket()
-        {
-            while (true)
-            {
-                try
-                {
-                    Thread.Sleep(3000);
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        _timeLastSendPing = DateTime.Now;
-                        Thread.Sleep(1000);
-                        continue;
-                    }
-
-                    //if (_webSocket != null && _webSocket.State == WebSocketState.Open ||
-                    //    _webSocket.State == WebSocketState.Connecting)
-                    //{
-                    //    if (_timeLastSendPing.AddSeconds(25) < DateTime.Now)
-                    //    {
-                    //        _webSocket.Send("ping");
-                    //        _timeLastSendPing = DateTime.Now;
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    //    {
-                    //        ServerStatus = ServerConnectStatus.Disconnect;
-                    //        DisconnectEvent();
-                    //    }
-                    //}
-                }
-                catch (Exception exception)
-                {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
-            }
-        }
-
-        #endregion 8
-
-        #region 9 WebSocket Security subscrible
+        #region 8 WebSocket Security subscribe
 
         List<Security> _subscribledSecurities = new List<Security>();
 
@@ -1036,9 +1196,9 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
-        #endregion 9
+        #endregion 8
 
-        #region 10 WebSocket parsing the messages
+        #region 9 WebSocket parsing the messages
 
         private void MessageReader()
         {
@@ -1099,15 +1259,35 @@ namespace OsEngine.Market.Servers.KiteConnect
                     return;
                 }
 
+                if (string.IsNullOrEmpty(responseOrder.data.order_id.ToString()))
+                {
+                    return;
+                }
+
                 List<Order> newOrders = new List<Order>();
+
+                if (responseOrder.data.tag == null)
+                {
+                    return;
+                }
+
+                string[] tagSplit = responseOrder.data.tag.Split('_');
+
+                if (tagSplit.Length < 2)
+                {
+                    return;
+                }
+
+                string userNumber = tagSplit[0];
+                string nameSecurity = $"{responseOrder.data.tradingsymbol}_{tagSplit[2]}_{tagSplit[3]}";
 
                 OrderStateType stateType = GetOrderState(responseOrder.data.status);
 
                 Order newOrder = new Order();
-                newOrder.SecurityNameCode = responseOrder.data.tradingsymbol;
-                newOrder.TimeCallBack = Convert.ToDateTime(responseOrder.data.order_timestamp);
-                newOrder.TimeCreate = Convert.ToDateTime(responseOrder.data.order_timestamp);
-                newOrder.NumberUser = Convert.ToInt32(responseOrder.data.tag);
+                newOrder.SecurityNameCode = nameSecurity;
+                newOrder.TimeCallBack = DateTimeOffset.Parse(responseOrder.data.order_timestamp).DateTime;
+                newOrder.TimeCreate = DateTimeOffset.Parse(responseOrder.data.order_timestamp).DateTime;
+                newOrder.NumberUser = Convert.ToInt32(userNumber);
                 newOrder.NumberMarket = responseOrder.data.order_id.ToString();
                 newOrder.Side = responseOrder.data.transaction_type.Equals("BUY") ? Side.Buy : Side.Sell;
                 newOrder.State = stateType;
@@ -1115,7 +1295,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 newOrder.Price = responseOrder.data.price.ToDecimal();
                 newOrder.ServerType = ServerType.KiteConnect;
                 newOrder.PortfolioNumber = "EquityPortfolio";
-                newOrder.SecurityClassCode = responseOrder.data.tradingsymbol;
+                newOrder.SecurityClassCode = newOrder.SecurityNameCode;
                 newOrder.TypeOrder = responseOrder.data.order_type == "LIMIT"
                         ? OrderPriceType.Limit
                         : OrderPriceType.Market;
@@ -1159,6 +1339,8 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
+        private DateTime _lastMdTime = DateTime.MinValue;
+
         private void UpdateTradeAndMarketDepth(byte[] b, ref int offset)
         {
             uint instrumentToken = ReadInt(b, ref offset);
@@ -1199,6 +1381,15 @@ namespace OsEngine.Market.Servers.KiteConnect
             trade.Price = LastPrice;
             trade.Volume = Volume;
 
+            if (BuyQuantity > SellQuantity)
+            {
+                trade.Side = Side.Buy;
+            }
+            else
+            {
+                trade.Side = Side.Sell;
+            }
+
             trade.Time = Timestamp;
 
             if (NewTradesEvent != null)
@@ -1214,8 +1405,8 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 depth.SecurityNameCode = securityDepth.Name;
             }
-            
-            depth.Time = Timestamp;
+
+            depth.Time = Timestamp.AddMilliseconds(1);
 
             Bids = new DepthItem[5];
             for (int i = 0; i < 5; i++)
@@ -1240,21 +1431,18 @@ namespace OsEngine.Market.Servers.KiteConnect
                 offset += 2;
             }
 
+            if (_lastMdTime != DateTime.MinValue &&
+               _lastMdTime >= depth.Time)
+            {
+                depth.Time = _lastMdTime.AddTicks(1);
+            }
+
+            _lastMdTime = depth.Time;
+
             if (MarketDepthEvent != null)
             {
                 MarketDepthEvent(depth);
             }
-
-
-            //if (quotes.side == "buy")
-            //{
-            //    trade.Side = Side.Buy;
-            //}
-            //else
-            //{
-            //    trade.Side = Side.Sell;
-            //}
-
         }
 
         private Security GetNameSecurity(string instrumentToken)
@@ -1309,9 +1497,9 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public event Action<MyTrade> MyTradeEvent;
 
-        #endregion 10
+        #endregion 9
 
-        #region 11 Trade
+        #region 10 Trade
 
         public void SendOrder(Order order)
         {
@@ -1320,32 +1508,39 @@ namespace OsEngine.Market.Servers.KiteConnect
             try
             {
                 string path = $"/orders/regular";
-
                 string exchange = GetExchange(order.SecurityClassCode.Split('_')[0]);
+                string nameSecurity = order.SecurityNameCode.Split('_')[0];
+
+                string tag = $"{order.NumberUser.ToString()}_{order.SecurityNameCode}";
 
                 RestClient client = new RestClient(_baseUrl);
                 RestRequest request = new RestRequest(path, Method.POST);
                 request.AddHeader("Authorization", "token " + _apiKey + ":" + _accessToken);
                 request.AddHeader("X-Kite-Version", "3");
-                request.AddParameter("tradingsymbol", order.SecurityNameCode);
+                request.AddParameter("tradingsymbol", nameSecurity);
                 request.AddParameter("exchange", exchange);
                 request.AddParameter("transaction_type", order.Side.ToString().ToUpper());
                 request.AddParameter("order_type", order.TypeOrder.ToString().ToUpper());
+
                 if (order.TypeOrder != OrderPriceType.Market)
                 {
                     request.AddParameter("price", order.Price.ToString().Replace(",", "."));
                 }
+
                 request.AddParameter("quantity", order.Volume.ToString().Replace(",", "."));
                 request.AddParameter("product", "CNC");
                 request.AddParameter("validity", "DAY");
-                request.AddParameter("tag", order.NumberUser.ToString());
+                request.AddParameter("tag", tag);
 
                 IRestResponse response = client.Execute(request);
 
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    SendLogMessage("Order Fail. Status: "
-                        + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
+                    SendLogMessage("Order failed. Status: "
+                         + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
+                    order.State = OrderStateType.Fail;
+                    MyOrderEvent(order);
+
                 }
             }
             catch (Exception exception)
@@ -1371,13 +1566,13 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    SendLogMessage("Cancel order Fail. Status: "
+                    SendLogMessage("Cancel order failed. Status: "
                          + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage("Cancel order error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Cancel order failed " + exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1399,28 +1594,42 @@ namespace OsEngine.Market.Servers.KiteConnect
                 request.AddHeader("Authorization", "token " + _apiKey + ":" + _accessToken);
                 request.AddHeader("X-Kite-Version", "3");
                 request.AddParameter("order_type", "LIMIT");
-                request.AddParameter("quantity", order.Volume.ToString());
-                request.AddParameter("price", newPrice.ToString());
+                request.AddParameter("quantity", order.Volume.ToString().Replace(",", "."));
+                request.AddParameter("price", newPrice.ToString().Replace(",", "."));
                 request.AddParameter("validity", "DAY");
-
 
                 IRestResponse response = client.Execute(request);
 
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    SendLogMessage("Order Fail. Status: "
+                    SendLogMessage("Order change failed Status: "
                          + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order send error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Order change failed " + exception.ToString(), LogMessageType.Error);
             }
         }
 
         public void CancelAllOrders()
         {
+            List<Order> orders = GetAllOpenOrders();
 
+            if (orders == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+
+                if (order.State == OrderStateType.Active)
+                {
+                    CancelOrder(order);
+                }
+            }
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -1448,7 +1657,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public void GetOrderStatus(Order order)
         {
-            Order myOrder = GetOrderFromExchange(order.NumberMarket);
+            Order myOrder = GetOrderFromExchange(order.NumberUser.ToString());
 
             if (myOrder == null)
             {
@@ -1490,19 +1699,34 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                         for (int i = 0; i < responseOrder.data.Count; i++)
                         {
-
-                            if (responseOrder.status != "Open")
+                            if (responseOrder.data[i].status != "OPEN")
                             {
                                 continue;
                             }
 
+                            if (responseOrder.data[i].tag == null)
+                            {
+                                continue;
+                            }
+
+                            string[] tagSplit = responseOrder.data[i].tag.Split('_');
+
+                            if (tagSplit.Length < 2)
+                            {
+                                continue;
+                            }
+
+                            string userNumber = tagSplit[0];
+                            string nameSecurity = $"{responseOrder.data[i].tradingsymbol}_{tagSplit[2]}_{tagSplit[3]}";
+
+
                             OrderStateType stateType = GetOrderState(responseOrder.data[i].status);
 
                             Order newOrder = new Order();
-                            newOrder.SecurityNameCode = responseOrder.data[i].tradingsymbol;
-                            newOrder.TimeCallBack = Convert.ToDateTime(responseOrder.data[i].order_timestamp);
-                            newOrder.TimeCreate = Convert.ToDateTime(responseOrder.data[i].order_timestamp);
-                            newOrder.NumberUser = Convert.ToInt32(responseOrder.data[i].user_id);
+                            newOrder.SecurityNameCode = nameSecurity;
+                            newOrder.TimeCallBack = DateTimeOffset.Parse(responseOrder.data[i].order_timestamp).DateTime;
+                            newOrder.TimeCreate = DateTimeOffset.Parse(responseOrder.data[i].order_timestamp).DateTime;
+                            newOrder.NumberUser = Convert.ToInt32(userNumber);
                             newOrder.NumberMarket = responseOrder.data[i].order_id.ToString();
                             newOrder.Side = responseOrder.data[i].transaction_type.Equals("BUY") ? Side.Buy : Side.Sell;
                             newOrder.State = stateType;
@@ -1510,7 +1734,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                             newOrder.Price = responseOrder.data[i].price.ToDecimal();
                             newOrder.ServerType = ServerType.KiteConnect;
                             newOrder.PortfolioNumber = "EquityPortfolio";
-                            newOrder.SecurityClassCode = responseOrder.data[i].tradingsymbol;
+                            newOrder.SecurityClassCode = newOrder.SecurityNameCode;
                             newOrder.TypeOrder = responseOrder.data[i].order_type == "LIMIT"
                                     ? OrderPriceType.Limit
                                     : OrderPriceType.Market;
@@ -1520,16 +1744,20 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                         return orders;
                     }
+                    else
+                    {
+                        SendLogMessage($"Active orders error type: {responseOrder.error_type}, {responseOrder.message}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Get all orders request error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Error querying active orders. Status: {response.StatusCode} - {response.Content}", LogMessageType.Error);
                 }
                 return null;
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.Message, LogMessageType.Error);
+                SendLogMessage("Error querying active orders." + exception.ToString(), LogMessageType.Error);
                 return null;
             }
         }
@@ -1557,11 +1785,16 @@ namespace OsEngine.Market.Servers.KiteConnect
                         for (int i = 0; i < responceMyTrade.data.Count; i++)
                         {
                             MyTrade myTrade = new MyTrade();
-                            myTrade.Time = Convert.ToDateTime(responceMyTrade.data[i].fill_timestamp);
+                            myTrade.Time = DateTimeOffset.Parse(responceMyTrade.data[i].fill_timestamp).DateTime;
                             myTrade.NumberOrderParent = responceMyTrade.data[i].order_id;
                             myTrade.NumberTrade = responceMyTrade.data[i].trade_id;
                             myTrade.Price = responceMyTrade.data[i].average_price.ToDecimal();
-                            myTrade.SecurityNameCode = responceMyTrade.data[i].tradingsymbol;
+
+                            if (responceMyTrade.data[i].tradingsymbol == order.SecurityNameCode.Split('_')[0])
+                            {
+                                myTrade.SecurityNameCode = order.SecurityNameCode;
+                            }
+
                             myTrade.Side = responceMyTrade.data[i].transaction_type == "BUY" ? Side.Buy : Side.Sell;
                             myTrade.Volume = responceMyTrade.data[i].quantity.ToDecimal();
 
@@ -1570,25 +1803,25 @@ namespace OsEngine.Market.Servers.KiteConnect
                     }
                     else
                     {
-                        SendLogMessage($"Get myTrade error type: {responceMyTrade.error_type}, {responceMyTrade.message}", LogMessageType.Error);
+                        SendLogMessage($"myTrade error type: {responceMyTrade.error_type}, {responceMyTrade.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"Get orders myTrade error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"Error getting myTrade. Status: {response.StatusCode} - {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage(exception.Message, LogMessageType.Error);
+                SendLogMessage("Got a myTrade request error." + exception.ToString(), LogMessageType.Error);
             }
         }
 
-        private Order GetOrderFromExchange(string numberMarket)
+        private Order GetOrderFromExchange(string numberUser)
         {
             _rateGateOrder.WaitToProceed();
 
-            if (string.IsNullOrEmpty(numberMarket))
+            if (string.IsNullOrEmpty(numberUser))
             {
                 SendLogMessage("Order ID is empty", LogMessageType.Connect);
                 return null;
@@ -1598,68 +1831,78 @@ namespace OsEngine.Market.Servers.KiteConnect
 
             try
             {
-                string path = $"/orders/{numberMarket}";
+                string path = $"/orders";
 
                 RestClient client = new RestClient(_baseUrl);
                 RestRequest request = new RestRequest(path, Method.GET);
                 request.AddHeader("Authorization", "token " + _apiKey + ":" + _accessToken);
                 request.AddHeader("X-Kite-Version", "3");
+
                 IRestResponse response = client.Execute(request);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-
                     ResponseRestKite<List<OrderResponse>> responseOrder = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestKite<List<OrderResponse>>());
 
                     if (responseOrder.status == "success")
                     {
-                        List<Order> newOrders = new List<Order>();
-
                         for (int i = 0; i < responseOrder.data.Count; i++)
                         {
-                            if (string.IsNullOrEmpty(responseOrder.data[i].order_id.ToString()))
+                            if (responseOrder.data[i].tag == null)
                             {
                                 continue;
                             }
 
-                            OrderStateType stateType = GetOrderState(responseOrder.data[i].status);
+                            string[] tagSplit = responseOrder.data[i].tag.Split('_');
 
-                            newOrder.SecurityNameCode = responseOrder.data[i].tradingsymbol;
-                            newOrder.TimeCallBack = Convert.ToDateTime(responseOrder.data[i].order_timestamp);
-                            newOrder.TimeCreate = Convert.ToDateTime(responseOrder.data[i].order_timestamp);
-                            newOrder.NumberUser = Convert.ToInt32(responseOrder.data[i].tag);
-                            newOrder.NumberMarket = responseOrder.data[i].order_id.ToString();
-                            newOrder.Side = responseOrder.data[i].transaction_type.Equals("BUY") ? Side.Buy : Side.Sell;
-                            newOrder.State = stateType;
-                            newOrder.Volume = responseOrder.data[i].quantity.ToDecimal();
-                            newOrder.Price = responseOrder.data[i].price.ToDecimal();
-                            newOrder.ServerType = ServerType.KiteConnect;
-                            newOrder.PortfolioNumber = "EquityPortfolio";
-                            newOrder.SecurityClassCode = responseOrder.data[i].tradingsymbol;
-                            newOrder.TypeOrder = responseOrder.data[i].order_type == "LIMIT"
-                                    ? OrderPriceType.Limit
-                                    : OrderPriceType.Market;
+                            if (tagSplit.Length < 2)
+                            {
+                                continue;
+                            }
+
+                            string userNumber = tagSplit[0];
+                            string nameSecurity = $"{responseOrder.data[i].tradingsymbol}_{tagSplit[2]}_{tagSplit[3]}";
+
+                            if (userNumber == numberUser)
+                            {
+                                OrderStateType stateType = GetOrderState(responseOrder.data[i].status);
+
+                                newOrder.SecurityNameCode = nameSecurity;
+                                newOrder.TimeCallBack = DateTimeOffset.Parse(responseOrder.data[i].order_timestamp).DateTime;
+                                newOrder.TimeCreate = DateTimeOffset.Parse(responseOrder.data[i].order_timestamp).DateTime;
+                                newOrder.NumberUser = Convert.ToInt32(userNumber);
+                                newOrder.NumberMarket = responseOrder.data[i].order_id.ToString();
+                                newOrder.Side = responseOrder.data[i].transaction_type.Equals("BUY") ? Side.Buy : Side.Sell;
+                                newOrder.State = stateType;
+                                newOrder.Volume = responseOrder.data[i].quantity.ToDecimal();
+                                newOrder.Price = responseOrder.data[i].price.ToDecimal();
+                                newOrder.ServerType = ServerType.KiteConnect;
+                                newOrder.PortfolioNumber = "EquityPortfolio";
+                                newOrder.SecurityClassCode = newOrder.SecurityNameCode;
+                                newOrder.TypeOrder = responseOrder.data[i].order_type == "LIMIT"
+                                        ? OrderPriceType.Limit
+                                        : OrderPriceType.Market;
+                            }
                         }
+
+                        return newOrder;
                     }
                     else
                     {
-                        SendLogMessage($"Get order error type: {responseOrder.error_type}, {responseOrder.message}", LogMessageType.Error);
-                        return null;
+                        SendLogMessage($"Order status error type: {responseOrder.error_type}, {responseOrder.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    SendLogMessage($"Get order request error. Status: {response.StatusCode}, {response.Content}", LogMessageType.Error);
-                    return null;
+                    SendLogMessage($"Request for order status failed. Status: {response.StatusCode} - {response.Content}", LogMessageType.Error);
                 }
+                return null;
             }
             catch (Exception exception)
             {
-                SendLogMessage("Get order request error." + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Request for order status failed." + exception.ToString(), LogMessageType.Error);
                 return null;
             }
-
-            return newOrder;
         }
 
         private string GetExchange(string exchange)
@@ -1731,9 +1974,9 @@ namespace OsEngine.Market.Servers.KiteConnect
             return stateType;
         }
 
-        #endregion 11
+        #endregion 10
 
-        #region 12 Helpers
+        #region 11 Helpers
 
         public static DateTime UnixToDateTime(UInt64 unixTimeStamp)
         {
@@ -1762,9 +2005,9 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
-        #endregion 12
+        #endregion 11
 
-        #region 13 Log
+        #region 12 Log
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
@@ -1773,6 +2016,6 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        #endregion
+        #endregion 12
     }
 }

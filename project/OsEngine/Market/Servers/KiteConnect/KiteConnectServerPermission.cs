@@ -71,7 +71,7 @@
 
         public bool DataFeedTf10MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf15MinuteCanLoad
@@ -173,7 +173,7 @@
         TimeFrameSec20IsOn = false,
         TimeFrameSec30IsOn = false,
         TimeFrameMin1IsOn = true,
-        TimeFrameMin2IsOn = false,
+        TimeFrameMin2IsOn = true,
         TimeFrameMin3IsOn = true,
         TimeFrameMin5IsOn = true,
         TimeFrameMin10IsOn = true,
@@ -182,8 +182,8 @@
         TimeFrameMin30IsOn = true,
         TimeFrameMin45IsOn = false,
         TimeFrameHour1IsOn = true,
-        TimeFrameHour2IsOn = false,
-        TimeFrameHour4IsOn = false,
+        TimeFrameHour2IsOn = true,
+        TimeFrameHour4IsOn = true,
         TimeFrameDayIsOn = true
     };
 
