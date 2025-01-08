@@ -17,6 +17,8 @@ namespace OsEngine.Market.Servers.YahooFinance
         {
             YahooServerRealization realization = new YahooServerRealization();
             ServerRealization = realization;
+
+            CreateParameterBoolean("Pre-post-market data", false);
         }
     }
 
@@ -41,7 +43,16 @@ namespace OsEngine.Market.Servers.YahooFinance
         public void Connect()
         {
             try
-            {                
+            {
+                if (((ServerParameterBool)ServerParameters[0]).Value == true)
+                {
+                    _premarket = "true";
+                }
+                else
+                {
+                    _premarket = "false";
+                }
+
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
@@ -83,6 +94,8 @@ namespace OsEngine.Market.Servers.YahooFinance
         public List<IServerParameter> ServerParameters { get; set; }
 
         private RestClient _httpClient = new RestClient("https://query2.finance.yahoo.com/v8/finance/chart/");
+
+        private string _premarket = "false";
 
         #endregion
 
@@ -350,7 +363,7 @@ namespace OsEngine.Market.Servers.YahooFinance
                 queryParam += $"interval={resolution}&";
                 queryParam += $"period1={fromTimeStamp}&";
                 queryParam += $"period2={toTimeStamp}&";
-                queryParam += $"includePrePost=true";
+                queryParam += $"includePrePost={_premarket}";
                 
                 RestRequest request = new RestRequest(queryParam, Method.GET);
                 IRestResponse responseMessage = _httpClient.Execute(request);
