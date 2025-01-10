@@ -1777,6 +1777,11 @@ namespace OsEngine.Journal.Internal
             {
                 for (int i = 0; i < _positionsToPaint.Count; i++)
                 {
+                    if (_positionsToPaint[i] == null)
+                    {
+                        continue;
+                    }
+
                     if (_positionsToPaint[i].Number == position.Number)
                     {
                         _positionsToPaint[i] = position;

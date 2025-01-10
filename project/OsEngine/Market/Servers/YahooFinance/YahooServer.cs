@@ -395,8 +395,9 @@ namespace OsEngine.Market.Servers.YahooFinance
 
             Quote quotes = response.chart.result[0].indicators.quote[0];
 
-            if (timeStamp.Count == 0 ||
-                quotes.close.Count == 0)
+            if (timeStamp == null 
+                || timeStamp.Count == 0 
+                || quotes.close.Count == 0)
             {
                 return null;
             }
