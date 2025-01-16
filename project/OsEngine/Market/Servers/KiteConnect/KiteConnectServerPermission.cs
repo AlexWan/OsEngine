@@ -115,7 +115,7 @@
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 10; }
+            get { return 30; }
         }
 
         public bool IsCanChangeOrderPrice
@@ -176,7 +176,7 @@
         TimeFrameMin2IsOn = true,
         TimeFrameMin3IsOn = true,
         TimeFrameMin5IsOn = true,
-        TimeFrameMin10IsOn = true,
+        TimeFrameMin10IsOn = false,
         TimeFrameMin15IsOn = true,
         TimeFrameMin20IsOn = false,
         TimeFrameMin30IsOn = true,
