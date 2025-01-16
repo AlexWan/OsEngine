@@ -86,7 +86,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 {
                     ResponseRestKite<string> errorUser = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestKite<string>());
 
-                    if (errorUser.error_type == "TokenException")
+                    if (errorUser.status == "error")
                     {
                         if (GetCurSessionToken() == false)
                         {
@@ -169,6 +169,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 DisconnectEvent();
             }
         }
+
         private void unsubscribeFromAllWebSockets()
         {
             if (_webSocket == null)
@@ -760,21 +761,21 @@ namespace OsEngine.Market.Servers.KiteConnect
             return null;
         }
 
+        private bool candleHistory = false;
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            //int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.Now;
-            //DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
+            DateTime endTime = DateTime.UtcNow;
 
             int candlesInDay = 0;
 
             if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes >= 1)
             {
-                candlesInDay = 900 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
+                candlesInDay = 420 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
             }
             else
             {
-                candlesInDay = 54000 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
+                candlesInDay = 25200 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
             }
 
             if (candlesInDay == 0)
@@ -807,6 +808,8 @@ namespace OsEngine.Market.Servers.KiteConnect
                 startTime = startTime.AddDays(-1);
             }
 
+            candleHistory = true;
+
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
 
             if (candles == null)
@@ -822,18 +825,12 @@ namespace OsEngine.Market.Servers.KiteConnect
             return candles;
         }
 
-        // private int limitSecurityToLoad = 0;
-
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (!_useSubscribeToHistoricalData)
             {
                 return null;
             }
-
-            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Local);
-            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Local);
-            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Local);
 
             if (timeFrameBuilder.TimeFrame == TimeFrame.Min2
                 || timeFrameBuilder.TimeFrame == TimeFrame.Min10
@@ -843,14 +840,25 @@ namespace OsEngine.Market.Servers.KiteConnect
                 return null;
             }
 
-            if (startTime != actualTime)
-            {
-                startTime = actualTime;
-            }
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
             if (!CheckTime(startTime, endTime, actualTime))
             {
                 return null;
+            }
+
+            if (candleHistory)
+            {
+                startTime = ConvertToIST(startTime);
+                endTime = ConvertToIST(endTime);
+                actualTime = ConvertToIST(actualTime);
+            }
+
+            if (startTime != actualTime)
+            {
+                startTime = actualTime;
             }
 
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
@@ -970,6 +978,11 @@ namespace OsEngine.Market.Servers.KiteConnect
                         {
                             string[] curCandle = responseCandles.data.candles[i];
 
+                            if (CheckCandlesToZeroData(curCandle))
+                            {
+                                continue;
+                            }
+
                             Candle newCandle = new Candle();
                             newCandle.Open = curCandle[1].ToDecimal();
                             newCandle.High = curCandle[2].ToDecimal();
@@ -1002,13 +1015,25 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
+        private bool CheckCandlesToZeroData(string[] item)
+        {
+            if (item[1].ToDecimal() == 0
+                || item[2].ToDecimal() == 0
+                || item[3].ToDecimal() == 0
+                || item[4].ToDecimal() == 0
+                || item[5].ToDecimal() == 0)
+            {
+                return true;
+            }
+            return false;
+        }
+
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime > endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now ||
-                endTime < DateTime.Now.AddYears(-20))
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -1064,8 +1089,15 @@ namespace OsEngine.Market.Servers.KiteConnect
                 }
 
                 _webSocket = new WebSocket(fullUrlWebSoket);
+                _webSocket.SslConfiguration.EnabledSslProtocols
+                = System.Security.Authentication.SslProtocols.Ssl3
+                | System.Security.Authentication.SslProtocols.Tls11
+                | System.Security.Authentication.SslProtocols.None
+                | System.Security.Authentication.SslProtocols.Tls12
+                | System.Security.Authentication.SslProtocols.Tls13
+                | System.Security.Authentication.SslProtocols.Tls;
                 _webSocket.EmitOnPing = true;
-                _webSocket.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
+
                 _webSocket.OnOpen += _webSocket_OnOpen;
                 _webSocket.OnMessage += _webSocket_OnMessage;
                 _webSocket.OnError += _webSocket_OnError;
@@ -1089,6 +1121,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                     _webSocket.OnMessage -= _webSocket_OnMessage;
                     _webSocket.OnError -= _webSocket_OnError;
                     _webSocket.OnClose -= _webSocket_OnClose;
+                    _webSocket.CloseAsync();
                 }
                 catch
                 {
@@ -1144,16 +1177,14 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         private void _webSocket_OnOpen(object sender, EventArgs e)
         {
-            if (ServerStatus != ServerConnectStatus.Connect)
+            SendLogMessage("Websockets activate. Connection status", LogMessageType.System);
+
+            if (ServerStatus != ServerConnectStatus.Connect
+            && _webSocket != null
+            && _webSocket.ReadyState == WebSocketState.Open)
             {
-                SendLogMessage("Websockets activate. Connection status", LogMessageType.System);
-
                 ServerStatus = ServerConnectStatus.Connect;
-
-                if (ConnectEvent != null)
-                {
-                    ConnectEvent();
-                }
+                ConnectEvent();
             }
         }
 
@@ -1188,6 +1219,7 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                 _webSocket?.Send("{\"a\":\"subscribe\",\"v\":[" + instrumentToken + "]}");
                 _webSocket?.Send("{\"a\":\"mode\",\"v\":[\"" + "full" + "\", [" + instrumentToken + "]]}");
+
             }
             catch (Exception exception)
             {
@@ -1390,7 +1422,7 @@ namespace OsEngine.Market.Servers.KiteConnect
                 trade.Side = Side.Sell;
             }
 
-            trade.Time = Timestamp;
+            trade.Time = LastTradeTime;
 
             if (NewTradesEvent != null)
             {
@@ -1719,7 +1751,6 @@ namespace OsEngine.Market.Servers.KiteConnect
                             string userNumber = tagSplit[0];
                             string nameSecurity = $"{responseOrder.data[i].tradingsymbol}_{tagSplit[2]}_{tagSplit[3]}";
 
-
                             OrderStateType stateType = GetOrderState(responseOrder.data[i].status);
 
                             Order newOrder = new Order();
@@ -1977,6 +2008,14 @@ namespace OsEngine.Market.Servers.KiteConnect
         #endregion 10
 
         #region 11 Helpers
+
+        static DateTime ConvertToIST(DateTime localTime)
+        {
+            TimeZoneInfo istZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+            DateTime istTime = TimeZoneInfo.ConvertTimeFromUtc(localTime, istZone);
+
+            return istTime;
+        }
 
         public static DateTime UnixToDateTime(UInt64 unixTimeStamp)
         {
