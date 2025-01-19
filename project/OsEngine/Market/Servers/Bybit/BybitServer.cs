@@ -688,7 +688,7 @@ namespace OsEngine.Market.Servers.Bybit
                     positions.PortfolioName = portfolioNumber;
                     positions.SecurityNameCode = item2.SelectToken("coin").Value<string>();
                     decimal.TryParse(item2.SelectToken("walletBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBegin);
-                    decimal.TryParse(item2.SelectToken("availableToWithdraw").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueCurrent);
+                    decimal.TryParse(item2.SelectToken("equity").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueCurrent);
                     decimal.TryParse(item2.SelectToken("locked").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBlocked);
 
                     pb.Add(positions);
