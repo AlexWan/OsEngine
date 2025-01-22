@@ -102,9 +102,9 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     _listenThread.Start();
                 }
 
-                if (ConnectionSucsess != null)
+                if (ConnectionSuccess != null)
                 {
-                    ConnectionSucsess();
+                    ConnectionSuccess();
                 }
             }
             catch (Exception error)
@@ -1428,9 +1428,9 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             string val2 = TcpReadString();
             TcpReadString();
 
-            if (val1 == "NetLiquidation" && NewAccauntValue != null)
+            if (val1 == "NetLiquidation" && NewAccountValue != null)
             {
-                NewAccauntValue(portfolio, Decimal.Parse(val2, NumberFormatInfo.InvariantInfo));
+                NewAccountValue(portfolio, Decimal.Parse(val2, NumberFormatInfo.InvariantInfo));
             }
         }
 
@@ -2017,13 +2017,13 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         /// new portfolio state
         /// новое состояние портфеля
         /// </summary>
-        public event Action<string, decimal> NewAccauntValue;
+        public event Action<string, decimal> NewAccountValue;
 
         /// <summary>
         /// successfully connected to TWS server
         /// успешно подключились к серверу TWS
         /// </summary>
-        public event Action ConnectionSucsess;
+        public event Action ConnectionSuccess;
 
         /// <summary>
         /// connection to TWS server lost
