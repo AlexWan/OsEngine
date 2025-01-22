@@ -5,17 +5,14 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Contracts;
 using System.Globalization;
 using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
-using OpenFAST.Utility;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace OsEngine.Market.Servers.InteractiveBrokers
 {
@@ -62,7 +59,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     }
 
                     _serverVersion = TcpReadInt();
-                    SendLogMessage("Server TCP Activ. Version TWS server: " + _serverVersion, LogMessageType.System);
+                    SendLogMessage("Server TCP Active. Version TWS server: " + _serverVersion, LogMessageType.System);
 
 
                     string twsTime = TcpReadString();
@@ -760,7 +757,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                                 if (zeroMessagesCount % 5 == 0)
                                 {
-                                    SendLogMessage("Неучтённое сообщение НОЛЬ. Возможно потеря связи с сервером. Предыдущее: " + previousMessage,
+                                    SendLogMessage("Unrecorded message Zero. Probably loss of communication with the server. Previous message: " + previousMessage,
                                     LogMessageType.Error);
                                     ReadToEnd();
                                 }
@@ -768,14 +765,14 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                                 if (zeroMessagesCount > 50)
                                 {
                                     _listenThread = null;
-                                    SendLogMessage("Кол-во сообщений НОЛЬ, превысило 50, переподключаемся", LogMessageType.Error);
+                                    SendLogMessage("Number of messages is Zero, exceeds 50, reconnect", LogMessageType.Error);
                                     Disconnect();
                                     return;
                                 }
                             }
                             else
                             {
-                                SendLogMessage("Неучтённое сообщение. Номер: " + typeMessage,
+                                SendLogMessage("Unrecorded message. Number: " + typeMessage,
                                     LogMessageType.Error);
                             }
 
