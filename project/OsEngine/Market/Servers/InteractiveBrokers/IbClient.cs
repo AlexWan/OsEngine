@@ -11,47 +11,30 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
+using OpenFAST.Utility;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 
 namespace OsEngine.Market.Servers.InteractiveBrokers
 {
-    /// <summary>
-    /// class implements the client for TCP server TWS
-    /// класс реализующий клиента для TCP сервера TWS
-    /// </summary>
     public class IbClient
     {
+        #region Connect / Disconnect
 
-        /// <summary>
-        /// client
-        /// клиент
-        /// </summary>
         private TcpClient _tcpClient;
 
-        /// <summary>
-        /// class to read data from stream
-        /// класс для чтения данных из потока
-        /// </summary>
         private BinaryWriter _tcpWriter;
 
-        /// <summary>
-        /// class to write data to stream
-        /// класс для записи данных в поток
-        /// </summary>
         private BinaryReader _tcpReader;
-
-        // connect / коннект
 
         private bool _isConnected;
 
         private string _sendMessageLocker = "sendMessageLocker";
 
-        /// <summary>
-        /// establish a connection to TCP server of TWS
-        /// установить соединение с TСP сервером TWS
-        /// </summary>
+        private int _serverVersion;
+
         public void Connect(string host, int port)
         {
             if (_isConnected)
@@ -78,8 +61,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                     }
 
-                    int serverVersion = TcpReadInt();
-                    SendLogMessage("Server TCP Activ. Version TWS server: " + serverVersion, LogMessageType.System);
+                    _serverVersion = TcpReadInt();
+                    SendLogMessage("Server TCP Activ. Version TWS server: " + _serverVersion, LogMessageType.System);
 
 
                     string twsTime = TcpReadString();
@@ -113,10 +96,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// disconnect from TCP server of TWS
-        /// отключиться от TCP сервера TWS
-        /// </summary>
         public void Disconnect()
         {
             if (_tcpWriter == null || _isConnected == false)
@@ -161,13 +140,10 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         }
 
-        // portfolios
-        // Портфели
+        #endregion
 
-        /// <summary>
-        /// take portfolios
-        /// взять портфели
-        /// </summary>
+        #region Management methods
+
         public void GetPortfolios()
         {
             // string tags = "AccountType,NetLiquidation";
@@ -195,11 +171,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         }
 
-        /// <summary>
-        /// subcribe to change portfolios
-        /// подписаться на изменения портфеля
-        /// </summary>
-        /// <param name="number"></param>
         public void ListenPortfolio(string number)
         {
             // _twsServer.reqPositions();
@@ -224,10 +195,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// take details of security
-        /// взять детали по бумаге
-        /// </summary>
         public void GetSecurityDetail(SecurityIb contract)
         {
             if (!_isConnected)
@@ -272,16 +239,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// all security with specification
-        /// все бумаги по которым нам пришла спицификация
-        /// </summary>
         private List<SecurityIb> _serverSecurities;
 
-        /// <summary>
-        /// subscribe to ticks
-        /// подписываемся на тики
-        /// </summary>
         public void GetMarketDataToSecurity(SecurityIb contract)
         {
             if (!_isConnected)
@@ -348,7 +307,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     string time = endDateTime.ToString("yyyyMMdd HH:mm:ss");// + " GMT";
                     TcpWrite(time);
                     TcpWrite(barSizeSetting);
-                    string period = ConvertPeriodtoIb(endDateTime, startTime);
+                    string period = ConvertPeriodToIb(endDateTime, startTime);
                     TcpWrite(period);
                     TcpWrite(0);
                     TcpWrite(candleType);
@@ -368,7 +327,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         }
 
-        private string ConvertPeriodtoIb(DateTimeOffset startTime, DateTimeOffset endTime)
+        private string ConvertPeriodToIb(DateTimeOffset startTime, DateTimeOffset endTime)
         {
             var period = endTime.Subtract(startTime);
             var secs = period.TotalSeconds;
@@ -401,10 +360,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             return unit + " W";
         }
 
-        /// <summary>
-        /// subscribe to depths
-        /// подписываемся на стаканы
-        /// </summary>
         public void GetMarketDepthToSecurity(SecurityIb contract)
         {
 
@@ -450,16 +405,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// the next right order number
-        /// следующий правильный номер ордера
-        /// </summary>
         private int _nextOrderNum;
 
-        /// <summary>
-        /// execute order on the exchange
-        /// исполнить ордер на бирже
-        /// </summary>
         public void ExecuteOrder(Order order, SecurityIb contract)
         {
             //_twsServer.placeOrderEx(_nextOrderNum - 1, contractIb, orderIb);
@@ -627,10 +574,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// cancel order
-        /// отозвать ордер
-        /// </summary>
         public void CancelOrder(Order order)
         {
             // _twsServer.cancelOrder(Convert.ToInt32(order.NumberMarket));
@@ -650,43 +593,28 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        // load data into thread
-        // грузим данные в поток
+        private List<Order> _orders;
 
-        /// <summary>
-        /// sign of a complete message for the package
-        /// признак завершения сообщения для пакета
-        /// </summary>
+        private List<MyTradeCreate> _myTradeCreate;
+
+        #endregion
+
+        #region Write data
+
         private readonly byte _endOfMessage = 0;
 
-        /// <summary>
-        /// current message
-        /// текущее сообщение
-        /// </summary>
         private List<byte> _message;
 
-        /// <summary>
-        /// write new data to message
-        /// записать в сообщение новые данные
-        /// </summary>
         private void TcpWrite(int value)
         {
             TcpWrite(value.ToString());
         }
 
-        /// <summary>
-        /// write new data to message
-        /// записать в сообщение новые данные
-        /// </summary>
         private void TcpWrite(double value)
         {
             TcpWrite(value.ToString(CultureInfo.InvariantCulture));
         }
 
-        /// <summary>
-        /// write new data to message
-        /// записать в сообщение новые данные
-        /// </summary>
         private void TcpWrite(string str)
         {
             if (_message == null)
@@ -704,10 +632,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             _message.Add(_endOfMessage);
         }
 
-        /// <summary>
-        /// write new data to message
-        /// записать в сообщение новые данные
-        /// </summary>
         private void TcpWrite(bool value)
         {
             if (value)
@@ -722,10 +646,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         RateGate _rateGate = new RateGate(1, TimeSpan.FromMilliseconds(1000));
 
-        /// <summary>
-        /// send a previously collected message to TCP server of TWS
-        /// выслать ранее собранное сообщение TCP серверу TWS
-        /// </summary>
         private void TcpSendMessage()
         {
             _rateGate.WaitToProceed();
@@ -741,132 +661,12 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             _message = new List<byte>();
         }
 
-        // getting data from the thread
-        // достаём данные из потока
+        #endregion
 
-        /// <summary>
-        /// read value from the thread
-        /// прочитать значение из потока
-        /// </summary>
-        private double TcpReadDouble()
-        {
-            try
-            {
-                string str = TcpReadString();
-                if (string.IsNullOrEmpty(str) ||
-                    str == "0")
-                {
-                    return 0;
-                }
-                else return Double.Parse(str, NumberFormatInfo.InvariantInfo);
-            }
-            catch
-            {
-                //SendLogMessage(error.ToString(),LogMessageType.Error);
-                return 0;
-            }
+        #region Read thread
 
-        }
-
-        /// <summary>
-        /// read value from the thread
-        /// прочитать значение из потока
-        /// </summary>
-        private decimal TcpReadDecimal()
-        {
-            try
-            {
-                string str = TcpReadString();
-                if (string.IsNullOrEmpty(str) ||
-                    str == "0")
-                {
-                    return 0;
-                }
-                else return Decimal.Parse(str, NumberFormatInfo.InvariantInfo);
-            }
-            catch
-            {
-                //SendLogMessage(error.ToString(), LogMessageType.Error);
-                return 0;
-            }
-
-        }
-
-        /// <summary>
-        /// read value from the thread
-        /// прочитать значение из потока
-        /// </summary>
-        public int TcpReadInt()
-        {
-            try
-            {
-                string str = TcpReadString();
-                if (string.IsNullOrEmpty(str))
-                {
-                    return 0;
-                }
-                else return Int32.Parse(str);
-            }
-            catch
-            {
-                //SendLogMessage(error.ToString(), LogMessageType.Error);
-                return 0;
-            }
-        }
-
-        /// <summary>
-        /// read value from the thread
-        /// прочитать значение из потока
-        /// </summary>
-        private string TcpReadString()
-        {
-            try
-            {
-                byte b = _tcpReader.ReadByte();
-
-                if (b == 0)
-                {
-                    return null;
-                }
-                else
-                {
-                    StringBuilder str = new StringBuilder();
-                    str.Append((char)b);
-                    while (true)
-                    {
-                        b = _tcpReader.ReadByte();
-                        if (b == 0)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            str.Append((char)b);
-                        }
-                    }
-                    return str.ToString();
-                }
-            }
-            catch
-            {
-                //SendLogMessage(error.ToString(), LogMessageType.Error);
-                return null;
-            }
-        }
-
-        // Listen to TCP for messages
-        // Прослушивание TCP на наличие в нём сообщений
-
-        /// <summary>
-        /// stream reading data from TWS
-        /// поток считывающий данные от TWS
-        /// </summary>
         private Thread _listenThread;
 
-        /// <summary>
-        /// method for working thread that listens TCP server of TWS
-        /// метод в котором работает поток прослушивающий TCP сервер TWS
-        /// </summary>
         private void ListenThreadSpace()
         {
             int zeroMessagesCount = 0;
@@ -942,53 +742,14 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     {
                         LoadPortfolioPosition2();
                     }
-
-
-                    // next, an unnecessary Os.Engine date from which the stream still needs to be cleaned / далее не нужная Os.Engine дата, от которой всё же поток нужно чистить
-
-                    else if (typeMessage == 5)
-                    {
-                        //OpenOrder
-                        ClearOpenOrder();
-                    }
-
-                    else if (typeMessage == 59)
-                    {
-                        ClearCommissionReport();
-                    }
-                    else if (typeMessage == 58)
-                    {
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadInt();
-                        TcpReadInt();
-                    }
-                    else if (typeMessage == 11)
-                    {
-                        ClearExecutionData();
-                    }
-
-                    else if (typeMessage == 64 || typeMessage == 52)
-                    {
-                        TcpReadInt();
-                        TcpReadInt();
-                    }
-                    else if (typeMessage == 45)
-                    {
-                        int val = TcpReadInt();
-                        int val2 = TcpReadInt();
-                        int val3 = TcpReadInt();
-                        double val4 = TcpReadDouble();
-                        // TcpReadString();
-                        //  TcpReadString();
-                    }
                     else if (typeMessage == 17)
                     {
-                        //HistoricalData
                         HistoricalDataEvent();
                     }
+
+                    // next, an unnecessary Os.Engine date from which the stream still needs to be cleaned
+                    // далее не нужная Os.Engine дата, от которой всё же поток нужно чистить
+
                     else
                     {
                         if (SkipUnnecessaryData(typeMessage) == false)
@@ -999,8 +760,9 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                                 if (zeroMessagesCount % 5 == 0)
                                 {
-                                    SendLogMessage("Неучтённое сообщение НОЛЬ. Возможно потеря связи с сервером. Номер: " + typeMessage,
+                                    SendLogMessage("Неучтённое сообщение НОЛЬ. Возможно потеря связи с сервером. Предыдущее: " + previousMessage,
                                     LogMessageType.Error);
+                                    ReadToEnd();
                                 }
 
                                 if (zeroMessagesCount > 50)
@@ -1114,11 +876,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// skip unnecessary data
-        /// пропустить не нужные данные
-        /// </summary>
-        /// <param name="typeMessage">message number / номер сообщения</param>
         private bool SkipUnnecessaryData(int typeMessage)
         {
             // list of all message numbers that may occur in the system
@@ -1181,7 +938,13 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 TcpReadInt();
                 return true;
             }
-            if (typeMessage == 6)
+            else if (typeMessage == 5)
+            {
+                //OpenOrder
+                SkipOrder();
+                return true;
+            }
+            else if (typeMessage == 6)
             { //Portfolio
                 TcpReadString();
                 TcpReadString();
@@ -1189,20 +952,14 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 TcpReadString();
                 return true;
             }
-            if (typeMessage == 62)
-            {
-                TcpReadInt();
-                return true;
-            }
-
-            if (typeMessage == 19)
-            { //ScannerParameters
+            else if (typeMessage == 8)
+            { //PortfolioUpdateTime  
                 TcpReadString();
                 return true;
             }
-            else if (typeMessage == 16)
-            { //FinancialAdvice
-                TcpReadInt();
+            else if (typeMessage == 11)
+            {
+                SkipExecutionData();
                 return true;
             }
             else if (typeMessage == 14)
@@ -1213,20 +970,13 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 TcpReadString();
                 return true;
             }
-            else if (typeMessage == 8)
-            { //PortfolioUpdateTime  
-                TcpReadString();
-                return true;
-            }
-            else if (typeMessage == 52)
-            {
-                TcpReadInt();
+            else if (typeMessage == 16)
+            { //FinancialAdvice
                 TcpReadInt();
                 return true;
             }
-            else if (typeMessage == 64)
-            {
-                TcpReadInt();
+            else if (typeMessage == 19)
+            { //ScannerParameters
                 TcpReadString();
                 return true;
             }
@@ -1262,14 +1012,49 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 TcpReadDouble();
                 return true;
             }
+            else if (typeMessage == 49)
+            {
+                TcpReadInt();
+                return true;
+            }
+            else if (typeMessage == 52)
+            {
+                TcpReadInt();
+                TcpReadInt();
+                return true;
+            }
+            else if (typeMessage == 58)
+            {
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                return true;
+            }
+            else if (typeMessage == 59)
+            {
+                // ClearCommissionReport
+                TcpReadInt();
+
+                TcpReadString();
+                TcpReadDouble();
+                TcpReadString();
+                TcpReadDouble();
+                TcpReadDouble();
+                TcpReadInt();
+                return true;
+            }
             else if (typeMessage == 62)
             {
                 TcpReadInt();
                 return true;
             }
-            else if (typeMessage == 49)
+            else if (typeMessage == 64)
             {
                 TcpReadInt();
+                TcpReadString();
                 return true;
             }
 
@@ -1278,7 +1063,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload portfolios
-        /// загрузить порфели
         /// </summary>
         private void LoadAccounts()
         {
@@ -1288,7 +1072,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload depths
-        /// загрузить стакан
         /// </summary>
         private void LoadMarketDepth(int numMessage)
         {
@@ -1316,7 +1099,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload the next valid order ID
-        /// загрузить следующий валидный ID для ордера
         /// </summary>
         private void LoadValidId()
         {
@@ -1328,7 +1110,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload portfolio position
-        /// загрузить позицию по портфелю
         /// </summary>
         private void LoadPortfolioPosition()
         {
@@ -1382,7 +1163,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload portfolio position
-        /// загрузить позицию по портфелю
         /// </summary>
         private void LoadPortfolioPosition2()
         {
@@ -1417,7 +1197,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload portfolios
-        /// загрузить портфели
         /// </summary>
         private void LoadAccount()
         {
@@ -1436,14 +1215,22 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload trades
-        /// загрузить трэйд
         /// </summary>
         private void LoadTrade()
         {
             int msgVersion = TcpReadInt();
+           
             int requestId = TcpReadInt();
             int tickType = TcpReadInt();
             decimal price = TcpReadDecimal();
+
+            if(msgVersion == 1)
+            {
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                return;
+            }
 
             if (msgVersion < 2)
             {
@@ -1461,7 +1248,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     return;
                 }
             }
-
 
             if (
                 tickType != 2 && tickType != 1 &&
@@ -1501,7 +1287,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload order
-        /// загрузить ордер
         /// </summary>
         private void LoadOrder()
         {
@@ -1655,7 +1440,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload error
-        /// загрузить ошибку
         /// </summary>
         private void LoadError()
         {
@@ -1671,7 +1455,6 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// upload contract specification 
-        /// загрузить спецификацию по контракту
         /// </summary>
         private void LoadContractData()
         {
@@ -1751,140 +1534,374 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
         /// <summary>
         /// clear message about the new opened order
-        /// очистить сообщение о только что открытом ордере
         /// </summary>
-        private void ClearOpenOrder()
+        private void SkipOrder()
         {
+            int msgVersion = TcpReadInt();
+            // read order id
             TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
+
+            // read contract fields
+
+            if (msgVersion >= 17)
+            {
+                TcpReadInt();
+            }
             TcpReadString();
             TcpReadString();
             TcpReadString();
             TcpReadDouble();
             TcpReadString();
-            TcpReadString();
-            TcpReadString();
-            TcpReadString();
-            TcpReadString();
-            TcpReadString();
-            TcpReadString();
-            TcpReadInt();
-            TcpReadString();
-            TcpReadDouble();
-            TcpReadDouble();
+
+            if (msgVersion >= 32)
+            {
+                TcpReadString();
+            }
 
             TcpReadString();
             TcpReadString();
-            TcpReadString();
-            TcpReadString();
+
+            if (msgVersion >= 2)
+            {
+                TcpReadString();
+            }
+            if (msgVersion >= 32)
+            {
+                TcpReadString();
+            }
+
+            // read order fields
+            string action = TcpReadString();
             TcpReadInt();
-            TcpReadString();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadDouble();
-            TcpReadString();
             TcpReadString();
 
+            if (msgVersion < 29)
+            {
+                TcpReadDouble();
+            }
+            else
+            {
+                TcpReadDouble();
+            }
+            if (msgVersion < 30)
+            {
+                TcpReadDouble();
+            }
+            else
+            {
+                TcpReadDouble();
+            }
             TcpReadString();
             TcpReadString();
             TcpReadString();
             TcpReadString();
-
-            TcpReadString();
-
-            TcpReadString();
-            TcpReadDouble();
-            TcpReadString();
             TcpReadInt();
             TcpReadString();
-            TcpReadInt();
 
-            TcpReadInt();
-            TcpReadDouble();
-            TcpReadDouble();
-            TcpReadDouble();
-            TcpReadDouble();
-            TcpReadDouble();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadDouble();
+            if (msgVersion >= 3)
+            {
+                TcpReadInt();
+            }
 
-            TcpReadInt();
-            TcpReadInt();
+            if (msgVersion >= 4)
+            {
+                TcpReadInt();
+                if (msgVersion < 18)
+                {
+                    // will never happen
+                    /* order.ignoreRth = */
+                    TcpReadInt();
+                }
+                else
+                {
+                    TcpReadInt();
+                }
+                TcpReadInt();
+                TcpReadDouble();
+            }
 
-            TcpReadDouble();
-            TcpReadInt();
+            if (msgVersion >= 5)
+            {
+                TcpReadString();
+            }
 
+            if (msgVersion >= 6)
+            {
+                // skip deprecated sharesAllocation field
+                TcpReadString();
+            }
 
-            TcpReadString();
-            TcpReadDouble();
+            if (msgVersion >= 7)
+            {
+                TcpReadString();
+                TcpReadString();
+                TcpReadString();
+                TcpReadString();
+            }
 
-            TcpReadInt();
-            TcpReadInt();
+            if (msgVersion >= 8)
+            {
+                TcpReadString();
+            }
 
+            if (msgVersion >= 9)
+            {
+                TcpReadString();
+                TcpReadDouble();
+                TcpReadString();
+                TcpReadInt();
+                TcpReadString();
 
+                if (_serverVersion == 51)
+                {
+                    TcpReadInt(); // exemptCode
+                }
+                else if (msgVersion >= 23)
+                {
+                    TcpReadInt();
+                }
+                TcpReadInt();
+                TcpReadDouble();
+                TcpReadDouble();
+                TcpReadDouble();
+                TcpReadDouble();
+                TcpReadDouble();
+                TcpReadInt();
 
-            TcpReadDouble();
+                if (msgVersion < 18)
+                {
+                    // will never happen
+                    /* order.rthOnly = */
+                    TcpReadInt();
+                }
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadDouble();
+            }
 
+            if (msgVersion >= 10)
+            {
+                TcpReadInt();
+                TcpReadInt();
+            }
 
-            TcpReadDouble();
+            if (msgVersion >= 11)
+            {
+                TcpReadDouble();
+                TcpReadInt();
 
-            TcpReadDouble();
-            TcpReadInt();
-            TcpReadString();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadDouble();
-            TcpReadString();
-            TcpReadInt();
-            TcpReadString();
-            TcpReadString();
+                if (msgVersion == 11)
+                {
+                    TcpReadInt();
+                }
+                else
+                { // msgVersion 12 and up
+                    string deltaNeutralOrderType = TcpReadString();
+                    TcpReadDouble();
 
-            TcpReadInt();
+                    if (msgVersion >= 27 && 
+                        string.IsNullOrEmpty(deltaNeutralOrderType) == false)
+                    {
+                        TcpReadInt();
+                        TcpReadString();
+                        TcpReadString();
+                        TcpReadString();
+                    }
 
-            TcpReadInt();
+                    if (msgVersion >= 31 &&
+                        string.IsNullOrEmpty(deltaNeutralOrderType) == false)
+                    {
+                        TcpReadString();
+                        TcpReadInt();
+                        TcpReadInt();
+                        TcpReadString();
+                    }
+                }
 
-            TcpReadString();
+                TcpReadInt();
 
+                if (_serverVersion == 26)
+                {
+                   TcpReadDouble();
+                   TcpReadDouble();
+                }
+                TcpReadInt();
+            }
 
-            TcpReadInt();
-            TcpReadString();
-            TcpReadString();
-            TcpReadString();
-            TcpReadString();
-            TcpReadDouble();
-            TcpReadDouble();
-            TcpReadDouble();
-            TcpReadString();
-            TcpReadString();
+            if (msgVersion >= 13)
+            {
+               TcpReadDouble();
+            }
 
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
-            TcpReadInt();
+            if (msgVersion >= 30)
+            {
+               TcpReadDouble();
+            }
+
+            if (msgVersion >= 14)
+            {
+                TcpReadDouble();
+                TcpReadInt();
+                TcpReadString();
+            }
+
+            if (msgVersion >= 29)
+            {
+                int comboLegsCount = TcpReadInt();
+                if (comboLegsCount > 0)
+                {
+                    for (int i = 0; i < comboLegsCount; ++i)
+                    {
+                        TcpReadInt();
+                        TcpReadInt();
+                        TcpReadString();
+                        TcpReadString();
+                        TcpReadInt();
+                        TcpReadInt();
+                        TcpReadString();
+                        TcpReadInt();
+                    }
+                }
+
+                int orderComboLegsCount = TcpReadInt();
+
+                if (orderComboLegsCount > 0)
+                {
+                    for (int i = 0; i < orderComboLegsCount; ++i)
+                    {
+                        TcpReadDouble();
+                    }
+                }
+            }
+
+            if (msgVersion >= 26)
+            {
+                int smartComboRoutingParamsCount = TcpReadInt();
+
+                if (smartComboRoutingParamsCount > 0)
+                {
+                    for (int i = 0; i < smartComboRoutingParamsCount; ++i)
+                    {
+                        TcpReadString();
+                        TcpReadString();
+                    }
+                }
+            }
+
+            double scalePriceIncrement = Double.MaxValue;
+
+            if (msgVersion >= 15)
+            {
+                if (msgVersion >= 20)
+                {
+                    TcpReadInt();
+                    TcpReadInt();
+                }
+                else
+                {
+                    TcpReadInt();
+                    TcpReadInt();
+                }
+                scalePriceIncrement = TcpReadDouble();
+            }
+
+            if (msgVersion >= 28 
+                && scalePriceIncrement > 0.0 
+                && scalePriceIncrement != Double.MaxValue)
+            {
+                TcpReadDouble();
+                TcpReadInt();
+                TcpReadDouble();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+                TcpReadInt();
+            }
+
+            if (msgVersion >= 24)
+            {
+                string hedgeType = TcpReadString();
+
+                if (string.IsNullOrEmpty(hedgeType) == false)
+                {
+                    TcpReadString();
+                }
+            }
+
+            if (msgVersion >= 25)
+            {
+                TcpReadInt();
+            }
+
+            if (msgVersion >= 19)
+            {
+                TcpReadString();
+                TcpReadString();
+            }
+
+            if (msgVersion >= 22)
+            {
+                TcpReadInt();
+            }
+
+            if (msgVersion >= 20)
+            {
+                if (TcpReadInt() == 1)
+                {
+                    TcpReadInt();
+                    TcpReadDouble();
+                    TcpReadDouble();
+                }
+            }
+
+            if (msgVersion >= 21)
+            {
+                string algoStrategy = TcpReadString();
+                if (string.IsNullOrEmpty(algoStrategy) == false)
+                {
+                    int algoParamsCount = TcpReadInt();
+
+                    if (algoParamsCount > 0)
+                    {
+                        for (int i = 0; i < algoParamsCount; ++i)
+                        {
+                            TcpReadString();
+                            TcpReadString();
+                        }
+                    }
+                }
+            }
+
+            if (msgVersion >= 16)
+            {
+                TcpReadInt();
+                TcpReadString();
+                TcpReadString();
+                TcpReadString();
+                TcpReadString();
+                TcpReadDouble();
+                TcpReadDouble();
+                TcpReadDouble();
+                TcpReadString();
+                TcpReadString();
+            }
+
+            if(msgVersion >= 32 &&
+                _serverVersion >= 76)
+            {
+                TcpReadString();
+            }
         }
 
         /// <summary>
         /// clear the message about execution
-        /// очистить сообщение об исполнении 
         /// </summary>
-        private void ClearExecutionData()
+        private void SkipExecutionData()
         {
             int msgVersion = TcpReadInt();
 
@@ -1902,6 +1919,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             TcpReadString();
             TcpReadDouble();
             TcpReadString();
+
             if (msgVersion >= 9)
             {
                 TcpReadString();
@@ -1909,6 +1927,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             TcpReadString();
             TcpReadString();
             TcpReadString();
+
             if (msgVersion >= 10)
             {
                 TcpReadString();
@@ -1921,6 +1940,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             TcpReadString();
             TcpReadInt();
             TcpReadDouble();
+
             if (msgVersion >= 2)
             {
                 TcpReadInt();
@@ -1949,96 +1969,147 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// clear the message about commissions
-        /// очистить сообщение о комиссиях
-        /// </summary>
-        private void ClearCommissionReport()
-        {
-            TcpReadInt();
+        #endregion
 
-            TcpReadString();
-            TcpReadDouble();
-            TcpReadString();
-            TcpReadDouble();
-            TcpReadDouble();
-            TcpReadInt();
+        #region Final read methods
+
+        private double TcpReadDouble()
+        {
+            try
+            {
+                string str = TcpReadString();
+                if (string.IsNullOrEmpty(str) ||
+                    str == "0")
+                {
+                    return 0;
+                }
+                else return Double.Parse(str, NumberFormatInfo.InvariantInfo);
+            }
+            catch
+            {
+                //SendLogMessage(error.ToString(),LogMessageType.Error);
+                return 0;
+            }
+
         }
 
-        /// <summary>
-        /// order list
-        /// список ордеров
-        /// </summary>
-        private List<Order> _orders;
+        private decimal TcpReadDecimal()
+        {
+            try
+            {
+                string str = TcpReadString();
+                if (string.IsNullOrEmpty(str) ||
+                    str == "0")
+                {
+                    return 0;
+                }
+                else return Decimal.Parse(str, NumberFormatInfo.InvariantInfo);
+            }
+            catch
+            {
+                //SendLogMessage(error.ToString(), LogMessageType.Error);
+                return 0;
+            }
 
-        /// <summary>
-        /// my trades list
-        /// список созданных моих трейдов
-        /// </summary>
-        private List<MyTradeCreate> _myTradeCreate;
+        }
 
-        /// <summary>
-        /// event row updates in depth
-        /// событие обновления строки в стакане
-        /// </summary>
+        public int TcpReadInt()
+        {
+            try
+            {
+                string str = TcpReadString();
+                if (string.IsNullOrEmpty(str))
+                {
+                    return 0;
+                }
+                else return Int32.Parse(str);
+            }
+            catch
+            {
+                //SendLogMessage(error.ToString(), LogMessageType.Error);
+                return 0;
+            }
+        }
+
+        private string TcpReadString()
+        {
+            try
+            {
+                byte b = _tcpReader.ReadByte();
+
+                if (b == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    StringBuilder str = new StringBuilder();
+                    str.Append((char)b);
+                    while (true)
+                    {
+                        b = _tcpReader.ReadByte();
+                        if (b == 0)
+                        {
+                            break;
+                        }
+                        else
+                        {
+                            str.Append((char)b);
+                        }
+                    }
+                    return str.ToString();
+                }
+            }
+            catch
+            {
+                //SendLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void ReadToEnd()
+        {
+            try
+            {
+                while (_tcpClient.GetStream().DataAvailable)
+                {
+                    TcpReadString();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
+        #region Events
+
         public event Action<int, int, int, int, decimal, int> NewMarketDepth;
 
-        /// <summary>
-        /// new portfolio position
-        /// новая позиция по портфелю
-        /// </summary>
         public event Action<SecurityIb, string, int> NewPortfolioPosition;
 
-        /// <summary>
-        /// new trade
-        /// новый трейд
-        /// </summary>
         public event Action<Trade, SecurityIb> NewTradeEvent;
 
-        /// <summary>
-        /// new order in the system
-        /// новый ордер в системе
-        /// </summary>
         public event Action<Order> NewOrderEvent;
 
-        /// <summary>
-        /// my new trade in the system
-        /// новая моя сделка в системе
-        /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
-        /// <summary>
-        /// new security in the system
-        /// новая бумага в системе
-        /// </summary>
         public event Action<SecurityIb> NewContractEvent;
 
-        /// <summary>
-        /// new portfolio state
-        /// новое состояние портфеля
-        /// </summary>
         public event Action<string, decimal> NewAccountValue;
 
-        /// <summary>
-        /// successfully connected to TWS server
-        /// успешно подключились к серверу TWS
-        /// </summary>
         public event Action ConnectionSuccess;
 
-        /// <summary>
-        /// connection to TWS server lost
-        /// соединение с TWS разорвано
-        /// </summary>
         public event Action ConnectionFail;
 
         public event Action<Candles> CandlesUpdateEvent;
 
-        // logging / логирование работы
+        #endregion
 
-        /// <summary>
-        /// add a new log message
-        /// добавить в лог новое сообщение
-        /// </summary>
+        #region Log
+
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -2047,12 +2118,9 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        /// <summary>
-        /// outgoing log message
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        #endregion
     }
 
     public class Candles
@@ -2062,96 +2130,35 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
         public List<Candle> CandlesArray = new List<Candle>();
     }
 
-    /// <summary>
-    /// crutch class working in the process of creating my trades
-    /// класс костыль работающий в процессе создания моих трейдов
-    /// </summary>
     public class MyTradeCreate
     {
-        /// <summary>
-        /// parent's order number
-        /// номер ордера родителя
-        /// </summary>
         public int idOrder;
 
-        /// <summary>
-        /// parent's order volume at the time of my trade
-        /// объём ордера родителя в момент выставления моего трейда
-        /// </summary>
         public decimal FillOrderToCreateMyTrade;
-
     }
 
-    /// <summary>
-    /// security in IB format
-    /// бумага в представлении Ib
-    /// </summary>
     public class SecurityIb
     {
-        /// <summary>
-        /// создавать для этой бумаги бид с аском по последнему трейду
-        /// и не ждать стакана
-        /// </summary>
         public bool CreateMarketDepthFromTrades = true;
 
-        /// <summary>
-        /// number
-        /// номер
-        /// </summary>
         public int ConId;
 
-        /// <summary>
-        /// full name
-        /// название полное
-        /// </summary>
         public string Symbol;
 
-        /// <summary>
-        /// name
-        /// название
-        /// </summary>
         public string LocalSymbol;
 
-        /// <summary>
-        /// contract currency
-        /// валюта контракта
-        /// </summary>
         public string Currency;
 
-        /// <summary>
-        /// exchange
-        /// биржа
-        /// </summary>
         public string Exchange;
 
-        /// <summary>
-        /// main exchange
-        /// основная биржа
-        /// </summary>
         public string PrimaryExch;
 
-        /// <summary>
-        /// strike
-        /// страйк
-        /// </summary>
         public double Strike;
 
-        /// <summary>
-        /// instrument class
-        /// класс инструмента
-        /// </summary>
         public string TradingClass;
 
-        /// <summary>
-        /// minimum price step
-        /// минимальный шаг цены
-        /// </summary>
         public double MinTick;
 
-        /// <summary>
-        /// multiplier
-        /// мультипликатор?
-        /// </summary>
         public string Multiplier;
 
         public string Expiry;
