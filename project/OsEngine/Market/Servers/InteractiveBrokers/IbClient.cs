@@ -48,8 +48,9 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                 {
                     try
                     {
-                        TcpWrite(63);
+                        TcpWrite(66);
                         TcpSendMessage();
+                        
                     }
                     catch (IOException error)
                     {
@@ -61,6 +62,11 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     _serverVersion = TcpReadInt();
                     SendLogMessage("Server TCP Active. Version TWS server: " + _serverVersion, LogMessageType.System);
 
+                    if(_serverVersion == 0)
+                    {
+                        SendLogMessage("Error on TCP server creation ", LogMessageType.System);
+                        return;
+                    }
 
                     string twsTime = TcpReadString();
                     SendLogMessage("TWS time: " + twsTime, LogMessageType.System);
@@ -834,7 +840,8 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
                     }
                     else
                     {
-                        candle.TimeStart = DateTime.ParseExact(date, format, CultureInfo.CurrentCulture);
+                        date = date.Replace("  ", " ");
+                        candle.TimeStart = DateTime.ParseExact(date, format, CultureInfo.InvariantCulture);
                     }
 
                     candle.Open = Convert.ToDecimal(open);
