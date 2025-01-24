@@ -2182,6 +2182,87 @@ position => position.State != PositionStateType.OpeningFail
         /// log message event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+		
+        /// <summary>
+        /// set border under of Parameter
+        /// </summary>
+        /// <param name="paramName">Parameter name</param>
+        /// <param name="color">border color</param>
+        /// <param name="thickness">border thickness (min 1, max 10)</param>
+        public void SetBorderUnderParameter(string paramName, System.Drawing.Color color, int thickness)
+        {
+            try
+            {
+                int editThickness;
+
+                if (thickness < 1)
+                {
+                    editThickness = 1;
+                }
+                else if (thickness > 10)
+                {
+                    editThickness = 10;
+                }
+                else
+                {
+                    editThickness = thickness;
+                }
+
+                ParamDesign newBorderSet = new ParamDesign(ParamDesignType.BorderUnder, paramName, color, editThickness);
+
+                if (_parameterDesigns.ContainsKey(paramName + ParamDesignType.BorderUnder.ToString()))
+                {
+                    _parameterDesigns[paramName + ParamDesignType.BorderUnder.ToString()] = newBorderSet;
+                }
+                else
+                {
+                    _parameterDesigns.Add(paramName + ParamDesignType.BorderUnder.ToString(), newBorderSet);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// set fore color of Parameter (text color)
+        /// </summary>
+        /// <param name="paramName">Parameter name</param>
+        /// <param name="color">color</param>
+        public void SetForeColorParameter(string paramName, System.Drawing.Color color)
+        {
+            try
+            {
+                ParamDesign newForeColorSet = new ParamDesign(ParamDesignType.ForeColor, paramName, color, 1);
+
+                if (_parameterDesigns.ContainsKey(paramName + ParamDesignType.ForeColor.ToString()))
+                {
+                    _parameterDesigns[paramName + ParamDesignType.ForeColor.ToString()] = newForeColorSet;
+                }
+                else
+                {
+                    _parameterDesigns.Add(paramName + ParamDesignType.ForeColor.ToString(), newForeColorSet);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+       
+        /// <summary>
+        /// visual designs of Parameters
+        /// </summary>
+        public IReadOnlyDictionary<string, ParamDesign> ParameterDesigns
+        {
+            get 
+            { 
+                return _parameterDesigns; 
+            }
+        }
+        private Dictionary<string, ParamDesign> _parameterDesigns = new Dictionary<string, ParamDesign>();
+	
     }
 
     /// <summary>
@@ -2239,7 +2320,35 @@ position => position.State != PositionStateType.OpeningFail
             GridToPaint.Children.Add((UIElement)children);
         }
     }
+	
+    /// <summary>
+    /// visual design of Parameter
+    /// </summary>
+    public readonly struct ParamDesign
+    {
+        public ParamDesign(ParamDesignType designType, string paramName, System.Drawing.Color color, int thickness)
+        {
+            DesignType = designType;
+            ParamName = paramName;
+            Color = color;
+            Thickness = thickness;
+        }
 
+        /// <summary>
+        /// type of Parameter visual design
+        /// </summary>
+        public ParamDesignType DesignType { get; }
+
+        /// <summary>
+        /// Parameter name
+        /// </summary>
+        public string ParamName { get; }
+
+        public System.Drawing.Color Color { get; }
+
+        public int Thickness { get; }
+    }
+	
     /// <summary>
     /// robot trade regime
     /// </summary>
@@ -2270,4 +2379,20 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         Off
     }
+	
+    /// <summary>
+    /// type of Parameter visual design
+    /// </summary>
+    public enum ParamDesignType
+    {
+        /// <summary>
+        /// fore color of Parameter
+        /// </summary>
+        ForeColor,
+
+        /// <summary>
+        /// border under of Parameter 
+        /// </summary>
+        BorderUnder
+    }	
 }
