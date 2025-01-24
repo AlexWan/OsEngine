@@ -20,6 +20,8 @@ namespace OsEngine.Entity
 
         BotPanel _panel;
 
+        private ParamGuiSettings _settings;
+
         public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings, BotPanel panel)
         {
             InitializeComponent();
@@ -31,6 +33,8 @@ namespace OsEngine.Entity
 
             _parameters = parameters;
             _panel = panel;
+
+            _settings = settings;
 
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
             ButtonUpdate.Content = OsLocalization.Entity.ButtonUpdate;
@@ -158,7 +162,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                ParamTabPainter painter = new ParamTabPainter(par, tabName, TabControlSettings);
+                ParamTabPainter painter = new ParamTabPainter(par, tabName, TabControlSettings, _settings);
                 painter.ErrorEvent += Painter_ErrorEvent;
                 _tabs.Add(painter);
             }
@@ -210,7 +214,7 @@ namespace OsEngine.Entity
 
     public class ParamTabPainter
     {
-        public ParamTabPainter(List<IIStrategyParameter> parameters, string tabName, System.Windows.Controls.TabControl tabControl)
+        public ParamTabPainter(List<IIStrategyParameter> parameters, string tabName, System.Windows.Controls.TabControl tabControl, ParamGuiSettings paramGUIsettings)
         {
             TabItem item = new TabItem();
             item.Header = tabName;
@@ -222,6 +226,8 @@ namespace OsEngine.Entity
             _parameters = parameters;
             _tabControl = tabControl;
 
+            _paramGUIsettings = paramGUIsettings;
+			
             CreateTable();
             PaintTable();
         }
@@ -251,6 +257,9 @@ namespace OsEngine.Entity
                     _grid.CellClick -= _grid_Click;
                     _grid.DataError -= _grid_DataError;
 
+                    _grid.RowPostPaint -= _grid_RowPostPaint;         
+                    _grid.CellFormatting -= _grid_CellFormatting;     
+
                     _grid.Rows.Clear();
                     DataGridFactory.ClearLinks(_grid);
                     _grid = null;
@@ -269,6 +278,8 @@ namespace OsEngine.Entity
         private System.Windows.Controls.TabControl _tabControl;
 
         private DataGridView _grid;
+		
+        private ParamGuiSettings _paramGUIsettings;				
 
         private void CreateTable()
         {
@@ -300,6 +311,9 @@ namespace OsEngine.Entity
             _grid.CellValueChanged += _grid_CellValueChanged;
             _grid.CellClick += _grid_Click;
             _grid.DataError += _grid_DataError;
+
+            _grid.RowPostPaint += _grid_RowPostPaint;
+            _grid.CellFormatting += _grid_CellFormatting;
 
             _host.Child = _grid;
         }
@@ -519,6 +533,58 @@ namespace OsEngine.Entity
             catch
             {
                 _grid.Rows[index].Cells[1].Value = ((StrategyParameterTimeOfDay)_parameters[index]).Value.ToString();
+            }
+        }
+
+        private void _grid_RowPostPaint(object sender, DataGridViewRowPostPaintEventArgs e)
+        {
+            try
+            {
+                if (_paramGUIsettings.ParameterDesigns.Count != 0)
+                {
+                    string paramName = _grid.Rows[e.RowIndex].Cells[0].Value?.ToString();
+                    string key = paramName + ParamDesignType.BorderUnder.ToString();
+
+                    if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
+                    {
+                        using (System.Drawing.Pen pen = new System.Drawing.Pen(_paramGUIsettings.ParameterDesigns[key].Color, _paramGUIsettings.ParameterDesigns[key].Thickness))
+                        {
+                            int y = e.RowBounds.Bottom - 1;
+                            e.Graphics.DrawLine(pen, e.RowBounds.Left, y, e.RowBounds.Right, y);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ErrorEvent != null)
+                {
+                    ErrorEvent(ex.ToString());
+                }
+            }
+        }
+
+        private void _grid_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {   
+            try
+            {
+                if (_paramGUIsettings.ParameterDesigns.Count != 0 && e.Value != null)
+                {
+                    string paramName = _grid.Rows[e.RowIndex].Cells[0].Value?.ToString();
+                    string key = paramName + ParamDesignType.ForeColor.ToString();
+
+                    if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
+                    {
+                        e.CellStyle.ForeColor = _paramGUIsettings.ParameterDesigns[key].Color;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ErrorEvent != null)
+                {
+                    ErrorEvent(ex.ToString());
+                }
             }
         }
 
