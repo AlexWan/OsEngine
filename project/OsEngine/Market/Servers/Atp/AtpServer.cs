@@ -27,9 +27,7 @@ namespace OsEngine.Market.Servers.Atp
 
             CreateParameterString("Broker ID", "");
             CreateParameterString("User ID", "");
-            CreateParameterString("User password", "");
-            CreateParameterString("App ID", "wang_osengine_1.8.2");
-            CreateParameterString("Auth code", "9QADGM87BU4APIUY");
+            CreateParameterPassword("User password", "");
             CreateParameterString("Data server url", "tcp://demo9.atplatform.cn:41213");
             CreateParameterString("Trade server url", "tcp://demo9.atplatform.cn:40905");
             CreateParameterButton("Securities");
@@ -38,7 +36,7 @@ namespace OsEngine.Market.Servers.Atp
             CreateParameterEnum("Activate routers",
                 "trade+data", new List<string>() { "trade+data", "trade", "data" });
 
-            ServerParameterButton secButton = ((ServerParameterButton)ServerParameters[7]);
+            ServerParameterButton secButton = ((ServerParameterButton)ServerParameters[5]);
             secButton.UserClickButton += SecButton_UserClickButton;
         }
 
@@ -82,12 +80,12 @@ namespace OsEngine.Market.Servers.Atp
         {
             BrokerId = ((ServerParameterString)ServerParameters[0]).Value;
             UserId = ((ServerParameterString)ServerParameters[1]).Value;
-            UserPassword = ((ServerParameterString)ServerParameters[2]).Value;
-            AppId = ((ServerParameterString)ServerParameters[3]).Value;
-            AufCode = ((ServerParameterString)ServerParameters[4]).Value;
-            DataServerUrl = ((ServerParameterString)ServerParameters[5]).Value;
-            TradeServerUrl = ((ServerParameterString)ServerParameters[6]).Value;
-            IsReal = ((ServerParameterBool)ServerParameters[8]).Value;
+            UserPassword = ((ServerParameterPassword)ServerParameters[2]).Value;
+            AppId = "wang_osengine_1.8.2";
+            AufCode = "9QADGM87BU4APIUY";
+            DataServerUrl = ((ServerParameterString)ServerParameters[3]).Value;
+            TradeServerUrl = ((ServerParameterString)ServerParameters[4]).Value;
+            IsReal = ((ServerParameterBool)ServerParameters[6]).Value;
 
             if (string.IsNullOrEmpty(BrokerId))
             {
@@ -131,7 +129,7 @@ namespace OsEngine.Market.Servers.Atp
             _tradeSocketConnect = false;
             _marketSocketConnect = false;
 
-            _subscribleSecurities = new List<Security>();
+            _subscribeSecurities = new List<Security>();
 
             CloseRouters();
 
@@ -314,7 +312,7 @@ namespace OsEngine.Market.Servers.Atp
         {
             get
             {
-                ServerParameterEnum parameter = ((ServerParameterEnum)ServerParameters[9]);
+                ServerParameterEnum parameter = ((ServerParameterEnum)ServerParameters[7]);
 
                 if (parameter.Value.Contains("trade"))
                 {
@@ -329,7 +327,7 @@ namespace OsEngine.Market.Servers.Atp
         {
             get
             {
-                ServerParameterEnum parameter = ((ServerParameterEnum)ServerParameters[9]);
+                ServerParameterEnum parameter = ((ServerParameterEnum)ServerParameters[7]);
 
                 if (parameter.Value.Contains("data"))
                 {
@@ -628,6 +626,11 @@ namespace OsEngine.Market.Servers.Atp
         }
 
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
+        {
+            return null;
+        }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             return null;
         }
@@ -952,7 +955,6 @@ namespace OsEngine.Market.Servers.Atp
 
         #region 7 Check file system 
 
-
         private void TryGetTradeDataFromFileSys()
         {
             TryLoadMyTrade();
@@ -1228,19 +1230,19 @@ namespace OsEngine.Market.Servers.Atp
 
         #region 8 WebSocket security subscrible
 
-        private RateGate rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
-        List<Security> _subscribleSecurities = new List<Security>();
+        private List<Security> _subscribeSecurities = new List<Security>();
 
         public void Subscrible(Security security)
         {
             try
             {
-                rateGateSubscrible.WaitToProceed();
+                rateGateSubscribe.WaitToProceed();
 
-                for (int i = 0; i < _subscribleSecurities.Count; i++)
+                for (int i = 0; i < _subscribeSecurities.Count; i++)
                 {
-                    if (_subscribleSecurities[i].Name == security.Name)
+                    if (_subscribeSecurities[i].Name == security.Name)
                     {
                         return;
                     }
@@ -1249,7 +1251,7 @@ namespace OsEngine.Market.Servers.Atp
                 _messagesToSendMarketData.Enqueue("S@" + security.Name + "@");
                 _messagesToSendTrade.Enqueue("S@" + security.Name + "@");
 
-                _subscribleSecurities.Add(security);
+                _subscribeSecurities.Add(security);
             }
             catch (Exception exeption)
             {
@@ -1781,6 +1783,21 @@ namespace OsEngine.Market.Servers.Atp
 
         }
 
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
         #endregion
 
         #region 11 Log
@@ -1815,26 +1832,6 @@ namespace OsEngine.Market.Servers.Atp
                     SendLogMessage(exception.Message + $" {exception.StackTrace}", LogMessageType.Error);
                 }
             }
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            return null;
-        }
-
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-
-        }
-
-        public void GetAllActivOrders()
-        {
-
-        }
-
-        public void GetOrderStatus(Order order)
-        {
-
         }
 
         #endregion

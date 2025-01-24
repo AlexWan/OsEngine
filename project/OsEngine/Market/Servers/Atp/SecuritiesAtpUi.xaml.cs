@@ -12,15 +12,8 @@ using OsEngine.Entity;
 
 namespace OsEngine.Market.Servers.Atp
 {
-    /// <summary>
-    /// Interaction logic for SecuritiesAtpUi.xaml
-    /// </summary>
     public partial class SecuritiesAtpUi : Window
     {
-        /// <summary>
-        /// the server that owns the papers
-        /// сервер которому принадлежат бумаги
-        /// </summary>
         private IServer _server;
 
         public SecuritiesAtpUi(AServer server)
@@ -53,7 +46,7 @@ namespace OsEngine.Market.Servers.Atp
             SaveButton.Click += SaveButton_Click;
         }
 
-        List<Security> _allSecurities;
+        private List<Security> _allSecurities;
 
         private void SecuritiesUi_Closed(object sender, EventArgs e)
         {
@@ -69,16 +62,8 @@ namespace OsEngine.Market.Servers.Atp
             SaveButton.Click -= SaveButton_Click;
         }
 
-        /// <summary>
-        /// spreadsheet for drawing papers
-        /// таблица для прорисовки бумаг
-        /// </summary>
         private DataGridView _grid;
 
-        /// <summary>
-        /// create a table of securities
-        /// создать таблицу бумаг
-        /// </summary>
         private void CreateTable()
         {
             _grid = GetDataGridSecurities();
@@ -207,11 +192,6 @@ namespace OsEngine.Market.Servers.Atp
             }
         }
 
-        /// <summary>
-        /// securities has changed in the server
-        /// в сервере изменились бумаги
-        /// </summary>
-        /// <param name="securities">securities/бумаги</param>
         private void _server_SecuritiesChangeEvent(List<Security> securities)
         {
             for (int i = 0; i < securities.Count; i++)
@@ -241,11 +221,6 @@ namespace OsEngine.Market.Servers.Atp
             PaintSecurities(_allSecurities);
         }
 
-        /// <summary>
-        /// draw paper on the chart
-        /// прорисовать бумаги на графике
-        /// </summary>
-        /// <param name="securities">securities/бумаги</param>
         private void PaintSecurities(List<Security> securities)
         {
             if (_grid.InvokeRequired)
@@ -325,7 +300,7 @@ namespace OsEngine.Market.Servers.Atp
             nRow.Cells[8].Value = security.Decimals; // 8 price decimals
 
             DataGridViewButtonCell button = new DataGridViewButtonCell();
-            button.Value = "Delete";// 9 add or delete button
+            button.Value = OsLocalization.Market.Label47;// 9 add or delete button
             nRow.Cells.Add(button);
 
             return nRow;
@@ -383,7 +358,7 @@ namespace OsEngine.Market.Servers.Atp
             nRow.Cells[8].Value = "";
 
             DataGridViewButtonCell button = new DataGridViewButtonCell();
-            button.Value = "Add security";
+            button.Value = OsLocalization.Market.Label159;
             nRow.Cells.Add(button);
 
             return nRow;

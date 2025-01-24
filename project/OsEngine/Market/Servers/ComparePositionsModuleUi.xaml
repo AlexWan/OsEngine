@@ -10,7 +10,7 @@
         <WindowsFormsHost Name="Host" Margin="5,26,5,75"/>
         <Label Name="LabelConnectionName" Content="Connection: " Margin="5,5,5,0" VerticalAlignment="Top"/>
 
-        <CheckBox Name="CheckBoxAutoLogMessageOnError" Content="Auto log message on error" HorizontalAlignment="Left" Margin="13,0,0,50" VerticalAlignment="Bottom" Width="215"/>
+        <CheckBox Name="CheckBoxAutoLogMessageOnError" Content="Auto log message on error" HorizontalAlignment="Left" Margin="13,0,0,50" VerticalAlignment="Bottom" Width="361"/>
         <Label Name="LabelVerificationPeriod" Content="Verification period" HorizontalAlignment="Left" Margin="13,0,0,22" VerticalAlignment="Bottom"/>
         <ComboBox Name ="ComboBoxVerificationPeriod"  HorizontalAlignment="Left" Margin="165,0,0,22" VerticalAlignment="Bottom" Width="120"/>
         

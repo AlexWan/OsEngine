@@ -3,7 +3,6 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-
 namespace OsEngine.Market.Servers.Atp
 {
     public class AtpServerPermission : IServerPermission
@@ -19,74 +18,92 @@ namespace OsEngine.Market.Servers.Atp
         {
             get { return false; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfDayCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
