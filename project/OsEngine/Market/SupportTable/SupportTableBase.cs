@@ -135,6 +135,37 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(traderNet);
 
+            SupportConnection atp = new SupportConnection()
+            {
+                ServerType = ServerType.Atp,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\International\\ATP.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(atp);
+
+            SupportConnection kite = new SupportConnection()
+            {
+                ServerType = ServerType.KiteConnect,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\International\\KiteConnect.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(kite);
+
+            SupportConnection yahoo = new SupportConnection()
+            {
+                ServerType = ServerType.YahooFinance,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\International\\Yahoo.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(yahoo);
+
+
             SupportConnection ninja = new SupportConnection()
             {
                 ServerType = ServerType.NinjaTrader,
