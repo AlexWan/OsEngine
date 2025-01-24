@@ -64,7 +64,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
 
                     if(_serverVersion == 0)
                     {
-                        SendLogMessage("Error on TCP server creation ", LogMessageType.System);
+                        SendLogMessage("Error on TCP server creation ", LogMessageType.Error);
                         return;
                     }
 

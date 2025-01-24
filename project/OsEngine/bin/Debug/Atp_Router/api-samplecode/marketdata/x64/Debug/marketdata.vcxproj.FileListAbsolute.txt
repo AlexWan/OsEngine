@@ -1,0 +1,3 @@
+F:\OsEngineTepm\60 ATP терминал\api-lib-v6.3.15\v6.3.15\api-samplecode\marketdata\x64\Debug\marketdata.exe
+D:\Роботы на заказ\104 Тарасов\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\marketdata\x64\Debug\marketdata.exe
+F:\OsEngne отдел разработки заказов\2 Клиенты\7 Риски. Славян Ойл\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\marketdata\x64\Debug\marketdata.exe

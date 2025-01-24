@@ -1,0 +1,12 @@
+F:\OsEngineTepm\60 ATP терминал\api-lib-v6.3.15\v6.3.15\api-samplecode\trader\x64\Debug\trader.vcxproj.AssemblyReference.cache
+F:\OsEngineTepm\60 ATP терминал\api-lib-v6.3.15\v6.3.15\api-samplecode\trader\x64\Debug\trader.vcxproj.SuggestedBindingRedirects.cache
+F:\OsEngineTepm\60 ATP терминал\api-lib-v6.3.15\v6.3.15\api-samplecode\trader\x64\Debug\trader.exe
+D:\Роботы на заказ\104 Тарасов\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.vcxproj.AssemblyReference.cache
+D:\Роботы на заказ\104 Тарасов\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.vcxproj.SuggestedBindingRedirects.cache
+D:\Роботы на заказ\104 Тарасов\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.exe
+F:\OsEngne отдел разработки заказов\2 Клиенты\7 Стас. Славян Ойл\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.vcxproj.AssemblyReference.cache
+F:\OsEngne отдел разработки заказов\2 Клиенты\7 Стас. Славян Ойл\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.vcxproj.SuggestedBindingRedirects.cache
+F:\OsEngne отдел разработки заказов\2 Клиенты\7 Стас. Славян Ойл\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.exe
+F:\OsEngne отдел разработки заказов\2 Клиенты\7 Риски. Славян Ойл\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.vcxproj.AssemblyReference.cache
+F:\OsEngne отдел разработки заказов\2 Клиенты\7 Риски. Славян Ойл\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.vcxproj.SuggestedBindingRedirects.cache
+F:\OsEngne отдел разработки заказов\2 Клиенты\7 Риски. Славян Ойл\project\OsEngine\bin\Debug\Atp_Router\api-samplecode\trader\x64\Debug\trader.exe

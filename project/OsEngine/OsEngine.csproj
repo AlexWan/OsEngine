@@ -459,6 +459,11 @@
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Atp\AtpServer.cs" />
+    <Compile Include="Market\Servers\Atp\AtpServerPermission.cs" />
+    <Compile Include="Market\Servers\Atp\SecuritiesAtpUi.xaml.cs">
+      <DependentUpon>SecuritiesAtpUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexAsset.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexCandle.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServerPermission.cs" />
@@ -1604,6 +1609,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\AstsBridge\AstsServerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\Atp\SecuritiesAtpUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

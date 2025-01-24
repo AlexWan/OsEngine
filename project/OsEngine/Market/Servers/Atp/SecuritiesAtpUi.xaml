@@ -1,0 +1,15 @@
+﻿<Window x:Class="OsEngine.Market.Servers.Atp.SecuritiesAtpUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Market.Servers.Atp"
+        mc:Ignorable="d"
+         Title="Securities" Height="600" Width="1100" Topmost="True" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid Margin="0,0,0,0">
+        <Rectangle Margin="5,5,5,50"/>
+        <WindowsFormsHost Name="HostSecurities" Margin="5,5,5,50"/>
+        <Button Name="SaveButton" Content="Save" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="219"/>
+
+    </Grid>
+</Window>

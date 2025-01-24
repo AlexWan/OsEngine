@@ -67,6 +67,7 @@ using OsEngine.Market.Servers.TraderNet;
 using OsEngine.Market.Servers.Mexc;
 using OsEngine.Market.Servers.KiteConnect;
 using OsEngine.Market.Servers.YahooFinance;
+using OsEngine.Market.Servers.Atp;
 
 
 namespace OsEngine.Market
@@ -178,7 +179,15 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
+                serverTypes.Add(ServerType.MoexAlgopack);
+                serverTypes.Add(ServerType.MoexFixFastSpot);
 
+                serverTypes.Add(ServerType.Atp);
+                serverTypes.Add(ServerType.KiteConnect);
+                serverTypes.Add(ServerType.TraderNet);
+                serverTypes.Add(ServerType.InteractiveBrokers);
+                serverTypes.Add(ServerType.NinjaTrader);
+               
                 serverTypes.Add(ServerType.GateIoSpot);
                 serverTypes.Add(ServerType.GateIoFutures);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
@@ -207,18 +216,13 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
-                serverTypes.Add(ServerType.MoexAlgopack);
-                serverTypes.Add(ServerType.MoexFixFastSpot);
-                serverTypes.Add(ServerType.InteractiveBrokers);
-                serverTypes.Add(ServerType.NinjaTrader);
+                
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.BitMart);
                 serverTypes.Add(ServerType.BitMartFutures);
                 serverTypes.Add(ServerType.MoexFixFastCurrency);
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
-                serverTypes.Add(ServerType.TraderNet);
                 serverTypes.Add(ServerType.Mexc);
-                serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.AstsBridge);
 
 
@@ -418,6 +422,10 @@ namespace OsEngine.Market
                 if (type == ServerType.MoexFixFastTwimeFutures)
                 {
                     newServer = new MoexFixFastTwimeFuturesServer();
+                }
+                if (type == ServerType.Atp)
+                {
+                    newServer = new AtpServer();
                 }
                 if (type == ServerType.MoexFixFastCurrency)
                 {
@@ -1087,6 +1095,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new QuikLuaServerPermission();
                 }
+                else if (type == ServerType.Atp)
+                {
+                    serverPermission = new AtpServerPermission();
+                }
                 else if (type == ServerType.KuCoinFutures)
                 {
                     serverPermission = new KuCoinFuturesServerPermission();
@@ -1710,5 +1722,10 @@ namespace OsEngine.Market
         /// Yahoo Finance
         /// </summary>
         YahooFinance,
+
+        /// <summary>
+        /// ATPlatform
+        /// </summary>
+        Atp,
     }
 }
