@@ -68,6 +68,7 @@ using OsEngine.Market.Servers.Mexc;
 using OsEngine.Market.Servers.KiteConnect;
 using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
+using OsEngine.Market.Servers.Polygon;
 
 
 namespace OsEngine.Market
@@ -326,6 +327,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.TraderNet);
                 serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.YahooFinance);
+                serverTypes.Add(ServerType.Polygon);
 
                 return serverTypes;
             }
@@ -630,6 +632,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.YahooFinance)
                 {
                     newServer = new YahooServer();
+                }
+                else if (type == ServerType.Polygon)
+                {
+                    newServer = new PolygonServer();
                 }
 
                 if (newServer == null)
@@ -1259,6 +1265,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new YahooServerPermission();
                 }
+                else if (type == ServerType.Polygon)
+                {
+                    serverPermission = new PolygonServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1727,5 +1737,10 @@ namespace OsEngine.Market
         /// ATPlatform
         /// </summary>
         Atp,
+
+        /// <summary>
+        /// Polygon.io
+        /// </summary>
+        Polygon,
     }
 }
