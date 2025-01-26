@@ -897,6 +897,9 @@
     <Compile Include="Market\Servers\Plaza\Entity\RevisionInfo.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServer.cs" />
     <Compile Include="Market\Servers\Plaza\PlazaServerPermission.cs" />
+    <Compile Include="Market\Servers\Polygon\Entity\RestResponceMessage.cs" />
+    <Compile Include="Market\Servers\Polygon\PolygonServer.cs" />
+    <Compile Include="Market\Servers\Polygon\PolygonServerPermission.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServerPermission.cs" />
