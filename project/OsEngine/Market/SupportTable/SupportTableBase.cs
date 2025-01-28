@@ -165,6 +165,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(yahoo);
 
+            SupportConnection polygon = new SupportConnection()
+            {
+                ServerType = ServerType.Polygon,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\International\\polygon-io.png",
+                LingSiteUrl = "",
+                Discount = 0
+            };
+            supportList.Add(polygon);
+
 
             SupportConnection ninja = new SupportConnection()
             {
