@@ -328,7 +328,8 @@ namespace OsEngine.Logging
                     BotToken = reader.ReadLine();
                     ChatId = Convert.ToInt64(reader.ReadLine());
 
-                    if (reader.ReadLine() == "true")
+                    string isProcessingCommand = reader.ReadLine();
+                    if ( isProcessingCommand == "True" || isProcessingCommand == "true")
                     {
                         ProcessingCommand = true;
                     }
