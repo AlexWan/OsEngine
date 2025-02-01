@@ -20,7 +20,6 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
-using ru.micexrts.cgate.message;
 
 namespace OsEngine.Market.Servers.TinkoffInvestments
 {
@@ -2438,6 +2437,12 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 request.OrderType = order.TypeOrder == OrderPriceType.Limit ? OrderType.Limit : OrderType.Market; // еще есть BestPrice
                 request.Quantity = Convert.ToInt32(order.Volume);
                 request.Price = ConvertToQuotation(order.Price);
+
+                if (security.SecurityType == SecurityType.Bond) // set price type to points in case security type is bond
+                {
+                    request.PriceType = PriceType.Point;
+                }
+
                 request.InstrumentId = security.NameId;
                 request.AccountId = order.PortfolioNumber;
                 request.TimeInForce = TimeInForceType.TimeInForceDay; // по-умолчанию сегодняшний день
