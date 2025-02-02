@@ -1244,8 +1244,16 @@ namespace OsEngine.OsData
                 }
 
                 newCandleDataPies.Add(newPie);
+                
+                if(TimeFrame == TimeFrame.Tick)
+                {
+                    timeStart = timeNow.AddDays(1);
+                }
+                else
+                {
+                    timeStart = timeNow;
+                }
 
-                timeStart = timeNow;
                 timeNow = timeStart.Add(interval);
 
                 if (timeNow > TimeEnd)

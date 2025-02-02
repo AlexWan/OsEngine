@@ -373,6 +373,12 @@ namespace OsEngine.Entity
                 return oldTrades;
             }
 
+            if (oldTrades[oldTrades.Count - 1].Time < tradesToMerge[0].Time)
+            {
+                oldTrades.AddRange(tradesToMerge);
+                return oldTrades;
+            }
+
             // смотрим более ранние свечи в новой серии
 
             List<Trade> newTrades = new List<Trade>();
