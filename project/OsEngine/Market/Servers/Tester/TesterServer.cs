@@ -1596,21 +1596,6 @@ namespace OsEngine.Market.Servers.Tester
                 NewOrderIncomeEvent(orderOnBoard);
             }
 
-            if (SecuritiesTester[0].DataType == SecurityTesterDataType.Tick)
-            {
-                SecurityTester security = SecuritiesTester.Find(tester => tester.Security.Name == order.SecurityNameCode);
-
-                decimal f = order.Price / security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price;
-                if (f > 1.02m ||
-                    f < 0.98m)
-                {
-
-                }
-
-                //CheckOrdersInTickTest(orderOnBoard, security.LastTradeSeries[security.LastTradeSeries.Count - 1].Price, toMarket);
-
-            }
-
             if (orderOnBoard.IsStopOrProfit)
             {
                 SecurityTester security = GetMySecurity(order);
