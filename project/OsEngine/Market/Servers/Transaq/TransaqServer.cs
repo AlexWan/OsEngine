@@ -1194,7 +1194,15 @@ namespace OsEngine.Market.Servers.Transaq
 
             string cmd = "<command id=\"subscribe_ticks\">";
             cmd += "<security>";
-            cmd += "<board>" + security.NameClass + "</board>";
+
+            string board = security.NameClass;
+
+            if (board == "FUTSPREAD")
+            {
+                board = "FUT";
+            }
+
+            cmd += "<board>" + board + "</board>";
             cmd += "<seccode>" + security.Name + "</seccode>";
             cmd += "<tradeno>1</tradeno>";
             cmd += "</security>";
@@ -1283,7 +1291,15 @@ namespace OsEngine.Market.Servers.Transaq
 
                 string cmd = "<command id=\"gethistorydata\">";
                 cmd += "<security>";
-                cmd += "<board>" + security.NameClass + "</board>";
+
+                string board = security.NameClass;
+
+                if (board == "FUTSPREAD")
+                {
+                    board = "FUT";
+                }
+
+                cmd += "<board>" + board + "</board>";
                 cmd += "<seccode>" + security.Name + "</seccode>";
                 cmd += "</security>";
                 cmd += "<period>" + needPeriodId + "</period>";
@@ -1658,16 +1674,23 @@ namespace OsEngine.Market.Servers.Transaq
                 return;
             }
 
+            string board = security.NameClass;
+
+            if(board == "FUTSPREAD")
+            {
+                board = "FUT";
+            }
+
             string cmd = "<command id=\"subscribe\">";
             cmd += "<alltrades>";
             cmd += "<security>";
-            cmd += "<board>" + security.NameClass + "</board>";
+            cmd += "<board>" + board + "</board>";
             cmd += "<seccode>" + security.Name + "</seccode>";
             cmd += "</security>";
             cmd += "</alltrades>";
             cmd += "<quotes>";
             cmd += "<security>";
-            cmd += "<board>" + security.NameClass + "</board>";
+            cmd += "<board>" + board + "</board>";
             cmd += "<seccode>" + security.Name + "</seccode>";
             cmd += "</security>";
             cmd += "</quotes>";
@@ -1722,7 +1745,15 @@ namespace OsEngine.Market.Servers.Transaq
 
                 string cmd = "<command id=\"neworder\">";
                 cmd += "<security>";
-                cmd += "<board>" + needSec.NameClass + "</board>";
+
+                string board = needSec.NameClass;
+
+                if (board == "FUTSPREAD")
+                {
+                    board = "FUT";
+                }
+
+                cmd += "<board>" + board + "</board>";
                 cmd += "<seccode>" + needSec.Name + "</seccode>";
                 cmd += "</security>";
 
