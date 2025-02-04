@@ -368,20 +368,28 @@ namespace OsEngine.Language
             "Ru:Средства блок._");
 
         public string ColumnPortfolio5 => OsLocalization.ConvertToLocString(
+            "Eng:Unrealized Pnl_" +
+            "Ru:Не закрытая прибыль_");
+
+        public string ColumnPortfolio6 => OsLocalization.ConvertToLocString(
             "Eng:Security_" +
             "Ru:Инструмент_");
 
-        public string ColumnPortfolio6 => OsLocalization.ConvertToLocString(
+        public string ColumnPortfolio7 => OsLocalization.ConvertToLocString(
             "Eng:Incoming volume_" +
             "Ru:Обьём входящий_");
 
-        public string ColumnPortfolio7 => OsLocalization.ConvertToLocString(
+        public string ColumnPortfolio8 => OsLocalization.ConvertToLocString(
             "Eng:Volume now_" +
             "Ru:Объём сейчас_");
 
-        public string ColumnPortfolio8 => OsLocalization.ConvertToLocString(
+        public string ColumnPortfolio9 => OsLocalization.ConvertToLocString(
             "Eng:Volume block_" +
             "Ru:Объём блокирован_");
+
+        public string ColumnPortfolio10 => OsLocalization.ConvertToLocString(
+            "Eng:Pnl_" +
+            "Ru:Прибыль_");
 
         public string ColumnServers1 => OsLocalization.ConvertToLocString(
             "Eng:Source_" +

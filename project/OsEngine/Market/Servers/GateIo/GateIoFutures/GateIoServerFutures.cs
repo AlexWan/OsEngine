@@ -361,23 +361,40 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     return;
                 }
 
-                List<PositionResponceSwap> accountPosition = JsonConvert.DeserializeObject<List<PositionResponceSwap>>(jsonPosition);
+                // 1 Portfolio. USDT
 
                 GfAccount accountInfo = JsonConvert.DeserializeObject<GfAccount>(result);
 
                 Portfolio portfolio = Portfolios[0];
 
-                portfolio.ClearPositionOnBoard();
+                decimal totalUsdt = Math.Round(accountInfo.Total.ToDecimal(), 3);
+                decimal pnl = Math.Round(accountInfo.UnrealisedPnl.ToDecimal(), 3);
+                decimal totalFunds = totalUsdt + pnl;
 
-                PositionOnBoard pos = new PositionOnBoard();
-                pos.SecurityNameCode = accountInfo.Currency;
-                pos.ValueBegin = accountInfo.Total.ToDecimal();
-                pos.ValueCurrent = accountInfo.Available.ToDecimal();
-                pos.ValueBlocked = accountInfo.PositionMargin.ToDecimal() + accountInfo.OrderMargin.ToDecimal();
+                PositionOnBoard posAllPortfolio = new PositionOnBoard();
+                posAllPortfolio.SecurityNameCode = accountInfo.Currency;
+                posAllPortfolio.ValueBegin = totalFunds;
 
-                portfolio.SetNewPosition(pos);
+                posAllPortfolio.ValueCurrent = totalFunds;
+                posAllPortfolio.ValueBlocked = Math.Round(accountInfo.PositionMargin.ToDecimal() + accountInfo.OrderMargin.ToDecimal(), 3);
 
-                for(int i = 0; i < accountPosition.Count; i++)
+                portfolio.SetNewPosition(posAllPortfolio);
+
+                if(portfolio.ValueBegin == 0
+                    || portfolio.ValueBegin == 1)
+                {
+                    portfolio.ValueBegin = posAllPortfolio.ValueBegin;
+                }
+
+                portfolio.ValueCurrent = posAllPortfolio.ValueBegin;
+                portfolio.ValueBlocked = posAllPortfolio.ValueBlocked;
+                portfolio.UnrealizedPnl = pnl;
+
+                // 2 Positions on board
+
+                List<PositionResponceSwap> accountPosition = JsonConvert.DeserializeObject<List<PositionResponceSwap>>(jsonPosition);
+
+                for (int i = 0; i < accountPosition.Count; i++)
                 {
                     PositionResponceSwap item = accountPosition[i];
 
@@ -388,6 +405,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     position.SecurityNameCode = item.contract + SellBuy;
                     position.ValueBegin = item.size.ToDecimal();
                     position.ValueCurrent = item.size.ToDecimal();
+                    position.UnrealizedPnl = item.unrealised_pnl.ToDecimal();
                     portfolio.SetNewPosition(position);
                 }
 

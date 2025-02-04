@@ -26,6 +26,11 @@ namespace OsEngine.Entity
         public decimal ValueBlocked;
 
         /// <summary>
+        /// Profit or loss on open positions
+        /// </summary>
+        public decimal UnrealizedPnl;
+
+        /// <summary>
         /// Tool for which the position is open
         /// </summary>
         public string SecurityNameCode;

@@ -34,6 +34,11 @@ namespace OsEngine.Entity
         public decimal ValueBlocked;
 
         /// <summary>
+        /// Profit or loss on open positions
+        /// </summary>
+        public decimal UnrealizedPnl;
+
+        /// <summary>
         /// Session profit
         /// </summary>
         public decimal Profit;
@@ -78,6 +83,7 @@ namespace OsEngine.Entity
                     {
                         _positionOnBoard[i].ValueCurrent = position.ValueCurrent;
                         _positionOnBoard[i].ValueBlocked = position.ValueBlocked;
+                        _positionOnBoard[i].UnrealizedPnl = position.UnrealizedPnl;
 
                         return;
                     }

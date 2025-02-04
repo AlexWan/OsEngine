@@ -175,6 +175,8 @@ namespace OsEngine.Market
         {
             try
             {
+                // 1 костыли
+
                 if (_hostPortfolio.Child == null)
                 {
                     return;
@@ -204,17 +206,6 @@ namespace OsEngine.Market
                     // ignore
                 }
 
-                for(int i = 0;i < _portfolios.Count;i++)
-                {
-                    Portfolio port = _portfolios[i];
-
-                    if (port == null)
-                    {
-                        continue;
-                    }
-                }
-
-
                 if (!_hostPortfolio.CheckAccess())
                 {
                     _hostPortfolio.Dispatcher.Invoke(RePaintPortfolio);
@@ -226,6 +217,41 @@ namespace OsEngine.Market
                     _gridPortfolio.Rows.Clear();
                     return;
                 }
+
+                // 2 Sort
+
+                if(_portfolios.Count > 1)
+                {
+                    for (int j = 0; j < _portfolios.Count; j++)
+                    {
+                        for (int i = 1; i < _portfolios.Count; i++)
+                        {
+                            Portfolio pCurrent = _portfolios[i];
+                            Portfolio pMin1 = _portfolios[i - 1];
+
+                            if (pCurrent.Number == null || pCurrent.Number.Length < 2)
+                            {
+                                continue;
+                            }
+
+                            if (pMin1.Number == null || pMin1.Number.Length < 2)
+                            {
+                                continue;
+                            }
+
+                            if (pMin1.Number[0] > pCurrent.Number[0]
+                                ||
+                                (pMin1.Number[0] == pCurrent.Number[0]
+                                && pMin1.Number[1] > pCurrent.Number[1]))
+                            {
+                                _portfolios[i - 1] = pCurrent;
+                                _portfolios[i] = pMin1;
+                            }
+                        }
+                    } 
+                }
+
+                // 3 Paint
 
                 int curUpRow = 0;
                 int curSelectRow = 0;
@@ -242,8 +268,6 @@ namespace OsEngine.Market
 
                 _gridPortfolio.Rows.Clear();
 
-                // send portfolios to draw
-                // отправляем портфели на прорисовку
                 for (int i = 0; _portfolios != null && i < _portfolios.Count; i++)
                 {
                     try
@@ -255,7 +279,6 @@ namespace OsEngine.Market
                         
                     }
                 }
-
 
                if (curUpRow != 0 && curUpRow != -1)
                {
@@ -324,16 +347,20 @@ namespace OsEngine.Market
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
                 secondRow.Cells[3].Value = portfolio.ValueBlocked.ToStringWithNoEndZero().ToDecimal();
 
-                if(portfolio.ServerType != ServerType.None)
+                secondRow.Cells.Add(new DataGridViewTextBoxCell());
+                secondRow.Cells[4].Value = portfolio.UnrealizedPnl.ToStringWithNoEndZero().ToDecimal();
+
+                if (portfolio.ServerType != ServerType.None)
                 {
+                    secondRow.Cells.Add(new DataGridViewTextBoxCell());
                     secondRow.Cells.Add(new DataGridViewTextBoxCell());
                     secondRow.Cells.Add(new DataGridViewTextBoxCell());
                     secondRow.Cells.Add(new DataGridViewTextBoxCell());
                     secondRow.Cells.Add(new DataGridViewTextBoxCell());
 
                     secondRow.Cells.Add(new DataGridViewButtonCell());
-                    secondRow.Cells[8].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                    secondRow.Cells[8].Value = OsLocalization.Market.Label135;
+                    secondRow.Cells[secondRow.Cells.Count - 1].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                    secondRow.Cells[secondRow.Cells.Count - 1].Value = OsLocalization.Market.Label135;
                 }
 
                 _gridPortfolio.Rows.Add(secondRow);
@@ -343,6 +370,8 @@ namespace OsEngine.Market
                 if (positionsOnBoard == null || positionsOnBoard.Count == 0)
                 {
                     DataGridViewRow nRow = new DataGridViewRow();
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
+                    nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -373,24 +402,28 @@ namespace OsEngine.Market
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[4].Value = positionsOnBoard[i].SecurityNameCode;
+                        nRow.Cells[5].Value = positionsOnBoard[i].SecurityNameCode;
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[5].Value = positionsOnBoard[i].ValueBegin.ToStringWithNoEndZero().ToDecimal();
+                        nRow.Cells[6].Value = positionsOnBoard[i].ValueBegin.ToStringWithNoEndZero().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[6].Value = positionsOnBoard[i].ValueCurrent.ToStringWithNoEndZero().ToDecimal();
+                        nRow.Cells[7].Value = positionsOnBoard[i].ValueCurrent.ToStringWithNoEndZero().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[7].Value = positionsOnBoard[i].ValueBlocked.ToStringWithNoEndZero().ToDecimal();
+                        nRow.Cells[8].Value = positionsOnBoard[i].ValueBlocked.ToStringWithNoEndZero().ToDecimal();
 
-                        if(HaveClosePosButton(portfolio, positionsOnBoard[i]))
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells[9].Value = positionsOnBoard[i].UnrealizedPnl.ToStringWithNoEndZero().ToDecimal();
+
+                        if (HaveClosePosButton(portfolio, positionsOnBoard[i]))
                         {
                             nRow.Cells.Add(new DataGridViewButtonCell());
-                            nRow.Cells[8].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-                            nRow.Cells[8].Value = OsLocalization.Market.Label82;
+                            nRow.Cells[nRow.Cells.Count - 1].Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                            nRow.Cells[nRow.Cells.Count - 1].Value = OsLocalization.Market.Label82;
                         }
 
                         _gridPortfolio.Rows.Add(nRow);
@@ -399,6 +432,8 @@ namespace OsEngine.Market
                     if (havePoses == false)
                     {
                         DataGridViewRow nRow = new DataGridViewRow();
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -614,7 +649,7 @@ namespace OsEngine.Market
                 int rowInd = e.RowIndex;
                 int colInd = e.ColumnIndex;
 
-                if (colInd != 8)
+                if (colInd != 10)
                 {
                     return;
                 }
