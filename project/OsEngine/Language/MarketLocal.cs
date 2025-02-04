@@ -675,6 +675,10 @@ namespace OsEngine.Language
           "Eng:Add security_" +
           "Ru:Добавить_");
 
+        public string Label160 => OsLocalization.ConvertToLocString(
+            "Eng:At this time, the connector will try to connect to the server. The time is indicated by Moscow Time._" +
+            "Ru:В данное время коннектор будет пытаться подключиться к серверу. Время указано по МСК._");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
@@ -1102,6 +1106,10 @@ namespace OsEngine.Language
         public string Message99 => OsLocalization.ConvertToLocString(
             "Eng:Intercepted attempt to revoke an order when the connection is off!_" +
             "Ru:Перехвачена попытка отозвать ордер при выключенном соединении!_");
+
+        public string Message100 => OsLocalization.ConvertToLocString(
+            "Eng:Connector operating time_" +
+            "Ru:Время работы коннектора_");
 
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +
