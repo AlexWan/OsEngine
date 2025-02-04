@@ -300,13 +300,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if (price <= 0)
-            {
-                Tab.SetNewLogMessage(
-                 OsLocalization.Trader.Label390, Logging.LogMessageType.Error);
-                return;
-            }
-
             decimal volume = 0;
 
             try
@@ -445,13 +438,6 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             {
                 Tab.SetNewLogMessage(
                     OsLocalization.Trader.Label390 + "\n" + ex.Message.ToString(), Logging.LogMessageType.Error);
-                return;
-            }
-
-            if (price <= 0)
-            {
-                Tab.SetNewLogMessage(
-                 OsLocalization.Trader.Label390, Logging.LogMessageType.Error);
                 return;
             }
 

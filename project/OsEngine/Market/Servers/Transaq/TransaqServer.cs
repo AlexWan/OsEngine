@@ -81,7 +81,7 @@ namespace OsEngine.Market.Servers.Transaq
             worker.Name = "ThreadTransaqGetPortfolio";
             worker.Start();
 
-            Thread worker2 = new Thread(ThreadDataParsingWorkPlace);
+            Thread worker2 = new Thread(ThreadPrivateDataParsingWorkPlace);
             worker2.Name = "ThreadTransaqDataParsing";
             worker2.Start();
 
@@ -100,6 +100,16 @@ namespace OsEngine.Market.Servers.Transaq
             Thread worker6 = new Thread(ThreadUpdateAndSubscribeSecurity);
             worker6.Name = "TransaqThreadUpdateSecurity";
             worker6.Start();
+
+            Thread worker7 = new Thread(ThreadHistoricalDataParsingWorkPlace);
+            worker7.Name = "TransaqThreadUpdateHistoricalData";
+            worker7.Start();
+
+            Thread worker8 = new Thread(ThreadSecurityInfoParsingWorkPlace);
+            worker8.Name = "TransaqThreadUpdateSecurityInfo";
+            worker8.Start();
+
+            
         }
 
         public ServerType ServerType
@@ -306,13 +316,25 @@ namespace OsEngine.Market.Servers.Transaq
 
                 _unsignedSecurities = new List<Security>();
 
-                _mdQueue = new ConcurrentQueue<List<Quote>>();
+                _mdQueue = new ConcurrentQueue<string>();
 
-                _myTradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+                _myTradesQueue = new ConcurrentQueue<string>();
 
-                _tradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+                _tradesQueue = new ConcurrentQueue<string>();
 
-                _ordersQueue = new ConcurrentQueue<List<TransaqEntity.Order>>();
+                _ordersQueue = new ConcurrentQueue<string>();
+
+                _portfoliosQueue = new ConcurrentQueue<string>();
+
+                _positionsQueue = new ConcurrentQueue<string>();
+
+                _clientLimitsQueue = new ConcurrentQueue<string>();
+
+                _clientInfoQueue = new ConcurrentQueue<string>();
+
+                _candlesQueue = new ConcurrentQueue<string>();
+
+                _historicalTradesQueue = new ConcurrentQueue<string>();
             }
         }
 
@@ -460,105 +482,113 @@ namespace OsEngine.Market.Servers.Transaq
         {
             while (true)
             {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
+                try
                 {
-                    Thread.Sleep(1000);
-                    continue;
-                }
-
-                if (!_transaqSecuritiesInString.IsEmpty)
-                {
-                    while (true)
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(500);
-                        if (_lastUpdateSecurityArrayTime == DateTime.MinValue)
-                        {
-                            continue;
-                        }
-                        if (_lastUpdateSecurityArrayTime.AddSeconds(3) > DateTime.Now)
-                        {
-                            continue;
-                        }
-
-                        break;
+                        Thread.Sleep(1000);
+                        continue;
                     }
 
-                    bool isChangedSecurity = false;
-                    while (_transaqSecuritiesInString.IsEmpty == false)
+                    if (!_transaqSecuritiesInString.IsEmpty)
                     {
-                        string curArray = null;
-
-                        if (_transaqSecuritiesInString.TryDequeue(out curArray))
+                        while (true)
                         {
-                            if (IsCreateSecurities(curArray))
+                            Thread.Sleep(500);
+                            if (_lastUpdateSecurityArrayTime == DateTime.MinValue)
                             {
-                                isChangedSecurity = true;
+                                continue;
                             }
-                        }
-                    }
-
-                    if (!isChangedSecurity)
-                    {
-                        continue;
-                    }
-
-                    _securities.RemoveAll(s => s == null);
-
-                    if (_securities.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    if (_secsSpecification != null)
-                    {
-                        for (int i = 0; i < _secsSpecification.Count; i++)
-                        {
-                            SecurityInfo secInfo = _secsSpecification[i];
-
-                            for (int j = 0; j < _securities.Count; j++)
+                            if (_lastUpdateSecurityArrayTime.AddSeconds(3) > DateTime.Now)
                             {
-                                Security secCur = _securities[j];
+                                continue;
+                            }
 
-                                if (secCur.NameId == secInfo.Secid)
+                            break;
+                        }
+
+                        bool isChangedSecurity = false;
+                        while (_transaqSecuritiesInString.IsEmpty == false)
+                        {
+                            string curArray = null;
+
+                            if (_transaqSecuritiesInString.TryDequeue(out curArray))
+                            {
+                                if (IsCreateSecurities(curArray))
                                 {
-                                    if (string.IsNullOrEmpty(secInfo.Maxprice) == false)
-                                    {
-                                        secCur.PriceLimitHigh = secInfo.Maxprice.ToDecimal();
-                                    }
-
-                                    if (string.IsNullOrEmpty(secInfo.Minprice) == false)
-                                    {
-                                        secCur.PriceLimitLow = secInfo.Minprice.ToDecimal();
-                                    }
-
-                                    if (string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
-                                    {
-                                        secCur.Go = secInfo.Buy_deposit.ToDecimal();
-                                    }
-
-                                    break;
+                                    isChangedSecurity = true;
                                 }
                             }
                         }
+
+                        if (!isChangedSecurity)
+                        {
+                            continue;
+                        }
+
+                        _securities.RemoveAll(s => s == null);
+
+                        if (_securities.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        if (_secsSpecification != null)
+                        {
+                            for (int i = 0; i < _secsSpecification.Count; i++)
+                            {
+                                SecurityInfo secInfo = _secsSpecification[i];
+
+                                for (int j = 0; j < _securities.Count; j++)
+                                {
+                                    Security secCur = _securities[j];
+
+                                    if (secCur.NameId == secInfo.Secid)
+                                    {
+                                        if (string.IsNullOrEmpty(secInfo.Maxprice) == false)
+                                        {
+                                            secCur.PriceLimitHigh = secInfo.Maxprice.ToDecimal();
+                                        }
+
+                                        if (string.IsNullOrEmpty(secInfo.Minprice) == false)
+                                        {
+                                            secCur.PriceLimitLow = secInfo.Minprice.ToDecimal();
+                                        }
+
+                                        if (string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
+                                        {
+                                            secCur.Go = secInfo.Buy_deposit.ToDecimal();
+                                        }
+
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+
+                        SecurityEvent?.Invoke(_securities);
+
+                        SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
                     }
-
-                    SecurityEvent?.Invoke(_securities);
-
-                    SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
-                }
-                else if (_unsignedSecurities.Count != 0)
-                {
-                    for (int i = 0; i < _unsignedSecurities.Count; i++)
+                    else if (_unsignedSecurities.Count != 0)
                     {
-                        Security security = _unsignedSecurities[i];
+                        for (int i = 0; i < _unsignedSecurities.Count; i++)
+                        {
+                            Security security = _unsignedSecurities[i];
 
-                        _unsignedSecurities.Remove(security);
+                            _unsignedSecurities.Remove(security);
 
-                        Subscrible(security);
+                            Subscrible(security);
+                        }
                     }
-                }
 
-                Thread.Sleep(10000);
+                    Thread.Sleep(10000);
+                }
+                catch(Exception ex)
+                {
+                    SendLogMessage("ThreadUpdateAndSubscribeSecurity error: " + ex.ToString(),LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
             }
         }
 
@@ -938,7 +968,7 @@ namespace OsEngine.Market.Servers.Transaq
                 }
                 catch (Exception error)
                 {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    SendLogMessage("CycleGettingPortfolios error: " + error.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -1955,6 +1985,10 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _newMessageSecurityInfo = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _newMessagePrivateData = new ConcurrentQueue<string>();
+
         /// <summary>
         /// processor of data from callbacks 
         /// обработчик данных пришедших через каллбек
@@ -2001,21 +2035,15 @@ namespace OsEngine.Market.Servers.Transaq
                             // тяжёлые данные переносим в другую очередь разбирающуюся другим потоком
                             if (data.StartsWith("<quotes>"))
                             {
-                                List<Quote> quotes = _deserializer.Deserialize<List<Quote>>(new RestResponse() { Content = data });
-
-                                _mdQueue.Enqueue(quotes);
+                                _mdQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<alltrades>"))
                             {
-                                List<TransaqEntity.Trade> allTrades = _deserializer.Deserialize<List<TransaqEntity.Trade>>(new RestResponse() { Content = data });
-
-                                _tradesQueue.Enqueue(allTrades);
+                                _tradesQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<ticks>"))
                             {
-                                List<Tick> newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
-
-                                _allTicks.AddRange(newTicks);
+                                _historicalTradesQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<pits>"))
                             {
@@ -2023,30 +2051,23 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<orders>"))
                             {
-                                List<TransaqEntity.Order> orders = _deserializer.Deserialize<List<TransaqEntity.Order>>(new RestResponse() { Content = data });
-
-                                _ordersQueue.Enqueue(orders);
+                                _ordersQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<mc_portfolio"))
                             {
-                                UpdateClientPortfolio(data);
+                                _portfoliosQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<positions"))
                             {
-                                TransaqPositions positions = Deserialize<TransaqPositions>(data);
-
-                                UpdateClientPositions(positions);
+                                _positionsQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<trades>"))
                             {
-                                List<TransaqEntity.Trade> myTrades = _deserializer.Deserialize<List<TransaqEntity.Trade>>(new RestResponse() { Content = data });
-
-                                _myTradesQueue.Enqueue(myTrades);
+                                _myTradesQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<sec_info_upd>"))
                             {
-                                SecurityInfo newInfo = _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
-                                UpdateSecurity(newInfo);
+                                _securityInfoQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<securities>"))
                             {
@@ -2056,21 +2077,15 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<clientlimits"))
                             {
-                                ClientLimits limits = Deserialize<ClientLimits>(data);
-
-                                UpdateClientLimits(limits);
+                                _clientLimitsQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<client"))
                             {
-                                Client clientInfo = _deserializer.Deserialize<Client>(new RestResponse() { Content = data });
-
-                                ClientsInfoUpdate(clientInfo);
+                                _clientInfoQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<candles"))
                             {
-                                TransaqEntity.Candles newCandles = Deserialize<TransaqEntity.Candles>(data);
-
-                                _allCandleSeries.Add(newCandles);
+                                _candlesQueue.Enqueue(data);
                             }
                             else if (data.StartsWith("<candlekinds>"))
                             {
@@ -2108,13 +2123,11 @@ namespace OsEngine.Market.Servers.Transaq
                                 }
                                 else if (status.Connected == "false")
                                 {
-
                                     Disconnected();
                                 }
                                 else if (status.Connected == "error")
                                 {
                                     SendLogMessage("Transaq client status error: " + status.Text, LogMessageType.Error);
-
                                     Disconnected();
                                 }
                             }
@@ -2156,15 +2169,112 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        private ConcurrentQueue<List<TransaqEntity.Order>> _ordersQueue = new ConcurrentQueue<List<TransaqEntity.Order>>();
+        private ConcurrentQueue<string> _ordersQueue = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<List<TransaqEntity.Trade>> _myTradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+        private ConcurrentQueue<string> _myTradesQueue = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<List<TransaqEntity.Trade>> _tradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+        private ConcurrentQueue<string> _tradesQueue = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<List<Quote>> _mdQueue = new ConcurrentQueue<List<Quote>>();
+        private ConcurrentQueue<string> _mdQueue = new ConcurrentQueue<string>();
 
-        private void ThreadDataParsingWorkPlace()
+        private ConcurrentQueue<string> _portfoliosQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _positionsQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _clientLimitsQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _clientInfoQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _candlesQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _historicalTradesQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _securityInfoQueue = new ConcurrentQueue<string>();
+
+        private void ThreadHistoricalDataParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_candlesQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_candlesQueue.TryDequeue(out data))
+                        {
+                            TransaqEntity.Candles newCandles = Deserialize<TransaqEntity.Candles>(data);
+
+                            _allCandleSeries.Add(newCandles);
+                        }
+                    }
+                    else if(_historicalTradesQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_historicalTradesQueue.TryDequeue(out data))
+                        {
+                            List<Tick> newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
+
+                            _allTicks.AddRange(newTicks);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadSecurityInfoParsingWorkPlace()
+        {
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_securityInfoQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_securityInfoQueue.TryDequeue(out data))
+                        {
+                            SecurityInfo newInfo = 
+                                _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
+                            UpdateSecurity(newInfo);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1);
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void ThreadPrivateDataParsingWorkPlace()
         {
             while (true)
             {
@@ -2178,21 +2288,68 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (_ordersQueue.IsEmpty == false)
                     {
-                        List<TransaqEntity.Order> orders = null;
+                        string data = null;
 
-                        if (_ordersQueue.TryDequeue(out orders))
+                        if (_ordersQueue.TryDequeue(out data))
                         {
+                            List<TransaqEntity.Order> orders = 
+                                _deserializer.Deserialize<List<TransaqEntity.Order>>(new RestResponse() { Content = data });
+
                             UpdateMyOrders(orders);
                         }
-
                     }
                     else if (_myTradesQueue.IsEmpty == false)
                     {
-                        List<TransaqEntity.Trade> trades = null;
+                        string data = null;
 
-                        if (_myTradesQueue.TryDequeue(out trades))
+                        if (_myTradesQueue.TryDequeue(out data))
                         {
+                            List<TransaqEntity.Trade> trades = 
+                                _deserializer.Deserialize<List<TransaqEntity.Trade>>(new RestResponse() { Content = data });
+
                             UpdateMyTrades(trades);
+                        }
+                    }
+                    else if(_portfoliosQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_portfoliosQueue.TryDequeue(out data))
+                        {
+                            UpdateClientPortfolio(data);
+                        }
+                    }
+                    else if (_positionsQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_positionsQueue.TryDequeue(out data))
+                        {
+                            TransaqPositions positions = Deserialize<TransaqPositions>(data);
+
+                            UpdateClientPositions(positions);
+                        }
+                    }
+                    else if (_clientLimitsQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_clientLimitsQueue.TryDequeue(out data))
+                        {
+                            ClientLimits limits = Deserialize<ClientLimits>(data);
+
+                            UpdateClientLimits(limits);
+                        }
+                    }
+                    else if (_clientInfoQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_clientInfoQueue.TryDequeue(out data))
+                        {
+                            Client clientInfo = _deserializer.Deserialize<Client>(new RestResponse() { Content = data });
+
+                            ClientsInfoUpdate(clientInfo);
                         }
                     }
                     else
@@ -2222,10 +2379,13 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (_tradesQueue.IsEmpty == false)
                     {
-                        List<TransaqEntity.Trade> trades = null;
+                       string data  = null;
 
-                        if (_tradesQueue.TryDequeue(out trades))
+                        if (_tradesQueue.TryDequeue(out data))
                         {
+                            List<TransaqEntity.Trade> trades = 
+                                _deserializer.Deserialize<List<TransaqEntity.Trade>>(new RestResponse() { Content = data });
+
                             UpdateTrades(trades);
                         }
                     }
@@ -2256,10 +2416,12 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (_mdQueue.IsEmpty == false)
                     {
-                        List<Quote> quotes = null;
+                        string data = null;
 
-                        if (_mdQueue.TryDequeue(out quotes))
+                        if (_mdQueue.TryDequeue(out data))
                         {
+                            List<Quote> quotes = _deserializer.Deserialize<List<Quote>>(new RestResponse() { Content = data });
+
                             UpdateMarketDepths(quotes);
                         }
                     }
