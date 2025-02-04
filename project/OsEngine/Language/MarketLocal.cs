@@ -676,8 +676,8 @@ namespace OsEngine.Language
           "Ru:Добавить_");
 
         public string Label160 => OsLocalization.ConvertToLocString(
-            "Eng:At this time, the connector will try to connect to the server. The time is indicated by Moscow Time._" +
-            "Ru:В данное время коннектор будет пытаться подключиться к серверу. Время указано по МСК._");
+            "Eng:At this time, the connector will try to connect to the server. The time is indicated by Moscow Time. Format: \"6:50/23:50\"_" +
+            "Ru:В данное время коннектор будет пытаться подключиться к серверу. Время указано по МСК. Формат: \"6:50/23:50\"_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +

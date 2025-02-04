@@ -1183,7 +1183,7 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
-                    curPortfolio.Profit = portf[i].Profit;
+                    curPortfolio.UnrealizedPnl = portf[i].UnrealizedPnl;
                     curPortfolio.ValueBegin = portf[i].ValueBegin;
                     curPortfolio.ValueCurrent = portf[i].ValueCurrent;
                     curPortfolio.ValueBlocked = portf[i].ValueBlocked;

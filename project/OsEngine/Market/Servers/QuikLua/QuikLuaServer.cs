@@ -618,7 +618,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         if (qPortfolio != null && qPortfolio.ProfitLoss != null)
                         {
                             string profit = qPortfolio.ProfitLoss.Replace('.', separator);
-                            myPortfolio.Profit = profit.Remove(profit.Length - 4).ToDecimal();
+                            myPortfolio.UnrealizedPnl = profit.Remove(profit.Length - 4).ToDecimal();
                         }
                     }
 
@@ -1131,7 +1131,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         needPortf.ValueCurrent = Convert.ToDecimal(futLimit.CbpLimit);
                         needPortf.ValueBlocked =
                             Convert.ToDecimal(futLimit.CbpLUsedForOrders + futLimit.CbpLUsedForPositions);
-                        needPortf.Profit = Convert.ToDecimal(futLimit.VarMargin);
+                        needPortf.UnrealizedPnl = Convert.ToDecimal(futLimit.VarMargin);
 
                         if (PortfolioEvent != null)
                         {

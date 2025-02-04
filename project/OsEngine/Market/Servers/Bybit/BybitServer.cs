@@ -567,7 +567,7 @@ namespace OsEngine.Market.Servers.Bybit
                     Portfolio p = portfolios[i];
                     Portfolio newp = new Portfolio();
                     newp.Number = p.Number;
-                    newp.Profit = p.Profit;
+                    newp.UnrealizedPnl = p.UnrealizedPnl;
                     newp.ValueBegin = p.ValueBegin;
                     newp.ValueBlocked = p.ValueBlocked;
                     newp.ValueCurrent = p.ValueCurrent;

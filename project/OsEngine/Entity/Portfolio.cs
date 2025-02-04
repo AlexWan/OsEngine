@@ -39,11 +39,6 @@ namespace OsEngine.Entity
         public decimal UnrealizedPnl;
 
         /// <summary>
-        /// Session profit
-        /// </summary>
-        public decimal Profit;
-
-        /// <summary>
         /// Connector to which the portfolio belongs
         /// </summary>
         public ServerType ServerType;

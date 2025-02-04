@@ -370,7 +370,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         #region 3 Client to Transaq
 
-        void Connected()
+        private void Connected()
         {
             SendLogMessage("Transaq client activated ", LogMessageType.System);
 
@@ -381,7 +381,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        void Disconnected()
+        private void Disconnected()
         {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -655,6 +655,24 @@ namespace OsEngine.Market.Servers.Transaq
                         security.NameId = securityData.Secid;
                         security.Decimals = Convert.ToInt32(securityData.Decimals);
                         security.Exchange = securityData.Board;
+
+                        if(securityData.Sectype == "FUT")
+                        {
+                            int countD = 0;
+
+                            for(int i2 = 0;i2 < security.NameFull.Length;i2++)
+                            {
+                                if (security.NameFull[i2] == '-')
+                                {
+                                    countD++;
+                                }
+                            }
+
+                            if(countD >= 2)
+                            {
+                                security.NameClass = "FUTSPREAD";
+                            }
+                        }
 
                         if (securityData.Sectype == "FUT")
                         {
@@ -1003,6 +1021,7 @@ namespace OsEngine.Market.Servers.Transaq
             XmlNode equity = root.SelectSingleNode("equity");
             XmlNode block = root.SelectSingleNode("go");
             XmlNode cover = root.SelectSingleNode("cover");
+            XmlNode pnl = root.SelectSingleNode("unrealized_pnl");
 
             XmlNodeList allSecurity = root.GetElementsByTagName("security");
 
@@ -1026,6 +1045,11 @@ namespace OsEngine.Market.Servers.Transaq
                     + block.InnerText.ToDecimal();
             }
 
+            if(pnl != null)
+            {
+                portfolio.UnrealizedPnl = pnl.InnerText.ToDecimal();
+            }
+
             if (!string.IsNullOrEmpty(union))
             {
                 portfolio.Number = "United_" + union;
@@ -1047,6 +1071,7 @@ namespace OsEngine.Market.Servers.Transaq
                 XmlNode beginNode = node.SelectSingleNode("open_balance");
                 XmlNode buyNode = node.SelectSingleNode("bought");
                 XmlNode sellNode = node.SelectSingleNode("sold");
+                XmlNode pnlPos = node.SelectSingleNode("unrealized_pnl");
 
                 decimal lot = 1;
 
@@ -1061,6 +1086,11 @@ namespace OsEngine.Market.Servers.Transaq
                 if (beginNode != null)
                 {
                     pos.ValueBegin = beginNode.InnerText.ToDecimal() / lot;
+                }
+
+                if(pnlPos != null)
+                {
+                    pos.UnrealizedPnl = pnlPos.InnerText.ToDecimal();
                 }
 
                 if (buyNode != null &&
@@ -1105,7 +1135,7 @@ namespace OsEngine.Market.Servers.Transaq
             portfolio.ValueBegin = clientLimits.MoneyCurrent.ToDecimal();
             portfolio.ValueCurrent = clientLimits.MoneyFree.ToDecimal();
             portfolio.ValueBlocked = clientLimits.MoneyReserve.ToDecimal();
-            portfolio.Profit = clientLimits.Profit.ToDecimal();
+            portfolio.UnrealizedPnl = clientLimits.Profit.ToDecimal();
 
             return portfolio;
         }
@@ -1781,7 +1811,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        List<Order> _sendOrders = new List<Order>();
+        private List<Order> _sendOrders = new List<Order>();
 
         private string _sendOrdersLocker = "sendOrdersLocker";
 
@@ -1820,7 +1850,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                 string cmd = "<command id=\"moveorder\">";
                 cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
-                cmd += "<price>" + newPrice.ToString().Replace(',', '.') + "</price>";                cmd += "<moveflag>" + 0 + "</moveflag>";
+                cmd += "<price>" + newPrice.ToString().Replace(',', '.') + "</price>";
+                cmd += "<moveflag>" + 0 + "</moveflag>";
                 cmd += "</command>";
 
                 // sending command / отправка команды
@@ -2094,13 +2125,13 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
-        ConcurrentQueue<List<TransaqEntity.Order>> _ordersQueue = new ConcurrentQueue<List<TransaqEntity.Order>>();
+        private ConcurrentQueue<List<TransaqEntity.Order>> _ordersQueue = new ConcurrentQueue<List<TransaqEntity.Order>>();
 
-        ConcurrentQueue<List<TransaqEntity.Trade>> _myTradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+        private ConcurrentQueue<List<TransaqEntity.Trade>> _myTradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
 
-        ConcurrentQueue<List<TransaqEntity.Trade>> _tradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
+        private ConcurrentQueue<List<TransaqEntity.Trade>> _tradesQueue = new ConcurrentQueue<List<TransaqEntity.Trade>>();
 
-        ConcurrentQueue<List<Quote>> _mdQueue = new ConcurrentQueue<List<Quote>>();
+        private ConcurrentQueue<List<Quote>> _mdQueue = new ConcurrentQueue<List<Quote>>();
 
         private void ThreadDataParsingWorkPlace()
         {
@@ -2254,7 +2285,15 @@ namespace OsEngine.Market.Servers.Transaq
                 newOrder.Volume = order.Quantity.ToDecimal();
                 newOrder.Price = order.Price.ToDecimal();
                 newOrder.ServerType = ServerType.Transaq;
-                newOrder.PortfolioNumber = string.IsNullOrEmpty(order.Union) ? order.Client : order.Union;
+
+                if(string.IsNullOrEmpty(order.Union) == false)
+                {
+                    newOrder.PortfolioNumber = "United_" + order.Union;
+                }
+                else
+                {
+                    newOrder.PortfolioNumber = order.Client;
+                }
 
                 lock (_sendOrdersLocker)
                 {
@@ -2615,6 +2654,7 @@ namespace OsEngine.Market.Servers.Transaq
         #region 12 Helpers
 
         private object _securityAvabilityLocker = new object();
+
         private bool CheckSecurityAvailability(Security security)
         {
             lock (_securityAvabilityLocker)

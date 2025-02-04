@@ -2115,7 +2115,6 @@ namespace OsEngine.Market.Servers.Alor
             
             portf.ValueBlocked = baseMessage.portfolioLiquidationValue.ToDecimal() - baseMessage.buyingPower.ToDecimal();
            
-            portf.Profit = baseMessage.profit.ToDecimal();
             portf.UnrealizedPnl = baseMessage.profit.ToDecimal();
 
             if (PortfolioEvent != null)
