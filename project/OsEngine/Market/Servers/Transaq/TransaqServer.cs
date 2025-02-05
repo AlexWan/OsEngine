@@ -474,8 +474,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _transaqSecuritiesInString = new ConcurrentQueue<string>();
 
-        private List<TransaqEntity.Security> _transaqSecurities = new List<TransaqEntity.Security>();
-
         private List<SecurityInfo> _secsSpecification = new List<SecurityInfo>();
 
         private void ThreadUpdateAndSubscribeSecurity()

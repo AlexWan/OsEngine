@@ -370,12 +370,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 decimal totalUsdt = Math.Round(accountInfo.Total.ToDecimal(), 3);
                 decimal pnl = Math.Round(accountInfo.UnrealisedPnl.ToDecimal(), 3);
                 decimal totalFunds = totalUsdt + pnl;
+                decimal availableUsdt = Math.Round(accountInfo.Available.ToDecimal(), 3);
 
                 PositionOnBoard posAllPortfolio = new PositionOnBoard();
                 posAllPortfolio.SecurityNameCode = accountInfo.Currency;
-                posAllPortfolio.ValueBegin = totalFunds;
+                posAllPortfolio.ValueBegin = availableUsdt;
 
-                posAllPortfolio.ValueCurrent = totalFunds;
+                posAllPortfolio.ValueCurrent = availableUsdt;
                 posAllPortfolio.ValueBlocked = Math.Round(accountInfo.PositionMargin.ToDecimal() + accountInfo.OrderMargin.ToDecimal(), 3);
 
                 portfolio.SetNewPosition(posAllPortfolio);
@@ -383,10 +384,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 if(portfolio.ValueBegin == 0
                     || portfolio.ValueBegin == 1)
                 {
-                    portfolio.ValueBegin = posAllPortfolio.ValueBegin;
+                    portfolio.ValueBegin = totalFunds;
                 }
 
-                portfolio.ValueCurrent = posAllPortfolio.ValueBegin;
+                portfolio.ValueCurrent = totalFunds;
                 portfolio.ValueBlocked = posAllPortfolio.ValueBlocked;
                 portfolio.UnrealizedPnl = pnl;
 
@@ -406,6 +407,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     position.ValueBegin = item.size.ToDecimal();
                     position.ValueCurrent = item.size.ToDecimal();
                     position.UnrealizedPnl = item.unrealised_pnl.ToDecimal();
+                    
                     portfolio.SetNewPosition(position);
                 }
 
