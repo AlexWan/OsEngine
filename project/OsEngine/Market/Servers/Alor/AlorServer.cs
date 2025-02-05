@@ -1611,6 +1611,11 @@ namespace OsEngine.Market.Servers.Alor
             
             trade.Volume = baseMessage.qty.ToDecimal();
 
+            if(trade.Price < 0)
+            {
+
+            }
+
             if (NewTradesEvent != null)
             {
                 NewTradesEvent(trade);

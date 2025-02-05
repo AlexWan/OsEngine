@@ -2110,7 +2110,7 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if (trade.Price <= 0)
+                if (trade.Price == 0)
                 {
                     return;
                 }

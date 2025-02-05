@@ -392,8 +392,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if (priceActivation <= 0
-                || priceOrder <= 0)
+            if (priceActivation == 0
+                || priceOrder == 0)
             {
                 return;
             }
@@ -417,8 +417,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if (priceActivation <= 0
-                || priceOrder <= 0)
+            if (priceActivation == 0
+                || priceOrder == 0)
             {
                 return;
             }
