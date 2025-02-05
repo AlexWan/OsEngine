@@ -1691,6 +1691,8 @@ namespace OsEngine.Charts.CandleChart
             {
                 ChartCandle.ClearDataPointsAndSizeValue();
             }
+
+            _lastPrice = 0;
         }
 
         /// <summary>
