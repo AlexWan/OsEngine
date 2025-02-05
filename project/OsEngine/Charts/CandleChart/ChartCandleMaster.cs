@@ -1794,6 +1794,8 @@ namespace OsEngine.Charts.CandleChart
             PaintLabelOnSlavePanel();
         }
 
+        bool _isFirstTimeSetSecurity = true;
+
         /// <summary>
         /// to load a new tool into chart
         /// подгрузить в чарт новый инструмент
@@ -1805,6 +1807,14 @@ namespace OsEngine.Charts.CandleChart
         public void SetNewSecurity(string security, TimeFrameBuilder timeFrameBuilder, string portfolioName, ServerType serverType)
         {
             if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            if(security == null
+                || timeFrameBuilder == null
+                || portfolioName == null 
+                || serverType == ServerType.None)
             {
                 return;
             }
@@ -1831,6 +1841,12 @@ namespace OsEngine.Charts.CandleChart
             _timeFrameSecurity = timeFrameBuilder.TimeFrame;
             _serverType = serverType;
             _candleCreateMethodTypeOnThisChart = timeFrameBuilder.CandleCreateMethodType;
+
+            if (_isFirstTimeSetSecurity)
+            {
+                _isFirstTimeSetSecurity = false;
+                return;
+            }
 
             Clear();
             PaintLabelOnSlavePanel();
