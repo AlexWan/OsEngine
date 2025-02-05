@@ -1813,14 +1813,6 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            if(security == null
-                || timeFrameBuilder == null
-                || portfolioName == null 
-                || serverType == ServerType.None)
-            {
-                return;
-            }
-
             if (_securityOnThisChart == security &&
                 _timeFrameSecurity == timeFrameBuilder.TimeFrame &&
                 serverType == _serverType &&

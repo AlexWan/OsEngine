@@ -531,38 +531,7 @@ namespace OsEngine.Market.Servers.Transaq
                             continue;
                         }
 
-                        if (_secsSpecification != null)
-                        {
-                            for (int i = 0; i < _secsSpecification.Count; i++)
-                            {
-                                SecurityInfo secInfo = _secsSpecification[i];
-
-                                for (int j = 0; j < _securities.Count; j++)
-                                {
-                                    Security secCur = _securities[j];
-
-                                    if (secCur.NameId == secInfo.Secid)
-                                    {
-                                        if (string.IsNullOrEmpty(secInfo.Maxprice) == false)
-                                        {
-                                            secCur.PriceLimitHigh = secInfo.Maxprice.ToDecimal();
-                                        }
-
-                                        if (string.IsNullOrEmpty(secInfo.Minprice) == false)
-                                        {
-                                            secCur.PriceLimitLow = secInfo.Minprice.ToDecimal();
-                                        }
-
-                                        if (string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
-                                        {
-                                            secCur.Go = secInfo.Buy_deposit.ToDecimal();
-                                        }
-
-                                        break;
-                                    }
-                                }
-                            }
-                        }
+                        UpDateAllSpecifications();
 
                         SecurityEvent?.Invoke(_securities);
 
@@ -617,36 +586,49 @@ namespace OsEngine.Market.Servers.Transaq
                 return;
             }
 
-            if (_secsSpecification != null
-                && _secsSpecification.Count != 0)
+            UpDateAllSpecifications();
+        }
+
+        private void UpDateAllSpecifications()
+        {
+            if (_securities == null ||
+                _securities.Count == 0)
             {
-                for (int i = 0; i < _secsSpecification.Count; i++)
+                return;
+            }
+
+            if (_secsSpecification == null
+                || _secsSpecification.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _secsSpecification.Count; i++)
+            {
+                SecurityInfo secInfo = _secsSpecification[i];
+
+                for (int j = 0; j < _securities.Count; j++)
                 {
-                    SecurityInfo secInfo = _secsSpecification[i];
+                    Security secCur = _securities[j];
 
-                    for (int j = 0; j < _securities.Count; j++)
+                    if (secCur.NameId == secInfo.Secid)
                     {
-                        Security secCur = _securities[j];
-
-                        if (secCur.NameId == secInfo.Secid)
+                        if (string.IsNullOrEmpty(secInfo.Maxprice) == false)
                         {
-                            if (string.IsNullOrEmpty(secInfo.Maxprice) == false)
-                            {
-                                secCur.PriceLimitHigh = secInfo.Maxprice.ToDecimal();
-                            }
-
-                            if (string.IsNullOrEmpty(secInfo.Minprice) == false)
-                            {
-                                secCur.PriceLimitLow = secInfo.Minprice.ToDecimal();
-                            }
-
-                            if (string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
-                            {
-                                secCur.Go = secInfo.Buy_deposit.ToDecimal();
-                            }
-
-                            break;
+                            secCur.PriceLimitHigh = secInfo.Maxprice.ToDecimal();
                         }
+
+                        if (string.IsNullOrEmpty(secInfo.Minprice) == false)
+                        {
+                            secCur.PriceLimitLow = secInfo.Minprice.ToDecimal();
+                        }
+
+                        if (string.IsNullOrEmpty(secInfo.Buy_deposit) == false)
+                        {
+                            secCur.Go = secInfo.Buy_deposit.ToDecimal();
+                        }
+
+                        break;
                     }
                 }
             }
@@ -1658,7 +1640,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         #region 7 Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(300));
 
         private List<Security> _subscribeSecurities = new List<Security>();
 
@@ -1695,7 +1677,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void SubscribeRecursion(Security security, int counter)
         {
-            _rateGateSubscrible.WaitToProceed();
+            _rateGateSubscribe.WaitToProceed();
 
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
@@ -1899,8 +1881,6 @@ namespace OsEngine.Market.Servers.Transaq
 
         private RateGate _rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        private List<Order> _changeOrders = new List<Order>();
-
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             try
@@ -1982,10 +1962,6 @@ namespace OsEngine.Market.Servers.Transaq
         #region 9 Parsing incomig data
 
         private ConcurrentQueue<string> _newMessage = new ConcurrentQueue<string>();
-
-        private ConcurrentQueue<string> _newMessageSecurityInfo = new ConcurrentQueue<string>();
-
-        private ConcurrentQueue<string> _newMessagePrivateData = new ConcurrentQueue<string>();
 
         /// <summary>
         /// processor of data from callbacks 
