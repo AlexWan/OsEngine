@@ -224,13 +224,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return ServerType.CoinExSpot; }
         }
 
-        private CoinExRestClient _restClient;
-
         public event Action ConnectEvent;
 
         public event Action DisconnectEvent;
 
         public List<IServerParameter> ServerParameters { get; set; }
+
+		private CoinExRestClient _restClient;
 
         // https://docs.coinex.com/api/v2/rate-limit
 
