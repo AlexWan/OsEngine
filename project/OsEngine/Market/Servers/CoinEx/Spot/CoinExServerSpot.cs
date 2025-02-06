@@ -8,9 +8,12 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity;
-//using System.Security.Cryptography.X509Certificates;
-using WebSocketSharp;
+using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
+//using WebSocketSharp;
+using WebSocket4Net;
 using System.Collections.Concurrent;
+using System.IO.Compression;
+using System.IO;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot
 {
@@ -44,58 +47,102 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public void Connect()
         {
-            _securities.Clear();
-            _portfolios.Clear();
-            _subscribledSecurities.Clear();
-
-            SendLogMessage("Start CoinEx Spot Connection", LogMessageType.System);
-
-            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
-            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-            //_marketMode = ((ServerParameterEnum)ServerParameters[2]).Value;
-            _marketMode = "SPOT";
-            _marketDepth = Int16.Parse(((ServerParameterEnum)ServerParameters[2]).Value);
-
-            if (string.IsNullOrEmpty(_publicKey)
-                || string.IsNullOrEmpty(_secretKey))
+            try
             {
-                SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the CoinEx website",
-                    LogMessageType.Error);
-                return;
+                _securities.Clear();
+                _portfolios.Clear();
+                _subscribledSecurities.Clear();
+
+                SendLogMessage("Start CoinEx Spot Connection", LogMessageType.Connect);
+
+                _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+                _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+                //_marketMode = ((ServerParameterEnum)ServerParameters[2]).Value;
+                _marketMode = "SPOT";
+                _marketDepth = Int16.Parse(((ServerParameterEnum)ServerParameters[2]).Value);
+
+                if (string.IsNullOrEmpty(_publicKey)
+                    || string.IsNullOrEmpty(_secretKey))
+                {
+                    SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the CoinEx website.",
+                        LogMessageType.Error);
+                    return;
+                }
+
+                _restClient = new CoinExRestClient(_publicKey, _secretKey);
+                _restClient.LogMessageEvent += SendLogMessage;
+
+                // Check rest auth
+                if (!GetCurrentPortfolios())
+                {
+                    SendLogMessage("Authorization Error. Probably an invalid keys are specified, check it!",
+                        LogMessageType.Error);
+                }
+
+                CreateWebSocketConnection();
             }
-
-            _restClient = new CoinExRestClient(_publicKey, _secretKey);
-            _restClient.LogMessageEvent += SendLogMessage;
-
-            // Check rest auth
-            if (!GetCurrentPortfolios())
+            catch (Exception ex)
             {
-                SendLogMessage("Authorization Error. Probably an invalid keys are specified, check it!",
-                    LogMessageType.Error);
+                SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
             }
-
             //Temp
-            ServerStatus = ServerConnectStatus.Connect;
-            ConnectEvent();
+            //ServerStatus = ServerConnectStatus.Connect;
+            //ConnectEvent();
         }
 
         public ServerConnectStatus ServerStatus { get; set; }
+
         public void Dispose()
         {
+            try
+            {
+                if (_wsClient != null)
+                {
+                    CexRequestSocketUnsubscribe message = new CexRequestSocketUnsubscribe(CexWsOperation.MARKET_DEPTH_UNSUBSCRIBE.ToString(), new List<string>());
+                    SendLogMessage("CoinEx server market depth unsubscribe: " + message, LogMessageType.Connect);
+                    _wsClient.Send(message.ToString());
+
+                    message = new CexRequestSocketUnsubscribe(CexWsOperation.BALANCE_UNSUBSCRIBE.ToString(), new List<string>());
+                    SendLogMessage("CoinEx server portfolios unsubscribe: " + message, LogMessageType.Connect);
+                    _wsClient.Send(message.ToString());
+
+                    message = new CexRequestSocketUnsubscribe(CexWsOperation.DEALS_UNSUBSCRIBE.ToString(), new List<string>());
+                    SendLogMessage("CoinEx server trades unsubscribe: " + message, LogMessageType.Connect);
+                    _wsClient.Send(message.ToString());
+
+                    message = new CexRequestSocketUnsubscribe(CexWsOperation.USER_DEALS_UNSUBSCRIBE.ToString(), new List<string>());
+                    SendLogMessage("CoinEx server my trades unsubscribe: " + message, LogMessageType.Connect);
+                    _wsClient.Send(message.ToString());
+
+                    message = new CexRequestSocketUnsubscribe(CexWsOperation.ORDER_UNSUBSCRIBE.ToString(), new List<string>());
+                    SendLogMessage("CoinEx server orders unsubscribe: " + message, LogMessageType.Connect);
+                    _wsClient.Send(message.ToString());
+                }
+
+                _securities.Clear();
+                _portfolios.Clear();
+                _subscribledSecurities.Clear();
+                _securities = new List<Security>();
+                //_securitiesSubscriptions.Clear();
+                //_orderSubcriptions.Clear();
+
+                _restClient?.Dispose();
+                DeleteWebSocketConnection();
+
+                SendLogMessage("Dispose. Connection Closed by CoinEx. WebSocket Data Closed Event", LogMessageType.System);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-
-                if (DisconnectEvent != null)
-                {
-                    DisconnectEvent();
-                }
+                DisconnectEvent();
             }
 
-            //DisposeSockets();
 
-            _subscribledSecurities.Clear();
-            _securities = new List<Security>();
         }
 
         public DateTime ServerTime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
@@ -177,14 +224,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return ServerType.CoinExSpot; }
         }
 
+        private CoinExRestClient _restClient;
+
         public event Action ConnectEvent;
 
         public event Action DisconnectEvent;
 
         public List<IServerParameter> ServerParameters { get; set; }
-
-        private CoinExRestClient _restClient;
-        private WebSocket _wsClient;
 
         // https://docs.coinex.com/api/v2/rate-limit
 
@@ -434,12 +480,201 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         private readonly string _wsUrl = "wss://socket.coinex.com/v2/spot";
         private string _socketLocker = "webSocketLockerCoinEx";
         private bool _socketIsActive;
-        private WebSocket _webSocket;
+        private WebSocket _wsClient;
 
+        private void CreateWebSocketConnection()
+        {
+            try
+            {
+                if (_wsClient != null)
+                {
+                    return;
+                }
 
+                _socketIsActive = false;
+
+                lock (_socketLocker)
+                {
+                    _webSocketMessage = new ConcurrentQueue<string>();
+
+                    _wsClient = new WebSocket(_wsUrl);
+                    _wsClient.EnableAutoSendPing = true;
+                    _wsClient.AutoSendPingInterval = 15;
+                    _wsClient.Opened += WebSocket_Opened;
+                    _wsClient.Closed += WebSocket_Closed;
+                    _wsClient.Error += WebSocketData_Error;
+                    _wsClient.DataReceived += WebSocket_DataReceived;
+                    _wsClient.Open();
+
+                }
+
+            }
+            catch (Exception exeption)
+            {
+                SendLogMessage(exeption.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void DeleteWebSocketConnection()
+        {
+            try
+            {
+                lock (_socketLocker)
+                {
+                    if (_wsClient == null)
+                    {
+                        return;
+                    }
+
+                    try
+                    {
+                        _wsClient.Close();
+                    }
+                    catch
+                    {
+                        // ignore
+                    }
+
+                    _wsClient.Opened -= WebSocket_Opened;
+                    _wsClient.Closed -= WebSocket_Closed;
+                    _wsClient.DataReceived -= WebSocket_DataReceived;
+                    _wsClient.Error -= WebSocketData_Error;
+                    _wsClient = null;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+            finally
+            {
+                _wsClient = null;
+            }
+        }
+        private void AuthInSocket()
+        {
+            CexRequestSocketSign message = new CexRequestSocketSign(_publicKey, _secretKey);
+
+            SendLogMessage("CoinEx server auth: " + message, LogMessageType.Connect);
+            _wsClient.Send(message.ToString());
+        }
+
+        private void CheckActivationSockets()
+        {
+            if (_socketIsActive == false)
+            {
+                return;
+            }
+
+            try
+            {
+                SendLogMessage("All sockets activated. Connect State", LogMessageType.Connect);
+                ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+        }
         #endregion
 
         #region 7 WebSocket events
+        private void WebSocket_Opened(object sender, EventArgs e)
+        {
+            SendLogMessage("Socket Data activated", LogMessageType.System);
+            _socketIsActive = true;
+            CheckActivationSockets();
+
+            AuthInSocket();
+            Thread.Sleep(2000);
+
+            // Portfolio subscription
+            CexRequestSocketSubscribePortfolio message = new CexRequestSocketSubscribePortfolio();
+            SendLogMessage("SubcribeToPortfolioData: " + message, LogMessageType.Connect);
+            _wsClient.Send(message.ToString());
+
+            //Subscribe to all current securities
+            //GetAllOrdersFromExchange();
+        }
+
+        private void WebSocket_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                SendLogMessage("WebSocket. Connection Closed by CoinEx. WebSocket Data Closed Event", LogMessageType.Error);
+
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketData_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs error)
+        {
+            try
+            {
+                if (error.Exception != null)
+                {
+                    SendLogMessage("Web Socket Error: " + error.Exception.ToString(), LogMessageType.Error);
+                }
+                else
+                {
+                    SendLogMessage("Web Socket Error: " + error.ToString(), LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Web socket error: " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+        private void WebSocket_DataReceived(object sender, DataReceivedEventArgs e)
+        {
+            try
+            {
+                if (e == null)
+                {
+                    // Remove?
+                    SendLogMessage("PorfolioWebSocket DataReceived Empty message: State=" + ServerStatus.ToString(),
+                        LogMessageType.Connect);
+                    return;
+                }
+
+
+                if (e.Data.Length == 0)
+                {
+                    // Remove?
+                    return;
+                }
+
+
+                if (_webSocketMessage == null)
+                {
+                    return;
+                }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                string message = Decompress(e.Data);
+
+                _webSocketMessage.Enqueue(message);
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage("Portfolio socket error. " + error.ToString(), LogMessageType.Error);
+            }
+        }
 
         #endregion
 
@@ -504,6 +739,45 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             priceStep += "1";
 
             return priceStep.ToString().ToDecimal();
+        }
+
+        private DateTime _lastTimeRestCheckConnection = DateTime.MinValue;
+        private DateTime _lastTimeWsCheckConnection = DateTime.MinValue;
+        private bool SendRestPing()
+        {
+            string endPoint = "/ping";
+            try
+            {
+                CexRestResp pong = _restClient.Get<CexRestResp>(endPoint).Result;
+                pong.EnsureSuccess();
+            }
+            catch (Exception ex)
+            {
+                // ex.InnerException.Message
+                return false;
+            }
+            _lastTimeRestCheckConnection = DateTime.Now;
+
+            return true;
+        }
+        private void SendWsPing()
+        {
+            CexRequestSocketPing message = new CexRequestSocketPing();
+            _wsClient?.Send(message.ToString());
+        }
+
+        private static string Decompress(byte[] data)
+        {
+            using (MemoryStream msi = new MemoryStream(data))
+            using (MemoryStream mso = new MemoryStream())
+            {
+                //using DeflateStream decompressor = new DeflateStream(msi, CompressionMode.Decompress);
+                using GZipStream decompressor = new GZipStream(msi, CompressionMode.Decompress);
+                decompressor.CopyTo(mso);
+
+                return Encoding.UTF8.GetString(mso.ToArray());
+            }
+
         }
         #endregion
     }

@@ -478,6 +478,31 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
             return priceStep.ToString().ToDecimal();
         }
+
+        private DateTime _lastTimeRestCheckConnection = DateTime.MinValue;
+        private DateTime _lastTimeWsCheckConnection = DateTime.MinValue;
+        private bool SendRestPing()
+        {
+            string endPoint = "/ping";
+            try
+            {
+                CexRestResp pong = _restClient.Get<CexRestResp>(endPoint).Result;
+                pong.EnsureSuccess();
+            }
+            catch (Exception ex)
+            {
+                // ex.InnerException.Message
+                return false;
+            }
+            _lastTimeRestCheckConnection = DateTime.Now;
+
+            return true;
+        }
+        private void SendWsPing()
+        {
+            CexRequestSocketPing message = new CexRequestSocketPing();
+            _wsClient?.Send(message.ToString());
+        }
         #endregion
     }
 
