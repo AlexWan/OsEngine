@@ -512,7 +512,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 {
                     candles.AddRange(candlesOneDay);
                 }
-                Thread.Sleep(5000);
             }
 
             List<Candle> candlesToday = GetCandles(timeStart, timeEnd);

@@ -3,12 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace OsEngine.Language
 {
     public class ConverterLocal
@@ -19,11 +13,11 @@ namespace OsEngine.Language
 
         public string Message2 => OsLocalization.ConvertToLocString(
             "Eng:The conversion procedure cannot be started. No source file specified_" +
-            "Ru:Процедура конвертации не может быть запущеана. Не указан файл с исходными данными_");
+            "Ru:Процедура конвертации не может быть запущена. Не указан файл с исходными данными_");
 
         public string Message3 => OsLocalization.ConvertToLocString(
             "Eng:The conversion procedure cannot be started. No output file specified_" +
-            "Ru:Процедура конвертации не может быть запущеана. Не указан файл с выходными данными_");
+            "Ru:Процедура конвертации не может быть запущена. Не указан файл с выходными данными_");
 
         public string Message4 => OsLocalization.ConvertToLocString(
             "Eng:Conversion procedure started_" +
