@@ -502,7 +502,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
 
             const int FinamDataMonthsAvailable = 3; // Финам позволяет грузить данные внутредневных свеч не более 4 месяцев на запрос. Ставим на месяц меньше для надежности.
 
-            while (timeStart.AddMonths(FinamDataMonthsAvailable) < timeEnd)
+            while (timeStart.AddMonths(FinamDataMonthsAvailable) < timeEnd && TimeFrame != TimeFrame.Day)
             {
                 List<Candle> candlesOneDay = GetCandles(timeStart, timeStart.AddMonths(FinamDataMonthsAvailable));
 
@@ -514,6 +514,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 }
                 Thread.Sleep(5000);
             }
+
             List<Candle> candlesToday = GetCandles(timeStart, timeEnd);
 
             if (candlesToday != null)
