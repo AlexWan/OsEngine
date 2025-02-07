@@ -1,0 +1,123 @@
+﻿using OsEngine.Entity;
+using System;
+using System.Collections.Generic;
+using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
+using System.Globalization;
+
+namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
+{
+    public class CexRequestRest
+    {
+        public Dictionary<string, Object> parameters = new Dictionary<string, Object>();
+
+        public CexRequestRest() { }
+
+        public override string ToString()
+        {
+            return "?" + CoinExServerRealization.createQueryString(parameters);
+        }
+    }
+
+    // https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
+    public class CexRequestPendingOrders : CexRequestRest
+    {
+        public CexRequestPendingOrders(string marketType, long? userOrderId, int limit = 1000)
+        {
+            parameters.Add("market_type", marketType);
+            parameters.Add("limit", limit);
+            if (userOrderId != null)
+            {
+                parameters.Add("client_id", userOrderId);
+            }
+        }
+    }
+
+    // https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+    public class CexRequestCancelAllOrders : CexRequestRest
+    {
+        public CexRequestCancelAllOrders(string marketType, string? security)
+        {
+            parameters.Add("market_type", marketType);
+            if (security != null)
+            {
+                parameters.Add("client_id", security);
+            }
+        }
+    }
+
+    // https://docs.coinex.com/api/v2/spot/order/http/cancel-order
+    public class CexRequestCancelOrder : CexRequestRest
+    {
+        public CexRequestCancelOrder(string marketType, string orderId, string market)
+        {
+            parameters.Add("market_type", marketType);
+            parameters.Add("market", market);
+            parameters.Add("order_id", (long)Convert.ToDecimal(orderId));
+        }
+    }
+
+    // https://docs.coinex.com/api/v2/spot/order/http/put-order#http-request
+    public class CexRequestSendOrder : CexRequestRest
+    {
+        public CexRequestSendOrder(string marketType, Order order)
+        {
+            string cexOrderSide = order.Side switch
+            {
+                Side.Buy => CexOrderSide.BUY.ToString(),
+                _ => CexOrderSide.SELL.ToString(),
+            };
+            parameters.Add("market", order.SecurityNameCode);
+            parameters.Add("market_type", marketType);
+            parameters.Add("side", cexOrderSide);
+            parameters.Add("amount", order.Volume.ToString(CultureInfo.InvariantCulture)
+                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+            parameters.Add("client_id", order.NumberUser.ToString());
+            parameters.Add("ccy", order.SecurityClassCode);
+
+            if (order.TypeOrder == OrderPriceType.Limit)
+            {
+                parameters.Add("type", CexOrderType.LIMIT.ToString());
+                parameters.Add("price", order.Price.ToString(CultureInfo.InvariantCulture)
+                          .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+            }
+            else if (order.TypeOrder == OrderPriceType.Market)
+            {
+                parameters.Add("type", CexOrderType.MARKET.ToString());
+            }
+        }
+    }
+
+    // https://docs.coinex.com/api/v2/spot/order/http/get-order-status
+    public class CexRequestOrderStatus : CexRequestRest
+    {
+        public CexRequestOrderStatus(string orderId, string market)
+        {
+            parameters.Add("market", market);
+            parameters.Add("order_id", (long)Convert.ToDecimal(orderId));
+        }
+    }
+
+    // https://docs.coinex.com/api/v2/spot/deal/http/list-user-order-deals#http-request
+    public class CexRequestOrderDeals : CexRequestRest
+    {
+        public CexRequestOrderDeals(string marketType, string orderId, string market, int limit = 100)
+        {
+            parameters.Add("market", market);
+            parameters.Add("order_id", (long)Convert.ToDecimal(orderId));
+            parameters.Add("market_type", marketType);
+            parameters.Add("limit", limit);
+        }
+    }
+
+    // https://docs.coinex.com/api/v2/spot/order/http/edit-order
+    public class CexRequestEditOrder : CexRequestRest
+    {
+        public CexRequestEditOrder(string marketType, Order order, decimal newPrice)
+        {
+            parameters.Add("market", order.SecurityNameCode);
+            parameters.Add("order_id", (long)Convert.ToDecimal(order.NumberMarket));
+            parameters.Add("market_type", marketType);
+            parameters.Add("price", newPrice.ToString());
+        }
+    }
+}

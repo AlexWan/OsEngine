@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Entity;
 using System.Collections.Generic;
 using RestSharp;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
@@ -73,23 +74,28 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
     public class CexRequestSocketSubscribeDeals : CexRequestSocket
     {
-        public CexRequestSocketSubscribeDeals(List<string> securities)
+        public CexRequestSocketSubscribeDeals(List<Security> securities)
         {
             method = CexWsOperation.DEALS_SUBSCRIBE.ToString();
-            parameters.Add("market_list", securities);
+            List<string> secs = new List<string>();
+            for(int i = 0; i < securities.Count; i++)
+            {
+                secs.Add(securities[i].Name);
+            }
+            parameters.Add("market_list", secs);
         }
     }
     
     public class CexRequestSocketSubscribeMarketDepth : CexRequestSocket
     {
-        public CexRequestSocketSubscribeMarketDepth(List<string> securities, int depth)
+        public CexRequestSocketSubscribeMarketDepth(List<Security> securities, int depth)
         {
             method = CexWsOperation.MARKET_DEPTH_SUBSCRIBE.ToString();
 
             List<Object[]> data = new List<Object[]>();
             for (int i = 0; i < securities.Count; i++)
             {
-                data.Add(new object[4] { securities[i], depth, "0", true });
+                data.Add(new object[4] { securities[i].Name, depth, "0", true });
             }
 
             parameters.Add("market_list", data);
@@ -98,10 +104,15 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
     
     public class CexRequestSocketSubscribeMyOrders : CexRequestSocket
     {
-        public CexRequestSocketSubscribeMyOrders(List<string> securities)
+        public CexRequestSocketSubscribeMyOrders(List<Security> securities)
         {
             method = CexWsOperation.ORDER_SUBSCRIBE.ToString();
-            parameters.Add("market_list", securities);
+            List<string> secs = new List<string>();
+            for (int i = 0; i < securities.Count; i++)
+            {
+                secs.Add(securities[i].Name);
+            }
+            parameters.Add("market_list", secs);
         }
     }
 
