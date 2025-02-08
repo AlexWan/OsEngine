@@ -14,6 +14,7 @@ using WebSocket4Net;
 using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.IO;
+using OsEngine.Market.Servers.Mexc.Json;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot
 {
@@ -143,28 +144,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        public DateTime ServerTime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<Trade> NewTradesEvent;
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
-
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            throw new NotImplementedException();
-        }
-
-
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            throw new NotImplementedException();
-        }
         #endregion
 
         #region 2 Properties
@@ -178,6 +161,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         private const string MARKET_MODE_MARGIN = "margin";
         // Market Depth
         private int _marketDepth;
+
+        public DateTime ServerTime { get; set; }
 
         public ServerType ServerType
         {
@@ -432,6 +417,197 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         #endregion
 
         #region 5 Data
+        // Max candles in history
+        public const int MaxCandlesHistory = 1000;
+        private readonly Dictionary<int, string> _allowedTf = new Dictionary<int, string>() {
+            { 1,  "1min" },
+            { 3,  "3min" },
+            { 5,  "5min" },
+            { 15,  "15min" },
+            { 30,  "30min" },
+            { 60,  "1hour" },
+            { 120,  "2hour" },
+            { 240,  "4hour" },
+            { 360,  "6hour" },
+            { 720,  "12hour" },
+            { 1440,  "1day" },
+            { 4320,  "3day" },
+            { 10080,  "1week" },
+        };
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            DateTime endTime = DateTime.Now.ToUniversalTime();
+
+            while (endTime.Hour != 23)
+            {
+                endTime = endTime.AddHours(1);
+            }
+
+            int candlesInDay = 0;
+
+            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes >= 1)
+            {
+                candlesInDay = 900 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
+            }
+            else
+            {
+                candlesInDay = 54000 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
+            }
+
+            if (candlesInDay == 0)
+            {
+                candlesInDay = 1;
+            }
+
+            int daysCount = candleCount / candlesInDay;
+
+            if (daysCount == 0)
+            {
+                daysCount = 1;
+            }
+
+            daysCount++;
+
+            if (daysCount > 5)
+            { // добавляем выходные
+                daysCount = daysCount + (daysCount / 5) * 2;
+            }
+
+            DateTime startTime = endTime.AddDays(-daysCount);
+
+            List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
+
+            while (candles.Count > candleCount)
+            {
+                candles.RemoveAt(0);
+            }
+
+            return candles;
+        }
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+                                DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            _rateGateSendOrder.WaitToProceed();
+
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+
+            if (!_allowedTf.ContainsKey(tfTotalMinutes))
+                return null;
+
+            if (startTime != actualTime)
+            {
+                startTime = actualTime;
+            }
+
+            List<Candle> candles = new List<Candle>();
+
+            TimeSpan additionTime = TimeSpan.FromMinutes(tfTotalMinutes * MaxCandlesHistory);
+
+            DateTime endTimeReal = startTime.Add(additionTime);
+
+            List<Candle> newCandles = new List<Candle>();
+            while (startTime < endTime)
+            {
+                List<CexCandle> history = cexGetCandleHistory(security, tfTotalMinutes, startTime, endTimeReal);
+                if (history.Count > 0)
+                {
+                    for (int i = 0; i < history.Count; i++)
+                    {
+                        newCandles.Add((Candle)history[i]);
+                    }
+                }
+                history.Clear();
+
+                if (newCandles != null &&
+                    newCandles.Count > 0)
+                {
+                    //It could be 2 same candles from different requests - check and fix
+                    if (candles.Count > 0)
+                    {
+                        Candle last = candles[candles.Count - 1];
+                        for (int i = 0; i < newCandles.Count; i++)
+                        {
+                            if (newCandles[i].TimeStart > last.TimeStart)
+                            {
+                                candles.Add(newCandles[i]);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        candles = newCandles;
+                    }
+                }
+
+                startTime = endTimeReal;
+                endTimeReal = startTime.Add(additionTime);
+            }
+
+            while (candles != null &&
+                candles.Count != 0 &&
+                candles[candles.Count - 1].TimeStart > endTime)
+            {
+                candles.RemoveAt(candles.Count - 1);
+            }
+
+            return candles;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            // https://docs.coinex.com/api/v2/spot/market/http/list-market-deals#http-request
+            // Max 1000 deals
+            //string endPoint = "/spot/market";
+
+            return null;
+        }
+
+        private List<CexCandle> cexGetCandleHistory(Security security, int tfTotalMinutes,
+            DateTime startTime, DateTime endTime)
+        {
+            int candlesCount = Convert.ToInt32(endTime.Subtract(startTime).TotalMinutes / tfTotalMinutes);
+
+            //DateTime maxStartTime = endTime.AddMinutes(-MaxCandlesHistory * tfTotalMinutes);
+
+            if (candlesCount > MaxCandlesHistory)
+            {
+                SendLogMessage($"Too much candels for TF {tfTotalMinutes}", LogMessageType.Error);
+                return null;
+            }
+
+            //string endPoint = "/spot/kline";
+
+            //Начало отрезка времени (UTC) в формате Unix Time Seconds
+            //endPoint += "&step=" + tfTotalMinutes;
+            //endPoint += "&from=" + TimeManager.GetTimeStampSecondsToDateTime(startTime);
+            //endPoint += "&to=" + TimeManager.GetTimeStampSecondsToDateTime(endTime);
+
+            //SendLogMessage("Get Candles: " + endPoint, LogMessageType.Connect);
+
+            try
+            {
+                string period = _allowedTf[tfTotalMinutes];
+                Dictionary<string, Object> parameters = (new CexRequestGetKLines(security.Name, period, candlesCount, CexPriceType.LATEST_PRICE.ToString())).parameters;
+                List<CexCandle> cexCandles = _restClient.Get<List<CexCandle>>("/spot/kline", false, parameters).Result;
+
+
+                if (cexCandles != null && cexCandles.Count > 0)
+                {
+                    return cexCandles;
+                }
+                else
+                {
+                    SendLogMessage("Empty Candles response to url /spot/kline", LogMessageType.System);
+                }
+
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Candles request error:" + exception.ToString(), LogMessageType.Error);
+            }
+            return null;
+        }
 
         #endregion
 
@@ -881,8 +1057,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             try
             {
                 // https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
-                string queryString = (new CexRequestPendingOrders(_marketMode, null)).ToString();
-                List<CexOrder>? cexOrders = _restClient.Get<List<CexOrder>>("/spot/pending-order" + queryString, true).Result;
+                Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode, null)).parameters;
+                List<CexOrder>? cexOrders = _restClient.Get<List<CexOrder>>("/spot/pending-order", true, parameters).Result;
 
                 if (cexOrders == null || cexOrders.Count == 0)
                 {
@@ -939,8 +1115,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             try
             {
                 // https://docs.coinex.com/api/v2/spot/order/http/get-order-status
-                string queryString = (new CexRequestOrderStatus(market, orderId)).ToString();
-                CexOrder cexOrder = _restClient.Get<CexOrder>("/spot/order-status" + queryString, true).Result;
+                //string queryString = (new CexRequestOrderStatus(market, orderId)).ToString();
+                Dictionary<string, Object> parameters = (new CexRequestOrderStatus(market, orderId)).parameters;
+                CexOrder cexOrder = _restClient.Get<CexOrder>("/spot/order-status", true, parameters).Result;
 
                 if (!string.IsNullOrEmpty(cexOrder.client_id))
                 {
@@ -1006,10 +1183,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             try
             {
                 // https://docs.coinex.com/api/v2/spot/deal/http/list-user-order-deals#http-request
-                string endPoint = "/spot/order-deals";
 
-                Dictionary<string, Object> body = (new CexRequestOrderDeals(_marketMode, orderId, market)).parameters;
-                List<CexOrderTransaction> cexTrades = _restClient.Get<List<CexOrderTransaction>>("/spot/order-deals", true, body).Result;
+                Dictionary<string, Object> parameters = (new CexRequestOrderDeals(_marketMode, orderId, market)).parameters;
+                //string queryString = (new CexRequestOrderDeals(_marketMode, orderId, market)).ToString();
+                List<CexOrderTransaction> cexTrades = _restClient.Get<List<CexOrderTransaction>>("/spot/order-deals", true, parameters).Result;
 
                 if (cexTrades != null)
                 {

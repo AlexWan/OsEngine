@@ -120,4 +120,16 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             parameters.Add("price", newPrice.ToString());
         }
     }
+
+    // https://docs.coinex.com/api/v2/spot/market/http/list-market-kline
+    public class CexRequestGetKLines : CexRequestRest
+    {
+        public CexRequestGetKLines(string market, string period, int limit, string priceType = "latest_price")
+        {
+            parameters.Add("market", market);
+            parameters.Add("period", period);
+            parameters.Add("limit", limit);
+            parameters.Add("price_type", priceType);
+        }
+    }
 }
