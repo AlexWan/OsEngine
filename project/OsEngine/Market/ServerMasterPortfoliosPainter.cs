@@ -192,7 +192,7 @@ namespace OsEngine.Market
                     for (int i = 0; i < _portfolios.Count; i++)
                     {
                         List<Portfolio> portfolios =
-                            _portfolios.FindAll(p => p.Number == _portfolios[i].Number);
+                            _portfolios.FindAll(p => p != null && p.Number == _portfolios[i].Number);
 
                         if (portfolios.Count > 1)
                         {

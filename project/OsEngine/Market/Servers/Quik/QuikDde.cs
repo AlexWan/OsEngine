@@ -435,7 +435,7 @@ namespace OsEngine.Market.Servers.Quik
                 myPortfolio.ValueBegin = valueBegin;
                 myPortfolio.ValueCurrent = valueCurrent;
                 myPortfolio.ValueBlocked = valueBlock;
-                myPortfolio.Profit = profitLoss;
+                myPortfolio.UnrealizedPnl = profitLoss;
             }
 
             for (int i = 0; i < _portfolios.Count; i++)
@@ -520,7 +520,7 @@ namespace OsEngine.Market.Servers.Quik
                 myPortfolio.ValueBegin = valueBegin;
                 myPortfolio.ValueCurrent = valueCurrent;
                 myPortfolio.ValueBlocked = valueBlock;
-                myPortfolio.Profit = profitLoss;
+                myPortfolio.UnrealizedPnl = profitLoss;
 
                 if (UpdatePortfolios != null)
                 {

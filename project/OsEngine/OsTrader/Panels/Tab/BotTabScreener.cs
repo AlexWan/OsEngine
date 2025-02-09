@@ -161,7 +161,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     DataGridViewRow row = securitiesDataGrid.Rows[i];
 
-                    if (row.Cells == null || row.Cells.Count == 0 || row.Cells.Count < 4 || row.Cells[2].Value == null)
+                    if (row.Cells == null 
+                        || row.Cells.Count == 0 
+                        || row.Cells.Count < 4 
+                        || row.Cells[2].Value == null)
                     {
                         continue;
                     }
@@ -186,10 +189,37 @@ namespace OsEngine.OsTrader.Panels.Tab
                         last = tab.CandlesAll[tab.CandlesAll.Count - 1].Close;
                     }
 
-                    row.Cells[3].Value = last.ToString();
-                    row.Cells[4].Value = bid.ToString();
-                    row.Cells[5].Value = ask.ToString();
-                    row.Cells[6].Value = posCurr.ToString() + "/" + posTotal.ToString();
+                    string lastInStr = last.ToString();
+
+                    if (row.Cells[3].Value == null ||
+                        row.Cells[3].Value.ToString() != lastInStr)
+                    {
+                        row.Cells[3].Value = lastInStr;
+                    }
+                    
+                    string bidInStr = bid.ToString();
+
+                    if(row.Cells[4].Value == null ||
+                        row.Cells[4].Value.ToString() != bidInStr)
+                    {
+                        row.Cells[4].Value = bidInStr;
+                    }
+
+                    string askInStr = ask.ToString();
+
+                    if(row.Cells[5].Value == null ||
+                        row.Cells[5].Value.ToString() !=  askInStr)
+                    {
+                        row.Cells[5].Value = askInStr;
+                    }
+                    
+                    string curPoses = posCurr.ToString() + "/" + posTotal.ToString();
+
+                    if(row.Cells[6].Value == null 
+                        || row.Cells[6].Value.ToString() != curPoses)
+                    {
+                        row.Cells[6].Value = curPoses;
+                    }
                 }
             }
             catch (Exception error)

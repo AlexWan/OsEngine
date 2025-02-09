@@ -13,7 +13,6 @@ using OsEngine.Market.Connectors;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Forms.Integration;
@@ -1997,7 +1996,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region Log 
+        #region Log
 
         /// <summary>
         /// send log message

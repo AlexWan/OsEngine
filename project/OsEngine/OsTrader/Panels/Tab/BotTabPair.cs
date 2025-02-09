@@ -14,7 +14,6 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Threading;
 using OsEngine.Market;
-using Kraken.WebSockets.Messages;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {

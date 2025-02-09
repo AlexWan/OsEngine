@@ -1691,6 +1691,8 @@ namespace OsEngine.Charts.CandleChart
             {
                 ChartCandle.ClearDataPointsAndSizeValue();
             }
+
+            _lastPrice = 0;
         }
 
         /// <summary>
@@ -1794,6 +1796,8 @@ namespace OsEngine.Charts.CandleChart
             PaintLabelOnSlavePanel();
         }
 
+        bool _isFirstTimeSetSecurity = true;
+
         /// <summary>
         /// to load a new tool into chart
         /// подгрузить в чарт новый инструмент
@@ -1831,6 +1835,12 @@ namespace OsEngine.Charts.CandleChart
             _timeFrameSecurity = timeFrameBuilder.TimeFrame;
             _serverType = serverType;
             _candleCreateMethodTypeOnThisChart = timeFrameBuilder.CandleCreateMethodType;
+
+            if (_isFirstTimeSetSecurity)
+            {
+                _isFirstTimeSetSecurity = false;
+                return;
+            }
 
             Clear();
             PaintLabelOnSlavePanel();

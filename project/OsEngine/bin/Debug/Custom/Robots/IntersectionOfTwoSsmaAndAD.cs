@@ -9,6 +9,8 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -27,7 +29,7 @@ From sell: fast Ssma is higher than slow Ssma.
  */
 
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots.Mybots
 {
     [Bot("IntersectionOfTwoSsmaAndAD")] // We create an attribute so that we don't write anything to the BotFactory
     public class IntersectionOfTwoSsmaAndAD : BotPanel
@@ -35,16 +37,17 @@ namespace OsEngine.Robots.AO
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        StrategyParameterString _regime;
+        StrategyParameterDecimal _slippage;
+        StrategyParameterTimeOfDay _startTradeTime;
+        StrategyParameterTimeOfDay _endTradeTime;
+        StrategyParameterString _volumeType;
+        StrategyParameterDecimal _volume;
+        StrategyParameterString _tradeAssetInPortfolio;
 
         // Setting indicator
-        private StrategyParameterInt PeriodSsmaFast ;
-        private StrategyParameterInt PeriodSsmaSlow;
+        StrategyParameterInt _periodSsmaFast;
+        StrategyParameterInt _periodSsmaSlow;
 
         // Indicator
         Aindicator _AD;
@@ -52,12 +55,12 @@ namespace OsEngine.Robots.AO
         Aindicator _SlowSsma;
 
         // The last value of the indicators
-        private decimal _lastFastSsma;
-        private decimal _lastSlowSsma;
-        private decimal _lastAD;
+        decimal _lastFastSsma;
+        decimal _lastSlowSsma;
+        decimal _lastAD;
 
         // The prevlast value of the indicator
-        private decimal _prevAD;
+        decimal _prevAD;
 
         public IntersectionOfTwoSsmaAndAD(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -65,16 +68,17 @@ namespace OsEngine.Robots.AO
             _tab = TabsSimple[0];
 
             // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // Setting indicator
-            PeriodSsmaFast = CreateParameter("Period Ssma Fast", 13, 10, 300, 10, "Indicator");
-            PeriodSsmaSlow = CreateParameter("Period Ssma Slow", 26, 10, 300, 10, "Indicator");
+            _periodSsmaFast = CreateParameter("Period Ssma Fast", 13, 10, 300, 10, "Indicator");
+            _periodSsmaSlow = CreateParameter("Period Ssma Slow", 26, 10, 300, 10, "Indicator");
 
             // Create indicator AD
             _AD = IndicatorsFactory.CreateIndicatorByName("AccumulationDistribution", name + "AD", false);
@@ -84,14 +88,14 @@ namespace OsEngine.Robots.AO
             // Create indicator FastSsma
             _FastSsma = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma Fast", false);
             _FastSsma = (Aindicator)_tab.CreateCandleIndicator(_FastSsma, "Prime");
-            ((IndicatorParameterInt)_FastSsma.Parameters[0]).ValueInt = PeriodSsmaFast.ValueInt;
+            ((IndicatorParameterInt)_FastSsma.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
             _FastSsma.DataSeries[0].Color = Color.Yellow;
             _FastSsma.Save();
 
             // Create indicator SlowSsma
             _SlowSsma = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma Slow", false);
             _SlowSsma = (Aindicator)_tab.CreateCandleIndicator(_SlowSsma, "Prime");
-            ((IndicatorParameterInt)_SlowSsma.Parameters[0]).ValueInt = PeriodSsmaSlow.ValueInt;
+            ((IndicatorParameterInt)_SlowSsma.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
             _SlowSsma.DataSeries[0].Color = Color.Green;
             _SlowSsma.Save();
 
@@ -112,11 +116,11 @@ namespace OsEngine.Robots.AO
         // Indicator Update event
         private void IntersectionOfTwoSsmaAndAD_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_FastSsma.Parameters[0]).ValueInt = PeriodSsmaFast.ValueInt;
+            ((IndicatorParameterInt)_FastSsma.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
             _FastSsma.Save();
             _FastSsma.Reload();
 
-            ((IndicatorParameterInt)_SlowSsma.Parameters[0]).ValueInt = PeriodSsmaSlow.ValueInt;
+            ((IndicatorParameterInt)_SlowSsma.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
             _SlowSsma.Save();
             _SlowSsma.Reload();
         }
@@ -135,20 +139,20 @@ namespace OsEngine.Robots.AO
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodSsmaSlow.ValueInt)
+            if (candles.Count < _periodSsmaSlow.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -162,7 +166,7 @@ namespace OsEngine.Robots.AO
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -189,24 +193,24 @@ namespace OsEngine.Robots.AO
                 _prevAD = _AD.DataSeries[0].Values[_AD.DataSeries[0].Values.Count - 2];
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (_lastFastSsma > _lastSlowSsma && _lastAD > _prevAD)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
 
                     if (_lastFastSsma < _lastSlowSsma && _lastAD < _prevAD)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
                 return;
@@ -218,7 +222,7 @@ namespace OsEngine.Robots.AO
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             // The last value of the indicators
             _lastFastSsma = _FastSsma.DataSeries[0].Last;
@@ -254,30 +258,96 @@ namespace OsEngine.Robots.AO
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
 }
+

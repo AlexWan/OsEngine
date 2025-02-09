@@ -348,7 +348,8 @@ namespace OsEngine.Market.Servers
             {
                 List<Position> curPositions = bots[i].OpenPositions;
 
-                if (curPositions == null)
+                if (curPositions == null 
+                    || curPositions.Count == 0)
                 {
                     continue;
                 }

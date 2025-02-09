@@ -147,6 +147,7 @@ namespace OsEngine.Market.Connectors
             newOrder.Price = order.Price;
             newOrder.TypeOrder = order.TypeOrder;
             newOrder.OrderTypeTime = order.OrderTypeTime;
+
             newOrder.TimeCreate = order.TimeCreate;
 
             if(string.IsNullOrEmpty(order.SecurityNameCode) == false 
@@ -167,6 +168,8 @@ namespace OsEngine.Market.Connectors
             {
                 newOrder.TimeCallBack = newOrder.TimeCreate;
             }
+
+            newOrder.TimeCancel = newOrder.TimeCallBack;
 
             _ordersToSend.Enqueue(newOrder);
         }
@@ -369,6 +372,8 @@ namespace OsEngine.Market.Connectors
                 newOrder.TimeCallBack = newOrder.TimeCreate;
             }
 
+            newOrder.TimeDone = newOrder.TimeCallBack;
+
             newOrder.Side = order.Side;
             newOrder.SecurityNameCode = order.SecurityNameCode;
             newOrder.PortfolioNumber = "Emulator";
@@ -408,6 +413,12 @@ namespace OsEngine.Market.Connectors
             newOrder.Volume = order.Volume;
             newOrder.VolumeExecute = 0;
             newOrder.Price = order.Price;
+
+            if(order.TimeCreate == DateTime.MinValue)
+            {
+                order.TimeCreate = _serverTime;
+            }
+
             newOrder.TimeCreate = order.TimeCreate;
             newOrder.TypeOrder = order.TypeOrder;
             newOrder.OrderTypeTime = order.OrderTypeTime;
