@@ -774,6 +774,30 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
 
         }
+
+        public static DateTime ConvertToDateTimeFromUnixFromMilliseconds(long seconds)
+        {
+            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            DateTime result = origin.AddMilliseconds(Convert.ToDouble(seconds));
+
+            return result.ToLocalTime();
+        }
+
+        public static string createQueryString(Dictionary<string, Object> args)
+        {
+            StringBuilder queryBuilder = new StringBuilder();
+            foreach (KeyValuePair<string, Object> arg in args)
+            {
+                queryBuilder.AppendFormat("{0}={1}&", arg.Key, arg.Value);
+            }
+            return queryBuilder.ToString().Trim(new char[] { '&' });
+        }
+
+        private void CreateOrderFail(Order order)
+        {
+            order.State = OrderStateType.Fail;
+            MyOrderEvent?.Invoke(order);
+        }
         #endregion
     }
 

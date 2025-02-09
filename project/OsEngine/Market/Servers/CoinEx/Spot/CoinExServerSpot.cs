@@ -9,12 +9,11 @@ using OsEngine.Logging;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
-//using WebSocketSharp;
 using WebSocket4Net;
 using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.IO;
-using OsEngine.Market.Servers.Mexc.Json;
+using Newtonsoft.Json;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot
 {
@@ -901,11 +900,196 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         #endregion
 
         #region 10 WebSocket parsing the messages
+
+        private DateTime _lastMdTime = DateTime.MinValue;
         private void DataMessageReaderThread()
         {
+            Thread.Sleep(1000);
+
             while (true)
             {
+                try
+                {
+                    if (_webSocketMessage.IsEmpty)
+                    {
+                        Thread.Sleep(10);
+                        continue;
+                    }
 
+                    string message;
+
+                    _webSocketMessage.TryDequeue(out message);
+
+                    if (message == null)
+                    {
+                        continue;
+                    }
+
+                    CoinExWsResp<Object> baseMessage = JsonConvert.DeserializeObject<CoinExWsResp<Object>>(message);
+                    baseMessage.EnsureSuccessStatusCode();
+
+                    // TODO check empty message
+                    if (baseMessage.method == null)
+                    {
+                        if (baseMessage.data != null && baseMessage.data.ToString().Contains("pong"))
+                        {
+                            _lastTimeWsCheckConnection = DateTime.Now;
+                        }
+                        continue;
+                    }
+
+                    if (baseMessage.method == "depth.update")
+                    {
+                        CexWsDepthUpdate data = JsonConvert.DeserializeObject<CexWsDepthUpdate>(baseMessage.data.ToString());
+                        UpdateMarketDepth(data);
+                    }
+                    else if (baseMessage.method == "deals.update")
+                    {
+                        //CoinExWsResp<CexWsTransactionUpdate> msg = JsonSerializer.Deserialize<CoinExWsResp<CexWsTransactionUpdate>>(message);
+                        CexWsTransactionUpdate data = JsonConvert.DeserializeObject<CexWsTransactionUpdate>(baseMessage.data.ToString());
+                        UpdateTrade(data);
+                    }
+                    //else if (baseMessage.Method == "user_deals.update")
+                    //{
+                    //    // NOT IMPLEMENTED
+                    //    CexWsBalance data = JsonSerializer.Deserialize<CexWsBalance>(baseMessage.Data.ToString());
+                    //    UpdateMyPortfolio(data);
+                    //}
+                    else if (baseMessage.method == "balance.update")
+                    {
+                        CexWsBalance data = JsonConvert.DeserializeObject<CexWsBalance>(baseMessage.data.ToString());
+                        UpdateMyPortfolio(data);
+                    }
+                    else if (baseMessage.method == "order.update")
+                    {
+                        // Update My Orders
+                        CexWsOrderUpdate data = JsonConvert.DeserializeObject<CexWsOrderUpdate>(baseMessage.data.ToString());
+                        UpdateMyOrder(data);
+                    }
+                    else
+                    {
+                        SendLogMessage("Unknown message method: " + baseMessage.message, LogMessageType.Error);
+                    }
+
+                }
+                catch (Exception exeption)
+                {
+                    SendLogMessage(exeption.ToString(), LogMessageType.Error);
+                    Thread.Sleep(2000);
+                }
+            }
+        }
+
+        private void UpdateTrade(CexWsTransactionUpdate data)
+        {
+            // https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+
+            if (data.deal_list == null || data.deal_list.Count == 0)
+            {
+                SendLogMessage("Wrong 'Trade' message for market: " + data.market, LogMessageType.Error);
+                return;
+            }
+
+            if (string.IsNullOrEmpty(data.market))
+            {
+                return;
+            }
+            for (int i = 0; i < data.deal_list.Count; i++)
+            {
+                Trade trade = (Trade)data.deal_list[i];
+                trade.SecurityNameCode = data.market;
+
+                if (NewTradesEvent != null)
+                {
+                    NewTradesEvent(trade);
+                }
+            }
+        }
+
+        private void UpdateMarketDepth(CexWsDepthUpdate data)
+        {
+            // https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+
+
+            if (data.depth.asks.Count == 0 && data.depth.bids.Count == 0)
+            {
+                return;
+            }
+
+            MarketDepth newMD = (MarketDepth)data.depth;
+            newMD.SecurityNameCode = data.market;
+
+            if (_lastMdTime != DateTime.MinValue &&
+                _lastMdTime >= newMD.Time)
+            {
+                newMD.Time = _lastMdTime.AddMilliseconds(1);
+            }
+
+            _lastMdTime = newMD.Time;
+
+            if (MarketDepthEvent != null)
+            {
+                MarketDepthEvent(newMD);
+            }
+        }
+
+        private void UpdateMyOrder(CexWsOrderUpdate data)
+        {
+            if (data.order.order_id == 0)
+            {
+                return;
+            }
+
+            CexOrderUpdate cexOrder = data.order;
+
+            Order order = ConvertWsUpdateToOsEngineOrder(data);
+
+            if (order == null || order.NumberUser == 0)
+            {
+                return;
+            }
+
+            MyOrderEvent?.Invoke(order);
+
+            if (MyTradeEvent != null &&
+                (order.State == OrderStateType.Done || order.State == OrderStateType.Partial))
+            {
+                // TODO Проверить. Где используется last_fill_amount, last_fill_price ?
+                UpdateTrades(order);
+            }
+        }
+
+        private void UpdateMyPortfolio(CexWsBalance data)
+        {
+            // https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
+
+
+            Portfolio portf = null;
+            if (_portfolios != null && _portfolios.Count > 0)
+            {
+                portf = _portfolios[0];
+            }
+
+            if (portf == null)
+            {
+                return;
+            }
+
+            if (data.balance_list.Length > 0)
+            {
+                for (int i = 0; i < data.balance_list.Length; i++)
+                {
+                    PositionOnBoard pos = (PositionOnBoard)data.balance_list[i];
+                    pos.PortfolioName = this.PortfolioName;
+                    portf.SetNewPosition(pos);
+                }
+
+                portf.ValueCurrent = getPortfolioValue(portf);
+            }
+
+            if (PortfolioEvent != null)
+            {
+                PortfolioEvent(_portfolios);
             }
         }
         #endregion
@@ -1307,6 +1491,93 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             order.State = OrderStateType.Fail;
             MyOrderEvent?.Invoke(order);
+        }
+
+
+        private Order ConvertWsUpdateToOsEngineOrder(CexWsOrderUpdate cexEventUpdate)
+        {
+            CexOrderUpdate cexOrder = cexEventUpdate.order;
+            Order order = (Order)cexOrder;
+            if (order == null)
+            {
+                string msg = string.Format("Ошибка преобразования CexWsOrderUpdate в OsEngine Order!{0}cexEventUpdate: {1}{0}order: null", Environment.NewLine,
+                    JsonConvert.SerializeObject(cexEventUpdate)
+                    );
+                SendLogMessage(msg, LogMessageType.Error);
+            }
+
+            if (order.NumberUser == 0)
+            {
+                string msg = string.Format("Неизвестная сделка!{0}NumberUser не задан! {0}cexEventUpdate: {1}{0}order: {2}", Environment.NewLine,
+                    JsonConvert.SerializeObject(cexEventUpdate),
+                    JsonConvert.SerializeObject(order)
+                    );
+                SendLogMessage(msg, LogMessageType.Error);
+            }
+
+            order.PortfolioNumber = this.PortfolioName;
+            decimal cexAmount = cexOrder.amount.ToString().ToDecimal();
+            decimal cexFilledAmount = cexOrder.filled_amount.ToString().ToDecimal();
+            if (cexEventUpdate.@event == CexOrderEvent.PUT.ToString())
+            {
+                // Order placed successfully (unfilled/partially filled)
+                if ( cexAmount == cexOrder.unfilled_amount.ToString().ToDecimal())
+                {
+                    order.State = OrderStateType.Active;
+                }
+                else if (cexAmount == cexFilledAmount)
+                {
+                    // Undocumented behavior
+                    order.State = OrderStateType.Done;
+                }
+                else
+                {
+                    order.State = OrderStateType.Partial;
+                }
+            }
+            else if (cexEventUpdate.@event == CexOrderEvent.UPDATE.ToString())
+            {
+                // Order updated (partially filled)
+                order.State = OrderStateType.Partial;
+            }
+            else if (cexEventUpdate.@event == CexOrderEvent.FINISH.ToString())
+            {
+                // Order completed (filled or canceled)
+                // Совпадение объёма не точное!
+                order.State = OrderStateType.Cancel;
+                if (cexAmount > 0)
+                {
+                    //if(cexOrder.FilledValue.ToDecimal() == 0)
+                    decimal relAmount = 1 - Math.Abs(cexFilledAmount / cexAmount);
+                    if (relAmount < 0.001m)
+                    {
+                        order.State = OrderStateType.Done;
+                    }
+
+                }
+            }
+            else if (cexEventUpdate.@event == CexOrderEvent.MODIFY.ToString())
+            {
+                // Order modified successfully (unfilled/partially filled)
+                if (cexFilledAmount == 0)
+                {
+                    order.State = OrderStateType.Active;
+                }
+                else if (cexFilledAmount < cexAmount)
+                {
+                    order.State = OrderStateType.Partial;
+                }
+                else
+                {
+                    throw new Exception("Unknown my trade state! Fix it!");
+                }
+            }
+            else
+            {
+                throw new Exception("Unknown my trade event! Fix it!");
+            }
+
+            return order;
         }
         #endregion
     }
