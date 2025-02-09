@@ -35,12 +35,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         protected string Sign(string method, string path, string body, long timestamp)
         {
             return Signer.RestSign(method, path, body, timestamp, _apiSecret);
-            //var message = method + path + body + timestamp.ToString();
-            //using (var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_apiSecret)))
-            //{
-            //    var r = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
-            //    return BitConverter.ToString(r).Replace("-", "").ToLower();
-            //}
         }
 
         private async Task<T> Request<T>(string method, string path, Dictionary<string, object>? args, Dictionary<string, object>? body, bool isSign = false)
@@ -48,50 +42,44 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             _rateGateRest.WaitToProceed();
             if (args != null)
             {
-                var _args = args.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()!));
-                var query = await new FormUrlEncodedContent(_args).ReadAsStringAsync();
+                IEnumerable<KeyValuePair<string, string>> _args = args.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()!));
+                string query = await new FormUrlEncodedContent(_args).ReadAsStringAsync();
                 path += "?" + query;
             }
 
 
-            var req = new HttpRequestMessage(new HttpMethod(method), _apiUrl + path);
-            var bodyContent = "";
+            HttpRequestMessage req = new HttpRequestMessage(new HttpMethod(method), _apiUrl + path);
+            string bodyContent = "";
             if (body != null)
             {
                 bodyContent = JsonConvert.SerializeObject(body);
-                //bodyContent = JsonSerializer.Serialize(body);
                 req.Content = new StringContent(bodyContent, Encoding.UTF8, "application/json");
             }
 
 
             if (isSign)
             {
-                var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 req.Headers.Add("X-COINEX-KEY", _apiKey);
                 req.Headers.Add("X-COINEX-SIGN", Sign(method, req.RequestUri!.PathAndQuery, bodyContent, now));
                 req.Headers.Add("X-COINEX-TIMESTAMP", now.ToString());
             }
 
-            var response = await _client.SendAsync(req);
+            HttpResponseMessage response = await _client.SendAsync(req);
             response.EnsureSuccessStatusCode();
             try
             {
                 string responseContent = response.Content.ReadAsStringAsync().Result;
                 CoinExHttpResp<T> resp = JsonConvert.DeserializeObject<CoinExHttpResp<T>>(responseContent);
-                //var resp = await response.Content.ReadFromJsonAsync<CoinExHttpResp<T>>();
                 resp!.EnsureSuccessStatusCode();
                 return resp.data;
             }
             catch (HttpRequestException ex)
             {
-                //var e = ex;
                 SendLogMessage(ex.Message, LogMessageType.Error);
-                //ServerMaster.SendNewLogMessage(ex.Message, LogMessageType.System);
             }
             catch (Exception ex)
             {
-                //ServerMaster.SendNewLogMessage(response.Content.ReadAsStringAsync().ToString(), LogMessageType.Connect);
-                //ServerMaster.SendNewLogMessage(ex.Message, LogMessageType.Connect);
                 SendLogMessage(response.Content.ReadAsStringAsync().ToString(), LogMessageType.Error);
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }

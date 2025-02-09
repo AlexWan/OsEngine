@@ -132,4 +132,15 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             parameters.Add("price_type", priceType);
         }
     }
+
+    // https://docs.coinex.com/api/v2/spot/market/http/list-market-deals
+    public class CexRequestGetDeals : CexRequestRest
+    {
+        public CexRequestGetDeals(string market, int limit = 1000, long lastId = 0)
+        {
+            parameters.Add("market", market);
+            parameters.Add("last_id", lastId);
+            parameters.Add("limit", limit);
+        }
+    }
 }

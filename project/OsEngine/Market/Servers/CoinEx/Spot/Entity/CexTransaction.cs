@@ -7,7 +7,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
     /*
         https://docs.coinex.com/api/v2/spot/deal/http/list-user-order-deals#return-parameters
     */
-    struct CexOrderTransaction
+    struct CexTransaction
     {
         // Transaction id
         public long deal_id { get; set; }
@@ -15,17 +15,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         // Transaction timestamp, millisecond
         public long created_at { get; set; }
 
-        // Order id
-        public long order_id { get; set; }
-        
-        // Futures. Position id
-        public long position_id { get; set; }
-
         // Market name
         public string market { get; set; }
-
-        // Margin market, null for non-margin markets
-        public string margin_market { get; set; }
 
         // Buy or sell
         public string side { get; set; }
@@ -38,21 +29,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         // Value - объём в деньгах
         public string amount { get; set; }
 
-        // Taker or maker
-        public string role { get; set; }
-
-        // Trading fee charged
-        public string fee { get; set; }
-
-        // Trading fee currency
-        public string fee_ccy { get; set; }
-
-        public static explicit operator MyTrade(CexOrderTransaction cexTrade)
+        public static explicit operator Trade(CexTransaction cexTrade)
         {
-            MyTrade trade = new MyTrade();
-            trade.NumberOrderParent = cexTrade.order_id.ToString();
-            trade.NumberTrade = cexTrade.deal_id.ToString();
-            trade.SecurityNameCode = cexTrade.market;
+            Trade trade = new Trade();
+            trade.Id = cexTrade.deal_id.ToString();
+            //trade.SecurityNameCode = cexTrade.market;
             trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
             trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
             trade.Price = cexTrade.price.ToString().ToDecimal();
