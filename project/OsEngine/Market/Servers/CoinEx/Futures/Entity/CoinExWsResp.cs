@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         {
             if (code > 0)
             {
-                throw new WebSocketException($"Web socket error: {message}");
+                throw new WebSocketException($"Web socket error: [{code}] {message}.");
             }
         }
     }

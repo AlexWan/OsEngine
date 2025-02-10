@@ -20,7 +20,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         {
             if (code != 0)
             {
-                throw new HttpRequestException($"{code}: {message}");
+                throw new HttpRequestException($"REST error: [{code}] {message}.");
             }
         }
     }

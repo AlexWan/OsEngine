@@ -297,7 +297,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             if (portfolioItems == null || portfolioItems.Count == 0)
             {
-                SendLogMessage("No portfolios detected!", LogMessageType.Error);
+                SendLogMessage("No portfolios detected!", LogMessageType.System);
             }
             else
             {
@@ -620,14 +620,15 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 resp!.EnsureSuccessStatusCode();
                 for (int i = 0; i < resp.data.Count; i++)
                 {
-                    CexCandle candle = new CexCandle();
-                    candle.created_at = 1000 * (long)resp.data[i][0];
-                    candle.open = resp.data[i][1].ToString();
-                    candle.close = resp.data[i][2].ToString();
-                    candle.high = resp.data[i][3].ToString();
-                    candle.low = resp.data[i][4].ToString();
-                    candle.volume = resp.data[i][5].ToString();
-                    candle.value = resp.data[i][6].ToString();
+                    CexCandle candle = (CexCandle)(new CexCandleExtra{ data = resp.data[i], market = security.Name });
+                    //candle.created_at = 1000 * (long)resp.data[i][0];
+                    //candle.open = resp.data[i][1].ToString();
+                    //candle.close = resp.data[i][2].ToString();
+                    //candle.high = resp.data[i][3].ToString();
+                    //candle.low = resp.data[i][4].ToString();
+                    //candle.volume = resp.data[i][5].ToString();
+                    //candle.value = resp.data[i][6].ToString();
+                    //candle.market = security.Name;
                     cexCandles.Add(candle);
                 }
                 if (cexCandles != null && cexCandles.Count > 0)
