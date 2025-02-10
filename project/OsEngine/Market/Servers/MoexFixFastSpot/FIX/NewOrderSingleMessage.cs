@@ -1,10 +1,12 @@
 ﻿using System.Text;
+using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
     class NewOrderSingleMessage: AFIXMessageBody
     {
         public string ClOrdID;
+        public string SecondaryClOrdID;
         public string NoPartyID = "1";
         public string PartyID;
         public string PartyIDSource = "D";
@@ -30,11 +32,18 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             sb.Append("447=").Append(PartyIDSource).Append('\u0001');
             sb.Append("452=").Append(PartyRole).Append('\u0001');
             sb.Append("1=").Append(Account).Append('\u0001');
+
+            if (!SecondaryClOrdID.IsNullOrEmpty())
+            {
+                sb.Append("526=").Append(SecondaryClOrdID).Append('\u0001');
+            }
+
             sb.Append("386=").Append(NoTradingSessions).Append('\u0001');
             sb.Append("336=").Append(TradingSessionID).Append('\u0001');
             sb.Append("55=").Append(Symbol).Append('\u0001');
             sb.Append("54=").Append(Side).Append('\u0001');
             sb.Append("60=").Append(TransactTime).Append('\u0001');
+            
             sb.Append("38=").Append(OrderQty).Append('\u0001');
             sb.Append("40=").Append(OrdType).Append('\u0001');
             sb.Append("44=").Append(Price).Append('\u0001');
