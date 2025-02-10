@@ -73,6 +73,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             { "448", "PartyID" },
             { "452", "PartyRole" },
             { "453", "NoPartyID" },
+            { "526", "SecondaryClOrdID"},
             { "530", "MassCancelRequestType" },
             { "531", "MassCancelResponse" },
             { "532", "MassCancelRejectReason" },

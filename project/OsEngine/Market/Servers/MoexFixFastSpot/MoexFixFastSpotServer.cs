@@ -40,7 +40,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             CreateParameterPassword("MFIX Trade Server Password", "");
             CreateParameterString("MFIX Trade Account", "");
             CreateParameterString("MFIX Trade Client Code", "");
-
+            
             // FAST
             CreateParameterPath("FIX/FAST Multicast Config Directory");
 
@@ -48,6 +48,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
             // new passwords
             CreateParameterPassword("NEW MFIX Trade Server Password", "");
+            CreateParameterString("FIX Tag 11 separator", "//");
+            CreateParameterBoolean("FIX Tag 11 contains order IDs", false);
         }
     }
 
@@ -129,7 +131,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 _rateGateForOrders = new RateGate(orderActionsLimit, TimeSpan.FromSeconds(1));
 
                 _MFIXTradeServerNewPassword = ((ServerParameterPassword)ServerParameters[9]).Value;
-                
+                _MFIXTag11Separator = ((ServerParameterString)ServerParameters[10]).Value;
+                _MFIXTag11ContainsOrderIDs = ((ServerParameterBool)ServerParameters[11]).Value;
+
                 if (_MFIXTradeServerNewPassword == _MFIXTradeServerPassword) // if already changed password
                 {
                     ((ServerParameterPassword)ServerParameters[9]).Value = "";
@@ -275,13 +279,15 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         private string _MFIXTradeServerTargetCompId;
         private string _MFIXTradeServerLogin;
         private string _MFIXTradeServerPassword;
-        private string _MFIXTradeAccount; // торговый счет
-        private string _MFIXTradeClientCode; // код клиента
+        private string _MFIXTradeAccount; // trade account
+        private string _MFIXTradeClientCode; // client code
 
         private string _ConfigDir;
 
         private string _MFIXTradeServerNewPassword;
-        
+        private string _MFIXTag11Separator;
+        private bool _MFIXTag11ContainsOrderIDs;
+
         private MessageTemplate[] _templates;
         
         private Socket _instrumentSocketA;
@@ -657,6 +663,12 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         FIXMessage fixMessage = FIXMessage.ParseFIXMessage(serverMessage);
 
+                        string Text = "";
+                        if (fixMessage.Fields.ContainsKey("Text"))
+                        {
+                            Text = fixMessage.Fields["Text"];
+                        }
+
                         if (fixMessage.MessageType == "Logon")
                         {
                             if (fixMessage.MsgSeqNum > _MFIXTradeMsgSeqNumIncoming)
@@ -688,12 +700,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                             {
                                 int SessionStatus = int.Parse(fixMessage.Fields["SessionStatus"]);
 
-                                string Text = "";
-                                if (fixMessage.Fields.ContainsKey("Text"))
-                                {
-                                    Text = fixMessage.Fields["Text"];
-                                }
-                                
                                 if (SessionStatus == 0) // set new password
                                 {
                                     SendLogMessage($"New password was set successfully for MFIX Trade server for login {_MFIXTradeServerLogin}. {Text}", LogMessageType.System);
@@ -703,6 +709,16 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                                     SendLogMessage($"Failed to set new password for MFIX Trade server for login {_MFIXTradeServerLogin}. {Text}", LogMessageType.Error);
                                 }
                             }
+                        }
+
+                        if (fixMessage.MessageType == "Logout")
+                        {
+                            // Подключение поддержки Windows-1251 (если не сделано глобально)
+                            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+                            Encoding russianEncoding = Encoding.GetEncoding(1251);
+                            string serverMessageRussian = russianEncoding.GetString(bytes, 0, bytesRec);
+
+                            SendLogMessage($"Failed to Logon to MFIX Trade server {_MFIXTradeServerLogin}. {Text}. Russian version: {serverMessageRussian}", LogMessageType.Error);
                         }
                     }
                 }                                
@@ -869,7 +885,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 SecurityEvent(_securities);
                 return;
             }
-            
+
+            SendLogMessage("Waiting for securities to load from IDF stream", LogMessageType.System);
+
             // 2. Если нет, то подгружаем их с сервера и сохраняем в базу данных
             while (true)
             {
@@ -3362,23 +3380,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
                         try
                         {
-                            order.NumberUser = ExtractNumberUserFromServerString(fixMessage.Fields["ClOrdID"]);
+                            order.NumberUser = int.Parse(fixMessage.Fields["SecondaryClOrdID"]);
                         }
                         catch
                         {
                             // ignore
-                        }
-
-                        if (order.NumberUser == 0)
-                        {
-                            try
-                            {
-                                order.NumberUser = ExtractNumberUserFromServerString(fixMessage.Fields["OrigClOrdID"]);
-                            }
-                            catch
-                            {
-                                // ignore
-                            }
                         }
 
                         if (order.NumberUser == 0) // ищем номер пользователя по биржевому номеру
@@ -3559,7 +3565,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 NewOrderSingleMessage msg = new NewOrderSingleMessage();
-                msg.ClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
+                msg.ClOrdID = _MFIXTradeClientCode + _MFIXTag11Separator + (_MFIXTag11ContainsOrderIDs ? order.NumberUser.ToString() : _MFIXTradeClientCode);
+                msg.SecondaryClOrdID = order.NumberUser.ToString();
                 msg.NoPartyID = "1";
                 msg.PartyID = _MFIXTradeClientCode;
                 msg.Account = _MFIXTradeAccount;
@@ -3624,8 +3631,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderCancelReplaceRequestMessage msg = new OrderCancelReplaceRequestMessage();
-                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие/изменение
-                msg.OrigClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
+                msg.ClOrdID = _MFIXTradeClientCode + _MFIXTag11Separator + (_MFIXTag11ContainsOrderIDs ? DateTime.UtcNow.Ticks.ToString() : _MFIXTradeClientCode);
+                msg.OrigClOrdID = _MFIXTradeClientCode + _MFIXTag11Separator + (_MFIXTag11ContainsOrderIDs ?  order.NumberUser.ToString() : _MFIXTradeClientCode);
+                msg.SecondaryClOrdID = order.NumberUser.ToString();
                 msg.OrderID = order.NumberMarket;
                 msg.PartyID = _MFIXTradeClientCode;
                 msg.Account = _MFIXTradeAccount;
@@ -3659,9 +3667,12 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderCancelRequestMessage msg = new OrderCancelRequestMessage();
-                msg.OrigClOrdID = _MFIXTradeClientCode + "//" + order.NumberUser.ToString();
-                msg.OrderID = _MFIXTradeClientCode + "//" + (_changedOrderIds.ContainsKey(order.NumberUser) ? _changedOrderIds[order.NumberUser] : order.NumberMarket.ToString()); // по-умолчанию снимаем ордер по пользовательскому номеру
-                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+
+                msg.ClOrdID = _MFIXTradeClientCode + _MFIXTag11Separator + (_MFIXTag11ContainsOrderIDs ? DateTime.UtcNow.Ticks.ToString() : _MFIXTradeClientCode);
+                msg.OrigClOrdID = _MFIXTradeClientCode + _MFIXTag11Separator + (_MFIXTag11ContainsOrderIDs ?  order.NumberUser.ToString() : _MFIXTradeClientCode);
+
+                msg.OrderID = order.NumberMarket.ToString();
+
                 msg.Side = order.Side == Side.Buy ? "1" : "2";
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
 
@@ -3687,7 +3698,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;                
 
                 OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
-                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.ClOrdID = _MFIXTradeClientCode + _MFIXTag11Separator + (_MFIXTag11ContainsOrderIDs ? DateTime.UtcNow.Ticks.ToString() : _MFIXTradeClientCode);
                 msg.TransactTime = DateTime.UtcNow.ToString("yyyyMMdd-HH:mm:ss.fff");
                 msg.Account = _MFIXTradeAccount;
                 msg.PartyID = _MFIXTradeClientCode;
@@ -3714,7 +3725,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
                 header.MsgSeqNum = _MFIXTradeMsgSeqNum++;
 
                 OrderMassCancelRequestMessage msg = new OrderMassCancelRequestMessage();
-                msg.ClOrdID = _MFIXTradeClientCode + "//" + DateTime.UtcNow.Ticks.ToString(); // идентификатор заявки на снятие
+                msg.ClOrdID = _MFIXTradeClientCode + _MFIXTag11Separator + (_MFIXTag11ContainsOrderIDs ? DateTime.UtcNow.Ticks.ToString() : _MFIXTradeClientCode);
                 msg.MassCancelRequestType = "1";
                 msg.TradingSessionID = security.NameClass;
                 msg.Symbol = security.NameId;
@@ -3777,22 +3788,6 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
 
             return context;
-        }
-
-        int ExtractNumberUserFromServerString(string serverString)
-        {
-            // Split the string using double slash as the delimiter
-            string[] parts = serverString.Split(new string[] { "//" }, StringSplitOptions.None);
-
-            // Check if the split resulted in enough parts
-            if (parts.Length > 1)
-            {
-                return int.Parse(parts[1]); 
-            }
-            else
-            {
-                return -1;
-            }
         }
 
         #endregion

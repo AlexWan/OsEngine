@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
@@ -6,6 +7,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
     {
         public string ClOrdID;
         public string OrigClOrdID;
+        public string SecondaryClOrdID;
         public string OrderID;
         public string Account;
         
@@ -43,6 +45,12 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             sb.Append("55=").Append(Symbol).Append('\u0001');
             sb.Append("44=").Append(Price).Append('\u0001');
             sb.Append("38=").Append(OrderQty).Append('\u0001');
+            
+            if (!SecondaryClOrdID.IsNullOrEmpty())
+            {
+                sb.Append("526=").Append(SecondaryClOrdID).Append('\u0001');
+            }
+            
             sb.Append("9619=").Append(CancelOrigOnReject).Append('\u0001');
             sb.Append("386=").Append(NoTradingSessions).Append('\u0001');
             sb.Append("336=").Append(TradingSessionID).Append('\u0001');
