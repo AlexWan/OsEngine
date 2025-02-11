@@ -35,6 +35,23 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         public string Text { get; set; }
     }
 
+    [XmlRoot(ElementName = "news_header")]
+    public class TransaqNews
+    {
+        [XmlAttribute(AttributeName = "id")]
+        public string Id { get; set; }
+
+        [XmlAttribute(AttributeName = "timestamp")]
+        public string Timestamp { get; set; }
+
+        [XmlAttribute(AttributeName = "source")]
+        public string Source { get; set; }
+
+        [XmlAttribute(AttributeName = "title")]
+        public string Title { get; set; }
+
+    }
+
     [XmlRoot(ElementName = "opmask")]
     public class Opmask
     {

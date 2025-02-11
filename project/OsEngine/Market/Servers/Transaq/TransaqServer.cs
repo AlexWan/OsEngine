@@ -153,8 +153,6 @@ namespace OsEngine.Market.Servers.Transaq
 
             try
             {
-                _isDisposed = false;
-
                 _isLibraryInitialized = ConnectorInitialize();
 
                 // formation of the command text / формирование текста команды
@@ -294,7 +292,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             finally
             {
-                _isDisposed = true;
+                _newsIsSubscribed = false;
 
                 _depths?.Clear();
 
@@ -367,8 +365,6 @@ namespace OsEngine.Market.Servers.Transaq
                 return false;
             }
         }
-
-        private bool _isDisposed = false;
 
         public event Action ConnectEvent;
 
@@ -1733,8 +1729,17 @@ namespace OsEngine.Market.Servers.Transaq
 
         public bool SubscribeNews()
         {
-            return false;
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return false;
+            }
+
+            _newsIsSubscribed = true;
+
+            return true;
         }
+
+        private bool _newsIsSubscribed = false;
 
         public event Action<News> NewsEvent;
 
@@ -1980,7 +1985,7 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
-                if (_isDisposed == false)
+                if (ServerStatus == ServerConnectStatus.Connect)
                 {
                     string data = MarshalUtf8.PtrToStringUtf8(pData);
                     _newMessage.Enqueue(data);
@@ -2118,9 +2123,10 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<news_header>"))
                             {
-                                // пришла новость с рынка
-                                //SendLogMessage(data, LogMessageType.Error);
-
+                                if(_newsIsSubscribed)
+                                {
+                                    _newsQueue.Enqueue(data);
+                                }
                             }
                             else if (data.StartsWith("<markets>")
                                 || data.StartsWith("<boards>")
@@ -2172,6 +2178,8 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _securityInfoQueue = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _newsQueue = new ConcurrentQueue<string>();
+
         private void ThreadHistoricalDataParsingWorkPlace()
         {
             while (true)
@@ -2204,6 +2212,26 @@ namespace OsEngine.Market.Servers.Transaq
                             List<Tick> newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
 
                             _allTicks.AddRange(newTicks);
+                        }
+                    }
+                    else if(_newsQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_newsQueue.TryDequeue(out data))
+                        {
+                            TransaqNews newsTransaq = _deserializer.Deserialize<TransaqNews>(new RestResponse() { Content = data });
+
+                            News news = new News();
+
+                            news.TimeMessage = DateTime.Parse(newsTransaq.Timestamp);
+                            news.Source = this.ServerType + " " + newsTransaq.Source;
+                            news.Value = newsTransaq.Title;
+
+                            if (news != null)
+                            {
+                                NewsEvent(news);
+                            }
                         }
                     }
                     else

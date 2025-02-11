@@ -9,7 +9,9 @@ namespace OsEngine.Entity
 {
     public class News
     {
-        public DateTime ServerTime { get; set; }
+        public DateTime TimeMessage { get; set; }
+
+        public string Source { get; set; }
 
         public string Value { get; set; }
 
