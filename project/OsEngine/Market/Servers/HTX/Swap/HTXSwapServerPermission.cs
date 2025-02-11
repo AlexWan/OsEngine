@@ -161,8 +161,8 @@
             get
             {
                 string[] values = new string[]
-                {                    
-                   
+                {
+                   "USDT"
                 };
 
                 return values;
