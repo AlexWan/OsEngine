@@ -39,6 +39,11 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
             public string symbol { get; set; }
             public string volume { get; set; }
             public string frozen { get; set; }
+            public string profit_unreal { get; set; }
+            public string margin_asset { get; set; }
+            public string direction { get; set; }
+            public string margin_mode { get; set; }
+            public string position_mode { get; set; }
         }
     }
 
