@@ -1215,6 +1215,13 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 for (int i = 0; i < item.Count; i++)
                 {
+                    if (item[i].margin_asset == "USDT")
+                    {
+                        portfolio.ValueBegin = item[i].margin_static.ToDecimal();
+                        portfolio.ValueCurrent = item[i].margin_balance.ToDecimal();
+                        portfolio.ValueBlocked = item[i].margin_frozen.ToDecimal();
+                    }
+
                     PositionOnBoard pos = new PositionOnBoard();
 
                     pos.PortfolioName = "HTXSwapPortfolio";
@@ -1271,7 +1278,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
 
                     pos.ValueBlocked = GetSecurityLot(item[i].contract_code) * item[i].frozen.ToDecimal();
-
+                    pos.UnrealizedPnl = item[i].profit_unreal.ToDecimal();
 
                     portfolio.SetNewPosition(pos);
                 }
@@ -1867,6 +1874,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         pos.SecurityNameCode = itemPosition[j].contract_code + "_" + "SHORT";
                     }
                     pos.ValueBlocked = GetSecurityLot(itemPosition[j].contract_code) * itemPosition[j].frozen.ToDecimal();
+                    pos.UnrealizedPnl = itemPosition[j].profit_unreal.ToDecimal();
 
                     if (itemPosition[j].direction == "buy")
                     {
@@ -1923,20 +1931,26 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             Portfolio portfolio = new Portfolio();
             portfolio.Number = "HTXSwapPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
+            
             for (int i = 0; i < itemPortfolio.Count; i++)
             {
                 if (itemPortfolio[i].margin_static == "0")
                 {
                     continue;
                 }
+
+                if (itemPortfolio[i].margin_asset == "USDT")
+                {
+                    portfolio.ValueBegin = Math.Round(itemPortfolio[i].margin_static.ToDecimal(),3);
+                    portfolio.ValueCurrent = Math.Round(itemPortfolio[i].margin_balance.ToDecimal(),3);
+                    portfolio.ValueBlocked = Math.Round(itemPortfolio[i].margin_frozen.ToDecimal(),3);
+                }
+
                 PositionOnBoard pos = new PositionOnBoard();
                 pos.PortfolioName = "HTXSwapPortfolio";
                 pos.SecurityNameCode = itemPortfolio[i].margin_asset.ToString();
                 pos.ValueBlocked = itemPortfolio[i].margin_frozen.ToDecimal();
-                pos.ValueCurrent = itemPortfolio[i].margin_static.ToDecimal();
+                pos.ValueCurrent = itemPortfolio[i].margin_balance.ToDecimal();
 
                 portfolio.SetNewPosition(pos);
             }
@@ -1996,7 +2010,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         }
 
                         pos.ValueBlocked = lot * itemPosition[j].frozen.ToDecimal();
-
+                        pos.UnrealizedPnl = itemPosition[j].profit_unreal.ToDecimal();
 
                         if (IsUpdateValueBegin)
                         {

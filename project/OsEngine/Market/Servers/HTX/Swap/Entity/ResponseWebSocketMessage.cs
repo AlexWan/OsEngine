@@ -80,6 +80,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
             public string margin_balance { get; set; }
             public string margin_frozen { get; set; }
             public string margin_asset { get; set; }
+            public string margin_static { get; set; }
         }
     }
 
