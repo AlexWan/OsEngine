@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.MFD
         {
             MfdServerRealization realization = new MfdServerRealization();
             ServerRealization = realization;
-            NeedToHideParams = true;
+            NeedToHideParameters = true;
         }
     }
 

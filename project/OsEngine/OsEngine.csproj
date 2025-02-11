@@ -460,6 +460,7 @@
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Connectors\ConnectorNews.cs" />
     <Compile Include="Market\Servers\Atp\AtpServer.cs" />
     <Compile Include="Market\Servers\Atp\AtpServerPermission.cs" />
     <Compile Include="Market\Servers\Atp\SecuritiesAtpUi.xaml.cs">

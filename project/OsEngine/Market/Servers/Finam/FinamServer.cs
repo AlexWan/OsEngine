@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.Finam
         {
             FinamServerRealization realization = new FinamServerRealization();
             ServerRealization = realization;
-            NeedToHideParams = true;
+            NeedToHideParameters = true;
         }
     }
 

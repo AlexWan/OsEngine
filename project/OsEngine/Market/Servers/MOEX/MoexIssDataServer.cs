@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.MOEX
         {
             MoexDataServerRealization realization = new MoexDataServerRealization();
             ServerRealization = realization;
-            NeedToHideParams = true;
+            NeedToHideParameters = true;
         }
     }
 

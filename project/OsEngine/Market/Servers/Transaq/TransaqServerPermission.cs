@@ -196,7 +196,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         public bool IsNewsServer
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

@@ -44,7 +44,7 @@ namespace OsEngine.Market.Servers
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
             ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
 
-            if (_server.NeedToHideParams == true)
+            if (_server.NeedToHideParameters == true)
             {
                 TabItemParams.Visibility = Visibility.Hidden;
                 TabItemLog.IsSelected = true;

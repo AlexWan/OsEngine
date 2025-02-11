@@ -43,23 +43,23 @@ namespace OsEngine.Market.Servers
                 _serverRealization.NewsEvent += _serverRealization_NewsEvent;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam1, false);
-                _neadToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
-                _neadToSaveTicksParam.ValueChange += SaveTradesHistoryParam_ValueChange;
+                _needToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                _needToSaveTicksParam.ValueChange += SaveTradesHistoryParam_ValueChange;
                 ServerParameters[0].Comment = OsLocalization.Market.Label87;
 
                 CreateParameterInt(OsLocalization.Market.ServerParam2, 5);
-                _neadToSaveTicksDaysCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
-                _neadToSaveTicksDaysCountParam.ValueChange += _neadToSaveTicksDaysCountParam_ValueChange;
+                _needToSaveTicksDaysCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
+                _needToSaveTicksDaysCountParam.ValueChange += _needToSaveTicksDaysCountParam_ValueChange;
                 ServerParameters[1].Comment = OsLocalization.Market.Label88;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam5, true);
-                _neadToSaveCandlesParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
-                _neadToSaveCandlesParam.ValueChange += SaveCandleHistoryParam_ValueChange;
+                _needToSaveCandlesParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
+                _needToSaveCandlesParam.ValueChange += SaveCandleHistoryParam_ValueChange;
                 ServerParameters[2].Comment = OsLocalization.Market.Label89;
 
                 CreateParameterInt(OsLocalization.Market.ServerParam6, 300);
-                _neadToSaveCandlesCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
-                _neadToSaveCandlesCountParam.ValueChange += _neadToSaveCandlesCountParam_ValueChange;
+                _needToSaveCandlesCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
+                _needToSaveCandlesCountParam.ValueChange += _needToSaveCandlesCountParam_ValueChange;
                 ServerParameters[3].Comment = OsLocalization.Market.Label90;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam7, false);
@@ -89,15 +89,15 @@ namespace OsEngine.Market.Servers
                 _serverRealization.ServerParameters = ServerParameters;
 
                 _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
-                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
+                _tickStorage.NeadToSave = _needToSaveTicksParam.Value;
+                _tickStorage.DaysToLoad = _needToSaveTicksDaysCountParam.Value;
                 _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
                 _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
 
                 _candleStorage = new ServerCandleStorage(this);
-                _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
-                _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
+                _candleStorage.NeadToSave = _needToSaveCandlesParam.Value;
+                _candleStorage.CandlesSaveCount = _needToSaveCandlesCountParam.Value;
                 _candleStorage.LogMessageEvent += SendLogMessage;
 
                 Log = new Log(_serverRealization.ServerType + "Server", StartProgram.IsOsTrader);
@@ -182,22 +182,22 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// whether to save the current session's trades to the file system
         /// </summary>
-        private ServerParameterBool _neadToSaveTicksParam;
+        private ServerParameterBool _needToSaveTicksParam; 
 
         /// <summary>
         /// parameter with the number of days for saving ticks
         /// </summary>
-        private ServerParameterInt _neadToSaveTicksDaysCountParam;
+        private ServerParameterInt _needToSaveTicksDaysCountParam;
 
         /// <summary>
         /// whether candles should be saved to the file system
         /// </summary>
-        private ServerParameterBool _neadToSaveCandlesParam;
+        private ServerParameterBool _needToSaveCandlesParam;
 
         /// <summary>
         /// number of candles for which trades should be loaded at the start of the connector
         /// </summary>
-        public ServerParameterInt _neadToSaveCandlesCountParam;
+        public ServerParameterInt _needToSaveCandlesCountParam;
 
         /// <summary>
         /// whether trades should be filled with data on the best bid and ask.
@@ -227,7 +227,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// blocks the display of the default server settings in the settings window. 
         /// </summary>
-        public bool NeedToHideParams = false;
+        public bool NeedToHideParameters = false;
 
         /// <summary>
         /// server parameters
@@ -535,19 +535,19 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// user has changed the value of the parameter
         /// </summary>
-        private void _neadToSaveCandlesCountParam_ValueChange()
+        private void _needToSaveCandlesCountParam_ValueChange()
         {
-            _candleStorage.CandlesSaveCount = _neadToSaveCandlesCountParam.Value;
+            _candleStorage.CandlesSaveCount = _needToSaveCandlesCountParam.Value;
         }
 
         /// <summary>
         /// user has changed the value of the parameter
         /// </summary>
-        private void _neadToSaveTicksDaysCountParam_ValueChange()
+        private void _needToSaveTicksDaysCountParam_ValueChange()
         {
             if (_tickStorage != null)
             {
-                _tickStorage.DaysToLoad = _neadToSaveTicksDaysCountParam.Value;
+                _tickStorage.DaysToLoad = _needToSaveTicksDaysCountParam.Value;
             }
         }
 
@@ -558,7 +558,7 @@ namespace OsEngine.Market.Servers
         {
             if (_tickStorage != null)
             {
-                _tickStorage.NeadToSave = _neadToSaveTicksParam.Value;
+                _tickStorage.NeadToSave = _needToSaveTicksParam.Value;
             }
         }
 
@@ -569,7 +569,7 @@ namespace OsEngine.Market.Servers
         {
             if (_candleStorage != null)
             {
-                _candleStorage.NeadToSave = _neadToSaveCandlesParam.Value;
+                _candleStorage.NeadToSave = _needToSaveCandlesParam.Value;
             }
         }
 
@@ -588,9 +588,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void StartServer()
         {
-            if (UserWhantConnect != null)
+            if (UserWantsConnect != null)
             {
-                UserWhantConnect();
+                UserWantsConnect();
             }
 
             if (_serverStatusNeed == ServerConnectStatus.Connect)
@@ -608,9 +608,9 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public void StopServer()
         {
-            if (UserWhantDisconnect != null)
+            if (UserWantsDisconnect != null)
             {
-                UserWhantDisconnect();
+                UserWantsDisconnect();
             }
             _serverStatusNeed = ServerConnectStatus.Disconnect;
         }
@@ -618,12 +618,12 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// user requested connect to the API
         /// </summary>
-        public event Action UserWhantConnect;
+        public event Action UserWantsConnect; 
 
         /// <summary>
         /// user requested disconnect from the API
         /// </summary>
-        public event Action UserWhantDisconnect;
+        public event Action UserWantsDisconnect;
 
         #endregion
 
@@ -658,7 +658,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// alert message from client that connection is established
         /// </summary>
-        void _serverRealization_Connected()
+        private void _serverRealization_Connected()
         {
             SendLogMessage(OsLocalization.Market.Message6, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Connect;
@@ -667,7 +667,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// client connection has broken
         /// </summary>
-        void _serverRealization_Disconnected()
+        private void _serverRealization_Disconnected()
         {
             if (ServerStatus == ServerConnectStatus.Disconnect)
             {
@@ -904,7 +904,7 @@ namespace OsEngine.Market.Servers
                                     _myTrades.RemoveAt(0);
                                 }
 
-                                _neadToBeepOnTrade = true;
+                                _needToBeepOnTrade = true;
                             }
                         }
                     }
@@ -1306,7 +1306,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// security list updated
         /// </summary>
-        void _serverRealization_SecurityEvent(List<Security> securities)
+        private void _serverRealization_SecurityEvent(List<Security> securities)
         {
             try
             {
@@ -1387,7 +1387,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
-        SecuritiesUi _securitiesUi;
+        private SecuritiesUi _securitiesUi;
 
         private void AServer_UserClickButton()
         {
@@ -1634,9 +1634,9 @@ namespace OsEngine.Market.Servers
             {
                 series.IsMergedByCandlesFromFile = true;
 
-                if (_neadToSaveCandlesParam.Value == true)
+                if (_needToSaveCandlesParam.Value == true)
                 {
-                    List<Candle> candles = _candleStorage.GetCandles(series.Specification, _neadToSaveCandlesCountParam.Value);
+                    List<Candle> candles = _candleStorage.GetCandles(series.Specification, _needToSaveCandlesCountParam.Value);
                     series.CandlesAll = series.CandlesAll.Merge(candles);
                 }
             }
@@ -1645,7 +1645,7 @@ namespace OsEngine.Market.Servers
             {
                 series.IsMergedByTradesFromFile = true;
 
-                if (_neadToSaveTicksParam.Value == true
+                if (_needToSaveTicksParam.Value == true
                     && series.TimeFrameBuilder.SaveTradesInCandles)
                 {
                     List<Trade> trades = GetAllTradesToSecurity(series.Security);
@@ -1658,12 +1658,12 @@ namespace OsEngine.Market.Servers
             }
 
             if (_needToRemoveCandlesFromMemory.Value == true
-                && series.CandlesAll.Count > _neadToSaveCandlesCountParam.Value
+                && series.CandlesAll.Count > _needToSaveCandlesCountParam.Value
                 && _serverTime.Minute % 15 == 0
                 && _serverTime.Second == 0
             )
             {
-                series.CandlesAll.RemoveRange(0, series.CandlesAll.Count - 1 - _neadToSaveCandlesCountParam.Value);
+                series.CandlesAll.RemoveRange(0, series.CandlesAll.Count - 1 - _needToSaveCandlesCountParam.Value);
             }
 
             _candleSeriesToSend.Enqueue(series);
@@ -1691,13 +1691,22 @@ namespace OsEngine.Market.Servers
                     }
 
                     if (LastStartServerTime != DateTime.MinValue &&
-                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
+                        LastStartServerTime.AddSeconds(10) > DateTime.Now)
                     {
                         return false;
                     }
 
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
+                        return false;
+                    }
+
+                    IServerPermission permission = ServerMaster.GetServerPermission(this.ServerType);
+
+                    if(permission == null
+                        || permission.IsNewsServer == false)
+                    {
+                        SendLogMessage("Aserver. News Subscribe method error. No permission on News in Server", LogMessageType.Error);
                         return false;
                     }
 
@@ -1950,7 +1959,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// new depth event
         /// </summary>
-        void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
+        private void _serverRealization_MarketDepthEvent(MarketDepth myDepth)
         {
             try
             {
@@ -2161,7 +2170,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// storage load trades from file system
         /// </summary>
-        void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
+        private void _tickStorage_TickLoadedEvent(List<Trade>[] trades)
         {
             _allTrades = trades;
         }
@@ -2169,7 +2178,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// new trade event from ServerRealization
         /// </summary>
-        void ServerRealization_NewTradesEvent(Trade trade)
+        private void ServerRealization_NewTradesEvent(Trade trade)
         {
             try
             {
@@ -2327,7 +2336,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// whether a sound must be emitted during a new my trade
         /// </summary>
-        private bool _neadToBeepOnTrade;
+        private bool _needToBeepOnTrade;
 
         /// <summary>
         /// buzzer mechanism 
@@ -2342,7 +2351,7 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if (_neadToBeepOnTrade == false)
+                if (_needToBeepOnTrade == false)
                 {
                     continue;
                 }
@@ -2352,7 +2361,7 @@ namespace OsEngine.Market.Servers
                     continue;
                 }
 
-                _neadToBeepOnTrade = false;
+                _needToBeepOnTrade = false;
                 SystemSounds.Asterisk.Play();
             }
         }
@@ -2360,7 +2369,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// my trades incoming from IServerRealization
         /// </summary>
-        void _serverRealization_MyTradeEvent(MyTrade trade)
+        private void _serverRealization_MyTradeEvent(MyTrade trade)
         {
             if (trade.Time == DateTime.MinValue)
             {
@@ -2762,7 +2771,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// incoming order from system
         /// </summary>
-        void _serverRealization_MyOrderEvent(Order myOrder)
+        private void _serverRealization_MyOrderEvent(Order myOrder)
         {
             if (myOrder.TimeCallBack == DateTime.MinValue)
             {
