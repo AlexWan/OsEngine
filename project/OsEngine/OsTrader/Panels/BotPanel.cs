@@ -26,43 +26,48 @@ using OsEngine.OsTrader.RiskManager;
 namespace OsEngine.OsTrader.Panels
 {
     /// <summary>
-    /// types of tabs for the robot 
+    /// types of sources for the robot 
     /// </summary>
     public enum BotTabType
     {
         /// <summary>
-        /// for trading one instrument
+        /// source for trading one security
         /// </summary>
         Simple,
 
         /// <summary>
-        /// tab - spread of candlestick data in the form of a candlestick chart
+        /// source for index creation
         /// </summary>
         Index,
 
         /// <summary>
-        /// tab type for creating and displaying a cluster plot
+        /// source for creating and displaying a cluster chart
         /// </summary>
         Cluster,
 
         /// <summary>
-        /// for trading a portfolio of instruments
+        /// source for trading multiple securities
         /// </summary>
         Screener,
 
         /// <summary>
-        ///  tab - for trading pairs
+        ///  source for trading pairs
         /// </summary>
         Pair,
 
         /// <summary>
-        /// tab for tradind Currency Arbitrage
+        /// source for trading currency arbitrage
         /// </summary>
-        Polygon
+        Polygon,
+
+        /// <summary>
+        ///  source for the news feed
+        /// </summary>
+        News
     }
 
     /// <summary>
-    /// main parent for all robots in the program
+    /// parent for all robots in the program
     /// </summary>
     public abstract class BotPanel
     {
@@ -86,7 +91,7 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
-        /// critical error and system restart event /
+        /// critical error and system restart event
         /// </summary>
         private void OsTraderMaster_CriticalErrorEvent()
         {

@@ -477,6 +477,13 @@ namespace OsEngine.Market.Servers.YahooFinance
 
         public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;

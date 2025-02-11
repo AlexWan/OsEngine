@@ -177,6 +177,13 @@ namespace OsEngine.Market.Servers.ExMo
             _client.SubscribleTradesAndDepths(security);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         /// <summary>
         /// take candle history for period
         /// взять историю свечек за период

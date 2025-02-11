@@ -115,6 +115,13 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         public void GetOrdersState(List<Order> orders)
         {
 

@@ -141,7 +141,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 TimeFrameDayIsOn = true
             };
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -174,6 +174,15 @@ namespace OsEngine.Market.Servers.Binance.Spot
         public bool CanQueryOrderStatus
         {
             get { return true; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
+        {
+            get { return false; }
         }
 
         #endregion

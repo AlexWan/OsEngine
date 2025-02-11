@@ -648,6 +648,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 9 WebSocket parsing the messages

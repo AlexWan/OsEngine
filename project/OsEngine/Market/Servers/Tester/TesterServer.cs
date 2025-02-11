@@ -3884,6 +3884,13 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         public event Action NeedToReconnectEvent;
 
         public event Action LoadSecurityEvent;
@@ -4277,6 +4284,7 @@ namespace OsEngine.Market.Servers.Tester
         private Log _logMaster;
 
         public event Action<string, LogMessageType> LogMessageEvent;
+       
 
         #endregion
     }

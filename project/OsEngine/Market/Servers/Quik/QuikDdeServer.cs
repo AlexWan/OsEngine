@@ -849,8 +849,15 @@ namespace OsEngine.Market.Servers.Quik
             return command;
         }
 
-// processing data from auxiliary classes
-// обработка данных из вспомогательных классов
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
+        // processing data from auxiliary classes
+        // обработка данных из вспомогательных классов
 
         /// <summary>
         /// DDE server

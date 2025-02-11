@@ -40,6 +40,8 @@ namespace OsEngine.Market.Servers
                 _serverRealization.SecurityEvent += _serverRealization_SecurityEvent;
                 _serverRealization.LogMessageEvent += SendLogMessage;
 
+                _serverRealization.NewsEvent += _serverRealization_NewsEvent;
+
                 CreateParameterBoolean(OsLocalization.Market.ServerParam1, false);
                 _neadToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 _neadToSaveTicksParam.ValueChange += SaveTradesHistoryParam_ValueChange;
@@ -1010,6 +1012,20 @@ namespace OsEngine.Market.Servers
                             }
                         }
                     }
+
+                    else if (!_newsToSend.IsEmpty)
+                    {
+                        News news;
+
+                        if (_newsToSend.TryDequeue(out news))
+                        {
+                            if (NewsEvent != null)
+                            {
+                                NewsEvent(news);
+                            }
+                        }
+                    }
+
                     else
                     {
                         if (MainWindow.ProccesIsWorked == false)
@@ -1072,6 +1088,11 @@ namespace OsEngine.Market.Servers
         /// queue of updated bid and ask by security
         /// </summary>
         private ConcurrentQueue<BidAskSender> _bidAskToSend = new ConcurrentQueue<BidAskSender>();
+
+        /// <summary>
+        /// queue for new news
+        /// </summary>
+        private ConcurrentQueue<News> _newsToSend = new ConcurrentQueue<News>();
 
         #endregion
 
@@ -1647,6 +1668,53 @@ namespace OsEngine.Market.Servers
 
             _candleSeriesToSend.Enqueue(series);
         }
+
+        private void _serverRealization_NewsEvent(News news)
+        {
+            _newsToSend.Enqueue(news);
+        }
+
+        private string _lockerStartNews = "lockerStartNews";
+
+        /// <summary>
+        /// subscribe to news
+        /// </summary>
+        public bool SubscribeNews()
+        {
+            lock(_lockerStartNews)
+            {
+                try
+                {
+                    if (Portfolios == null || Securities == null)
+                    {
+                        return false;
+                    }
+
+                    if (LastStartServerTime != DateTime.MinValue &&
+                        LastStartServerTime.AddSeconds(15) > DateTime.Now)
+                    {
+                        return false;
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        return false;
+                    }
+
+                    return _serverRealization.SubscribeNews();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage("Aserver. News Subscribe method error: " + ex.ToString(), LogMessageType.Error);
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// the news has come out
+        /// </summary>
+        public event Action<News> NewsEvent;
 
         /// <summary>
         /// new candles event

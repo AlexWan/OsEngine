@@ -700,6 +700,13 @@ namespace OsEngine.Market.Servers.Finam
 
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<Trade> NewTradesEvent;
         public event Action<Order> MyOrderEvent;

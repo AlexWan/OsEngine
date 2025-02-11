@@ -398,6 +398,13 @@ namespace OsEngine.Market.Servers.BitStamp
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         // outgoing events
         // исходящие события
 

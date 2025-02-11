@@ -308,6 +308,13 @@ namespace OsEngine.Market.Servers.BitMax
             _client.SubscribeTradesAndDepths(security.Name);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         private string GetNeedTimeFrameForServer(int tameFrame)
         {
             string needTf = "";

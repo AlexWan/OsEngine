@@ -138,7 +138,7 @@
                 TimeFrameDayIsOn = true
             };
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -169,6 +169,11 @@
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

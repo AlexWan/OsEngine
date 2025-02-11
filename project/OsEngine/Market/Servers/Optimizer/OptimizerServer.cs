@@ -1598,6 +1598,13 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         /// <summary>
 		/// connectors connected to the server need to get a new data
         /// коннекторам подключеным к серверу необходимо перезаказать данные

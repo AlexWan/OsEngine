@@ -940,6 +940,13 @@ contract =>
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region WebSocket parsing the messages

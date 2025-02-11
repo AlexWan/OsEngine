@@ -163,7 +163,7 @@ namespace OsEngine.Market.Servers.Atp
                 TimeFrameDayIsOn = true
             };
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -194,6 +194,15 @@ namespace OsEngine.Market.Servers.Atp
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

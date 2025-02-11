@@ -128,7 +128,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             get { return true; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return false; }
         }
@@ -202,6 +202,15 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         TimeFrameHour4IsOn = true,
         TimeFrameDayIsOn = true
     };
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
+        {
+            get { return false; }
+        }
 
         #endregion
     }

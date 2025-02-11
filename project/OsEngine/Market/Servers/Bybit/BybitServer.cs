@@ -1596,6 +1596,13 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion 9
 
         #region 10 WebSocket parsing the messages

@@ -1,6 +1,4 @@
-﻿using OsEngine.Charts.CandleChart.Indicators;
-using OsEngine.Entity;
-using System.Windows.Documents;
+﻿
 
 namespace OsEngine.Market.Servers
 {
@@ -62,7 +60,7 @@ namespace OsEngine.Market.Servers
 
         int WaitTimeSecondsAfterFirstStartToSendOrders { get; }
 
-        bool UseStandartCandlesStarter { get; }
+        bool UseStandardCandlesStarter { get; }
 
         bool ManuallyClosePositionOnBoard_IsOn { get; }
 
@@ -76,6 +74,11 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
+        #region Other Permissions
+
+        bool IsNewsServer { get; }
+
+        #endregion
     }
 
     public class TimeFramePermission

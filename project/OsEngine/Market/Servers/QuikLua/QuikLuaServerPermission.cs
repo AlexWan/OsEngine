@@ -155,7 +155,7 @@
             get { return 20; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -183,6 +183,15 @@
         public bool CanQueryOrderStatus
         {
             get { return true; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
+        {
+            get { return false; }
         }
 
         #endregion

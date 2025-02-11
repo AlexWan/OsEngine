@@ -128,7 +128,7 @@ namespace OsEngine.Market.Servers.Alor
             get { return true; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -201,6 +201,15 @@ namespace OsEngine.Market.Servers.Alor
         TimeFrameHour4IsOn = true,
         TimeFrameDayIsOn = true
     };
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
+        {
+            get { return false; }
+        }
 
         #endregion
     }

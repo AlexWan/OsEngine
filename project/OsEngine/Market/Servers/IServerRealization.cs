@@ -110,6 +110,16 @@ namespace OsEngine.Market.Servers
         void Subscrible(Security security);
 
         /// <summary>
+        /// subscribe to news
+        /// </summary>
+        bool SubscribeNews();
+
+        /// <summary>
+        /// the news has come out
+        /// </summary>
+        event Action<News> NewsEvent;
+
+        /// <summary>
         /// depth updated
         /// обновился стакан
         /// </summary>

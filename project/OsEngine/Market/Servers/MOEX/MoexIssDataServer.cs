@@ -848,5 +848,12 @@ namespace OsEngine.Market.Servers.MOEX
         {
             throw new NotImplementedException();
         }
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
     }
 }

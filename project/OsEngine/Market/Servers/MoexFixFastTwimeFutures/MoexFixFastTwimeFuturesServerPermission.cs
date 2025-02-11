@@ -110,7 +110,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             get { return true; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -176,6 +176,15 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

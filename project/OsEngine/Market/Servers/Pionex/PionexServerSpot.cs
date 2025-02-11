@@ -559,6 +559,13 @@ namespace OsEngine.Market.Servers.Pionex
             _decimalsVolume.Add(security.Name, security.DecimalsVolume);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 9 WebSocket parsing the messages

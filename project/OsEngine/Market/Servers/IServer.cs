@@ -152,6 +152,16 @@ namespace OsEngine.Market.Servers
         void StopThisSecurity(CandleSeries series);
 
         /// <summary>
+        /// subscribe to news
+        /// </summary>
+        bool SubscribeNews();
+
+        /// <summary>
+        /// the news has come out
+        /// </summary>
+        event Action<News> NewsEvent;
+
+        /// <summary>
         /// new candles
         /// новые свечи
         /// </summary>

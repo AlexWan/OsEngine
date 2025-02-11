@@ -1052,6 +1052,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 10 WebSocket parsing the messages

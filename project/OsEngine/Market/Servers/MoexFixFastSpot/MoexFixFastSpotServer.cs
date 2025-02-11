@@ -1105,10 +1105,17 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 8 Sockets receiving and parsing the messages
-                
+
         private DateTime _lastInstrumentDefinitionsTime = DateTime.MinValue;
         private DateTime _lastMFIXTradeTime = DateTime.MinValue;
         private DateTime _lastFASTMulticastTime = DateTime.MinValue;

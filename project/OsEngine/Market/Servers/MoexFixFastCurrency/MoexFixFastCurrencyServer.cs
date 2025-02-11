@@ -914,6 +914,13 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 8 Sockets parsing messages

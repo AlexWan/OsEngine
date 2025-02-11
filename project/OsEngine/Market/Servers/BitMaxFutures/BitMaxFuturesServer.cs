@@ -521,6 +521,13 @@ namespace OsEngine.Market.Servers.BitMaxFutures
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         private void PushMessage(object sender, MessageReceivedEventArgs e)
         {
             if (e.Message.Contains("ping"))

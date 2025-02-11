@@ -1259,6 +1259,13 @@ namespace OsEngine.Market.Servers.Atp
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 9 WebSocket parsing the messages

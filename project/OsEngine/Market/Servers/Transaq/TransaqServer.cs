@@ -1731,6 +1731,13 @@ namespace OsEngine.Market.Servers.Transaq
             _subscribeSecurities.Add(security);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 8 Trade

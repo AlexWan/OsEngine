@@ -716,6 +716,13 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 }
             }
 
+            public bool SubscribeNews()
+            {
+                return false;
+            }
+
+            public event Action<News> NewsEvent;
+
             #endregion
 
             #region 7 Trade

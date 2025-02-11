@@ -136,7 +136,7 @@ namespace OsEngine.Market.Servers.Polygon
             get { return false; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -167,6 +167,11 @@ namespace OsEngine.Market.Servers.Polygon
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

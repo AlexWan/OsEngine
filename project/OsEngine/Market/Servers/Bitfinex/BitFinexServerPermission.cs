@@ -142,7 +142,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 TimeFrameDayIsOn = true
             };
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return false; }
         }
@@ -173,6 +173,15 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

@@ -73,7 +73,6 @@ namespace OsEngine.Market.Servers.Hitbtc
 
         #endregion
 
-
         #region Request / Запросы
 
         /// <summary>
@@ -173,7 +172,6 @@ namespace OsEngine.Market.Servers.Hitbtc
         }
 
         #endregion
-
 
         #region work with orders / работа с ордерами
 
@@ -784,7 +782,6 @@ namespace OsEngine.Market.Servers.Hitbtc
 
         #endregion
 
-
         #region Реализовать по возможности
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
@@ -801,6 +798,13 @@ namespace OsEngine.Market.Servers.Hitbtc
         {
             throw new NotImplementedException();
         }
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
         #endregion
 
         #region events / события

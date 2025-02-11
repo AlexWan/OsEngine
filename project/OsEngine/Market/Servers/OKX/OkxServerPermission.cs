@@ -136,7 +136,7 @@ namespace OsEngine.Market.Servers.OKX
             get { return false; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -182,6 +182,11 @@ namespace OsEngine.Market.Servers.OKX
         public bool CanQueryOrderStatus
         {
             get { return true; }
+        }
+
+        public bool IsNewsServer
+        {
+            get { return false; }
         }
     }
 }

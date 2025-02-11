@@ -1228,6 +1228,13 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion 8
 
         #region 9 WebSocket parsing the messages

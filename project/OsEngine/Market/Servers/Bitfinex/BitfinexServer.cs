@@ -359,6 +359,13 @@ namespace OsEngine.Market.Servers.Bitfinex
             _client.SubscribleTradesAndDepths(security);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         public void GetAllActivOrders()
         {
 

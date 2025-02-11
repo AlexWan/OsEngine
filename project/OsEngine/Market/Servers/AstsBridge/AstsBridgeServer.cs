@@ -1204,6 +1204,13 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         /// <summary>
         /// candle series changed
         /// изменились серии свечек

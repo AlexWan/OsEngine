@@ -1556,10 +1556,17 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 8 Reading messages from data streams
-        
+
         private async void DataMessageReader()
         {
             Thread.Sleep(1000);
