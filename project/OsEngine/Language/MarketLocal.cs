@@ -677,6 +677,10 @@ namespace OsEngine.Language
             "Eng:At this time, the connector will try to connect to the server. The time is indicated by Moscow Time. Format: \"6:50/23:50\"_" +
             "Ru:В данное время коннектор будет пытаться подключиться к серверу. Время указано по МСК. Формат: \"6:50/23:50\"_");
 
+        public string Label161 => OsLocalization.ConvertToLocString(
+            "Eng:Count news to save_" +
+            "Ru:Хранить новости. Кол-во_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");

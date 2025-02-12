@@ -11,6 +11,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using System.Threading.Tasks;
 using OsEngine.Market.Servers.Optimizer;
+using OsEngine.Language;
 
 namespace OsEngine.Market.Connectors
 {
@@ -143,7 +144,7 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void ShowDialog()
         {
-           /* try
+            try
             {
                 if (ServerMaster.GetServers() == null ||
                     ServerMaster.GetServers().Count == 0)
@@ -152,8 +153,7 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                ConnectorCandlesUi ui = new ConnectorCandlesUi(this);
-                ui.IsCanChangeSaveTradesInCandles(canChangeSettingsSaveCandlesIn);
+                ConnectorNewsUi ui = new ConnectorNewsUi(this);
                 ui.LogMessageEvent += SendNewLogMessage;
                 ui.ShowDialog();
                 ui.LogMessageEvent -= SendNewLogMessage;
@@ -161,7 +161,7 @@ namespace OsEngine.Market.Connectors
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }*/
+            }
         }
 
         #endregion

@@ -461,6 +461,9 @@
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Connectors\ConnectorNews.cs" />
+    <Compile Include="Market\Connectors\ConnectorNewsUi.xaml.cs">
+      <DependentUpon>ConnectorNewsUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Atp\AtpServer.cs" />
     <Compile Include="Market\Servers\Atp\AtpServerPermission.cs" />
     <Compile Include="Market\Servers\Atp\SecuritiesAtpUi.xaml.cs">
@@ -1602,6 +1605,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Connectors\ConnectorNewsUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

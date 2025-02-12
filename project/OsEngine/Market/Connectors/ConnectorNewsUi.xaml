@@ -1,0 +1,17 @@
+﻿<Window x:Class="OsEngine.Market.Connectors.ConnectorNewsUi"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:OsEngine.Market.Connectors"
+        mc:Ignorable="d"
+       Title="Data flow connection" Height="170" Width="450.43" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+    <Grid>
+        <Rectangle Margin="5,5,5,40" />
+        <Label Name="Label1" Content="Server" HorizontalAlignment="Left" Margin="41,19,0,0" VerticalAlignment="Top" Width="165"/>
+        <ComboBox x:Name="ComboBoxTypeServer" Margin="206,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,18.8,9.8" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
+        <Label Name="LabelCountNewsToSave" Content="Count news to save" Margin="41,61,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="165"/>
+        <TextBox Name="TextBoxCountNewsToSave" HorizontalAlignment="Left" Margin="206,61,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>
+    </Grid>
+</Window>
