@@ -1706,8 +1706,8 @@ namespace OsEngine.Market.Servers
                     if(permission == null
                         || permission.IsNewsServer == false)
                     {
-                        SendLogMessage("Aserver. News Subscribe method error. No permission on News in Server", LogMessageType.Error);
-                        return false;
+                        SendLogMessage(ServerType + " Aserver. News Subscribe method error. No permission on News in Server", LogMessageType.Error);
+                        return true;
                     }
 
                     return _serverRealization.SubscribeNews();

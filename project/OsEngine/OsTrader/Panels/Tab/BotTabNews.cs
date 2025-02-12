@@ -295,90 +295,111 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ClearGrid()
         {
-            if (_grid.InvokeRequired)
+            try
             {
-                _grid.Invoke(new Action(ClearGrid));
-                return;
-            }
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(ClearGrid));
+                    return;
+                }
 
-            _grid.Rows.Clear();
+                _grid.Rows.Clear();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void DeleteGridsToPaint()
         {
-            if (_grid.InvokeRequired)
+            try
             {
-                _grid.Invoke(new Action(DeleteGridsToPaint));
-                return;
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(DeleteGridsToPaint));
+                    return;
+                }
+
+                _grid.Rows.Clear();
+
+                DataGridFactory.ClearLinks(_grid);
+
+                _grid = null;
+
+                if (Host != null)
+                {
+                    Host.Child = null;
+                    Host = null;
+                }
             }
-
-            _grid.Rows.Clear();
-
-            DataGridFactory.ClearLinks(_grid);
-
-            _grid = null;
-
-            if(Host != null)
+            catch (Exception ex)
             {
-                Host.Child = null;
-                Host = null;
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void TryRepaintGrid()
         {
-            if(Host == null
-                || _grid == null)
+            try
             {
-                return;
-            }
-
-            List<News> news = _connector.NewsArray;
-
-            if(news.Count == 0 && _grid.Rows.Count == 0)
-            {
-                return;
-            }
-
-            if(news.Count != 0 &&
-                news.Count == _grid.Rows.Count)
-            {
-                if (_grid.Rows[0].Cells[2].Value.ToString() == news[0].Value)
+                if (Host == null
+               || _grid == null)
                 {
                     return;
                 }
-            }
 
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action(TryRepaintGrid));
-                return;
-            }
+                List<News> news = _connector.NewsArray;
 
-            int firstNewsNum = 0;
-
-            if(_grid.Rows.Count > 0)
-            {
-                string firstMessage = _grid.Rows[0].Cells[2].Value.ToString();
-
-                for(int i = 0;i < news.Count;i++)
+                if (news.Count == 0 && _grid.Rows.Count == 0)
                 {
-                    if (news[i].Value == firstMessage)
+                    return;
+                }
+
+                if (news.Count != 0 &&
+                    news.Count == _grid.Rows.Count)
+                {
+                    if (_grid.Rows[0].Cells[2].Value.ToString() == news[0].Value)
                     {
-                        firstNewsNum = i + 1; 
-                        break;
+                        return;
                     }
                 }
-            }
 
-            for (int i = firstNewsNum; i < news.Count; i++)
-            {
-                _grid.Rows.Insert(0, GetRow(news[i]));
-            }
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(TryRepaintGrid));
+                    return;
+                }
 
-            while(_grid.Rows.Count > _connector.CountNewsToSave)
+                int firstNewsNum = 0;
+
+                if (_grid.Rows.Count > 0)
+                {
+                    string firstMessage = _grid.Rows[0].Cells[2].Value.ToString();
+
+                    for (int i = 0; i < news.Count; i++)
+                    {
+                        if (news[i].Value == firstMessage)
+                        {
+                            firstNewsNum = i + 1;
+                            break;
+                        }
+                    }
+                }
+
+                for (int i = firstNewsNum; i < news.Count; i++)
+                {
+                    _grid.Rows.Insert(0, GetRow(news[i]));
+                }
+
+                while (_grid.Rows.Count > _connector.CountNewsToSave)
+                {
+                    _grid.Rows.RemoveAt(_grid.Rows.Count - 1);
+                }
+            }
+            catch(Exception ex)
             {
-                _grid.Rows.RemoveAt(_grid.Rows.Count - 1);
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
 
