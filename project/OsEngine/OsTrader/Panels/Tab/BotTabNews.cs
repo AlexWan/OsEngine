@@ -3,7 +3,6 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -202,6 +201,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public event Action TabDeletedEvent;
 
+        public void ShowDialog()
+        {
+            _connector.ShowDialog();
+        }
+
         #endregion
 
         #region Outgoing events
@@ -225,10 +229,30 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Drawing the source table
 
+        public void StartPaint(WindowsFormsHost host)
+        {
+            try
+            {
+                Host = host;
+
+                if (_grid == null)
+                {
+                    CreateGrid();
+                }
+
+                TryRepaintGrid();
+
+                Host.Child = _grid;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         public void StopPaint()
         {
-
-
+            Host = null;
         }
 
         private DataGridView _grid;
@@ -244,7 +268,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = "Time";
+            column0.HeaderText = OsLocalization.Trader.Label432;
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             column0.MinimumWidth = 100;
@@ -253,7 +277,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = "Source";
+            column1.HeaderText = OsLocalization.Trader.Label433;
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             column1.MinimumWidth = 100;
@@ -262,33 +286,117 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
-            column.HeaderText = "News";
+            column.HeaderText = OsLocalization.Trader.Label434;
             column.ReadOnly = true;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column);
-
-            _grid.Rows.Add(null, null);
 
         }
 
         private void ClearGrid()
         {
+            if (_grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(ClearGrid));
+                return;
+            }
 
+            _grid.Rows.Clear();
         }
 
         private void DeleteGridsToPaint()
         {
+            if (_grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(DeleteGridsToPaint));
+                return;
+            }
 
+            _grid.Rows.Clear();
 
+            DataGridFactory.ClearLinks(_grid);
+
+            _grid = null;
+
+            if(Host != null)
+            {
+                Host.Child = null;
+                Host = null;
+            }
         }
 
         private void TryRepaintGrid()
         {
+            if(Host == null
+                || _grid == null)
+            {
+                return;
+            }
 
+            List<News> news = _connector.NewsArray;
 
+            if(news.Count == 0 && _grid.Rows.Count == 0)
+            {
+                return;
+            }
 
+            if(news.Count != 0 &&
+                news.Count == _grid.Rows.Count)
+            {
+                if (_grid.Rows[0].Cells[2].Value.ToString() == news[0].Value)
+                {
+                    return;
+                }
+            }
+
+            if (_grid.InvokeRequired)
+            {
+                _grid.Invoke(new Action(TryRepaintGrid));
+                return;
+            }
+
+            int firstNewsNum = 0;
+
+            if(_grid.Rows.Count > 0)
+            {
+                string firstMessage = _grid.Rows[0].Cells[2].Value.ToString();
+
+                for(int i = 0;i < news.Count;i++)
+                {
+                    if (news[i].Value == firstMessage)
+                    {
+                        firstNewsNum = i + 1; 
+                        break;
+                    }
+                }
+            }
+
+            for (int i = firstNewsNum; i < news.Count; i++)
+            {
+                _grid.Rows.Insert(0, GetRow(news[i]));
+            }
+
+            while(_grid.Rows.Count > _connector.CountNewsToSave)
+            {
+                _grid.Rows.RemoveAt(_grid.Rows.Count - 1);
+            }
         }
 
+        private DataGridViewRow GetRow(News news)
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[0].Value = news.TimeMessage.ToString(OsLocalization.CurCulture);
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[1].Value = news.Source;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[2].Value = news.Value;
+
+            return row;
+        }
 
         #endregion
 

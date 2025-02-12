@@ -15,6 +15,7 @@ namespace OsEngine.Robots.TechSamples
             TabCreate(BotTabType.Screener);
             TabCreate(BotTabType.Polygon);
             TabCreate(BotTabType.Cluster);
+            TabCreate(BotTabType.News);
 
             // The source can be accessed through these arrays:
             // TabsSimple[0].
@@ -23,7 +24,7 @@ namespace OsEngine.Robots.TechSamples
             // TabsScreener[0].
             // TabsPolygon[0].
             // TabsCluster[0].
-
+            // TabsNews[0].
 
             Description = "Example in which all types of sources are created in OsEngine";
         }

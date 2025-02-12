@@ -1531,7 +1531,7 @@ position => position.State != PositionStateType.OpeningFail
         private List<BotTabScreener> _tabsScreener = new List<BotTabScreener>();
 
         /// <summary>
-        /// pair tabs
+        /// polygon tabs
         /// </summary>
         public List<BotTabPolygon> TabsPolygon
         {
@@ -1541,6 +1541,18 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
         private List<BotTabPolygon> _tabsPolygon = new List<BotTabPolygon>();
+
+        /// <summary>
+        /// news tabs
+        /// </summary>
+        public List<BotTabNews> TabsNews
+        {
+            get
+            {
+                return _tabsNews;
+            }
+        }
+        private List<BotTabNews> _tabsNews = new List<BotTabNews>();
 
         /// <summary>
         /// user toggled tabs
@@ -1616,6 +1628,11 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     newTab = new BotTabPolygon(nameTab, StartProgram);
                     _tabsPolygon.Add((BotTabPolygon)newTab);
+                }
+                else if (tabType == BotTabType.News)
+                {
+                    newTab = new BotTabNews(nameTab, StartProgram);
+                    _tabsNews.Add((BotTabNews)newTab);
                 }
                 else if (tabType == BotTabType.Screener)
                 {
@@ -1787,6 +1804,10 @@ position => position.State != PositionStateType.OpeningFail
                 else if (ActivTab.TabType == BotTabType.Polygon)
                 {
                     ((BotTabPolygon)ActivTab).StartPaint(_hostChart);
+                }
+                else if (ActivTab.TabType == BotTabType.News)
+                {
+                    ((BotTabNews)ActivTab).StartPaint(_hostChart);
                 }
             }
             catch (Exception error)

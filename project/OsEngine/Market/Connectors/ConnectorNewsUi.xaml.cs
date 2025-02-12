@@ -48,6 +48,8 @@ namespace OsEngine.Market.Connectors
                 // сохраняем коннекторы
                 _connectorBot = connectorBot;
 
+                TextBoxCountNewsToSave.Text = _connectorBot.CountNewsToSave.ToString();
+
                 // upload settings to controls
                 // загружаем настройки в контролы
                 for (int i = 0; i < servers.Count; i++)

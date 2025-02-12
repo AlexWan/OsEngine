@@ -1985,12 +1985,10 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
-                if (ServerStatus == ServerConnectStatus.Connect)
-                {
-                    string data = MarshalUtf8.PtrToStringUtf8(pData);
-                    _newMessage.Enqueue(data);
-                    FreeMemory(pData);
-                }
+
+                string data = MarshalUtf8.PtrToStringUtf8(pData);
+                _newMessage.Enqueue(data);
+                FreeMemory(pData);
 
                 return true;
             }
