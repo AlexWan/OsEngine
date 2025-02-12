@@ -205,7 +205,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private bool _usdtSwapValue;
 
-        private List<Security> _listSecuritys;
+        private List<Security> _listSecurities;
 
         #endregion
 
@@ -269,7 +269,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
             SecurityEvent(securities);
 
-            _listSecuritys = securities;
+            _listSecurities = securities;
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -306,6 +306,18 @@ namespace OsEngine.Market.Servers.HTX.Swap
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
+            if (endTime.Hour == 0
+                && endTime.Minute == 0
+                && endTime.Second == 0)
+            {
+                endTime = endTime.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
+            }
+
             if (!CheckTime(startTime, endTime, actualTime))
             {
                 return null;
@@ -322,9 +334,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             DateTime startTimeData = startTime;
             DateTime endTimeData = startTimeData.AddMinutes(tfTotalMinutes * _limitCandles);
-            if (endTimeData > DateTime.Now)
+
+            if (endTimeData > DateTime.UtcNow)
             {
-                endTimeData = DateTime.Now;
+                endTimeData = DateTime.UtcNow;
             }
 
             do
@@ -347,7 +360,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     candles.RemoveAt(0);
                 }
 
-                if(candles.Count == 0)
+                if (candles.Count == 0)
                 {
                     break;
                 }
@@ -372,14 +385,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 startTimeData = endTimeData;
                 endTimeData = startTimeData.AddMinutes(tfTotalMinutes * _limitCandles);
 
-                if (startTimeData >= DateTime.Now)
+                if (startTimeData >= DateTime.UtcNow)
                 {
                     break;
                 }
 
-                if (endTimeData > DateTime.Now)
+                if (endTimeData > DateTime.UtcNow)
                 {
-                    endTimeData = DateTime.Now;
+                    endTimeData = DateTime.UtcNow;
                 }
 
             } while (true);
@@ -390,10 +403,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now ||
-                endTime < DateTime.UtcNow.AddYears(-20))
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -528,7 +540,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.Now;
+            DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
             return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
@@ -643,6 +655,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
         private void webSocketPublic_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             WebSocketSharp.ErrorEventArgs error = e;
+
             if (error.Exception != null)
             {
                 SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
@@ -673,7 +686,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 {
                     _FIFOListWebSocketPublicMessage.Enqueue(e.Data);
                 }
-
             }
             catch (Exception error)
             {
@@ -688,6 +700,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 SendLogMessage("Connection Closed by HTXSwap. WebSocket Public Closed Event", LogMessageType.System);
             }
+
             ServerStatus = ServerConnectStatus.Disconnect;
             DisconnectEvent();
         }
@@ -703,6 +716,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
         private void webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             WebSocketSharp.ErrorEventArgs error = e;
+
             if (error.Exception != null)
             {
                 SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
@@ -733,7 +747,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 {
                     _FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
                 }
-
             }
             catch (Exception error)
             {
@@ -1224,9 +1237,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 {
                     if (item[i].margin_asset == "USDT")
                     {
-                        portfolio.ValueBegin = item[i].margin_static.ToDecimal();
-                        portfolio.ValueCurrent = item[i].margin_balance.ToDecimal();
-                        portfolio.ValueBlocked = item[i].margin_frozen.ToDecimal();
+                        portfolio.ValueBegin = Math.Round(item[i].margin_static.ToDecimal(), 3);
+                        portfolio.ValueCurrent = Math.Round(item[i].margin_balance.ToDecimal(), 3);
+                        portfolio.ValueBlocked = Math.Round(item[i].margin_frozen.ToDecimal(), 3);
                     }
 
                     PositionOnBoard pos = new PositionOnBoard();
@@ -1938,7 +1951,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             Portfolio portfolio = new Portfolio();
             portfolio.Number = "HTXSwapPortfolio";
-            
+
             for (int i = 0; i < itemPortfolio.Count; i++)
             {
                 if (itemPortfolio[i].margin_static == "0")
@@ -1948,9 +1961,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 if (itemPortfolio[i].margin_asset == "USDT")
                 {
-                    portfolio.ValueBegin = Math.Round(itemPortfolio[i].margin_static.ToDecimal(),3);
-                    portfolio.ValueCurrent = Math.Round(itemPortfolio[i].margin_balance.ToDecimal(),3);
-                    portfolio.ValueBlocked = Math.Round(itemPortfolio[i].margin_frozen.ToDecimal(),3);
+                    portfolio.ValueBegin = Math.Round(itemPortfolio[i].margin_static.ToDecimal(), 3);
+                    portfolio.ValueCurrent = Math.Round(itemPortfolio[i].margin_balance.ToDecimal(), 3);
+                    portfolio.ValueBlocked = Math.Round(itemPortfolio[i].margin_frozen.ToDecimal(), 3);
                 }
 
                 PositionOnBoard pos = new PositionOnBoard();
@@ -2076,16 +2089,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private decimal GetSecurityLot(string contract_code)
         {
-            if (_listSecuritys == null)
+            if (_listSecurities == null)
             {
                 return 0;
             }
 
-            for (int i = 0; i < _listSecuritys.Count; i++)
+            for (int i = 0; i < _listSecurities.Count; i++)
             {
-                if (_listSecuritys[i].Name.Equals(contract_code))
+                if (_listSecurities[i].Name.Equals(contract_code))
                 {
-                    return _listSecuritys[i].Lot;
+                    return _listSecurities[i].Lot;
                 }
             }
             return 0;
