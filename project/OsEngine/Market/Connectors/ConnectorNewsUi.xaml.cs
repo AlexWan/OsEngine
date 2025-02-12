@@ -110,14 +110,8 @@ namespace OsEngine.Market.Connectors
                 // ignore
             }
 
-            try
-            {
-                _connectorBot = null;
-            }
-            catch
-            {
-                // ignore
-            }
+            _connectorBot = null;
+
         }
 
         #endregion
@@ -196,7 +190,6 @@ namespace OsEngine.Market.Connectors
         private ServerType _selectedServerType;
 
         #endregion
-
 
         #region Logging
 
