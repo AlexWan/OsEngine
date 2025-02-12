@@ -134,6 +134,11 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         shitHappenedWithStreams = true;
                     }
 
+                    if (_myOrderStateDataStream != null && _lastMyOrderStateDataTime.AddMinutes(3) < DateTime.UtcNow)
+                    {
+                        shitHappenedWithStreams = true;
+                    }
+
                     if (shitHappenedWithStreams)
                     {
                         if (ServerStatus == ServerConnectStatus.Connect)
@@ -1486,6 +1491,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         private DateTime _lastMarketDataTime = DateTime.MinValue;
         private DateTime _lastPortfolioDataTime = DateTime.MinValue;
         private DateTime _lastMyTradesDataTime = DateTime.MinValue;
+        private DateTime _lastMyOrderStateDataTime = DateTime.MinValue;
 
         public void Subscrible(Security security)
         {
@@ -2317,7 +2323,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
-                    _lastMyTradesDataTime = DateTime.UtcNow;
+                    _lastMyOrderStateDataTime = DateTime.UtcNow;
 
                     if (orderStateResponse.Ping != null)
                     {
@@ -2418,7 +2424,6 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 }
             }
         }
-
         
         public event Action<Order> MyOrderEvent;
 
