@@ -1036,6 +1036,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 10 Trade

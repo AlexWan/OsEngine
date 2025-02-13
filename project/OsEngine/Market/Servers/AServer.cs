@@ -42,6 +42,8 @@ namespace OsEngine.Market.Servers
 
                 _serverRealization.NewsEvent += _serverRealization_NewsEvent;
 
+                _serverRealization.AdditionalMarketDataEvent += _serverRealization_AdditionalMarketDataEvent;
+
                 CreateParameterBoolean(OsLocalization.Market.ServerParam1, false);
                 _needToSaveTicksParam = (ServerParameterBool)ServerParameters[ServerParameters.Count - 1];
                 _needToSaveTicksParam.ValueChange += SaveTradesHistoryParam_ValueChange;
@@ -1025,6 +1027,15 @@ namespace OsEngine.Market.Servers
                             }
                         }
                     }
+                    else if (!_additionalMarketDataToSend.IsEmpty)
+                    {
+                        AdditionalMarketDataForConnector data;
+
+                        if (_additionalMarketDataToSend.TryDequeue(out data))
+                        {
+                            ConvertableMarketData(data);                            
+                        }
+                    }
 
                     else
                     {
@@ -1093,6 +1104,11 @@ namespace OsEngine.Market.Servers
         /// queue for new news
         /// </summary>
         private ConcurrentQueue<News> _newsToSend = new ConcurrentQueue<News>();
+
+        /// <summary>
+        /// queue for Additional Market Data
+        /// </summary>
+        private ConcurrentQueue<AdditionalMarketDataForConnector> _additionalMarketDataToSend = new ConcurrentQueue<AdditionalMarketDataForConnector>();
 
         #endregion
 
@@ -2935,6 +2951,137 @@ namespace OsEngine.Market.Servers
         /// outgoing messages for the log event
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region Additional Market Data
+
+        private void _serverRealization_AdditionalMarketDataEvent(AdditionalMarketDataForConnector obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(obj.SecurityName))
+                {
+                    return;
+                }
+
+                _additionalMarketDataToSend.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private Dictionary<string, AdditionalMarketData> _dictAdditionalMarketData = new Dictionary<string, AdditionalMarketData>();
+
+        private void ConvertableMarketData(AdditionalMarketDataForConnector data)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(data.SecurityName))
+                {
+                    return;
+                }
+
+                if (!_dictAdditionalMarketData.ContainsKey(data.SecurityName))
+                {
+                    AdditionalMarketData additionalMarketData = new AdditionalMarketData();
+                    _dictAdditionalMarketData.Add(data.SecurityName, additionalMarketData);
+                }
+
+                if (!string.IsNullOrEmpty(data.SecurityName) &&
+                    _dictAdditionalMarketData[data.SecurityName].SecurityName != data.SecurityName)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].SecurityName = data.SecurityName;
+                }
+                if (!string.IsNullOrEmpty(data.UnderlyingAsset) &&
+                    _dictAdditionalMarketData[data.SecurityName].UnderlyingAsset != data.UnderlyingAsset)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].UnderlyingAsset = data.UnderlyingAsset;
+                }
+                if (!string.IsNullOrEmpty(data.UnderlyingPrice) &&
+                    _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice.ToString() != data.UnderlyingPrice)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].UnderlyingPrice = data.UnderlyingPrice.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.MarkPrice) &&
+                    _dictAdditionalMarketData[data.SecurityName].MarkPrice.ToString() != data.MarkPrice)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].MarkPrice = data.MarkPrice.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.MarkIV) &&
+                    _dictAdditionalMarketData[data.SecurityName].MarkIV.ToString() != data.MarkIV)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].MarkIV = data.MarkIV.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.BidIV) &&
+                    _dictAdditionalMarketData[data.SecurityName].BidIV.ToString() != data.BidIV)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].BidIV = data.BidIV.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.AskIV) &&
+                    _dictAdditionalMarketData[data.SecurityName].AskIV.ToString() != data.AskIV)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].AskIV = data.AskIV.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.Delta) &&
+                    _dictAdditionalMarketData[data.SecurityName].Delta.ToString() != data.Delta)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].Delta = data.Delta.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.Gamma) &&
+                    _dictAdditionalMarketData[data.SecurityName].Gamma.ToString() != data.Gamma)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].Gamma = data.Gamma.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.Vega) &&
+                    _dictAdditionalMarketData[data.SecurityName].Vega.ToString() != data.Vega)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].Vega = data.Vega.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.Theta) &&
+                    _dictAdditionalMarketData[data.SecurityName].Theta.ToString() != data.Theta)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].Theta = data.Theta.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.Rho) &&
+                    _dictAdditionalMarketData[data.SecurityName].Rho.ToString() != data.Rho)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].Rho = data.Rho.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.OpenInterest) &&
+                    _dictAdditionalMarketData[data.SecurityName].OpenInterest.ToString() != data.OpenInterest)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].OpenInterest = data.OpenInterest.ToDecimal();
+                }
+                if (!string.IsNullOrEmpty(data.TimeCreate) &&
+                    _dictAdditionalMarketData[data.SecurityName].TimeCreate.ToString() != data.TimeCreate)
+                {
+                    _dictAdditionalMarketData[data.SecurityName].TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(data.TimeCreate));
+                }
+
+                if (NewAdditionalMarketDataEvent != null)
+                {
+                    NewAdditionalMarketDataEvent(_dictAdditionalMarketData[data.SecurityName]);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
+        /// <summary>
+        /// new Additional Market Data
+        /// </summary>
+        public event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
 
         #endregion
     }

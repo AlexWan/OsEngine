@@ -1545,6 +1545,8 @@ namespace OsEngine.Market.Servers.BitMart
 
         public event Action<MyTrade> MyTradeEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

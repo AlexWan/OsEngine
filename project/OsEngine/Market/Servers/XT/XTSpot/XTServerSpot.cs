@@ -1332,6 +1332,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public event Action<Trade> NewTradesEvent;
 
+            public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
             #endregion
 
             #region 11 Trade

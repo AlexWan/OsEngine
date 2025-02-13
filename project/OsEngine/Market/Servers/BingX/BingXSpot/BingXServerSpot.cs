@@ -795,6 +795,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         private void MessageReader()
         {
             Thread.Sleep(1000);

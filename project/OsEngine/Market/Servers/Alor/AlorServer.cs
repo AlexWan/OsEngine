@@ -1515,6 +1515,8 @@ namespace OsEngine.Market.Servers.Alor
 
         public event Action<News> NewsEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 10 WebSocket parsing the messages

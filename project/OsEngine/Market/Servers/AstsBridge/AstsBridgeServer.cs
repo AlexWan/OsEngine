@@ -25,7 +25,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <summary>
         /// constructor
         /// конструктор
-        /// </summary>
+        /// </summary>    
+
         public AstsBridgeServer(bool neadToLoadTicks)
         {
             ServerAdress = "91.208.232.211";
@@ -1210,6 +1211,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         public event Action<News> NewsEvent;
+
+        public event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
 
         /// <summary>
         /// candle series changed

@@ -817,7 +817,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         public event Action<List<Security>> SecurityEvent;
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
-
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

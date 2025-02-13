@@ -36,7 +36,44 @@ namespace OsEngine.Market.Servers.Deribit.Entity
             public string amount { get; set; }
             public string direction { get; set; }
             public string timestamp { get; set; }
-            public string trade_id { get; set; }
+            public string trade_id { get; set; }            
+        }
+    }
+
+    public class ResponseChannelGreeks
+    {
+        public Params @params { get; set; }
+
+        public class Params
+        {
+            public Data data { get; set; }
+        }
+
+        public class Data
+        {
+            public string instrument_name { get; set; }
+            public string timestamp { get; set; }
+            public string mark_iv { get; set; }
+            public string mark_price { get; set; }            
+            public Greeks greeks { get; set; }
+            public string open_interest { get; set; }
+            public string best_ask_amount { get; set; }
+            public string best_ask_price { get; set; }
+            public string best_bid_amount { get; set; }
+            public string best_bid_price { get; set; }
+            public string bid_iv { get; set; }
+            public string ask_iv { get; set; }
+            public string underlying_price { get; set; }
+            public string underlying_index { get; set; }
+        }
+
+        public class Greeks
+        {
+            public string delta { get; set; }
+            public string gamma { get; set; }
+            public string rho { get; set; }
+            public string theta{ get; set; }
+            public string vega { get; set; }            
         }
     }
 

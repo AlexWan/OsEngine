@@ -184,6 +184,12 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<List<Trade>> NewTradeEvent;
 
+        /// <summary>
+        /// new additional market data
+        /// новые данные по дополнительным данным по тикеру
+        /// </summary>
+        event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
+
         #endregion
 
         #region Data upload

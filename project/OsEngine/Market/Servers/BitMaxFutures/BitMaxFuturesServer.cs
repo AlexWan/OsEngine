@@ -68,6 +68,7 @@ namespace OsEngine.Market.Servers.BitMaxFutures
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
 
         private const string BaseUrl = "https://ascendex.com/";
         private const string WebsocketPublicChanel = "wss://ascendex.com:443/api/pro/v2/stream";

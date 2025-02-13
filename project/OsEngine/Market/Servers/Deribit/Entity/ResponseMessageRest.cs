@@ -49,6 +49,9 @@ namespace OsEngine.Market.Servers.Deribit.Entity
             public string quote_currency { get; set; }
             public string instrument_id { get; set; }
             public string base_currency { get; set; }
+            public string strike { get; set; }
+            public string option_type { get; set; }
+            public string expiration_timestamp { get; set; }
         }
     }
 
