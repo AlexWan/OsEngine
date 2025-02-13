@@ -1,4 +1,4 @@
-AllSourcesInOneSample&Example in which all types of sources are created in OsEngine&Include&&Simple 1*Index 1*Cluster 1*Pair 1*Screener 1*Polygon 1*&&
+AllSourcesInOneSample&Example in which all types of sources are created in OsEngine&Include&&Simple 1*Index 1*Cluster 1*Pair 1*Screener 1*Polygon 1*News 1*&&
 AlligatorTrendAverage&An example of a robot that shows sequential averaging of a position and increase of a position on a trend&Include&&Simple 1*&Alligator*&
 BbPowerTrade&Trend strategy based on two indicators BullsPower and BearsPowerBulls + Bears is less than negative Step - close the position and enter Short. Bulls + Bears more than Step - close the position and enter Long.&Include&&Simple 1*&BearsPower*BullsPower*&
 BollingerRevers&Trend Strategy Based on Breaking Bollinger Lines Buy: 1. The price is more than BollingerUpLine. Sell: 1. Price below BollingerDownLine.Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*&
@@ -22,8 +22,8 @@ ClusterCountertrend&The Countertrend robot Buy: we buy if we are under the large
 Engine&blank strategy for manual trading&Include&&Simple 1*&&
 EnvelopTrend&Trend strategy based on indicator Envelop. Entrance to Long: entry when the price crosses the upper border of the channel. Entrance to Short: entry when the price crosses the lower border of the channel. Exiting a Long position: by trailing stop. Exit from a Short position: by trailing stop.&Include&&Simple 1*&Envelops*&
 ElementsOnChartSampleBot&&Include&&Simple 1*&MACD*&
-EnginePair&blank strategy for manual pair trading&Include&&Pair 1*&&
 EnvelopsCountertrend&An example of a robot that shows sequential position averaging by opening new positions by pending orders&Include&&Simple 1*&Envelops*&
+EnginePair&blank strategy for manual pair trading&Include&&Pair 1*&&
 FakeOutExample&An example of a robot going short after a false upside breakout.&Include&&Simple 1*&PriceChannel*&
 FundBalanceDivergenceBot&The countertrend bots Buy: 1. FBD more Indicator Divergence. Sell: 1. FBD is less than negative Indicator Divergence. Exit: after N number of days.&Include&&Simple 1*&FBD*&
 Fisher&Fisher based on multithreading Entering a position - we are waiting for a sharp price deviation  by the specified number of percent from the edge of the order book. Exit a position when the price rolls back by 50 percent or more of the entry price. Those. if the price has returned half or more of the original movement.&Include&&Simple 1*&Sma*&
@@ -56,6 +56,7 @@ MultiExchangePairArbitrageOnTheIndex&&Include&&Simple 5*Index 1*&&
 MultiOneLegArbitrageInTrend&Securities that deviate from the broad market with momentum trade on a widening gap, in a certain stage of volatility.&Include&&Index 1*Screener 1*&VolatilityStagesAW*VolatilityAverage*ATR*&
 MultiOneLegArbitrageMeanReversion&Securities that deviate from the broad market without momentum are traded on a return to the index. &Include&&Index 1*Screener 1*&VolatilityAverage*ATR*&
 MarketDepthScreener&&Include&&Screener 1*&Sma*Momentum*&
+NewsEngine&blank strategy for news trading&Include&&News 1*&&
 OneLegArbitrage&Trading robot on the index. The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts&Include&&Simple 1*Index 1*&Sma*&
 PairRsiTrade&Pair trading based on the RSI indicator Logic: if RsiOne > RsiTwo + RsiSpread - then we are Sell on the first instrument and Buy on the second one. Logic: if RsiTwo > RsiOne + RsiSpread - then we are Buy on the first instrument and Sell on the second one. Exit: on the return signal.&Include&&Simple 2*&RSI*RSI*&
 PriceChannelBreak&When the candle is closed outside the PriceChannel channel, we enter the position, the stop loss is at the extremum of the last candle from the entry candle, take profit by the channel size from the close of the candle at which the entry occurred&Include&&Simple 1*&PriceChannel*&
@@ -73,8 +74,8 @@ PairCorrelationNegative&Bot - trading pairs in the trend If the correlation is b
 PairCorrelationTrader&if the correlation is higher than 0.9 and we are on some side of the cointegration - enter, counting on the pair convergence Exit by the inverse cointegration signal&Include&&Pair 1*&&
 PairTraderSimple&robot for pair trading. trading two papers based on their acceleration to each other by candle&Include&&Simple 2*&&
 PairTraderSpreadSma&pair trading robot building spread and trading based on the intersection of MA on the spread chart SmaLong crossed SmaShort from top to bottom - the first tab sells, the second one buys. SmaLong crossed SmaShort from the bottom up - the first one is buying, the second one is selling. Exit: on the opposite signal&Include&&Simple 2*Index 1*&MovingAverage*MovingAverage*&
-PolygonalEngine&blank strategy for manual currency trading&Include&&Polygon 1*&&
 PriceChannelCounterTrend&An example of a robot that shows closing a position via two close limit orders.&Include&&Simple 1*&PriceChannel*&
+PolygonalEngine&blank strategy for manual currency trading&Include&&Polygon 1*&&
 RsiTrade&RSI's concurrent overbought and oversold strategy Logic: if RsiSecond <= DownLine - close position and open Long. Logic: if RsiSecond >= UpLine - close position and open Short.&Include&&Simple 1*&RSI*&
 RviTrade&Trend strategy at the intersection of the indicator RVIBuy: lastRviDown < 0 and lastRviUp > lastRviDown. Sell: lastRviDown > 0 and lastRviUp < lastRviDown. Exit: By return signal&Include&&Simple 1*&RVI*&
 RsiContrtrend&Robot based on RSI indicator and moving average, trading by counter-trend logic. Short entry - when RSI is above the signal line and SMA is above the current price&Include&&Simple 1*&MovingAverage*Rsi*&

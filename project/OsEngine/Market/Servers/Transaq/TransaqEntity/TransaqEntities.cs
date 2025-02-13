@@ -50,6 +50,18 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
         [XmlAttribute(AttributeName = "title")]
         public string Title { get; set; }
 
+        public string NewsBody { get; set; }
+    }
+
+    [XmlRoot(ElementName = "news_body")]
+    public class TransaqNewsBody
+    {
+        [XmlAttribute(AttributeName = "id")]
+        public string Id { get; set; }
+
+        [XmlAttribute(AttributeName = "text")]
+        public string Text { get; set; }
+
     }
 
     [XmlRoot(ElementName = "opmask")]

@@ -2123,7 +2123,14 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 if(_newsIsSubscribed)
                                 {
-                                    _newsQueue.Enqueue(data);
+                                    _newsIdQueue.Enqueue(data);
+                                }
+                            }
+                            else if (data.StartsWith("<news_body>"))
+                            {
+                                if (_newsIsSubscribed)
+                                {
+                                    _newsBodyQueue.Enqueue(data);
                                 }
                             }
                             else if (data.StartsWith("<markets>")
@@ -2176,7 +2183,11 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _securityInfoQueue = new ConcurrentQueue<string>();
 
-        private ConcurrentQueue<string> _newsQueue = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _newsIdQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _newsBodyQueue = new ConcurrentQueue<string>();
+
+        private List<TransaqNews> _news = new List<TransaqNews>();
 
         private void ThreadHistoricalDataParsingWorkPlace()
         {
@@ -2212,19 +2223,59 @@ namespace OsEngine.Market.Servers.Transaq
                             _allTicks.AddRange(newTicks);
                         }
                     }
-                    else if(_newsQueue.IsEmpty == false)
+                    else if (_newsIdQueue.IsEmpty == false)
                     {
                         string data = null;
 
-                        if (_newsQueue.TryDequeue(out data))
+                        if (_newsIdQueue.TryDequeue(out data))
                         {
                             TransaqNews newsTransaq = _deserializer.Deserialize<TransaqNews>(new RestResponse() { Content = data });
 
+                            _news.Add(newsTransaq);
+
+                            if(_news.Count > 100)
+                            {
+                                _news.RemoveAt(0);
+                            }
+
+                            string cmd =
+                                $"<command id=\"get_news_body\" news_id=\"{newsTransaq.Id}\"/>";
+                            
+                            // sending command / отправка команды
+                            string res = ConnectorSendCommand(cmd);
+
+                        }
+                    }
+                    else if (_newsBodyQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_newsBodyQueue.TryDequeue(out data))
+                        {
+                            TransaqNewsBody newsTransaq = _deserializer.Deserialize<TransaqNewsBody>(new RestResponse() { Content = data });
+
+                            TransaqNews myNews = null;
+
+                            for(int i = 0;i < _news.Count;i++)
+                            {
+                                if (_news[i].Id == newsTransaq.Id)
+                                {
+                                    myNews = _news[i];
+                                    myNews.NewsBody = newsTransaq.Text;
+                                    break;
+                                }
+                            }
+
+                            if(myNews == null)
+                            {
+                                continue;
+                            }
+
                             News news = new News();
 
-                            news.TimeMessage = DateTime.Parse(newsTransaq.Timestamp);
-                            news.Source = this.ServerType + " " + newsTransaq.Source;
-                            news.Value = newsTransaq.Title;
+                            news.TimeMessage = DateTime.Parse(myNews.Timestamp);
+                            news.Source = this.ServerType + " " + myNews.Source;
+                            news.Value = myNews.NewsBody;
 
                             if (news != null)
                             {
