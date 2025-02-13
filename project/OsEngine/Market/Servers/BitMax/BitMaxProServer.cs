@@ -907,6 +907,7 @@ namespace OsEngine.Market.Servers.BitMax
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
 
         /// <summary>
         /// new securities

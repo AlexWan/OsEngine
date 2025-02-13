@@ -1655,6 +1655,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

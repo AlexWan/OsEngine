@@ -2011,6 +2011,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

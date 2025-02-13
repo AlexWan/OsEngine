@@ -2281,6 +2281,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         public event Action<MyTrade> MyTradeEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         public void SendOrder(Order order)
         {
             try

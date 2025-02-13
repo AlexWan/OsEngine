@@ -972,6 +972,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 10 Trade

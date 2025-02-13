@@ -1314,6 +1314,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

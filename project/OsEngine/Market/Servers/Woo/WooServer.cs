@@ -1119,6 +1119,8 @@ namespace OsEngine.Market.Servers.Woo
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

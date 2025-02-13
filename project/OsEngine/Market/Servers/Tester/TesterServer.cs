@@ -4284,7 +4284,8 @@ namespace OsEngine.Market.Servers.Tester
         private Log _logMaster;
 
         public event Action<string, LogMessageType> LogMessageEvent;
-       
+        public event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
+
 
         #endregion
     }

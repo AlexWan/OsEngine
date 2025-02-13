@@ -958,6 +958,7 @@ namespace OsEngine.Market.Connectors
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
             server.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
+            server.NewAdditionalMarketDataEvent -= Server_NewAdditionalMarketDataEvent;
         }
 
         private void SubscribeOnServer(IServer server)
@@ -970,6 +971,7 @@ namespace OsEngine.Market.Connectors
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
             server.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
+            server.NewAdditionalMarketDataEvent -= Server_NewAdditionalMarketDataEvent;
 
             if (NeedToLoadServerData)
             {
@@ -980,6 +982,7 @@ namespace OsEngine.Market.Connectors
                 server.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
                 server.NewOrderIncomeEvent += ConnectorBot_NewOrderIncomeEvent;
                 server.PortfoliosChangeEvent += Server_PortfoliosChangeEvent;
+                server.NewAdditionalMarketDataEvent += Server_NewAdditionalMarketDataEvent;
             }
 
             server.NeedToReconnectEvent += _myServer_NeedToReconnectEvent;
@@ -1309,6 +1312,36 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        private void Server_NewAdditionalMarketDataEvent(AdditionalMarketData data)
+        {
+            try
+            {
+                if (_securityName != data.SecurityName)
+                {
+                    return;
+                }
+
+                _additionalMarketData.SecurityName = data.SecurityName;
+                _additionalMarketData.UnderlyingAsset = data.UnderlyingAsset;
+                _additionalMarketData.UnderlyingPrice = data.UnderlyingPrice;
+                _additionalMarketData.MarkPrice = data.MarkPrice;
+                _additionalMarketData.MarkIV = data.MarkIV;
+                _additionalMarketData.BidIV = data.BidIV;
+                _additionalMarketData.AskIV = data.AskIV;
+                _additionalMarketData.Delta = data.Delta;
+                _additionalMarketData.Gamma = data.Gamma;
+                _additionalMarketData.Vega = data.Vega;
+                _additionalMarketData.Theta = data.Theta;
+                _additionalMarketData.Rho = data.Rho;
+                _additionalMarketData.OpenInterest = data.OpenInterest;
+                _additionalMarketData.TimeCreate = data.TimeCreate;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region Trade data access interface
@@ -1413,6 +1446,17 @@ namespace OsEngine.Market.Connectors
                 return DateTime.Now;
             }
         }
+
+        /// <summary>
+        /// Data of Options
+        /// данные (греки) по опционам
+        /// </summary>
+        public AdditionalMarketData AdditionalMarketData
+        {
+            get { return _additionalMarketData; }
+
+        }
+        private AdditionalMarketData _additionalMarketData = new AdditionalMarketData();
 
         #endregion
 

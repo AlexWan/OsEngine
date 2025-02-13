@@ -935,6 +935,8 @@ namespace OsEngine.Market.Servers.Pionex
 
         public event Action<MyTrade> MyTradeEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         public void SendOrder(Order order)
         {
             _rateGate.WaitToProceed();

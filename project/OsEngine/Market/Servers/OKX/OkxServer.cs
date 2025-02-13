@@ -1677,6 +1677,8 @@ namespace OsEngine.Market.Servers.OKX
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

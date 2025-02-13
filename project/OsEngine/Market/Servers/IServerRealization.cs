@@ -222,5 +222,15 @@ namespace OsEngine.Market.Servers
         event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+
+        #region AdditionalMarketData
+
+        /// <summary>
+        /// additional market data
+        /// дополнительные маркет данные по тикеру
+        /// </summary>
+        event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
+        #endregion
     }
 }
