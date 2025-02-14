@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
 using System.Globalization;
+using System.Text;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 {
@@ -14,7 +15,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
         public override string ToString()
         {
-            return "?" + CoinExServerRealization.createQueryString(parameters);
+            return "?" + createQueryString(parameters);
+        }
+
+        public static string createQueryString(Dictionary<string, Object> args)
+        {
+            StringBuilder queryBuilder = new StringBuilder();
+            foreach (KeyValuePair<string, Object> arg in args)
+            {
+                queryBuilder.AppendFormat("{0}={1}&", arg.Key, arg.Value);
+            }
+            return queryBuilder.ToString().Trim(new char[] { '&' });
         }
     }
 

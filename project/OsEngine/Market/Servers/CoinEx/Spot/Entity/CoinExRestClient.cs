@@ -6,8 +6,6 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-//using System.Text.Json;
-//using System.Net.Http.Json;
 using OsEngine.Logging;
 
 
@@ -37,12 +35,14 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             return Signer.RestSign(method, path, body, timestamp, _apiSecret);
         }
 
-        private async Task<T> Request<T>(string method, string path, Dictionary<string, object>? args, Dictionary<string, object>? body, bool isSign = false)
+        private async Task<T> Request<T>(string method, string path,
+            Dictionary<string, object>? args, Dictionary<string, object>? body, bool isSign = false)
         {
             _rateGateRest.WaitToProceed();
             if (args != null)
             {
-                IEnumerable<KeyValuePair<string, string>> _args = args.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()!));
+                IEnumerable<KeyValuePair<string, string>> _args 
+                    = args.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()!));
                 string query = await new FormUrlEncodedContent(_args).ReadAsStringAsync();
                 path += "?" + query;
             }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net.Http;
-//using System.Text.Json.Serialization;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 {
