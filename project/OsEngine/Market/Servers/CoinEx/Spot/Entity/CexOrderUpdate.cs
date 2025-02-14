@@ -28,6 +28,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
         // Amount - объём в единицах тикера
         // Value - объём в деньгах
+        // Значение в валюте, [USDT]
         public string amount { get; set; }
 
         public string price { get; set; }
@@ -35,11 +36,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         // The remaining unfilled amount
         public string unfilled_amount { get; set; }
 
-        // Futures. Filled volume
+        // Filled volume в единицах тикера {TON}
+        //
         public string filled_amount { get; set; }
 
         // Amount - объём в единицах тикера
         // Value - объём в деньгах
+        // Filled Value в валюте [USDT]
         public string filled_value { get; set; }
 
         public string taker_fee_rate { get; set; }
@@ -77,8 +80,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public static explicit operator Order(CexOrderUpdate cexOrder)
         {
             Order order = new Order();
-
-            order.NumberUser = Convert.ToInt32(cexOrder.client_id);
+            order.State = OrderStateType.Active;
+            order.NumberUser = string.IsNullOrEmpty(cexOrder.client_id) ? 0 : Convert.ToInt32(cexOrder.client_id);
 
             order.SecurityNameCode = cexOrder.market;
             //order.SecurityClassCode = cexOrder.Market.Substring(cexOrder.Currency.Length);
@@ -104,7 +107,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
             order.NumberMarket = cexOrder.order_id.ToString();
 
-            order.TimeCallBack = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexOrder.updated_at);
+
+            //order.TimeCallBack = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexOrder.updated_at);
+            order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
+            order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);
 
             order.Side = (cexOrder.side == CexOrderSide.BUY.ToString()) ? OsEngine.Entity.Side.Buy : OsEngine.Entity.Side.Sell;
 

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
 
@@ -35,11 +36,12 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             Trade trade = new Trade();
             //trade.SecurityNameCode = cexTrade.Market;
             trade.Price = cexTrade.price.ToString().ToDecimal();
-            trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
+            //trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
+            trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
             //trade.Id = quotes.s_t.ToString() + quotes.side + quotes.symbol;
             trade.Id = cexTrade.deal_id.ToString();
 
-            trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? OsEngine.Entity.Side.Buy : trade.Side = OsEngine.Entity.Side.Sell;
+            trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : trade.Side = Side.Sell;
 
             trade.Volume = cexTrade.amount.ToDecimal();
 

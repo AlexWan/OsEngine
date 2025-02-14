@@ -52,7 +52,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         {
             parameters.Add("market_type", marketType);
             parameters.Add("market", market);
-            parameters.Add("order_id", (long)Convert.ToDecimal(orderId));
+            parameters.Add("order_id", (long)orderId.ToString().ToDecimal());
         }
     }
 
@@ -69,16 +69,14 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             parameters.Add("market", order.SecurityNameCode);
             parameters.Add("market_type", marketType);
             parameters.Add("side", cexOrderSide);
-            parameters.Add("amount", order.Volume.ToString(CultureInfo.InvariantCulture)
-                            .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+            parameters.Add("amount", order.Volume.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
             parameters.Add("client_id", order.NumberUser.ToString());
             parameters.Add("ccy", order.SecurityClassCode);
 
             if (order.TypeOrder == OrderPriceType.Limit)
             {
                 parameters.Add("type", CexOrderType.LIMIT.ToString());
-                parameters.Add("price", order.Price.ToString(CultureInfo.InvariantCulture)
-                          .Replace(CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator, "."));
+                parameters.Add("price", order.Price.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
             }
             else if (order.TypeOrder == OrderPriceType.Market)
             {
@@ -93,7 +91,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public CexRequestOrderStatus(string orderId, string market)
         {
             parameters.Add("market", market);
-            parameters.Add("order_id", (long)Convert.ToDecimal(orderId));
+            parameters.Add("order_id", (long)orderId.ToDecimal());
         }
     }
 
@@ -103,7 +101,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public CexRequestOrderDeals(string marketType, string orderId, string market, int limit = 100)
         {
             parameters.Add("market", market);
-            parameters.Add("order_id", (long)Convert.ToDecimal(orderId));
+            parameters.Add("order_id", (long)orderId.ToDecimal());
             parameters.Add("market_type", marketType);
             parameters.Add("limit", limit);
         }
@@ -115,9 +113,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public CexRequestEditOrder(string marketType, Order order, decimal newPrice)
         {
             parameters.Add("market", order.SecurityNameCode);
-            parameters.Add("order_id", (long)Convert.ToDecimal(order.NumberMarket));
+            parameters.Add("order_id", (long)order.NumberMarket.ToDecimal());
             parameters.Add("market_type", marketType);
-            parameters.Add("price", newPrice.ToString());
+            parameters.Add("price", newPrice.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
         }
     }
 

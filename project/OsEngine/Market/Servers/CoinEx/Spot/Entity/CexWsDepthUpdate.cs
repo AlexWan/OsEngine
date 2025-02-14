@@ -33,7 +33,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public static explicit operator MarketDepth(CexWsDepth cexDepth)
         {
             MarketDepth depth = new MarketDepth();
-            depth.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexDepth.updated_at);
+            //depth.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexDepth.updated_at);
+            depth.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexDepth.updated_at);
             for (int k = 0; k < cexDepth.bids.Count; k++)
             {
                 (string price, string size) = (cexDepth.bids[k][0], cexDepth.bids[k][1]);

@@ -88,12 +88,15 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
 			order.NumberMarket = cexOrder.order_id.ToString();
 
-			order.TimeCallBack = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexOrder.updated_at);
+			//order.TimeCallBack = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexOrder.updated_at);
+			order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
+			order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);
 
-			order.Side = (cexOrder.side == CexOrderSide.BUY.ToString()) ? OsEngine.Entity.Side.Buy : OsEngine.Entity.Side.Sell;
+			order.Side = (cexOrder.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
 
 
 			// Order placed successfully (unfilled/partially filled)
+			order.State = OrderStateType.None;
 			if (!string.IsNullOrEmpty(cexOrder.status))
 			{
 				if (cexOrder.status == CexOrderStatus.OPEN.ToString())
@@ -107,18 +110,27 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 				else if (cexOrder.status == CexOrderStatus.FILLED.ToString())
 				{
 					order.State = OrderStateType.Done;
-				}
+                    order.TimeDone = order.TimeCallBack;
+                }
 				else if (cexOrder.status == CexOrderStatus.PART_CANCELED.ToString())
 				{
 					order.State = OrderStateType.Cancel;
-				}
+                    order.TimeCancel = order.TimeCallBack;
+                }
 				else if (cexOrder.status == CexOrderStatus.CANCELED.ToString())
 				{
 					order.State = OrderStateType.Cancel;
+                    order.TimeCancel = order.TimeCallBack;
 				}
 				else
 				{
 					order.State = OrderStateType.Fail;
+				}
+			} else
+			{
+				if(cexOrder.unfilled_amount.ToString().ToDecimal() > 0)
+				{
+					order.State = cexOrder.amount == cexOrder.unfilled_amount ? OrderStateType.Activ : OrderStateType.Patrial;
 				}
 			}
 

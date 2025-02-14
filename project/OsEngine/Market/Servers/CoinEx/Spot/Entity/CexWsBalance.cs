@@ -26,8 +26,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public static explicit operator PositionOnBoard(CexWsBalanceItem cexPosition)
         {
             PositionOnBoard position = new PositionOnBoard();
-            position.ValueCurrent = cexPosition.available.ToDecimal();
-            position.ValueBlocked = cexPosition.frozen.ToDecimal();
+            position.ValueCurrent = cexPosition.available.ToString().ToDecimal();
+            position.ValueBlocked = cexPosition.frozen.ToString().ToDecimal();
             position.SecurityNameCode = cexPosition.ccy;
             //position.PortfolioName = this.PortfolioName;
             return position;
