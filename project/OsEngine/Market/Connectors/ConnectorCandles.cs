@@ -1321,20 +1321,20 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                _additionalMarketData.SecurityName = data.SecurityName;
-                _additionalMarketData.UnderlyingAsset = data.UnderlyingAsset;
-                _additionalMarketData.UnderlyingPrice = data.UnderlyingPrice;
-                _additionalMarketData.MarkPrice = data.MarkPrice;
-                _additionalMarketData.MarkIV = data.MarkIV;
-                _additionalMarketData.BidIV = data.BidIV;
-                _additionalMarketData.AskIV = data.AskIV;
-                _additionalMarketData.Delta = data.Delta;
-                _additionalMarketData.Gamma = data.Gamma;
-                _additionalMarketData.Vega = data.Vega;
-                _additionalMarketData.Theta = data.Theta;
-                _additionalMarketData.Rho = data.Rho;
-                _additionalMarketData.OpenInterest = data.OpenInterest;
-                _additionalMarketData.TimeCreate = data.TimeCreate;
+                _optionMarketData.SecurityName = data.SecurityName;
+                _optionMarketData.UnderlyingAsset = data.UnderlyingAsset;
+                _optionMarketData.UnderlyingPrice = data.UnderlyingPrice;
+                _optionMarketData.MarkPrice = data.MarkPrice;
+                _optionMarketData.MarkIV = data.MarkIV;
+                _optionMarketData.BidIV = data.BidIV;
+                _optionMarketData.AskIV = data.AskIV;
+                _optionMarketData.Delta = data.Delta;
+                _optionMarketData.Gamma = data.Gamma;
+                _optionMarketData.Vega = data.Vega;
+                _optionMarketData.Theta = data.Theta;
+                _optionMarketData.Rho = data.Rho;
+                _optionMarketData.OpenInterest = data.OpenInterest;
+                _optionMarketData.TimeCreate = data.TimeCreate;
             }
             catch (Exception error)
             {
@@ -1449,14 +1449,13 @@ namespace OsEngine.Market.Connectors
 
         /// <summary>
         /// Data of Options
-        /// данные (греки) по опционам
         /// </summary>
-        public OptionMarketData AdditionalMarketData
+        public OptionMarketData OptionMarketData
         {
-            get { return _additionalMarketData; }
+            get { return _optionMarketData; }
 
         }
-        private OptionMarketData _additionalMarketData = new OptionMarketData();
+        private OptionMarketData _optionMarketData = new OptionMarketData();
 
         #endregion
 

@@ -93,7 +93,7 @@ namespace OsEngine.Robots.AutoTestBots
                                 _screener.Tabs[j].Security.Name == _grid.Rows[i].Cells[0].Value.ToString())/* &&
                             _grid.Rows[i].Cells[0].Value.ToString().Contains("BTC-28FEB25"))*/
                             {
-                                SetDataInTable(_screener.Tabs[j].Connector.AdditionalMarketData, i);
+                                SetDataInTable(_screener.Tabs[j].Connector.OptionMarketData, i);
                                 break;
                             }
                         }
@@ -337,4 +337,3 @@ namespace OsEngine.Robots.AutoTestBots
         }
     }
 }
-
