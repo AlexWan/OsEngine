@@ -43,45 +43,67 @@ namespace OsEngine.Robots.AutoTestBots
         {
             while (true)
             {                
-                Thread.Sleep(1000);
+                Thread.Sleep(2000);
                 AddDataToGrid();
             }            
         }
 
         private void AddDataToGrid()
         {
-            if (_regime.ValueString == "Off")
+            try
             {
-                return;
-            }
-
-            if (MainWindow.GetDispatcher.CheckAccess() == false)
-            {
-                MainWindow.GetDispatcher.Invoke(new Action(AddDataToGrid));
-                return;
-            }
-            
-
-            if (_grid.Rows.Count != 0)
-            {
-                for (int i = 0; i < _grid.Rows.Count; i++)
+                if (_regime.ValueString == "Off")
                 {
-                    if (_grid.Rows[i].Cells[0].Value == null)
-                    {
-                        continue;
-                    }
+                    return;
+                }
 
-                    for (int j = 0; j < _screener.Tabs.Count; j++)
+                if (MainWindow.GetDispatcher.CheckAccess() == false)
+                {
+                    MainWindow.GetDispatcher.Invoke(new Action(AddDataToGrid));
+                    return;
+                }
+
+                int startRow = _grid.FirstDisplayedScrollingRowIndex;
+
+                if (startRow < 0)
+                {
+                    startRow = 0;
+                }
+
+                int lastRow = startRow + _grid.DisplayedRowCount(false);
+
+                if (lastRow < 0 ||
+                    lastRow> _grid.Rows.Count)
+                {
+                    lastRow = _grid.Rows.Count;
+                }
+
+                if (_grid.Rows.Count != 0)
+                {
+                    for (int i = startRow; i < lastRow; i++)
                     {
-                        if (_screener.Tabs[j].Security != null &&
-                            _screener.Tabs[j].Security.Name == _grid.Rows[i].Cells[0].Value.ToString())/* &&
-                            _grid.Rows[i].Cells[0].Value.ToString().Contains("BTC-28FEB25"))*/
+                        if (_grid.Rows[i].Cells[0].Value == null)
                         {
-                            SetDataInTable(_screener.Tabs[j].Connector.AdditionalMarketData, i);
-                            break;
+                            continue;
+                        }
+
+                        for (int j = 0; j < _screener.Tabs.Count; j++)
+                        {
+                            if (_screener.Tabs[j].Security != null &&
+                                _screener.Tabs[j].Security.Name == _grid.Rows[i].Cells[0].Value.ToString())/* &&
+                            _grid.Rows[i].Cells[0].Value.ToString().Contains("BTC-28FEB25"))*/
+                            {
+                                SetDataInTable(_screener.Tabs[j].Connector.AdditionalMarketData, i);
+                                break;
+                            }
                         }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                Thread.Sleep(5000);
             }
         }
 
