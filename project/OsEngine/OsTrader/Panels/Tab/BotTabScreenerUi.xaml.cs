@@ -908,6 +908,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 key = key.ToLower();
 
+                int indexFirstSec = int.MaxValue;
+
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
                     string security = "";
@@ -926,12 +928,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     security = security.ToLower();
                     secSecond = secSecond.ToLower();
 
-                    if (security.Contains(key) ||
-                        secSecond.Contains(key))
+                    if (security.Contains(key) || secSecond.Contains(key))
                     {
+                        if (security.IndexOf(key) == 0 || secSecond.IndexOf(key) == 0)
+                        {
+                            indexFirstSec = i;
+                        }
+
                         _searchResults.Add(i);
-                    }
+                    }	
                 }
+				
+                if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
+                {
+                    int index = _searchResults.IndexOf(indexFirstSec);
+                    _searchResults.RemoveAt(index);
+                    _searchResults.Insert(0, indexFirstSec);
+                }							
             }
             catch (Exception ex)
             {
