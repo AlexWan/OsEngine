@@ -2844,6 +2844,8 @@ namespace OsEngine.Market.Servers.Transaq
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 10 Log messages

@@ -2056,6 +2056,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public event Action<MyTrade> MyTradeEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

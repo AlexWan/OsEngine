@@ -3151,6 +3151,8 @@ namespace OsEngine.Market.Servers.Plaza
             return -1;
         }
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
     }
 }

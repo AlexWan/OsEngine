@@ -538,6 +538,8 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         public event Action DisconnectEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         // log messages
         // сообщения для лога
 

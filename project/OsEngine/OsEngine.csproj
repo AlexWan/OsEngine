@@ -428,6 +428,7 @@
     <Compile Include="Entity\AcceptDialogUi.xaml.cs">
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entity\AdditionalMarketData.cs" />
     <Compile Include="Entity\AwaitObject.cs" />
     <Compile Include="Entity\AwaitUi.xaml.cs">
       <DependentUpon>AwaitUi.xaml</DependentUpon>
@@ -1177,6 +1178,7 @@
       <DependentUpon>TestBotConnectionParams.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\AutoTestBots\TestBotOpenAndCanselOrders.cs" />
+    <Compile Include="Robots\AutoTestBots\TestBotOption.cs" />
     <Compile Include="Robots\BotCreateUi2.xaml.cs">
       <DependentUpon>BotCreateUi2.xaml</DependentUpon>
     </Compile>

@@ -711,6 +711,8 @@ namespace OsEngine.Market.Servers.Finam
         public event Action<Trade> NewTradesEvent;
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
     }

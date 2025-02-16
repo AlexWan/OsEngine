@@ -2230,6 +2230,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
     }
 
     /// <summary>
@@ -2743,6 +2744,8 @@ namespace OsEngine.Market.Servers.Optimizer
         /// вызывается когда есть новое сообщение в логе
         /// </summary>
         public event Action<string,LogMessageType> LogMessageEvent;
+
+
 
     }
 }

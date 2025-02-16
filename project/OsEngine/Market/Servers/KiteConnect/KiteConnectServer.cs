@@ -1536,6 +1536,8 @@ namespace OsEngine.Market.Servers.KiteConnect
 
         public event Action<MyTrade> MyTradeEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion 9
 
         #region 10 Trade

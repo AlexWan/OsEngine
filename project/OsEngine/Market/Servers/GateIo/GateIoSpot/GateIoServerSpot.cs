@@ -1217,6 +1217,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 11 Trade

@@ -131,6 +131,7 @@ namespace OsEngine.Market.Servers.MFD
         public event Action<MyTrade> MyTradeEvent;
         public event Action<List<Portfolio>> PortfolioEvent;
         public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

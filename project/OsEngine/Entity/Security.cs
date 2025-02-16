@@ -274,6 +274,12 @@ namespace OsEngine.Entity
             return result;
         }
 
+        /// <summary>
+        /// Underlying asset (for Options)
+        /// Базовый актив (для опционов)
+        /// </summary>
+        public string UnderlyingAsset;
+
     }
 
     /// <summary>

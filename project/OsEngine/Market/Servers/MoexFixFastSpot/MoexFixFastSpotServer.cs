@@ -3549,6 +3549,8 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
 
         public event Action<MyTrade> MyTradeEvent;
 
+        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 9 Trade
