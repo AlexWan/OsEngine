@@ -26,10 +26,6 @@ using System.Globalization;
 
 namespace OsEngine.OsOptimizer
 {
-    /// <summary>
-    /// Interaction Logic for OptimizerUi.xaml
-    /// Логика взаимодействия для OptimizerUi.xaml
-    /// </summary>
     public partial class OptimizerUi
     {
         public OptimizerUi()
@@ -44,6 +40,7 @@ namespace OsEngine.OsOptimizer
             _master.NewSecurityEvent += _master_NewSecurityEvent;
             _master.DateTimeStartEndChange += _master_DateTimeStartEndChange;
             _master.TestReadyEvent += _master_TestReadyEvent;
+            _master.TimeToEndChangeEvent += _master_TimeToEndChangeEvent;
 
             CreateTableTabsSimple();
             CreateTableTabsIndex();
@@ -58,10 +55,10 @@ namespace OsEngine.OsOptimizer
             }
 
             ComboBoxThreadsCount.SelectedItem = _master.ThreadsCount;
-            CreateThradsProgressBars();
+            CreateThreadsProgressBars();
             ComboBoxThreadsCount.SelectionChanged += ComboBoxThreadsCount_SelectionChanged;
 
-            TextBoxStartPortfolio.Text = _master.StartDepozit.ToString();
+            TextBoxStartPortfolio.Text = _master.StartDeposit.ToString();
             TextBoxStartPortfolio.TextChanged += TextBoxStartPortfolio_TextChanged;
 
             CommissionTypeLabel.Content = OsLocalization.Optimizer.Label40;
@@ -77,7 +74,7 @@ namespace OsEngine.OsOptimizer
 
             // filters/фильтры
             CheckBoxFilterProfitIsOn.IsChecked = _master.FilterProfitIsOn;
-            CheckBoxFilterMaxDrowDownIsOn.IsChecked = _master.FilterMaxDrowDownIsOn;
+            CheckBoxFilterMaxDrowDownIsOn.IsChecked = _master.FilterMaxDrawDownIsOn;
             CheckBoxFilterMiddleProfitIsOn.IsChecked = _master.FilterMiddleProfitIsOn;
             CheckBoxFilterProfitFactorIsOn.IsChecked = _master.FilterProfitFactorIsOn;
             CheckBoxFilterDealsCount.IsChecked = _master.FilterDealsCountIsOn;
@@ -89,25 +86,25 @@ namespace OsEngine.OsOptimizer
             CheckBoxFilterDealsCount.Click += CheckBoxFilterIsOn_Click;
 
             TextBoxFilterProfitValue.Text = _master.FilterProfitValue.ToString();
-            TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrowDownValue.ToString();
+            TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrawDownValue.ToString();
             TextBoxFilterMiddleProfitValue.Text = _master.FilterMiddleProfitValue.ToString();
             TextBoxFilterProfitFactorValue.Text = _master.FilterProfitFactorValue.ToString();
             TextBoxFilterDealsCount.Text = _master.FilterDealsCountValue.ToString();
 
-            TextBoxFilterProfitValue.TextChanged += TextBoxFiltertValue_TextChanged;
-            TextBoxMaxDrowDownValue.TextChanged += TextBoxFiltertValue_TextChanged;
-            TextBoxFilterMiddleProfitValue.TextChanged += TextBoxFiltertValue_TextChanged;
-            TextBoxFilterProfitFactorValue.TextChanged += TextBoxFiltertValue_TextChanged;
-            TextBoxFilterDealsCount.TextChanged += TextBoxFiltertValue_TextChanged;
+            TextBoxFilterProfitValue.TextChanged += TextBoxFilterValue_TextChanged;
+            TextBoxMaxDrowDownValue.TextChanged += TextBoxFilterValue_TextChanged;
+            TextBoxFilterMiddleProfitValue.TextChanged += TextBoxFilterValue_TextChanged;
+            TextBoxFilterProfitFactorValue.TextChanged += TextBoxFilterValue_TextChanged;
+            TextBoxFilterDealsCount.TextChanged += TextBoxFilterValue_TextChanged;
 
-            // Stages/Этапы
+            // Stages
 
             DatePickerStart.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerStart.DisplayDate = _master.TimeStart;
             DatePickerEnd.DisplayDate = _master.TimeEnd;
 
-            TextBoxPercentFiltration.Text = _master.PercentOnFilration.ToString();
+            TextBoxPercentFiltration.Text = _master.PercentOnFiltration.ToString();
 
             CheckBoxLastInSample.IsChecked = _master.LastInSample;
             CheckBoxLastInSample.Click += CheckBoxLastInSample_Click;
@@ -137,7 +134,7 @@ namespace OsEngine.OsOptimizer
 
             };
 
-            _master.NeadToMoveUiToEvent += _master_NeadToMoveUiToEvent;
+            _master.NeedToMoveUiToEvent += _master_NeedToMoveUiToEvent;
             TextBoxStrategyName.Text = _master.StrategyName;
 
             Thread worker = new Thread(PainterProgressArea);
@@ -340,11 +337,40 @@ namespace OsEngine.OsOptimizer
                     _gridFazesEnd.CurrentCell = _gridFazes.Rows[0].Cells[0];
                 }
 
+                Label7.Content = OsLocalization.Optimizer.Label7;
+
                 PaintTableResults();
 
                 StartUserActivity();
 
                 _resultsCharting.ReLoad(_reports);
+            }
+            catch (Exception error)
+            {
+                _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _master_TimeToEndChangeEvent(TimeSpan timeToEnd)
+        {
+            SetTimeToEnd(timeToEnd.ToString());
+        }
+
+        private void SetTimeToEnd(string timeToEnd)
+        {
+            try
+            {
+                if (Label7.Dispatcher.CheckAccess() == false)
+                {
+                    Label7.Dispatcher.Invoke(new Action<string>(SetTimeToEnd), timeToEnd);
+                    return;
+                }
+
+                Label7.Content =
+                    OsLocalization.Optimizer.Label7 + "  "
+                    + OsLocalization.Optimizer.Label63 + ": "
+                    + timeToEnd.ToString();
+
             }
             catch (Exception error)
             {
@@ -381,7 +407,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         void ComboBoxThreadsCount_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            CreateThradsProgressBars();
+            CreateThreadsProgressBars();
         }
 
         /// <summary>
@@ -394,11 +420,11 @@ namespace OsEngine.OsOptimizer
         /// create progress bars for stream optimization
         /// создать прогресс бары для потоков оптимизации
         /// </summary>
-        private void CreateThradsProgressBars()
+        private void CreateThreadsProgressBars()
         {
             if (!ComboBoxThreadsCount.Dispatcher.CheckAccess())
             {
-                ComboBoxThreadsCount.Dispatcher.Invoke(CreateThradsProgressBars);
+                ComboBoxThreadsCount.Dispatcher.Invoke(CreateThreadsProgressBars);
                 return;
             }
             _progressBars = new List<ProgressBar>();
@@ -549,37 +575,37 @@ namespace OsEngine.OsOptimizer
         /// оптимизация не может стартовать и нужно переместить отображение к месту которое не настроено
         /// </summary>
         /// <param name="move">place to move GUI/место куда нужно переместить ГУИ</param>
-        void _master_NeadToMoveUiToEvent(NeadToMoveUiTo move)
+        void _master_NeedToMoveUiToEvent(NeedToMoveUiTo move)
         {
             if (!TabControlPrime.Dispatcher.CheckAccess())
             {
-                TabControlPrime.Dispatcher.Invoke(new Action<NeadToMoveUiTo>(_master_NeadToMoveUiToEvent), move);
+                TabControlPrime.Dispatcher.Invoke(new Action<NeedToMoveUiTo>(_master_NeedToMoveUiToEvent), move);
                 return;
             }
 
-            if (move == NeadToMoveUiTo.Fazes)
+            if (move == NeedToMoveUiTo.Fazes)
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[2];
             }
-            if (move == NeadToMoveUiTo.Filters)
+            if (move == NeedToMoveUiTo.Filters)
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[3];
             }
-            if (move == NeadToMoveUiTo.TabsAndTimeFrames)
+            if (move == NeedToMoveUiTo.TabsAndTimeFrames)
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[0];
             }
-            if (move == NeadToMoveUiTo.Storage 
-                || move == NeadToMoveUiTo.NameStrategy)
+            if (move == NeedToMoveUiTo.Storage 
+                || move == NeedToMoveUiTo.NameStrategy)
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[0];
             }
-            if (move == NeadToMoveUiTo.Parametrs)
+            if (move == NeedToMoveUiTo.Parameters)
             {
                 TabControlPrime.SelectedItem = TabControlPrime.Items[1];
             }
             // Проверка параметра Regime (наличие/состояние)
-            if (move == NeadToMoveUiTo.RegimeRow)
+            if (move == NeedToMoveUiTo.RegimeRow)
             {
                 for (int i = 0; i < _gridParametrs.Rows.Count; i++)
                 {
@@ -639,7 +665,7 @@ namespace OsEngine.OsOptimizer
             if(_master.Fazes != null &&
                 _master.Fazes.Count > 1 &&
                 (_master.FilterDealsCountIsOn 
-                || _master.FilterMaxDrowDownIsOn 
+                || _master.FilterMaxDrawDownIsOn 
                 || _master.FilterMiddleProfitIsOn
                 || _master.FilterProfitFactorIsOn
                 || _master.FilterProfitIsOn))
@@ -680,11 +706,11 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
-                _master.PercentOnFilration = Convert.ToDecimal(TextBoxPercentFiltration.Text);
+                _master.PercentOnFiltration = Convert.ToDecimal(TextBoxPercentFiltration.Text);
             }
             catch
             {
-                TextBoxPercentFiltration.Text = _master.PercentOnFilration.ToString();
+                TextBoxPercentFiltration.Text = _master.PercentOnFiltration.ToString();
             }
         }
 
@@ -700,12 +726,12 @@ namespace OsEngine.OsOptimizer
             _master.TimeStart = DatePickerStart.SelectedDate.Value;
         }
 
-        void TextBoxFiltertValue_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxFilterValue_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
                 _master.FilterProfitValue = Convert.ToDecimal(TextBoxFilterProfitValue.Text);
-                _master.FilterMaxDrowDownValue = Convert.ToDecimal(TextBoxMaxDrowDownValue.Text);
+                _master.FilterMaxDrawDownValue = Convert.ToDecimal(TextBoxMaxDrowDownValue.Text);
                 _master.FilterMiddleProfitValue = Convert.ToDecimal(TextBoxFilterMiddleProfitValue.Text);
                 _master.FilterProfitFactorValue = Convert.ToDecimal(TextBoxFilterProfitFactorValue.Text);
                 _master.FilterDealsCountValue = Convert.ToInt32(TextBoxFilterDealsCount.Text);
@@ -713,7 +739,7 @@ namespace OsEngine.OsOptimizer
             catch
             {
                 TextBoxFilterProfitValue.Text = _master.FilterProfitValue.ToString();
-                TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrowDownValue.ToString();
+                TextBoxMaxDrowDownValue.Text = _master.FilterMaxDrawDownValue.ToString();
                 TextBoxFilterMiddleProfitValue.Text = _master.FilterMiddleProfitValue.ToString();
                 TextBoxFilterProfitFactorValue.Text = _master.FilterProfitFactorValue.ToString();
                 TextBoxFilterDealsCount.Text = _master.FilterDealsCountValue.ToString();
@@ -723,7 +749,7 @@ namespace OsEngine.OsOptimizer
         void CheckBoxFilterIsOn_Click(object sender, RoutedEventArgs e)
         {
             _master.FilterProfitIsOn = CheckBoxFilterProfitIsOn.IsChecked.Value;
-            _master.FilterMaxDrowDownIsOn = CheckBoxFilterMaxDrowDownIsOn.IsChecked.Value;
+            _master.FilterMaxDrawDownIsOn = CheckBoxFilterMaxDrowDownIsOn.IsChecked.Value;
             _master.FilterMiddleProfitIsOn = CheckBoxFilterMiddleProfitIsOn.IsChecked.Value;
             _master.FilterProfitFactorIsOn = CheckBoxFilterProfitFactorIsOn.IsChecked.Value;
             _master.FilterDealsCountIsOn = CheckBoxFilterDealsCount.IsChecked.Value;
@@ -784,11 +810,11 @@ namespace OsEngine.OsOptimizer
             }
             catch
             {
-                TextBoxStartPortfolio.Text = _master.StartDepozit.ToString();
+                TextBoxStartPortfolio.Text = _master.StartDeposit.ToString();
                 return;
             }
 
-            _master.StartDepozit = Convert.ToInt32(TextBoxStartPortfolio.Text);
+            _master.StartDeposit = Convert.ToInt32(TextBoxStartPortfolio.Text);
         }
 
         private void CommissionValueTextBoxOnTextChanged(object sender, TextChangedEventArgs e)
@@ -2463,7 +2489,7 @@ namespace OsEngine.OsOptimizer
                         continue;
                     }
                 }
-                _master.SaveStandartParameters();
+                _master.SaveStandardParameters();
             }
             catch (Exception)
             {
@@ -2546,8 +2572,8 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
-                List<IIStrategyParameter> par = _master.ParametersStandart;
-                _master.SaveStandartParameters();
+                List<IIStrategyParameter> par = _master.ParametersStandard;
+                _master.SaveStandardParameters();
                 _parameters = par;
                 ReloadStrategy();
             }

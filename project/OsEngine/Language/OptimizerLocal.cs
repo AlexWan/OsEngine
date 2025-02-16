@@ -430,5 +430,9 @@ namespace OsEngine.Language
         public string Label62 => OsLocalization.ConvertToLocString(
            "Eng:Optimizer data storage_" +
            "Ru:Хранилище данных оптимизатора_");
+
+        public string Label63 => OsLocalization.ConvertToLocString(
+           "Eng:Time to end_" +
+           "Ru:Время до конца_");
     }
 }

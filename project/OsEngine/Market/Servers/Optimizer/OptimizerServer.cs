@@ -52,7 +52,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             _candleSeriesTesterActivate = new List<SecurityOptimizer>();
 
-            OrdersActiv = new List<Order>();
+            OrdersActive = new List<Order>();
         }
 
         /// <summary>
@@ -211,9 +211,13 @@ namespace OsEngine.Market.Servers.Optimizer
 
             _dataIsActive = false;
 
+            _lastTimeStartTest = DateTime.Now;
+
             _testerRegime = TesterRegime.Play;
             _manualReset.Set();
         }
+
+        public DateTime _lastTimeStartTest = DateTime.MinValue;
 
         /// <summary>
 		/// testing is starting
@@ -227,7 +231,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// тестирование прервано
         /// параметр: номер севера
         /// </summary>
-        public event Action<int> TestingEndEvent;
+        public event Action<int, TimeSpan> TestingEndEvent;
 
         /// <summary>
 		/// changed the number of downloaded objects
@@ -236,7 +240,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// the second parameter is maximum count / второй параметр - максимальное
         /// the third parameter is server number / третий - номер сервера
         /// </summary>
-        public event Action<int, int, int> TestintProgressChangeEvent;
+        public event Action<int, int, int> TestingProgressChangeEvent;
 
 // work place of main thread
 // место работы основного потока
@@ -488,7 +492,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     SendLogMessage(OsLocalization.Market.Message37, LogMessageType.System);
                     if (TestingEndEvent != null)
                     {
-                        TestingEndEvent(NumberServer);
+                        TimeSpan testLiveTime = DateTime.Now - _lastTimeStartTest;
+
+                        TestingEndEvent(NumberServer, testLiveTime);
                     }
                     return;
                 }
@@ -503,7 +509,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     LogMessageType.System);
                 if (TestingEndEvent != null)
                 {
-                    TestingEndEvent(NumberServer);
+                    TimeSpan testLiveTime = DateTime.Now - _lastTimeStartTest;
+
+                    TestingEndEvent(NumberServer, testLiveTime);
                 }
                 return;
             }
@@ -552,15 +560,15 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         private void CheckOrders()
         {
-            if (OrdersActiv.Count == 0)
+            if (OrdersActive.Count == 0)
             {
                 return;
             }
 
-            for (int i = 0; i < OrdersActiv.Count; i++)
+            for (int i = 0; i < OrdersActive.Count; i++)
             {
 
-                Order order = OrdersActiv[i];
+                Order order = OrdersActive[i];
                 // check instrument availability on the market / проверяем наличие инструмента на рынке
                 SecurityOptimizer security = GetMySecurity(order);
 
@@ -652,11 +660,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 ExecuteOnBoardOrder(order, realPrice, time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -675,11 +683,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 ExecuteOnBoardOrder(order, realPrice, time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -721,11 +729,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -773,11 +781,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -802,7 +810,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
                 {
-                    CanselOnBoardOrder(order);
+                    CancelOnBoardOrder(order);
                     return true;
                 }
             }
@@ -832,11 +840,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 decimal realPrice = order.Price;
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -855,11 +863,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -888,11 +896,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -928,11 +936,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -957,7 +965,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
                 {
-                    CanselOnBoardOrder(order);
+                    CancelOnBoardOrder(order);
                     return true;
                 }
             }
@@ -994,11 +1002,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 decimal realPrice = order.Price;
                 ExecuteOnBoardOrder(order, realPrice, time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -1027,11 +1035,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 ExecuteOnBoardOrder(order, realPrice, lastMarketDepth.Time, 0);
 
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        OrdersActiv.RemoveAt(i);
+                        OrdersActive.RemoveAt(i);
                         break;
                     }
                 }
@@ -1070,11 +1078,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -1122,11 +1130,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     ExecuteOnBoardOrder(order, realPrice, time, slipage);
 
-                    for (int i = 0; i < OrdersActiv.Count; i++)
+                    for (int i = 0; i < OrdersActive.Count; i++)
                     {
-                        if (OrdersActiv[i].NumberUser == order.NumberUser)
+                        if (OrdersActive[i].NumberUser == order.NumberUser)
                         {
-                            OrdersActiv.RemoveAt(i);
+                            OrdersActive.RemoveAt(i);
                             break;
                         }
                     }
@@ -1149,7 +1157,7 @@ namespace OsEngine.Market.Servers.Optimizer
             {
                 if (order.TimeCallBack.Add(order.LifeTime) <= ServerTime)
                 {
-                    CanselOnBoardOrder(order);
+                    CancelOnBoardOrder(order);
                     return true;
                 }
             }
@@ -1209,9 +1217,9 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
-        public int CountDaysTickNeadToSave { get; set; }
+        public int CountDaysTickNeedToSave { get; set; }
 
-        public bool NeadToSaveTicks { get; set; }
+        public bool NeedToSaveTicks { get; set; }
 
 // server time
 // время сервера
@@ -1327,7 +1335,6 @@ namespace OsEngine.Market.Servers.Optimizer
             get { return _securities; }
         }
         private List<Security> _securities = new List<Security>();
-
 
         /// <summary>
 		/// take security as Security class by name
@@ -1633,10 +1640,10 @@ namespace OsEngine.Market.Servers.Optimizer
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
 
-            if (TestintProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
+            if (TestingProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
             {
                 _lastTimeCountChange = DateTime.Now;
-                TestintProgressChangeEvent(currentCandleCount, allCandleCount,NumberServer);
+                TestingProgressChangeEvent(currentCandleCount, allCandleCount,NumberServer);
             }
         }
 
@@ -1678,10 +1685,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 NewMarketDepthEvent(marketDepth);
             }
 
-            if (TestintProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
+            if (TestingProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
             {
                 _lastTimeCountChange = DateTime.Now;
-                TestintProgressChangeEvent(lastCount, maxCount, NumberServer);
+                TestingProgressChangeEvent(lastCount, maxCount, NumberServer);
             }
         }
 
@@ -1783,10 +1790,10 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-            if (maxCount != 0 && TestintProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
+            if (maxCount != 0 && TestingProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)
             {
                 _lastTimeCountChange = DateTime.Now;
-                TestintProgressChangeEvent(lastCount, maxCount, NumberServer);
+                TestingProgressChangeEvent(lastCount, maxCount, NumberServer);
             }
 
             if (NewBidAscIncomeEvent != null)
@@ -1868,7 +1875,7 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// placed orders on the exchange
         /// выставленные на биржу ордера
         /// </summary>
-        private List<Order> OrdersActiv;
+        private List<Order> OrdersActive;
 
         /// <summary>
 		/// iterator of order numbers on the exchange
@@ -1891,11 +1898,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
             order.TimeCreate = ServerTime;
 
-            if (OrdersActiv.Count != 0)
+            if (OrdersActive.Count != 0)
             {
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
                         SendLogMessage(OsLocalization.Market.Message39, LogMessageType.Error);
                         FailedOperationOrder(order);
@@ -1957,7 +1964,7 @@ namespace OsEngine.Market.Servers.Optimizer
             orderOnBoard.TimeFrameInTester = order.TimeFrameInTester;
             orderOnBoard.OrderTypeTime = order.OrderTypeTime;
 
-            OrdersActiv.Add(orderOnBoard);
+            OrdersActive.Add(orderOnBoard);
 
             if (NewOrderIncomeEvent != null)
             {
@@ -1977,7 +1984,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 { // testing with using candles / прогон на свечках
                     if (CheckOrdersInCandleTest(orderOnBoard, security.LastCandle))
                     {
-                        OrdersActiv.Remove(orderOnBoard);
+                        OrdersActive.Remove(orderOnBoard);
                     }
                 }
             }
@@ -2049,7 +2056,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            CanselOnBoardOrder(order);
+            CancelOnBoardOrder(order);
         }
 
         /// <summary>
@@ -2074,17 +2081,17 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// cancel order from the exchange
         /// провести отзыв ордера с биржи 
         /// </summary>
-        private void CanselOnBoardOrder(Order order)
+        private void CancelOnBoardOrder(Order order)
         {
             Order orderToClose = null;
 
-            if (OrdersActiv.Count != 0)
+            if (OrdersActive.Count != 0)
             {
-                for (int i = 0; i < OrdersActiv.Count; i++)
+                for (int i = 0; i < OrdersActive.Count; i++)
                 {
-                    if (OrdersActiv[i].NumberUser == order.NumberUser)
+                    if (OrdersActive[i].NumberUser == order.NumberUser)
                     {
-                        orderToClose = OrdersActiv[i];
+                        orderToClose = OrdersActive[i];
                     }
                 }
             }
@@ -2096,11 +2103,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
-            for (int i = 0; i < OrdersActiv.Count; i++)
+            for (int i = 0; i < OrdersActive.Count; i++)
             {
-                if (OrdersActiv[i].NumberUser == order.NumberUser)
+                if (OrdersActive[i].NumberUser == order.NumberUser)
                 {
-                    OrdersActiv.RemoveAt(i);
+                    OrdersActive.RemoveAt(i);
                     break;
                 }
             }
