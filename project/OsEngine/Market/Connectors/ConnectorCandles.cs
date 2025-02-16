@@ -1312,7 +1312,7 @@ namespace OsEngine.Market.Connectors
             }
         }
 
-        private void Server_NewAdditionalMarketDataEvent(AdditionalMarketData data)
+        private void Server_NewAdditionalMarketDataEvent(OptionMarketData data)
         {
             try
             {
@@ -1451,12 +1451,12 @@ namespace OsEngine.Market.Connectors
         /// Data of Options
         /// данные (греки) по опционам
         /// </summary>
-        public AdditionalMarketData AdditionalMarketData
+        public OptionMarketData AdditionalMarketData
         {
             get { return _additionalMarketData; }
 
         }
-        private AdditionalMarketData _additionalMarketData = new AdditionalMarketData();
+        private OptionMarketData _additionalMarketData = new OptionMarketData();
 
         #endregion
 

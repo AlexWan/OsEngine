@@ -246,11 +246,11 @@ namespace OsEngine.Robots.AutoTestBots
             _grid.Rows[_grid.Rows.Count - 1].Cells[0].Value = securityName;
         }               
 
-        private void SetDataInTable(AdditionalMarketData obj, int row)
+        private void SetDataInTable(OptionMarketData obj, int row)
         {
             if (MainWindow.GetDispatcher.CheckAccess() == false)
             {
-                MainWindow.GetDispatcher.Invoke((Action<AdditionalMarketData, int>)SetDataInTable, obj, row);
+                MainWindow.GetDispatcher.Invoke((Action<OptionMarketData, int>)SetDataInTable, obj, row);
                 return;
             }
             

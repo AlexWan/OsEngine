@@ -571,7 +571,7 @@ namespace OsEngine.Market.Servers.ZB
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
         public event Action<string, LogMessageType> LogMessageEvent;
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType logMessageType)
         {

@@ -868,7 +868,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public event Action<MarketDepth> MarketDepthEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void MessageReader()
         {

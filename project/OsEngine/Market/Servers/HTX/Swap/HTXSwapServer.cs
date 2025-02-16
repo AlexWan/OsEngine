@@ -1314,7 +1314,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

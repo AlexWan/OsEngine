@@ -1029,7 +1029,7 @@ namespace OsEngine.Market.Servers
                     }
                     else if (!_additionalMarketDataToSend.IsEmpty)
                     {
-                        AdditionalMarketDataForConnector data;
+                        OptionMarketDataForConnector data;
 
                         if (_additionalMarketDataToSend.TryDequeue(out data))
                         {
@@ -1108,7 +1108,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// queue for Additional Market Data
         /// </summary>
-        private ConcurrentQueue<AdditionalMarketDataForConnector> _additionalMarketDataToSend = new ConcurrentQueue<AdditionalMarketDataForConnector>();
+        private ConcurrentQueue<OptionMarketDataForConnector> _additionalMarketDataToSend = new ConcurrentQueue<OptionMarketDataForConnector>();
 
         #endregion
 
@@ -2956,7 +2956,7 @@ namespace OsEngine.Market.Servers
 
         #region Additional Market Data
 
-        private void _serverRealization_AdditionalMarketDataEvent(AdditionalMarketDataForConnector obj)
+        private void _serverRealization_AdditionalMarketDataEvent(OptionMarketDataForConnector obj)
         {
             try
             {
@@ -2978,9 +2978,9 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        private Dictionary<string, AdditionalMarketData> _dictAdditionalMarketData = new Dictionary<string, AdditionalMarketData>();
+        private Dictionary<string, OptionMarketData> _dictAdditionalMarketData = new Dictionary<string, OptionMarketData>();
 
-        private void ConvertableMarketData(AdditionalMarketDataForConnector data)
+        private void ConvertableMarketData(OptionMarketDataForConnector data)
         {
             try
             {
@@ -2991,7 +2991,7 @@ namespace OsEngine.Market.Servers
 
                 if (!_dictAdditionalMarketData.ContainsKey(data.SecurityName))
                 {
-                    AdditionalMarketData additionalMarketData = new AdditionalMarketData();
+                    OptionMarketData additionalMarketData = new OptionMarketData();
                     _dictAdditionalMarketData.Add(data.SecurityName, additionalMarketData);
                 }
 
@@ -3081,7 +3081,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// new Additional Market Data
         /// </summary>
-        public event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
 
         #endregion
     }

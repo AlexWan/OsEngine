@@ -1181,7 +1181,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         public event Action DisconnectEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType type)
         {

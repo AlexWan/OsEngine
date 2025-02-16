@@ -1053,7 +1053,7 @@ namespace OsEngine.Market.Servers.Deribit
                     return;
                 }
 
-                AdditionalMarketDataForConnector data = new AdditionalMarketDataForConnector();
+                OptionMarketDataForConnector data = new OptionMarketDataForConnector();
 
                 data.Delta = response.@params.data.greeks.delta;
                 data.Gamma = response.@params.data.greeks.gamma;
@@ -1087,7 +1087,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

@@ -229,7 +229,7 @@ namespace OsEngine.Market.Servers
         /// additional market data
         /// дополнительные маркет данные по тикеру
         /// </summary>
-        event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
     }

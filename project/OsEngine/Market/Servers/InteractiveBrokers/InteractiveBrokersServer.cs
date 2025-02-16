@@ -1289,7 +1289,7 @@ contract =>
 
         public event Action<MyTrade> MyTradeEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

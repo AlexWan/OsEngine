@@ -1176,7 +1176,7 @@ namespace OsEngine.Market.Servers.Quik
         /// </summary>
         public event Action DisconnectEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         // logging / логирование
 

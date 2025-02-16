@@ -2230,7 +2230,7 @@ namespace OsEngine.Market.Servers.Optimizer
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
     }
 
     /// <summary>

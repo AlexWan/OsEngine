@@ -1332,7 +1332,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public event Action<Trade> NewTradesEvent;
 
-            public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+            public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
             #endregion
 

@@ -273,7 +273,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

@@ -1212,7 +1212,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
         public event Action<News> NewsEvent;
 
-        public event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
 
         /// <summary>
         /// candle series changed

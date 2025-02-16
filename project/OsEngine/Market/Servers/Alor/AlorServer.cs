@@ -1515,7 +1515,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public event Action<News> NewsEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

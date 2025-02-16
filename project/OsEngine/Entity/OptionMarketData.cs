@@ -2,7 +2,7 @@
 
 namespace OsEngine.Entity
 {
-    public class AdditionalMarketData
+    public class OptionMarketData
     {       
         public decimal Delta;
 
@@ -33,7 +33,7 @@ namespace OsEngine.Entity
         public string UnderlyingAsset;
     }
 
-    public class AdditionalMarketDataForConnector
+    public class OptionMarketDataForConnector
     {
         public string Delta;
 

@@ -480,7 +480,7 @@ namespace OsEngine.Market.Servers.Lmax
         public event Action<Trade> NewTradesEvent;
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         // log messages
         // сообщения для лога

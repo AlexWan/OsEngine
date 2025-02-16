@@ -188,7 +188,7 @@ namespace OsEngine.Market.Servers
         /// new additional market data
         /// новые данные по дополнительным данным по тикеру
         /// </summary>
-        event Action<AdditionalMarketData> NewAdditionalMarketDataEvent;
+        event Action<OptionMarketData> NewAdditionalMarketDataEvent;
 
         #endregion
 

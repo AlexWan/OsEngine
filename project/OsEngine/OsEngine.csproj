@@ -428,7 +428,7 @@
     <Compile Include="Entity\AcceptDialogUi.xaml.cs">
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\AdditionalMarketData.cs" />
+    <Compile Include="Entity\OptionMarketData.cs" />
     <Compile Include="Entity\AwaitObject.cs" />
     <Compile Include="Entity\AwaitUi.xaml.cs">
       <DependentUpon>AwaitUi.xaml</DependentUpon>

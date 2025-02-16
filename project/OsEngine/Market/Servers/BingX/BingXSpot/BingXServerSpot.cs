@@ -795,7 +795,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void MessageReader()
         {

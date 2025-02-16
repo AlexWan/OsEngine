@@ -1365,7 +1365,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

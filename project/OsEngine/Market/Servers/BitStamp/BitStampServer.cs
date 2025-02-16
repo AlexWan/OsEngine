@@ -456,7 +456,7 @@ namespace OsEngine.Market.Servers.BitStamp
         /// </summary>
         public event Action DisconnectEvent;
 
-        public event Action<AdditionalMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         // log messages
         // сообщения для лога
