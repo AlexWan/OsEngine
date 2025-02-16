@@ -10,7 +10,6 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         #region DataFeedPermissions
-
         public bool DataFeedTf1SecondCanLoad
         {
             get { return false; }
@@ -45,7 +44,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
         public bool DataFeedTf2MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf5MinuteCanLoad
         {
@@ -53,7 +52,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
         public bool DataFeedTf10MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf15MinuteCanLoad
         {
@@ -69,15 +68,11 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
         public bool DataFeedTf2HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
         public bool DataFeedTf4HourCanLoad
         {
             get { return true; }
-        }
-        public bool DataFeedTfDayCanLoad
-        {
-            get { return false; }
         }
         public bool DataFeedTfTickCanLoad
         {
@@ -91,96 +86,84 @@ namespace OsEngine.Market.Servers.Bitfinex
         #endregion
 
         #region Trade permission
-
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
-
         public bool IsTradeServer
         {
             get { return true; }
         }
-
         public bool IsCanChangeOrderPrice
         {
-            get { return false; }
+            get { return true; }
         }
-
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
         }
-
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 1; }
+            get { return 10; }
         }
 
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = true,
-                TimeFrameSec2IsOn = true,
-                TimeFrameSec5IsOn = true,
-                TimeFrameSec10IsOn = true,
-                TimeFrameSec15IsOn = true,
-                TimeFrameSec20IsOn = true,
-                TimeFrameSec30IsOn = true,
+                TimeFrameSec1IsOn = false,
+                TimeFrameSec2IsOn = false,
+                TimeFrameSec5IsOn = false,
+                TimeFrameSec10IsOn = false,
+                TimeFrameSec15IsOn = false,
+                TimeFrameSec20IsOn = false,
+                TimeFrameSec30IsOn = false,
                 TimeFrameMin1IsOn = true,
-                TimeFrameMin2IsOn = true,
-                TimeFrameMin3IsOn = true,
+                TimeFrameMin2IsOn = false,
+                TimeFrameMin3IsOn = false,
                 TimeFrameMin5IsOn = true,
-                TimeFrameMin10IsOn = true,
+                TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,
-                TimeFrameMin20IsOn = true,
+                TimeFrameMin20IsOn = false,
                 TimeFrameMin30IsOn = true,
-                TimeFrameMin45IsOn = true,
+                TimeFrameMin45IsOn = false,
                 TimeFrameHour1IsOn = true,
-                TimeFrameHour2IsOn = true,
+                TimeFrameHour2IsOn = false,
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = true
             };
 
         public bool UseStandardCandlesStarter
         {
-            get { return false; }
+            get { return true; }
         }
-
         public bool IsUseLotToCalculateProfit
         {
-            get { return false; }
+            get { return true; }
         }
-
         public bool ManuallyClosePositionOnBoard_IsOn
         {
             get { return false; }
         }
-
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
             get { return null; }
         }
-
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
             get { return null; }
         }
-
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
-
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
-
-        #endregion
-
-        #region Other Permissions
-
+        public bool DataFeedTfDayCanLoad
+        {
+            get { return true; }
+        }
         public bool IsNewsServer
         {
             get { return false; }

@@ -470,6 +470,9 @@
     <Compile Include="Market\Servers\Atp\SecuritiesAtpUi.xaml.cs">
       <DependentUpon>SecuritiesAtpUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Bitfinex\Json\BitfinexCandle.cs" />
+    <Compile Include="Market\Servers\Bitfinex\Json\BitfinexOrder.cs" />
+    <Compile Include="Market\Servers\Bitfinex\Json\BitfinexWebsocketTrades.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexAsset.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexCandle.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServerPermission.cs" />
@@ -589,16 +592,8 @@
     <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ListenKeyBingX.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ResponceWebSocketBingXMessage.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ResponseSpotBingX.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfinexClient.cs" />
     <Compile Include="Market\Servers\Bitfinex\BitfinexServer.cs" />
     <Compile Include="Market\Servers\Bitfinex\BitFinexServerPermission.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\BitfinexOrder.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\BitfinexSecurity.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\BitfinexTickerTradeInfo.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\EventInfo.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\JsonConverter.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\NewOrderPayload.cs" />
-    <Compile Include="Market\Servers\Bitfinex\BitfitnexEntity\SubscriptionInformation.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetFutures\BitGetFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetFutures\BitGetServerFutures.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetFutures\Entity\RequestWebsocketAuth.cs" />
