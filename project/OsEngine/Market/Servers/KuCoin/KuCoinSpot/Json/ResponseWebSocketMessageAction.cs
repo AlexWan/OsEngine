@@ -67,7 +67,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string ts; // 1593487482038606180 nanoseconds
     }
 
-
     public class RelationContext
     {
         public string symbol; //"BTC-USDT",

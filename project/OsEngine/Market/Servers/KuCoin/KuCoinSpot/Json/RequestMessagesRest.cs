@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-
+﻿
 
 namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
 {
@@ -17,7 +16,4 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
     {
         public string symbol;
     }
-
-
-
 }
