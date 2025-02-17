@@ -266,7 +266,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 portfolioInitial.Number = "KuCoinSpot";
                 portfolioInitial.ValueBegin = 1;
                 portfolioInitial.ValueCurrent = 1;
-                portfolioInitial.ValueBlocked = 1;
+                portfolioInitial.ValueBlocked = 0;
 
                 Portfolios.Add(portfolioInitial);
 
@@ -1015,12 +1015,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             PositionOnBoard pos = new PositionOnBoard();
 
-            if (Portfolio.data.currency == "USDT")
-            {
-                portfolio.ValueCurrent = Portfolio.data.available.ToDecimal();
-                portfolio.ValueBlocked = Portfolio.data.hold.ToDecimal();
-            }
-
             pos.PortfolioName = "KuCoinSpot";
             pos.SecurityNameCode = Portfolio.data.currency;
             pos.ValueBlocked = Portfolio.data.hold.ToDecimal();
@@ -1607,19 +1601,20 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             List<PositionOnBoard> alreadySendPositions = new List<PositionOnBoard>();
 
+            decimal portfolioUSDT = 0;
+            decimal portfolioCoin = 0;
+
             for (int i = 0; i < assets.data.Count; i++)
             {
                 ResponseAsset item = assets.data[i];
 
                 if (item.currency == "USDT")
                 {
-                    if (IsUpdateValueBegin)
-                    {
-                        portfolio.ValueBegin = item.balance.ToDecimal();
-                    }
-
-                    portfolio.ValueCurrent = item.available.ToDecimal();
-                    portfolio.ValueBlocked = item.holds.ToDecimal();
+                    portfolioUSDT = item.balance.ToDecimal();
+                }
+                else
+                {
+                    portfolioCoin += GetPositionInUSDT(item.currency + "-" + "USDT", item.available.ToDecimal());
                 }
 
                 PositionOnBoard pos = new PositionOnBoard();
@@ -1653,7 +1648,55 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 }
             }
 
+            if (IsUpdateValueBegin)
+            {
+                portfolio.ValueBegin = Math.Round(portfolioUSDT + portfolioCoin, 4);
+            }
+
+            portfolio.ValueCurrent = Math.Round(portfolioUSDT + portfolioCoin, 4);
+
             PortfolioEvent(Portfolios);
+        }
+
+        private decimal GetPositionInUSDT(string security, decimal volume)
+        {
+            try
+            {
+                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/market/orderbook/level1", "GET", "symbol=" + security, null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code == "200000")
+                    {
+                        ResponseMessageRest<Ticker> ticker = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<Ticker>());
+
+                        decimal positionInUSDT = ticker.data.price.ToDecimal() * volume;
+
+                        return positionInUSDT;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.code != null)
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return 0;
         }
 
         private void CreateQueryMyTrade(string nameSec, string OrdId, long ts)
