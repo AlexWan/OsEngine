@@ -307,9 +307,9 @@ namespace OsEngine.OsTrader.Panels
 
                 ReloadTab();
 
-                if (ActivTab != null)
+                if (ActiveTab != null)
                 {
-                    ChangeActivTab(ActivTab.TabNum);
+                    ChangeActiveTab(ActiveTab.TabNum);
                 }
                 else
                 {
@@ -317,13 +317,13 @@ namespace OsEngine.OsTrader.Panels
                         && _tabBotTab.Items.Count != 0
                         && _tabBotTab.SelectedItem != null)
                     {
-                        ChangeActivTab(_tabBotTab.SelectedIndex);
+                        ChangeActiveTab(_tabBotTab.SelectedIndex);
                     }
                     else if (_tabBotTab != null
                              && _tabBotTab.Items.Count != 0
                              && _tabBotTab.SelectedItem == null)
                     {
-                        ChangeActivTab(0);
+                        ChangeActiveTab(0);
                     }
                 }
             }
@@ -603,14 +603,14 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public void MoveChartToTheRight()
         {
-            if (ActivTab == null)
+            if (ActiveTab == null)
             {
                 return;
             }
 
-            if (ActivTab.GetType().Name == "BotTabSimple")
+            if (ActiveTab.GetType().Name == "BotTabSimple")
             {
-                ((BotTabSimple)ActivTab).MoveChartToTheRight();
+                ((BotTabSimple)ActiveTab).MoveChartToTheRight();
             }
         }
 
@@ -1430,7 +1430,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// active tab
         /// </summary>
-        public IIBotTab ActivTab;
+        public IIBotTab ActiveTab;
 
         /// <summary>
         /// control which tabs are located
@@ -1440,13 +1440,13 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// open tab number
         /// </summary>
-        public int ActivTabNumber
+        public int ActiveTabNumber
         {
             get
             {
                 try
                 {
-                    if (ActivTab == null
+                    if (ActiveTab == null
                         || _tabBotTab == null
                         || _tabBotTab.Items == null
                         || _tabBotTab.Items.Count == 0)
@@ -1563,7 +1563,7 @@ position => position.State != PositionStateType.OpeningFail
             {
                 if (_tabBotTab != null && _tabBotTab.Items.Count != 0)
                 {
-                    ChangeActivTab(_tabBotTab.SelectedIndex);
+                    ChangeActiveTab(_tabBotTab.SelectedIndex);
                 }
 
             }
@@ -1638,8 +1638,9 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     newTab = new BotTabScreener(nameTab, StartProgram);
                     _tabsScreener.Add((BotTabScreener)newTab);
+                    ((BotTabScreener)newTab).UserSelectActionEvent += UserSetPositionAction;
 
-                    ((BotTabScreener)newTab).NewTabCreateEvent += (tab) =>
+                     ((BotTabScreener)newTab).NewTabCreateEvent += (tab) =>
                     {
                         if (NewTabCreateEvent != null)
                         {
@@ -1657,7 +1658,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 newTab.TabNum = _botTabs.Count - 1;
 
-                ChangeActivTab(_botTabs.Count - 1);
+                ChangeActiveTab(_botTabs.Count - 1);
 
                 ReloadTab();
 
@@ -1679,18 +1680,18 @@ position => position.State != PositionStateType.OpeningFail
         {
             try
             {
-                if (ActivTab == null)
+                if (ActiveTab == null)
                 {
                     return;
                 }
 
-                ActivTab.Delete();
+                ActiveTab.Delete();
 
-                _botTabs.Remove(ActivTab);
+                _botTabs.Remove(ActiveTab);
 
                 if (_botTabs != null && _botTabs.Count != 0)
                 {
-                    ChangeActivTab(0);
+                    ChangeActiveTab(0);
                 }
 
                 ReloadTab();
@@ -1713,7 +1714,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             try
             {
-                if (ActivTab == null)
+                if (ActiveTab == null)
                 {
                     return;
                 }
@@ -1728,7 +1729,7 @@ position => position.State != PositionStateType.OpeningFail
                 _botTabs.RemoveAt(index);
                 if (_botTabs != null && _botTabs.Count != 0)
                 {
-                    ChangeActivTab(0);
+                    ChangeActiveTab(0);
                 }
 
                 ReloadTab();
@@ -1747,7 +1748,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// set new active tab
         /// </summary>
-        private void ChangeActivTab(int tabNumber)
+        private void ChangeActiveTab(int tabNumber)
         {
             try
             {
@@ -1758,7 +1759,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
-                    _tabBotTab.Dispatcher.Invoke(new Action<int>(ChangeActivTab), tabNumber);
+                    _tabBotTab.Dispatcher.Invoke(new Action<int>(ChangeActiveTab), tabNumber);
                     return;
                 }
 
@@ -1767,9 +1768,9 @@ position => position.State != PositionStateType.OpeningFail
 
                 }
 
-                if (ActivTab != null)
+                if (ActiveTab != null)
                 {
-                    ActivTab.StopPaint();
+                    ActiveTab.StopPaint();
                 }
 
                 if (_botTabs == null ||
@@ -1778,36 +1779,36 @@ position => position.State != PositionStateType.OpeningFail
                     return;
                 }
 
-                ActivTab = _botTabs[tabNumber];
+                ActiveTab = _botTabs[tabNumber];
 
-                if (ActivTab.TabType == BotTabType.Simple)
+                if (ActiveTab.TabType == BotTabType.Simple)
                 {
-                    ((BotTabSimple)ActivTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
+                    ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
                         _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel, _textBoxVolume);
                 }
-                else if (ActivTab.TabType == BotTabType.Index)
+                else if (ActiveTab.TabType == BotTabType.Index)
                 {
-                    ((BotTabIndex)ActivTab).StartPaint(_gridChart, _hostChart, _rectangle);
+                    ((BotTabIndex)ActiveTab).StartPaint(_gridChart, _hostChart, _rectangle);
                 }
-                else if (ActivTab.TabType == BotTabType.Cluster)
+                else if (ActiveTab.TabType == BotTabType.Cluster)
                 {
-                    ((BotTabCluster)ActivTab).StartPaint(_hostChart, _rectangle);
+                    ((BotTabCluster)ActiveTab).StartPaint(_hostChart, _rectangle);
                 }
-                else if (ActivTab.TabType == BotTabType.Screener)
+                else if (ActiveTab.TabType == BotTabType.Screener)
                 {
-                    ((BotTabScreener)ActivTab).StartPaint(_hostChart);
+                    ((BotTabScreener)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
                 }
-                else if (ActivTab.TabType == BotTabType.Pair)
+                else if (ActiveTab.TabType == BotTabType.Pair)
                 {
-                    ((BotTabPair)ActivTab).StartPaint(_hostChart);
+                    ((BotTabPair)ActiveTab).StartPaint(_hostChart);
                 }
-                else if (ActivTab.TabType == BotTabType.Polygon)
+                else if (ActiveTab.TabType == BotTabType.Polygon)
                 {
-                    ((BotTabPolygon)ActivTab).StartPaint(_hostChart);
+                    ((BotTabPolygon)ActiveTab).StartPaint(_hostChart);
                 }
-                else if (ActivTab.TabType == BotTabType.News)
+                else if (ActiveTab.TabType == BotTabType.News)
                 {
-                    ((BotTabNews)ActivTab).StartPaint(_hostChart);
+                    ((BotTabNews)ActiveTab).StartPaint(_hostChart);
                 }
             }
             catch (Exception error)
@@ -1849,9 +1850,9 @@ position => position.State != PositionStateType.OpeningFail
                         }
                     }
 
-                    if (ActivTab != null && _botTabs != null && _botTabs.Count != 0)
+                    if (ActiveTab != null && _botTabs != null && _botTabs.Count != 0)
                     {
-                        int index = _botTabs.FindIndex(tab => tab.TabName == ActivTab.TabName);
+                        int index = _botTabs.FindIndex(tab => tab.TabName == ActiveTab.TabName);
 
                         if (index >= 0)
                         {
@@ -1904,7 +1905,7 @@ position => position.State != PositionStateType.OpeningFail
                 _botTabs.Clear();
             }
 
-            ActivTab = null;
+            ActiveTab = null;
 
             if (NewTabCreateEvent != null)
             {
@@ -1921,7 +1922,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             try
             {
-                if (ActivTab == null)
+                if (ActiveTab == null)
                 {
                     return;
                 }

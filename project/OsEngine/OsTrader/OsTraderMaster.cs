@@ -1058,11 +1058,11 @@ namespace OsEngine.OsTrader
         /// </summary>
         public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses)
         {
-            _globalPositionViewer = new GlobalPositionViewer(hostActivePoses, null, _startProgram);
+            _globalPositionViewer = new GlobalPositionViewer(_startProgram);
             _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
             _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
             _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
-            _globalPositionViewer.StartPaint();
+            _globalPositionViewer.StartPaint(hostActivePoses, null);
             ReloadRiskJournals();
         }
 
@@ -1071,11 +1071,11 @@ namespace OsEngine.OsTrader
         /// </summary>
         public void CreateGlobalPositionController(WindowsFormsHost hostActivePoses, WindowsFormsHost hostHistoricalPoses)
         {
-            _globalPositionViewer = new GlobalPositionViewer(hostActivePoses, hostHistoricalPoses, _startProgram);
+            _globalPositionViewer = new GlobalPositionViewer(_startProgram);
             _globalPositionViewer.LogMessageEvent += SendNewLogMessage;
             _globalPositionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
             _globalPositionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
-            _globalPositionViewer.StartPaint();
+            _globalPositionViewer.StartPaint(hostActivePoses, hostHistoricalPoses);
             ReloadRiskJournals();
         }
 
@@ -1097,7 +1097,7 @@ namespace OsEngine.OsTrader
         /// The user has selected a position
         /// </summary>
         /// <param name="pos">position</param>
-        /// <param name="signal">Acktion signal</param>
+        /// <param name="signal">Action signal</param>
         private void _globalController_UserSelectActionEvent(Position pos, SignalType signal)
         {
             for (int i = 0; i < PanelsArray.Count; i++)
@@ -1362,7 +1362,7 @@ namespace OsEngine.OsTrader
                 {
                     if(_globalPositionViewer != null)
                     {
-                        _globalPositionViewer.StartPaint();
+                        _globalPositionViewer.StartPaint(_hostOpenDeals, _hostCloseDeals);
                     }
 
                     if (_buyAtStopPosViewer != null)
@@ -1603,10 +1603,10 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                if (_activPanel.ActivTab != null &&
-                    _activPanel.ActivTab.GetType().Name == "BotTabSimple")
+                if (_activPanel.ActiveTab != null &&
+                    _activPanel.ActiveTab.GetType().Name == "BotTabSimple")
                 {
-                    ((BotTabSimple)_activPanel.ActivTab).ShowManualControlDialog();
+                    ((BotTabSimple)_activPanel.ActiveTab).ShowManualControlDialog();
                 }
                 else
                 {
@@ -1651,30 +1651,30 @@ namespace OsEngine.OsTrader
                     MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
-                if (_activPanel.ActivTab != null &&
-                    _activPanel.ActivTab.GetType().Name == "BotTabSimple")
+                if (_activPanel.ActiveTab != null &&
+                    _activPanel.ActiveTab.GetType().Name == "BotTabSimple")
                 {
-                    ((BotTabSimple)_activPanel.ActivTab).ShowConnectorDialog();
+                    ((BotTabSimple)_activPanel.ActiveTab).ShowConnectorDialog();
                 }
-                else if (_activPanel.ActivTab != null &&
-                    _activPanel.ActivTab.GetType().Name == "BotTabIndex")
+                else if (_activPanel.ActiveTab != null &&
+                    _activPanel.ActiveTab.GetType().Name == "BotTabIndex")
                 {
-                    ((BotTabIndex)_activPanel.ActivTab).ShowDialog();
+                    ((BotTabIndex)_activPanel.ActiveTab).ShowDialog();
                 }
-                else if (_activPanel.ActivTab != null &&
-                         _activPanel.ActivTab.GetType().Name == "BotTabCluster")
+                else if (_activPanel.ActiveTab != null &&
+                         _activPanel.ActiveTab.GetType().Name == "BotTabCluster")
                 {
-                    ((BotTabCluster)_activPanel.ActivTab).ShowDialog();
+                    ((BotTabCluster)_activPanel.ActiveTab).ShowDialog();
                 }
-                else if (_activPanel.ActivTab != null &&
-                         _activPanel.ActivTab.GetType().Name == "BotTabScreener")
+                else if (_activPanel.ActiveTab != null &&
+                         _activPanel.ActiveTab.GetType().Name == "BotTabScreener")
                 {
-                    ((BotTabScreener)_activPanel.ActivTab).ShowDialog();
+                    ((BotTabScreener)_activPanel.ActiveTab).ShowDialog();
                 }
-                else if (_activPanel.ActivTab != null &&
-                         _activPanel.ActivTab.GetType().Name == "BotTabNews")
+                else if (_activPanel.ActiveTab != null &&
+                         _activPanel.ActiveTab.GetType().Name == "BotTabNews")
                 {
-                    ((BotTabNews)_activPanel.ActivTab).ShowDialog();
+                    ((BotTabNews)_activPanel.ActiveTab).ShowDialog();
                 }
                 else
                 {
@@ -1739,9 +1739,9 @@ namespace OsEngine.OsTrader
             {
                 if (IsActiv())
                 {
-                    if (_activPanel.ActivTab.GetType().Name == "BotTabSimple")
+                    if (_activPanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
-                        BotTabSimple tab = (BotTabSimple)_activPanel.ActivTab;
+                        BotTabSimple tab = (BotTabSimple)_activPanel.ActiveTab;
                         tab.BuyAtMarket(volume);
                     }
                 }
@@ -1762,9 +1762,9 @@ namespace OsEngine.OsTrader
             {
                 if (IsActiv())
                 {
-                    if (_activPanel.ActivTab.GetType().Name == "BotTabSimple")
+                    if (_activPanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
-                        BotTabSimple tab = (BotTabSimple)_activPanel.ActivTab;
+                        BotTabSimple tab = (BotTabSimple)_activPanel.ActiveTab;
                         tab.SellAtMarket(volume);
                     }
                 }
@@ -1786,9 +1786,9 @@ namespace OsEngine.OsTrader
             {
                 if (IsActiv())
                 {
-                    if (_activPanel.ActivTab.GetType().Name == "BotTabSimple")
+                    if (_activPanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
-                        BotTabSimple tab = (BotTabSimple)_activPanel.ActivTab;
+                        BotTabSimple tab = (BotTabSimple)_activPanel.ActiveTab;
                         tab.BuyAtLimit(volume, price);
                     }
                 }
@@ -1810,9 +1810,9 @@ namespace OsEngine.OsTrader
             {
                 if (IsActiv())
                 {
-                    if (_activPanel.ActivTab.GetType().Name == "BotTabSimple")
+                    if (_activPanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
-                        BotTabSimple tab = (BotTabSimple)_activPanel.ActivTab;
+                        BotTabSimple tab = (BotTabSimple)_activPanel.ActiveTab;
                         tab.SellAtLimit(volume, price);
                     }
                 }
@@ -1832,9 +1832,9 @@ namespace OsEngine.OsTrader
             {
                 if (IsActiv())
                 {
-                    if (_activPanel.ActivTab.GetType().Name == "BotTabSimple")
+                    if (_activPanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
-                        BotTabSimple tab = (BotTabSimple)_activPanel.ActivTab;
+                        BotTabSimple tab = (BotTabSimple)_activPanel.ActiveTab;
                         tab.CloseAllOrderInSystem();
                     }
                 }

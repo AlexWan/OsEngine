@@ -21,12 +21,13 @@ using OsEngine.Candles.Series;
 using OsEngine.Candles;
 using OsEngine.Market.Servers;
 using OsEngine.Candles.Factory;
+using OsEngine.OsTrader.RiskManager;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
     public class BotTabScreener : IIBotTab
     {
-        #region staticPart
+        #region Static part
 
         /// <summary>
         /// Activate grid drawing
@@ -230,7 +231,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region service
+        #region Service
 
         /// <summary>
         /// Tab for portfolio securities
@@ -433,7 +434,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         newTab.Connector.SaveTradesInCandles = false;
 
                         Tabs.Add(newTab);
-                        SubscribleOnTab(newTab);
+                        SubscribeOnTab(newTab);
                         UpdateTabSettings(Tabs[Tabs.Count - 1]);
                         PaintNewRow();
 
@@ -457,6 +458,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             ReloadIndicatorsOnTabs();
+            SetJournalsInPosViewer();
         }
 
         /// <summary>
@@ -589,6 +591,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
             }
 
+            if(_positionViewer != null)
+            {
+                _positionViewer.Delete();
+            }
+
             if (TabDeletedEvent != null)
             {
                 TabDeletedEvent();
@@ -620,7 +627,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region working with tabs
+        #region Working with tabs
 
         /// <summary>
         /// Trade portfolio name
@@ -833,6 +840,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 SaveTabs();
 
+                SetJournalsInPosViewer();
+
                 NeedToReloadTabs = false;
             }
             catch (Exception ex)
@@ -972,7 +981,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             curTabs.Add(newTab);
 
-            SubscribleOnTab(newTab);
+            SubscribeOnTab(newTab);
         }
 
         /// <summary>
@@ -1140,7 +1149,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region drawing and working with the GUI
+        #region Drawing and working with the GUI
 
         /// <summary>
         /// Show GUI
@@ -1183,6 +1192,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         List<CandleEngine> _chartEngines = new List<CandleEngine>();
 
+        private GlobalPositionViewer _positionViewer;
+
         /// <summary>
         /// Show GUI
         /// </summary>
@@ -1205,7 +1216,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 bot.GetTabs().Clear();
                 bot.GetTabs().Add(myTab);
                 bot.TabsSimple[0] = myTab;
-                bot.ActivTab = myTab;
+                bot.ActiveTab = myTab;
 
                 bot.ChartClosedEvent += (string nameBot) =>
                 {
@@ -1231,12 +1242,26 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// start drawing this robot
         /// </summary> 
-        public void StartPaint(WindowsFormsHost host)
+        public void StartPaint(WindowsFormsHost host, 
+            WindowsFormsHost hostOpenDeals,
+            WindowsFormsHost hostCloseDeals)
         {
             try
             {
                 _host = host;
                 RePaintSecuritiesGrid();
+
+                if(_positionViewer == null)
+                {
+                    _positionViewer = new GlobalPositionViewer(StartProgram);
+                    _positionViewer.LogMessageEvent += SendNewLogMessage;
+                    _positionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
+                    _positionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+                   
+                }
+
+                SetJournalsInPosViewer();
+                _positionViewer.StartPaint(hostOpenDeals, hostCloseDeals);
             }
             catch (Exception ex)
             {
@@ -1262,12 +1287,45 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                if(_positionViewer != null)
+                {
+                    _positionViewer.StopPaint();
+                }
+
                 _host.Child = null;
                 _host = null;
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void SetJournalsInPosViewer()
+        {
+            if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            if(_positionViewer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    if (Tabs[i] != null)
+                    {
+                        _positionViewer.SetJournal(Tabs[i].GetJournal());
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1359,7 +1417,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newGrid.Click += NewGrid_Click;
         }
 
-        private int prevActiveRow;
+        private int _previousActiveRow;
 
         /// <summary>
         /// Click on table
@@ -1391,9 +1449,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                         ShowChart(tabRow);
                     }
 
-                    SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
                     SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-                    prevActiveRow = tabRow;
+                    _previousActiveRow = tabRow;
                 }
             }
             catch (Exception ex)
@@ -1533,9 +1591,38 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// The user clicked on the table with positions
+        /// </summary>
+        /// <param name="botTabName">The name of the tab that was active when the event was generated</param>
+        private void _globalPositionViewer_UserClickOnPositionShowBotInTableEvent(string botTabName)
+        {
+            if (UserClickOnPositionShowBotInTableEvent != null)
+            {
+                UserClickOnPositionShowBotInTableEvent(botTabName);
+            }
+        }
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
+
+        public event Action<Position, SignalType> UserSelectActionEvent;
+
+        /// <summary>
+        /// The user has selected a position
+        /// </summary>
+        /// <param name="pos">position</param>
+        /// <param name="signal">Action signal</param>
+        private void _globalController_UserSelectActionEvent(Position pos, SignalType signal)
+        {
+            if(UserSelectActionEvent != null)
+            {
+                UserSelectActionEvent(pos, signal);
+            }
+        }
+
         #endregion
 
-        #region Настройки сопровождения позиций
+        #region Position tracking settings
 
         public void ShowManualControlDialog()
         {
@@ -1558,8 +1645,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-
-        #region создание / удаление / хранение индикаторов
+        #region Creating / deleting / storing indicators
 
         /// <summary>
         /// create indicator / 
@@ -1994,7 +2080,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        // log
+        #region Log
 
         /// <summary>
         /// Send log message
@@ -2016,7 +2102,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        // external position management
+        #endregion
+
+        #region External position management
 
         /// <summary>
         /// Close all market positions
@@ -2078,7 +2166,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             return null;
         }
 
-        // outgoing events
+        #endregion
+
+        #region Events
 
         /// <summary>
         /// New tab creation event
@@ -2088,7 +2178,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Subscribe to events in the tab
         /// </summary>
-        private void SubscribleOnTab(BotTabSimple tab)
+        private void SubscribeOnTab(BotTabSimple tab)
         {
             tab.LogMessageEvent += LogMessageEvent;
 
@@ -2300,6 +2390,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Source removed
         /// </summary>
         public event Action TabDeletedEvent;
+
+        #endregion
     }
 
     /// <summary>
