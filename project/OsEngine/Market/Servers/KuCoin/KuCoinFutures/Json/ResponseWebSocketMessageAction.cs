@@ -117,5 +117,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string holdBalance; // 2312, //Frozen amount = positionMargin + orderMargin + frozenFunds
         public string currency; // "USDT", //Currency
         public string timestamp; // 1553842862614
+        public string isolatedOrderMargin;
+        public string walletBalance;
     }
 }

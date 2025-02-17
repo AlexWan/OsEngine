@@ -36,6 +36,57 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string orderId;
     }
 
+    public class ResponseAllOrders
+    {
+        public string currentPage;
+        public string pageSize;
+        public string totalNum;
+        public string totalPage;
+
+        public List<ResponseOrder> items;
+    }
+
+    public class ResponseOrder
+    {
+        public string id { get; set; } // Order ID
+        public string symbol { get; set; } // Symbol of the contract
+        public string updatedAt { get; set; } // last update time
+        public string timeInForce { get; set; } // Time in force policy type 
+        public string stp { get; set; } // Self trade prevention types
+        public string stopTriggered { get; set; } // Mark to show whether the stop order is triggered
+        public string remark { get; set; } // Remark of the order
+        public string filledValue { get; set; } // Value of the executed orders
+        public string clientOid { get; set; } // Unique order id created by users to identify their orders
+        public string forceHold { get; set; } // A mark to forcely hold the funds for an order
+        public string dealSize { get; set; } // Executed quantity
+        public string endAt { get; set; } // End time
+        public string dealValue { get; set; } // Executed size of funds
+        public string hidden { get; set; } // Mark of the hidden order
+        public string reduceOnly { get; set; } // A mark to reduce the position size only
+        public string cancelExist { get; set; } // Mark of the canceled orders
+        public string settleCurrency { get; set; } // settlement currency
+        public string type { get; set; } // Order type, market order or limit order
+        public string value { get; set; } // Order value
+        public string closeOrder { get; set; } // A mark to close the position
+        public string stop { get; set; } // Stop order type (stop limit or stop market)
+        public string createdAt { get; set; } // Time the order created
+        public string isActive { get; set; } // Mark of the active orders
+        public string status { get; set; } // order status: “open” or “done”
+        public string price { get; set; } // Order price
+        public string stopPriceType { get; set; } // Trigger price type of stop orders
+        public string leverage { get; set; } // Leverage of the order
+        public string tags { get; set; } // Tag order source
+        public string size { get; set; } // Order quantity
+        public string visibleSize { get; set; } // Visible size of the iceberg order
+        public string stopPrice { get; set; } // Trigger price of stop orders
+        public string postOnly { get; set; } // Mark of post only
+        public string orderTime { get; set; } // order create time in nanosecond
+        public string iceberg { get; set; } // Mark of the iceberg order
+        public string side { get; set; } // Transaction side
+        public string filledSize { get; set; } // Executed order quantity
+        public string marginMode { get; set; } // Added field for margin mode: ISOLATED (isolated), CROSS (cross margin).
+    }
+
     public class ResponseAsset
     {
         public string accountEquity; //99.8999305281, 	//Account equity = marginBalance + Unrealised PNL

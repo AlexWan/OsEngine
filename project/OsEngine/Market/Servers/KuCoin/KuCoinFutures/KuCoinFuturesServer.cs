@@ -1059,8 +1059,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             if (stateType == OrderStateType.Done || (stateType == OrderStateType.Partial && item.size != item.filledSize))
             {
-                // как только приходит ордер исполненный или частично исполненный триггер на запрос моего трейда по имени бумаги
-                CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, Convert.ToInt64(item.ts) / 1000000);
+                // as soon as an order is executed or partially executed, a trigger is sent to request my trade by the name of the security
+                CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket);
             }
             
             MyOrderEvent(newOrder);
@@ -1129,11 +1129,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             data.leverage = "10";
 
             JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
-            dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// если маркет-ордер, то игнорим параметр цены
+            dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// if it's a market order, then we ignore the price parameter
 
             string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
 
-            // для теста можно использовать  "/api/v1/orders/test"
+            // for the test you can use "/api/v1/orders/test"
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders", "POST", null, jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
             ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<ResponsePlaceOrder>());
@@ -1173,11 +1173,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-
-        }
-
-        public void GetOrdersState(List<Order> orders)
         {
 
         }
@@ -1228,7 +1223,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders/" + order.NumberMarket, "DELETE", null, null);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
             ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
@@ -1276,12 +1270,236 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public void GetAllActivOrders()
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Active
+                    && orders[i].State != OrderStateType.Partial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
+        }
+
+        private List<Order> GetAllOrdersFromExchange()
+        {
+            _rateGateSendOrder.WaitToProceed();
+
+            try
+            {
+                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders", "GET", "status=active", null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code == "200000")
+                    {
+                        ResponseMessageRest<ResponseAllOrders> order = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseAllOrders>());
+
+                        List<Order> orders = new List<Order>();
+
+                        for (int i = 0; i < order.data.items.Count; i++)
+                        {
+                            if (order.data.items[i].isActive == "false")
+                            {
+                                continue;
+                            }
+
+                            Order newOrder = new Order();
+
+                            newOrder.SecurityNameCode = order.data.items[i].symbol;
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.items[i].updatedAt));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.items[i].orderTime) / 1000000); //from nanoseconds to ms
+                            newOrder.ServerType = ServerType.KuCoinFutures;
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(order.data.items[i].clientOid);
+                            }
+                            catch
+                            {
+
+                            }
+
+                            newOrder.NumberMarket = order.data.items[i].id;
+                            newOrder.Side = order.data.items[i].side.Equals("buy") ? Side.Buy : Side.Sell;
+
+                            if (order.data.items[i].type == "market")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+                            if (order.data.items[i].type == "limit")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+
+                            OrderStateType stateType = GetOrderState(order.data.items[i].status, order.data.items[i].type);
+                            newOrder.State = stateType;
+                            newOrder.Volume = order.data.items[i].size == null ? order.data.items[i].filledSize.Replace('.', ',').ToDecimal() : order.data.items[i].size.Replace('.', ',').ToDecimal();
+                            newOrder.Price = order.data.items[i].price != null ? order.data.items[i].price.Replace('.', ',').ToDecimal() : 0;
+                            newOrder.PortfolioNumber = "KuCoinFutures";
+
+                            orders.Add(newOrder);
+                        }
+                        return orders;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         public void GetOrderStatus(Order order)
         {
+            Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket, order.NumberUser);
 
+            if (orderFromExchange == null)
+            {
+                return;
+            }
+
+            Order orderOnMarket = null;
+
+            if (order.NumberUser != 0
+                && orderFromExchange.NumberUser != 0
+                && orderFromExchange.NumberUser == order.NumberUser)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket) == false
+                && order.NumberMarket == orderFromExchange.NumberMarket)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (orderOnMarket == null)
+            {
+                return;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if (orderOnMarket.State == OrderStateType.Done
+                || orderOnMarket.State == OrderStateType.Partial)
+            {
+                CreateQueryMyTrade(order.SecurityNameCode, order.NumberMarket);
+            }
+        }
+
+        private Order GetOrderFromExchange(string securityNameCode, string numberMarket, int numberUser)
+        {
+            _rateGateSendOrder.WaitToProceed();
+
+            try
+            {
+                string path = null;
+
+                if (numberMarket != null)
+                {
+                    path = $"/api/v1/orders/{numberMarket}";
+                }
+                else
+                {
+                    path = $"/api/v1/orders/{numberUser}";
+                }
+
+                if (path == null)
+                {
+                    return null;
+                }
+
+                HttpResponseMessage responseMessage = CreatePrivateQuery(path, "GET", null, null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code == "200000")
+                    {
+                        ResponseMessageRest<ResponseOrder> order = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseOrder>());
+
+                        Order newOrder = new Order();
+
+                        if (order.data != null)
+                        {
+                            newOrder.SecurityNameCode = order.data.symbol;
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.updatedAt));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.orderTime) / 1000000); //from nanoseconds to ms
+                            newOrder.ServerType = ServerType.KuCoinFutures;
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(order.data.clientOid);
+                            }
+                            catch
+                            {
+
+                            }
+
+                            if (order.data.type == "market")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+                            if (order.data.type == "limit")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+
+                            newOrder.NumberMarket = order.data.id;
+                            newOrder.Side = order.data.side.Equals("buy") ? Side.Buy : Side.Sell;
+
+                            OrderStateType stateType = GetOrderState(order.data.status, order.data.type);
+                            newOrder.State = stateType;
+
+                            if (newOrder.State == OrderStateType.Done)
+                            {
+                                newOrder.TimeDone = newOrder.TimeCreate;
+                                newOrder.TimeCancel = newOrder.TimeCreate;
+                            }
+
+                            newOrder.Volume = order.data.size == null ? order.data.filledSize.Replace('.', ',').ToDecimal() : order.data.size.Replace('.', ',').ToDecimal();
+                            newOrder.Price = order.data.price != null ? order.data.price.Replace('.', ',').ToDecimal() : 0;
+                            newOrder.PortfolioNumber = "KuCoinFutures";
+                        }
+
+                        return newOrder;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         #endregion
@@ -1453,7 +1671,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             PortfolioEvent(new List<Portfolio> { portfolio });
         }
 
-        private void CreateQueryMyTrade(string nameSec, string OrdId, long ts)
+        private void CreateQueryMyTrade(string nameSec, string OrdId)
         {
             Thread.Sleep(2000);
             _rateGateGetMyTradeState.WaitToProceed();
