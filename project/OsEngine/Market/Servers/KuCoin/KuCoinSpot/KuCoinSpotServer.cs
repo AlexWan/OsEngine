@@ -760,7 +760,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                             UpdateDepth(message);
                             continue;
                         }
-                        if (action.subject.Equals("trade.ticker"))
+                        if (action.subject.Equals("trade.l3match"))
                         {
                             UpdateTrade(message);
                             continue;
@@ -847,15 +847,23 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 return;
             }
-            
+
             Trade trade = new Trade();
             trade.SecurityNameCode = responseTrade.topic.Split(':')[1];
             trade.Price = responseTrade.data.price.ToDecimal();
             trade.Id = responseTrade.data.sequence;
-            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data.Time));
+            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data.time) / 1000000);
             trade.Volume = responseTrade.data.size.ToDecimal();
-            trade.Side = Side.None; // TODO: как определить направление последней сделки?
- 
+
+            if (responseTrade.data.side == "sell")
+            {
+                trade.Side = Side.Sell;
+            }
+            else //(responseTrade.data.side == "buy")
+            {
+                trade.Side = Side.Buy;
+            }
+
             NewTradesEvent(trade);
         }
 
@@ -905,7 +913,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
 
-
             for (int i = 0; i < responseMyTrades.data.items.Count; i++)
             {
                 ResponseMyTrade responseT = responseMyTrades.data.items[i];
@@ -918,7 +925,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 myTrade.Price = responseT.price.ToDecimal();
                 myTrade.SecurityNameCode = responseT.symbol;
                 myTrade.Side = responseT.side.Equals("buy") ? Side.Buy : Side.Sell;
-
 
                 string comissionSecName = responseT.feeCurrency;
 
@@ -933,7 +939,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 
                 MyTradeEvent(myTrade);
             }
-
         }
 
         private void UpdatePortfolio(string message)
@@ -1266,7 +1271,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             lock (_socketLocker)
             {
                 //Push frequency: once every 100ms
-                _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/market/ticker:{security.Name}\"}}"); // transactions
+                _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/market/match:{security.Name}\"}}"); // transactions
                 //Push frequency: once every 100ms
                 _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/spotMarket/level2Depth5:{security.Name}\"}}"); // marketDepth 5+5 https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
             }

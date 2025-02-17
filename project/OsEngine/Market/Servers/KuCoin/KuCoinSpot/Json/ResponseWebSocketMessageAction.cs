@@ -23,12 +23,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
     public class ResponseWebSocketMessageTrade
     {
         public string sequence;
-        public string price;
+        public string type;
+        public string symbol;
         public string size;
-        public string bestAsk;
-        public string bestAskSize;
-        public string bestBidSize;
-        public string Time;
+        public string side;
+        public string price;
+        public string takerOrderId;
+        public string makerOrderId;
+        public string time;
     }
     
     public class ResponseWebSocketDepthItem
