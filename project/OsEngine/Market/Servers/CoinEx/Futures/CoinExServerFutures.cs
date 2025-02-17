@@ -142,7 +142,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        public DateTime ServerTime { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public DateTime ServerTime { get; set; }
 
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<Trade> NewTradesEvent;
@@ -716,6 +716,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<News> NewsEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
         #endregion
 
         #region 14 Helpers
@@ -797,6 +799,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         {
             order.State = OrderStateType.Fail;
             MyOrderEvent?.Invoke(order);
+        }
+
+        public bool SubscribeNews()
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

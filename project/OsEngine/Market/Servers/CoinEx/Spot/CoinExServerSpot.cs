@@ -1415,6 +1415,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #region 13 Log
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<News> NewsEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType type)
         {
@@ -1476,11 +1478,12 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             if (order.NumberUser == 0)
             {
-                string msg = string.Format("Unknown order!{0}Empty NumberUser! {0}cexEventUpdate: {1}{0}order: {2}", Environment.NewLine,
-                    JsonConvert.SerializeObject(cexEventUpdate),
-                    JsonConvert.SerializeObject(order)
-                    );
-                SendLogMessage(msg, LogMessageType.Error);
+                return null;
+                //string msg = string.Format("Unknown order!{0}Empty NumberUser! {0}cexEventUpdate: {1}{0}order: {2}", Environment.NewLine,
+                //    JsonConvert.SerializeObject(cexEventUpdate),
+                //    JsonConvert.SerializeObject(order)
+                //    );
+                //SendLogMessage(msg, LogMessageType.Error);
             }
 
             order.PortfolioNumber = _portfolioName;
@@ -1552,6 +1555,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
 
             return order;
+        }
+
+        public bool SubscribeNews()
+        {
+            throw new NotImplementedException();
         }
         #endregion
     }

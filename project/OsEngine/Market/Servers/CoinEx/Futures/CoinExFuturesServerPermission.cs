@@ -128,11 +128,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             get { return true; }
         }
 
-        public bool UseStandartCandlesStarter
-        {
-            get { return true; }
-        }
-
         public bool IsUseLotToCalculateProfit
         {
             get { return false; }
@@ -167,6 +162,12 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         {
             get { return _tradeTimeFramePermission; }
         }
+
+        public bool UseStandardCandlesStarter
+        {
+            get { return true; }
+        }
+
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
@@ -191,6 +192,15 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 TimeFrameHour4IsOn = true,
                 TimeFrameDayIsOn = true
             };
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
+        {
+            get { return false; }
+        }
 
         #endregion
     }
