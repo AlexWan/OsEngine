@@ -197,7 +197,7 @@ By downloading Os Engine, you agree that if a critical error occurs, information
 
 3) арбитражные стратегии для торговли расхождения коррелирующих инструментов, в том числе одноногие арбитражи.
 
-FAQ: https://o-s-a.net/os-engine-faq
+ГАЙД: https://smart-lab.ru/company/os_engine/blog/1024149.php
 
 Телеграмм группа поддержки: https://t.me/osengine_official_support
 
