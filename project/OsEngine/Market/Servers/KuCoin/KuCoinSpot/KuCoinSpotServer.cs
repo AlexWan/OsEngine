@@ -52,6 +52,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             threadCheckAliveWebSocket.IsBackground = true;
             threadCheckAliveWebSocket.Name = "CheckAliveWebSocketKuCoinSpot";
             threadCheckAliveWebSocket.Start();
+
+            Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
+            threadGetPortfolios.IsBackground = true;
+            threadGetPortfolios.Name = "ThreadKuCoinFuturesPortfolios";
+            threadGetPortfolios.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -249,12 +254,53 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         #region 4 Portfolios
 
+        public List<Portfolio> Portfolios;
+
         public void GetPortfolios()
         {
+            if (Portfolios == null)
+            {
+                Portfolios = new List<Portfolio>();
+
+                Portfolio portfolioInitial = new Portfolio();
+                portfolioInitial.Number = "KuCoinSpot";
+                portfolioInitial.ValueBegin = 1;
+                portfolioInitial.ValueCurrent = 1;
+                portfolioInitial.ValueBlocked = 1;
+
+                Portfolios.Add(portfolioInitial);
+
+                PortfolioEvent(Portfolios);
+            }
+
             CreateQueryPortfolio(true);
         }
-        
-        
+
+        private void ThreadGetPortfolios()
+        {
+            Thread.Sleep(10000);
+
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
+                try
+                {
+                    Thread.Sleep(5000);
+
+                    CreateQueryPortfolio(false);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+            }
+        }
+
         public event Action<List<Portfolio>> PortfolioEvent;
 
         #endregion
@@ -286,7 +332,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             do
             {
                 int limit = needToLoadCandles;
-                if (needToLoadCandles > 1500) // KuCoin limitation: For each query, the system would return at most 1500 pieces of data. To obtain more data, please page the data by time.
+                // KuCoin limitation: For each query, the system would return at most 1500 pieces of data. To obtain more data, please page the data by time.
+                if (needToLoadCandles > 1500) 
                 {
                     limit = 1500;
                 }
@@ -368,7 +415,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         private string GetStringInterval(TimeSpan tf)
         {
-            // Type of candlestick patterns: 1min, 3min, 5min, 15min, 30min, 1hour, 2hour, 4hour, 6hour, 8hour, 12hour, 1day, 1week
+            // Type of candlestick patterns: 1min, 3min, 5min, 15min, 30min, 1hour, 2hour, 4hour
             if (tf.Minutes != 0)
             {
                 return $"{tf.Minutes}min";
@@ -638,8 +685,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             CheckActivationSockets();
 
             // We immediately subscribe to changes in orders and portfolio
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/spotMarket/tradeOrdersV2\"}}"); // изменение ордеров
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/account/balance\"}}"); // изменение портфеля
+            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/spotMarket/tradeOrdersV2\"}}"); // changing orders
+            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/account/balance\"}}"); // portfolio change
         }
 
         #endregion
@@ -701,6 +748,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         #region 9 Security Subscribed
 
         // https://www.kucoin.com/docs/basic-info/request-rate-limit/rest-api
+
         private RateGate rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(220));
 
         public void Subscrible(Security security)
@@ -963,20 +1011,23 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             ResponseWebSocketMessageAction<ResponseWebSocketPortfolio> Portfolio = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPortfolio>());
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "KuCoinSpot";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            Portfolio portfolio = Portfolios[0];
 
             PositionOnBoard pos = new PositionOnBoard();
+
+            if (Portfolio.data.currency == "USDT")
+            {
+                portfolio.ValueCurrent = Portfolio.data.available.ToDecimal();
+                portfolio.ValueBlocked = Portfolio.data.hold.ToDecimal();
+            }
 
             pos.PortfolioName = "KuCoinSpot";
             pos.SecurityNameCode = Portfolio.data.currency;
             pos.ValueBlocked = Portfolio.data.hold.ToDecimal();
             pos.ValueCurrent = Portfolio.data.available.ToDecimal();
-            
+
             portfolio.SetNewPosition(pos);
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent(Portfolios);
         }
 
         private void UpdateOrder(string message)
@@ -1042,7 +1093,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             if (stateType == OrderStateType.Done ||
                     stateType == OrderStateType.Partial)
             {
-
                 CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket,
                         Convert.ToInt64(item.ts) / 1000000);
             }
@@ -1532,7 +1582,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     {
                         SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
-                    
                 }
                 else
                 {
@@ -1554,10 +1603,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         {
             ResponseMessageRest<List<ResponseAsset>> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<List<ResponseAsset>>());
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "KuCoinSpot";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            Portfolio portfolio = Portfolios[0];
 
             List<PositionOnBoard> alreadySendPositions = new List<PositionOnBoard>();
 
@@ -1565,21 +1611,32 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 ResponseAsset item = assets.data[i];
 
+                if (item.currency == "USDT")
+                {
+                    if (IsUpdateValueBegin)
+                    {
+                        portfolio.ValueBegin = item.balance.ToDecimal();
+                    }
+
+                    portfolio.ValueCurrent = item.available.ToDecimal();
+                    portfolio.ValueBlocked = item.holds.ToDecimal();
+                }
+
                 PositionOnBoard pos = new PositionOnBoard();
 
                 pos.PortfolioName = "KuCoinSpot";
                 pos.SecurityNameCode = item.currency;
-                pos.ValueBlocked = item.frozen.ToDecimal();
+                pos.ValueBlocked = item.holds.ToDecimal();
                 pos.ValueCurrent = item.available.ToDecimal();
 
                 if (IsUpdateValueBegin)
                 {
-                    pos.ValueBegin = item.available.ToDecimal();
+                    pos.ValueBegin = item.balance.ToDecimal();
                 }
 
                 bool canSend = true;
 
-                for(int j = 0; j< alreadySendPositions.Count; j++) 
+                for (int j = 0; j < alreadySendPositions.Count; j++)
                 {
                     if (alreadySendPositions[j].SecurityNameCode == pos.SecurityNameCode
                         && pos.ValueCurrent == 0)
@@ -1589,14 +1646,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     }
                 }
 
-                if(canSend)
+                if (canSend)
                 {
                     portfolio.SetNewPosition(pos);
                     alreadySendPositions.Add(pos);
                 }
             }
 
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent(Portfolios);
         }
 
         private void CreateQueryMyTrade(string nameSec, string OrdId, long ts)
@@ -1614,7 +1671,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-            
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
@@ -1645,7 +1701,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
-
         }
 
         private List<Candle> CreateQueryCandles(string nameSec, string stringInterval, DateTime timeFrom, DateTime timeTo)
@@ -1655,7 +1710,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             // /api/v1/market/candles?type=1min&symbol=BTC-USDT&startAt=1566703297&endAt=1566789757
             HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(BaseUrl + $"/api/v1/market/candles?symbol={nameSec}&type={stringInterval}&startAt={TimeManager.GetTimeStampSecondsToDateTime(timeFrom)}&endAt={TimeManager.GetTimeStampSecondsToDateTime(timeTo)}").Result;
             string content = responseMessage.Content.ReadAsStringAsync().Result;
-
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
@@ -1668,19 +1722,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     for (int i = 0; i < symbols.data.Count; i++)
                     {
                         List<string> item = symbols.data[i];
-
-                        /* Пример возвращаемого значения свечи https://www.kucoin.com/docs/rest/spot-trading/market-data/get-klines
-                         * [
-                                "1545904980", //Start time of the candle cycle
-                                "0.058", //opening price
-                                "0.049", //closing price
-                                "0.058", //highest price
-                                "0.049", //lowest price
-                                "0.018", //Transaction volume
-                                "0.000945" //Transaction amount
-                              ],
-                         *
-                         */
 
                         Candle newCandle = new Candle();
 
