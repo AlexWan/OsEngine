@@ -502,7 +502,7 @@ namespace OsEngine.Journal
                             if (ui.PositionChanged)
                             {
                                 _botsJournals[i]._Tabs[i2].Journal.Save();
-                                _botsJournals[i]._Tabs[i2].Journal.NeadToUpdateStatePositions();
+                                _botsJournals[i]._Tabs[i2].Journal.NeedToUpdateStatePositions();
                                 RePaint();
                             }
                             return;

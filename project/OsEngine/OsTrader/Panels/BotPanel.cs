@@ -645,7 +645,7 @@ namespace OsEngine.OsTrader.Panels
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStatisticGenerator.GetAllProfitPersent(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitPercent(positions.ToArray());
                 }
                 return result;
             }
@@ -680,7 +680,7 @@ position => position.State != PositionStateType.OpeningFail
 position => position.State != PositionStateType.OpeningFail
 && position.EntryPrice != 0 && position.ClosePrice != 0));
 
-                    result += PositionStatisticGenerator.GetAllProfitInPunkt(positions.ToArray());
+                    result += PositionStatisticGenerator.GetAllProfitInAbsolute(positions.ToArray());
                 }
                 return result;
             }

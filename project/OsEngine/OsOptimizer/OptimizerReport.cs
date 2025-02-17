@@ -302,8 +302,8 @@ namespace OsEngine.OsOptimizer
 
                 tab.SecurityName = bot.TabsSimple[i].Security.Name;
                 tab.PositionsCount = positions.Count;
-                tab.TotalProfit = PositionStatisticGenerator.GetAllProfitInPunkt(posesArray);
-                tab.TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPersent(posesArray);
+                tab.TotalProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(posesArray);
+                tab.TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPercent(posesArray);
                 tab.MaxDrowDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
 
                 tab.AverageProfit = tab.TotalProfit / (posesArray.Length+1);
@@ -345,10 +345,10 @@ namespace OsEngine.OsOptimizer
                 Position[] posesArray = allPositionsForAllTabs.ToArray();
 
                 PositionsCount = allPositionsForAllTabs.Count;
-                TotalProfit = PositionStatisticGenerator.GetAllProfitInPunkt(posesArray);
-                TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPersent(posesArray);
+                TotalProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(posesArray);
+                TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPercent(posesArray);
                 MaxDrowDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
-                AverageProfit = PositionStatisticGenerator.GetMiddleProfitInPunkt(posesArray);
+                AverageProfit = PositionStatisticGenerator.GetMiddleProfitInAbsolute(posesArray);
                 AverageProfitPercentOneContract = PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(posesArray);
                 ProfitFactor = PositionStatisticGenerator.GetProfitFactor(posesArray);
                 Recovery = PositionStatisticGenerator.GetRecovery(posesArray);

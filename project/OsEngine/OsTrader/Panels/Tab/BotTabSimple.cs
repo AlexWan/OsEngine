@@ -72,8 +72,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
                 _journal.LogMessageEvent += SetNewLogMessage;
 
-                _connector.CommissionType = _journal.ComissionType;
-                _connector.CommissionValue = _journal.ComissionValue;
+                _connector.CommissionType = _journal.CommissionType;
+                _connector.CommissionValue = _journal.CommissionValue;
 
                 _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
@@ -937,11 +937,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return ComissionType.None;
                 }
-                return _journal.ComissionType;
+                return _journal.CommissionType;
             }
             set
             {
-                _journal.ComissionType = value;
+                _journal.CommissionType = value;
                 _connector.CommissionType = value;
             }
         }
@@ -958,11 +958,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return 0;
                 }
 
-                return _journal.ComissionValue;
+                return _journal.CommissionValue;
             }
             set
             {
-                _journal.ComissionValue = value;
+                _journal.CommissionValue = value;
                 _connector.CommissionValue = value;
             }
         }
@@ -1286,8 +1286,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _connector.ShowDialog(true);
 
-            _journal.ComissionType = _connector.CommissionType;
-            _journal.ComissionValue = _connector.CommissionValue;
+            _journal.CommissionType = _connector.CommissionType;
+            _journal.CommissionValue = _connector.CommissionValue;
         }
 
         /// <summary>

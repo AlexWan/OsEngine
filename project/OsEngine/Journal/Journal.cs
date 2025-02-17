@@ -13,28 +13,17 @@ using OsEngine.Logging;
 
 namespace OsEngine.Journal
 {
-    /// <summary>
-    /// journal
-    /// журнал
-    /// </summary>
     public class Journal
     {
-        // service
-        // сервис
+        #region Service
 
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
-        /// <param name="name">robot name/имя робота</param>
-        /// <param name="startProgram">program requesting the creation of a log/программа запрашивающая создание журнала</param>
         public Journal(string name, StartProgram startProgram)
         {
             Name = name;
 
             try
             {
-                _positionController = new PositionController(name,startProgram);
+                _positionController = new PositionController(name, startProgram);
                 _positionController.PositionStateChangeEvent += _positionController_DealStateChangeEvent;
                 _positionController.PositionNetVolumeChangeEvent += _positionController_PositionNetVolumeChangeEvent;
                 _positionController.UserSelectActionEvent += _positionController_UserSelectActionEvent;
@@ -46,16 +35,8 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// name
-        /// имя
-        /// </summary>
         public readonly string Name;
 
-        /// <summary>
-        /// delete
-        /// удалить
-        /// </summary>
         public void Delete()
         {
             try
@@ -73,10 +54,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// clear the log of transactions
-        /// очистить журнал от сделок
-        /// </summary>
         public void Clear()
         {
             try
@@ -93,10 +70,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// to keep the current state of positions
-        /// сохранить текущее состояние позиций
-        /// </summary>
         public void Save()
         {
             if (_positionController == null)
@@ -106,10 +79,7 @@ namespace OsEngine.Journal
             _positionController.Save();
         }
 
-        /// <summary>
-        /// тип комиссии для позиций
-        /// </summary>
-        public ComissionType ComissionType
+        public ComissionType CommissionType
         {
             get
             {
@@ -117,7 +87,7 @@ namespace OsEngine.Journal
                 {
                     return ComissionType.None;
                 }
-                return _positionController.ComissionType;
+                return _positionController.CommissionType;
             }
             set
             {
@@ -125,14 +95,11 @@ namespace OsEngine.Journal
                 {
                     return;
                 }
-                _positionController.ComissionType = value;
+                _positionController.CommissionType = value;
             }
         }
 
-        /// <summary>
-        /// размер комиссии
-        /// </summary>
-        public decimal ComissionValue
+        public decimal CommissionValue
         {
             get
             {
@@ -140,7 +107,7 @@ namespace OsEngine.Journal
                 {
                     return 0;
                 }
-                return _positionController.ComissionValue;
+                return _positionController.CommissionValue;
             }
             set
             {
@@ -148,31 +115,25 @@ namespace OsEngine.Journal
                 {
                     return;
                 }
-                _positionController.ComissionValue = value;
+                _positionController.CommissionValue = value;
             }
         }
 
-        // access to transactions доступ к сделкам
+        #endregion
 
-        /// <summary>
-        /// transaction repository
-        /// хранилище сделок
-        /// </summary>
+        #region Access to transactions
+
         private PositionController _positionController;
 
-        public void NeadToUpdateStatePositions()
+        public void NeedToUpdateStatePositions()
         {
             if (_positionController == null)
             {
                 return;
             }
-            _positionController.NeadToUpdateStatePositions();
+            _positionController.NeedToUpdateStatePositions();
         }
 
-        /// <summary>
-        /// take out open deals
-        /// взять открытые сделки
-        /// </summary>
         public List<Position> OpenPositions
         {
             get
@@ -193,10 +154,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// all transactions
-        /// все сделки
-        /// </summary>
         public List<Position> AllPosition
         {
             get
@@ -217,17 +174,13 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// to take all the closed deals
-        /// взять все закрытые сделки
-        /// </summary>
         public List<Position> CloseAllPositions
         {
             get
             {
                 try
                 {
-                    if(_positionController == null)
+                    if (_positionController == null)
                     {
                         return new List<Position>();
                     }
@@ -242,10 +195,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// all open shorts
-        /// все открытые шорты
-        /// </summary>
         public List<Position> OpenAllShortPositions
         {
             get
@@ -266,10 +215,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// all open longs
-        /// все открытые лонги
-        /// </summary>
         public List<Position> OpenAllLongPositions
         {
             get
@@ -290,10 +235,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// all closed shorts
-        /// все закрытые шорты
-        /// </summary>
         public List<Position> CloseAllShortPositions
         {
             get
@@ -314,10 +255,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// all closed longs
-        /// все закрытые лонги
-        /// </summary>
         public List<Position> CloseAllLongPositions
         {
             get
@@ -338,10 +275,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// last position
-        /// последняя позиция
-        /// </summary>
         public Position LastPosition
         {
             get
@@ -362,10 +295,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// to get a deal on the number
-        /// взять сделку по номеру
-        /// </summary>
         public Position GetPositionForNumber(int number)
         {
             try
@@ -383,12 +312,6 @@ namespace OsEngine.Journal
             return null;
         }
 
-        /// <summary>
-        /// take the latest orders for positions from the log _
-        /// взять последние ордера по позициям из журнала
-        /// </summary>
-        /// <param name="count">кол-во ордеров</param>
-        /// <returns></returns>
         public List<Order> GetLastOrdersToPositions(int count)
         {
             List<Order> orders = new List<Order>();
@@ -400,7 +323,7 @@ namespace OsEngine.Journal
                 List<Order> openOrders = position[i].OpenOrders;
                 List<Order> closeOrders = position[i].CloseOrders;
 
-                if(openOrders != null && openOrders.Count != 0)
+                if (openOrders != null && openOrders.Count != 0)
                 {
                     orders.AddRange(openOrders);
                 }
@@ -410,24 +333,24 @@ namespace OsEngine.Journal
                     orders.AddRange(closeOrders);
                 }
 
-                if(orders.Count > count)
+                if (orders.Count > count)
                 {
                     break;
                 }
             }
 
-            if(orders.Count > 1)
+            if (orders.Count > 1)
             { // Ура, пузырик!
 
-                for(int i = 0; i < orders.Count; i++)
+                for (int i = 0; i < orders.Count; i++)
                 {
-                    for(int i2 = 1; i2 < orders.Count;i2++)
+                    for (int i2 = 1; i2 < orders.Count; i2++)
                     {
-                        if (orders[i2].NumberUser < orders[i2-1].NumberUser)
+                        if (orders[i2].NumberUser < orders[i2 - 1].NumberUser)
                         {
                             Order order = orders[i2];
-                            orders[i2] = orders[i2-1];
-                            orders[i2-1] = order;
+                            orders[i2] = orders[i2 - 1];
+                            orders[i2 - 1] = order;
                         }
                     }
                 }
@@ -436,12 +359,7 @@ namespace OsEngine.Journal
             return orders;
         }
 
-        /// <summary>
-        /// to take the profit for today.
-        /// взять профит за сегодня
-        /// </summary>
-        /// <returns></returns>
-        public decimal GetProfitFromThatDayInPersent()
+        public decimal GetProfitFromThatDayInPercent()
         {
             try
             {
@@ -476,10 +394,6 @@ namespace OsEngine.Journal
             return 0;
         }
 
-        /// <summary>
-        /// Incoming event: transaction changes
-        /// входящее событие: изменения сделки
-        /// </summary>
         private void _positionController_DealStateChangeEvent(Position position)
         {
             try
@@ -495,7 +409,7 @@ namespace OsEngine.Journal
             }
         }
 
-        void _positionController_PositionNetVolumeChangeEvent(Position position)
+        private void _positionController_PositionNetVolumeChangeEvent(Position position)
         {
             try
             {
@@ -510,13 +424,7 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        ///  the user has ordered the manipulation of the position
-        /// польлзователь заказал манипулязию с позицией
-        /// </summary>
-        /// <param name="pos">position/позиция</param>
-        /// <param name="signal">siganl/сигнал</param>
-        void _positionController_UserSelectActionEvent(Position pos, SignalType signal)
+        private void _positionController_UserSelectActionEvent(Position pos, SignalType signal)
         {
             try
             {
@@ -531,10 +439,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// to see if the warrant was kept in this journal
-        /// узнать, храниться ли ордер в этом журнале
-        /// </summary>
         public Order IsMyOrder(Order order)
         {
             List<Position> positions = AllPosition;
@@ -562,18 +466,16 @@ namespace OsEngine.Journal
 
             return null;
         }
-        // / incoming data reception
-        // приём входящих данных
 
-        /// <summary>
-        /// save an incoming order
-        /// сохранить входящий ордер
-        /// </summary>
+        #endregion
+
+        #region Incoming data reception
+
         public void SetNewOrder(Order newOrder)
         {
             try
             {
-                if(_positionController == null)
+                if (_positionController == null)
                 {
                     return;
                 }
@@ -585,10 +487,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// save the incoming transaction
-        /// сохранить входящую сделку
-        /// </summary>
         public void SetNewDeal(Position position)
         {
             try
@@ -609,10 +507,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// Remove the position from the storage
-        /// удалить позицию из хранилища
-        /// </summary>
         public void DeletePosition(Position position)
         {
             try
@@ -636,10 +530,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// save the trade
-        /// сохранить трейд
-        /// </summary>
         public void SetNewMyTrade(MyTrade trade)
         {
             try
@@ -656,10 +546,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// upload new price data
-        /// прогрузить новые данные по ценам
-        /// </summary>
         public void SetNewBidAsk(decimal bid, decimal ask)
         {
             try
@@ -678,7 +564,7 @@ namespace OsEngine.Journal
 
         public void SetStopLimits(List<PositionOpenerToStopLimit> stopLimits)
         {
-            if(_positionController == null)
+            if (_positionController == null)
             {
                 return;
             }
@@ -696,12 +582,10 @@ namespace OsEngine.Journal
             return _positionController.LoadStopLimits();
         }
 
-        // прорисовка текстБокса для бота
+        #endregion
 
-        /// <summary>
-        /// to start drawing a journal
-        /// начать прорисовывать журнал
-        /// </summary>
+        #region Interface drawing
+
         public void StartPaint(WindowsFormsHost dataGridOpenDeal,
             WindowsFormsHost dataGridCloseDeal)
         {
@@ -719,10 +603,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// to stop drawing the journal
-        /// остановить прорисовывать журнал
-        /// </summary>
         public void StopPaint()
         {
             try
@@ -739,10 +619,6 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// redraw the position in the tables
-        /// перерисовать позицию в таблицах
-        /// </summary>
         public void PaintPosition(Position position)
         {
             try
@@ -758,13 +634,11 @@ namespace OsEngine.Journal
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-        // messages to the log 
-        // сообщения в лог 
 
-        /// <summary>
-        /// send a new message to the top
-        /// выслать новое сообщение на верх
-        /// </summary>
+        #endregion
+
+        #region Log 
+
         private void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -777,30 +651,18 @@ namespace OsEngine.Journal
             }
         }
 
-        /// <summary>
-        /// outgoing message for log
-        /// исходящее сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
-        // Outgoing events
-        // события исходящие
 
-        /// <summary>
-        /// the status of the deal has changed.
-        /// изменился статус сделки
-        /// </summary>
+        #endregion
+
+        #region Outgoing events
+
         public event Action<Position> PositionStateChangeEvent;
 
-        /// <summary>
-        /// the open volume of the transaction has changed
-        /// изменился открытый объём по сделке
-        /// </summary>
         public event Action<Position> PositionNetVolumeChangeEvent;
 
-        /// <summary>
-        /// the user has selected an action in the pop-up menu
-        /// пользователь выбрал во всплывающем меню некое действие
-        /// </summary>
         public event Action<Position, SignalType> UserSelectActionEvent;
+
+        #endregion
     }
 }
