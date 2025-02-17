@@ -18,6 +18,7 @@ using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -853,6 +854,10 @@ namespace OsEngine.Charts.CandleChart
 
         public event Action IndicatorUpdateEvent;
 
+        public event Action<IIndicator> IndicatorManuallyCreateEvent;
+
+        public event Action<IIndicator> IndicatorManuallyDeleteEvent;
+
         /// <summary>
         /// user has chosen to delete indicator in context menu
         /// Пользователь выбрал в контекстном меню удалить индикатор
@@ -871,7 +876,14 @@ namespace OsEngine.Charts.CandleChart
                 List<IIndicator> indicators = _indicators.FindAll(candle => candle.CanDelete == true);
                 if (number < indicators.Count)
                 {
-                    DeleteIndicator(indicators[number]);
+                    IIndicator indicator = indicators[number];
+
+                    DeleteIndicator(indicator);
+
+                    if (IndicatorManuallyDeleteEvent != null)
+                    {
+                        IndicatorManuallyDeleteEvent(indicator);
+                    }
                 }
 
             }
@@ -894,12 +906,32 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                int indicatorsOld = 0;
+
+                if (Indicators != null)
+                {
+                    indicatorsOld = Indicators.Count;
+                }
+
                 IndicarotCreateUi ui = new IndicarotCreateUi(this);
                 ui.ShowDialog();
 
                 if (IndicatorUpdateEvent != null)
                 {
                     IndicatorUpdateEvent();
+                }
+
+                int indicatorsNow = 0;
+
+                if (Indicators != null)
+                {
+                    indicatorsNow = Indicators.Count;
+                }
+
+                if (indicatorsOld < indicatorsNow &&
+                    IndicatorManuallyCreateEvent != null)
+                {
+                    IndicatorManuallyCreateEvent(Indicators[Indicators.Count - 1]);
                 }
             }
             catch (Exception error)

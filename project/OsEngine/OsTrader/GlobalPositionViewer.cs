@@ -638,6 +638,11 @@ namespace OsEngine.OsTrader
         {
             try
             {
+                if(grid == null)
+                {
+                    return;
+                }
+
                 if (grid.InvokeRequired)
                 {
                     grid.Invoke(new Action<DataGridView>(Sort), grid);

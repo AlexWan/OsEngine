@@ -80,6 +80,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _chartMaster.IndicatorUpdateEvent += _chartMaster_IndicatorUpdateEvent;
+                _chartMaster.IndicatorManuallyCreateEvent += _chartMaster_IndicatorManuallyCreateEvent;
+                _chartMaster.IndicatorManuallyDeleteEvent += _chartMaster_IndicatorManuallyDeleteEvent;
 
                 if (StartProgram != StartProgram.IsOsOptimizer)
                 {
@@ -395,6 +397,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (_chartMaster != null)
                 {
                     _chartMaster.IndicatorUpdateEvent -= _chartMaster_IndicatorUpdateEvent;
+                    _chartMaster.IndicatorManuallyCreateEvent -= _chartMaster_IndicatorManuallyCreateEvent;
+                    _chartMaster.IndicatorManuallyDeleteEvent -= _chartMaster_IndicatorManuallyDeleteEvent;
                     _chartMaster.Delete();
                     _chartMaster.LogMessageEvent -= SetNewLogMessage;
                     _chartMaster = null;
@@ -6209,6 +6213,22 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        private void _chartMaster_IndicatorManuallyCreateEvent(IIndicator newIndicator)
+        {
+            if(IndicatorManuallyCreateEvent != null)
+            {
+                IndicatorManuallyCreateEvent(newIndicator, this);
+            }
+        }
+
+        private void _chartMaster_IndicatorManuallyDeleteEvent(IIndicator indicator)
+        {
+            if(IndicatorManuallyDeleteEvent != null)
+            {
+                IndicatorManuallyDeleteEvent(indicator, this);
+            }
+        }
+
         // Sending events about changing position statuses, with MyTrades waiting
 
         private static void PositionsSenderThreadArea()
@@ -6457,6 +6477,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// The robot is removed from the system
         /// </summary>
         public event Action<int> DeleteBotEvent;
+
+        public event Action<IIndicator, BotTabSimple> IndicatorManuallyCreateEvent;
+
+        public event Action<IIndicator, BotTabSimple> IndicatorManuallyDeleteEvent;
     }
 
     /// <summary>
