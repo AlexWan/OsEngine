@@ -12,9 +12,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
-using WebSocket = WebSocket4Net.WebSocket;
-using WebSocketState = WebSocket4Net.WebSocketState;
+using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 {
@@ -22,7 +20,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
     {
         public KuCoinFuturesServer()
         {
-
             KuCoinFuturesServerRealization realization = new KuCoinFuturesServerRealization();
             ServerRealization = realization;
 
@@ -49,6 +46,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             threadForPrivateMessages.IsBackground = true;
             threadForPrivateMessages.Name = "PrivateMessageReaderKuCoin";
             threadForPrivateMessages.Start();
+
+            Thread threadCheckAliveWebSocket = new Thread(CheckAliveWebSocket);
+            threadCheckAliveWebSocket.IsBackground = true;
+            threadCheckAliveWebSocket.Name = "CheckAliveWebSocketKuCoinFutures";
+            threadCheckAliveWebSocket.Start();
+
+            Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
+            threadGetPortfolios.IsBackground = true;
+            threadGetPortfolios.Name = "ThreadKuCoinFuturesPortfolios";
+            threadGetPortfolios.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -70,18 +77,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     _webSocketPublicMessages = new ConcurrentQueue<string>();
                     _webSocketPrivateMessages = new ConcurrentQueue<string>();               
                     CreateWebSocketConnection();
+                    CheckActivationSockets();
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
-                    SendLogMessage("Connection cannot be open. KuCoin. Error request", LogMessageType.Error);
+                    SendLogMessage("Connection cannot be open. KuCoinFutures. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
             }
             else
             {
-                SendLogMessage("Connection cannot be open. KuCoin. Error request", LogMessageType.Error);
+                SendLogMessage("Connection cannot be open. KuCoinFutures. Error request", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
@@ -112,6 +120,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             _webSocketPublicMessages = new ConcurrentQueue<string>();
             _webSocketPrivateMessages = new ConcurrentQueue<string>();
 
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -131,13 +144,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 string securityName = _subscribedSecurities[i];
 
-                _webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/tickerV2:{securityName}\"}}"); // сделки
-                _webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // стаканы
-                _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{securityName}\"}}"); // изменение позиций
+                _webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/tickerV2:{securityName}\"}}"); // transactions
+                _webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // marketDepth
+                _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{securityName}\"}}"); // change of positions
             }
             
-            _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // изменение ордеров
-            _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // изменение портфеля
+            _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
+            _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
         }
 
         public ServerType ServerType
@@ -225,7 +238,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     newSecurity.State = SecurityStateType.Activ;
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.rootSymbol;
+                    newSecurity.NameClass = item.rootSymbol;  // item.quoteCurrency
                     newSecurity.NameId = item.symbol;
                     newSecurity.SecurityType = SecurityType.Futures;
 
@@ -249,8 +262,54 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         #region 4 Portfolios
 
+        public List<Portfolio> Portfolios;
+
+        private void ThreadGetPortfolios()
+        {
+            Thread.Sleep(10000);
+
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
+                try
+                {
+                    Thread.Sleep(5000);
+
+                    CreateQueryPortfolio(false, "USDT");
+                    CreateQueryPortfolio(false, "USD");
+                    CreateQueryPortfolio(false, "XBT");
+                    CreateQueryPositions(false);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+            }
+
+        }
+
         public void GetPortfolios()
         {
+            if (Portfolios == null)
+            {
+                Portfolios = new List<Portfolio>();
+
+                Portfolio portfolioInitial = new Portfolio();
+                portfolioInitial.Number = "KuCoinFutures";
+                portfolioInitial.ValueBegin = 1;
+                portfolioInitial.ValueCurrent = 1;
+                portfolioInitial.ValueBlocked = 1;
+
+                Portfolios.Add(portfolioInitial);
+
+                PortfolioEvent(Portfolios);
+            }
+
             CreateQueryPortfolio(true, "USDT");
             CreateQueryPortfolio(true, "USD");
             CreateQueryPortfolio(true, "XBT");
@@ -280,12 +339,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool IsOsData, int CountToLoad, DateTime timeEnd)
         {
-            /// Из чата техподдержки: Right now the kucoin servers are only returning 24 hours for the lower timeframes and no more than 30 days for higher timeframes. Hopefully their new API fixes this, but no word yet when this will be.
-            /// АПИ возвращает только 24 часа данных для младших таймфреймов и до 30 дней для старших таймфреймов
-            ///
-            ///
-            ///
-            /// 
+            // From technical support chat: Right now the kucoin servers are only returning 24 hours for the lower timeframes and no more than 30 days for higher timeframes. Hopefully their new API fixes this, but no word yet when this will be.
 
             int needToLoadCandles = CountToLoad;
 
@@ -293,7 +347,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             DateTime fromTime = timeEnd - TimeSpan.FromMinutes(tf.TotalMinutes*CountToLoad);
             
-            const int KuCoinFuturesDataLimit = 200; // ограничение KuCoin: For each query, the system would return at most 200 pieces of data. To obtain more data, please page the data by time.
+            const int KuCoinFuturesDataLimit = 200; // KuCoin limitation: For each query, the system would return at most 200 pieces of data. To obtain more data, please page the data by time.
             do
             {
                 int limit = needToLoadCandles;
@@ -314,18 +368,18 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 rangeCandles = CreateQueryCandles(nameSec, GetStringInterval(tf), slidingFrom, timeEnd);
 
                 if (rangeCandles == null)
-                    return null; // нет данных
-                
+                    return null; // no data
+
                 candles.InsertRange(0, rangeCandles);
 
-                if (rangeCandles.Count < KuCoinFuturesDataLimit) // жесткий лимит
+                if (rangeCandles.Count < KuCoinFuturesDataLimit) // hard limit
                 {
                     if ((candles.Count > rangeCandles.Count) && (candles[rangeCandles.Count].TimeStart == candles[rangeCandles.Count - 1].TimeStart))
-                    { // HACK: биржа возвращает один элемент дважды когда кончаются данные в прошлом
+                    { // HACK: exchange returns one element twice when data in the past ends
                         candles.RemoveAt(rangeCandles.Count);
                     }
 
-                    // это бывает когда дальше в прошлое сервер не выдает новые данные
+                    // this happens when the server does not provide new data further into the past
                     return candles;
                 }
 
@@ -395,7 +449,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void CreateWebSocketConnection()
         {
-            // 1. получить адрес вебсокета
+            // 1. get websocket address
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/bullet-private", "POST", null, String.Empty);
 
             if(responseMessage.IsSuccessStatusCode == false)
@@ -408,37 +462,78 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             ResponsePrivateWebSocketConnection wsResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponsePrivateWebSocketConnection());
 
-            // устанавливаем динамический адрес сервера ws
+            // set dynamic server address ws
             _webSocketPrivateUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
 
             _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
-            _webSocketPrivate.EnableAutoSendPing = true;
-            _webSocketPrivate.AutoSendPingInterval = 18;
+            _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                = System.Security.Authentication.SslProtocols.Ssl3
+                | System.Security.Authentication.SslProtocols.Tls11
+                | System.Security.Authentication.SslProtocols.None
+                | System.Security.Authentication.SslProtocols.Tls12
+                | System.Security.Authentication.SslProtocols.Tls13
+                | System.Security.Authentication.SslProtocols.Tls;
+            _webSocketPrivate.EmitOnPing = true;
 
-            _webSocketPrivate.Opened += WebSocketPrivate_Opened;
-            _webSocketPrivate.Closed += WebSocketPrivate_Closed;
-            _webSocketPrivate.MessageReceived += WebSocketPrivate_MessageReceived;
-            _webSocketPrivate.Error += WebSocketPrivate_Error;
-            _webSocketPrivate.Open();
-
+            _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
+            _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
+            _webSocketPrivate.OnError += _webSocketPrivate_OnError;
+            _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
+            _webSocketPrivate.Connect();
 
             responseMessage = _httpPublicClient.PostAsync(_baseUrl + "/api/v1/bullet-public", new StringContent(String.Empty, Encoding.UTF8, "application/json")).Result;
             JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
             wsResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponsePrivateWebSocketConnection());
 
-            // устанавливаем динамический адрес сервера ws
+            // set dynamic server address ws
             _webSocketPublicUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
 
             _webSocketPublic = new WebSocket(_webSocketPublicUrl);
-            _webSocketPublic.EnableAutoSendPing = true;
-            _webSocketPublic.AutoSendPingInterval = 18;
+            _webSocketPublic.SslConfiguration.EnabledSslProtocols
+               = System.Security.Authentication.SslProtocols.Ssl3
+               | System.Security.Authentication.SslProtocols.Tls11
+               | System.Security.Authentication.SslProtocols.None
+               | System.Security.Authentication.SslProtocols.Tls12
+               | System.Security.Authentication.SslProtocols.Tls13
+               | System.Security.Authentication.SslProtocols.Tls;
+            _webSocketPublic.EmitOnPing = true;
 
-            _webSocketPublic.Opened += WebSocketPublic_Opened;
-            _webSocketPublic.Closed += WebSocketPublic_Closed;
-            _webSocketPublic.MessageReceived += WebSocketPublic_MessageReceived;
-            _webSocketPublic.Error += WebSocketPublic_Error;
+            _webSocketPublic.OnOpen += _webSocketPublic_OnOpen;
+            _webSocketPublic.OnMessage += _webSocketPublic_OnMessage;
+            _webSocketPublic.OnError += _webSocketPublic_OnError;
+            _webSocketPublic.OnClose += _webSocketPublic_OnClose;
+            _webSocketPublic.Connect();
+        }
 
-            _webSocketPublic.Open();
+        private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";
+
+        private void CheckActivationSockets()
+        {
+            lock (_lockerCheckActivateionSockets)
+            {
+                if (_webSocketPrivate == null
+                    || _webSocketPrivate.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+                if (_webSocketPublic == null
+                    || _webSocketPublic.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Connect;
+
+                    if (ConnectEvent != null)
+                    {
+                        ConnectEvent();
+                    }
+                }
+            }
         }
 
         private void DeleteWebsocketConnection()
@@ -447,17 +542,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
-                    _webSocketPublic.Close();
+                    _webSocketPublic.OnOpen -= _webSocketPublic_OnOpen;
+                    _webSocketPublic.OnMessage -= _webSocketPublic_OnMessage;
+                    _webSocketPublic.OnError -= _webSocketPublic_OnError;
+                    _webSocketPublic.OnClose -= _webSocketPublic_OnClose;
+                    _webSocketPublic.CloseAsync();
                 }
                 catch
                 {
                     // ignore
                 }
-               
-                _webSocketPublic.Opened -= WebSocketPublic_Opened;
-                _webSocketPublic.Closed -= WebSocketPublic_Closed;
-                _webSocketPublic.MessageReceived -= WebSocketPublic_MessageReceived;
-                _webSocketPublic.Error -= WebSocketPublic_Error;
+
                 _webSocketPublic = null;
             }
 
@@ -465,17 +560,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
-                    _webSocketPrivate.Close();
+                    _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
+                    _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
+                    _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
+                    _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
+                    _webSocketPrivate.CloseAsync();
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocketPrivate.Opened -= WebSocketPrivate_Opened;
-                _webSocketPrivate.Closed -= WebSocketPrivate_Closed;
-                _webSocketPrivate.MessageReceived -= WebSocketPrivate_MessageReceived;
-                _webSocketPrivate.Error -= WebSocketPrivate_Error;
                 _webSocketPrivate = null;
             }
         }
@@ -484,63 +579,27 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         #region 7 WebSocket events
 
-        private void WebSocketPublic_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        private void _webSocketPublic_OnClose(object sender, CloseEventArgs e)
         {
-            SuperSocket.ClientEngine.ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
-
-            if (error.Exception != null)
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
-                SendLogMessage(error.Exception.ToString(),LogMessageType.Error);
+                SendLogMessage("Connection Closed by KuCoin. WebSocket Public Closed Event", LogMessageType.Error);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
-        private void WebSocketPrivate_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        private void _webSocketPublic_OnError(object sender, ErrorEventArgs e)
         {
-            SuperSocket.ClientEngine.ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
+            WebSocketSharp.ErrorEventArgs error = e;
+
             if (error.Exception != null)
             {
                 SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
             }
         }
 
-        private void WebSocketPublic_MessageReceived(object sender, MessageReceivedEventArgs e)
-        {
-            try
-            {
-                if(ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                if (e == null)
-                {
-                    return;
-                }
-
-                if (string.IsNullOrEmpty(e.Message))
-                {
-                    return;
-                }
-
-                if (e.Message.Length == 4)
-                { // pong message
-                    return;
-                }
-
-                if (_webSocketPublicMessages == null)
-                {
-                    return;
-                }
-
-                _webSocketPublicMessages.Enqueue(e.Message);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void WebSocketPrivate_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void _webSocketPublic_OnMessage(object sender, MessageEventArgs e)
         {
             try
             {
@@ -549,18 +608,66 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     return;
                 }
 
-                if (e == null)
+                if (e == null
+                    || e.Data == null
+                    || e.Data.Length == 0)
                 {
                     return;
                 }
 
-                if (string.IsNullOrEmpty(e.Message))
+                if (_webSocketPublicMessages == null)
                 {
                     return;
                 }
 
-                if (e.Message.Length == 4)
-                { // pong message
+                _webSocketPublicMessages.Enqueue(e.Data);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPublic_OnOpen(object sender, EventArgs e)
+        {
+            SendLogMessage("Connection to public data is Open", LogMessageType.System);
+
+            CheckActivationSockets();
+        }
+
+        private void _webSocketPrivate_OnClose(object sender, CloseEventArgs e)
+        {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                SendLogMessage("Connection Closed by KuCoin. WebSocket Private Closed Event", LogMessageType.Error);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
+        }
+
+        private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
+        {
+            WebSocketSharp.ErrorEventArgs error = e;
+
+            if (error.Exception != null)
+            {
+                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPrivate_OnMessage(object sender, MessageEventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e == null
+                    || e.Data == null
+                    || e.Data.Length == 0)
+                {
                     return;
                 }
 
@@ -569,7 +676,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     return;
                 }
 
-                _webSocketPrivateMessages.Enqueue(e.Message);
+                _webSocketPrivateMessages.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -577,59 +684,74 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
-        private void WebSocketPublic_Closed(object sender, EventArgs e)
-        {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                SendLogMessage("Connection Closed by KuCoin. WebSocket Closed Event", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
-        }
-
-        private void WebSocketPrivate_Closed(object sender, EventArgs e)
-        {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                SendLogMessage("Connection Closed by KuCoin. WebSocket Closed Event", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
-        }
-
-        private void WebSocketPublic_Opened(object sender, EventArgs e)
-        {
-            SendLogMessage("Connection to public data is Open", LogMessageType.System);
-
-            if (ServerStatus != ServerConnectStatus.Connect 
-                && _webSocketPrivate != null
-                && _webSocketPrivate.State == WebSocketState.Open)
-            {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
-            }
-        }
-
-        private void WebSocketPrivate_Opened(object sender, EventArgs e)
+        private void _webSocketPrivate_OnOpen(object sender, EventArgs e)
         {
             SendLogMessage("Connection to private data is Open", LogMessageType.System);
-            
-            if (ServerStatus != ServerConnectStatus.Connect
-                && _webSocketPublic != null
-                && _webSocketPublic.State == WebSocketState.Open)
-            {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
-            }
 
-            // Сразу подписываемся на изменение ордеров и портфеля
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // изменение ордеров
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // изменение портфеля
+            CheckActivationSockets();
+
+            // We immediately subscribe to changes in orders and portfolio
+            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
+            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
         }
 
         #endregion
-        
-        #region 8 Security Subscribed
+
+        #region 8 WebSocket check alive
+
+        private void CheckAliveWebSocket()
+        {
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(10000);
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (_webSocketPrivate != null && _webSocketPrivate.ReadyState == WebSocketState.Open ||
+                        _webSocketPrivate.ReadyState == WebSocketState.Connecting)
+                    {
+                        _webSocketPrivate.Send($"{{\"type\": \"ping\"}}");
+                    }
+                    else
+                    {
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+
+                    if (_webSocketPublic != null && _webSocketPublic.ReadyState == WebSocketState.Open ||
+                        _webSocketPublic.ReadyState == WebSocketState.Connecting)
+                    {
+                        _webSocketPublic.Send($"{{\"type\": \"ping\"}}");
+                    }
+                    else
+                    {
+                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        #endregion
+
+        #region 9 Security Subscribed
 
         // https://www.kucoin.com/docs/basic-info/request-rate-limit/rest-api
         private RateGate _rateGateSubscribed = new RateGate(1, TimeSpan.FromMilliseconds(220));
@@ -648,9 +770,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
-        #region 9 WebSocket parsing the messages
+        #region 10 WebSocket parsing the messages
 
         private ConcurrentQueue<string> _webSocketPublicMessages = new ConcurrentQueue<string>();
 
@@ -703,10 +832,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                         {
                             UpdateTrade(message);
                             continue;
-                        }
-                        else
-                        {
-
                         }
                     }
                 }
@@ -768,7 +893,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             continue;
                         }
 
-                        if (action.subject.Equals("availableBalance.change"))
+                        if (action.subject.Equals("walletBalance.change"))
                         {
                             UpdatePortfolio(message);
                             continue;
@@ -855,14 +980,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.data.timestamp));
 
-
             MarketDepthEvent(marketDepth);
         }
 
         private void UpdateMytrade(string json)
         {
             ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
-
 
             for (int i = 0; i < responseMyTrades.data.items.Count; i++)
             {
@@ -890,37 +1013,29 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 
                 MyTradeEvent(myTrade);
             }
-
         }
 
         private void UpdatePortfolio(string message)
         {
             ResponseWebSocketMessageAction<ResponseWebSocketPortfolio> Portfolio = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPortfolio>());
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "KuCoinFutures";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            Portfolio portfolio = Portfolios[0];
 
             PositionOnBoard pos = new PositionOnBoard();
 
             pos.PortfolioName = "KuCoinFutures";
             pos.SecurityNameCode = Portfolio.data.currency;
-            pos.ValueBlocked = Portfolio.data.holdBalance.ToDecimal();
-            pos.ValueCurrent = Portfolio.data.availableBalance.ToDecimal();
+            pos.ValueCurrent = Portfolio.data.walletBalance.ToDecimal();
 
             portfolio.SetNewPosition(pos);
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent(Portfolios);
         }
 
         private void UpdatePosition(string message)
         {
             ResponseWebSocketMessageAction<ResponseWebSocketPosition> posResponse = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPosition>());
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "KuCoinFutures";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            Portfolio portfolio = Portfolios[0];
 
             ResponseWebSocketPosition data = posResponse.data;
 
@@ -928,11 +1043,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             pos.PortfolioName = "KuCoinFutures";
             pos.SecurityNameCode = data.symbol;
-            pos.ValueBlocked = data.maintMargin.ToDecimal();
             pos.ValueCurrent = data.currentQty.ToDecimal();
             
             portfolio.SetNewPosition(pos);
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent(Portfolios);
         }
 
         private void UpdateOrder(string message)
@@ -955,7 +1069,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             Order newOrder = new Order();
             newOrder.SecurityNameCode = item.symbol;
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts)/1000000); //from nanoseconds to ms
+            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000); //from nanoseconds to ms
 
             if (item.clientOid != null)
             {
@@ -984,12 +1098,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             if (stateType == OrderStateType.Done || (stateType == OrderStateType.Partial && item.size != item.filledSize))
             {
-                // как только приходит ордер исполненный или частично исполненный триггер на запрос моего трейда по имени бумаги
-                CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket, Convert.ToInt64(item.ts) / 1000000);
+                // as soon as an order is executed or partially executed, a trigger is sent to request my trade by the name of the security
+                CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket);
             }
             
             MyOrderEvent(newOrder);
-            
         }
 
         private OrderStateType GetOrderState(string orderStatusResponse, string orderTypeResponse)
@@ -1029,9 +1142,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
-        #region 10 Trade
+        #region 11 Trade
 
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
@@ -1052,11 +1167,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             data.leverage = "10";
 
             JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
-            dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// если маркет-ордер, то игнорим параметр цены
+            dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// if it's a market order, then we ignore the price parameter
 
             string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
 
-            // для теста можно использовать  "/api/v1/orders/test"
+            // for the test you can use "/api/v1/orders/test"
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders", "POST", null, jsonRequest);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
             ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<ResponsePlaceOrder>());
@@ -1092,15 +1207,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
-
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-
-        }
-
-        public void GetOrdersState(List<Order> orders)
         {
 
         }
@@ -1151,7 +1260,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders/" + order.NumberMarket, "DELETE", null, null);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
             ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
@@ -1199,17 +1307,241 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public void GetAllActivOrders()
         {
+            List<Order> orders = GetAllOrdersFromExchange();
 
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Active
+                    && orders[i].State != OrderStateType.Partial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
+        }
+
+        private List<Order> GetAllOrdersFromExchange()
+        {
+            _rateGateSendOrder.WaitToProceed();
+
+            try
+            {
+                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders", "GET", "status=active", null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code == "200000")
+                    {
+                        ResponseMessageRest<ResponseAllOrders> order = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseAllOrders>());
+
+                        List<Order> orders = new List<Order>();
+
+                        for (int i = 0; i < order.data.items.Count; i++)
+                        {
+                            if (order.data.items[i].isActive == "false")
+                            {
+                                continue;
+                            }
+
+                            Order newOrder = new Order();
+
+                            newOrder.SecurityNameCode = order.data.items[i].symbol;
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.items[i].updatedAt));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.items[i].orderTime) / 1000000); //from nanoseconds to ms
+                            newOrder.ServerType = ServerType.KuCoinFutures;
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(order.data.items[i].clientOid);
+                            }
+                            catch
+                            {
+
+                            }
+
+                            newOrder.NumberMarket = order.data.items[i].id;
+                            newOrder.Side = order.data.items[i].side.Equals("buy") ? Side.Buy : Side.Sell;
+
+                            if (order.data.items[i].type == "market")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+                            if (order.data.items[i].type == "limit")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+
+                            OrderStateType stateType = GetOrderState(order.data.items[i].status, order.data.items[i].type);
+                            newOrder.State = stateType;
+                            newOrder.Volume = order.data.items[i].size == null ? order.data.items[i].filledSize.Replace('.', ',').ToDecimal() : order.data.items[i].size.Replace('.', ',').ToDecimal();
+                            newOrder.Price = order.data.items[i].price != null ? order.data.items[i].price.Replace('.', ',').ToDecimal() : 0;
+                            newOrder.PortfolioNumber = "KuCoinFutures";
+
+                            orders.Add(newOrder);
+                        }
+                        return orders;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         public void GetOrderStatus(Order order)
         {
+            Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket, order.NumberUser);
 
+            if (orderFromExchange == null)
+            {
+                return;
+            }
+
+            Order orderOnMarket = null;
+
+            if (order.NumberUser != 0
+                && orderFromExchange.NumberUser != 0
+                && orderFromExchange.NumberUser == order.NumberUser)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (string.IsNullOrEmpty(order.NumberMarket) == false
+                && order.NumberMarket == orderFromExchange.NumberMarket)
+            {
+                orderOnMarket = orderFromExchange;
+            }
+
+            if (orderOnMarket == null)
+            {
+                return;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+
+            if (orderOnMarket.State == OrderStateType.Done
+                || orderOnMarket.State == OrderStateType.Partial)
+            {
+                CreateQueryMyTrade(order.SecurityNameCode, order.NumberMarket);
+            }
+        }
+
+        private Order GetOrderFromExchange(string securityNameCode, string numberMarket, int numberUser)
+        {
+            _rateGateSendOrder.WaitToProceed();
+
+            try
+            {
+                string path = null;
+
+                if (numberMarket != null)
+                {
+                    path = $"/api/v1/orders/{numberMarket}";
+                }
+                else
+                {
+                    path = $"/api/v1/orders/{numberUser}";
+                }
+
+                if (path == null)
+                {
+                    return null;
+                }
+
+                HttpResponseMessage responseMessage = CreatePrivateQuery(path, "GET", null, null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code == "200000")
+                    {
+                        ResponseMessageRest<ResponseOrder> order = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseOrder>());
+
+                        Order newOrder = new Order();
+
+                        if (order.data != null)
+                        {
+                            newOrder.SecurityNameCode = order.data.symbol;
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.updatedAt));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(order.data.orderTime) / 1000000); //from nanoseconds to ms
+                            newOrder.ServerType = ServerType.KuCoinFutures;
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(order.data.clientOid);
+                            }
+                            catch
+                            {
+
+                            }
+
+                            if (order.data.type == "market")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+                            if (order.data.type == "limit")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+
+                            newOrder.NumberMarket = order.data.id;
+                            newOrder.Side = order.data.side.Equals("buy") ? Side.Buy : Side.Sell;
+
+                            OrderStateType stateType = GetOrderState(order.data.status, order.data.type);
+                            newOrder.State = stateType;
+
+                            if (newOrder.State == OrderStateType.Done)
+                            {
+                                newOrder.TimeDone = newOrder.TimeCreate;
+                                newOrder.TimeCancel = newOrder.TimeCreate;
+                            }
+
+                            newOrder.Volume = order.data.size == null ? order.data.filledSize.Replace('.', ',').ToDecimal() : order.data.size.Replace('.', ',').ToDecimal();
+                            newOrder.Price = order.data.price != null ? order.data.price.Replace('.', ',').ToDecimal() : 0;
+                            newOrder.PortfolioNumber = "KuCoinFutures";
+                        }
+
+                        return newOrder;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return null;
         }
 
         #endregion
 
-        #region 11 Queries
+        #region 12 Queries
 
         private string _baseUrl = "https://api-futures.kucoin.com";
 
@@ -1236,18 +1568,18 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             _subscribedSecurities.Add(security.Name);
 
-             _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}"); // сделки
+             _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}"); // transactions
 
-             _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/level2Depth5:{security.Name}\"}}"); // стаканы 5+5 https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-5-best-ask-bid-orders
-             
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{security.Name}\"}}"); // изменение позиций https://www.kucoin.com/docs/websocket/futures-trading/private-channels/position-change-events
+            _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/level2Depth5:{security.Name}\"}}"); // MarketDepth 5+5 https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-5-best-ask-bid-orders
+
+            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{security.Name}\"}}"); // change of positions https://www.kucoin.com/docs/websocket/futures-trading/private-channels/position-change-events
         }
 
         private void CreateQueryPortfolio(bool IsUpdateValueBegin, string currency = "USDT")
         {
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/account-overview", "GET", "currency="+currency, null);
+                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/account-overview", "GET", "currency=" + currency, null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
@@ -1284,30 +1616,42 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             ResponseMessageRest<ResponseAsset> asset = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseAsset>());
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "KuCoinFutures";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            Portfolio portfolio = Portfolios[0];
 
-            
             ResponseAsset item = asset.data;
 
             PositionOnBoard pos = new PositionOnBoard();
 
+            if (item.currency == "USDT")
+            {
+                if (IsUpdateValueBegin)
+                {
+                    portfolio.ValueBegin = Math.Round(item.marginBalance.ToDecimal(), 4);
+                }
+
+                portfolio.ValueCurrent = Math.Round(item.accountEquity.ToDecimal(), 4);
+                portfolio.ValueBlocked = Math.Round(item.orderMargin.ToDecimal(), 4);
+                portfolio.UnrealizedPnl = item.unrealisedPNL.ToDecimal();
+
+                if (portfolio.ValueCurrent == 0)
+                {
+                    portfolio.ValueBegin = 1;
+                    portfolio.ValueCurrent = 1;
+                }
+            }
+
             pos.PortfolioName = "KuCoinFutures";
             pos.SecurityNameCode = item.currency;
-            pos.ValueBlocked = item.unrealisedPNL.ToDecimal();
             pos.ValueCurrent = item.accountEquity.ToDecimal();
+            pos.ValueBlocked = item.orderMargin.ToDecimal();
 
             if (IsUpdateValueBegin)
             {
-                pos.ValueBegin = item.accountEquity.ToDecimal();
+                pos.ValueBegin = item.marginBalance.ToDecimal();
             }
 
             portfolio.SetNewPosition(pos);
-            
-
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent(Portfolios);
         }
 
         private void CreateQueryPositions(bool IsUpdateValueBegin)
@@ -1328,7 +1672,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     {
                         SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
-                    
                 }
                 else
                 {
@@ -1350,10 +1693,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             ResponseMessageRest<List<ResponsePosition>> assets = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<List<ResponsePosition>>());
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "KuCoinFutures";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            Portfolio portfolio = Portfolios[0];
 
             for (int i = 0; i < assets.data.Count; i++)
             {
@@ -1362,21 +1702,21 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 pos.PortfolioName = "KuCoinFutures";
                 pos.SecurityNameCode = item.symbol;
-                pos.ValueBlocked = item.maintMargin.ToDecimal(); //????
-                pos.ValueCurrent = item.currentCost.ToDecimal();
+                pos.UnrealizedPnl = item.unrealisedPnl.ToDecimal();
+                pos.ValueCurrent = item.currentQty.ToDecimal();
 
                 if (IsUpdateValueBegin)
                 {
-                    pos.ValueBegin = item.currentCost.ToDecimal();
+                    pos.ValueBegin = item.currentQty.ToDecimal();
                 }
 
                 portfolio.SetNewPosition(pos);
             }
 
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent(Portfolios);
         }
 
-        private void CreateQueryMyTrade(string nameSec, string OrdId, long ts)
+        private void CreateQueryMyTrade(string nameSec, string OrdId)
         {
             Thread.Sleep(2000);
             _rateGateGetMyTradeState.WaitToProceed();
@@ -1389,7 +1729,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
             ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-            
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
@@ -1413,7 +1752,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
-
         }
 
         private List<Candle> CreateQueryCandles(string nameSec, string stringInterval, DateTime timeFrom, DateTime timeTo)
@@ -1437,18 +1775,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     for (int i = 0; i < symbols.data.Count; i++)
                     {
                         List<string> item = symbols.data[i];
-
-                        /* Пример возвращаемого значения свечи https://www.kucoin.com/docs/rest/futures-trading/market-data/get-klines
-                         * [
-                                1575331200000, //Time
-                                7495.01, //Entry price
-                                8309.67, //Highest price
-                                7250, //Lowest price
-                                7463.55, //Close price
-                                0 //Trading volume
-                              ],
-                         *
-                         */
 
                         Candle newCandle = new Candle();
 
@@ -1537,7 +1863,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         #endregion
 
-        #region 12 Log
+        #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
 

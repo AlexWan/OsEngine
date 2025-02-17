@@ -153,8 +153,6 @@ namespace OsEngine.Market.Servers.Transaq
 
             try
             {
-                _isDisposed = false;
-
                 _isLibraryInitialized = ConnectorInitialize();
 
                 // formation of the command text / формирование текста команды
@@ -294,7 +292,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             finally
             {
-                _isDisposed = true;
+                _newsIsSubscribed = false;
 
                 _depths?.Clear();
 
@@ -367,8 +365,6 @@ namespace OsEngine.Market.Servers.Transaq
                 return false;
             }
         }
-
-        private bool _isDisposed = false;
 
         public event Action ConnectEvent;
 
@@ -1731,6 +1727,22 @@ namespace OsEngine.Market.Servers.Transaq
             _subscribeSecurities.Add(security);
         }
 
+        public bool SubscribeNews()
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return false;
+            }
+
+            _newsIsSubscribed = true;
+
+            return true;
+        }
+
+        private bool _newsIsSubscribed = false;
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 8 Trade
@@ -1973,12 +1985,10 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
-                if (_isDisposed == false)
-                {
-                    string data = MarshalUtf8.PtrToStringUtf8(pData);
-                    _newMessage.Enqueue(data);
-                    FreeMemory(pData);
-                }
+
+                string data = MarshalUtf8.PtrToStringUtf8(pData);
+                _newMessage.Enqueue(data);
+                FreeMemory(pData);
 
                 return true;
             }
@@ -2111,9 +2121,17 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<news_header>"))
                             {
-                                // пришла новость с рынка
-                                //SendLogMessage(data, LogMessageType.Error);
-
+                                if(_newsIsSubscribed)
+                                {
+                                    _newsIdQueue.Enqueue(data);
+                                }
+                            }
+                            else if (data.StartsWith("<news_body>"))
+                            {
+                                if (_newsIsSubscribed)
+                                {
+                                    _newsBodyQueue.Enqueue(data);
+                                }
                             }
                             else if (data.StartsWith("<markets>")
                                 || data.StartsWith("<boards>")
@@ -2165,6 +2183,12 @@ namespace OsEngine.Market.Servers.Transaq
 
         private ConcurrentQueue<string> _securityInfoQueue = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _newsIdQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _newsBodyQueue = new ConcurrentQueue<string>();
+
+        private List<TransaqNews> _news = new List<TransaqNews>();
+
         private void ThreadHistoricalDataParsingWorkPlace()
         {
             while (true)
@@ -2197,6 +2221,66 @@ namespace OsEngine.Market.Servers.Transaq
                             List<Tick> newTicks = _deserializer.Deserialize<List<Tick>>(new RestResponse() { Content = data });
 
                             _allTicks.AddRange(newTicks);
+                        }
+                    }
+                    else if (_newsIdQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_newsIdQueue.TryDequeue(out data))
+                        {
+                            TransaqNews newsTransaq = _deserializer.Deserialize<TransaqNews>(new RestResponse() { Content = data });
+
+                            _news.Add(newsTransaq);
+
+                            if(_news.Count > 100)
+                            {
+                                _news.RemoveAt(0);
+                            }
+
+                            string cmd =
+                                $"<command id=\"get_news_body\" news_id=\"{newsTransaq.Id}\"/>";
+                            
+                            // sending command / отправка команды
+                            string res = ConnectorSendCommand(cmd);
+
+                        }
+                    }
+                    else if (_newsBodyQueue.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_newsBodyQueue.TryDequeue(out data))
+                        {
+                            TransaqNewsBody newsTransaq = _deserializer.Deserialize<TransaqNewsBody>(new RestResponse() { Content = data });
+
+                            TransaqNews myNews = null;
+
+                            for(int i = 0;i < _news.Count;i++)
+                            {
+                                if (_news[i].Id == newsTransaq.Id)
+                                {
+                                    myNews = _news[i];
+                                    myNews.NewsBody = newsTransaq.Text;
+                                    break;
+                                }
+                            }
+
+                            if(myNews == null)
+                            {
+                                continue;
+                            }
+
+                            News news = new News();
+
+                            news.TimeMessage = DateTime.Parse(myNews.Timestamp);
+                            news.Source = this.ServerType + " " + myNews.Source;
+                            news.Value = myNews.NewsBody;
+
+                            if (news != null)
+                            {
+                                NewsEvent(news);
+                            }
                         }
                     }
                     else
@@ -2759,6 +2843,8 @@ namespace OsEngine.Market.Servers.Transaq
         public event Action<MarketDepth> MarketDepthEvent;
 
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

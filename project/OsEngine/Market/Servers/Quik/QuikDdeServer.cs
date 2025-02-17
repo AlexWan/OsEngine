@@ -849,8 +849,15 @@ namespace OsEngine.Market.Servers.Quik
             return command;
         }
 
-// processing data from auxiliary classes
-// обработка данных из вспомогательных классов
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
+        // processing data from auxiliary classes
+        // обработка данных из вспомогательных классов
 
         /// <summary>
         /// DDE server
@@ -1169,7 +1176,9 @@ namespace OsEngine.Market.Servers.Quik
         /// </summary>
         public event Action DisconnectEvent;
 
-// logging / логирование
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        // logging / логирование
 
         /// <summary>
         /// add a new log message

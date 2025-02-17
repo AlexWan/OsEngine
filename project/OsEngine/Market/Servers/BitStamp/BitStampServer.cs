@@ -398,6 +398,13 @@ namespace OsEngine.Market.Servers.BitStamp
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         // outgoing events
         // исходящие события
 
@@ -448,6 +455,8 @@ namespace OsEngine.Market.Servers.BitStamp
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         // log messages
         // сообщения для лога

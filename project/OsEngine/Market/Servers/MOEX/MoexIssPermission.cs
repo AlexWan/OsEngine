@@ -146,7 +146,7 @@ namespace OsEngine.Market.Servers.MOEX
                 TimeFrameDayIsOn = true
             };
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return false; }
         }
@@ -177,6 +177,15 @@ namespace OsEngine.Market.Servers.MOEX
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

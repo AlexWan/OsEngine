@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.MFD
         {
             MfdServerRealization realization = new MfdServerRealization();
             ServerRealization = realization;
-            NeedToHideParams = true;
+            NeedToHideParameters = true;
         }
     }
 
@@ -115,6 +115,13 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         public void GetOrdersState(List<Order> orders)
         {
 
@@ -124,6 +131,7 @@ namespace OsEngine.Market.Servers.MFD
         public event Action<MyTrade> MyTradeEvent;
         public event Action<List<Portfolio>> PortfolioEvent;
         public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

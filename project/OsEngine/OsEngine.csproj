@@ -428,6 +428,7 @@
     <Compile Include="Entity\AcceptDialogUi.xaml.cs">
       <DependentUpon>AcceptDialogUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Entity\OptionMarketData.cs" />
     <Compile Include="Entity\AwaitObject.cs" />
     <Compile Include="Entity\AwaitUi.xaml.cs">
       <DependentUpon>AwaitUi.xaml</DependentUpon>
@@ -447,6 +448,7 @@
     <Compile Include="Entity\Extensions.cs" />
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
+    <Compile Include="Entity\News.cs" />
     <Compile Include="Entity\ProxyHolder.cs" />
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
@@ -458,6 +460,10 @@
     <Compile Include="Logging\ServerTelegram.cs" />
     <Compile Include="Logging\ServerTelegramUi.xaml.cs">
       <DependentUpon>ServerTelegramUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Connectors\ConnectorNews.cs" />
+    <Compile Include="Market\Connectors\ConnectorNewsUi.xaml.cs">
+      <DependentUpon>ConnectorNewsUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\Atp\AtpServer.cs" />
     <Compile Include="Market\Servers\Atp\AtpServerPermission.cs" />
@@ -758,11 +764,11 @@
     <Compile Include="Market\Servers\HTX\Swap\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\HTX\Swap\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\HTX\Swap\HTXSwapServer.cs" />
-    <Compile Include="Market\Servers\HTX\Swap\HTXSwapServerPermission.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseMessageRest.cs" />
     <Compile Include="Market\Servers\HTX\Spot\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\HTX\Spot\HTXSpotServer.cs" />
     <Compile Include="Market\Servers\HTX\Spot\HTXSpotServerPermission.cs" />
+    <Compile Include="Market\Servers\HTX\Swap\HTXSwapServerPermission.cs" />
     <Compile Include="Market\Servers\InteractiveBrokers\IbClient.cs" />
     <Compile Include="Market\Servers\InteractiveBrokers\IbContractStorageUi.xaml.cs">
       <DependentUpon>IbContractStorageUi.xaml</DependentUpon>
@@ -1159,6 +1165,7 @@
     <Compile Include="OsTrader\Panels\BotPanelChartUI.xaml.cs">
       <DependentUpon>BotPanelChartUI.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\Tab\BotTabNews.cs" />
     <Compile Include="OsTrader\Panels\Tab\BotTabPair.cs" />
     <Compile Include="OsTrader\Panels\Tab\BotTabPairAutoSelectPairsUi.xaml.cs">
       <DependentUpon>BotTabPairAutoSelectPairsUi.xaml</DependentUpon>
@@ -1223,6 +1230,7 @@
       <DependentUpon>TestBotConnectionParams.xaml</DependentUpon>
     </Compile>
     <Compile Include="Robots\AutoTestBots\TestBotOpenAndCanselOrders.cs" />
+    <Compile Include="Robots\AutoTestBots\TestBotOption.cs" />
     <Compile Include="Robots\BotCreateUi2.xaml.cs">
       <DependentUpon>BotCreateUi2.xaml</DependentUpon>
     </Compile>
@@ -1246,6 +1254,7 @@
     <Compile Include="Robots\BotsFromStartLessons\Lesson9Bot4.cs" />
     <Compile Include="Robots\BotsFromStartLessons\Lesson9Bot5.cs" />
     <Compile Include="Robots\CounterTrend\ClusterCountertrend.cs" />
+    <Compile Include="Robots\Engines\NewsEngine.cs" />
     <Compile Include="Robots\PositionsMicromanagement\AlligatorTrendAverage.cs" />
     <Compile Include="Robots\PositionsMicromanagement\CandlesTurnaroundPattern.cs" />
     <Compile Include="Robots\PositionsMicromanagement\CustomIcebergSample.cs" />
@@ -1651,6 +1660,10 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Include="Market\Connectors\ConnectorCandlesUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Connectors\ConnectorNewsUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

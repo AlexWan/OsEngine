@@ -1626,5 +1626,17 @@ namespace OsEngine.Language
         public string Label431 => OsLocalization.ConvertToLocString(
          "Eng:Normalize in %_" +
          "Ru:Нормализовать в %_");
+
+        public string Label432 => OsLocalization.ConvertToLocString(
+         "Eng:Time_" +
+         "Ru:Время_");
+
+        public string Label433 => OsLocalization.ConvertToLocString(
+         "Eng:Source_" +
+         "Ru:Источник_");
+
+        public string Label434 => OsLocalization.ConvertToLocString(
+         "Eng:News_" +
+         "Ru:Новости_");
     }
 }

@@ -847,6 +847,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             _webSocket.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\" }}"); // глубина
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 9 WebSocket parsing the messages
@@ -860,6 +867,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         public event Action<Trade> NewTradesEvent;
 
         public event Action<MarketDepth> MarketDepthEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void MessageReader()
         {

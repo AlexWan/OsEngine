@@ -141,7 +141,7 @@ namespace OsEngine.Market.Servers.Finam
                 TimeFrameDayIsOn = false
             };
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return false; }
         }
@@ -172,6 +172,15 @@ namespace OsEngine.Market.Servers.Finam
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

@@ -129,6 +129,8 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             public event Action<Trade> NewTradesEvent;
 
+            public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
             #endregion
 
             #region 3 Securities
@@ -715,6 +717,13 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
+
+            public bool SubscribeNews()
+            {
+                return false;
+            }
+
+            public event Action<News> NewsEvent;
 
             #endregion
 

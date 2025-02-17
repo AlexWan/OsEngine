@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
             get { return false; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -201,6 +201,15 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
         }
 
         public bool CanQueryOrderStatus
+        {
+            get { return false; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
         {
             get { return false; }
         }

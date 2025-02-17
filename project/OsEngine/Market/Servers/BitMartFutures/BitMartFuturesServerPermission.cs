@@ -122,7 +122,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             get { return false; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -211,7 +211,10 @@ namespace OsEngine.Market.Servers.BitMartFutures
         {
             get { return true; }
         }
+
+        public bool IsNewsServer
+        {
+            get { return false; }
+        }
     }
-
-
 }

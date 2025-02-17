@@ -1228,6 +1228,13 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion 8
 
         #region 9 WebSocket parsing the messages
@@ -1528,6 +1535,8 @@ namespace OsEngine.Market.Servers.KiteConnect
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion 9
 

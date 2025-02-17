@@ -1956,7 +1956,6 @@ namespace OsEngine.Market.Servers.Plaza
 
         private List<MarketDepth> _marketDepths;
 
-
         private MarketDepth Insert(StreamDataMessage replmsg, Security security)
         {
             // process revision | обрабатываем ревизию
@@ -2359,6 +2358,13 @@ namespace OsEngine.Market.Servers.Plaza
         {
             _marketDepths = new List<MarketDepth>();
         }
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
 
         #endregion
 
@@ -3144,6 +3150,8 @@ namespace OsEngine.Market.Servers.Plaza
 
             return -1;
         }
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
     }

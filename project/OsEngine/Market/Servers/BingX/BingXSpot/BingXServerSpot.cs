@@ -774,6 +774,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
             _webSocket.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}"); // глубина
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 9 WebSocket parsing the messages
@@ -787,6 +794,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
         public event Action<MarketDepth> MarketDepthEvent;
 
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void MessageReader()
         {

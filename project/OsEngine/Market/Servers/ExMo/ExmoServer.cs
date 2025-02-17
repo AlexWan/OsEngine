@@ -177,6 +177,13 @@ namespace OsEngine.Market.Servers.ExMo
             _client.SubscribleTradesAndDepths(security);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         /// <summary>
         /// take candle history for period
         /// взять историю свечек за период
@@ -355,6 +362,8 @@ namespace OsEngine.Market.Servers.ExMo
         /// соединение с API разорвано
         /// </summary>
         public event Action DisconnectEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         // log messages
         // сообщения для лога

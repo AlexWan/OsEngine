@@ -1596,6 +1596,13 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion 9
 
         #region 10 WebSocket parsing the messages
@@ -2273,6 +2280,8 @@ namespace OsEngine.Market.Servers.Bybit
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         public void SendOrder(Order order)
         {

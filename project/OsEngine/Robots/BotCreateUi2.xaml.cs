@@ -827,6 +827,12 @@ namespace OsEngine.Robots
                 sourcesList.Add(BotTabType.Polygon + " " + bot.TabsPolygon.Count);
             }
 
+            if (bot.TabsNews != null &&
+                bot.TabsNews.Count > 0)
+            {
+                sourcesList.Add(BotTabType.News + " " + bot.TabsNews.Count);
+            }
+
             return sourcesList;
         }
 

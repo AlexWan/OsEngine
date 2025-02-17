@@ -687,6 +687,8 @@ namespace OsEngine.Entity
 
                 key = key.ToLower();
 
+                int indexFirstSec = int.MaxValue;
+
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
                     string security = "";
@@ -710,13 +712,23 @@ namespace OsEngine.Entity
                     securityFullName = securityFullName.ToLower();
                     securityId = securityId.ToLower();
 
-                    if (security.Contains(key)
-                        || securityFullName.Contains(key)
-                        || securityId.Contains(key))
+                    if (security.Contains(key) || securityFullName.Contains(key) || securityId.Contains(key))
                     {
+                        if (security.IndexOf(key) == 0 || securityFullName.IndexOf(key) == 0 || securityId.IndexOf(key) == 0)
+                        {
+                            indexFirstSec = i;
+                        }
+
                         _searchResults.Add(i);
-                    }
+                    }					
                 }
+				
+                if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
+                {
+                    int index = _searchResults.IndexOf(indexFirstSec);
+                    _searchResults.RemoveAt(index);
+                    _searchResults.Insert(0, indexFirstSec);
+                }							
             }
             catch (Exception ex)
             {

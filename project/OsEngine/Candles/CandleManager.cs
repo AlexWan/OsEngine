@@ -204,7 +204,7 @@ namespace OsEngine.Entity
                         IServerPermission permission = ServerMaster.GetServerPermission(serverType);
 
                         if (permission != null &&
-                           permission.UseStandartCandlesStarter == true)
+                           permission.UseStandardCandlesStarter == true)
                         {
                             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
                             // NEW STANDART CANDLE SERIES START 2024

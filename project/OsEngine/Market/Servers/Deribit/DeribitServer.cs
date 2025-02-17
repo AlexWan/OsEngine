@@ -25,6 +25,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             CreateParameterString("Client ID", "");
             CreateParameterString("Client Secret", "");
+            CreateParameterEnum("Currency", "All", new List<string> { "All", "BTC", "ETH", "USDC", "USDT", "SOL", "MATIC", "XRP" });
             CreateParameterEnum("Server", "Real", new List<string> { "Real", "Test" }); // можно выбрать сервер - реальный или тестовый, на каждам свои аккауты и api ключи
             CreateParameterBoolean("Post Only for Limit Orders", false);
         }
@@ -55,7 +56,8 @@ namespace OsEngine.Market.Servers.Deribit
         {
             _clientID = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
-            if (((ServerParameterEnum)ServerParameters[2]).Value == "Real")
+
+            if (((ServerParameterEnum)ServerParameters[3]).Value == "Real")
             {
                 _baseUrl = "https://www.deribit.com";
                 _webSocketUrl = "wss://www.deribit.com/ws/api/v2";
@@ -66,7 +68,7 @@ namespace OsEngine.Market.Servers.Deribit
                 _webSocketUrl = "wss://test.deribit.com/ws/api/v2";
             }
 
-            if (((ServerParameterBool)ServerParameters[3]).Value == true)
+            if (((ServerParameterBool)ServerParameters[4]).Value == true)
             {
                 _postOnly = "true";
             }
@@ -74,10 +76,18 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 _postOnly = "false";
             }
+            if (((ServerParameterEnum)ServerParameters[2]).Value == "All")
+            {
+                _listCurrency = new List<string>() { "BTC", "ETH", "USDC", "USDT", "SOL", "MATIC", "XRP" };
+            }
+            else
+            {
+                _listCurrency = new List<string>() { ((ServerParameterEnum)ServerParameters[2]).Value };
+            }
 
             HttpResponseMessage responseMessage = _httpClient.GetAsync(_baseUrl + "/api/v2/public/get_currencies?").Result;
             string json = responseMessage.Content.ReadAsStringAsync().Result;
-                        
+
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 try
@@ -120,8 +130,6 @@ namespace OsEngine.Market.Servers.Deribit
 
             _subscribledSecurities.Clear();
             _arrayChannelsAccount.Clear();
-            _arrayChannelsBook.Clear();
-            _arrayChannelsTrade.Clear();
 
             try
             {
@@ -162,16 +170,12 @@ namespace OsEngine.Market.Servers.Deribit
 
         private string _webSocketUrl;
 
-        private string _postOnly;
+        public static string _postOnly;
 
         private int _limitCandles = 5000;
 
-        private List<string> _listCurrency = new List<string>() { "BTC", "ETH", "USDC", "USDT", "SOL", "MATIC", "XRP" }; // список валют на бирже
-        
-        private List<string> _arrayChannelsBook = new List<string>();
-        
-        private List<string> _arrayChannelsTrade = new List<string>();
-        
+        private List<string> _listCurrency = new List<string>(); // список валют на бирже
+
         private List<string> _arrayChannelsAccount = new List<string>();
 
         #endregion
@@ -226,7 +230,7 @@ namespace OsEngine.Market.Servers.Deribit
                     newSecurity.Exchange = ServerType.Deribit.ToString();
                     newSecurity.Name = item.instrument_name;
                     newSecurity.NameFull = item.instrument_name;
-                    newSecurity.NameClass = "Futures";
+                    newSecurity.NameClass = GetSecurityType(item.kind).ToString();
                     newSecurity.NameId = item.instrument_id;
                     newSecurity.SecurityType = GetSecurityType(item.kind);
                     newSecurity.DecimalsVolume = item.contract_size.DecimalsCount();
@@ -236,6 +240,14 @@ namespace OsEngine.Market.Servers.Deribit
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
                     newSecurity.MinTradeAmount = item.min_trade_amount.ToDecimal();
+
+                    if (newSecurity.SecurityType == SecurityType.Option)
+                    {
+                        newSecurity.Strike = item.strike.ToDecimal();
+                        newSecurity.Expiration = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.expiration_timestamp));
+                        newSecurity.OptionType = item.option_type == "put" ? OptionType.Put : OptionType.Call;
+                        newSecurity.UnderlyingAsset = item.base_currency;
+                    }
 
                     securities.Add(newSecurity);
                 }
@@ -255,6 +267,9 @@ namespace OsEngine.Market.Servers.Deribit
                     break;
                 case "spot":
                     _securityType = SecurityType.CurrencyPair;
+                    break;
+                case "option":
+                    _securityType = SecurityType.Option;
                     break;
             }
             return _securityType;
@@ -656,6 +671,13 @@ namespace OsEngine.Market.Servers.Deribit
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 10 WebSocket parsing the messages
@@ -708,21 +730,27 @@ namespace OsEngine.Market.Servers.Deribit
 
                         if (action.method == "subscription")
                         {
-                            if (_arrayChannelsBook.Contains(action.@params.channel))
+                            if (action.@params.channel.Contains("book."))
                             {
                                 UpdateDepth(message);
                                 continue;
                             }
 
-                            if (_arrayChannelsTrade.Contains(action.@params.channel))
+                            if (action.@params.channel.Contains("trades."))
                             {
                                 UpdateTrade(message);
                                 continue;
                             }
 
-                            if (_arrayChannelsAccount.Contains(action.@params.channel))
+                            if (action.@params.channel.Contains("user.portfolio."))
                             {
                                 UpdatePortfolioFromSubscrible(message);
+                                continue;
+                            }
+
+                            if (action.@params.channel.Contains("ticker."))
+                            {
+                                UpdateAdditionalMarketData(message);
                                 continue;
                             }
 
@@ -1004,6 +1032,53 @@ namespace OsEngine.Market.Servers.Deribit
             return stateType;
         }
 
+        private void UpdateAdditionalMarketData(string message)
+        {
+            try
+            {
+                ResponseChannelGreeks response = JsonConvert.DeserializeObject<ResponseChannelGreeks>(message);
+
+                if (response == null)
+                {
+                    return;
+                }
+
+                if (response.@params.data == null)
+                {
+                    return;
+                }
+
+                if (response.@params.data.greeks == null)
+                {
+                    return;
+                }
+
+                OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                data.Delta = response.@params.data.greeks.delta;
+                data.Gamma = response.@params.data.greeks.gamma;
+                data.Vega = response.@params.data.greeks.vega;
+                data.Theta = response.@params.data.greeks.theta;
+                data.Rho = response.@params.data.greeks.rho;
+                data.MarkIV = response.@params.data.mark_iv;
+                data.SecurityName = response.@params.data.instrument_name;
+                data.TimeCreate = response.@params.data.timestamp;
+                data.OpenInterest = response.@params.data.open_interest;
+                data.BidIV = response.@params.data.bid_iv;
+                data.AskIV = response.@params.data.ask_iv;
+                data.UnderlyingPrice = response.@params.data.underlying_price;
+                data.UnderlyingAsset = response.@params.data.underlying_index;
+                data.MarkPrice = response.@params.data.mark_price;
+
+                AdditionalMarketDataEvent(data);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
@@ -1011,6 +1086,8 @@ namespace OsEngine.Market.Servers.Deribit
         public event Action<MarketDepth> MarketDepthEvent;
 
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 
@@ -1440,38 +1517,13 @@ namespace OsEngine.Market.Servers.Deribit
 
             _subscribledSecurities.Add(security.Name);
 
-            _arrayChannelsBook.Add($"book.{security.Name}.none.20.100ms"); // массив каналов для получения стаканов
-            _arrayChannelsTrade.Add($"trades.{security.Name}.raw"); // массив каналов для получения сделок
-
             List<string> arrayChannels = new List<string> { "user.changes.any.any.raw" }; // собираем все каналы со всех массивов в один массив
 
-            for (int i = 0; i < _arrayChannelsAccount.Count; i++)
-            {
-                if (!arrayChannels.Contains(_arrayChannelsAccount[i]))
-                {
-                    arrayChannels.Add(_arrayChannelsAccount[i]);
-                }
-            }
+            arrayChannels.Add($"book.{security.Name}.none.20.100ms"); // массив каналов для получения стаканов
+            arrayChannels.Add($"trades.{security.Name}.raw"); // массив каналов для получения сделок
+            arrayChannels.Add($"ticker.{security.Name}.100ms");
+            arrayChannels.AddRange(_arrayChannelsAccount);
 
-            for (int i = 0; i < _arrayChannelsBook.Count; i++)
-            {
-                if (!arrayChannels.Contains(_arrayChannelsBook[i]))
-                {
-                    arrayChannels.Add(_arrayChannelsBook[i]);
-                }
-            }
-
-            for (int i = 0; i < _arrayChannelsTrade.Count; i++)
-            {
-                if (!arrayChannels.Contains(_arrayChannelsTrade[i]))
-                {
-                    arrayChannels.Add(_arrayChannelsTrade[i]);
-                }
-            }
-            if (arrayChannels.Count > 800)
-            {
-                return;
-            }
             SendSubscrible(arrayChannels);
         }
 

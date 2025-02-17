@@ -613,10 +613,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 9 WebSocket parsing the messages
-        
+
         private ConcurrentQueue<string> WebSocketPublicMessages = new ConcurrentQueue<string>();
         private ConcurrentQueue<string> WebSocketPrivateMessages = new ConcurrentQueue<string>();
 
@@ -964,6 +971,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         public event Action<MarketDepth> MarketDepthEvent;
 
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

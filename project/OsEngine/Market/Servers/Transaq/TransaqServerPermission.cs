@@ -127,7 +127,7 @@ namespace OsEngine.Market.Servers.Transaq
             get { return true; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -188,6 +188,15 @@ namespace OsEngine.Market.Servers.Transaq
         public bool CanQueryOrderStatus
         {
             get { return false; }
+        }
+
+        #endregion
+
+        #region Other Permissions
+
+        public bool IsNewsServer
+        {
+            get { return true; }
         }
 
         #endregion

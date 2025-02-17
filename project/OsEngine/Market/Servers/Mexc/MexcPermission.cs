@@ -122,7 +122,7 @@ namespace OsEngine.Market.Servers.Mexc
             get { return false; }
         }
 
-        public bool UseStandartCandlesStarter
+        public bool UseStandardCandlesStarter
         {
             get { return true; }
         }
@@ -191,7 +191,10 @@ namespace OsEngine.Market.Servers.Mexc
         {
             get { return true; }
         }
+
+        public bool IsNewsServer
+        {
+            get { return false; }
+        }
     }
-
-
 }

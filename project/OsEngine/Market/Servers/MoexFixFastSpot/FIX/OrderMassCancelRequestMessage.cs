@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
@@ -6,6 +7,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
     {
 
         public string ClOrdID;
+        public string SecondaryClOrdID;
         public string MassCancelRequestType = "7"; // 1 - cancel for security, 7 - cancel for all matching orders
         public string TradingSessionID;
         public string Symbol;
@@ -23,6 +25,12 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             StringBuilder sb = new StringBuilder();
 
             sb.Append("11=").Append(ClOrdID).Append('\u0001');
+            
+            if (!SecondaryClOrdID.IsNullOrEmpty())
+            {
+                sb.Append("526=").Append(SecondaryClOrdID).Append('\u0001');
+            }
+
             sb.Append("530=").Append(MassCancelRequestType).Append('\u0001');
             if (MassCancelRequestType == "1")
             {

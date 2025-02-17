@@ -110,6 +110,16 @@ namespace OsEngine.Market.Servers
         void Subscrible(Security security);
 
         /// <summary>
+        /// subscribe to news
+        /// </summary>
+        bool SubscribeNews();
+
+        /// <summary>
+        /// the news has come out
+        /// </summary>
+        event Action<News> NewsEvent;
+
+        /// <summary>
         /// depth updated
         /// обновился стакан
         /// </summary>
@@ -210,6 +220,16 @@ namespace OsEngine.Market.Servers
         /// отправляет сообщение
         /// </summary>
         event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region AdditionalMarketData
+
+        /// <summary>
+        /// additional market data
+        /// дополнительные маркет данные по тикеру
+        /// </summary>
+        event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
     }

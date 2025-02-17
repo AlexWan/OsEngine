@@ -1,5 +1,4 @@
-﻿
-namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
+﻿namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
 {
     public class SendOrderRequestData
     {

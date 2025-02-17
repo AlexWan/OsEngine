@@ -571,6 +571,7 @@ namespace OsEngine.Market.Servers.ZB
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType logMessageType)
         {
@@ -611,6 +612,13 @@ namespace OsEngine.Market.Servers.ZB
         {
             throw new NotImplementedException();
         }
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
     }
 }
 

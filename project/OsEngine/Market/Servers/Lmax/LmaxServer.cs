@@ -209,6 +209,13 @@ namespace OsEngine.Market.Servers.Lmax
             _client.SubscribeToPaper(security.NameId);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         /// <summary>
 		/// take candle history for period
         /// взять историю свечек за период
@@ -473,12 +480,13 @@ namespace OsEngine.Market.Servers.Lmax
         public event Action<Trade> NewTradesEvent;
         public event Action ConnectEvent;
         public event Action DisconnectEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
-		// log messages
+        // log messages
         // сообщения для лога
 
         /// <summary>
-		/// add a new log message 
+        /// add a new log message 
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)

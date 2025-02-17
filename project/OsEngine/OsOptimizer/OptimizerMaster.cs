@@ -32,7 +32,7 @@ namespace OsEngine.OsOptimizer
             _log.Listen(this);
 
             _threadsCount = 1;
-            _startDepozit = 100000;
+            _startDeposit = 100000;
 
             Storage = new OptimizerDataStorage("Prime",true);
             Storage.SecuritiesChangeEvent += _storage_SecuritiesChangeEvent;
@@ -40,14 +40,14 @@ namespace OsEngine.OsOptimizer
 
             _filterProfitValue = 10;
             _filterProfitIsOn = false;
-            _filterMaxDrowDownValue = -10;
-            _filterMaxDrowDownIsOn = false;
+            _filterMaxDrawDownValue = -10;
+            _filterMaxDrawDownIsOn = false;
             _filterMiddleProfitValue = 0.001m;
             _filterMiddleProfitIsOn = false;
             _filterProfitFactorValue = 1;
             _filterProfitFactorIsOn = false;
 
-            _percentOnFilration = 30;
+            _percentOnFiltration = 30;
 
             Load();
 
@@ -58,7 +58,8 @@ namespace OsEngine.OsOptimizer
             _optimizerExecutor.TestingProgressChangeEvent += _optimizerExecutor_TestingProgressChangeEvent;
             _optimizerExecutor.PrimeProgressChangeEvent += _optimizerExecutor_PrimeProgressChangeEvent;
             _optimizerExecutor.TestReadyEvent += _optimizerExecutor_TestReadyEvent;
-            _optimizerExecutor.NeadToMoveUiToEvent += _optimizerExecutor_NeadToMoveUiToEvent;
+            _optimizerExecutor.NeedToMoveUiToEvent += _optimizerExecutor_NeedToMoveUiToEvent;
+            _optimizerExecutor.TimeToEndChangeEvent += _optimizerExecutor_TimeToEndChangeEvent;
             ProgressBarStatuses = new List<ProgressBarStatus>();
             PrimeProgressBarStatus = new ProgressBarStatus();
         }
@@ -66,16 +67,16 @@ namespace OsEngine.OsOptimizer
         public int GetMaxBotsCount()
         {
             if(_parameters == null ||
-                _paramOn == null )
+                _parametersOn == null )
             {
                 return 0;
             }
 
-            int value = _optimizerExecutor.BotCountOneFaze(_parameters, _paramOn) * IterationCount * 2;
+            int value = _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn) * IterationCount * 2;
 
             if(LastInSample)
             {
-                value = value - _optimizerExecutor.BotCountOneFaze(_parameters, _paramOn);
+                value = value - _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn);
             }
 
             return value;
@@ -94,12 +95,12 @@ namespace OsEngine.OsOptimizer
                 {
                     writer.WriteLine(ThreadsCount);
                     writer.WriteLine(StrategyName);
-                    writer.WriteLine(StartDepozit);
+                    writer.WriteLine(StartDeposit);
 
                     writer.WriteLine(_filterProfitValue);
                     writer.WriteLine(_filterProfitIsOn);
-                    writer.WriteLine(_filterMaxDrowDownValue);
-                    writer.WriteLine(_filterMaxDrowDownIsOn);
+                    writer.WriteLine(_filterMaxDrawDownValue);
+                    writer.WriteLine(_filterMaxDrawDownIsOn);
                     writer.WriteLine(_filterMiddleProfitValue);
                     writer.WriteLine(_filterMiddleProfitIsOn);
                     writer.WriteLine(_filterProfitFactorValue);
@@ -107,7 +108,7 @@ namespace OsEngine.OsOptimizer
 
                     writer.WriteLine(_timeStart.ToString(CultureInfo.InvariantCulture));
                     writer.WriteLine(_timeEnd.ToString(CultureInfo.InvariantCulture));
-                    writer.WriteLine(_percentOnFilration);
+                    writer.WriteLine(_percentOnFiltration);
 
                     writer.WriteLine(_filterDealsCountValue);
                     writer.WriteLine(_filterDealsCountIsOn);
@@ -142,11 +143,11 @@ namespace OsEngine.OsOptimizer
                 {
                     _threadsCount = Convert.ToInt32(reader.ReadLine());
                     _strategyName = reader.ReadLine();
-                    _startDepozit = reader.ReadLine().ToDecimal();
+                    _startDeposit = reader.ReadLine().ToDecimal();
                     _filterProfitValue = reader.ReadLine().ToDecimal();
                     _filterProfitIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _filterMaxDrowDownValue = reader.ReadLine().ToDecimal();
-                    _filterMaxDrowDownIsOn = Convert.ToBoolean(reader.ReadLine());
+                    _filterMaxDrawDownValue = reader.ReadLine().ToDecimal();
+                    _filterMaxDrawDownIsOn = Convert.ToBoolean(reader.ReadLine());
                     _filterMiddleProfitValue = reader.ReadLine().ToDecimal();
                     _filterMiddleProfitIsOn = Convert.ToBoolean(reader.ReadLine());
                     _filterProfitFactorValue = reader.ReadLine().ToDecimal();
@@ -154,7 +155,7 @@ namespace OsEngine.OsOptimizer
 
                     _timeStart = Convert.ToDateTime(reader.ReadLine(),CultureInfo.InvariantCulture);
                     _timeEnd = Convert.ToDateTime(reader.ReadLine(), CultureInfo.InvariantCulture);
-                    _percentOnFilration = reader.ReadLine().ToDecimal();
+                    _percentOnFiltration = reader.ReadLine().ToDecimal();
 
                     _filterDealsCountValue = Convert.ToInt32(reader.ReadLine());
                     _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
@@ -182,7 +183,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         /// <param name="curVal">the current value of the progress bar/текущее значение прогрессБара</param>
         /// <param name="maxVal">maximum progress bar/максимальное значение прогрессБара</param>
-        void _optimizerExecutor_PrimeProgressChangeEvent(int curVal, int maxVal)
+        private void _optimizerExecutor_PrimeProgressChangeEvent(int curVal, int maxVal)
         {
             if(PrimeProgressBarStatus.CurrentValue != curVal)
             {
@@ -201,7 +202,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         /// <param name="bots">InSample robots/роботы InSample</param>
         /// <param name="botsOutOfSample">OutOfSample</param>
-        void _optimizerExecutor_TestReadyEvent(List<OptimazerFazeReport> reports)
+        private void _optimizerExecutor_TestReadyEvent(List<OptimazerFazeReport> reports)
         {
             if(PrimeProgressBarStatus.CurrentValue != PrimeProgressBarStatus.MaxValue)
             {
@@ -213,6 +214,16 @@ namespace OsEngine.OsOptimizer
                 TestReadyEvent(reports);
             }
         }
+
+        private void _optimizerExecutor_TimeToEndChangeEvent(TimeSpan timeToEnd)
+        {
+            if (TimeToEndChangeEvent != null)
+            {
+                TimeToEndChangeEvent(timeToEnd);
+            }
+        }
+
+        public event Action<TimeSpan> TimeToEndChangeEvent;
 
         /// <summary>
         /// event: testing ended
@@ -227,7 +238,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="curVal">current value for progress bar/текущее значение для прогрессБара</param>
         /// <param name="maxVal">maximum value for progress bar/максимальное значение для прогрессБара</param>
         /// <param name="numServer">server number/номер сервера</param>
-        void _optimizerExecutor_TestingProgressChangeEvent(int curVal, int maxVal, int numServer)
+        private void _optimizerExecutor_TestingProgressChangeEvent(int curVal, int maxVal, int numServer)
         {
             ProgressBarStatus status;
             try
@@ -309,7 +320,7 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         /// <param name="timeStart">start time/время начала данных</param>
         /// <param name="timeEnd">data completion time/время завершения данных</param>
-        void _storage_TimeChangeEvent(DateTime timeStart, DateTime timeEnd)
+        private void _storage_TimeChangeEvent(DateTime timeStart, DateTime timeEnd)
         {
             TimeStart = timeStart;
             TimeEnd = timeEnd;
@@ -322,7 +333,7 @@ namespace OsEngine.OsOptimizer
         /// Означает что сет был перезагружен
         /// </summary>
         /// <param name="securities">new list of papers/новый список бумаг</param>
-        void _storage_SecuritiesChangeEvent(List<Security> securities)
+        private void _storage_SecuritiesChangeEvent(List<Security> securities)
         {
             if (NewSecurityEvent != null)
             {
@@ -388,16 +399,16 @@ namespace OsEngine.OsOptimizer
         /// initial deposit
         /// начальный депозит
         /// </summary>
-        public decimal StartDepozit
+        public decimal StartDeposit
         {
-            get { return _startDepozit; }
+            get { return _startDeposit; }
             set
             {
-                _startDepozit = value;
+                _startDeposit = value;
                 Save();
             }
         }
-        private decimal _startDepozit;
+        private decimal _startDeposit;
         
         /// <summary>
         /// commission type
@@ -486,31 +497,31 @@ namespace OsEngine.OsOptimizer
         /// maximum drawdown filter value
         /// значение фильтра максимальной просадки
         /// </summary>
-        public decimal FilterMaxDrowDownValue
+        public decimal FilterMaxDrawDownValue
         {
-            get { return _filterMaxDrowDownValue; }
+            get { return _filterMaxDrawDownValue; }
             set
             {
-                _filterMaxDrowDownValue = value;
+                _filterMaxDrawDownValue = value;
                 Save();
             }
         }
-        private decimal _filterMaxDrowDownValue;
+        private decimal _filterMaxDrawDownValue;
 
         /// <summary>
         /// is the maximum drawdown filter enabled
         /// включен ли фильтр максимальной просадки
         /// </summary>
-        public bool FilterMaxDrowDownIsOn
+        public bool FilterMaxDrawDownIsOn
         {
-            get { return _filterMaxDrowDownIsOn; }
+            get { return _filterMaxDrawDownIsOn; }
             set
             {
-                _filterMaxDrowDownIsOn = value;
+                _filterMaxDrawDownIsOn = value;
                 Save();
             }
         }
-        private bool _filterMaxDrowDownIsOn;
+        private bool _filterMaxDrawDownIsOn;
 
         /// <summary>
         /// value of the average profit filter from the transaction
@@ -628,7 +639,7 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
 
-            if (FilterMaxDrowDownIsOn && report.MaxDrowDawn < FilterMaxDrowDownValue)
+            if (FilterMaxDrawDownIsOn && report.MaxDrowDawn < FilterMaxDrawDownValue)
             {
                 return false;
             }
@@ -695,16 +706,16 @@ namespace OsEngine.OsOptimizer
         /// percentage of time on outofsample
         /// процент времени на OutOfSample
         /// </summary>
-        public decimal PercentOnFilration
+        public decimal PercentOnFiltration
         {
-            get { return _percentOnFilration; }
+            get { return _percentOnFiltration; }
             set
             {
-                _percentOnFilration = value;
+                _percentOnFiltration = value;
                 Save();
             }
         }
-        private decimal _percentOnFilration;
+        private decimal _percentOnFiltration;
 
         public int IterationCount
         {
@@ -741,7 +752,7 @@ namespace OsEngine.OsOptimizer
             // P - процент OutOfSample от InSample
             // C - количество отрезков
 
-            decimal outOfSampleLength = curLengthInSample * (_percentOnFilration / 100);
+            decimal outOfSampleLength = curLengthInSample * (_percentOnFiltration / 100);
 
             int count = fazeCount;
 
@@ -793,7 +804,7 @@ namespace OsEngine.OsOptimizer
 
             int daysOnInSample = (int)GetInSampleRecurs(dayAll, fazeCount, _lastInSample, dayAll);
 
-            int daysOnForward = Convert.ToInt32(daysOnInSample * (_percentOnFilration / 100));
+            int daysOnForward = Convert.ToInt32(daysOnInSample * (_percentOnFiltration / 100));
 
             Fazes = new List<OptimizerFaze>();
 
@@ -952,7 +963,7 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        public List<IIStrategyParameter> ParametersStandart
+        public List<IIStrategyParameter> ParametersStandard
         {
             get
             {
@@ -1021,7 +1032,7 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        public void SaveStandartParameters()
+        public void SaveStandardParameters()
         {
             if (_parameters == null ||
                 _parameters.Count == 0)
@@ -1047,7 +1058,7 @@ namespace OsEngine.OsOptimizer
                 // ignore
             }
 
-            SaveParamsOnOffByStrategy();
+            SaveParametersOnOffByStrategy();
         }
 
         /// <summary>
@@ -1059,26 +1070,26 @@ namespace OsEngine.OsOptimizer
             get
             {
 
-                _paramOn = new List<bool>();
+                _parametersOn = new List<bool>();
                 for (int i = 0; _parameters != null && i < _parameters.Count; i++)
                 {
-                    _paramOn.Add(false);
+                    _parametersOn.Add(false);
                 }
 
-                List<bool> paramsOnSaveBefore = GetParamsOnOffByStrategy();
+                List<bool> paramsOnSaveBefore = GetParametersOnOffByStrategy();
 
                 if(paramsOnSaveBefore != null && 
-                    paramsOnSaveBefore.Count == _paramOn.Count)
+                    paramsOnSaveBefore.Count == _parametersOn.Count)
                 {
-                    _paramOn = paramsOnSaveBefore;
+                    _parametersOn = paramsOnSaveBefore;
                 }
 
-                return _paramOn;
+                return _parametersOn;
             }
         }
-        private List<bool> _paramOn;
+        private List<bool> _parametersOn;
 
-        private List<bool> GetParamsOnOffByStrategy()
+        private List<bool> GetParametersOnOffByStrategy()
         {
             List<bool> result = new List<bool>();
 
@@ -1105,10 +1116,10 @@ namespace OsEngine.OsOptimizer
             return result;
         }
 
-        private void SaveParamsOnOffByStrategy()
+        private void SaveParametersOnOffByStrategy()
         {
-            if (_paramOn == null ||
-               _paramOn.Count == 0)
+            if (_parametersOn == null ||
+               _parametersOn.Count == 0)
             {
                 return;
             }
@@ -1118,9 +1129,9 @@ namespace OsEngine.OsOptimizer
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParametersOnOff.txt", false)
                     )
                 {
-                    for (int i = 0; i < _paramOn.Count; i++)
+                    for (int i = 0; i < _parametersOn.Count; i++)
                     {
-                        writer.WriteLine(_paramOn[i].ToString());
+                        writer.WriteLine(_parametersOn[i].ToString());
                     }
 
                     writer.Close();
@@ -1154,7 +1165,7 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
 
-            if (_optimizerExecutor.Start(_paramOn, _parameters))
+            if (_optimizerExecutor.Start(_parametersOn, _parameters))
             {
                 ProgressBarStatuses = new List<ProgressBarStatus>();
                 PrimeProgressBarStatus = new ProgressBarStatus();
@@ -1183,9 +1194,9 @@ namespace OsEngine.OsOptimizer
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message14);
                 ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message14, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
+                if (NeedToMoveUiToEvent != null)
                 {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.Fazes);
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.Fazes);
                 }
                 return false;
             }
@@ -1196,9 +1207,9 @@ namespace OsEngine.OsOptimizer
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
                 ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
+                if (NeedToMoveUiToEvent != null)
                 {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.TabsAndTimeFrames);
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
                 }
                 return false;
             }
@@ -1214,9 +1225,9 @@ namespace OsEngine.OsOptimizer
                 ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message16, LogMessageType.System);
 
-                if (NeadToMoveUiToEvent != null)
+                if (NeedToMoveUiToEvent != null)
                 {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.Storage);
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.Storage);
                 }
                 return false;
             }
@@ -1226,9 +1237,9 @@ namespace OsEngine.OsOptimizer
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message17);
                 ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message17, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
+                if (NeedToMoveUiToEvent != null)
                 {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.NameStrategy);
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.NameStrategy);
                 }
                 return false;
             }
@@ -1259,34 +1270,34 @@ namespace OsEngine.OsOptimizer
                     ui.ShowDialog();
                     SendLogMessage(OsLocalization.Optimizer.Message43, LogMessageType.System);
 
-                    if (NeadToMoveUiToEvent != null)
+                    if (NeedToMoveUiToEvent != null)
                     {
-                        NeadToMoveUiToEvent(NeadToMoveUiTo.NameStrategy);
+                        NeedToMoveUiToEvent(NeedToMoveUiTo.NameStrategy);
                     }
                     return false;
                 }
             }
 
-            bool onParamesReady = false;
+            bool onParametersReady = false;
 
-            for (int i = 0; i < _paramOn.Count; i++)
+            for (int i = 0; i < _parametersOn.Count; i++)
             {
-                if (_paramOn[i])
+                if (_parametersOn[i])
                 {
-                    onParamesReady = true;
+                    onParametersReady = true;
                     break;
                 }
             }
 
-            if (onParamesReady == false)
+            if (onParametersReady == false)
             {
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message18);
                 ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message18, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
+                if (NeedToMoveUiToEvent != null)
                 {
 
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.Parametrs);
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.Parameters);
                 }
                 return false;
             }
@@ -1319,9 +1330,9 @@ namespace OsEngine.OsOptimizer
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message41);
                 ui.ShowDialog();
                 SendLogMessage(OsLocalization.Optimizer.Message41, LogMessageType.System);
-                if (NeadToMoveUiToEvent != null)
+                if (NeedToMoveUiToEvent != null)
                 {
-                    NeadToMoveUiToEvent(NeadToMoveUiTo.RegimeRow);
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.RegimeRow);
                 }
                 return false;
             }
@@ -1335,11 +1346,11 @@ namespace OsEngine.OsOptimizer
         /// входящее событие: нужно переместить ГУИ в определённое место
         /// </summary>
         /// <param name="moveUiTo">place to move/место для перемещения</param>
-        void _optimizerExecutor_NeadToMoveUiToEvent(NeadToMoveUiTo moveUiTo)
+        private void _optimizerExecutor_NeedToMoveUiToEvent(NeedToMoveUiTo moveUiTo)
         {
-            if (NeadToMoveUiToEvent != null)
+            if (NeedToMoveUiToEvent != null)
             {
-                NeadToMoveUiToEvent(moveUiTo);
+                NeedToMoveUiToEvent(moveUiTo);
             }
         }
 
@@ -1347,7 +1358,7 @@ namespace OsEngine.OsOptimizer
         /// event: you need to move GUI to a certain place
         /// событие: нужно переместить ГУИ в определённое место
         /// </summary>
-        public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
+        public event Action<NeedToMoveUiTo> NeedToMoveUiToEvent;
 
         // прогрузка одного робота по параметрам
 
@@ -1376,15 +1387,15 @@ namespace OsEngine.OsOptimizer
             return _resultBotAloneTest;
         }
 
-        OptimazerFazeReport _fazeToTestAloneTest;
+        private OptimazerFazeReport _fazeToTestAloneTest;
 
-        OptimizerReport _reportToTestAloneTest;
+        private OptimizerReport _reportToTestAloneTest;
 
-        AwaitObject _awaitUiMasterAloneTest;
+        private AwaitObject _awaitUiMasterAloneTest;
 
-        BotPanel _resultBotAloneTest;
+        private BotPanel _resultBotAloneTest;
 
-        bool _aloneTestIsOver = true;
+        private bool _aloneTestIsOver = true;
 
         private async void RunAloneBotTest()
         {
@@ -1465,56 +1476,6 @@ namespace OsEngine.OsOptimizer
         /// 
         /// </summary>
         public bool IsFinalized;
-    }
-
-    /// <summary>
-    /// what parameter is the optimization
-    /// по какому параметру проходит оптимизация
-    /// </summary>
-    public enum OptimizationFunctionType
-    {
-        /// <summary>
-        /// Total profit
-        /// Итоговый профит
-        /// </summary>
-        EndProfit,
-
-        /// <summary>
-        /// The average profit from the transaction
-        /// Средний профит со сделки
-        /// </summary>
-        MiddleProfitFromPosition,
-
-        /// <summary>
-        /// Max drawdown
-        /// Максимальная просадка
-        /// </summary>
-        MaxDrowDown,
-
-        /// <summary>
-        /// Profit factor
-        /// Профит фактор
-        /// </summary>
-        ProfitFactor
-    }
-
-    /// <summary>
-    /// optimization method
-    /// способ оптимизации
-    /// </summary>
-    public enum OptimizationType
-    {
-        /// <summary>
-        /// Annealing imitation
-        /// Имитация отжига
-        /// </summary>
-        SimulatedAnnealing,
-
-        /// <summary>
-        /// Genetic algorithm
-        /// Генетический алгоритм
-        /// </summary>
-        GeneticАlgorithm
     }
 
     /// <summary>
@@ -1736,7 +1697,7 @@ namespace OsEngine.OsOptimizer
     /// a message about where to move the interface so that the user sees that he has not yet configured to launch the optimizer
     /// сообщение о том куда нужно сместить интерфейс, чтобы пользователь увидел что он ещё не настроил для запуска оптимизатора
     /// </summary>
-    public enum NeadToMoveUiTo
+    public enum NeedToMoveUiTo
     {
         /// <summary>
         /// strategy name
@@ -1762,7 +1723,7 @@ namespace OsEngine.OsOptimizer
         /// parameter table
         /// таблица параметров
         /// </summary>
-        Parametrs,
+        Parameters,
         /// <summary>
         /// Filters
         /// Фильтры

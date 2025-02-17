@@ -1446,6 +1446,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 10 WebSocket parsing the messages
@@ -2048,6 +2055,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

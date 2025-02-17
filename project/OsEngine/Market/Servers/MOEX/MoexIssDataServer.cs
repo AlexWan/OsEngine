@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.MOEX
         {
             MoexDataServerRealization realization = new MoexDataServerRealization();
             ServerRealization = realization;
-            NeedToHideParams = true;
+            NeedToHideParameters = true;
         }
     }
 
@@ -119,6 +119,7 @@ namespace OsEngine.Market.Servers.MOEX
         public event Action<MyTrade> MyTradeEvent;
         public event Action<List<Portfolio>> PortfolioEvent;
         public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 
@@ -848,5 +849,12 @@ namespace OsEngine.Market.Servers.MOEX
         {
             throw new NotImplementedException();
         }
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
     }
 }

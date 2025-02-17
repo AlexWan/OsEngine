@@ -359,6 +359,13 @@ namespace OsEngine.Market.Servers.Bitfinex
             _client.SubscribleTradesAndDepths(security);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         public void GetAllActivOrders()
         {
 
@@ -1173,6 +1180,8 @@ namespace OsEngine.Market.Servers.Bitfinex
         public event Action ConnectEvent;
 
         public event Action DisconnectEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType type)
         {

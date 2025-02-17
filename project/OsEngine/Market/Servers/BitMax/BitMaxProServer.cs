@@ -308,6 +308,13 @@ namespace OsEngine.Market.Servers.BitMax
             _client.SubscribeTradesAndDepths(security.Name);
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         private string GetNeedTimeFrameForServer(int tameFrame)
         {
             string needTf = "";
@@ -900,6 +907,7 @@ namespace OsEngine.Market.Servers.BitMax
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         /// <summary>
         /// new securities

@@ -940,6 +940,13 @@ contract =>
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region WebSocket parsing the messages
@@ -1281,6 +1288,8 @@ contract =>
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

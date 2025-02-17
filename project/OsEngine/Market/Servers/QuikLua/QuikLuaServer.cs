@@ -273,6 +273,8 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 3 Securities
@@ -934,6 +936,13 @@ namespace OsEngine.Market.Servers.QuikLua
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
 
         #endregion
 

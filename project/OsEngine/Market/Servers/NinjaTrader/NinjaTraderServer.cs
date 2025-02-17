@@ -141,8 +141,15 @@ namespace OsEngine.Market.Servers.NinjaTrader
         {
        
         }
-		
-		// parsing incoming data
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
+        // parsing incoming data
         // разбор входящих данных
 
         private void ClientOnLogMessageEvent(string message, LogMessageType type)
@@ -267,11 +274,13 @@ namespace OsEngine.Market.Servers.NinjaTrader
         /// </summary>
         public event Action DisconnectEvent;
 
-		// log messages
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        // log messages
         // сообщения для лога
 
         /// <summary>
-		/// add a new log message
+        /// add a new log message
         /// добавить в лог новое сообщение
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)

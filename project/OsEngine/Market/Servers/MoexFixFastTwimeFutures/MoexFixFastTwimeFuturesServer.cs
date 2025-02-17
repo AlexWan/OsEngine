@@ -1163,6 +1163,13 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 8 Sockets parsing messages
@@ -3576,6 +3583,8 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
         public event Action<MarketDepth> MarketDepthEvent;
 
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

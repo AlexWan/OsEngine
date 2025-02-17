@@ -152,6 +152,16 @@ namespace OsEngine.Market.Servers
         void StopThisSecurity(CandleSeries series);
 
         /// <summary>
+        /// subscribe to news
+        /// </summary>
+        bool SubscribeNews();
+
+        /// <summary>
+        /// the news has come out
+        /// </summary>
+        event Action<News> NewsEvent;
+
+        /// <summary>
         /// new candles
         /// новые свечи
         /// </summary>
@@ -173,6 +183,12 @@ namespace OsEngine.Market.Servers
         /// новый тик
         /// </summary>
         event Action<List<Trade>> NewTradeEvent;
+
+        /// <summary>
+        /// new additional market data
+        /// новые данные по дополнительным данным по тикеру
+        /// </summary>
+        event Action<OptionMarketData> NewAdditionalMarketDataEvent;
 
         #endregion
 

@@ -64,6 +64,7 @@ namespace OsEngine.OsOptimizer
             _servers = new List<OptimizerServer>();
             _countAllServersMax = 0;
             _serverNum = 0;
+            _testBotsTime.Clear();
 
             _primeThreadWorker = new Thread(PrimeThreadWorkerPlace);
             _primeThreadWorker.Name = "OptimizerExecutorThread";
@@ -771,7 +772,7 @@ namespace OsEngine.OsOptimizer
             // 1. Create a new server for optimization. And one thread respectively
             // 1. создаём новый сервер для оптимизации. И один поток соответственно
             OptimizerServer server = ServerMaster.CreateNextOptimizerServer(_master.Storage, _serverNum,
-                _master.StartDepozit);
+                _master.StartDeposit);
 
             lock(_serverRemoveLocker)
             {
@@ -785,7 +786,7 @@ namespace OsEngine.OsOptimizer
             }
             
             server.TypeTesterData = _master.Storage.TypeTesterData;
-            server.TestintProgressChangeEvent += server_TestintProgressChangeEvent;
+            server.TestingProgressChangeEvent += server_TestingProgressChangeEvent;
 
             for (int i = 0; _master.TabsSimpleNamesAndTimeFrames != null
                             && i < _master.TabsSimpleNamesAndTimeFrames.Count; i++)
@@ -1035,7 +1036,7 @@ namespace OsEngine.OsOptimizer
         /// the event that you need to move the interface to a certain place
         /// событие о том что нужно переместить интерфейс в определённое место
         /// </summary>
-        public event Action<NeadToMoveUiTo> NeadToMoveUiToEvent;
+        public event Action<NeedToMoveUiTo> NeedToMoveUiToEvent;
 
         // единичный тест
 
@@ -1154,12 +1155,14 @@ namespace OsEngine.OsOptimizer
         /// </summary>
         private object _serverRemoveLocker = new object();
 
+        private List<TimeSpan> _testBotsTime = new List<TimeSpan>();
+
         /// <summary>
         /// server completed testing
         /// сервер закончил тестирование
         /// </summary>
         /// <param name="serverNum">server number/номер сервера</param>
-        private void server_TestingEndEvent(int serverNum)
+        private void server_TestingEndEvent(int serverNum, TimeSpan testTime)
         {
             TestingProgressChangeEvent?.Invoke(100, 100, serverNum);
 
@@ -1195,10 +1198,35 @@ namespace OsEngine.OsOptimizer
                     if (_servers[i].NumberServer == serverNum)
                     {
                         _servers[i].TestingEndEvent -= server_TestingEndEvent;
-                        _servers[i].TestintProgressChangeEvent -= server_TestintProgressChangeEvent;
+                        _servers[i].TestingProgressChangeEvent -= server_TestingProgressChangeEvent;
                         server = _servers[i];
                         _servers.RemoveAt(i);
                         break;
+                    }
+                }
+
+                _testBotsTime.Add(testTime);
+
+                if (_testBotsTime.Count % 20 == 0)
+                {
+                    TimeSpan allTime = TimeSpan.Zero;
+
+                    for(int i = 0;i < _testBotsTime.Count;i++)
+                    {
+                        allTime = TimeSpan.FromMilliseconds(allTime.TotalMilliseconds + _testBotsTime[i].TotalMilliseconds);
+                    }
+
+                    int secondsOnOneTest = Convert.ToInt32(allTime.TotalSeconds / _testBotsTime.Count);
+
+                    int secondsToEndAllTests = (_countAllServersMax - _testBotsTime.Count) * secondsOnOneTest;
+
+                    int secondsToEndDivideThreads = secondsToEndAllTests / _master.ThreadsCount;
+
+                    TimeSpan timeToEnd = TimeSpan.FromSeconds(secondsToEndDivideThreads);
+
+                    if(TimeToEndChangeEvent != null)
+                    {
+                        TimeToEndChangeEvent(timeToEnd);
                     }
                 }
             }
@@ -1216,6 +1244,8 @@ namespace OsEngine.OsOptimizer
             }
         }
 
+        public event Action<TimeSpan> TimeToEndChangeEvent;
+
         /// <summary>
         /// event: optimization is over
         /// событие: оптимизация окончена
@@ -1229,7 +1259,7 @@ namespace OsEngine.OsOptimizer
         /// <param name="curVal">current value for Progressbar/текущее значение для Прогрессбара</param>
         /// <param name="maxVal">maximum value for progress bar/максимальное значение для прогрессБара</param>
         /// <param name="numServer">server number/номер сервера</param>
-        private void server_TestintProgressChangeEvent(int curVal, int maxVal, int numServer)
+        private void server_TestingProgressChangeEvent(int curVal, int maxVal, int numServer)
         {
             if (TestingProgressChangeEvent != null)
             {

@@ -777,10 +777,17 @@ namespace OsEngine.Market.Servers.HTX.Futures
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
         #endregion
 
         #region 10 WebSocket parsing the messages
-       
+
         private void MessageReaderPublic()
         {
             Thread.Sleep(1000);
@@ -1227,6 +1234,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
         public event Action<MarketDepth> MarketDepthEvent;
 
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         #endregion
 

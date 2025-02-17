@@ -1508,6 +1508,15 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
 
         #region 10 WebSocket parsing the messages
