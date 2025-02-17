@@ -213,6 +213,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                         string price = item[1]?.ToString()?.Replace('.', ',');
                         string volume = item[8]?.ToString()?.Replace('.', ',');
 
+                        if (symbol.Contains(":"))
+                        {
+                            continue;
+                        }
+
                         SecurityType securityType = GetSecurityType(symbol);
 
                         if (securityType == SecurityType.None)
