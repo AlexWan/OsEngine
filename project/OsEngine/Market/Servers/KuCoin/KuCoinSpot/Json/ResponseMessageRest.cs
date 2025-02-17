@@ -37,7 +37,50 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string orderId;
     }
 
-    
+    public class ResponseAllOrders
+    {
+        public string currentPage;
+        public string pageSize;
+        public string totalNum;
+        public string totalPage;
+
+        public List<ResponseOrder> items;
+    }
+
+    public class ResponseOrder
+    {
+        public string id { get; set; } // Order ID
+        public string symbol { get; set; } // Symbol of the contract
+        public string opType { get; set; } // Operation type: DEAL
+        public string type { get; set; } // order type
+        public string side { get; set; } // transaction direction,include buy and sell
+        public string price { get; set; } // Order price
+        public string size { get; set; } // Order quantity
+        public string funds { get; set; } // order funds
+        public string dealFunds { get; set; } // executed size of funds
+        public string dealSize { get; set; } // Executed quantity
+        public string fee { get; set; } // fee
+        public string feeCurrency { get; set; } // charge fee currency
+        public string stp { get; set; } // self trade prevention,include CN,CO,DC,CB
+        public string stop { get; set; } // stop type, include entry and loss
+        public string stopTriggered { get; set; } // stop order is triggered or not
+        public string stopPrice { get; set; } // stop price
+        public string timeInForce { get; set; } // time InForce,include GTC,GTT,IOC,FOK
+        public string postOnly { get; set; } // postOnly
+        public string hidden { get; set; } // Mark of the hidden order
+        public string iceberg { get; set; } // Mark of the iceberg order
+        public string visibleSize { get; set; } // displayed quantity for iceberg order
+        public string cancelAfter { get; set; } // cancel orders time，requires timeInForce to be GTT
+        public string channel { get; set; } // order source
+        public string clientOid { get; set; } // user-entered order unique mark
+        public string remark { get; set; } // remark
+        public string tags { get; set; } // Tag order source
+        public string isActive { get; set; } // order status, true and false. If true, the order is active, if false, the order is fillled or cancelled
+        public string cancelExist { get; set; } // order cancellation transaction record
+        public string createdAt { get; set; } // Time the order created
+        public string tradeType { get; set; } //   The type of trading
+    }
+
     public class ResponseAsset
     {
         public string id;
@@ -67,7 +110,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string isMarginEnabled;
         public string enableTrading;
     }
-    
 
     public class ResponseMyTrade
     {
