@@ -141,10 +141,10 @@ namespace OsEngine.Market
                     return;
                 }
 
-                if (_neadToPaintPortfolio)
+                if (_needToPaintPortfolio)
                 {
                     RePaintPortfolio();
-                    _neadToPaintPortfolio = false;
+                    _needToPaintPortfolio = false;
                 }
             }
         }
@@ -152,7 +152,7 @@ namespace OsEngine.Market
         /// <summary>
         /// shows whether state of the portfolio has changed and you need to redraw it
         /// </summary>
-        private bool _neadToPaintPortfolio;
+        private bool _needToPaintPortfolio;
 
         #endregion
 
@@ -506,7 +506,7 @@ namespace OsEngine.Market
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
-            _neadToPaintPortfolio = true;
+            _needToPaintPortfolio = true;
         }
 
         #endregion

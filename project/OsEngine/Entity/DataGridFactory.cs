@@ -784,6 +784,7 @@ positionOpener.LifeTimeType
             column2.HeaderText = OsLocalization.Entity.ColumnPortfolio2;
             column2.ReadOnly = true;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            
 
             _gridPosition.Columns.Add(column2);
 
@@ -799,7 +800,7 @@ positionOpener.LifeTimeType
             column4.CellTemplate = cell0;
             column4.HeaderText = OsLocalization.Entity.ColumnPortfolio4;
             column4.ReadOnly = true;
-            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             _gridPosition.Columns.Add(column4);
 
@@ -807,7 +808,7 @@ positionOpener.LifeTimeType
             column5.CellTemplate = cell0;
             column5.HeaderText = OsLocalization.Entity.ColumnPortfolio5;
             column5.ReadOnly = true;
-            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             _gridPosition.Columns.Add(column5);
 
@@ -839,14 +840,14 @@ positionOpener.LifeTimeType
             column9.CellTemplate = cell0;
             column9.HeaderText = OsLocalization.Entity.ColumnPortfolio9;
             column9.ReadOnly = true;
-            column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridPosition.Columns.Add(column9);
 
             DataGridViewColumn column10 = new DataGridViewColumn();
             column10.CellTemplate = cell0;
-            column10.HeaderText = OsLocalization.Entity.ColumnPortfolio10;
+            column10.HeaderText = OsLocalization.Entity.ColumnPortfolio5;
             column10.ReadOnly = true;
-            column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridPosition.Columns.Add(column10);
 
             DataGridViewColumn column11 = new DataGridViewColumn();

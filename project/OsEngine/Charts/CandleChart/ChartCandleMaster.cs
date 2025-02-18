@@ -18,7 +18,6 @@ using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.Charts.CandleChart
 {
