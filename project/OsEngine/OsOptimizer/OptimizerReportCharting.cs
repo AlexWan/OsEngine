@@ -33,7 +33,7 @@ namespace OsEngine.OsOptimizer
 
             boxTypeSort.Items.Add(SortBotsType.PositionCount.ToString());
             boxTypeSort.Items.Add(SortBotsType.TotalProfit.ToString());
-            boxTypeSort.Items.Add(SortBotsType.MaxDrowDawn.ToString());
+            boxTypeSort.Items.Add(SortBotsType.MaxDrawDawn.ToString());
             boxTypeSort.Items.Add(SortBotsType.AverageProfit.ToString());
             boxTypeSort.Items.Add(SortBotsType.AverageProfitPercent.ToString());
             boxTypeSort.Items.Add(SortBotsType.ProfitFactor.ToString());
@@ -103,7 +103,7 @@ namespace OsEngine.OsOptimizer
             }
             else if (columnSelect == 2)
             {
-                _sortBotsType = SortBotsType.MaxDrowDawn;
+                _sortBotsType = SortBotsType.MaxDrawDawn;
             }
             else if (columnSelect == 3)
             {

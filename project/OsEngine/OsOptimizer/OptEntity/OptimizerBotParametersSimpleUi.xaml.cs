@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Entity;
 using System.Windows.Forms.Integration;
@@ -7,9 +12,6 @@ using System;
 
 namespace OsEngine.OsOptimizer.OptEntity
 {
-    /// <summary>
-    /// Логика взаимодействия для OptimizerBotParametersSimpleUi.xaml
-    /// </summary>
     public partial class OptimizerBotParametersSimpleUi : Window
     {
         public OptimizerBotParametersSimpleUi(OptimizerReport report, OptimizerFazeReport faze, string botType)
@@ -34,7 +36,7 @@ namespace OsEngine.OsOptimizer.OptEntity
 
             if (parameters.Count < 8)
             {
-                PaintParams(parameters, HostParams1);
+                PaintParameters(parameters, HostParams1);
                 return;
             }
 
@@ -48,18 +50,26 @@ namespace OsEngine.OsOptimizer.OptEntity
                 parameters.RemoveAt(i);
             }
 
-            PaintParams(parameters, HostParams1);
-            PaintParams(parameters2, HostParams2);
+            PaintParameters(parameters, HostParams1);
+            PaintParameters(parameters2, HostParams2);
 
             this.Activate();
             this.Focus();
+
+            Closing += OptimizerBotParametersSimpleUi_Closing;
         }
 
-        OptimizerReport _report;
+        private void OptimizerBotParametersSimpleUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            _report = null;
+            _faze = null;
+        }
 
-        OptimizerFazeReport _faze;
+        private OptimizerReport _report;
 
-        private void PaintParams(List<IIStrategyParameter> parameters, WindowsFormsHost host)
+        private OptimizerFazeReport _faze;
+
+        private void PaintParameters(List<IIStrategyParameter> parameters, WindowsFormsHost host)
         {
             DataGridView grid = GetGrid();
 

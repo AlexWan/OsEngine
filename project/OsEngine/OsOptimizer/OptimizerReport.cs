@@ -84,7 +84,7 @@ namespace OsEngine.OsOptimizer
                     return rep2.PositionsCount.CompareTo(rep1.PositionsCount);
                 });
             }
-            else if (sortType == SortBotsType.MaxDrowDawn)
+            else if (sortType == SortBotsType.MaxDrawDawn)
             {
                 reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
                 {

@@ -332,17 +332,17 @@ namespace OsEngine.OsOptimizer
 
             // 2 проходим первую фазу, когда нужно обойти все варианты
 
-            List<IIStrategyParameter> optimizedParamStart = new List<IIStrategyParameter>();
+            List<IIStrategyParameter> optimizedParametersStart = new List<IIStrategyParameter>();
 
             for (int i = 0; i < allParameters.Count; i++)
             {
                 if (parametersToOptimization[i])
                 {
-                    optimizedParamStart.Add(allParameters[i]);
+                    optimizedParametersStart.Add(allParameters[i]);
                 }
             }
 
-            List<IIStrategyParameter> optimizeParamCurrent = CopyParameters(optimizedParamStart);
+            List<IIStrategyParameter> optimizeParamCurrent = CopyParameters(optimizedParametersStart);
 
             ReloadAllParam(optimizeParamCurrent);
 
@@ -785,11 +785,11 @@ namespace OsEngine.OsOptimizer
                     {
                         par = parametersOptimized.Find(p => p.Name == parameters[i].Name);
                     }
-                    bool isInOptimizeParams = true;
+                    bool isInOptimizeParameters = true;
 
                     if (par == null)
                     {
-                        isInOptimizeParams = false;
+                        isInOptimizeParameters = false;
                         par = parameters[i];
                     }
 
@@ -815,7 +815,7 @@ namespace OsEngine.OsOptimizer
                         ((StrategyParameterCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterCheckBox)par).CheckState;
                     }
 
-                    if (isInOptimizeParams == true
+                    if (isInOptimizeParameters == true
                         || parametersOptimized == null)
                     {
                         if (par.Type == StrategyParameterType.Int)
@@ -832,7 +832,7 @@ namespace OsEngine.OsOptimizer
                             ((StrategyParameterDecimalCheckBox)bot.Parameters[i]).CheckState = ((StrategyParameterDecimalCheckBox)par).CheckState;
                         }
                     }
-                    else //if (isInOptimizeParams == false)
+                    else //if (isInOptimizeParameters == false)
                     {
                         if (par.Type == StrategyParameterType.Int)
                         {

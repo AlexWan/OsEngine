@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers
             _server.ConnectStatusChangeEvent += Server_ConnectStatusChangeEvent;
 
             Title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
-            TabItemParams.Header = OsLocalization.Market.TabItem3;
+            TabItemParameters.Header = OsLocalization.Market.TabItem3;
             TabItemLog.Header = OsLocalization.Market.TabItem4;
             Label21.Content = OsLocalization.Market.Label21;
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
@@ -46,7 +46,7 @@ namespace OsEngine.Market.Servers
 
             if (_server.NeedToHideParameters == true)
             {
-                TabItemParams.Visibility = Visibility.Hidden;
+                TabItemParameters.Visibility = Visibility.Hidden;
                 TabItemLog.IsSelected = true;
             }
             this.Closed += AServerParameterUi_Closed;
@@ -61,11 +61,11 @@ namespace OsEngine.Market.Servers
             _server.ConnectStatusChangeEvent -= Server_ConnectStatusChangeEvent;
             _server = null;
 
-            _paramsGrid.CellValueChanged -= _newGrid_CellValueChanged;
-            _paramsGrid.Click -= _newGrid_Click;
-            _paramsGrid.Rows.Clear();
-            DataGridFactory.ClearLinks(_paramsGrid);
-            _paramsGrid = null;
+            _parametersGrid.CellValueChanged -= _newGrid_CellValueChanged;
+            _parametersGrid.Click -= _newGrid_Click;
+            _parametersGrid.Rows.Clear();
+            DataGridFactory.ClearLinks(_parametersGrid);
+            _parametersGrid = null;
 
           
         }
@@ -99,23 +99,23 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        private DataGridView _paramsGrid;
+        private DataGridView _parametersGrid;
 
         public void CreateParamDataGrid()
         {
-            _paramsGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, 
+            _parametersGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, 
                 DataGridViewAutoSizeRowsMode.AllCells);
-            _paramsGrid.ScrollBars = ScrollBars.Vertical;
+            _parametersGrid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _paramsGrid.DefaultCellStyle;
+            cell0.Style = _parametersGrid.DefaultCellStyle;
 
             DataGridViewColumn colum1 = new DataGridViewColumn();
             colum1.CellTemplate = cell0;
             colum1.HeaderText = OsLocalization.Market.GridColumn1;
             colum1.ReadOnly = true;
             colum1.Width = 300;
-            _paramsGrid.Columns.Add(colum1);
+            _parametersGrid.Columns.Add(colum1);
 
             DataGridViewColumn colum2 = new DataGridViewColumn();
             colum2.CellTemplate = cell0;
@@ -124,7 +124,7 @@ namespace OsEngine.Market.Servers
 
             colum2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
-            _paramsGrid.Columns.Add(colum2);
+            _parametersGrid.Columns.Add(colum2);
 
             DataGridViewColumn colum3 = new DataGridViewColumn();
             colum3.CellTemplate = cell0;
@@ -132,7 +132,7 @@ namespace OsEngine.Market.Servers
             colum3.ReadOnly = true;
             colum3.Width = 100;
 
-            _paramsGrid.Columns.Add(colum3);
+            _parametersGrid.Columns.Add(colum3);
 
             DataGridViewColumn colum4 = new DataGridViewColumn();
             colum4.CellTemplate = cell0;
@@ -140,15 +140,15 @@ namespace OsEngine.Market.Servers
             colum4.ReadOnly = true;
             colum4.Width = 100;
 
-            _paramsGrid.Columns.Add(colum4);
+            _parametersGrid.Columns.Add(colum4);
 
-            HostSettings.Child = _paramsGrid;
-            _paramsGrid.CellValueChanged += _newGrid_CellValueChanged;
-            _paramsGrid.Click += _newGrid_Click;
-            _paramsGrid.CellClick += _paramsGrid_CellClick;
+            HostSettings.Child = _parametersGrid;
+            _parametersGrid.CellValueChanged += _newGrid_CellValueChanged;
+            _parametersGrid.Click += _newGrid_Click;
+            _parametersGrid.CellClick += _parametersGrid_CellClick;
         }
 
-        private void _paramsGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        private void _parametersGrid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
             int row = e.RowIndex;
             int col = e.ColumnIndex;
@@ -158,7 +158,7 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            if (row >= _paramsGrid.Rows.Count)
+            if (row >= _parametersGrid.Rows.Count)
             {
                 return;
             }
@@ -176,7 +176,7 @@ namespace OsEngine.Market.Servers
         {
             List<IServerParameter> param = _server.ServerParameters;
 
-            _paramsGrid.Rows.Clear();
+            _parametersGrid.Rows.Clear();
 
             for (int i = 0; i < param.Count; i++)
             {
@@ -211,7 +211,7 @@ namespace OsEngine.Market.Servers
                     newRow = GetButtonParamRow((ServerParameterButton)param[i]);
                 }
 
-                _paramsGrid.Rows.Add(newRow);
+                _parametersGrid.Rows.Add(newRow);
             }
         }
 
@@ -453,9 +453,9 @@ namespace OsEngine.Market.Servers
 
                 var mouse = (MouseEventArgs)e;
 
-                int clickRow = _paramsGrid.SelectedCells[0].RowIndex;
+                int clickRow = _parametersGrid.SelectedCells[0].RowIndex;
 
-                int clickColumn = _paramsGrid.SelectedCells[0].ColumnIndex;
+                int clickColumn = _parametersGrid.SelectedCells[0].ColumnIndex;
 
                 List<IServerParameter> param =
                 _server.ServerParameters;
@@ -479,11 +479,11 @@ namespace OsEngine.Market.Servers
                 else if (param[clickRow].Type == ServerParameterType.Password &&
                 clickColumn == 2)
                 {
-                    _paramsGrid.CellValueChanged -= _newGrid_CellValueChanged;
-                    _paramsGrid.Rows[clickRow].Cells[1].Value = ((ServerParameterPassword)param[clickRow]).Value;
-                    _paramsGrid.Rows[clickRow].Cells[1].ReadOnly = false;
-                    _paramsGrid.Rows[clickRow].Cells[2] = new DataGridViewTextBoxCell();
-                    _paramsGrid.CellValueChanged += _newGrid_CellValueChanged;
+                    _parametersGrid.CellValueChanged -= _newGrid_CellValueChanged;
+                    _parametersGrid.Rows[clickRow].Cells[1].Value = ((ServerParameterPassword)param[clickRow]).Value;
+                    _parametersGrid.Rows[clickRow].Cells[1].ReadOnly = false;
+                    _parametersGrid.Rows[clickRow].Cells[2] = new DataGridViewTextBoxCell();
+                    _parametersGrid.CellValueChanged += _newGrid_CellValueChanged;
                 }
             }
             catch(Exception ex)
@@ -498,31 +498,31 @@ namespace OsEngine.Market.Servers
 
             for (int i = 0; i < param.Count; i++)
             {
-                if (_paramsGrid.Rows[i].Cells[1].Value == null)
+                if (_parametersGrid.Rows[i].Cells[1].Value == null)
                 {
-                    _paramsGrid.Rows[i].Cells[1].Value = "";
+                    _parametersGrid.Rows[i].Cells[1].Value = "";
                 }
 
                 if (param[i].Type == ServerParameterType.String)
                 {
-                    ((ServerParameterString)param[i]).Value = _paramsGrid.Rows[i].Cells[1].Value.ToString();
+                    ((ServerParameterString)param[i]).Value = _parametersGrid.Rows[i].Cells[1].Value.ToString();
                 }
                 else if (param[i].Type == ServerParameterType.Password)
                 {
-                    string str = _paramsGrid.Rows[i].Cells[1].Value.ToString().Replace("*", "");
+                    string str = _parametersGrid.Rows[i].Cells[1].Value.ToString().Replace("*", "");
                     if (str != "")
                     {
-                        ((ServerParameterPassword)param[i]).Value = _paramsGrid.Rows[i].Cells[1].Value.ToString();
+                        ((ServerParameterPassword)param[i]).Value = _parametersGrid.Rows[i].Cells[1].Value.ToString();
                     }
                 }
                 else if (param[i].Type == ServerParameterType.Enum)
                 {
-                    ((ServerParameterEnum)param[i]).Value = _paramsGrid.Rows[i].Cells[1].Value.ToString();
+                    ((ServerParameterEnum)param[i]).Value = _parametersGrid.Rows[i].Cells[1].Value.ToString();
                 }
 
                 else if (param[i].Type == ServerParameterType.Bool)
                 {
-                    string str = _paramsGrid.Rows[i].Cells[1].Value.ToString();
+                    string str = _parametersGrid.Rows[i].Cells[1].Value.ToString();
                     if (str == "True")
                     {
                         ((ServerParameterBool)param[i]).Value = true;
@@ -534,11 +534,11 @@ namespace OsEngine.Market.Servers
                 }
                 else if (param[i].Type == ServerParameterType.Decimal)
                 {
-                    if (_paramsGrid.Rows[i].Cells[1].Value.ToString() == "")
+                    if (_parametersGrid.Rows[i].Cells[1].Value.ToString() == "")
                     {
-                        _paramsGrid.Rows[i].Cells[1].Value = "0";
+                        _parametersGrid.Rows[i].Cells[1].Value = "0";
                     }
-                    string str = _paramsGrid.Rows[i].Cells[1].Value.ToString();
+                    string str = _parametersGrid.Rows[i].Cells[1].Value.ToString();
                     ((ServerParameterDecimal)param[i]).Value =
                         Convert.ToDecimal(str.Replace(".",
                             CultureInfo.InvariantCulture.NumberFormat.NumberDecimalSeparator));
@@ -546,12 +546,12 @@ namespace OsEngine.Market.Servers
                 }
                 else if (param[i].Type == ServerParameterType.Int)
                 {
-                    if (_paramsGrid.Rows[i].Cells[1].Value.ToString() == "")
+                    if (_parametersGrid.Rows[i].Cells[1].Value.ToString() == "")
                     {
-                        _paramsGrid.Rows[i].Cells[1].Value = "0";
+                        _parametersGrid.Rows[i].Cells[1].Value = "0";
                     }
 
-                    string str = _paramsGrid.Rows[i].Cells[1].Value.ToString();
+                    string str = _parametersGrid.Rows[i].Cells[1].Value.ToString();
                     ((ServerParameterInt)param[i]).Value = Convert.ToInt32(str);
                 }
 

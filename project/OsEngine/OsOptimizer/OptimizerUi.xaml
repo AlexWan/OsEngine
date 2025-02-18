@@ -43,13 +43,13 @@
                         <Button x:Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="195" Click="ButtonPositionSupport_Click" />
                     </Grid>
                 </TabItem>
-                <TabItem Name="TabItemParams" Header="Parameters" FontSize="14" Width="120">
+                <TabItem Name="TabItemParameters" Header="Parameters" FontSize="14" Width="120">
                     <Grid Name="GridParametrs" >
                         <WindowsFormsHost Name="HostParam"  Foreground="Black" Margin="10,38,10,26"/>
                         <Label Name="Label17" Content="Parameters table" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top"/>
                         <Label Name="LabelIteartionCount" Content="Iteration count: " HorizontalAlignment="Right" Margin="0,10,122,0" VerticalAlignment="Top"/>
                         <Label x:Name="LabelIteartionCountNumber" Content="unknown" HorizontalAlignment="Right" Margin="0,10,56,0" VerticalAlignment="Top"/>
-                        <Button Name="ButtonSetStandartParams" Content="Set Standart Params" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Bottom" Width="260" Click="ButtonSetStandartParams_Click"/>
+                        <Button Name="ButtonSetStandardParameters" Content="Set Standart Parameters" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Bottom" Width="260" Click="ButtonSetStandardParameters_Click"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemFazes" Header="Fazes" FontSize="14" Width="120">

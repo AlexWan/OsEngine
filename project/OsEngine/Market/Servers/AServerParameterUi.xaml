@@ -9,7 +9,7 @@
         <Label Name="Label21" Content="Connection state " Margin="0,0,151,0" VerticalAlignment="Top" HorizontalAlignment="Right" />
         <Label Name="LabelStatus" Content="Disconnect" Margin="0,0,75,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="71" />
         <TabControl Name="TabControlSettings" Margin="0,0,0,35">
-            <TabItem Name="TabItemParams" Header=" Settings ">
+            <TabItem Name="TabItemParameters" Header=" Settings ">
                 <Grid >
                     <WindowsFormsHost Name="HostSettings"  Margin="0,0,0,0"/>
                 </Grid>

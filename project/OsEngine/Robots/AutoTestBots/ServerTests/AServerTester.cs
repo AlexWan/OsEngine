@@ -13,7 +13,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
     [Bot("WServerTester")]
     public class WServerTester : BotPanel
     {
-        #region Settings and Params
+        #region Settings and Parameters
 
         public WServerTester(string name, StartProgram startProgram) : base(name, startProgram)
         {
