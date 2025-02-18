@@ -3706,12 +3706,12 @@ namespace OsEngine.Market.Servers.Tester
         }
 
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdate)
         {
             return null;
         }
 
-        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
             return null;
         }

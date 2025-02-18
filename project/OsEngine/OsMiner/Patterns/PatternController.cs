@@ -33,9 +33,9 @@ namespace OsEngine.OsMiner.Patterns
             ExitFromSomeCandlesIsOn = true;
             ExitFromSomeCandlesValue = 10;
 
-            WeigthToInter = 1;
-            WeigthToExit = 1;
-            WeigthToTempPattern = 1;
+            WeightToInter = 1;
+            WeightToExit = 1;
+            WeightToTempPattern = 1;
 
             ExpandToTempPattern = 99.8m;
 
@@ -151,9 +151,9 @@ namespace OsEngine.OsMiner.Patterns
             TreilingStopValue = Convert.ToDecimal(array[11]);
             ExitFromSomeCandlesValue = Convert.ToInt32(array[12]);
             SecurityToInter = array[13];
-            WeigthToInter = Convert.ToDecimal(array[14]);
-            WeigthToExit = Convert.ToDecimal(array[15]);
-            WeigthToTempPattern = Convert.ToDecimal(array[16]);
+            WeightToInter = Convert.ToDecimal(array[14]);
+            WeightToExit = Convert.ToDecimal(array[15]);
+            WeightToTempPattern = Convert.ToDecimal(array[16]);
             Enum.TryParse(array[17], out PlaceToUsePattern);
             ExpandToTempPattern = Convert.ToDecimal(array[18]);
             MiningMo = Convert.ToDecimal(array[19]);
@@ -228,9 +228,9 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public void Save()
         {
-            if (NeadToSaveEvent != null)
+            if (NeedToSaveEvent != null)
             {
-                NeadToSaveEvent();
+                NeedToSaveEvent();
             }
         }
 
@@ -273,9 +273,9 @@ namespace OsEngine.OsMiner.Patterns
             saveStr += TreilingStopValue + "?";
             saveStr += ExitFromSomeCandlesValue + "?";
             saveStr += SecurityToInter + "?";
-            saveStr += WeigthToInter + "?";
-            saveStr += WeigthToExit + "?";
-            saveStr += WeigthToTempPattern + "?";
+            saveStr += WeightToInter + "?";
+            saveStr += WeightToExit + "?";
+            saveStr += WeightToTempPattern + "?";
             saveStr += PlaceToUsePattern + "?";
             saveStr += ExpandToTempPattern + "?";
 
@@ -295,7 +295,7 @@ namespace OsEngine.OsMiner.Patterns
             _chart.Delete();
         }
 
-        public event Action NeadToSaveEvent;
+        public event Action NeedToSaveEvent;
 
         /// <summary>
         /// changed the composition of papers available for tests
@@ -404,7 +404,7 @@ namespace OsEngine.OsMiner.Patterns
         /// total weight of single entry patterns
         /// общий вес одиночных паттернов для входа
         /// </summary>
-        public decimal WeigthToInter;
+        public decimal WeightToInter;
 
         /// <summary>
         /// single entry patterns
@@ -432,7 +432,7 @@ namespace OsEngine.OsMiner.Patterns
         /// total weight of single patterns to exit a position
         /// общий вес одиночных паттернов для выхода из позиции
         /// </summary>
-        public decimal WeigthToExit;
+        public decimal WeightToExit;
 
         /// <summary>
         /// is the stop order included for exit
@@ -680,7 +680,7 @@ namespace OsEngine.OsMiner.Patterns
                     continue;
                 }
 
-                if (CheckInter(PatternsToOpen, candlesParallelPatternsToInter, i, candlesToTrade.Candles[i].TimeStart, WeigthToInter) == false)
+                if (CheckInter(PatternsToOpen, candlesParallelPatternsToInter, i, candlesToTrade.Candles[i].TimeStart, WeightToInter) == false)
                 {
                     continue;
                 }
@@ -765,14 +765,14 @@ namespace OsEngine.OsMiner.Patterns
         /// check patterns at entry
         /// проверить паттерны на вход в позицию
         /// </summary>
-        private bool CheckInter(List<IPattern> patterns, List<List<Candle>> series, int index, DateTime time,decimal weigthToInterOrExit)
+        private bool CheckInter(List<IPattern> patterns, List<List<Candle>> series, int index, DateTime time,decimal weightToInterOrExit)
         {
             if (patterns == null ||
                 patterns.Count == 0)
             {
                 return false;
             }
-            decimal weigth = 0;
+            decimal weight = 0;
             List<ChartColorSeries> seriesNew = new List<ChartColorSeries>();
 
             for (int i = 0; i < patterns.Count && i< series.Count; i++)
@@ -793,7 +793,7 @@ namespace OsEngine.OsMiner.Patterns
                     {
                         if (patterns[i].ThisIsIt(series[i], _chart.Indicators, i2))
                         {
-                            weigth += patterns[i].Weigth;
+                            weight += patterns[i].Weight;
                             if (patterns[i].Type == PatternType.Candle)
                             {
                                 ChartColorSeries newColorSeries = new ChartColorSeries();
@@ -822,7 +822,7 @@ namespace OsEngine.OsMiner.Patterns
                 }
             }
 
-            if (weigth >= weigthToInterOrExit)
+            if (weight >= weightToInterOrExit)
             {
                 ColorSeries.AddRange(seriesNew);
                 return true;
@@ -836,7 +836,7 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         private bool CheckExit(Position position, List<IPattern> patterns, List<List<Candle>> series, int index, DateTime time, decimal price,MinerCandleSeries tradeSeries)
         {
-            if (CheckInter(patterns, series, index, time,WeigthToExit))
+            if (CheckInter(patterns, series, index, time,WeightToExit))
             { // if we leave by patterns/если выходим по паттернам
                 return true;
             }
@@ -1148,7 +1148,7 @@ namespace OsEngine.OsMiner.Patterns
         {
             if (_worker != null)
             {
-                StopMiningProcces();
+                StopMiningProcess();
                 return;
             }
             _worker = new Thread(MiningThreadPlace);
@@ -1162,7 +1162,7 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public void StopMining()
         {
-            _neadToStopMining = true;
+            _needToStopMining = true;
         }
 
         /// <summary>
@@ -1175,7 +1175,7 @@ namespace OsEngine.OsMiner.Patterns
         /// flag. Do I need to stop mining
         /// флаг. Нужно ли остановить майнинг
         /// </summary>
-        private bool _neadToStopMining;
+        private bool _needToStopMining;
 
         /// <summary>
         /// Mining Workplace
@@ -1207,15 +1207,15 @@ namespace OsEngine.OsMiner.Patterns
                     curNum++;
                     _curIndex = curNum;
 
-                    if (_neadToStopMining)
+                    if (_needToStopMining)
                     {
-                        StopMiningProcces();
+                        StopMiningProcess();
                         return;
                     }
 
                     if (curNum >= mySeries.Candles.Count)
                     {
-                        StopMiningProcces();
+                        StopMiningProcess();
                         MessageBox.Show(OsLocalization.Miner.Label20);
                         return;
                     }
@@ -1238,7 +1238,7 @@ namespace OsEngine.OsMiner.Patterns
                         MiningDealsCount < PositionsInTrades.Count &&
                         MiningProfit < Math.Abs(profit))
                     {
-                        StopMiningProcces();
+                        StopMiningProcess();
                         return;
                     }
 
@@ -1289,7 +1289,7 @@ namespace OsEngine.OsMiner.Patterns
         /// stop pattern mining and draw results
         /// остановить майнинг паттерна и прорисовать результаты
         /// </summary>
-        private void StopMiningProcces()
+        private void StopMiningProcess()
         {
             _worker = null;
             if (PositionsInTrades.Count != 0)
@@ -1301,10 +1301,10 @@ namespace OsEngine.OsMiner.Patterns
             {
                 BackTestEndEvent(GetShortReport());
             }
-            _neadToStopMining = false;
+            _needToStopMining = false;
         }
 
-        AutoTestResultsUi _uiTestResuits;
+        AutoTestResultsUi _uiTestResults;
 
         /// <summary>
         /// show pattern test results
@@ -1312,20 +1312,20 @@ namespace OsEngine.OsMiner.Patterns
         /// </summary>
         public void ShowTestResults()
         {
-            if (_uiTestResuits == null)
+            if (_uiTestResults == null)
             {
-                _uiTestResuits = new AutoTestResultsUi(_testResults);
-                _uiTestResuits.Show();
-                _uiTestResuits.Closing += (sender, args) => { _uiTestResuits = null; };
-                _uiTestResuits.UserClickOnNewPattern += _uiTestResuits_UserClickOnNewPattern;
+                _uiTestResults = new AutoTestResultsUi(_testResults);
+                _uiTestResults.Show();
+                _uiTestResults.Closing += (sender, args) => { _uiTestResults = null; };
+                _uiTestResults.UserClickOnNewPattern += _uiTestResults_UserClickOnNewPattern;
             }
             else
             {
-                _uiTestResuits.Activate();
+                _uiTestResults.Activate();
             }
         }
 
-        void _uiTestResuits_UserClickOnNewPattern(TestResult result)
+        void _uiTestResults_UserClickOnNewPattern(TestResult result)
         {
             PositionsInTrades = result.Positions;
             _curTempPatternType = result.Pattern.Type;
@@ -1360,7 +1360,7 @@ namespace OsEngine.OsMiner.Patterns
             {
                 if (_tempPatterns[i].Type == type)
                 {
-                    _tempPatterns[i].Weigth = WeigthToTempPattern;
+                    _tempPatterns[i].Weight = WeightToTempPattern;
                     _tempPatterns[i].Expand = ExpandToTempPattern;
                     return _tempPatterns[i];
                 }
@@ -1417,20 +1417,20 @@ namespace OsEngine.OsMiner.Patterns
         /// time pattern weight
         /// вес временного паттерна
         /// </summary>
-        public decimal WeigthToTempPattern
+        public decimal WeightToTempPattern
         {
-            get { return _weigthToTempPattern; }
+            get { return _weightToTempPattern; }
             set
             {
-                _weigthToTempPattern = value;
+                _weightToTempPattern = value;
 
                 for (int i = 0; i < _tempPatterns.Count; i++)
                 {
-                    _tempPatterns[i].Weigth = value;
+                    _tempPatterns[i].Weight = value;
                 }
             }
         }
-        private decimal _weigthToTempPattern;
+        private decimal _weightToTempPattern;
 
         /// <summary>
         /// time pattern recognition
@@ -1477,8 +1477,8 @@ namespace OsEngine.OsMiner.Patterns
         /// to carry out a test taking into account the temporary pattern
         /// провести тест с учётом временного паттерна
         /// </summary>
-        /// <param name="neadToPaint">whether to draw test results/нужно ли прорисовывать результаты тестов</param>
-        public void BackTestTempPattern(bool neadToPaint)
+        /// <param name="needToPaint">whether to draw test results/нужно ли прорисовывать результаты тестов</param>
+        public void BackTestTempPattern(bool needToPaint)
         {
             if (string.IsNullOrEmpty(SecurityToInter))
             {
@@ -1488,10 +1488,10 @@ namespace OsEngine.OsMiner.Patterns
             try
             {
                 IPattern pattern = GetTempPattern(_curTempPatternType);
-                pattern.Weigth = WeigthToTempPattern;
+                pattern.Weight = WeightToTempPattern;
                 pattern.Expand = ExpandToTempPattern;
 
-                if (pattern.Weigth == 0)
+                if (pattern.Weight == 0)
                 {
                     return;
                 }
@@ -1525,7 +1525,7 @@ namespace OsEngine.OsMiner.Patterns
                     BackTestEndEvent(GetShortReport());
                 }
 
-                if (neadToPaint)
+                if (needToPaint)
                 {
                     if (PositionsInTrades.Count != 0)
                     {
@@ -1676,7 +1676,7 @@ namespace OsEngine.OsMiner.Patterns
                 return;
             }
 
-            if (WeigthToTempPattern <= 0)
+            if (WeightToTempPattern <= 0)
             {
                 SendNewLogMessage(OsLocalization.Miner.Label22, LogMessageType.Error);
                 return;

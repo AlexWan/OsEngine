@@ -188,12 +188,12 @@ namespace OsEngine.Charts.ClusterChart
 
                 _lastMaxVolume = 0;
 
-                bool neadToBackChild = false;
+                bool needToBackChild = false;
 
                 if (_host != null && _host.Child != null)
                 {
                     _host.Child = null;
-                    neadToBackChild = true;
+                    needToBackChild = true;
                 }
 
                 Series oldcandleSeries = FindSeriesByNameSafe("SeriesCluster");
@@ -233,7 +233,7 @@ namespace OsEngine.Charts.ClusterChart
                 ClearZoom();
                 _myClusters = null;
 
-                if (neadToBackChild)
+                if (needToBackChild)
                 {
                     _host.Child = _chart;
                 }
@@ -270,7 +270,7 @@ namespace OsEngine.Charts.ClusterChart
         public void Delete()
         {
             _colorKeeper.Delete();
-            _neadToDelete = true;
+            _needToDelete = true;
         }
 
         /// <summary>
@@ -502,7 +502,7 @@ namespace OsEngine.Charts.ClusterChart
             {
                 await Task.Delay(1000);
 
-                if (_neadToDelete)
+                if (_needToDelete)
                 {
                     return;
                 }
@@ -552,7 +552,7 @@ namespace OsEngine.Charts.ClusterChart
         /// <summary>
         /// пора прекращать прорисовывать чарт на совсем
         /// </summary>
-        private bool _neadToDelete;
+        private bool _needToDelete;
 
         /// <summary>
         /// очередь со свечками, которые нужно прорисовать

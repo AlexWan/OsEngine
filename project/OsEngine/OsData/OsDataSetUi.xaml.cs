@@ -90,7 +90,7 @@ namespace OsEngine.OsData
             DatePickerTimeStart.SelectedDate = _set.BaseSettings.TimeStart;
             DatePickerTimeEnd.SelectedDate = _set.BaseSettings.TimeEnd;
 
-            CheckBoxNeadToUpDate.IsChecked = _set.BaseSettings.NeedToUpdate;
+            CheckBoxNeedToUpDate.IsChecked = _set.BaseSettings.NeedToUpdate;
 
             for (int i = 1; i < 26; i++)
             {
@@ -116,7 +116,7 @@ namespace OsEngine.OsData
             Label19.Content = OsLocalization.Data.Label19;
             Label20.Content = OsLocalization.Data.Label20;
             ButtonAccept.Content = OsLocalization.Data.ButtonAccept;
-            CheckBoxNeadToUpDate.Content = OsLocalization.Data.Label22;
+            CheckBoxNeedToUpDate.Content = OsLocalization.Data.Label22;
 
             this.Activate();
             this.Focus();
@@ -411,7 +411,7 @@ namespace OsEngine.OsData
             _set.BaseSettings.TimeStart = DatePickerTimeStart.SelectedDate.Value;
             _set.BaseSettings.TimeEnd = DatePickerTimeEnd.SelectedDate.Value;
 
-            _set.BaseSettings.NeedToUpdate = CheckBoxNeadToUpDate.IsChecked.Value;
+            _set.BaseSettings.NeedToUpdate = CheckBoxNeedToUpDate.IsChecked.Value;
 
             if(_set.SecuritiesLoad != null)
             {

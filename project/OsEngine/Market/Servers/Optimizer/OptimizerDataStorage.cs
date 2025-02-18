@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// constructor
         /// конструктор
         /// </summary>
-        public OptimizerDataStorage(string name, bool neadToCreateThread)
+        public OptimizerDataStorage(string name, bool needToCreateThread)
         {
             Name = name;
 
@@ -37,7 +37,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _needToReloadSecurities = true;
             }
 
-            if(neadToCreateThread == true)
+            if(needToCreateThread == true)
             {
                 _worker = new Thread(WorkThreadArea);
                 _worker.CurrentCulture = new CultureInfo("ru-RU");

@@ -52,7 +52,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// it's necessary to update item on chart
         /// необходимо обновить элемент на чарте
         /// </summary>
-        public event Action<IChartElement> UpdeteEvent;
+        public event Action<IChartElement> UpdateEvent;
 
         /// <summary>
         /// it's necessary to remove element from chart
@@ -70,7 +70,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// need to call up menu
         /// необходимо вызвать меню
         /// </summary>
-        public event Action<Line, decimal, decimal> NeadToShowDialog;
+        public event Action<Line, decimal, decimal> NeedToShowDialog;
 
         /// <summary>
         /// update item on chart
@@ -78,9 +78,9 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void Refresh()
         {
-            if (UpdeteEvent != null)
+            if (UpdateEvent != null)
             {
-                UpdeteEvent(this);
+                UpdateEvent(this);
             }
         }
 
@@ -117,9 +117,9 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void ShowDialog(decimal x, decimal y)
         {
-            if (NeadToShowDialog != null)
+            if (NeedToShowDialog != null)
             {
-                NeadToShowDialog(this, x, y);
+                NeedToShowDialog(this, x, y);
             }
         }
         // line items only

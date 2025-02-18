@@ -27,7 +27,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// конструктор
         /// </summary>    
 
-        public AstsBridgeServer(bool neadToLoadTicks)
+        public AstsBridgeServer(bool needToLoadTicks)
         {
             ServerAdress = "91.208.232.211";
 
@@ -35,15 +35,15 @@ namespace OsEngine.Market.Servers.AstsBridge
             ServerType = ServerType.AstsBridge;
             Dislocation = AstsDislocation.Internet;
 
-            _countDaysTickNeadToSave = 3;
-            _neadToSaveTicks = true;
+            _countDaysTickNeedToSave = 3;
+            _needToSaveTicks = true;
 
             Load();
 
             _logMaster = new Log("AstsBridgeServer", StartProgram.IsOsTrader);
             _logMaster.Listen(this);
 
-            _serverStatusNead = ServerConnectStatus.Disconnect;
+            _serverStatusNeed = ServerConnectStatus.Disconnect;
 
             _threadPrime = new Thread(PrimeThreadArea);
             _threadPrime.CurrentCulture = new CultureInfo("ru-RU");
@@ -67,11 +67,11 @@ namespace OsEngine.Market.Servers.AstsBridge
             _levelOneToSend = new ConcurrentQueue<SecurityLevelOneAsts>();
             _tradesTableToSend = new ConcurrentQueue<List<Trade>>();
 
-            if (neadToLoadTicks)
+            if (needToLoadTicks)
             {
                 _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = NeadToSaveTicks;
-                _tickStorage.DaysToLoad = CountDaysTickNeadToSave;
+                _tickStorage.NeedToSave = NeedToSaveTicks;
+                _tickStorage.DaysToLoad = CountDaysTickNeedToSave;
                 _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
                 _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
@@ -168,44 +168,44 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public AstsDislocation Dislocation;
 
-        private int _countDaysTickNeadToSave;
+        private int _countDaysTickNeedToSave;
 
         /// <summary>
         /// tick data to save (number of days ago)
         /// количество дней назад, тиковые данные по которым нужно сохранять
         /// </summary>
-        public int CountDaysTickNeadToSave
+        public int CountDaysTickNeedToSave
         {
-            get { return _countDaysTickNeadToSave; }
+            get { return _countDaysTickNeedToSave; }
             set
             {
                 if (_tickStorage == null)
                 {
                     return;
                 }
-                _countDaysTickNeadToSave = value;
+                _countDaysTickNeedToSave = value;
                 _tickStorage.DaysToLoad = value;
                 Save();
             }
         }
 
-        private bool _neadToSaveTicks;
+        private bool _needToSaveTicks;
 
         /// <summary>
         /// shows whether need to save ticks
         /// нужно ли сохранять тики 
         /// </summary>
-        public bool NeadToSaveTicks
+        public bool NeedToSaveTicks
         {
-            get { return _neadToSaveTicks; }
+            get { return _needToSaveTicks; }
             set
             {
                 if (_tickStorage == null)
                 {
                     return;
                 }
-                _neadToSaveTicks = value;
-                _tickStorage.NeadToSave = value;
+                _needToSaveTicks = value;
+                _tickStorage.NeedToSave = value;
                 Save();
             }
         }
@@ -231,8 +231,8 @@ namespace OsEngine.Market.Servers.AstsBridge
                     ServerName = reader.ReadLine();
                     ServiseName = reader.ReadLine();
                     Enum.TryParse(reader.ReadLine(), out Dislocation);
-                    _countDaysTickNeadToSave = Convert.ToInt32(reader.ReadLine());
-                    _neadToSaveTicks = Convert.ToBoolean(reader.ReadLine());
+                    _countDaysTickNeedToSave = Convert.ToInt32(reader.ReadLine());
+                    _needToSaveTicks = Convert.ToBoolean(reader.ReadLine());
                     _clientCode = reader.ReadLine();
                     reader.Close();
                 }
@@ -259,8 +259,8 @@ namespace OsEngine.Market.Servers.AstsBridge
                     writer.WriteLine(ServerName);
                     writer.WriteLine(ServiseName);
                     writer.WriteLine(Dislocation);
-                    writer.WriteLine(CountDaysTickNeadToSave);
-                    writer.WriteLine(NeadToSaveTicks);
+                    writer.WriteLine(CountDaysTickNeedToSave);
+                    writer.WriteLine(NeedToSaveTicks);
                     writer.WriteLine(_clientCode);
                     writer.Close();
                 }
@@ -314,7 +314,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public void StartServer()
         {
-            _serverStatusNead = ServerConnectStatus.Connect;
+            _serverStatusNeed = ServerConnectStatus.Connect;
         }
 
         /// <summary>
@@ -323,14 +323,14 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public void StopServer()
         {
-            _serverStatusNead = ServerConnectStatus.Disconnect;
+            _serverStatusNeed = ServerConnectStatus.Disconnect;
         }
 
         /// <summary>
         /// necessary server status. It needs a thread to monitor the connection. Depending on this field controls the connection 
         /// нужный статус сервера. Нужен потоку который следит за соединением. В зависимости от этого поля управляет соединением
         /// </summary>
-        private ServerConnectStatus _serverStatusNead;
+        private ServerConnectStatus _serverStatusNeed;
 
         /// <summary>
         /// alert message from SmartCom that the connection is broken
@@ -385,14 +385,14 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         bool stateIsActiv = AstsServer.IsConnected;
 
-                        if (stateIsActiv == false && _serverStatusNead == ServerConnectStatus.Connect)
+                        if (stateIsActiv == false && _serverStatusNeed == ServerConnectStatus.Connect)
                         {
                             SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                             Connect();
                             continue;
                         }
 
-                        if (stateIsActiv && _serverStatusNead == ServerConnectStatus.Disconnect)
+                        if (stateIsActiv && _serverStatusNeed == ServerConnectStatus.Disconnect)
                         {
                             SendLogMessage(OsLocalization.Market.Message9, LogMessageType.System);
                             Disconnect();
@@ -1224,13 +1224,13 @@ namespace OsEngine.Market.Servers.AstsBridge
         }
 
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdate)
         {
             return null;
         }
 
         public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, 
-            DateTime endTime, DateTime actualTime, bool neadToUpdete)
+            DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
             return null;
         }

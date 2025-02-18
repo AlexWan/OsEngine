@@ -116,7 +116,7 @@ namespace OsEngine.Entity
 
         public void Save()
         {
-            _neadToRebuildSpecification = true;
+            _needToRebuildSpecification = true;
 
             if (_canSave == false)
             {
@@ -233,12 +233,12 @@ namespace OsEngine.Entity
             get
             {
                 if (_lastSpecification != null &&
-                    _neadToRebuildSpecification == false)
+                    _needToRebuildSpecification == false)
                 {
                     return _lastSpecification;
                 }
 
-                _neadToRebuildSpecification = false;
+                _needToRebuildSpecification = false;
 
                 StringBuilder result = new StringBuilder();
 
@@ -255,7 +255,7 @@ namespace OsEngine.Entity
                 return _lastSpecification;
             }
         }
-        private bool _neadToRebuildSpecification;
+        private bool _needToRebuildSpecification;
 
         private string _lastSpecification;
 

@@ -70,14 +70,14 @@ namespace OsEngine.OsOptimizer
             this.Focus();
         }
 
-        public void Paint(List<OptimazerFazeReport> reports)
+        public void Paint(List<OptimizerFazeReport> reports)
         {
             if (reports == null)
             {
                 return;
             }
 
-            _reports = new List<OptimazerFazeReport>();
+            _reports = new List<OptimizerFazeReport>();
 
             for (int i = 0; i < reports.Count; i++)
             {
@@ -89,7 +89,7 @@ namespace OsEngine.OsOptimizer
 
         OptimizerMaster _master;
 
-        private List<OptimazerFazeReport> _reports;
+        private List<OptimizerFazeReport> _reports;
 
         private OptimizerReportCharting _resultsCharting;
 
@@ -99,7 +99,7 @@ namespace OsEngine.OsOptimizer
             {
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    OptimazerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
+                    OptimizerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
                 }
 
                 PaintTableFazes();
@@ -474,7 +474,7 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            OptimazerFazeReport fazeReport = _reports[num];
+            OptimizerFazeReport fazeReport = _reports[num];
 
             if (fazeReport == null)
             {
@@ -509,7 +509,7 @@ namespace OsEngine.OsOptimizer
                 //}
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
-                cell2.Value = report.GetParamsToDataTable();
+                cell2.Value = report.GetParametersToDataTable();
                 row.Cells.Add(cell2);
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
@@ -517,11 +517,11 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(cell3);
 
                 DataGridViewTextBoxCell cell4 = new DataGridViewTextBoxCell();
-                cell4.Value = report.TotalProfit.ToStringWithNoEndZero() + " (" + report.TotalProfitPersent.ToStringWithNoEndZero() + "%)";
+                cell4.Value = report.TotalProfit.ToStringWithNoEndZero() + " (" + report.TotalProfitPercent.ToStringWithNoEndZero() + "%)";
                 row.Cells.Add(cell4);
 
                 DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-                cell5.Value = report.MaxDrowDawn.ToStringWithNoEndZero();
+                cell5.Value = report.MaxDrawDawn.ToStringWithNoEndZero();
                 row.Cells.Add(cell5);
 
                 DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
@@ -592,7 +592,7 @@ namespace OsEngine.OsOptimizer
             row.Cells.Add(cell4);
 
             DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-            cell5.Value = report.MaxDrowDawn.ToStringWithNoEndZero();
+            cell5.Value = report.MaxDrawDawn.ToStringWithNoEndZero();
             row.Cells.Add(cell5);
 
             DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
@@ -652,7 +652,7 @@ namespace OsEngine.OsOptimizer
 
         private void ShowBotChartDialog(DataGridViewCellMouseEventArgs e)
         {
-            OptimazerFazeReport fazeReport;
+            OptimizerFazeReport fazeReport;
 
             if (_gridFazesEnd.CurrentCell == null ||
               _gridFazesEnd.CurrentCell.RowIndex == 0)
@@ -686,7 +686,7 @@ namespace OsEngine.OsOptimizer
 
         private void ShowParamsDialog(DataGridViewCellMouseEventArgs e)
         {
-            OptimazerFazeReport fazeReport;
+            OptimizerFazeReport fazeReport;
 
             if (_gridFazesEnd.CurrentCell == null ||
               _gridFazesEnd.CurrentCell.RowIndex == 0)
@@ -774,7 +774,7 @@ namespace OsEngine.OsOptimizer
             {
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    OptimazerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
+                    OptimizerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
                 }
 
                 PaintTableResults();
@@ -868,7 +868,7 @@ namespace OsEngine.OsOptimizer
 
                 if (_reports == null)
                 {
-                    _reports = new List<OptimazerFazeReport>();
+                    _reports = new List<OptimizerFazeReport>();
                 }
                 else
                 {
@@ -886,7 +886,7 @@ namespace OsEngine.OsOptimizer
                             continue;
                         }
 
-                        OptimazerFazeReport newReport = new OptimazerFazeReport();
+                        OptimizerFazeReport newReport = new OptimizerFazeReport();
                         newReport.LoadFromString(str);
                         _reports.Add(newReport);
                     }

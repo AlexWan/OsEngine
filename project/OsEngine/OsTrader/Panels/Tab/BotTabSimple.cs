@@ -1309,44 +1309,44 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             ManualPositionSupport.ShowDialog();
 
-            bool neadToReplaceStop = false;
+            bool needToReplaceStop = false;
 
             if(ManualPositionSupport.StopIsOn == true
                 && stopIsOnStartValue == false)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if(ManualPositionSupport.StopIsOn == true
                 && stopDistance != ManualPositionSupport.StopDistance)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if (ManualPositionSupport.StopIsOn == true
                 && stopSlipage != ManualPositionSupport.StopSlippage)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
 
             if (ManualPositionSupport.ProfitIsOn == true
                 && profitOnStartValue == false)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if (ManualPositionSupport.ProfitIsOn == true
                 && profitDistance != ManualPositionSupport.ProfitDistance)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if (ManualPositionSupport.ProfitIsOn == true
                 && profitSlipage != ManualPositionSupport.ProfitSlippage)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
 
             List<Position> positions = this.PositionsOpenAll;
 
             if(positions.Count > 0 &&
-                neadToReplaceStop &&
+                needToReplaceStop &&
                 IsCreatedByScreener == false)
             {
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label386);
@@ -4896,7 +4896,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (openOrder.TradesIsComing == false)
                         {
                             PositionToSecondLoopSender sender = new PositionToSecondLoopSender() { Position = position };
-                            sender.PositionNeadToStopSend += ManualReloadStopsAndProfitToPosition;
+                            sender.PositionNeedToStopSend += ManualReloadStopsAndProfitToPosition;
 
                             Task task = new Task(sender.Start);
                             task.Start();
@@ -5320,7 +5320,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="candles">candles</param>
         private void CancelStopOpenerByNewCandle(List<Candle> candles)
         {
-            bool neadSave = false;
+            bool needSave = false;
 
             for (int i = 0; PositionOpenerToStop != null && i < PositionOpenerToStop.Count; i++)
             {
@@ -5333,7 +5333,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     PositionOpenerToStop.RemoveAt(i);
                     i--;
-                    neadSave = true;
+                    needSave = true;
                     continue;
                 }
 
@@ -5341,11 +5341,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     PositionOpenerToStop[i].LastCandleTime = candles[candles.Count - 1].TimeStart;
                     PositionOpenerToStop[i].ExpiresBars = PositionOpenerToStop[i].ExpiresBars - 1;
-                    neadSave = true;
+                    needSave = true;
                 }
             }
 
-            if (neadSave == true)
+            if (needSave == true)
             {
                 UpdateStopLimits();
             }
@@ -5364,7 +5364,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                bool neadSave = false;
+                bool needSave = false;
 
                 for (int i = 0;
                     i > -1 && PositionOpenerToStop != null && PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count;
@@ -5400,7 +5400,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 PositionBuyAtStopActivateEvent(pos);
                             }
-                            neadSave = true;
+                            needSave = true;
                             continue;
                         }
                         else if (PositionOpenerToStop[i].Side == Side.Sell)
@@ -5428,14 +5428,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 PositionSellAtStopActivateEvent(pos);
                             }
-                            neadSave = true;
+                            needSave = true;
                             continue;
                         }
                         i--;
                     }
                 }
 
-                if (neadSave == true)
+                if (needSave == true)
                 {
                     UpdateStopLimits();
                 }
@@ -6493,13 +6493,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         public async void Start()
         {
             await Task.Delay(3000);
-            if (PositionNeadToStopSend != null)
+            if (PositionNeedToStopSend != null)
             {
-                PositionNeadToStopSend(Position);
+                PositionNeedToStopSend(Position);
             }
         }
 
-        public event Action<Position> PositionNeadToStopSend;
+        public event Action<Position> PositionNeedToStopSend;
     }
 
     public class PositionAwaitMyTradesToSendEvent

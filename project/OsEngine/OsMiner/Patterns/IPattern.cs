@@ -20,7 +20,7 @@ namespace OsEngine.OsMiner.Patterns
         /// pattern weight while searching for entry and exit
         /// вес паттерна во время поиска входа и выхода
         /// </summary>
-        decimal Weigth { get; set; }
+        decimal Weight { get; set; }
 
         /// <summary>
         /// pattern recognition. 100% - maximum

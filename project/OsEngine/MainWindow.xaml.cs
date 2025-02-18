@@ -443,7 +443,7 @@ namespace OsEngine
 
                 int osEngineCount = 0;
 
-                string myProgrammPath = myDirectory + "\\OsEngine.exe";
+                string myProgramPath = myDirectory + "\\OsEngine.exe";
 
                 for (int i = 0; i < process.Count; i++)
                 {
@@ -456,7 +456,7 @@ namespace OsEngine
                             continue;
                         }
 
-                        if (p.Modules[j].FileName.EndsWith(myProgrammPath))
+                        if (p.Modules[j].FileName.EndsWith(myProgramPath))
                         {
                             osEngineCount++;
                         }

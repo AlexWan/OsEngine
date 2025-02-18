@@ -57,9 +57,9 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void Refresh()
         {
-            if (UpdeteEvent != null)
+            if (UpdateEvent != null)
             {
-                UpdeteEvent(this);
+                UpdateEvent(this);
             }
         }
 
@@ -79,7 +79,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// it's necessary to update item on chart
         /// необходимо обновить элемент на чарте
         /// </summary>
-        public event Action<IChartElement> UpdeteEvent;
+        public event Action<IChartElement> UpdateEvent;
 
         /// <summary>
         /// it's necessary to remove element from chart

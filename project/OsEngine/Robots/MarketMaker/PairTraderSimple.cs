@@ -363,8 +363,8 @@ namespace OsEngine.Robots.MarketMaker
                 if (spredNow > pairDeal.Spred &&
                     spredNow - pairDeal.Spred > Loss)
                 {
-                    NeadToClose(pairDeal.NumberPositions[0]);
-                    NeadToClose(pairDeal.NumberPositions[1]);
+                    NeedToClose(pairDeal.NumberPositions[0]);
+                    NeedToClose(pairDeal.NumberPositions[1]);
                     _positionNumbers.Remove(pairDeal);
                     i--;
                     continue;
@@ -373,8 +373,8 @@ namespace OsEngine.Robots.MarketMaker
                 if (pairDeal.Spred > spredNow &&
                     pairDeal.Spred - spredNow > Profit)
                 {
-                    NeadToClose(pairDeal.NumberPositions[0]);
-                    NeadToClose(pairDeal.NumberPositions[1]);
+                    NeedToClose(pairDeal.NumberPositions[0]);
+                    NeedToClose(pairDeal.NumberPositions[1]);
                     _positionNumbers.Remove(pairDeal);
                     i--;
                 }
@@ -385,7 +385,7 @@ namespace OsEngine.Robots.MarketMaker
         /// close position
         /// закрываем позицию по номеру
         /// </summary>
-        private void NeadToClose(int positionNum)
+        private void NeedToClose(int positionNum)
         {
             Position pos;
 

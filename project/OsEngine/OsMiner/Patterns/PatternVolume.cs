@@ -21,7 +21,7 @@ namespace OsEngine.OsMiner.Patterns
         public PatternVolume()
         {
             Type = PatternType.Volume;
-            Weigth = 1;
+            Weight = 1;
             Expand = 99.8m;
             Length = 2;
         }
@@ -30,7 +30,7 @@ namespace OsEngine.OsMiner.Patterns
         /// pattern weight while searching for entry and exit
         /// вес паттерна во время поиска входа и выхода
         /// </summary>
-        public decimal Weigth { get; set; }
+        public decimal Weight { get; set; }
 
         /// <summary>
         /// pattern recognition. 100% - maximum
@@ -157,7 +157,7 @@ namespace OsEngine.OsMiner.Patterns
             string[] array = saveString.Split('^');
 
             Length = Convert.ToInt32(array[1]);
-            Weigth = array[2].ToDecimal();
+            Weight = array[2].ToDecimal();
 
             if (array.Length < 3)
             {
@@ -190,7 +190,7 @@ namespace OsEngine.OsMiner.Patterns
 
             saveStr += Length + "^";
 
-            saveStr += Weigth + "^";
+            saveStr += Weight + "^";
 
             if (Sequence != null)
             {

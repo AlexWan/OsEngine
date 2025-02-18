@@ -197,7 +197,7 @@ namespace OsEngine.Charts.CandleChart
 
         bool HaveAlertOnChart(AlertToChart alertToChart);
 
-        void ProcessAlert(AlertToChart alert, bool neadToWait);
+        void ProcessAlert(AlertToChart alert, bool needToWait);
 
         /// <summary>
         /// draw a line on a series

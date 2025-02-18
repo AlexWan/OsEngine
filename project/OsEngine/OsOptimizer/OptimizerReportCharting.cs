@@ -1,9 +1,12 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
-using System.Reflection;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
@@ -11,7 +14,6 @@ using OsEngine.Charts;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.OsOptimizer.OptEntity;
 
 namespace OsEngine.OsOptimizer
 {
@@ -25,7 +27,6 @@ namespace OsEngine.OsOptimizer
             System.Windows.Controls.ComboBox boxTypeSortBotNum)
         {
             _sortBotsType = SortBotsType.TotalProfit;
-            _currentCulture = OsLocalization.CurCulture;
             _hostStepsOfOptimization = hostStepsOfOptimization;
             _hostRobustness = hostRobustness;
             _labelRobustnessMetricValue = labelRobustnessMetricValue;
@@ -59,8 +60,6 @@ namespace OsEngine.OsOptimizer
             CreateRobustnessChart();
         }
 
-        private CultureInfo _currentCulture;
-
         private System.Windows.Controls.ComboBox _boxTypeSort;
 
         private System.Windows.Controls.ComboBox _boxTypeSortBotNum;
@@ -84,7 +83,7 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        void _gridResults_SelectionChanged(object sender, EventArgs e)
+        private void _gridResults_SelectionChanged(object sender, EventArgs e)
         {
 
             if (_boxTypeSort.Items.Count == 0)
@@ -141,7 +140,7 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        public void ReLoad(List<OptimazerFazeReport> reports)
+        public void ReLoad(List<OptimizerFazeReport> reports)
         {
             try
             {
@@ -155,7 +154,7 @@ namespace OsEngine.OsOptimizer
 
                 for (int i = 0; i < reports.Count; i++)
                 {
-                    OptimazerFazeReport.SortResults(reports[i].Reports, _sortBotsType);
+                    OptimizerFazeReport.SortResults(reports[i].Reports, _sortBotsType);
                 }
 
                 GetBestBotNum(reports[0].Reports);
@@ -198,11 +197,12 @@ namespace OsEngine.OsOptimizer
 
         private int _sortBotNumber = 0;
 
-        private List<OptimazerFazeReport> _reports;
+        private List<OptimizerFazeReport> _reports;
 
-        // fazes in table
+        #region Fazes in table
 
         private WindowsFormsHost _hostStepsOfOptimization;
+
         private DataGridView _gridStepsOfOptimization;
 
         private void CreateStepsOfOptimization()
@@ -325,7 +325,7 @@ namespace OsEngine.OsOptimizer
 
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    OptimazerFazeReport curReport = _reports[i];
+                    OptimizerFazeReport curReport = _reports[i];
 
                     if (curReport == null ||
                         curReport.Reports == null ||
@@ -379,7 +379,7 @@ namespace OsEngine.OsOptimizer
                     row.Cells.Add(cell4);
 
                     DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-                    cell5.Value = reportToPaint.GetParamsToDataTable();
+                    cell5.Value = reportToPaint.GetParametersToDataTable();
                     row.Cells.Add(cell5);
 
                     DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
@@ -427,7 +427,9 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        // Robustness
+        #endregion
+
+        #region Robustness
 
         private WindowsFormsHost _hostRobustness;
 
@@ -509,7 +511,7 @@ namespace OsEngine.OsOptimizer
 
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    OptimazerFazeReport curReport = _reports[i];
+                    OptimizerFazeReport curReport = _reports[i];
 
                     if (curReport == null ||
                         curReport.Reports == null ||
@@ -647,7 +649,9 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        // total profit
+        #endregion
+
+        #region Total profit
 
         System.Windows.Controls.ComboBox _comboBoxTotalProfitEquityType;
 
@@ -668,10 +672,10 @@ namespace OsEngine.OsOptimizer
 
             UpdateTotalProfitChart();
 
-            _comboBoxTotalProfitEquityType.SelectionChanged += _comboBoxprofitType_SelectionChanged;
+            _comboBoxTotalProfitEquityType.SelectionChanged += _comboBoxProfitType_SelectionChanged;
         }
 
-        private void _comboBoxprofitType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void _comboBoxProfitType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             UpdateTotalProfitChart();
         }
@@ -744,11 +748,11 @@ namespace OsEngine.OsOptimizer
 
                 OptimizerReport inSampleReport = null;
 
-                List<OptimazerFazeReport> outOfSampleReports = new List<OptimazerFazeReport>();
+                List<OptimizerFazeReport> outOfSampleReports = new List<OptimizerFazeReport>();
 
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    OptimazerFazeReport curReport = _reports[i];
+                    OptimizerFazeReport curReport = _reports[i];
 
                     if (curReport == null ||
                         curReport.Reports == null ||
@@ -788,14 +792,14 @@ namespace OsEngine.OsOptimizer
                                 }
                                 else if (profitType == "Persent")
                                 {
-                                    profit.Add(curReport.Reports[i2].TotalProfitPersent);
+                                    profit.Add(curReport.Reports[i2].TotalProfitPercent);
                                     if (profitsSumm.Count == 0)
                                     {
-                                        profitsSumm.Add(curReport.Reports[i2].TotalProfitPersent);
+                                        profitsSumm.Add(curReport.Reports[i2].TotalProfitPercent);
                                     }
                                     else
                                     {
-                                        profitsSumm.Add(profitsSumm[profitsSumm.Count - 1] + curReport.Reports[i2].TotalProfitPersent);
+                                        profitsSumm.Add(profitsSumm[profitsSumm.Count - 1] + curReport.Reports[i2].TotalProfitPercent);
                                     }
                                 }
 
@@ -901,9 +905,11 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        // average profit
+        #endregion
 
-        WindowsFormsHost _hostAverageProfitChart;
+        #region Average profit
+
+        private WindowsFormsHost _hostAverageProfitChart;
 
         private Chart _chartAverageProfit;
 
@@ -979,7 +985,7 @@ namespace OsEngine.OsOptimizer
 
                 decimal averageProfitPercent = 0;
 
-                List<OptimazerFazeReport> outOfSampleReports = new List<OptimazerFazeReport>();
+                List<OptimizerFazeReport> outOfSampleReports = new List<OptimizerFazeReport>();
 
                 for (int i = 0; i < _reports.Count; i += 2)
                 {
@@ -1124,9 +1130,11 @@ namespace OsEngine.OsOptimizer
 
         }
 
-        // profit factor
+        #endregion
 
-        WindowsFormsHost _hostProfitFactor;
+        #region Profit factor
+
+        private WindowsFormsHost _hostProfitFactor;
 
         private Chart _chartProfitFactor;
 
@@ -1202,7 +1210,7 @@ namespace OsEngine.OsOptimizer
 
                 decimal averageProfitFactor = 0;
 
-                List<OptimazerFazeReport> outOfSampleReports = new List<OptimazerFazeReport>();
+                List<OptimizerFazeReport> outOfSampleReports = new List<OptimizerFazeReport>();
 
                 for (int i = 0; i < _reports.Count; i += 2)
                 {
@@ -1344,14 +1352,10 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        // logging/логирование
+        #endregion
 
-        /// <summary>
-        /// send up a new message
-        /// выслать наверх новое сообщение
-        /// </summary>
-        /// <param name="message">Message text/текст сообщения</param>
-        /// <param name="type">message type/тип сообщения</param>
+        #region Log
+
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -1360,11 +1364,9 @@ namespace OsEngine.OsOptimizer
             }
         }
 
-        /// <summary>
-        /// event: new message for log
-        /// событие: новое сообщение для лога
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
 
     }
 }

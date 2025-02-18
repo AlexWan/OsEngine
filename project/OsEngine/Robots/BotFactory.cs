@@ -537,21 +537,21 @@ namespace OsEngine.Robots
         /// </summary>
         public static List<string> GetNamesStrategyWithParametersSync()
         {
-            if (NeadToReload == false &&
+            if (NeedToReload == false &&
                 (_namesWithParam == null ||
                  _namesWithParam.Count == 0))
             {
                 LoadBotsNames();
             }
 
-            if (NeadToReload == false &&
+            if (NeedToReload == false &&
                 _namesWithParam != null &&
                 _namesWithParam.Count != 0)
             {
                 return _namesWithParam;
             }
 
-            NeadToReload = false;
+            NeedToReload = false;
 
             List<Thread> workers = new List<Thread>();
 
@@ -578,7 +578,7 @@ namespace OsEngine.Robots
         /// <summary>
         /// Strategy names need to be reloaded
         /// </summary>
-        public static bool NeadToReload;
+        public static bool NeedToReload;
 
         /// <summary>
         /// Load strategy names from file

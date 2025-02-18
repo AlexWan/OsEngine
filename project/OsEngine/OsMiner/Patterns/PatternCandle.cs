@@ -21,7 +21,7 @@ namespace OsEngine.OsMiner.Patterns
 
         public PatternCandle()
         {
-            Weigth = 1;
+            Weight = 1;
             Type =  PatternType.Candle;
             Expand = 99.8m;
             Length = 2;
@@ -31,7 +31,7 @@ namespace OsEngine.OsMiner.Patterns
         /// pattern weight while searching for entry and exit
         /// вес паттерна во время поиска входа и выхода
         /// </summary>
-        public decimal Weigth { get; set; }
+        public decimal Weight { get; set; }
 
         /// <summary>
         /// pattern type
@@ -247,7 +247,7 @@ namespace OsEngine.OsMiner.Patterns
             string [] array = saveString.Split('^');
 
             Length = Convert.ToInt32(array[1]);
-            Weigth = array[2].ToDecimal();
+            Weight = array[2].ToDecimal();
             Expand = array[3].ToDecimal();
 
             Enum.TryParse(array[4], out TypeWatch);
@@ -296,7 +296,7 @@ namespace OsEngine.OsMiner.Patterns
 
             saveStr += Length + "^";
 
-            saveStr += Weigth + "^";
+            saveStr += Weight + "^";
 
             saveStr += Expand + "^";
 

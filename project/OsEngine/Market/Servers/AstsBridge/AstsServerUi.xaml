@@ -22,7 +22,7 @@
         <Label Name="LabelServiceName" Content="Service name" HorizontalAlignment="Left" Margin="21,70,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxDislocation" Margin="360,12,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146"/>
         <Label Name="LabelPlace" Content="Place" HorizontalAlignment="Left" Margin="237,12,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxNeadToSaveTrade" Content="Keep history" HorizontalAlignment="Left" Margin="314,70,0,0" VerticalAlignment="Top"/>
+        <CheckBox x:Name="CheckBoxNeedToSaveTrade" Content="Keep history" HorizontalAlignment="Left" Margin="314,70,0,0" VerticalAlignment="Top"/>
         <TextBox x:Name="TextBoxCountDaysSave" HorizontalAlignment="Right" Height="23" Margin="0,68,15,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="85"/>
         <Label Name="LabelDaysToLoad" Content="Days to load: " Margin="452,68,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="118"/>
         <TextBox x:Name="TextBoxClientCode" Height="23" Margin="110,98,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122" ToolTip="Актуально при реальном подключении. Выдаёт брокер. Если введено, сделки видно в Квик."/>

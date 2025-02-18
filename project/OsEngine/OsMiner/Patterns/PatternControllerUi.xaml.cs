@@ -81,7 +81,7 @@ namespace OsEngine.OsMiner.Patterns
             Label41.Content = OsLocalization.Miner.Label41;
             ComboBoxSideInter.ToolTip = OsLocalization.Miner.Label42;
             Label43.Content = OsLocalization.Miner.Label43;
-            TextBoxWeigthToInter.ToolTip = OsLocalization.Miner.Label44;
+            TextBoxWeightToInter.ToolTip = OsLocalization.Miner.Label44;
             TabItemClosePos.Header = OsLocalization.Miner.Label45;
             CheckBoxStopOrderIsOn.Content = OsLocalization.Miner.Label46;
             CheckBoxProfitOrderIsOn.Content = OsLocalization.Miner.Label47;
@@ -195,8 +195,8 @@ namespace OsEngine.OsMiner.Patterns
             ComboBoxPlaceToUsePattern.SelectedItem = _pattern.PlaceToUsePattern;
             ComboBoxPlaceToUsePattern.SelectionChanged += ComboBoxPlaceToUsePattern_SelectionChanged;
 
-            TextBoxWeigthToTempPattern.Text = _pattern.WeigthToTempPattern.ToString(CultureInfo.InvariantCulture);
-            TextBoxWeigthToTempPattern.TextChanged += TextBoxWeigthToTempPattern_TextChanged;
+            TextBoxWeightToTempPattern.Text = _pattern.WeightToTempPattern.ToString(CultureInfo.InvariantCulture);
+            TextBoxWeightToTempPattern.TextChanged += TextBoxWeightToTempPattern_TextChanged;
 
             _pattern.PaintController(HostTempPattern,HostSinglePatternToOpen,HostSinglePatternToClose);
             _pattern.BackTestEndEvent += _pattern_BackTestEndEvent;
@@ -242,16 +242,16 @@ namespace OsEngine.OsMiner.Patterns
             TabControlPrime.IsEnabled = true;
         }
 
-        void TextBoxWeigthToTempPattern_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxWeightToTempPattern_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
-                _pattern.WeigthToTempPattern = 
-                    TextBoxWeigthToTempPattern.Text.ToDecimal();
+                _pattern.WeightToTempPattern = 
+                    TextBoxWeightToTempPattern.Text.ToDecimal();
             }
             catch (Exception)
             {
-                TextBoxWeigthToTempPattern.Text = _pattern.WeigthToTempPattern.ToString(CultureInfo.InvariantCulture);
+                TextBoxWeightToTempPattern.Text = _pattern.WeightToTempPattern.ToString(CultureInfo.InvariantCulture);
             }
             _pattern.Save();
         }
@@ -471,8 +471,8 @@ namespace OsEngine.OsMiner.Patterns
 
             InitializeComboBoxSecurityToInter();
 
-            TextBoxWeigthToInter.Text = _pattern.WeigthToInter.ToString(CultureInfo.InvariantCulture);
-            TextBoxWeigthToInter.TextChanged += TextBoxWeigthToInter_TextChanged;
+            TextBoxWeightToInter.Text = _pattern.WeightToInter.ToString(CultureInfo.InvariantCulture);
+            TextBoxWeightToInter.TextChanged += TextBoxWeightToInter_TextChanged;
 
             ComboBoxLotsCountType.Items.Add(LotsCountType.All);
             ComboBoxLotsCountType.Items.Add(LotsCountType.One);
@@ -515,21 +515,21 @@ namespace OsEngine.OsMiner.Patterns
             ComboBoxSecurityToInter.SelectionChanged += ComboBoxSecurityToInter_SelectionChanged;
         }
 
-        void TextBoxWeigthToInter_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxWeightToInter_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (TextBoxWeigthToInter.Text == "" ||
-                TextBoxWeigthToInter.Text == "0," ||
-                TextBoxWeigthToInter.Text == "0.")
+            if (TextBoxWeightToInter.Text == "" ||
+                TextBoxWeightToInter.Text == "0," ||
+                TextBoxWeightToInter.Text == "0.")
             {
                 return;
             } 
             try
             {
-                _pattern.WeigthToInter = TextBoxWeigthToInter.Text.ToDecimal();
+                _pattern.WeightToInter = TextBoxWeightToInter.Text.ToDecimal();
             }
             catch (Exception)
             {
-                TextBoxWeigthToInter.Text = _pattern.WeigthToInter.ToString(CultureInfo.InvariantCulture);
+                TextBoxWeightToInter.Text = _pattern.WeightToInter.ToString(CultureInfo.InvariantCulture);
             }
             _pattern.Save();
         }
@@ -607,7 +607,7 @@ namespace OsEngine.OsMiner.Patterns
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = pattern.Type;
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[2].Value = pattern.Weigth;
+            nRow.Cells[2].Value = pattern.Weight;
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[3].Value = pattern.Expand;
 
@@ -640,7 +640,7 @@ namespace OsEngine.OsMiner.Patterns
             {
                 for (int i = 0; i < _gridPatternsToOpen.Rows.Count; i++)
                 {
-                    _pattern.PatternsToOpen[i].Weigth = _gridPatternsToOpen.Rows[i].Cells[2].Value.ToString().ToDecimal();
+                    _pattern.PatternsToOpen[i].Weight = _gridPatternsToOpen.Rows[i].Cells[2].Value.ToString().ToDecimal();
 
                     _pattern.PatternsToOpen[i].Expand = _gridPatternsToOpen.Rows[i].Cells[3].Value.ToString().ToDecimal();
                 }
@@ -730,25 +730,25 @@ namespace OsEngine.OsMiner.Patterns
             TextBoxTreilingStopValue.Text = _pattern.TreilingStopValue.ToString();
             TextBoxTreilingStopValue.TextChanged += TextBoxTreilingStopValue_TextChanged;
 
-            TextBoxWeigthToExit.Text = _pattern.WeigthToExit.ToString(CultureInfo.InvariantCulture);
-            TextBoxWeigthToExit.TextChanged += TextBoxWeigthToExit_TextChanged;
+            TextBoxWeightToExit.Text = _pattern.WeightToExit.ToString(CultureInfo.InvariantCulture);
+            TextBoxWeightToExit.TextChanged += TextBoxWeightToExit_TextChanged;
         }
 
-        void TextBoxWeigthToExit_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxWeightToExit_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (TextBoxWeigthToExit.Text == "" ||
-                TextBoxWeigthToExit.Text == "0," ||
-                TextBoxWeigthToExit.Text == "0.")
+            if (TextBoxWeightToExit.Text == "" ||
+                TextBoxWeightToExit.Text == "0," ||
+                TextBoxWeightToExit.Text == "0.")
             {
                 return;
             }
             try
             {
-                _pattern.WeigthToExit = TextBoxWeigthToExit.Text.ToDecimal();
+                _pattern.WeightToExit = TextBoxWeightToExit.Text.ToDecimal();
             }
             catch (Exception)
             {
-                TextBoxWeigthToExit.Text = _pattern.WeigthToExit.ToString(CultureInfo.InvariantCulture);
+                TextBoxWeightToExit.Text = _pattern.WeightToExit.ToString(CultureInfo.InvariantCulture);
             }
             _pattern.Save();
         }
@@ -888,7 +888,7 @@ namespace OsEngine.OsMiner.Patterns
             {
                 for (int i = 0; i < _gridPatternsToClose.Rows.Count; i++)
                 {
-                    _pattern.PatternsToClose[i].Weigth = 
+                    _pattern.PatternsToClose[i].Weight = 
                         _gridPatternsToClose.Rows[i].Cells[2].Value.ToString().ToDecimal();
 
                     _pattern.PatternsToClose[i].Expand = 

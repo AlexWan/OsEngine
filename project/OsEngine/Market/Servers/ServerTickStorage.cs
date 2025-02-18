@@ -48,7 +48,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// shows whether need to save trades
         /// </summary>
-        public bool NeadToSave;
+        public bool NeedToSave;
 
         /// <summary>
         /// how many days upload from history
@@ -115,7 +115,7 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if (NeadToSave == false)
+                    if (NeedToSave == false)
                     {
                         continue;
                     }

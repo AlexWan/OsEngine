@@ -13,19 +13,14 @@ using Color = System.Drawing.Color;
 
 namespace OsEngine.OsOptimizer.OptEntity
 {
-    public static class WolkForwardPeriodsPainter
+    public static class WalkForwardPeriodsPainter
     {
         public static void PaintForwards(WindowsFormsHost host, List<OptimizerFaze> fazes)
         {
-            // 1 создаём чарт с горизонтальными линиями
-
             Chart chart = CreateChart();
             host.Child = chart;
 
-            // 2 в цикле, загоняем туда серии данных
-
             PaintLines(fazes, chart);
-
         }
 
         private static Chart CreateChart()
@@ -136,21 +131,21 @@ namespace OsEngine.OsOptimizer.OptEntity
             }
         }
 
-        private static void PaintSeriesSafe(Series series,Chart _chart)
+        private static void PaintSeriesSafe(Series series, Chart _chart)
         {
             try
             {
 
-                    for (int i = 0; i < _chart.Series.Count; i++)
+                for (int i = 0; i < _chart.Series.Count; i++)
+                {
+                    if (series.Name == _chart.Series[i].Name)
                     {
-                        if (series.Name == _chart.Series[i].Name)
-                        {
-                            _chart.Series.Remove(FindSeriesByNameSafe(series.Name,_chart));
-                            _chart.Series.Insert(i, series);
-                            break;
-                        }
+                        _chart.Series.Remove(FindSeriesByNameSafe(series.Name, _chart));
+                        _chart.Series.Insert(i, series);
+                        break;
                     }
-                
+                }
+
             }
             catch (Exception error)
             {

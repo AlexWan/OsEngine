@@ -43,7 +43,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// is the service enabled
         /// </summary>
-        public bool NeadToSave;
+        public bool NeedToSave;
 
         /// <summary>
         /// number of candles to be saved to the file system
@@ -133,7 +133,7 @@ namespace OsEngine.Market.Servers
                         return;
                     }
 
-                    if (NeadToSave == false)
+                    if (NeedToSave == false)
                     {
                         continue;
                     }

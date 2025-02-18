@@ -21,9 +21,9 @@ namespace OsEngine.Entity
             {
                 await Task.Delay(500);
 
-                if (_neadToSave)
+                if (_needToSave)
                 {
-                    _neadToSave = false;
+                    _needToSave = false;
                     Save();
                 }
 
@@ -34,7 +34,7 @@ namespace OsEngine.Entity
             }
         }
 
-        private static bool _neadToSave;
+        private static bool _needToSave;
 
         /// <summary>
         /// current number of the last transaction
@@ -89,7 +89,7 @@ namespace OsEngine.Entity
 
             _numberDealForRealTrading++;
 
-            _neadToSave = true;
+            _needToSave = true;
             return _numberDealForRealTrading;
         }
 
@@ -129,7 +129,7 @@ namespace OsEngine.Entity
             }
 
             _numberOrderForRealTrading++;
-            _neadToSave = true;
+            _needToSave = true;
             return _numberOrderForRealTrading;
         }
 

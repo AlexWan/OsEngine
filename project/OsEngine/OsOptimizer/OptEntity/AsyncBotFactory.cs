@@ -15,7 +15,6 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
 {
     public class AsyncBotFactory
     {
-
         public AsyncBotFactory()
         {
             for (int i = 0; i < 10; i++)
@@ -58,7 +57,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
             }
         }
 
-        public void CreateNewBots(List<string> botsName, string botType, bool isScript, StartProgram startProgramm)
+        public void CreateNewBots(List<string> botsName, string botType, bool isScript, StartProgram startProgram)
         {
             _botType = botType;
             _isActivate = false;
@@ -73,13 +72,13 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
             }
 
             _isScript = isScript;
-            _startProgramm = startProgramm;
+            _startProgram = startProgram;
             _isActivate = true;
         }
 
-        bool _isActivate;
+        private bool _isActivate;
 
-        List<List<string>> _botsToStart = new List<List<string>>();
+        private List<List<string>> _botsToStart = new List<List<string>>();
 
         public List<BotPanel> _bots = new List<BotPanel>();
 
@@ -87,7 +86,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
 
         private bool _isScript;
 
-        StartProgram _startProgramm;
+        private StartProgram _startProgram;
 
         private void WorkerArea()
         {
@@ -115,7 +114,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                 }
                 catch (Exception e)
                 {
-                    SendLogMessage("Optimizer critical error. \n Can`t create bot. Error: " + e.ToString(),LogMessageType.Error);
+                    SendLogMessage("Optimizer critical error. \n Can`t create bot. Error: " + e.ToString(), LogMessageType.Error);
                     Thread.Sleep(1000);
                 }
             }
@@ -126,7 +125,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
             while (names.Count != 0)
             {
 
-                BotPanel bot = BotFactory.GetStrategyForName(_botType, names[0], _startProgramm, _isScript);
+                BotPanel bot = BotFactory.GetStrategyForName(_botType, names[0], _startProgram, _isScript);
 
                 try
                 {
@@ -136,7 +135,7 @@ namespace OsEngine.OsOptimizer.OptimizerEntity
                 {
                     // ignore
                 }
-             
+
                 lock (_botLocker)
                 {
                     _bots.Add(bot);

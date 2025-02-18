@@ -265,18 +265,18 @@ namespace OsEngine.Charts.CandleChart
                 }
                
                 _timePoints.Clear();
-                bool neadToBackChild = false;
+                bool needToBackChild = false;
 
                 if (_host != null && _host.Child != null)
                 {
                     _host.Child = null;
-                    neadToBackChild = true;
+                    needToBackChild = true;
                 }
 
-                Series oldcandleSeries = FindSeriesByNameSafe("SeriesCandle");
-                if (oldcandleSeries.Points.Count != 0)
+                Series oldCandleSeries = FindSeriesByNameSafe("SeriesCandle");
+                if (oldCandleSeries.Points.Count != 0)
                 {
-                    oldcandleSeries.Points.ClearFast();
+                    oldCandleSeries.Points.ClearFast();
                 }
                     
                 //_chartElements = new List<IChartElement>();
@@ -310,7 +310,7 @@ namespace OsEngine.Charts.CandleChart
                 ClearZoom();
                 _myCandles = null;
 
-                if (neadToBackChild)
+                if (needToBackChild)
                 {
                     _host.Child = _chart;
                 }
@@ -1262,10 +1262,10 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
 
-                    if (_neadMoveChartToTheRigth)
+                    if (_needMoveChartToTheRight)
                     {
-                        _neadMoveChartToTheRigth = false;
-                        MoveChartToTheRigthLogic(_scaleSizeToMoveChartToTheRight);
+                        _needMoveChartToTheRight = false;
+                        MoveChartToTheRightLogic(_scaleSizeToMoveChartToTheRight);
                         _scaleSizeToMoveChartToTheRight = 0;
                     }
 
@@ -7507,20 +7507,20 @@ namespace OsEngine.Charts.CandleChart
       _startProgram == StartProgram.IsOsMiner) &&
      _host != null)
             {
-                MoveChartToTheRigthLogic(scaleSize);
+                MoveChartToTheRightLogic(scaleSize);
             }
             else
             {
-                _neadMoveChartToTheRigth = true;
+                _needMoveChartToTheRight = true;
                 _scaleSizeToMoveChartToTheRight = scaleSize;
             }
         }
 
-        private bool _neadMoveChartToTheRigth;
+        private bool _needMoveChartToTheRight;
 
         private int _scaleSizeToMoveChartToTheRight;
 
-        private void MoveChartToTheRigthLogic(int scaleSize)
+        private void MoveChartToTheRightLogic(int scaleSize)
         {
             if (_chart == null)
             {
@@ -7528,7 +7528,7 @@ namespace OsEngine.Charts.CandleChart
             }
             if (_chart.InvokeRequired)
             {
-                _chart.Invoke(new Action<int>(MoveChartToTheRigthLogic), scaleSize);
+                _chart.Invoke(new Action<int>(MoveChartToTheRightLogic), scaleSize);
 
                 return;
             }

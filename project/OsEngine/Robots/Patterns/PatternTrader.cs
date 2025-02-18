@@ -37,8 +37,8 @@ namespace OsEngine.Robots.Patterns
             DeleteEvent += Strategy_DeleteEvent;
             Regime= BotTradeRegime.Off;
 
-            WeigthToInter = 1;
-            WeigthToExit = 1;
+            WeightToInter = 1;
+            WeightToExit = 1;
             StopOrderIsOn = false;
             StopOrderValue = 20;
             StopOrderSleepage = 0;
@@ -152,13 +152,13 @@ namespace OsEngine.Robots.Patterns
         /// total weight of single entry patterns
         /// общий вес одиночных паттернов для входа
         /// </summary>
-        public decimal WeigthToInter;
+        public decimal WeightToInter;
 
         /// <summary>
         /// total weight of single patterns to exit a position
         /// общий вес одиночных паттернов для выхода из позиции
         /// </summary>
-        public decimal WeigthToExit;
+        public decimal WeightToExit;
 
         /// <summary>
         /// is the stop order included for exit
@@ -284,8 +284,8 @@ namespace OsEngine.Robots.Patterns
                 {
                     writer.WriteLine(Regime);
                     writer.WriteLine(SideInter);
-                    writer.WriteLine(WeigthToInter);
-                    writer.WriteLine(WeigthToExit);
+                    writer.WriteLine(WeightToInter);
+                    writer.WriteLine(WeightToExit);
                     writer.WriteLine(StopOrderIsOn);
                     writer.WriteLine(StopOrderValue);
                     writer.WriteLine(StopOrderSleepage);
@@ -331,8 +331,8 @@ namespace OsEngine.Robots.Patterns
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Enum.TryParse(reader.ReadLine(), true, out SideInter);
 
-                    WeigthToInter = Convert.ToDecimal(reader.ReadLine());
-                    WeigthToExit = Convert.ToDecimal(reader.ReadLine());
+                    WeightToInter = Convert.ToDecimal(reader.ReadLine());
+                    WeightToExit = Convert.ToDecimal(reader.ReadLine());
                     StopOrderIsOn = Convert.ToBoolean(reader.ReadLine());
                     StopOrderValue = Convert.ToDecimal(reader.ReadLine());
                     StopOrderSleepage = Convert.ToInt32(reader.ReadLine());
@@ -409,7 +409,7 @@ namespace OsEngine.Robots.Patterns
 
             if (positions.Count < MaxPosition)
             {
-                if (CheckInter(PatternsToOpen, candles, candles.Count - 1, WeigthToInter))
+                if (CheckInter(PatternsToOpen, candles, candles.Count - 1, WeightToInter))
                 {
                     InterInNewPosition(candles[candles.Count-1].Close);
                 }
@@ -494,24 +494,24 @@ namespace OsEngine.Robots.Patterns
         /// check patterns at entry
         /// проверить паттерны на вход в позицию
         /// </summary>
-        private bool CheckInter(List<IPattern> patterns, List<Candle> series, int index, decimal weigthToInterOrExit)
+        private bool CheckInter(List<IPattern> patterns, List<Candle> series, int index, decimal weightToInterOrExit)
         {
             if (patterns == null ||
                 patterns.Count == 0)
             {
                 return false;
             }
-            decimal weigth = 0;
+            decimal weight = 0;
 
             for (int i = 0; i < patterns.Count; i++)
             {
                 if (patterns[i].ThisIsIt(series, _tab.Indicators, index))
                 {
-                    weigth += patterns[i].Weigth;
+                    weight += patterns[i].Weight;
                 }
             }
 
-            if (weigth >= weigthToInterOrExit)
+            if (weight >= weightToInterOrExit)
             {
                 return true;
             }
@@ -524,7 +524,7 @@ namespace OsEngine.Robots.Patterns
         /// </summary>
         private decimal CheckExit(Position position, List<IPattern> patterns, List<Candle> candles, int index, decimal price)
         {
-            if (CheckInter(patterns, candles, index, WeigthToExit))
+            if (CheckInter(patterns, candles, index, WeightToExit))
             {
                 return GetPriceExit(position,price,ExitToPatternsSleepage);
             }

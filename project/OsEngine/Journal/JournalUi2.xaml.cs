@@ -403,9 +403,9 @@ namespace OsEngine.Journal
                     }
                     else if (TabControlPrime.SelectedIndex == 1)
                     {
-                        bool neadShowTickState = !(_botsJournals.Count > 1);
+                        bool needShowTickState = !(_botsJournals.Count > 1);
 
-                        PaintStatTable(allSortPoses, _longPositions, _shortPositions, neadShowTickState);
+                        PaintStatTable(allSortPoses, _longPositions, _shortPositions, needShowTickState);
                     }
                     else if (TabControlPrime.SelectedIndex == 2)
                     {
@@ -577,7 +577,7 @@ namespace OsEngine.Journal
             }
         }
 
-        private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool neadShowTickState)
+        private void PaintStatTable(List<Position> positionsAll, List<Position> positionsLong, List<Position> positionsShort, bool needShowTickState)
         {
             try
             {

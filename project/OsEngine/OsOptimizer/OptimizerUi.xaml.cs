@@ -290,7 +290,7 @@ namespace OsEngine.OsOptimizer
         /// inbound event: optimization process completed
         /// входящее событие: завершился процесс оптимизации
         /// </summary>
-        void _master_TestReadyEvent(List<OptimazerFazeReport> reports)
+        void _master_TestReadyEvent(List<OptimizerFazeReport> reports)
         {
             lock(_testEndEventLocker)
             {
@@ -310,7 +310,7 @@ namespace OsEngine.OsOptimizer
 
         private bool _testIsEnd;
 
-        private List<OptimazerFazeReport> _reports;
+        private List<OptimizerFazeReport> _reports;
 
         private void RepaintResults()
         {
@@ -324,7 +324,7 @@ namespace OsEngine.OsOptimizer
 
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    OptimazerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
+                    OptimizerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
                 }
 
                 PaintEndOnAllProgressBars();
@@ -1356,7 +1356,7 @@ namespace OsEngine.OsOptimizer
                     _master.TabsIndexNamesAndTimeFrames[e.RowIndex]);
                 ui.ShowDialog();
 
-                if (ui.NeadToSave)
+                if (ui.NeedToSave)
                 {
                     _master.TabsIndexNamesAndTimeFrames[e.RowIndex] = ui.Index;
                     SaveTableTabsIndexSecuritiesSettings();
@@ -1451,7 +1451,7 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+            WalkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
 
             PaintCountBotsInOptimization();
         }
@@ -1561,7 +1561,7 @@ namespace OsEngine.OsOptimizer
 
             if (_master.Fazes.Count != 0)
             {
-                WolkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
+                WalkForwardPeriodsPainter.PaintForwards(HostWalkForwardPeriods, _master.Fazes);
             }
         }
 
@@ -2934,7 +2934,7 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            OptimazerFazeReport fazeReport = _reports[num];
+            OptimizerFazeReport fazeReport = _reports[num];
 
             if (fazeReport == null)
             {
@@ -2967,7 +2967,7 @@ namespace OsEngine.OsOptimizer
                 //}
 
                 DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
-                cell2.Value = report.GetParamsToDataTable();
+                cell2.Value = report.GetParametersToDataTable();
                 row.Cells.Add(cell2);
 
                 DataGridViewTextBoxCell cell3 = new DataGridViewTextBoxCell();
@@ -2979,7 +2979,7 @@ namespace OsEngine.OsOptimizer
                 row.Cells.Add(cell4);
 
                 DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-                cell5.Value = report.MaxDrowDawn;
+                cell5.Value = report.MaxDrawDawn;
                 row.Cells.Add(cell5);
 
                 DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
@@ -3050,7 +3050,7 @@ namespace OsEngine.OsOptimizer
             row.Cells.Add(cell4);
 
             DataGridViewTextBoxCell cell5 = new DataGridViewTextBoxCell();
-            cell5.Value = report.MaxDrowDawn;
+            cell5.Value = report.MaxDrawDawn;
             row.Cells.Add(cell5);
 
             DataGridViewTextBoxCell cell6 = new DataGridViewTextBoxCell();
@@ -3115,7 +3115,7 @@ namespace OsEngine.OsOptimizer
 
         private void ShowBotChartDialog(DataGridViewCellMouseEventArgs e)
         {
-            OptimazerFazeReport fazeReport;
+            OptimizerFazeReport fazeReport;
 
             if (_gridFazesEnd.CurrentCell == null ||
               _gridFazesEnd.CurrentCell.RowIndex == 0)
@@ -3144,7 +3144,7 @@ namespace OsEngine.OsOptimizer
 
         private void ShowParamsDialog(DataGridViewCellMouseEventArgs e)
         {
-            OptimazerFazeReport fazeReport;
+            OptimizerFazeReport fazeReport;
 
             if (_gridFazesEnd.CurrentCell == null ||
               _gridFazesEnd.CurrentCell.RowIndex == 0)
@@ -3232,7 +3232,7 @@ namespace OsEngine.OsOptimizer
             {
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    OptimazerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
+                    OptimizerFazeReport.SortResults(_reports[i].Reports, _sortBotsType);
                 }
 
                 PaintTableResults();
@@ -3254,7 +3254,7 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonStrategyReload_Click(object sender, RoutedEventArgs e)
         {
-            BotFactory.NeadToReload = true;
+            BotFactory.NeedToReload = true;
 
             Task.Run(new Action(StrategyLoader));
         }

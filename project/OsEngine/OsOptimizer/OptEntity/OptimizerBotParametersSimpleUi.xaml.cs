@@ -12,7 +12,7 @@ namespace OsEngine.OsOptimizer.OptEntity
     /// </summary>
     public partial class OptimizerBotParametersSimpleUi : Window
     {
-        public OptimizerBotParametersSimpleUi(OptimizerReport report, OptimazerFazeReport faze, string botType)
+        public OptimizerBotParametersSimpleUi(OptimizerReport report, OptimizerFazeReport faze, string botType)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -57,7 +57,7 @@ namespace OsEngine.OsOptimizer.OptEntity
 
         OptimizerReport _report;
 
-        OptimazerFazeReport _faze;
+        OptimizerFazeReport _faze;
 
         private void PaintParams(List<IIStrategyParameter> parameters, WindowsFormsHost host)
         {

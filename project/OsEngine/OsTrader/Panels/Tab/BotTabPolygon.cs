@@ -2699,12 +2699,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void CheckProfitAndSignal()
         {
-            if (_neadToCheckProfit == false)
+            if (_needToCheckProfit == false)
             {
                 return;
             }
 
-            _neadToCheckProfit = false;
+            _needToCheckProfit = false;
 
             decimal profitPercent = ProfitToDealPercent;
 
@@ -2735,9 +2735,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (ActionOnSignalType == PolygonActionOnSignalType.Alert
                 || ActionOnSignalType == PolygonActionOnSignalType.All)
             {
-                if (_timeLastAlerToUser.AddSeconds(30) < DateTime.Now)
+                if (_timeLastAlertToUser.AddSeconds(30) < DateTime.Now)
                 {
-                    _timeLastAlerToUser = DateTime.Now;
+                    _timeLastAlertToUser = DateTime.Now;
 
                     string message = "Signal by Profit in polygon tab! " + Name + "\n";
 
@@ -2763,22 +2763,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void Tab1_MarketDepthUpdateEvent(MarketDepth md)
         {
-            _neadToCheckProfit = true;
+            _needToCheckProfit = true;
         }
 
         private void Tab2_MarketDepthUpdateEvent(MarketDepth md)
         {
-            _neadToCheckProfit = true;
+            _needToCheckProfit = true;
         }
 
         private void Tab3_MarketDepthUpdateEvent(MarketDepth md)
         {
-            _neadToCheckProfit = true;
+            _needToCheckProfit = true;
         }
 
-        private bool _neadToCheckProfit = false;
+        private bool _needToCheckProfit = false;
 
-        private DateTime _timeLastAlerToUser = DateTime.MinValue;
+        private DateTime _timeLastAlertToUser = DateTime.MinValue;
 
         private decimal _lastProfitInEvent;
 

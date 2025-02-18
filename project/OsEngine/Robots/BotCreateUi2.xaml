@@ -14,7 +14,7 @@
         <WindowsFormsHost Name="HostBots" Margin="2,67,2,33"/>
         <Label x:Name="LabelLocation" Content="Location" HorizontalAlignment="Left" Margin="12,33,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxLockation" HorizontalAlignment="Left" Margin="111,33,0,0" VerticalAlignment="Top" Width="104"/>
-        <Button Name="ButtonWhyNeadName" Content="?" HorizontalAlignment="Left" Margin="220,5,0,0" VerticalAlignment="Top" Height="23" Width="25" Click="ButtonWhyNeadName_Click"/>
+        <Button Name="ButtonWhyNeedName" Content="?" HorizontalAlignment="Left" Margin="220,5,0,0" VerticalAlignment="Top" Height="23" Width="25" Click="ButtonWhyNeedName_Click"/>
         <Button Name="ButtonWhyLocation" Content="?" HorizontalAlignment="Left" Margin="220,33,0,0" VerticalAlignment="Top" Height="23" Width="25" Click="ButtonWhyLocation_Click"/>
         <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Left" Margin="342,33,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="208"/>
         <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="506,5,0,0" VerticalAlignment="Top" Width="44" Height="23"/>

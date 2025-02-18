@@ -38,7 +38,7 @@
         <Button Name="ButtonDelSecurity" Content="-"  Margin="0,13,10,0" VerticalAlignment="Top" Height="28" FontSize="15" FontWeight="Bold" FontFamily="Stencil" Click="ButtonDelSecurity_Click" HorizontalAlignment="Right" Width="30"/>
         <ComboBox x:Name="ComboBoxMarketDepthDepth" HorizontalAlignment="Left" Margin="269,190,0,0" VerticalAlignment="Top" Width="83" Height="20"/>
         <Label Name="Label17" Content="Depth" HorizontalAlignment="Left" Margin="215,187,0,0" VerticalAlignment="Top" />
-        <CheckBox x:Name="CheckBoxNeadToUpDate" Content="Auto update" Margin="305,298,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
+        <CheckBox x:Name="CheckBoxNeedToUpDate" Content="Auto update" Margin="305,298,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" />
         <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,29" VerticalAlignment="Bottom" Width="191" Click="ButtonAccept_Click"/>
         <CheckBox x:Name="CheckBoxTf4HourIsOn" Content="4 hour" HorizontalAlignment="Left" Margin="258,96,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTfDayIsOn" Content="day" HorizontalAlignment="Left" Margin="258,117,0,0" VerticalAlignment="Top" />

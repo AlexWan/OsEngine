@@ -1,16 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Globalization;
-using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
-using OsEngine.Language;
-using OsEngine.Market;
-using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
-using OsEngine.Layout;
 using System.Drawing;
 
 namespace OsEngine.Charts.CandleChart
@@ -20,10 +11,10 @@ namespace OsEngine.Charts.CandleChart
     /// </summary>
     public partial class CandleChartUi : Window
     {
-        public CandleChartUi(string nameUniq, StartProgram startProgramm)
+        public CandleChartUi(string nameUniq, StartProgram startProgram)
         {
             InitializeComponent();
-            _chart = new ChartCandleMaster(nameUniq, startProgramm);
+            _chart = new ChartCandleMaster(nameUniq, startProgram);
             _chart.StartPaint(GridChart, ChartHostPanel, RectChart);
 
             this.Closed += CandleChartUi_Closed;

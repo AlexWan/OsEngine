@@ -103,7 +103,7 @@ namespace OsEngine.OsOptimizer
 
         public TabIndexEndTimeFrame Index;
 
-        public bool NeadToSave;
+        public bool NeedToSave;
 
         private DataGridView _securitiesNamesGrid;
 
@@ -248,7 +248,7 @@ namespace OsEngine.OsOptimizer
             Enum.TryParse(ComboBoxTimeFrame.SelectedItem.ToString(), out Index.TimeFrame); 
             Index.Formula = TextBoxFormula.Text;
 
-            NeadToSave = true;
+            NeedToSave = true;
             Close();
         }
 

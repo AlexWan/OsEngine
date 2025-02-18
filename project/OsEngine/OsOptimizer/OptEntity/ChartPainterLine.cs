@@ -17,20 +17,14 @@ namespace OsEngine.OsOptimizer.OptEntity
     {
         public static void Paint(WindowsFormsHost host, List<decimal> line)
         {
-            // 1 создаём чарт с горизонтальными линиями
-
             Chart chart = CreateChart();
             host.Child = chart;
 
-            // 2 в цикле, загоняем туда серии данных
-
             PaintLines(line, chart);
-
         }
 
         private static Chart CreateChart()
-        {
-            
+        {            
             Chart _chart = null;
 
             try

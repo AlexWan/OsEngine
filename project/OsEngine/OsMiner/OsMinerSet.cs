@@ -59,7 +59,7 @@ namespace OsEngine.OsMiner
                 pattern.Load(patterns[i]);
                 
                 Patterns.Add(pattern);
-                pattern.NeadToSaveEvent += pattern_NeadToSaveEvent;
+                pattern.NeedToSaveEvent += pattern_NeedToSaveEvent;
                 pattern.LogMessageEvent += SendNewLogMessage;
             }
         }
@@ -80,14 +80,14 @@ namespace OsEngine.OsMiner
         /// There have been changes in the pattern. Preservation needed
         /// произошли изменения в паттерне. Необходимо сохранение
         /// </summary>
-        void pattern_NeadToSaveEvent()
+        void pattern_NeedToSaveEvent()
         {
-            if (NeadToSaveEvent != null)
+            if (NeedToSaveEvent != null)
             {
-                NeadToSaveEvent();
+                NeedToSaveEvent();
             }
         }
-        public event Action NeadToSaveEvent;
+        public event Action NeedToSaveEvent;
 
         /// <summary>
         /// take the save string
@@ -150,13 +150,13 @@ namespace OsEngine.OsMiner
             }
 
             PatternController newPattern = new PatternController();
-            newPattern.NeadToSaveEvent += pattern_NeadToSaveEvent;
+            newPattern.NeedToSaveEvent += pattern_NeedToSaveEvent;
             newPattern.LogMessageEvent += SendNewLogMessage;
 
             newPattern.Name = ui.NamePattern;
             Patterns.Add(newPattern);
             newPattern.ShowDialog();
-            _activPatternNum = Patterns.Count - 1;
+            _activePatternNum = Patterns.Count - 1;
             PaintSet();
         }
 
@@ -172,7 +172,7 @@ namespace OsEngine.OsMiner
             }
 
 
-            Patterns[_activPatternNum].ShowDialog();
+            Patterns[_activePatternNum].ShowDialog();
         }
 
         /// <summary>
@@ -194,10 +194,10 @@ namespace OsEngine.OsMiner
                 return;
             }
 
-            Patterns[_activPatternNum].StopPaint();
-            Patterns[_activPatternNum].DataServer.Delete();
-            Patterns.RemoveAt(_activPatternNum);
-            _activPatternNum = 0;
+            Patterns[_activePatternNum].StopPaint();
+            Patterns[_activePatternNum].DataServer.Delete();
+            Patterns.RemoveAt(_activePatternNum);
+            _activePatternNum = 0;
             PaintSet();
         }
 
@@ -207,11 +207,11 @@ namespace OsEngine.OsMiner
         /// </summary>
         public void GoRight()
         {
-            if (_activPatternNum >= Patterns.Count)
+            if (_activePatternNum >= Patterns.Count)
             {
                 return;
             }
-            Patterns[_activPatternNum].GoRight();
+            Patterns[_activePatternNum].GoRight();
         }
 
         /// <summary>
@@ -220,18 +220,18 @@ namespace OsEngine.OsMiner
         /// </summary>
         public void GoLeft()
         {
-            if (_activPatternNum >= Patterns.Count)
+            if (_activePatternNum >= Patterns.Count)
             {
                 return;
             }
-            Patterns[_activPatternNum].GoLeft();
+            Patterns[_activePatternNum].GoLeft();
         }
 
         /// <summary>
         /// active pattern number
         /// номер активного паттерна
         /// </summary>
-        private int _activPatternNum;
+        private int _activePatternNum;
 
         /// <summary>
         /// patterns in set
@@ -287,7 +287,7 @@ namespace OsEngine.OsMiner
         public void Paint(WindowsFormsHost hostSet, WindowsFormsHost hostChart, System.Windows.Shapes.Rectangle rectChart)
         {
             _hostPatternsInSet = hostSet;
-            _activPatternNum = -1;
+            _activePatternNum = -1;
             _hostPatternsInSet.Child = _gridPatternsInSet;
             _hostChart = hostChart;
             _rectChart = rectChart;
@@ -427,7 +427,7 @@ namespace OsEngine.OsMiner
         void OsMinerSetAdd_Click(object sender, EventArgs e)
         {
             CreatePattern();
-            Patterns[_activPatternNum].Paint(_hostChart, _rectChart);
+            Patterns[_activePatternNum].Paint(_hostChart, _rectChart);
         }
 
         /// <summary>
@@ -447,21 +447,21 @@ namespace OsEngine.OsMiner
                 return;
             }
 
-            if(_activPatternNum == activPattern)
+            if(_activePatternNum == activPattern)
             {
                 return;
             }
 
 
-            if (_activPatternNum < 0)
+            if (_activePatternNum < 0)
             {
-                _activPatternNum = 0;
+                _activePatternNum = 0;
             }
 
-            Patterns[_activPatternNum].StopPaint();
-            _activPatternNum = activPattern;
+            Patterns[_activePatternNum].StopPaint();
+            _activePatternNum = activPattern;
 
-            Patterns[_activPatternNum].Paint(_hostChart, _rectChart);
+            Patterns[_activePatternNum].Paint(_hostChart, _rectChart);
         }
 
         /// <summary>
