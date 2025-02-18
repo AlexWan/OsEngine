@@ -176,6 +176,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private string _passphrase;
 
+        private List<string> _listCurrency = new List<string>() { "XBT", "ETH", "USDC", "USDT", "SOL", "DOT", "XRP" }; // list of currencies on the exchange
+
         #endregion
 
         #region 3 Securities
@@ -280,10 +282,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 {
                     Thread.Sleep(5000);
 
-                    CreateQueryPortfolio(false, "USDT");
-                    CreateQueryPortfolio(false, "USD");
-                    CreateQueryPortfolio(false, "XBT");
+                    for (int i = 0; i < _listCurrency.Count; i++)
+                    {
+                        CreateQueryPortfolio(false, _listCurrency[i]); // create portfolios from a list of currencies
+                    }
+
                     CreateQueryPositions(false);
+                    GetUSDTMasterPortfolio(false);
                 }
                 catch (Exception ex)
                 {
@@ -303,17 +308,20 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 portfolioInitial.Number = "KuCoinFutures";
                 portfolioInitial.ValueBegin = 1;
                 portfolioInitial.ValueCurrent = 1;
-                portfolioInitial.ValueBlocked = 1;
+                portfolioInitial.ValueBlocked = 0;
 
                 Portfolios.Add(portfolioInitial);
 
                 PortfolioEvent(Portfolios);
             }
 
-            CreateQueryPortfolio(true, "USDT");
-            CreateQueryPortfolio(true, "USD");
-            CreateQueryPortfolio(true, "XBT");
+            for (int i = 0; i < _listCurrency.Count; i++)
+            {
+                CreateQueryPortfolio(true, _listCurrency[i]); // create portfolios from a list of currencies
+            }
+
             CreateQueryPositions(true);
+            GetUSDTMasterPortfolio(true);
         }
         
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -899,7 +907,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                             continue;
                         }
                     }
-
                 }
                 catch (Exception exception)
                 {
@@ -1594,7 +1601,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     {
                         SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
-
                 }
                 else
                 {
@@ -1621,24 +1627,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             ResponseAsset item = asset.data;
 
             PositionOnBoard pos = new PositionOnBoard();
-
-            if (item.currency == "USDT")
-            {
-                if (IsUpdateValueBegin)
-                {
-                    portfolio.ValueBegin = Math.Round(item.marginBalance.ToDecimal(), 4);
-                }
-
-                portfolio.ValueCurrent = Math.Round(item.accountEquity.ToDecimal(), 4);
-                portfolio.ValueBlocked = Math.Round(item.orderMargin.ToDecimal(), 4);
-                portfolio.UnrealizedPnl = item.unrealisedPNL.ToDecimal();
-
-                if (portfolio.ValueCurrent == 0)
-                {
-                    portfolio.ValueBegin = 1;
-                    portfolio.ValueCurrent = 1;
-                }
-            }
 
             pos.PortfolioName = "KuCoinFutures";
             pos.SecurityNameCode = item.currency;
@@ -1716,6 +1704,87 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             PortfolioEvent(Portfolios);
         }
 
+        private void GetUSDTMasterPortfolio(bool IsUpdateValueBegin)
+        {
+            Portfolio portfolio = Portfolios[0];
+
+            List<PositionOnBoard> positionOnBoard = Portfolios[0].GetPositionOnBoard();
+
+            decimal positionInUSDT = 0;
+            decimal sizeUSDT = 0;
+
+            for (int i = 0; i < positionOnBoard.Count; i++)
+            {
+                if (positionOnBoard[i].SecurityNameCode == "USDT")
+                {
+                    sizeUSDT = positionOnBoard[i].ValueCurrent;
+                }
+                else if (positionOnBoard[i].SecurityNameCode.Contains("USDTM"))
+                {
+                    //positionInUSDT += GetPriceSecurity(positionOnBoard[i].SecurityNameCode)  * positionOnBoard[i].ValueCurrent;
+                }
+                else
+                {
+                    positionInUSDT += GetPriceSecurity(positionOnBoard[i].SecurityNameCode + "USDTM") * positionOnBoard[i].ValueCurrent;
+                }
+            }
+
+            if (IsUpdateValueBegin)
+            {
+                portfolio.ValueBegin = Math.Round(sizeUSDT + positionInUSDT, 4);
+            }
+
+            portfolio.ValueCurrent = Math.Round(sizeUSDT + positionInUSDT, 4);
+
+            if (portfolio.ValueCurrent == 0)
+            {
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
+            }
+        }
+
+        private decimal GetPriceSecurity(string security)
+        {
+            try
+            {
+                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/ticker", "GET", "symbol=" + security, null);
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code == "200000")
+                    {
+                        ResponseMessageRest<Ticker> ticker = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<Ticker>());
+
+                        decimal priceSecurity = ticker.data.price.ToDecimal();
+
+                        return priceSecurity;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.code != null)
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+
+            return 0;
+        }
+
         private void CreateQueryMyTrade(string nameSec, string OrdId)
         {
             Thread.Sleep(2000);
@@ -1762,7 +1831,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             long to = TimeManager.GetTimeStampMilliSecondsToDateTime(timeTo);
             HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + $"/api/v1/kline/query?symbol={nameSec}&granularity={stringInterval}&from={from}&to={to}").Result;
             string content = responseMessage.Content.ReadAsStringAsync().Result;
-
 
             if (responseMessage.StatusCode == HttpStatusCode.OK)
             {
