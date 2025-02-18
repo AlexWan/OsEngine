@@ -81,6 +81,18 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string tradeType { get; set; } //   The type of trading
     }
 
+    public class Ticker
+    {
+        public string sequence;
+        public string price;
+        public string size;
+        public string bestAsk;
+        public string bestAskSize;
+        public string bestBid;
+        public string bestBidSize;
+        public string time;
+    }
+
     public class ResponseAsset
     {
         public string id;
