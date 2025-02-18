@@ -2417,27 +2417,30 @@ namespace OsEngine.Charts.CandleChart
                             i--;
                         }
 
-                        if (price <= candles[i].High
-                            && price >= candles[i].Low)
+                        if(_timeFrame == TimeFrame.Sec1)
                         {
-                            return i;
-                        }
-                        else if (price <= candles[i - 1].High
-                                && price >= candles[i - 1].Low)
-                        {
-                            return i-1;
-                        }
-                        else if (i > 3 &&
-                            price <= candles[i - 2].High
-                         && price >= candles[i - 2].Low)
-                        {
-                            return i-2;
-                        }
-                        else if (i + 1 != end &&
-                           price <= candles[i + 1].High
-                           && price >= candles[i + 1].Low)
-                        {
-                            return i + 1;
+                            if (price <= candles[i].High
+                                && price >= candles[i].Low)
+                            {
+                                return i;
+                            }
+                            else if (price <= candles[i - 1].High
+                                    && price >= candles[i - 1].Low)
+                            {
+                                return i - 1;
+                            }
+                            else if (i > 3 &&
+                                price <= candles[i - 2].High
+                             && price >= candles[i - 2].Low)
+                            {
+                                return i - 2;
+                            }
+                            else if (i + 1 != end &&
+                               price <= candles[i + 1].High
+                               && price >= candles[i + 1].Low)
+                            {
+                                return i + 1;
+                            }
                         }
 
                         return i;
@@ -2457,8 +2460,14 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-
-                return end-1;
+                if (_timeFrame == TimeFrame.Sec1)
+                {
+                    return end - 1;
+                }
+                else
+                {
+                    return end;
+                }
             }
 
             if (candles[start + (end - start)/2].TimeStart > time)

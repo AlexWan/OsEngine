@@ -285,6 +285,13 @@ namespace OsEngine.Market.Connectors
                 }
 
                 _connectorBot.CandleCreateMethodType = ComboBoxCandleCreateMethodType.Text;
+
+                if(_connectorBot.CandleCreateMethodType != "Simple"
+                    && _connectorBot.TimeFrame != TimeFrame.Sec1)
+                {
+                    _connectorBot.TimeFrame = TimeFrame.Sec1;
+                }
+
                 _connectorBot.SaveTradesInCandles = _saveTradesInCandles;
 
                 ACandlesSeriesRealization candlesCur = _connectorBot.TimeFrameBuilder.CandleSeriesRealization;

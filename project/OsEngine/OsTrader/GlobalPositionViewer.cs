@@ -190,6 +190,11 @@ namespace OsEngine.OsTrader
         {
             try
             {
+                if(_hostOpenPoses == null)
+                {
+                    return;
+                }
+
                 if (!_hostOpenPoses.CheckAccess())
                 {
                     _hostOpenPoses.Dispatcher.Invoke(StopPaint);
@@ -232,6 +237,12 @@ namespace OsEngine.OsTrader
             {
                 _hostOpenPoses = openPositionHost;
                 _hostClosePoses = closePositionHost;
+
+                if(_hostOpenPoses == null ||
+                    _hostClosePoses == null)
+                {
+                    return;
+                }
 
                 if (!_hostOpenPoses.CheckAccess())
                 {

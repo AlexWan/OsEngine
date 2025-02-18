@@ -1984,7 +1984,7 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
-        #region Non-trade periods. 
+        #region Non-trade periods
 
         public List<NonTradePeriod> NonTradePeriods = new List<NonTradePeriod>();
 
