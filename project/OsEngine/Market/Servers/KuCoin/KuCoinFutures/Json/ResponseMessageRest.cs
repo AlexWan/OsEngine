@@ -87,6 +87,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string marginMode { get; set; } // Added field for margin mode: ISOLATED (isolated), CROSS (cross margin).
     }
 
+    public class Ticker
+    {
+        public string sequence;
+        public string symbol;
+        public string price;
+        public string size;
+        public string bestAsk;
+        public string bestAskSize;
+        public string bestBid;
+        public string bestBidSize;
+        public string time;
+    }
+
     public class ResponseAsset
     {
         public string accountEquity; //99.8999305281, 	//Account equity = marginBalance + Unrealised PNL
