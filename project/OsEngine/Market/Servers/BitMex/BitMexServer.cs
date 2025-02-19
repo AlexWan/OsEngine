@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.BitMex
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamId, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
         }
     }
 

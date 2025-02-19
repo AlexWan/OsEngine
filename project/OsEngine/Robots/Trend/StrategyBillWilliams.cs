@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
 using System.Collections.Generic;
 using System.Windows;
 using OsEngine.Charts.CandleChart.Indicators;
@@ -31,7 +30,7 @@ namespace OsEngine.Robots.Trend
             _tab.CandleFinishedEvent += Bot_CandleFinishedEvent;
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
+            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
             VolumeFirst = CreateParameter("FirstInterVolume", 3, 1.0m, 50, 1);
             VolumeSecond = CreateParameter("SecondInterVolume", 1, 1.0m, 50, 1);
             MaximumPositions = CreateParameter("MaxPoses", 1, 1, 10, 1);
@@ -282,7 +281,7 @@ namespace OsEngine.Robots.Trend
         }
 
         /// <summary>
-        /// open positin logic
+        /// open position logic
         /// логика открытия позиции
         /// </summary>
         private void LogicOpenPosition()

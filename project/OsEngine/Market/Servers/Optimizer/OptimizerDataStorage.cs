@@ -7,6 +7,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.OsOptimizer;
 
 namespace OsEngine.Market.Servers.Optimizer
 {
@@ -330,9 +331,9 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// show settings window
         /// показать окно настроек
         /// </summary>
-        public void ShowDialog()
+        public void ShowDialog(OptimizerMaster master)
         {
-            OptimizerDataStorageUi ui = new OptimizerDataStorageUi(this,_logMaster);
+            OptimizerDataStorageUi ui = new OptimizerDataStorageUi(this,_logMaster,master);
             ui.ShowDialog();
         }
 

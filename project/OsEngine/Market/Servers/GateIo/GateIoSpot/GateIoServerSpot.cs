@@ -30,7 +30,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             ServerRealization = new GateIoServerSpotRealization();
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
         }
     }
 

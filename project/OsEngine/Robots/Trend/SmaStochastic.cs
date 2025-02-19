@@ -37,7 +37,7 @@ namespace OsEngine.Robots.Trend
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-            Slipage = 0;
+            Slippage = 0;
             VolumeFix = 1;
             Step = 500;
             Upline = 70;
@@ -103,7 +103,7 @@ namespace OsEngine.Robots.Trend
         /// slippage
         /// проскальзывание
         /// </summary>
-        public decimal Slipage;
+        public decimal Slippage;
 
         /// <summary>
         /// step
@@ -134,7 +134,7 @@ namespace OsEngine.Robots.Trend
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
-                    writer.WriteLine(Slipage);
+                    writer.WriteLine(Slippage);
                     writer.WriteLine(VolumeFix);
                     writer.WriteLine(Regime);
                     writer.WriteLine(Step);
@@ -164,7 +164,7 @@ namespace OsEngine.Robots.Trend
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
+                    Slippage = Convert.ToDecimal(reader.ReadLine());
                     VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Step = Convert.ToDecimal(reader.ReadLine());
@@ -251,13 +251,13 @@ namespace OsEngine.Robots.Trend
             if (_lastClose > _lastSma + Step && _secondLastRsi <= Downline && _firstLastRsi >= Downline &&
                 Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastClose + Slipage);
+                _tab.BuyAtLimit(VolumeFix, _lastClose + Slippage);
             }
 
             if (_lastClose < _lastSma - Step && _secondLastRsi >= Upline && _firstLastRsi <= Upline &&
                 Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastClose - Slipage);
+                _tab.SellAtLimit(VolumeFix, _lastClose - Slippage);
             }
         }
 
@@ -271,7 +271,7 @@ namespace OsEngine.Robots.Trend
             {
                 if (_lastClose < _lastSma - Step)
                 {
-                    _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastClose - Slippage, position.OpenVolume);
                 }
             }
 
@@ -279,7 +279,7 @@ namespace OsEngine.Robots.Trend
             {
                 if (_lastClose > _lastSma + Step)
                 {
-                    _tab.CloseAtLimit(position, _lastClose - Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastClose - Slippage, position.OpenVolume);
                 }
             }
         }

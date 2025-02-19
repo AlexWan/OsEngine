@@ -11,13 +11,13 @@
         <TextBox Name="TextBoxStopPercentLength" HorizontalAlignment="Left" Height="23" Margin="159,48,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelSlippage2" Content="Slippage" HorizontalAlignment="Left" Margin="22,76,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1"/>
         <Rectangle Margin="295,5,5,0" Height="119" VerticalAlignment="Top" />
-        <TextBox Name="TextBoxSlipageStop" HorizontalAlignment="Left" Height="23" Margin="159,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="TextBoxSlippageStop" HorizontalAlignment="Left" Height="23" Margin="159,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelProfit" Content="Profit" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="310,11,0,0" Height="29" FontWeight="Bold"/>
         <CheckBox Name ="CheckBoxProfitIsOn" Content="On/Off" HorizontalAlignment="Left" Margin="449,23,0,0" VerticalAlignment="Top" />
         <Label Name="LabelFromEntryToProfit" Content="From entry to profit" HorizontalAlignment="Left" Margin="312,48,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
         <TextBox Name="TextBoxProfitPercentLength" Height="23" Margin="449,48,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelSlippage1" Content="Slippage" HorizontalAlignment="Left" Margin="312,76,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
-        <TextBox Name="TextBoxSlipageProfit" Height="23" Margin="449,76,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlippageProfit" Height="23" Margin="449,76,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Rectangle Margin="295,129,5,94" StrokeThickness="0"/>
         <Button Name="ButtonAccept" Content="Accept" Margin="320,0,30,16" Click="ButtonAccept_Click" VerticalAlignment="Bottom"/>
         <Label Name="LabelPositionOpening" Content="Position opening" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="301,133,0,0"  FontWeight="Bold"/>
@@ -34,7 +34,7 @@
         <TextBox Name="TextBoxSetbackToOpen" Height="23" Margin="449,190,25,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxSetbackToOpenIsOn" Content="Max price rollback" HorizontalAlignment="Left" Margin="310,190,0,0" VerticalAlignment="Top" />
         <Label Name="LabelSlippage3" Content="Slippage" HorizontalAlignment="Left" Margin="22,273,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" OpacityMask="#FFDEB1B1" Foreground="#FFDFE1E6" />
-        <TextBox Name="TextBoxSlipageDoubleExit" HorizontalAlignment="Left" Height="23" Margin="159,273,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="TextBoxSlippageDoubleExit" HorizontalAlignment="Left" Height="23" Margin="159,273,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Rectangle Margin="295,237,5,58" StrokeThickness="0"/>
         <Label x:Name="LabelValuesType" Content="Values type" HorizontalAlignment="Left" Margin="310,241,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
         <ComboBox Name="ComboBoxValuesType" HorizontalAlignment="Left" Margin="449,241,0,0" VerticalAlignment="Top" Width="134"/>

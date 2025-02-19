@@ -66,7 +66,7 @@ namespace OsEngine.Robots.CounterTrend
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-            Slipage = 0;
+            Slippage = 0;
             VolumeFix = 1;
             Upline.Value = 65;
             Downline.Value = 35;
@@ -116,7 +116,7 @@ namespace OsEngine.Robots.CounterTrend
         /// slippage
         /// проскальзывание
         /// </summary>
-        public decimal Slipage;
+        public decimal Slippage;
 
         /// <summary>
         /// volume
@@ -154,7 +154,7 @@ namespace OsEngine.Robots.CounterTrend
                     )
                 {
                     writer.WriteLine(Regime);
-                    writer.WriteLine(Slipage);
+                    writer.WriteLine(Slippage);
                     writer.WriteLine(VolumeFix);
                     writer.WriteLine(Upline.Value);
                     writer.WriteLine(Downline.Value);
@@ -183,7 +183,7 @@ namespace OsEngine.Robots.CounterTrend
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
+                    Slippage = Convert.ToDecimal(reader.ReadLine());
                     VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Upline.Value = Convert.ToDecimal(reader.ReadLine());
                     Downline.Value = Convert.ToDecimal(reader.ReadLine());
@@ -274,11 +274,11 @@ namespace OsEngine.Robots.CounterTrend
             decimal lastClose = candles[candles.Count - 1].Close;
             if (_lastMa > lastClose && _lastRsi > Upline.Value && Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastPrice - Slipage);
+                _tab.SellAtLimit(VolumeFix, _lastPrice - Slippage);
             }
             if (_lastMa < lastClose && _lastRsi < Downline.Value && Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastPrice + Slipage);
+                _tab.BuyAtLimit(VolumeFix, _lastPrice + Slippage);
             }
         }
 
@@ -293,7 +293,7 @@ namespace OsEngine.Robots.CounterTrend
             {
                 if (lastClose < _lastMa || _lastRsi > Upline.Value)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice - Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice - Slippage, position.OpenVolume);
 
                 }
             }
@@ -301,7 +301,7 @@ namespace OsEngine.Robots.CounterTrend
             {
                 if (lastClose > _lastMa || _lastRsi < Downline.Value)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice + Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice + Slippage, position.OpenVolume);
 
                 }
             }

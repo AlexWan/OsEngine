@@ -99,19 +99,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     _candleManager.TypeTesterData = value;
                 }
                 _typeTesterData = value;
-                Save();
             }
         }
         private TesterDataType _typeTesterData;
-
-        /// <summary>
-		/// save settings
-        /// сохранить настройки
-        /// </summary>
-        public void Save()
-        {
-
-        }
 
         /// <summary>
 		/// clear server from unnecessary links
@@ -658,7 +648,13 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                 }
 
-                ExecuteOnBoardOrder(order, realPrice, time, 0);
+                int slippage = 0;
+                if (_slippageToStopOrder > 0)
+                {
+                    slippage = _slippageToStopOrder;
+                }
+
+                ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
                 {
@@ -725,9 +721,18 @@ namespace OsEngine.Market.Servers.Optimizer
                         realPrice = maxPrice;
                     }
 
-                    int slipage = 0;
+                    int slippage = 0;
 
-                    ExecuteOnBoardOrder(order, realPrice, time, slipage);
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
+                    {
+                        slippage = _slippageToStopOrder;
+                    }
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
+                    {
+                        slippage = _slippageToSimpleOrder;
+                    }
+
+                    ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
@@ -777,9 +782,17 @@ namespace OsEngine.Market.Servers.Optimizer
                         realPrice = minPrice;
                     }
 
-                    int slipage = 0;
+                    int slippage = 0;
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
+                    {
+                        slippage = _slippageToStopOrder;
+                    }
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
+                    {
+                        slippage = _slippageToSimpleOrder;
+                    }
 
-                    ExecuteOnBoardOrder(order, realPrice, time, slipage);
+                    ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
@@ -837,8 +850,14 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (order.IsStopOrProfit)
             {
+                int slippage = 0;
+                if (_slippageToStopOrder > 0)
+                {
+                    slippage = _slippageToStopOrder;
+                }
+
                 decimal realPrice = order.Price;
-                ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, 0);
+                ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
                 {
@@ -891,10 +910,18 @@ namespace OsEngine.Market.Servers.Optimizer
                     order.Price >= lastTrade.Price)
                     )
                 {// execute / исполняем
-                    int slipage = 0;
+                    int slippage = 0;
 
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
+                    {
+                        slippage = _slippageToStopOrder;
+                    }
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
+                    {
+                        slippage = _slippageToSimpleOrder;
+                    }
 
-                    ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slipage);
+                    ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
@@ -932,9 +959,18 @@ namespace OsEngine.Market.Servers.Optimizer
                    order.Price <= lastTrade.Price)
                    )
                 {// execute / исполняем
-                    int slipage = 0;
+                    int slippage = 0;
 
-                    ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slipage);
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
+                    {
+                        slippage = _slippageToStopOrder;
+                    }
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
+                    {
+                        slippage = _slippageToSimpleOrder;
+                    }
+
+                    ExecuteOnBoardOrder(order, lastTrade.Price, ServerTime, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
@@ -999,8 +1035,13 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (order.IsStopOrProfit)
             {
+                int slippage = 0;
+                if (_slippageToStopOrder > 0)
+                {
+                    slippage = _slippageToStopOrder;
+                }
                 decimal realPrice = order.Price;
-                ExecuteOnBoardOrder(order, realPrice, time, 0);
+                ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
                 {
@@ -1013,7 +1054,6 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 return true;
             }
-
 
             if (order.TypeOrder == OrderPriceType.Market)
             {
@@ -1033,7 +1073,13 @@ namespace OsEngine.Market.Servers.Optimizer
                     realPrice = minPrice;
                 }
 
-                ExecuteOnBoardOrder(order, realPrice, lastMarketDepth.Time, 0);
+                int slippage = 0;
+                if (_slippageToSimpleOrder > 0)
+                {
+                    slippage = _slippageToSimpleOrder;
+                }
+
+                ExecuteOnBoardOrder(order, realPrice, lastMarketDepth.Time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
                 {
@@ -1074,9 +1120,18 @@ namespace OsEngine.Market.Servers.Optimizer
                     {
                         realPrice = maxPrice;
                     }
-                    int slipage = 0;
 
-                    ExecuteOnBoardOrder(order, realPrice, time, slipage);
+                    int slippage = 0;
+
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
+                    {
+                        slippage = _slippageToStopOrder;
+                    }
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
+                    {
+                        slippage = _slippageToSimpleOrder;
+                    }
+                    ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
@@ -1126,9 +1181,19 @@ namespace OsEngine.Market.Servers.Optimizer
                     {
                         realPrice = minPrice;
                     }
-                    int slipage = 0;
 
-                    ExecuteOnBoardOrder(order, realPrice, time, slipage);
+                    int slippage = 0;
+
+                    if (order.IsStopOrProfit && _slippageToStopOrder > 0)
+                    {
+                        slippage = _slippageToStopOrder;
+                    }
+                    else if (order.IsStopOrProfit == false && _slippageToSimpleOrder > 0)
+                    {
+                        slippage = _slippageToSimpleOrder;
+                    }
+
+                    ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
@@ -1164,33 +1229,43 @@ namespace OsEngine.Market.Servers.Optimizer
             return false;
         }
 
-        /// <summary>
-		/// order execution type
-        /// тип исполнения ордеров
-        /// </summary>
         public OrderExecutionType OrderExecutionType
         {
             get { return _orderExecutionType; }
             set
             {
                 _orderExecutionType = value;
-                Save();
             }
         }
         private OrderExecutionType _orderExecutionType;
 
-        /// <summary>
-		/// the next type of order execution, if we chose type 50 * 50 and they should alternate
-        /// следующий по очереди тип исполнения заявки, 
-        /// если мы выбрали тип 50*50 и они должны чередоваться
-        /// </summary>
         private OrderExecutionType _lastOrderExecutionTypeInFiftyFiftyType;
 
-// server status
-// статус сервера
+        public int SlippageToSimpleOrder
+        {
+            get { return _slippageToSimpleOrder; }
+            set
+            {
+                _slippageToSimpleOrder = value;
+            }
+        }
+        private int _slippageToSimpleOrder;
+
+        public int SlippageToStopOrder
+        {
+            get { return _slippageToStopOrder; }
+            set
+            {
+                _slippageToStopOrder = value;
+            }
+        }
+        private int _slippageToStopOrder;
+
+        // server status
+        // статус сервера
 
         /// <summary>
-		/// server status
+        /// server status
         /// статус сервера
         /// </summary>
         public ServerConnectStatus ServerStatus
@@ -2150,7 +2225,7 @@ namespace OsEngine.Market.Servers.Optimizer
 		/// execute order on the exchange
         /// исполнить ордер на бирже
         /// </summary>
-        private void ExecuteOnBoardOrder(Order order,decimal price, DateTime time, int slipage)
+        private void ExecuteOnBoardOrder(Order order,decimal price, DateTime time, int slippage)
         {
             decimal realPrice = price;
 
@@ -2161,7 +2236,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
 
 
-            if (slipage != 0)
+            if (slippage != 0)
             {
                 if (order.Side == Side.Buy)
                 {
@@ -2169,7 +2244,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (mySecurity != null && mySecurity.PriceStep != 0)
                     {
-                        realPrice += mySecurity.PriceStep * slipage;
+                        realPrice += mySecurity.PriceStep * slippage;
                     }
                 }
 
@@ -2179,7 +2254,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     if (mySecurity != null && mySecurity.PriceStep != 0)
                     {
-                        realPrice -= mySecurity.PriceStep * slipage;
+                        realPrice -= mySecurity.PriceStep * slippage;
                     }
                 }
             }

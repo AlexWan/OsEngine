@@ -21,7 +21,7 @@ public class BollingerTrailing : BotPanel
 
         Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
         Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
-        Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
+        Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
         IndLength = CreateParameter("IndLength", 10, 10, 80, 3);
         BollingerDeviation = CreateParameter("Bollinger Deviation", 2, 0.5m, 4, 0.1m);
 

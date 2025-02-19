@@ -1141,11 +1141,11 @@ namespace OsEngine.Language
             "Eng:Public key_" +
             "Ru:Публичный ключ_");
 
-        public string ServerParamSecretKey => OsLocalization.ConvertToLocString(
+        public string ServerParameterSecretKey => OsLocalization.ConvertToLocString(
             "Eng:Secret key_" +
             "Ru:Секретный ключ_");
 
-        public string ServerParamPassphrase => OsLocalization.ConvertToLocString(
+        public string ServerParameterPassphrase => OsLocalization.ConvertToLocString(
             "Eng:Passphrase_" +
             "Ru:Пароль_");
 

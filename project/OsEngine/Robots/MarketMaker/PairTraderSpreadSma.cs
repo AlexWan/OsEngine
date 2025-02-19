@@ -57,8 +57,8 @@ namespace OsEngine.Robots.MarketMaker
             Volume1 = 1;
             Volume2 = 1;
 
-            Slipage1 = 0;
-            Slipage2 = 0;
+            Slippage1 = 0;
+            Slippage2 = 0;
 
             Load();
 
@@ -104,8 +104,8 @@ namespace OsEngine.Robots.MarketMaker
                     writer.WriteLine(Volume1);
                     writer.WriteLine(Volume2);
 
-                    writer.WriteLine(Slipage1);
-                    writer.WriteLine(Slipage2);
+                    writer.WriteLine(Slippage1);
+                    writer.WriteLine(Slippage2);
 
 
                     writer.Close();
@@ -135,8 +135,8 @@ namespace OsEngine.Robots.MarketMaker
                     Volume1 = Convert.ToDecimal(reader.ReadLine());
                     Volume2 = Convert.ToDecimal(reader.ReadLine());
 
-                    Slipage1 = Convert.ToDecimal(reader.ReadLine());
-                    Slipage2 = Convert.ToDecimal(reader.ReadLine());
+                    Slippage1 = Convert.ToDecimal(reader.ReadLine());
+                    Slippage2 = Convert.ToDecimal(reader.ReadLine());
 
 
                     reader.Close();
@@ -182,21 +182,21 @@ namespace OsEngine.Robots.MarketMaker
 
         /// <summary>
         /// slippage tab1
-        /// проскальзоывание для первого инструмента
+        /// проскальзывание для первого инструмента
         /// </summary>
-        public decimal Slipage1;
+        public decimal Slippage1;
 
         /// <summary>
         /// slippage tab2
         /// проскальзывание для второго инструмента
         /// </summary>
-        public decimal Slipage2;
+        public decimal Slippage2;
 
         //trade logic торговля
 
         /// <summary>
         /// tab to trade 1
-        /// вкладка с первым инструметом
+        /// вкладка с первым инструментом
         /// </summary>
         private BotTabSimple _tab1;
 
@@ -337,8 +337,8 @@ namespace OsEngine.Robots.MarketMaker
             {
                 // пересекли вверх
                 // crossed up
-                _tab1.SellAtLimit(Volume1, _candles1[_candles1.Count - 1].Close - Slipage1);
-                _tab2.BuyAtLimit(Volume2, _candles2[_candles2.Count - 1].Close + Slipage2);
+                _tab1.SellAtLimit(Volume1, _candles1[_candles1.Count - 1].Close - Slippage1);
+                _tab2.BuyAtLimit(Volume2, _candles2[_candles2.Count - 1].Close + Slippage2);
             }
 
             if (smaShortLast > smaLongLast &&
@@ -346,8 +346,8 @@ namespace OsEngine.Robots.MarketMaker
             {
                 // пересекли вниз
                 //crossed down
-                _tab2.SellAtLimit(Volume2, _candles2[_candles2.Count - 1].Close - Slipage2);
-                _tab1.BuyAtLimit(Volume1, _candles1[_candles1.Count - 1].Close + Slipage1);
+                _tab2.SellAtLimit(Volume2, _candles2[_candles2.Count - 1].Close - Slippage2);
+                _tab1.BuyAtLimit(Volume1, _candles1[_candles1.Count - 1].Close + Slippage1);
             }
         }
 
@@ -384,13 +384,13 @@ namespace OsEngine.Robots.MarketMaker
                 if (positions1 != null && positions1.Count != 0)
                 {
                     Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestBid - Slipage1, pos1.OpenVolume);
+                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestBid - Slippage1, pos1.OpenVolume);
                 }
 
                 if (positions2 != null && positions2.Count != 0)
                 {
                     Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestAsk + Slipage1, pos2.OpenVolume);
+                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestAsk + Slippage1, pos2.OpenVolume);
                 }
             }
 
@@ -403,13 +403,13 @@ namespace OsEngine.Robots.MarketMaker
                 if (positions1 != null && positions1.Count != 0)
                 {
                     Position pos1 = positions1[0];
-                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk + Slipage1, pos1.OpenVolume);
+                    _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk + Slippage1, pos1.OpenVolume);
                 }
 
                 if (positions2 != null && positions2.Count != 0)
                 {
                     Position pos2 = positions2[0];
-                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid - Slipage1, pos2.OpenVolume);
+                    _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid - Slippage1, pos2.OpenVolume);
                 }
             }
         }

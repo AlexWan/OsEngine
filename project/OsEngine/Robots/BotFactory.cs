@@ -530,7 +530,7 @@ namespace OsEngine.Robots
             return result;
         }
 
-        // Names Include Bots With Params
+        // Names Include Bots With Parameters
 
         /// <summary>
         /// Start loading strategy names with parameters

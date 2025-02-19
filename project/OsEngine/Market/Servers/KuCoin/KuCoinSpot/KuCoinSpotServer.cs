@@ -25,8 +25,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamPassphrase, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterPassphrase, "");
         }
     }
 

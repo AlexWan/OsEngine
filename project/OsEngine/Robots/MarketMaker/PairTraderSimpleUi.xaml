@@ -9,7 +9,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
         <Label Name="LabelSlippage1" Content="Slippage1" HorizontalAlignment="Left" Margin="320,73,0,0" VerticalAlignment="Top" />
-        <TextBox Name="TextBoxSlipage1" Height="23" Margin="461,73,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlippage1" Height="23" Margin="461,73,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="23,81,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxCandleCount" HorizontalAlignment="Left" Height="23" Margin="173,45,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
@@ -21,7 +21,7 @@
         <TextBox Name="TextBoxDivergention" HorizontalAlignment="Left" Height="23" Margin="173,73,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.483,0.609"/>
         <Label Name="LabelSpreadExpansion" Content="Spread Expansion" HorizontalAlignment="Left" Margin="23,73,0,0" VerticalAlignment="Top" />
         <Label Name="LabelSlippage2" Content="Slippage2" HorizontalAlignment="Left" Margin="320,129,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxSlipage2" Height="23" Margin="461,129,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlippage2" Height="23" Margin="461,129,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="LabelVolume2" Content="Volume2" HorizontalAlignment="Left" Margin="320,101,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolume2" Height="23" Margin="461,101,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="LabelProfit" Content="Profit in % of spread" HorizontalAlignment="Left" Margin="23,101,0,0" VerticalAlignment="Top" />

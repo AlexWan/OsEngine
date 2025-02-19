@@ -36,7 +36,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
             ServerRealization = new GateIoServerFuturesRealization();
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterString("User ID", "");
             CreateParameterEnum("Base Wallet", "USDT", new List<string> { "USDT", "BTC" });
             CreateParameterEnum("Position Mode", "Single", new List<string> { "Single", "Double" });

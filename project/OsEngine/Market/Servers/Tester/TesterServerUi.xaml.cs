@@ -92,28 +92,28 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxFrom.TextChanged += TextBoxFrom_TextChanged;
             TextBoxTo.TextChanged += TextBoxTo_TextChanged;
 
-            TextBoxSlipageSimpleOrder.Text = _server.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
-            TextBoxSlipageSimpleOrder.TextChanged += TextBoxSlippageSimpleOrderTextChanged;
+            TextBoxSlippageSimpleOrder.Text = _server.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlippageSimpleOrder.TextChanged += TextBoxSlippageSimpleOrderTextChanged;
 
-            TextBoxSlipageStop.Text = _server.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
-            TextBoxSlipageStop.TextChanged += TextBoxSlippageStop_TextChanged;
+            TextBoxSlippageStop.Text = _server.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlippageStop.TextChanged += TextBoxSlippageStop_TextChanged;
 
             if (_server.SlippageToStopOrder == 0)
             {
-                CheckBoxSlipageStopOff.IsChecked = true;
+                CheckBoxSlippageStopOff.IsChecked = true;
             }
             else
             {
-                CheckBoxSlipageStopOn.IsChecked = false;
+                CheckBoxSlippageStopOn.IsChecked = true;
             }
 
             if (_server.SlippageToSimpleOrder == 0)
             {
-                CheckBoxSlipageLimitOff.IsChecked = true;
+                CheckBoxSlippageLimitOff.IsChecked = true;
             }
             else
             {
-                CheckBoxSlipageLimitOn.IsChecked = false;
+                CheckBoxSlippageLimitOn.IsChecked = true;
             }
 
             ComboBoxOrderActivationType.Items.Add(OrderExecutionType.Touch.ToString());
@@ -206,10 +206,10 @@ namespace OsEngine.Market.Servers.Tester
             Label32.Content = OsLocalization.Market.Label32;
             Label33.Content = OsLocalization.Market.Label33;
             Label34.Content = OsLocalization.Market.Label34;
-            CheckBoxSlipageLimitOff.Content = OsLocalization.Market.Label35;
-            CheckBoxSlipageStopOff.Content = OsLocalization.Market.Label35;
-            CheckBoxSlipageLimitOn.Content = OsLocalization.Market.Label36;
-            CheckBoxSlipageStopOn.Content = OsLocalization.Market.Label36;
+            CheckBoxSlippageLimitOff.Content = OsLocalization.Market.Label35;
+            CheckBoxSlippageStopOff.Content = OsLocalization.Market.Label35;
+            CheckBoxSlippageLimitOn.Content = OsLocalization.Market.Label36;
+            CheckBoxSlippageStopOn.Content = OsLocalization.Market.Label36;
             CheckBoxOnOffMarketPortfolio.Content = OsLocalization.Market.Label39;
             Label40.Content = OsLocalization.Market.Label40;
             LabelClearing.Content = OsLocalization.Market.Label150;
@@ -252,8 +252,8 @@ namespace OsEngine.Market.Servers.Tester
             TextBoxStartDepozit.TextChanged -= TextBoxStartDeposit_TextChanged;
             TextBoxFrom.TextChanged -= TextBoxFrom_TextChanged;
             TextBoxTo.TextChanged -= TextBoxTo_TextChanged;
-            TextBoxSlipageSimpleOrder.TextChanged -= TextBoxSlippageSimpleOrderTextChanged;
-            TextBoxSlipageStop.TextChanged -= TextBoxSlippageStop_TextChanged;
+            TextBoxSlippageSimpleOrder.TextChanged -= TextBoxSlippageSimpleOrderTextChanged;
+            TextBoxSlippageStop.TextChanged -= TextBoxSlippageStop_TextChanged;
             ComboBoxSets.SelectionChanged -= ComboBoxSets_SelectionChanged;
             ComboBoxDataType.SelectionChanged -= ComboBoxDataType_SelectionChanged;
             ComboBoxDataSourceType.SelectionChanged -= ComboBoxDataSourceType_SelectionChanged;
@@ -369,12 +369,12 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
-                _server.SlippageToSimpleOrder = Convert.ToInt32(TextBoxSlipageSimpleOrder.Text);
+                _server.SlippageToSimpleOrder = Convert.ToInt32(TextBoxSlippageSimpleOrder.Text);
                 _server.Save();
             }
             catch (Exception)
             {
-                TextBoxSlipageSimpleOrder.Text = _server.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
+                TextBoxSlippageSimpleOrder.Text = _server.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
                 // ignore
             }
             
@@ -398,12 +398,12 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
-                _server.SlippageToStopOrder = Convert.ToInt32(TextBoxSlipageStop.Text);
+                _server.SlippageToStopOrder = Convert.ToInt32(TextBoxSlippageStop.Text);
                 _server.Save();
             }
             catch (Exception)
             {
-                TextBoxSlipageStop.Text = _server.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
+                TextBoxSlippageStop.Text = _server.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
                 // ignore
             }
         }
@@ -1787,28 +1787,28 @@ namespace OsEngine.Market.Servers.Tester
 
         private void CheckBoxSlippageLimitOff_Checked(object sender, RoutedEventArgs e)
         {
-            TextBoxSlipageSimpleOrder.Text = "0";
-            TextBoxSlipageSimpleOrder.IsEnabled = false;
-            CheckBoxSlipageLimitOn.IsChecked = false;
+            TextBoxSlippageSimpleOrder.Text = "0";
+            TextBoxSlippageSimpleOrder.IsEnabled = false;
+            CheckBoxSlippageLimitOn.IsChecked = false;
         }
 
         private void CheckBoxSlippageLimitOn_Checked(object sender, RoutedEventArgs e)
         {
-            TextBoxSlipageSimpleOrder.IsEnabled = true;
-            CheckBoxSlipageLimitOff.IsChecked = false;
+            TextBoxSlippageSimpleOrder.IsEnabled = true;
+            CheckBoxSlippageLimitOff.IsChecked = false;
         }
 
         private void CheckBoxSlippageStopOff_Checked(object sender, RoutedEventArgs e)
         {
-            TextBoxSlipageStop.Text = "0";
-            TextBoxSlipageStop.IsEnabled = false;
-            CheckBoxSlipageStopOn.IsChecked = false;
+            TextBoxSlippageStop.Text = "0";
+            TextBoxSlippageStop.IsEnabled = false;
+            CheckBoxSlippageStopOn.IsChecked = false;
         }
 
         private void CheckBoxSlippageStopOn_Checked(object sender, RoutedEventArgs e)
         {
-            TextBoxSlipageStop.IsEnabled = true;
-            CheckBoxSlipageStopOff.IsChecked = false;
+            TextBoxSlippageStop.IsEnabled = true;
+            CheckBoxSlippageStopOff.IsChecked = false;
         }
 
         private void ComboBoxOrderActivationType_SelectionChanged(object sender, SelectionChangedEventArgs e)

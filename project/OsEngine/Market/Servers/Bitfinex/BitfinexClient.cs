@@ -887,9 +887,9 @@ namespace OsEngine.Market.Servers.Bitfinex
                             {
                                 lock (_senderLocker)
                                 {
-                                    var countParams = NumberParametersSnapshot(mes);
+                                    var countParameters = NumberParametersSnapshot(mes);
 
-                                    if (countParams == 3)
+                                    if (countParameters == 3)
                                     {
                                         // process a shapshot of depth / обрабатываем снимок стакана
 
@@ -981,9 +981,9 @@ namespace OsEngine.Market.Servers.Bitfinex
             var res = str.Split(new char[] { ',' });
             
             // send count of parameters / отправляем кол-во параметров
-            int countParams = res.Length;
+            int count = res.Length;
 
-            return countParams;
+            return count;
         }
 
         #endregion

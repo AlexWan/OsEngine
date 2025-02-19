@@ -90,7 +90,7 @@ namespace OsEngine.OsOptimizer
                 {
                     writer.WriteLine(ThreadsCount);
                     writer.WriteLine(StrategyName);
-                    writer.WriteLine(StartDeposit);
+                    writer.WriteLine(_startDeposit);
 
                     writer.WriteLine(_filterProfitValue);
                     writer.WriteLine(_filterProfitIsOn);
@@ -112,6 +112,9 @@ namespace OsEngine.OsOptimizer
                     writer.WriteLine(_commissionType);
                     writer.WriteLine(_commissionValue);
                     writer.WriteLine(_lastInSample);
+                    writer.WriteLine(_orderExecutionType);
+                    writer.WriteLine(_slippageToSimpleOrder);
+                    writer.WriteLine(_slippageToStopOrder);
 
                     writer.Close();
                 }
@@ -156,6 +159,10 @@ namespace OsEngine.OsOptimizer
                         reader.ReadLine() ?? ComissionType.None.ToString());
                     _commissionValue = reader.ReadLine().ToDecimal();
                     _lastInSample = Convert.ToBoolean(reader.ReadLine());
+
+                    Enum.TryParse(reader.ReadLine(), out _orderExecutionType);
+                    _slippageToSimpleOrder = Convert.ToInt32(reader.ReadLine());
+                    _slippageToStopOrder = Convert.ToInt32(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -246,7 +253,7 @@ namespace OsEngine.OsOptimizer
             TesterDataType storageDataType = Storage.TypeTesterData;
             string setName = Storage.ActiveSet;
 
-            Storage.ShowDialog();
+            Storage.ShowDialog(this);
 
             if(storageSource != Storage.SourceDataType
                 || folder != Storage.PathToFolder 
@@ -319,39 +326,6 @@ namespace OsEngine.OsOptimizer
         }
         private bool _isScript;
 
-        public decimal StartDeposit
-        {
-            get { return _startDeposit; }
-            set
-            {
-                _startDeposit = value;
-                Save();
-            }
-        }
-        private decimal _startDeposit;
-        
-        public ComissionType CommissionType
-        {
-            get => _commissionType;
-            set
-            {
-                _commissionType = value;
-                Save();
-            }
-        }
-        private ComissionType _commissionType;      
-        
-        public decimal CommissionValue
-        {
-            get => _commissionValue;
-            set
-            {
-                _commissionValue = value;
-                Save();
-            }
-        }
-        private decimal _commissionValue;
-
         public List<TabSimpleEndTimeFrame> TabsSimpleNamesAndTimeFrames;
 
         public List<TabIndexEndTimeFrame> TabsIndexNamesAndTimeFrames;
@@ -367,6 +341,86 @@ namespace OsEngine.OsOptimizer
         {
             ManualControl.ShowDialog();
         }
+
+        #endregion
+
+        #region Trade servers settings
+
+        public OrderExecutionType OrderExecutionType
+        {
+            get { return _orderExecutionType; }
+            set
+            {
+                _orderExecutionType = value;
+                Save();
+            }
+        }
+        private OrderExecutionType _orderExecutionType;
+
+        public int SlippageToSimpleOrder
+        {
+            get { return _slippageToSimpleOrder; }
+            set
+            {
+                if (_slippageToSimpleOrder == value)
+                {
+                    return;
+                }
+
+                _slippageToSimpleOrder = value;
+                Save();
+            }
+        }
+        private int _slippageToSimpleOrder;
+
+        public int SlippageToStopOrder
+        {
+            get { return _slippageToStopOrder; }
+            set
+            {
+                if (_slippageToStopOrder == value)
+                {
+                    return;
+                }
+
+                _slippageToStopOrder = value;
+                Save();
+            }
+        }
+        private int _slippageToStopOrder;
+
+        public decimal StartDeposit
+        {
+            get { return _startDeposit; }
+            set
+            {
+                _startDeposit = value;
+                Save();
+            }
+        }
+        private decimal _startDeposit;
+
+        public ComissionType CommissionType
+        {
+            get => _commissionType;
+            set
+            {
+                _commissionType = value;
+                Save();
+            }
+        }
+        private ComissionType _commissionType;
+
+        public decimal CommissionValue
+        {
+            get => _commissionValue;
+            set
+            {
+                _commissionValue = value;
+                Save();
+            }
+        }
+        private decimal _commissionValue;
 
         #endregion
 
@@ -891,12 +945,12 @@ namespace OsEngine.OsOptimizer
                     _parametersOn.Add(false);
                 }
 
-                List<bool> paramsOnSaveBefore = GetParametersOnOffByStrategy();
+                List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
 
-                if(paramsOnSaveBefore != null && 
-                    paramsOnSaveBefore.Count == _parametersOn.Count)
+                if(parametersOnSaveBefore != null && 
+                    parametersOnSaveBefore.Count == _parametersOn.Count)
                 {
-                    _parametersOn = paramsOnSaveBefore;
+                    _parametersOn = parametersOnSaveBefore;
                 }
 
                 return _parametersOn;

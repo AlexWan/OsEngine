@@ -1647,7 +1647,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (param != null)
                 {
-                    indicator.Params = param;
+                    indicator.Parameters = param;
                 }
 
                 _indicators.Add(indicator);
@@ -1744,27 +1744,27 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 try
                 {
-                    if (ind.Params.Count == newIndicator.Parameters.Count)
+                    if (ind.Parameters.Count == newIndicator.Parameters.Count)
                     {
-                        if (ind.Params != null && ind.Params.Count != 0)
+                        if (ind.Parameters != null && ind.Parameters.Count != 0)
                         {
-                            for (int i2 = 0; i2 < ind.Params.Count; i2++)
+                            for (int i2 = 0; i2 < ind.Parameters.Count; i2++)
                             {
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Int)
                                 {
-                                    ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Params[i2]);
+                                    ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Parameters[i2]);
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
                                 {
-                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Params[i2]);
+                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool)
                                 {
-                                    ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Params[i2]);
+                                    ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Parameters[i2]);
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.String)
                                 {
-                                    ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Params[i2];
+                                    ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Parameters[i2];
                                 }
                             }
                         }
@@ -1948,56 +1948,56 @@ namespace OsEngine.OsTrader.Panels.Tab
            
             for (int i = 0; i < indFirst.Parameters.Count; i++)
             {
-                IndicatorParameter paramFirst = indFirst.Parameters[i];
-                IndicatorParameter paramSecond = second.Parameters[i];
+                IndicatorParameter parameterFirst = indFirst.Parameters[i];
+                IndicatorParameter parameterSecond = second.Parameters[i];
 
-                if (paramFirst.Type == IndicatorParameterType.String
+                if (parameterFirst.Type == IndicatorParameterType.String
                     &&
-                    ((IndicatorParameterString)paramSecond).ValueString != ((IndicatorParameterString)paramFirst).ValueString)
+                    ((IndicatorParameterString)parameterSecond).ValueString != ((IndicatorParameterString)parameterFirst).ValueString)
                 {
-                    ((IndicatorParameterString)paramSecond).ValueString = ((IndicatorParameterString)paramFirst).ValueString;
+                    ((IndicatorParameterString)parameterSecond).ValueString = ((IndicatorParameterString)parameterFirst).ValueString;
                     isChange = true;
                 }
-                if (paramFirst.Type == IndicatorParameterType.Bool &&
-                    ((IndicatorParameterBool)paramSecond).ValueBool != ((IndicatorParameterBool)paramFirst).ValueBool)
+                if (parameterFirst.Type == IndicatorParameterType.Bool &&
+                    ((IndicatorParameterBool)parameterSecond).ValueBool != ((IndicatorParameterBool)parameterFirst).ValueBool)
                 {
-                    ((IndicatorParameterBool)paramSecond).ValueBool = ((IndicatorParameterBool)paramFirst).ValueBool;
+                    ((IndicatorParameterBool)parameterSecond).ValueBool = ((IndicatorParameterBool)parameterFirst).ValueBool;
                     isChange = true;
                 }
-                if (paramFirst.Type == IndicatorParameterType.Decimal &&
-                    ((IndicatorParameterDecimal)paramSecond).ValueDecimal != ((IndicatorParameterDecimal)paramFirst).ValueDecimal)
+                if (parameterFirst.Type == IndicatorParameterType.Decimal &&
+                    ((IndicatorParameterDecimal)parameterSecond).ValueDecimal != ((IndicatorParameterDecimal)parameterFirst).ValueDecimal)
                 {
-                    ((IndicatorParameterDecimal)paramSecond).ValueDecimal = ((IndicatorParameterDecimal)paramFirst).ValueDecimal;
+                    ((IndicatorParameterDecimal)parameterSecond).ValueDecimal = ((IndicatorParameterDecimal)parameterFirst).ValueDecimal;
                     isChange = true;
                 }
-                if (paramFirst.Type == IndicatorParameterType.Int &&
-                    ((IndicatorParameterInt)paramSecond).ValueInt != ((IndicatorParameterInt)paramFirst).ValueInt)
+                if (parameterFirst.Type == IndicatorParameterType.Int &&
+                    ((IndicatorParameterInt)parameterSecond).ValueInt != ((IndicatorParameterInt)parameterFirst).ValueInt)
                 {
-                    ((IndicatorParameterInt)paramSecond).ValueInt = ((IndicatorParameterInt)paramFirst).ValueInt;
+                    ((IndicatorParameterInt)parameterSecond).ValueInt = ((IndicatorParameterInt)parameterFirst).ValueInt;
                     isChange = true;
                 }
             }
 
             for (int i = 0; i < indFirst.DataSeries.Count; i++)
             {
-                IndicatorDataSeries paramFirst = indFirst.DataSeries[i];
-                IndicatorDataSeries paramSecond = second.DataSeries[i];
+                IndicatorDataSeries parameterFirst = indFirst.DataSeries[i];
+                IndicatorDataSeries parameterSecond = second.DataSeries[i];
 
-                if (paramFirst.ChartPaintType != paramSecond.ChartPaintType)
+                if (parameterFirst.ChartPaintType != parameterSecond.ChartPaintType)
                 {
-                    paramSecond.ChartPaintType = paramFirst.ChartPaintType;
+                    parameterSecond.ChartPaintType = parameterFirst.ChartPaintType;
                     isChange = true;
                 }
 
-                if (paramFirst.Color != paramSecond.Color)
+                if (parameterFirst.Color != parameterSecond.Color)
                 {
-                    paramSecond.Color = paramFirst.Color;
+                    parameterSecond.Color = parameterFirst.Color;
                     isChange = true;
                 }
 
-                if (paramFirst.IsPaint != paramSecond.IsPaint)
+                if (parameterFirst.IsPaint != parameterSecond.IsPaint)
                 {
-                    paramSecond.IsPaint = paramFirst.IsPaint;
+                    parameterSecond.IsPaint = parameterFirst.IsPaint;
                     isChange = true;
                 }
             }
@@ -2436,7 +2436,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Parameters for the indicator
         /// </summary>
-        public List<string> Params = new List<string>();
+        public List<string> Parameters = new List<string>();
 
         /// <summary>
         /// Can the indicator be removed
@@ -2452,11 +2452,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             result += Type + "$" + NameArea + "$" + Num + "$" + CanDelete;
 
-            for (int i = 0; Params != null && i < Params.Count; i++)
+            for (int i = 0; Parameters != null && i < Parameters.Count; i++)
             {
                 result += "$";
 
-                result += Params[i];
+                result += Parameters[i];
 
             }
 
@@ -2482,11 +2482,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 startInd++;
             }
 
-            Params = new List<string>();
+            Parameters = new List<string>();
 
             for (int i = startInd; i < str.Length; i++)
             {
-                Params.Add(str[i]);
+                Parameters.Add(str[i]);
             }
         }
 

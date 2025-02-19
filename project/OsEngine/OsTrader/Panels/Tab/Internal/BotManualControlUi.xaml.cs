@@ -55,14 +55,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
               CheckBoxStopIsOn.IsChecked = _strategySettings.StopIsOn;
                 TextBoxStopPercentLength.Text = _strategySettings.StopDistance.ToStringWithNoEndZero();
-                TextBoxSlipageStop.Text = _strategySettings.StopSlippage.ToStringWithNoEndZero();
+                TextBoxSlippageStop.Text = _strategySettings.StopSlippage.ToStringWithNoEndZero();
 
                 // profit
                 // профит
 
                 CheckBoxProfitIsOn.IsChecked = _strategySettings.ProfitIsOn;
                 TextBoxProfitPercentLength.Text = _strategySettings.ProfitDistance.ToStringWithNoEndZero();
-                TextBoxSlipageProfit.Text = _strategySettings.ProfitSlippage.ToStringWithNoEndZero();
+                TextBoxSlippageProfit.Text = _strategySettings.ProfitSlippage.ToStringWithNoEndZero();
 
                 // closing position
                 // закрытие позиции
@@ -77,7 +77,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ComboBoxTypeDoubleExitOrder.Items.Add(OrderPriceType.Limit);
                 ComboBoxTypeDoubleExitOrder.Items.Add(OrderPriceType.Market);
                 ComboBoxTypeDoubleExitOrder.SelectedItem = _strategySettings.TypeDoubleExitOrder;
-                TextBoxSlipageDoubleExit.Text = _strategySettings.DoubleExitSlippage.ToString();
+                TextBoxSlippageDoubleExit.Text = _strategySettings.DoubleExitSlippage.ToString();
 
                 // opening position
                 // открытие позиции
@@ -159,13 +159,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 if (Convert.ToInt32(TextBoxSecondToOpen.Text) <= 0 ||
                     Convert.ToInt32(TextBoxSecondToClose.Text) <= 0 ||
                     TextBoxStopPercentLength.Text.ToDecimal() <= 0 ||
-                    TextBoxSlipageStop.Text.ToDecimal() <= 0 ||
+                    TextBoxSlippageStop.Text.ToDecimal() <= 0 ||
                     TextBoxProfitPercentLength.Text.ToDecimal() <= 0 ||
-                    TextBoxSlipageProfit.Text.ToDecimal() <= 0 ||
+                    TextBoxSlippageProfit.Text.ToDecimal() <= 0 ||
                     TextBoxSetbackToClose.Text.ToDecimal() <= 0 ||
                     Convert.ToInt32(TextBoxSecondToOpen.Text) <= 0 ||
                     TextBoxSetbackToOpen.Text.ToDecimal() <= 0 ||
-                    TextBoxSlipageDoubleExit.Text.ToDecimal() < -100)
+                    TextBoxSlippageDoubleExit.Text.ToDecimal() < -100)
                 {
                     throw new Exception();
                 }
@@ -183,13 +183,13 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 // стоп
                 _strategySettings.StopIsOn = CheckBoxStopIsOn.IsChecked.Value;
                 _strategySettings.StopDistance = TextBoxStopPercentLength.Text.ToDecimal();
-                _strategySettings.StopSlippage =TextBoxSlipageStop.Text.ToDecimal();
+                _strategySettings.StopSlippage =TextBoxSlippageStop.Text.ToDecimal();
 
                 // profit
                 // профит
                 _strategySettings.ProfitIsOn = CheckBoxProfitIsOn.IsChecked.Value;
                 _strategySettings.ProfitDistance = TextBoxProfitPercentLength.Text.ToDecimal();
-                _strategySettings.ProfitSlippage = TextBoxSlipageProfit.Text.ToDecimal();
+                _strategySettings.ProfitSlippage = TextBoxSlippageProfit.Text.ToDecimal();
 
                 // closing position
                 // закрытие позиции
@@ -214,7 +214,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 Enum.TryParse(ComboBoxTypeDoubleExitOrder.SelectedItem.ToString(),
                     out _strategySettings.TypeDoubleExitOrder);
 
-                _strategySettings.DoubleExitSlippage = TextBoxSlipageDoubleExit.Text.ToDecimal();
+                _strategySettings.DoubleExitSlippage = TextBoxSlippageDoubleExit.Text.ToDecimal();
 
                 // opening position
                 // открытие позиции

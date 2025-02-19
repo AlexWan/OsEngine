@@ -10,7 +10,7 @@
         <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Left" Margin="23,49,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxStop"  HorizontalAlignment="Left" Height="23" Margin="176,107,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelSlippage" Content="Slippage" HorizontalAlignment="Left" Margin="23,77,0,0" VerticalAlignment="Top" />
-        <TextBox Name="TextBoxSlipage" HorizontalAlignment="Left"  Margin="176,77,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
+        <TextBox Name="TextBoxSlippage" HorizontalAlignment="Left"  Margin="176,77,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Button Name="ButtonAccept" Content="Accept" Margin="0,0,10,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120" Grid.Column="1"/>
         <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="176,19,0,0" VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="23,19,0,0" VerticalAlignment="Top" />

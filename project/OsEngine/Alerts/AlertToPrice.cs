@@ -161,7 +161,7 @@ namespace OsEngine.Alerts
                         Volume = VolumeReaction,
                         NumberClosingPosition = NumberClosePosition,
                         PriceType = OrderPriceType,
-                        Slipage = realSlippage
+                        Slippage = realSlippage
                     };
                 }
                 if (SignalType == SignalType.None)

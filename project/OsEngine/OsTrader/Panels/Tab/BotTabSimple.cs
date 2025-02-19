@@ -1302,11 +1302,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             bool stopIsOnStartValue = ManualPositionSupport.StopIsOn;
             decimal stopDistance = ManualPositionSupport.StopDistance;
-            decimal stopSlipage = ManualPositionSupport.StopSlippage;
+            decimal stopSlippage = ManualPositionSupport.StopSlippage;
 
             bool profitOnStartValue = ManualPositionSupport.ProfitIsOn;
             decimal profitDistance = ManualPositionSupport.ProfitDistance;
-            decimal profitSlipage = ManualPositionSupport.ProfitSlippage;
+            decimal profitSlippage = ManualPositionSupport.ProfitSlippage;
 
             ManualPositionSupport.ShowDialog();
 
@@ -1323,7 +1323,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 needToReplaceStop = true;
             }
             if (ManualPositionSupport.StopIsOn == true
-                && stopSlipage != ManualPositionSupport.StopSlippage)
+                && stopSlippage != ManualPositionSupport.StopSlippage)
             {
                 needToReplaceStop = true;
             }
@@ -1339,7 +1339,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 needToReplaceStop = true;
             }
             if (ManualPositionSupport.ProfitIsOn == true
-                && profitSlipage != ManualPositionSupport.ProfitSlippage)
+                && profitSlippage != ManualPositionSupport.ProfitSlippage)
             {
                 needToReplaceStop = true;
             }
@@ -5129,11 +5129,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (position.Direction == Side.Buy)
                         {
-                            price = _connector.BestBid - signal.Slipage;
+                            price = _connector.BestBid - signal.Slippage;
                         }
                         else
                         {
-                            price = _connector.BestAsk + signal.Slipage;
+                            price = _connector.BestAsk + signal.Slippage;
                         }
 
                         CloseDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, true, true);
@@ -5150,7 +5150,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
-                        BuyAtLimit(signal.Volume, _connector.BestAsk + signal.Slipage);
+                        BuyAtLimit(signal.Volume, _connector.BestAsk + signal.Slippage);
                     }
                 }
                 else if (signal.SignalType == SignalType.Sell)
@@ -5163,7 +5163,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
-                        SellAtLimit(signal.Volume, _connector.BestBid - signal.Slipage);
+                        SellAtLimit(signal.Volume, _connector.BestBid - signal.Slippage);
                     }
                 }
             }

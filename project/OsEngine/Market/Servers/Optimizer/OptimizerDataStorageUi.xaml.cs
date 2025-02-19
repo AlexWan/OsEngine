@@ -2,33 +2,26 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.OsOptimizer;
 
 namespace OsEngine.Market.Servers.Optimizer
 {
-    /// <summary>
-	/// Interaction logic for TesterServerUi.xaml
-    /// Логика взаимодействия для TesterServerUi.xaml
-    /// </summary>
     public partial class OptimizerDataStorageUi
     {
-        /// <summary>
-		/// constructor
-        /// конструктор
-        /// </summary>
-        /// <param name="server">server/сервер</param>
-        /// <param name="log">log/лог</param>
-        public OptimizerDataStorageUi(OptimizerDataStorage server, Log log)
+        public OptimizerDataStorageUi(OptimizerDataStorage server, Log log, OptimizerMaster master)
         {
             InitializeComponent();
             _currentCulture = OsLocalization.CurCulture;
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
+            _master = master;
 
             log.StartPaint(Host);
 
@@ -63,11 +56,41 @@ namespace OsEngine.Market.Servers.Optimizer
             ComboBoxDataType.SelectedItem = _server.TypeTesterData;
             ComboBoxDataType.SelectionChanged += ComboBoxDataType_SelectionChanged;
 
+            ComboBoxOrderActivationType.Items.Add(OrderExecutionType.Touch.ToString());
+            ComboBoxOrderActivationType.Items.Add(OrderExecutionType.Intersection.ToString());
+            ComboBoxOrderActivationType.Items.Add(OrderExecutionType.FiftyFifty.ToString());
+            ComboBoxOrderActivationType.SelectedItem = _master.OrderExecutionType.ToString();
+            ComboBoxOrderActivationType.SelectionChanged += ComboBoxOrderActivationType_SelectionChanged;
+
+            if (_master.SlippageToStopOrder == 0)
+            {
+                CheckBoxSlippageStopOff.IsChecked = true;
+            }
+            else
+            {
+                CheckBoxSlippageStopOn.IsChecked = true;
+            }
+
+            if (_master.SlippageToSimpleOrder == 0)
+            {
+                CheckBoxSlippageLimitOff.IsChecked = true;
+            }
+            else
+            {
+                CheckBoxSlippageLimitOn.IsChecked = true;
+            }
+
             TextBoxDataPath.Text = _server.PathToFolder;
             ComboBoxDataSourseType.Items.Add(TesterSourceDataType.Folder);
             ComboBoxDataSourseType.Items.Add(TesterSourceDataType.Set);
             ComboBoxDataSourseType.SelectedItem = _server.SourceDataType;
-            ComboBoxDataSourseType.SelectionChanged += ComboBoxDataSourseType_SelectionChanged;
+            ComboBoxDataSourseType.SelectionChanged += ComboBoxDataSourceType_SelectionChanged;
+
+            TextBoxSlippageSimpleOrder.Text = master.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlippageSimpleOrder.TextChanged += TextBoxSlippageSimpleOrderTextChanged;
+
+            TextBoxSlippageStop.Text = master.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlippageStop.TextChanged += TextBoxSlippageStop_TextChanged;
 
             Title = OsLocalization.Optimizer.Label62;
 
@@ -78,27 +101,45 @@ namespace OsEngine.Market.Servers.Optimizer
             Label28.Content = OsLocalization.Market.Label28;
             ButtonSetDataFromPath.Content = OsLocalization.Market.ButtonSetFolder;
 
+            Label30.Header = OsLocalization.Market.Label30;
+            Label32.Content = OsLocalization.Market.Label32;
+            Label33.Content = OsLocalization.Market.Label33;
+            Label34.Content = OsLocalization.Market.Label34;
+            CheckBoxSlippageLimitOff.Content = OsLocalization.Market.Label35;
+            CheckBoxSlippageStopOff.Content = OsLocalization.Market.Label35;
+            CheckBoxSlippageLimitOn.Content = OsLocalization.Market.Label36;
+            CheckBoxSlippageStopOn.Content = OsLocalization.Market.Label36;
+            LabelOrderActivationType.Content = OsLocalization.Market.Label148;
+            LabelClearing.Content = OsLocalization.Market.Label150;
+            LabelNonTradePeriod.Content = OsLocalization.Market.Label151;
+
             this.Activate();
             this.Focus();
+
+            Closed += OptimizerDataStorageUi_Closed;
+        }
+
+        private void OptimizerDataStorageUi_Closed(object sender, EventArgs e)
+        {
+            _master = null;
+            _server = null;
+
+            DataGridFactory.ClearLinks(_myGridView);
+            _myGridView.DoubleClick -= _myGridView_DoubleClick;
+            _myGridView.CellValueChanged -= _myGridView_CellValueChanged;
+            HostSecurities.Child = null;
+            _myGridView = null;
         }
 
         private CultureInfo _currentCulture;
 
-        /// <summary>
-		/// data source has changed. Folder or set
-        /// источник данных изменился. Папка или Сет 
-        /// </summary>
-        void ComboBoxDataSourseType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        void ComboBoxDataSourceType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             TesterSourceDataType sourceDataType;
             Enum.TryParse(ComboBoxDataSourseType.SelectedItem.ToString(), out sourceDataType);
             _server.SourceDataType = sourceDataType;
         }
 
-        /// <summary>
-		/// data type has changed
-        /// изменился тип транслируемых данных
-        /// </summary>
         void ComboBoxDataType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             TesterDataType type;
@@ -109,10 +150,6 @@ namespace OsEngine.Market.Servers.Optimizer
             PaintGrid();
         }
 
-        /// <summary>
-		/// data set has changed
-        /// сет данных изменился
-        /// </summary>
         void ComboBoxSets_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             _server.SetNewSet(ComboBoxSets.SelectedItem.ToString());
@@ -120,36 +157,20 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
 		// server
-        // сервер
 
-        /// <summary>
-		/// test server
-        /// тестовый сервер
-        /// </summary>
         private OptimizerDataStorage _server;
 
-        /// <summary>
-		/// server instruments have changed
-        /// изменились инструменты в сервере
-        /// </summary>
+        private OptimizerMaster _master;
+
         void _server_SecuritiesChangeEvent(List<Security> securities)
         {
             PaintGrid();
         }
 
 		// table with instruments
-        //  таблица с инструментами
 
-        /// <summary>
-		/// table with instruments
-        /// таблица с инструментами
-        /// </summary>
         private DataGridView _myGridView;
 
-        /// <summary>
-		/// create table with instruments
-        /// создать таблицу с инструментами
-        /// </summary>
         private void CreateGrid()
         {
             _myGridView = DataGridFactory.GetDataGridDataSource();
@@ -161,10 +182,6 @@ namespace OsEngine.Market.Servers.Optimizer
             _myGridView.Rows.Add();
         }
 
-        /// <summary>
-		/// paint table with instruments
-        /// прорисовать таблицу с инструментами
-        /// </summary>
         private void PaintGrid()
         {
             if (_myGridView.InvokeRequired)
@@ -249,10 +266,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-        /// double click on table with instruments
-        /// двойной клик по таблице с инструментами
-        /// </summary>
         void _myGridView_DoubleClick(object sender, EventArgs e)
         {
             DataGridViewRow row = null;
@@ -306,6 +319,76 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             _server.ShowPathSenderDialog();
             TextBoxDataPath.Text = _server.PathToFolder;
+        }
+
+        private void CheckBoxSlippageLimitOff_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlippageSimpleOrder.Text = "0";
+            TextBoxSlippageSimpleOrder.IsEnabled = false;
+            CheckBoxSlippageLimitOn.IsChecked = false;
+        }
+
+        private void CheckBoxSlippageLimitOn_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlippageSimpleOrder.IsEnabled = true;
+            CheckBoxSlippageLimitOff.IsChecked = false;
+        }
+
+        private void CheckBoxSlippageStopOff_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlippageStop.Text = "0";
+            TextBoxSlippageStop.IsEnabled = false;
+            CheckBoxSlippageStopOn.IsChecked = false;
+        }
+
+        private void CheckBoxSlippageStopOn_Checked(object sender, RoutedEventArgs e)
+        {
+            TextBoxSlippageStop.IsEnabled = true;
+            CheckBoxSlippageStopOff.IsChecked = false;
+        }
+
+        private void ComboBoxOrderActivationType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                OrderExecutionType type = OrderExecutionType.Intersection;
+
+                if (Enum.TryParse(ComboBoxOrderActivationType.SelectedItem.ToString(), out type))
+                {
+                    _master.OrderExecutionType = type;
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxSlippageSimpleOrderTextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                _master.SlippageToSimpleOrder = Convert.ToInt32(TextBoxSlippageSimpleOrder.Text);
+            }
+            catch (Exception)
+            {
+                TextBoxSlippageSimpleOrder.Text = _master.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
+                // ignore
+            }
+
+        }
+
+        private void TextBoxSlippageStop_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                _master.SlippageToStopOrder = Convert.ToInt32(TextBoxSlippageStop.Text);
+            }
+            catch (Exception)
+            {
+                TextBoxSlippageStop.Text = _master.SlippageToStopOrder.ToString(new CultureInfo("ru-RU"));
+                // ignore
+            }
         }
 
     }
