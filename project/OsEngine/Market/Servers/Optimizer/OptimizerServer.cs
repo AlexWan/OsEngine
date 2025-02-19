@@ -417,7 +417,7 @@ namespace OsEngine.Market.Servers.Optimizer
                                     s.Candles == newStorage.Candles &&
                                     s.TimeFrame == newStorage.TimeFrame &&
                                     s.Trades == newStorage.Trades &&
-                                    s.MaketDepths == newStorage.MaketDepths) != null)
+                                    s.MarketDepths == newStorage.MarketDepths) != null)
             {
                 return;
             }
@@ -454,7 +454,7 @@ namespace OsEngine.Market.Servers.Optimizer
             else if (_storages[_storages.Count - 1].StorageType == TesterDataType.MarketDepthOnlyReadyCandle)
             {
                 securityOpt.DataType = SecurityTesterDataType.MarketDepth;
-                securityOpt.MarketDepths = _storages[_storages.Count - 1].MaketDepths;
+                securityOpt.MarketDepths = _storages[_storages.Count - 1].MarketDepths;
             }
 
             _candleSeriesTesterActivate.Add(securityOpt);
@@ -2350,6 +2350,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 Candles = null;
                 Trades = null;
                 MarketDepths = null;
+                _tradesId = 0;
 
             }
             catch (Exception errror)
@@ -2447,7 +2448,6 @@ namespace OsEngine.Market.Servers.Optimizer
             // here we have the first trade in the current second / здесь имеем первый трейд в текущей секунде
 
             List<Trade> lastTradesSeries = new List<Trade>();
-
 
             while (_lastTradeIndex < Trades.Count)
             {
@@ -2547,7 +2547,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++});
 
                 array[1] = (new Trade() { 
                     Price = LastCandle.High, 
@@ -2555,7 +2556,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Buy, 
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++
+                });
 
                 array[2] = (new Trade() { 
                     Price = LastCandle.Low, 
@@ -2563,7 +2566,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Sell,
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++
+                });
 
                 array[3] = (new Trade() { 
                     Price = LastCandle.Close, 
@@ -2571,7 +2576,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++
+                });
 
                 List<Trade> lastTradesSeries = new List<Trade>(array);
 
@@ -2612,7 +2619,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++
+                });
 
                 array[1] = (new Trade() { 
                     Price = LastCandle.High, 
@@ -2620,7 +2629,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Buy, 
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++
+                });
 
                 array[2] = (new Trade() { 
                     Price = LastCandle.Low, 
@@ -2628,7 +2639,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++
+                });
 
                 array[3] = (new Trade() { 
                     Price = LastCandle.Close, 
@@ -2636,7 +2649,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart,
                     TimeFrameInTester = TimeFrame,
-                    SecurityNameCode = Security.Name });
+                    SecurityNameCode = Security.Name,
+                    IdInTester = _tradesId++
+                });
 
                 List<Trade> lastTradesSeries = new List<Trade>(array);
 
@@ -2654,6 +2669,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
             }
         }
+
+        private long _tradesId;
 
         /// <summary>
 		/// new candles appeared

@@ -163,6 +163,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _lastTradeTime = DateTime.MinValue;
             _lastTradeIndex = 0;
+            _lastTradeIdInTester = 0;
 
             if (_chartMaster == null)
             {
@@ -5925,7 +5926,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private DateTime _lastTradeTime;
 
+        private decimal _lastTradeQty;
+
+        private decimal _lastTradePrice;
+
         private int _lastTradeIndex;
+
+        private long _lastTradeIdInTester;
 
         /// <summary>
         /// new tiki came
@@ -5954,6 +5961,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _lastTradeTime = DateTime.MinValue;
                 _lastTradeIndex = 0;
+                _lastTradeIdInTester = 0;
+                return;
             }
 
             if(StartProgram == StartProgram.IsOsTrader)
@@ -5995,35 +6004,71 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Trade> newTrades = new List<Trade>();
 
-            if (trades.Count > 1000)
-            { // if deleting trades from the system is disabled
+            if(StartProgram == StartProgram.IsOsTrader)
+            {
+                if (trades.Count > 1000)
+                { // if deleting trades from the system is disabled
 
-                int newTradesCount = trades.Count - _lastTradeIndex;
+                    int newTradesCount = trades.Count - _lastTradeIndex;
 
-                if (newTradesCount <= 0)
-                {
-                    return;
+                    if (newTradesCount <= 0)
+                    {
+                        return;
+                    }
+
+                    newTrades = trades.GetRange(_lastTradeIndex, newTradesCount);
                 }
-
-                newTrades = trades.GetRange(_lastTradeIndex, newTradesCount);
+                else
+                {
+                    if (_lastTradeTime == DateTime.MinValue)
+                    {
+                        newTrades = trades;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < trades.Count; i++)
+                        {
+                            try
+                            {
+                                if (trades[i].Time < _lastTradeTime)
+                                {
+                                    continue;
+                                }
+                                if (trades[i].Time == _lastTradeTime
+                                    && trades[i].Price == _lastTradePrice
+                                    && trades[i].Volume == _lastTradeQty)
+                                {
+                                    continue;
+                                }
+                                newTrades.Add(trades[i]);
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                }
             }
-            else
+            else // Tester, Optimizer
             {
                 if (_lastTradeTime == DateTime.MinValue)
                 {
                     newTrades = trades;
+                    _lastTradeIdInTester = newTrades[newTrades.Count - 1].IdInTester;
                 }
                 else
                 {
-                    for (int i = 0; i < trades.Count; i++)
+                    for (int i = trades.Count-1; i < trades.Count; i--)
                     {
                         try
                         {
-                            if (trades[i].Time <= _lastTradeTime)
+                            if (trades[i].IdInTester <= _lastTradeIdInTester)
                             {
-                                continue;
+                                break;
                             }
-                            newTrades.Add(trades[i]);
+
+                            newTrades.Insert(0,trades[i]);
                         }
                         catch
                         {
@@ -6109,6 +6154,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _lastTradeIndex = trades.Count;
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
+            _lastTradeIdInTester = newTrades[newTrades.Count - 1].IdInTester;
+            _lastTradeQty = newTrades[newTrades.Count - 1].Volume;
+            _lastTradePrice = newTrades[newTrades.Count - 1].Price;
 
             if (StartProgram == StartProgram.IsOsTrader)
             {

@@ -4323,6 +4323,7 @@ namespace OsEngine.Market.Servers.Tester
                 LastCandle = null;
                 LastTrade = null;
                 LastMarketDepth = null;
+                _tradesId = 0;
             }
             catch (Exception errror)
             {
@@ -4370,12 +4371,6 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            if (now.Month == 4 &&
-                now.Day > 4)
-            {
-
-            }
-
             if (LastTrade != null &&
                 LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
             {
@@ -4390,6 +4385,7 @@ namespace OsEngine.Market.Servers.Tester
                 LastTrade = new Trade();
                 LastTrade.SetTradeFromString(_lastString);
                 LastTrade.SecurityNameCode = Security.Name;
+                LastTrade.IdInTester = _tradesId++;
             }
 
             while (!_reader.EndOfStream &&
@@ -4397,6 +4393,8 @@ namespace OsEngine.Market.Servers.Tester
             {
                 _lastString = _reader.ReadLine();
                 LastTrade.SetTradeFromString(_lastString);
+                LastTrade.SecurityNameCode = Security.Name;
+                LastTrade.IdInTester = _tradesId++;
             }
 
             if (LastTrade.Time.AddMilliseconds(-LastTrade.Time.Millisecond) > now)
@@ -4410,6 +4408,7 @@ namespace OsEngine.Market.Servers.Tester
 
             Trade trade = new Trade() { SecurityNameCode = Security.Name };
             trade.SetTradeFromString(_lastString);
+            trade.IdInTester = _tradesId++;
             lastTradesSeries.Add(trade);
 
             while (!_reader.EndOfStream)
@@ -4417,6 +4416,7 @@ namespace OsEngine.Market.Servers.Tester
                 _lastString = _reader.ReadLine();
                 Trade tradeN = new Trade() { SecurityNameCode = Security.Name };
                 tradeN.SetTradeFromString(_lastString);
+                tradeN.IdInTester = _tradesId++;
 
                 if (tradeN.Time.AddMilliseconds(-tradeN.Time.Millisecond) <= now)
                 {
@@ -4437,6 +4437,8 @@ namespace OsEngine.Market.Servers.Tester
                 NeedToCheckOrders();
             }
         }
+
+        private long _tradesId;
 
         public event Action<List<Trade>> NewTradesEvent;
 
@@ -4481,7 +4483,8 @@ namespace OsEngine.Market.Servers.Tester
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 lastTradesSeries.Add(new Trade() { 
@@ -4489,7 +4492,8 @@ namespace OsEngine.Market.Servers.Tester
                     Side = Side.Buy, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 lastTradesSeries.Add(new Trade() { 
@@ -4497,7 +4501,8 @@ namespace OsEngine.Market.Servers.Tester
                     Volume = 1, Side = Side.Sell, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 lastTradesSeries.Add(new Trade() { 
@@ -4506,7 +4511,8 @@ namespace OsEngine.Market.Servers.Tester
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 if (NewTradesEvent != null)
@@ -4541,7 +4547,8 @@ namespace OsEngine.Market.Servers.Tester
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 lastTradesSeries.Add(new Trade() { 
@@ -4550,7 +4557,8 @@ namespace OsEngine.Market.Servers.Tester
                     Side = Side.Buy, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 lastTradesSeries.Add(new Trade() { 
@@ -4559,7 +4567,8 @@ namespace OsEngine.Market.Servers.Tester
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 lastTradesSeries.Add(new Trade() { 
@@ -4568,7 +4577,8 @@ namespace OsEngine.Market.Servers.Tester
                     Side = Side.Sell, 
                     Time = LastCandle.TimeStart, 
                     SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
                 });
 
                 if (NewTradesEvent != null)

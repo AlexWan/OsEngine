@@ -35,6 +35,11 @@ namespace OsEngine.Entity
         public string Id;
 
         /// <summary>
+        /// Transaction number in the system. In Tester and Optimizer
+        /// </summary>
+        public long IdInTester;
+
+        /// <summary>
         /// Volume
         /// </summary>
         public decimal Volume;

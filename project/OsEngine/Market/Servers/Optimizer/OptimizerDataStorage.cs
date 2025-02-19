@@ -52,6 +52,7 @@ namespace OsEngine.Market.Servers.Optimizer
         public void ClearDelete()
         {
             _isDeleted = true;
+            _tradesId = 0;
 
             if (_storages != null)
             {
@@ -1854,6 +1855,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 try
                 {
                     trade.SetTradeFromString(reader.ReadLine());
+                    trade.IdInTester = _tradesId++;
                     trade.SecurityNameCode = security.Name;
                 }
                 catch
@@ -1936,7 +1938,7 @@ DateTime timeEnd)
             }
 
             DataStorage storage = new DataStorage();
-            storage.MaketDepths = marketDepths;
+            storage.MarketDepths = marketDepths;
             storage.Security = security;
             storage.TimeEnd = timeEnd;
             storage.TimeStart = timeStart;
@@ -1945,10 +1947,12 @@ DateTime timeEnd)
             return storage;
         }
 
-// logging
-// логирование
+        private long _tradesId;
+
+        // logging
+        // логирование
         /// <summary>
-		/// save a new log message
+        /// save a new log message
         /// сохранить новую запись в лог
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
@@ -2007,7 +2011,7 @@ DateTime timeEnd)
 		/// depths of this security
         /// стаканы этой бумаги
         /// </summary>
-        public List<MarketDepth> MaketDepths; 
+        public List<MarketDepth> MarketDepths; 
 
         /// <summary>
 		/// candles timeframe
@@ -2057,10 +2061,10 @@ DateTime timeEnd)
                 Trades = null;
             }
 
-            if (MaketDepths != null)
+            if (MarketDepths != null)
             {
-                MaketDepths.Clear();
-                MaketDepths = null;
+                MarketDepths.Clear();
+                MarketDepths = null;
             }
 
         }
