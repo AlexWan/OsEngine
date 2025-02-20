@@ -149,7 +149,6 @@ namespace OsEngine.Market.Servers.Tester
             // clearing
 
             CreateClearingGrid();
-
             PaintClearingGrid();
 
             // non trade periods
@@ -1696,7 +1695,7 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
-        #region Sliders. Setting the start and end time of testing
+        #region Sliders. Setting the start and end time of testing. Slippage
 
         private void SliderTo_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e)
         {

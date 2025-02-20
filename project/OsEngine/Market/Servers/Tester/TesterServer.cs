@@ -306,6 +306,61 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
+        #region Server status
+
+        public ServerConnectStatus ServerStatus
+        {
+            get { return _serverConnectStatus; }
+            private set
+            {
+                if (value != _serverConnectStatus)
+                {
+                    _serverConnectStatus = value;
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
+                    if (ConnectStatusChangeEvent != null)
+                    {
+                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
+                    }
+                }
+            }
+        }
+        private ServerConnectStatus _serverConnectStatus;
+
+        public event Action<string> ConnectStatusChangeEvent;
+
+        public int CountDaysTickNeedToSave { get; set; }
+
+        public bool NeedToSaveTicks { get; set; }
+
+        #endregion
+
+        #region Server time
+
+        public DateTime ServerTime
+        {
+            get { return _serverTime; }
+
+            private set
+            {
+                if (value > _serverTime)
+                {
+                    DateTime lastTime = _serverTime;
+                    _serverTime = value;
+
+                    if (_serverTime != lastTime &&
+                        TimeServerChangeEvent != null)
+                    {
+                        TimeServerChangeEvent(_serverTime);
+                    }
+                }
+            }
+        }
+        private DateTime _serverTime;
+
+        public event Action<DateTime> TimeServerChangeEvent;
+
+        #endregion
+
         #region Additional part from standard servers
 
         public void StartServer(){}
@@ -574,33 +629,6 @@ namespace OsEngine.Market.Servers.Tester
 
         #region Main thread work place
 
-        private TimeAddInTestType _timeAddType;
-
-        private bool _dataIsActive;
-
-        private bool _needToReloadSecurities;
-
-        public TesterRegime TesterRegime
-        {
-            get { return _testerRegime; }
-            set
-            {
-                if(_testerRegime == value)
-                {
-                    return;
-                }
-                _testerRegime = value;
-
-                if(TestRegimeChangeEvent != null)
-                {
-                    TestRegimeChangeEvent(_testerRegime);
-                }
-            }
-        }
-        private TesterRegime _testerRegime;
-
-        public event Action<TesterRegime> TestRegimeChangeEvent;
-
         private Thread _worker;
 
         private void WorkThreadArea()
@@ -648,7 +676,7 @@ namespace OsEngine.Market.Servers.Tester
 
                     if (!_dataIsReady)
                     {
-                        
+
                         SendLogMessage(OsLocalization.Market.Message48, LogMessageType.System);
                         TesterRegime = TesterRegime.NotActive;
                         continue;
@@ -666,7 +694,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
                     if (TesterRegime == TesterRegime.Play)
                     {
-                        
+
                         LoadNextData();
                         CheckOrders();
                     }
@@ -678,6 +706,33 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
         }
+
+        private TimeAddInTestType _timeAddType;
+
+        private bool _dataIsActive;
+
+        private bool _needToReloadSecurities;
+
+        public TesterRegime TesterRegime
+        {
+            get { return _testerRegime; }
+            set
+            {
+                if(_testerRegime == value)
+                {
+                    return;
+                }
+                _testerRegime = value;
+
+                if(TestRegimeChangeEvent != null)
+                {
+                    TestRegimeChangeEvent(_testerRegime);
+                }
+            }
+        }
+        private TesterRegime _testerRegime;
+
+        public event Action<TesterRegime> TestRegimeChangeEvent;
 
         private void CreatePortfolio()
         {
@@ -1823,6 +1878,34 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
+        #region My trades
+
+        private void MyTradesIncome(MyTrade trade)
+        {
+            if (_myTrades == null)
+            {
+                _myTrades = new List<MyTrade>();
+            }
+
+            _myTrades.Add(trade);
+
+            if (NewMyTradeEvent != null)
+            {
+                NewMyTradeEvent(trade);
+            }
+        }
+
+        private List<MyTrade> _myTrades;
+
+        public List<MyTrade> MyTrades
+        {
+            get { return _myTrades; }
+        }
+
+        public event Action<MyTrade> NewMyTradeEvent;
+
+        #endregion
+
         #region Clearing system 
 
         public List<OrderClearing> ClearingTimes = new List<OrderClearing>();
@@ -2098,62 +2181,6 @@ namespace OsEngine.Market.Servers.Tester
 
             return true;
         }
-
-        #endregion
-
-        #region Server status
-
-        private ServerConnectStatus _serverConnectStatus;
-
-        public ServerConnectStatus ServerStatus
-        {
-            get { return _serverConnectStatus; }
-            private set
-            {
-                if (value != _serverConnectStatus)
-                {
-                    _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
-                    if (ConnectStatusChangeEvent != null)
-                    {
-                        ConnectStatusChangeEvent(_serverConnectStatus.ToString());
-                    }
-                }
-            }
-        }
-
-        public event Action<string> ConnectStatusChangeEvent;
-
-        public int CountDaysTickNeedToSave { get; set; }
-
-        public bool NeedToSaveTicks { get; set; }
-
-        #endregion
-
-        #region Server time
-
-        public DateTime ServerTime
-        {
-            get { return _serverTime; }
-
-            private set
-            {
-                if (value > _serverTime)
-                {
-                    DateTime lastTime = _serverTime;
-                    _serverTime = value;
-
-                    if (_serverTime != lastTime &&
-                        TimeServerChangeEvent != null)
-                    {
-                        TimeServerChangeEvent(_serverTime);
-                    }
-                }
-            }
-        }
-        private DateTime _serverTime;
-
-        public event Action<DateTime> TimeServerChangeEvent;
 
         #endregion
 
@@ -3902,6 +3929,8 @@ namespace OsEngine.Market.Servers.Tester
             return false;
         }
 
+        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+
         public event Action<News> NewsEvent;
 
         public event Action NeedToReconnectEvent;
@@ -4086,7 +4115,7 @@ namespace OsEngine.Market.Servers.Tester
 
         #region Candles
 
-        void TesterServer_NewCandleEvent(Candle candle, string nameSecurity, TimeSpan timeFrame)
+        private void TesterServer_NewCandleEvent(Candle candle, string nameSecurity, TimeSpan timeFrame)
         {
             ServerTime = candle.TimeStart;
 
@@ -4102,6 +4131,11 @@ namespace OsEngine.Market.Servers.Tester
 
             _candleManager.SetNewCandleInSeries(candle, nameSecurity, timeFrame);
 
+        }
+
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            return null;
         }
 
         public event Action<CandleSeries> NewCandleIncomeEvent;
@@ -4131,10 +4165,6 @@ namespace OsEngine.Market.Servers.Tester
 
         #region All trades table
 
-        private List<Trade>[] _allTrades;
-
-        public List<Trade>[] AllTrades { get { return _allTrades; } }
-
         private void TesterServer_NewTradesEvent(List<Trade> tradesNew)
         {
             if (_dataIsActive == false)
@@ -4152,38 +4182,38 @@ namespace OsEngine.Market.Servers.Tester
 
                 for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
                 {
-                   Trade trade = tradesNew[indTrade];
-                   bool isSave = false;
-                   for (int i = 0; i < _allTrades.Length; i++)
-                   {
-                       if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
-                           _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode &&
-                           _allTrades[i][0].TimeFrameInTester == trade.TimeFrameInTester)
-                       { // if there is already a storage for this instrument, save it/ если для этого инструметна уже есть хранилище, сохраняем и всё
-                           isSave = true;
-                           if (_allTrades[i][0].Time > trade.Time)
-                           {
-                               break;
-                           }
-                           _allTrades[i].Add(trade);
-                           break;
-                       }
-                   }
-                   if (isSave == false)
-                   { // there is no storage for instrument / хранилища для инструмента нет
-                       List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
-                       for (int i = 0; i < _allTrades.Length; i++)
-                       {
-                           allTradesNew[i] = _allTrades[i];
-                       }
-                       allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
-                       allTradesNew[allTradesNew.Length - 1].Add(trade);
-                       _allTrades = allTradesNew;
-                   }
+                    Trade trade = tradesNew[indTrade];
+                    bool isSave = false;
+                    for (int i = 0; i < _allTrades.Length; i++)
+                    {
+                        if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
+                            _allTrades[i][0].SecurityNameCode == trade.SecurityNameCode &&
+                            _allTrades[i][0].TimeFrameInTester == trade.TimeFrameInTester)
+                        { // if there is already a storage for this instrument, save it/ если для этого инструметна уже есть хранилище, сохраняем и всё
+                            isSave = true;
+                            if (_allTrades[i][0].Time > trade.Time)
+                            {
+                                break;
+                            }
+                            _allTrades[i].Add(trade);
+                            break;
+                        }
+                    }
+                    if (isSave == false)
+                    { // there is no storage for instrument / хранилища для инструмента нет
+                        List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
+                        for (int i = 0; i < _allTrades.Length; i++)
+                        {
+                            allTradesNew[i] = _allTrades[i];
+                        }
+                        allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
+                        allTradesNew[allTradesNew.Length - 1].Add(trade);
+                        _allTrades = allTradesNew;
+                    }
                 }
             }
 
-            if(_typeTesterData != TesterDataType.TickAllCandleState &&
+            if (_typeTesterData != TesterDataType.TickAllCandleState &&
                 _typeTesterData != TesterDataType.TickOnlyReadyCandle)
             {
                 for (int i = 0; i < _allTrades.Length; i++)
@@ -4225,9 +4255,13 @@ namespace OsEngine.Market.Servers.Tester
             }
             if (NewBidAscIncomeEvent != null)
             {
-                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode,""));
+                NewBidAscIncomeEvent(tradesNew[tradesNew.Count - 1].Price, tradesNew[tradesNew.Count - 1].Price, GetSecurityForName(tradesNew[tradesNew.Count - 1].SecurityNameCode, ""));
             }
         }
+
+        private List<Trade>[] _allTrades;
+
+        public List<Trade>[] AllTrades { get { return _allTrades; } }
 
         public List<Trade> GetAllTradesToSecurity(Security security)
         {
@@ -4246,35 +4280,7 @@ namespace OsEngine.Market.Servers.Tester
 
         #endregion
 
-        #region My trades
-
-        private void MyTradesIncome(MyTrade trade)
-        {
-            if (_myTrades == null)
-            {
-                _myTrades = new List<MyTrade>();
-            }
-
-            _myTrades.Add(trade);
-
-            if (NewMyTradeEvent != null)
-            {
-                NewMyTradeEvent(trade);
-            }
-        }
-
-        private List<MyTrade> _myTrades;
-
-        public List<MyTrade> MyTrades
-        {
-            get { return _myTrades; }
-        }
-
-        public event Action<MyTrade> NewMyTradeEvent;
-
-        #endregion
-
-        #region Logging
+        #region Log
 
         void TesterServer_LogMessageEvent(string logMessage)
         {
@@ -4289,16 +4295,9 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
-        {
-            throw new NotImplementedException();
-        }
-
         private Log _logMaster;
 
         public event Action<string, LogMessageType> LogMessageEvent;
-        public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
-
 
         #endregion
     }
@@ -4363,6 +4362,170 @@ namespace OsEngine.Market.Servers.Tester
                 CheckMarketDepth(now);
             }
         }
+
+        // parsing candle files
+
+        private Candle _lastCandle;
+
+        public Candle LastCandle
+        {
+            get { return _lastCandle; }
+            set { _lastCandle = value; }
+        }
+
+        private void CheckCandles(DateTime now)
+        {
+            if (_reader == null || _reader.EndOfStream)
+            {
+                _reader = new StreamReader(FileAddress);
+            }
+            if (now > TimeEnd ||
+                now < TimeStart)
+            {
+                return;
+            }
+
+            if (LastCandle != null &&
+                LastCandle.TimeStart > now)
+            {
+                return;
+            }
+
+            if (LastCandle != null &&
+                LastCandle.TimeStart == now)
+            {
+                List<Trade> lastTradesSeries = new List<Trade>();
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.Open,
+                    Volume = 1,
+                    Side = Side.Sell,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.High,
+                    Volume = 1,
+                    Side = Side.Buy,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.Low,
+                    Volume = 1,
+                    Side = Side.Sell,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.Close,
+                    Volume = 1,
+                    Side = Side.Sell,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                if (NewTradesEvent != null)
+                {
+                    NewTradesEvent(lastTradesSeries);
+                }
+
+                if (NewCandleEvent != null)
+                {
+                    NewCandleEvent(LastCandle, Security.Name, TimeFrameSpan);
+
+                }
+                return;
+            }
+
+            while (LastCandle == null ||
+                LastCandle.TimeStart < now)
+            {
+                LastCandle = new Candle();
+                LastCandle.SetCandleFromString(_reader.ReadLine());
+            }
+
+
+
+            if (LastCandle.TimeStart <= now)
+            {
+                List<Trade> lastTradesSeries = new List<Trade>();
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.Open,
+                    Volume = 1,
+                    Side = Side.Sell,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.High,
+                    Volume = 1,
+                    Side = Side.Buy,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.Low,
+                    Volume = 1,
+                    Side = Side.Sell,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                lastTradesSeries.Add(new Trade()
+                {
+                    Price = LastCandle.Close,
+                    Volume = 1,
+                    Side = Side.Sell,
+                    Time = LastCandle.TimeStart,
+                    SecurityNameCode = Security.Name,
+                    TimeFrameInTester = TimeFrame,
+                    IdInTester = _tradesId++
+                });
+
+                if (NewTradesEvent != null)
+                {
+                    NewTradesEvent(lastTradesSeries);
+                }
+
+                if (NewCandleEvent != null)
+                {
+                    NewCandleEvent(LastCandle, Security.Name, TimeFrameSpan);
+                }
+
+            }
+        }
+
+        public event Action<Candle, string, TimeSpan> NewCandleEvent;
+
+        public event Action<MarketDepth> NewMarketDepthEvent;
 
         // parsing tick files
 
@@ -4456,160 +4619,6 @@ namespace OsEngine.Market.Servers.Tester
         public event Action<List<Trade>> NewTradesEvent;
 
         public event Action NeedToCheckOrders;
-
-        // parsing candle files
-
-        private Candle _lastCandle;
-
-        public Candle LastCandle
-        {
-            get { return _lastCandle; } 
-            set { _lastCandle = value; }
-        }
-
-        private void CheckCandles(DateTime now)
-        {
-            if (_reader == null || _reader.EndOfStream)
-            {
-                _reader = new StreamReader(FileAddress);
-            }
-            if (now > TimeEnd || 
-                now < TimeStart)
-            {
-                return;
-            }
-
-            if (LastCandle != null &&
-                LastCandle.TimeStart > now)
-            {
-                return;
-            }
-
-            if (LastCandle != null &&
-                LastCandle.TimeStart == now)
-            {
-                List<Trade> lastTradesSeries = new List<Trade>();
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.Open, 
-                    Volume = 1, 
-                    Side = Side.Sell, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.High, Volume = 1, 
-                    Side = Side.Buy, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.Low, 
-                    Volume = 1, Side = Side.Sell, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.Close, 
-                    Volume = 1, 
-                    Side = Side.Sell, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(lastTradesSeries);
-                }
-
-                if (NewCandleEvent != null)
-                {
-                    NewCandleEvent(LastCandle,Security.Name, TimeFrameSpan);
-
-                }
-                return;
-            }
-
-            while (LastCandle == null ||
-                LastCandle.TimeStart < now)
-            {
-                LastCandle = new Candle();
-                LastCandle.SetCandleFromString(_reader.ReadLine());
-            }
-
-
-
-            if (LastCandle.TimeStart <= now)
-            {
-                List<Trade> lastTradesSeries = new List<Trade>();
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.Open, 
-                    Volume = 1, 
-                    Side = Side.Sell, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.High, 
-                    Volume = 1, 
-                    Side = Side.Buy, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.Low, 
-                    Volume = 1, 
-                    Side = Side.Sell, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                lastTradesSeries.Add(new Trade() { 
-                    Price = LastCandle.Close, 
-                    Volume = 1, 
-                    Side = Side.Sell, 
-                    Time = LastCandle.TimeStart, 
-                    SecurityNameCode = Security.Name,
-                    TimeFrameInTester = TimeFrame,
-                    IdInTester = _tradesId++
-                });
-
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(lastTradesSeries);
-                }
-
-                if (NewCandleEvent != null)
-                {
-                    NewCandleEvent(LastCandle, Security.Name,TimeFrameSpan);
-                }
-                
-            }
-        }
-
-        public event Action<Candle, string,TimeSpan> NewCandleEvent;
-
-        public event Action<MarketDepth> NewMarketDepthEvent;
 
         // parsing market depths
 
@@ -4749,9 +4758,9 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public enum OrderExecutionType
     {
-        Intersection,
-
         Touch,
+
+        Intersection,
 
         FiftyFifty
     }
@@ -4761,7 +4770,6 @@ namespace OsEngine.Market.Servers.Tester
     /// </summary>
     public class OrderClearing
     {
-
         public DateTime Time;
 
         public bool IsOn;

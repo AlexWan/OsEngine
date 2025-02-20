@@ -69,14 +69,6 @@ namespace OsEngine.OsOptimizer
 
         #endregion
 
-        #region Server trade settings
-
-
-
-
-
-        #endregion
-
         #region Optimization algorithm
 
         private async void PrimeThreadWorkerPlace()
@@ -720,6 +712,8 @@ namespace OsEngine.OsOptimizer
             server.OrderExecutionType = _master.OrderExecutionType;
             server.SlippageToSimpleOrder = _master.SlippageToSimpleOrder;
             server.SlippageToStopOrder = _master.SlippageToStopOrder;
+            server.ClearingTimes = _master.ClearingTimes;
+            server.NonTradePeriods = _master.NonTradePeriods;
 
             lock (_serverRemoveLocker)
             {

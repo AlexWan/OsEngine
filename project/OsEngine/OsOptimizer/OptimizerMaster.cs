@@ -49,6 +49,8 @@ namespace OsEngine.OsOptimizer
             _percentOnFiltration = 30;
 
             Load();
+            LoadClearingInfo();
+            LoadNonTradePeriods();
 
             ManualControl = new BotManualControl("OptimizerManualControl", null, StartProgram.IsOsTrader);
 
@@ -421,6 +423,161 @@ namespace OsEngine.OsOptimizer
             }
         }
         private decimal _commissionValue;
+
+        #endregion
+
+        #region Clearing system 
+
+        public List<OrderClearing> ClearingTimes = new List<OrderClearing>();
+
+        public void SaveClearingInfo()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"OptimizerMasterClearings.txt", false))
+                {
+                    for (int i = 0; i < ClearingTimes.Count; i++)
+                    {
+                        writer.WriteLine(ClearingTimes[i].GetSaveString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private void LoadClearingInfo()
+        {
+            if (!File.Exists(@"Engine\" + @"OptimizerMasterClearings.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"OptimizerMasterClearings.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+
+                        if (str != "")
+                        {
+                            OrderClearing clearings = new OrderClearing();
+                            clearings.SetFromString(str);
+                            ClearingTimes.Add(clearings);
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        public void CreateNewClearing()
+        {
+            OrderClearing newClearing = new OrderClearing();
+
+            newClearing.Time = new DateTime(2000, 1, 1, 19, 0, 0);
+            ClearingTimes.Add(newClearing);
+            SaveClearingInfo();
+        }
+
+        public void RemoveClearing(int num)
+        {
+            if (num > ClearingTimes.Count)
+            {
+                return;
+            }
+
+            ClearingTimes.RemoveAt(num);
+            SaveClearingInfo();
+        }
+
+        #endregion
+
+        #region Non-trade periods
+
+        public List<NonTradePeriod> NonTradePeriods = new List<NonTradePeriod>();
+
+        public void SaveNonTradePeriods()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"OptimizerMasterNonTradePeriods.txt", false))
+                {
+                    for (int i = 0; i < NonTradePeriods.Count; i++)
+                    {
+                        writer.WriteLine(NonTradePeriods[i].GetSaveString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        private void LoadNonTradePeriods()
+        {
+            if (!File.Exists(@"Engine\" + @"OptimizerMasterNonTradePeriods.txt"))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\" + @"OptimizerMasterNonTradePeriods.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        string str = reader.ReadLine();
+
+                        if (str != "")
+                        {
+                            NonTradePeriod period = new NonTradePeriod();
+                            period.SetFromString(str);
+                            NonTradePeriods.Add(period);
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
+
+        public void CreateNewNonTradePeriod()
+        {
+            NonTradePeriod newClearing = new NonTradePeriod();
+
+            NonTradePeriods.Add(newClearing);
+            SaveNonTradePeriods();
+        }
+
+        public void RemoveNonTradePeriod(int num)
+        {
+            if (num > NonTradePeriods.Count)
+            {
+                return;
+            }
+
+            NonTradePeriods.RemoveAt(num);
+            SaveNonTradePeriods();
+        }
 
         #endregion
 
