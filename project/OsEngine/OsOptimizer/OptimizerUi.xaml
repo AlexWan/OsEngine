@@ -21,26 +21,26 @@
             <TabControl Name="TabControlPrime" Margin="10,-15,10,10">
                 <TabItem Name="TabItemControl" Header="Control" FontSize="14" Width="120">
                     <Grid >
-                        <TextBox Name="TextBoxStartPortfolio" HorizontalAlignment="Left" Height="28" Margin="12,131,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="204"/>
+                        <TextBox Name="TextBoxStartPortfolio" HorizontalAlignment="Left" Height="28" Margin="12,131,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="214"/>
                         <Label Name="Label13" Content="Initial funds" HorizontalAlignment="Left" Margin="12,106,0,0" VerticalAlignment="Top"/>
                         <Label Name="CommissionTypeLabel" Content="Commission Type" HorizontalAlignment="Left" Margin="12,164,0,0" VerticalAlignment="Top"/>
                         <ComboBox Name="CommissionTypeComboBox" Margin="12,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="110" Height="28"/>
                         <Label  Name="CommissionValueLabel" Content="Commission Value" HorizontalAlignment="Left" Margin="125,164,0,0" VerticalAlignment="Top"/>
-                        <TextBox Name="CommissionValueTextBox" Margin="125,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="100" Height="28"/>
+                        <TextBox Name="CommissionValueTextBox" Margin="125,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="101" Height="28"/>
                         <WindowsFormsHost Name="HostLog" Margin="10,224,10,10" Foreground="Black"/>
                         <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,10,0" Height="164" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsSimple" Foreground="Black" Height="133" Margin="247,26,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="352"/>
                         <Label Name="LabelTabsEndTimeFrames" Content="Tabs securities" HorizontalAlignment="Left" Margin="247,1,0,0" VerticalAlignment="Top"/>
                         <Rectangle Name="RectangleServerData" HorizontalAlignment="Left" Height="55" Margin="10,1,0,0" VerticalAlignment="Top" Width="206"/>
-                        <Button x:Name="ButtonServerDialog" Content="Data Server Settings" HorizontalAlignment="Left" Margin="12,10,0,0" VerticalAlignment="Top" Width="204" Height="39" Click="ButtonServerDialog_Click"/>
+                        <Button x:Name="ButtonServerDialog" Content="Data Server Settings" HorizontalAlignment="Left" Margin="12,10,0,0" VerticalAlignment="Top" Width="214" Height="39" Click="ButtonServerDialog_Click"/>
                         <Rectangle Name="RectangleStrategyName" HorizontalAlignment="Left" Height="58" Margin="10,48,0,0"  VerticalAlignment="Top" Width="206"/>
                         <Label Name="Label12" Content="Optimization strategy" HorizontalAlignment="Left" Margin="12,48,0,0" VerticalAlignment="Top"/>
                         <WindowsFormsHost x:Name="HostTabsIndex" Foreground="Black"  Height="133" Margin="604,26,10,0" VerticalAlignment="Top"/>
                         <Label Name="Label15" Content="Index" HorizontalAlignment="Left" Margin="604,1,0,0" VerticalAlignment="Top"/>
-                        <Button Name="ButtonStrategySelect" Content="Select" HorizontalAlignment="Left" Margin="156,54,0,0" VerticalAlignment="Top" Width="60" Click="ButtonStrategySelect_Click"/>
-                        <TextBox Name="TextBoxStrategyName" HorizontalAlignment="Left" IsReadOnly="True" Margin="24,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="25"/>
-                        <Button x:Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,81,0,0" VerticalAlignment="Top" Width="60" Click="ButtonStrategyReload_Click"/>
+                        <Button Name="ButtonStrategySelect" Content="Select" HorizontalAlignment="Left" Margin="156,53,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategySelect_Click"/>
+                        <TextBox Name="TextBoxStrategyName" HorizontalAlignment="Left" IsReadOnly="True" Margin="12,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="139" Height="37"/>
                         <Button x:Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="195" Click="ButtonPositionSupport_Click" />
+                        <Button x:Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,83,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategyReload_Click"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemParameters" Header="Parameters" FontSize="14" Width="120">

@@ -51,7 +51,7 @@ namespace OsEngine.Robots
 
             for (int i = 0; i < botsIncluded.Count; i++)
             {
-                for (int i2 = 0; i2 < botsFromScript.Count; i2++)
+                for (int i2 = 0; botsFromScript != null && i2 < botsFromScript.Count; i2++)
                 {
                     if (botsIncluded[i].Equals(botsFromScript[i2]))
                     {

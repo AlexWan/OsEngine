@@ -168,13 +168,12 @@ namespace OsEngine.OsOptimizer
             ButtonStrategySelect.Content = OsLocalization.Optimizer.Label35;
             Label23.Content = OsLocalization.Optimizer.Label36;
             ButtonPositionSupport.Content = OsLocalization.Trader.Label47;
-
+            ButtonStrategyReload.Content = OsLocalization.Optimizer.Label48;
             TabControlResultsSeries.Header = OsLocalization.Optimizer.Label37;
             TabControlResultsOutOfSampleResults.Header = OsLocalization.Optimizer.Label38;
             LabelSortBy.Content = OsLocalization.Optimizer.Label39;
             CheckBoxLastInSample.Content = OsLocalization.Optimizer.Label42;
             LabelIteartionCount.Content = OsLocalization.Optimizer.Label47;
-            ButtonStrategyReload.Content = OsLocalization.Optimizer.Label48;
             ButtonResults.Content = OsLocalization.Optimizer.Label49;
             LabelRobustnessMetric.Content = OsLocalization.Optimizer.Label53;
             ButtonSetStandardParameters.Content = OsLocalization.Optimizer.Label57;
@@ -227,7 +226,6 @@ namespace OsEngine.OsOptimizer
             ComboBoxThreadsCount.IsEnabled = false;
             ButtonResults.IsEnabled = false;
             ButtonStrategySelect.IsEnabled = false;
-            ButtonStrategyReload.IsEnabled = false;
             ButtonPositionSupport.IsEnabled = false;
             TextBoxStartPortfolio.IsEnabled = false;
             CommissionTypeComboBox.IsEnabled = false;
@@ -257,7 +255,6 @@ namespace OsEngine.OsOptimizer
             ComboBoxThreadsCount.IsEnabled = true;
             ButtonResults.IsEnabled = true;
             ButtonStrategySelect.IsEnabled = true;
-            ButtonStrategyReload.IsEnabled = true;
             ButtonPositionSupport.IsEnabled = true;
             TextBoxStartPortfolio.IsEnabled = true;
             CommissionTypeComboBox.IsEnabled = true;
@@ -714,8 +711,31 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonStrategySelect_Click(object sender, RoutedEventArgs e)
         {
-            BotCreateUi2 ui = new BotCreateUi2(
-                BotFactory.GetNamesStrategyWithParametersSync(), BotFactory.GetScriptsNamesStrategy(),
+            List<string> namesForOptimization = BotFactory.GetNamesStrategyWithParametersSync();
+
+            List<string> scriptsNames = BotFactory.GetScriptsNamesStrategy();
+
+            List<string> includeNames = BotFactory.GetIncludeNamesStrategy();
+
+            for(int i = 0;i< scriptsNames.Count;i++)
+            {
+                if (namesForOptimization.Find(s => s == scriptsNames[i]) == null)
+                {
+                    scriptsNames.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            for (int i = 0; i < includeNames.Count; i++)
+            {
+                if (namesForOptimization.Find(s => s == includeNames[i]) == null)
+                {
+                    includeNames.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            BotCreateUi2 ui = new BotCreateUi2(includeNames, scriptsNames,
                 StartProgram.IsOsOptimizer);
 
             ui.ShowDialog();
@@ -3041,19 +3061,31 @@ namespace OsEngine.OsOptimizer
 
         private void StrategyLoader()
         {
-            Thread.Sleep(500);
-
-            _master.SendLogMessage(OsLocalization.Optimizer.Message11, LogMessageType.System);
-
-            List<string> strategies = BotFactory.GetNamesStrategyWithParametersSync();
-
-            _master.SendLogMessage(OsLocalization.Optimizer.Message19 + " " + strategies.Count, LogMessageType.System);
-
-            if (string.IsNullOrEmpty(_master.StrategyName))
+            try
             {
-                return;
+                DateTime start = DateTime.Now;
+
+                _master.SendLogMessage(OsLocalization.Optimizer.Message11, LogMessageType.System);
+
+                List<string> strategiesInclude = BotFactory.GetNamesStrategyWithParametersSync();
+
+                _master.SendLogMessage(OsLocalization.Optimizer.Message19 + " " + strategiesInclude.Count, LogMessageType.System);
+
+                if (string.IsNullOrEmpty(_master.StrategyName))
+                {
+                    return;
+                }
+
+                ReloadStrategy();
+
+                //TimeSpan resultTime = DateTime.Now - start;
+                //_master.SendLogMessage("Reload bots type time: " + resultTime.ToString(), LogMessageType.System);
+
             }
-            ReloadStrategy();
+            catch (Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion

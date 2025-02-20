@@ -1538,7 +1538,8 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
-            if (ClearingTimes.Count != 0)
+            if (ClearingTimes != null 
+                && ClearingTimes.Count != 0)
             {
                 CheckOrderBySessionLife(dayLifeOrders, timeOnMarket);
             }
@@ -1621,7 +1622,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public bool OrderCanExecuteByNonTradePeriods(Order order)
         {
-            if (NonTradePeriods.Count == 0)
+            if (NonTradePeriods == null 
+                || NonTradePeriods.Count == 0)
             {
                 return true;
             }

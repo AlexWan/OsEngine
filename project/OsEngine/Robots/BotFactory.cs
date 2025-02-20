@@ -27,7 +27,7 @@ namespace OsEngine.Robots
         /// <summary>
         /// Get list robots name
         /// </summary>
-        public static List<string> GetNamesStrategy()
+        public static List<string> GetIncludeNamesStrategy()
         {
             List<string> result = new List<string>();
             result.Add("Engine");
@@ -272,6 +272,8 @@ namespace OsEngine.Robots
 
         private static List<BotPanel> _serializedPanels = new List<BotPanel>();
 
+        private static string _listSerializedBotsLocker = "serializedPanels locker";
+
         /// <summary>
         /// Creating a robot instance
         /// </summary>
@@ -285,16 +287,18 @@ namespace OsEngine.Robots
 
             try
             {
-                for (int i = 0; i < _serializedPanels.Count; i++)
+                lock(_listSerializedBotsLocker)
                 {
-                    if (_serializedPanels[i].GetType().Name == nameClass)
+                    for (int i = 0; i < _serializedPanels.Count; i++)
                     {
-                        object[] param = new object[] { name, startProgram };
-                        BotPanel newPanel = (BotPanel)Activator.CreateInstance(_serializedPanels[i].GetType(), param);
-                        return newPanel;
+                        if (_serializedPanels[i].GetType().Name == nameClass)
+                        {
+                            object[] param = new object[] { name, startProgram };
+                            BotPanel newPanel = (BotPanel)Activator.CreateInstance(_serializedPanels[i].GetType(), param);
+                            return newPanel;
+                        }
                     }
                 }
-
             }
             catch (Exception e)
             {
@@ -456,20 +460,23 @@ namespace OsEngine.Robots
                     throw new Exception(errorString);
                 }
 
-                bool isInArray = false;
-
-                for (int i = 0; i < _serializedPanels.Count; i++)
+                lock (_listSerializedBotsLocker)
                 {
-                    if (_serializedPanels[i].GetType().Name == nameClass)
+                    bool isInArray = false;
+
+                    for (int i = 0; i < _serializedPanels.Count; i++)
                     {
-                        isInArray = true;
-                        break;
+                        if (_serializedPanels[i].GetType().Name == nameClass)
+                        {
+                            isInArray = true;
+                            break;
+                        }
                     }
-                }
 
-                if (isInArray == false)
-                {
-                    _serializedPanels.Add(result);
+                    if (isInArray == false)
+                    {
+                        _serializedPanels.Add(result);
+                    }
                 }
 
                 return result;
@@ -530,59 +537,10 @@ namespace OsEngine.Robots
             return result;
         }
 
-        // Names Include Bots With Parameters
+        // Optimizer. Names Include Bots With Parameters
 
-        /// <summary>
-        /// Start loading strategy names with parameters
-        /// </summary>
-        public static List<string> GetNamesStrategyWithParametersSync()
-        {
-            if (NeedToReload == false &&
-                (_namesWithParam == null ||
-                 _namesWithParam.Count == 0))
-            {
-                LoadBotsNames();
-            }
-
-            if (NeedToReload == false &&
-                _namesWithParam != null &&
-                _namesWithParam.Count != 0)
-            {
-                return _namesWithParam;
-            }
-
-            NeedToReload = false;
-
-            List<Thread> workers = new List<Thread>();
-
-            _namesWithParam = new List<string>();
-
-            for (int i = 0; i < 3; i++)
-            {
-                Thread worker = new Thread(LoadNamesWithParam);
-                worker.Name = i.ToString();
-                workers.Add(worker);
-                worker.Start();
-            }
-
-            while (workers.Find(w => w.IsAlive) != null)
-            {
-                Thread.Sleep(100);
-            }
-
-            SaveBotsNames();
-
-            return _namesWithParam;
-        }
-
-        /// <summary>
-        /// Strategy names need to be reloaded
-        /// </summary>
         public static bool NeedToReload;
 
-        /// <summary>
-        /// Load strategy names from file
-        /// </summary>
         private static void LoadBotsNames()
         {
             _namesWithParam.Clear();
@@ -602,9 +560,6 @@ namespace OsEngine.Robots
             }
         }
 
-        /// <summary>
-        /// Save strategy names to file
-        /// </summary>
         private static void SaveBotsNames()
         {
             using (StreamWriter writer = new StreamWriter("Engine\\OptimizerBots.txt"))
@@ -618,38 +573,114 @@ namespace OsEngine.Robots
             }
         }
 
+        public static List<string> GetNamesStrategyWithParametersSync()
+        {
+            if (NeedToReload == false &&
+               (_namesWithParam == null ||
+                _namesWithParam.Count == 0))
+            {
+                LoadBotsNames();
+            }
+
+            if (NeedToReload == false &&
+                _namesWithParam != null &&
+                _namesWithParam.Count != 0)
+            {
+                return _namesWithParam;
+            }
+
+            NeedToReload = false;
+
+            List<Thread> workers = new List<Thread>();
+
+            _namesWithParam = new List<string>();
+
+            for (int i = 0; i < 10; i++)
+            {
+                Thread worker = new Thread(LoadNamesWithParam);
+                worker.Name = i.ToString();
+                workers.Add(worker);
+                worker.Start();
+            }
+
+            while (workers.Find(w => w.IsAlive) != null)
+            {
+                Thread.Sleep(100);
+            }
+
+            SaveBotsNames();
+
+            return _namesWithParam;
+        }
+
         private static List<string> _namesWithParam = new List<string>();
 
-        /// <summary>
-        /// Load strategy names with parameters
-        /// </summary>
+        private static string _listNamesLocker = "listLocker";
+
         private static void LoadNamesWithParam()
         {
-            List<string> names = GetNamesStrategy();
+            List<string> names = GetIncludeNamesStrategy();
+
+            int countIncludeBots = names.Count;
+
+            names.AddRange(GetScriptsNamesStrategy());
 
             int numThread = Convert.ToInt32(Thread.CurrentThread.Name);
 
-            for (int i = numThread; i < names.Count; i += 3)
+            for (int i = numThread; i < names.Count; i += 10)
             {
                 try
                 {
-                    BotPanel bot = GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer, false);
+                    BotPanel bot = null;
+                    
+                    if(i < countIncludeBots)
+                    {
+                        bot = GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer, false); 
+                    }
+                    else
+                    {
+                        bot = GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer, true);
+                    }
+                    
+                    if(bot == null)
+                    {
+                        continue;
+                    }
 
                     if (bot.Parameters.Count != 0)
                     {
-                        if (bot.TabsScreener != null && bot.TabsScreener.Count > 0)
+                        if (bot.TabsPair != null 
+                            && bot.TabsPair.Count > 0)
                         {
                             bot.Delete();
                             continue;
                         }
 
-                        if (bot.TabsPair != null && bot.TabsPair.Count > 0)
+                        if (bot.TabsScreener != null
+                            && bot.TabsScreener.Count > 0)
                         {
                             bot.Delete();
                             continue;
                         }
 
-                        _namesWithParam.Add(names[i]);
+                        if (bot.TabsPolygon != null
+                           && bot.TabsPolygon.Count > 0)
+                        {
+                            bot.Delete();
+                            continue;
+                        }
+
+                        if (bot.TabsNews != null
+                           && bot.TabsNews.Count > 0)
+                        {
+                            bot.Delete();
+                            continue;
+                        }
+
+                        lock(_listNamesLocker)
+                        {
+                            _namesWithParam.Add(names[i]);
+                        }      
                     }
                     
                     bot.Delete();
@@ -666,9 +697,7 @@ namespace OsEngine.Robots
             }
         }
 
-        /// <summary>
-        /// Loaded strategy names with parameters
-        /// </summary>
         public static event Action<List<string>> LoadNamesWithParamEndEvent;
+
     }
 }
