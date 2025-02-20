@@ -25,7 +25,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// constructor /
         /// конструктор
         /// </summary>
-        public BotManualControlUi(BotManualControl strategySettings)
+        public BotManualControlUi(BotManualControl strategySettings, StartProgram startProgram)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -43,7 +43,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Specified.ToString());
                 ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.GTC.ToString());
 
-                if(strategySettings._startProgram == StartProgram.IsTester)
+                if(startProgram == StartProgram.IsTester
+                    || startProgram == StartProgram.IsOsOptimizer)
                 {
                     ComboBoxOrdersTypeTime.Items.Add(OrderTypeTime.Day.ToString());
                 }

@@ -1308,7 +1308,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             decimal profitDistance = ManualPositionSupport.ProfitDistance;
             decimal profitSlippage = ManualPositionSupport.ProfitSlippage;
 
-            ManualPositionSupport.ShowDialog();
+            ManualPositionSupport.ShowDialog(StartProgram);
 
             bool needToReplaceStop = false;
 

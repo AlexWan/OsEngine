@@ -266,9 +266,9 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// <summary>
         /// Show settings
         /// </summary>
-        public void ShowDialog()
+        public void ShowDialog(StartProgram startProgram)
         {
-            BotManualControlUi ui = new BotManualControlUi(this);
+            BotManualControlUi ui = new BotManualControlUi(this, startProgram);
             ui.ShowDialog();
         }
 

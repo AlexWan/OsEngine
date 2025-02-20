@@ -341,7 +341,7 @@ namespace OsEngine.OsOptimizer
 
         public void ShowManualControlDialog()
         {
-            ManualControl.ShowDialog();
+            ManualControl.ShowDialog(StartProgram.IsOsOptimizer);
         }
 
         #endregion
