@@ -585,7 +585,7 @@ namespace OsEngine.Alerts
         {
             try
             {
-                if (_alertChartUi.NeadToSave == false)
+                if (_alertChartUi.NeedToSave == false)
                 {
                     Delete(_alertChartUi.MyAlert);
                 }

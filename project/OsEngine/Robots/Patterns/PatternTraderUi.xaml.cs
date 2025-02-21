@@ -202,8 +202,8 @@ namespace OsEngine.Robots.Patterns
             ComboBoxSideInter.SelectedItem = _bot.SideInter;
             ComboBoxSideInter.SelectionChanged += ComboBoxSideInter_SelectionChanged;
 
-            TextBoxWeigthToInter.Text = _bot.WeigthToInter.ToString();
-            TextBoxWeigthToInter.TextChanged += TextBoxWeigthToInter_TextChanged;
+            TextBoxWeightToInter.Text = _bot.WeightToInter.ToString();
+            TextBoxWeightToInter.TextChanged += TextBoxWeightToInter_TextChanged;
 
             TextBoxInterToPatternSleepage.Text = _bot.InterToPatternSleepage.ToString();
             TextBoxInterToPatternSleepage.TextChanged += TextBoxInterToPatternSleepage_TextChanged;
@@ -222,21 +222,21 @@ namespace OsEngine.Robots.Patterns
             _bot.Save();
         }
 
-        void TextBoxWeigthToInter_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxWeightToInter_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (TextBoxWeigthToInter.Text == "" ||
-                TextBoxWeigthToInter.Text == "0," ||
-                TextBoxWeigthToInter.Text == "0.")
+            if (TextBoxWeightToInter.Text == "" ||
+                TextBoxWeightToInter.Text == "0," ||
+                TextBoxWeightToInter.Text == "0.")
             {
                 return;
             }
             try
             {
-                _bot.WeigthToInter = TextBoxWeigthToInter.Text.ToDecimal();
+                _bot.WeightToInter = TextBoxWeightToInter.Text.ToDecimal();
             }
             catch (Exception)
             {
-                TextBoxWeigthToInter.Text = _bot.WeigthToInter.ToString();
+                TextBoxWeightToInter.Text = _bot.WeightToInter.ToString();
             }
             _bot.Save();
         }
@@ -276,8 +276,8 @@ namespace OsEngine.Robots.Patterns
             TextBoxTreilingStopValue.Text = _bot.TreilingStopValue.ToString();
             TextBoxTreilingStopValue.TextChanged += TextBoxTreilingStopValue_TextChanged;
 
-            TextBoxWeigthToExit.Text = _bot.WeigthToExit.ToString(CultureInfo.InvariantCulture);
-            TextBoxWeigthToExit.TextChanged += TextBoxWeigthToExit_TextChanged;
+            TextBoxWeightToExit.Text = _bot.WeightToExit.ToString(CultureInfo.InvariantCulture);
+            TextBoxWeightToExit.TextChanged += TextBoxWeightToExit_TextChanged;
 
             TextBoxStopOrderValueSleepage.Text = _bot.StopOrderSleepage.ToString();
             TextBoxStopOrderValueSleepage.TextChanged += TextBoxStopOrderValueSleepage_TextChanged;
@@ -360,22 +360,22 @@ namespace OsEngine.Robots.Patterns
             _bot.Save();
         }
 
-        void TextBoxWeigthToExit_TextChanged(object sender, TextChangedEventArgs e)
+        void TextBoxWeightToExit_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (TextBoxWeigthToExit.Text == "" ||
-                TextBoxWeigthToExit.Text == "0," ||
-                TextBoxWeigthToExit.Text == "0.")
+            if (TextBoxWeightToExit.Text == "" ||
+                TextBoxWeightToExit.Text == "0," ||
+                TextBoxWeightToExit.Text == "0.")
             {
                 return;
             }
 
             try
             {
-                _bot.WeigthToExit = TextBoxWeigthToExit.Text.ToDecimal();
+                _bot.WeightToExit = TextBoxWeightToExit.Text.ToDecimal();
             }
             catch (Exception)
             {
-                TextBoxWeigthToExit.Text = _bot.WeigthToExit.ToString(CultureInfo.InvariantCulture);
+                TextBoxWeightToExit.Text = _bot.WeightToExit.ToString(CultureInfo.InvariantCulture);
             }
             _bot.Save();
         }
@@ -568,7 +568,7 @@ namespace OsEngine.Robots.Patterns
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = pattern.Type;
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[2].Value = pattern.Weigth;
+            nRow.Cells[2].Value = pattern.Weight;
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[3].Value = pattern.Expand;
 
@@ -605,7 +605,7 @@ namespace OsEngine.Robots.Patterns
             {
                 for (int i = 0; i < _gridPatternsToOpen.Rows.Count; i++)
                 {
-                    _bot.PatternsToOpen[i].Weigth = _gridPatternsToOpen.Rows[i].Cells[2].Value.ToString().ToDecimal();
+                    _bot.PatternsToOpen[i].Weight = _gridPatternsToOpen.Rows[i].Cells[2].Value.ToString().ToDecimal();
 
                     _bot.PatternsToOpen[i].Expand = _gridPatternsToOpen.Rows[i].Cells[3].Value.ToString().ToDecimal();
                 }
@@ -656,7 +656,7 @@ namespace OsEngine.Robots.Patterns
             {
                 for (int i = 0; i < _gridPatternsToClose.Rows.Count; i++)
                 {
-                    _bot.PatternsToClose[i].Weigth = _gridPatternsToClose.Rows[i].Cells[2].Value.ToString().ToDecimal();
+                    _bot.PatternsToClose[i].Weight = _gridPatternsToClose.Rows[i].Cells[2].Value.ToString().ToDecimal();
                     _bot.PatternsToClose[i].Expand = _gridPatternsToClose.Rows[i].Cells[3].Value.ToString().ToDecimal();
                 }
             }

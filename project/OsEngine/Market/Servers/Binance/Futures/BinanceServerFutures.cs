@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Futures Type", "USDT-M", new List<string> { "USDT-M", "COIN-M" });
             CreateParameterBoolean("HedgeMode", false);
         }

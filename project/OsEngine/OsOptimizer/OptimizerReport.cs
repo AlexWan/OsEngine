@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
@@ -6,7 +11,7 @@ using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.OsOptimizer
 {
-    public class OptimazerFazeReport
+    public class OptimizerFazeReport
     {
         public OptimizerFaze Faze;
 
@@ -79,11 +84,11 @@ namespace OsEngine.OsOptimizer
                     return rep2.PositionsCount.CompareTo(rep1.PositionsCount);
                 });
             }
-            else if (sortType == SortBotsType.MaxDrowDawn)
+            else if (sortType == SortBotsType.MaxDrawDawn)
             {
                 reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
                 {
-                    return rep2.MaxDrowDawn.CompareTo(rep1.MaxDrowDawn);
+                    return rep2.MaxDrawDawn.CompareTo(rep1.MaxDrawDawn);
                 });
             }
             else if (sortType == SortBotsType.AverageProfit)
@@ -129,16 +134,15 @@ namespace OsEngine.OsOptimizer
                 });
             }
         }
-
     }
 
     public class OptimizerReport
     {
-        public OptimizerReport(List<IIStrategyParameter> paramaters)
+        public OptimizerReport(List<IIStrategyParameter> parameters)
         {
-            for (int i = 0; i < paramaters.Count; i++)
+            for (int i = 0; i < parameters.Count; i++)
             {
-                StrategyParameters.Add(paramaters[i].Type + "$" + paramaters[i].GetStringToSave() + "$"+  paramaters[i].Name);
+                StrategyParameters.Add(parameters[i].Type + "$" + parameters[i].GetStringToSave() + "$"+  parameters[i].Name);
             }
         }
 
@@ -151,7 +155,7 @@ namespace OsEngine.OsOptimizer
 
         public List<string> StrategyParameters = new List<string>();
 
-        public string GetParamsToDataTable()
+        public string GetParametersToDataTable()
         {
             string result = "";
 
@@ -302,9 +306,9 @@ namespace OsEngine.OsOptimizer
 
                 tab.SecurityName = bot.TabsSimple[i].Security.Name;
                 tab.PositionsCount = positions.Count;
-                tab.TotalProfit = PositionStatisticGenerator.GetAllProfitInPunkt(posesArray);
-                tab.TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPersent(posesArray);
-                tab.MaxDrowDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
+                tab.TotalProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(posesArray);
+                tab.TotalProfitPercent = PositionStatisticGenerator.GetAllProfitPercent(posesArray);
+                tab.MaxDrawDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
 
                 tab.AverageProfit = tab.TotalProfit / (posesArray.Length+1);
                 
@@ -328,8 +332,8 @@ namespace OsEngine.OsOptimizer
             {
                 PositionsCount = TabsReports[0].PositionsCount;
                 TotalProfit = TabsReports[0].TotalProfit;
-                TotalProfitPersent = TabsReports[0].TotalProfitPersent;
-                MaxDrowDawn = TabsReports[0].MaxDrowDawn;
+                TotalProfitPercent = TabsReports[0].TotalProfitPercent;
+                MaxDrawDawn = TabsReports[0].MaxDrawDawn;
                 AverageProfit = TabsReports[0].AverageProfit;
                 AverageProfitPercentOneContract = TabsReports[0].AverageProfitPercentOneContract;
 
@@ -345,10 +349,10 @@ namespace OsEngine.OsOptimizer
                 Position[] posesArray = allPositionsForAllTabs.ToArray();
 
                 PositionsCount = allPositionsForAllTabs.Count;
-                TotalProfit = PositionStatisticGenerator.GetAllProfitInPunkt(posesArray);
-                TotalProfitPersent = PositionStatisticGenerator.GetAllProfitPersent(posesArray);
-                MaxDrowDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
-                AverageProfit = PositionStatisticGenerator.GetMiddleProfitInPunkt(posesArray);
+                TotalProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(posesArray);
+                TotalProfitPercent = PositionStatisticGenerator.GetAllProfitPercent(posesArray);
+                MaxDrawDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
+                AverageProfit = PositionStatisticGenerator.GetMiddleProfitInAbsolute(posesArray);
                 AverageProfitPercentOneContract = PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(posesArray);
                 ProfitFactor = PositionStatisticGenerator.GetProfitFactor(posesArray);
                 Recovery = PositionStatisticGenerator.GetRecovery(posesArray);
@@ -361,9 +365,9 @@ namespace OsEngine.OsOptimizer
 
         public decimal TotalProfit;
 
-        public decimal TotalProfitPersent;
+        public decimal TotalProfitPercent;
 
-        public decimal MaxDrowDawn;
+        public decimal MaxDrawDawn;
 
         public decimal AverageProfit;
 
@@ -385,24 +389,24 @@ namespace OsEngine.OsOptimizer
             result += BotName + "@";
             result +=  PositionsCount + "@";
             result += TotalProfit + "@";
-            result += MaxDrowDawn + "@";
+            result += MaxDrawDawn + "@";
             result += AverageProfit + "@";
             result += AverageProfitPercentOneContract + "@";
             result += ProfitFactor + "@";
             result += PayOffRatio + "@";
             result += Recovery + "@";
-            result += TotalProfitPersent + "@";
+            result += TotalProfitPercent + "@";
             result += SharpRatio + "@";
 
             // сохраняем параметры в строковом представлении
-            string param = "";
+            string parameters = "";
 
             for(int i = 0;i < StrategyParameters.Count;i++)
             {
-                param += StrategyParameters[i] + "&";
+                parameters += StrategyParameters[i] + "&";
             }
 
-            result += param + "@";
+            result += parameters + "@";
 
             // сохраняем отдельные репорты по вкладкам
 
@@ -424,13 +428,13 @@ namespace OsEngine.OsOptimizer
             BotName = str[0];
             PositionsCount = Convert.ToInt32(str[1]);
             TotalProfit = Convert.ToDecimal(str[2]);
-            MaxDrowDawn = Convert.ToDecimal(str[3]);
+            MaxDrawDawn = Convert.ToDecimal(str[3]);
             AverageProfit = Convert.ToDecimal(str[4]);
             AverageProfitPercentOneContract = Convert.ToDecimal(str[5]);
             ProfitFactor = Convert.ToDecimal(str[6]);
             PayOffRatio = Convert.ToDecimal(str[7]);
             Recovery = Convert.ToDecimal(str[8]);
-            TotalProfitPersent = Convert.ToDecimal(str[9]);
+            TotalProfitPercent = Convert.ToDecimal(str[9]);
             SharpRatio = Convert.ToDecimal(str[10]);
 
             string [] param = str[11].Split('&');
@@ -461,9 +465,9 @@ namespace OsEngine.OsOptimizer
 
         public decimal TotalProfit;
 
-        public decimal TotalProfitPersent;
+        public decimal TotalProfitPercent;
 
-        public decimal MaxDrowDawn;
+        public decimal MaxDrawDawn;
 
         public decimal AverageProfit;
 
@@ -485,13 +489,13 @@ namespace OsEngine.OsOptimizer
             result += SecurityName + "*";
             result += PositionsCount + "*";
             result += TotalProfit + "*";
-            result += MaxDrowDawn + "*";
+            result += MaxDrawDawn + "*";
             result += AverageProfit + "*";
             result += AverageProfitPercentOneContract + "*";
             result += ProfitFactor + "*";
             result += PayOffRatio + "*";
             result += Recovery + "*";
-            result += TotalProfitPersent + "*";
+            result += TotalProfitPercent + "*";
             result += SharpRatio + "*";
 
             return result;
@@ -505,13 +509,13 @@ namespace OsEngine.OsOptimizer
             SecurityName = save[1];
             PositionsCount = Convert.ToInt32(save[2]);
             TotalProfit = save[3].ToDecimal();
-            MaxDrowDawn = save[4].ToDecimal();
+            MaxDrawDawn = save[4].ToDecimal();
             AverageProfit = save[5].ToDecimal();
             AverageProfitPercentOneContract = save[6].ToDecimal();
             ProfitFactor = save[7].ToDecimal();
             PayOffRatio = save[8].ToDecimal();
             Recovery = save[9].ToDecimal();
-            TotalProfitPersent = save[10].ToDecimal();
+            TotalProfitPercent = save[10].ToDecimal();
 
             if(save.Length == 11)
             {

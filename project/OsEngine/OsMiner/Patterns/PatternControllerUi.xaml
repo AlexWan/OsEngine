@@ -22,7 +22,7 @@
                     <WindowsFormsHost Name="HostGridPatternsToOpen" Margin="14,40,233,5"/>
                     <Label Name="Label40" Content="Patterns" HorizontalAlignment="Left" Margin="14,10,0,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost Name="HostSinglePatternToOpen" HorizontalAlignment="Right" Margin="0,40,5,5" Width="223"/>
-                    <TextBox Name="TextBoxWeigthToInter" Height="23" Margin="0,9,72,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
+                    <TextBox Name="TextBoxWeightToInter" Height="23" Margin="0,9,72,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
                     <Label Name="Label43" Content="Entry Weight"  Margin="0,10,249,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                     <Label Name="Label41" Content="Side" HorizontalAlignment="Left" Margin="96,10,0,0" VerticalAlignment="Top" />
                     <ComboBox Name="ComboBoxSideInter"  HorizontalAlignment="Left" Margin="181,10,0,0"   VerticalAlignment="Top" Width="151"/>
@@ -41,7 +41,7 @@
                     <TextBox Name="TextBoxTreilingStopValue"  Height="23" Margin="0,28,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
                     <CheckBox Name="CheckBoxTrailingStopIsOn" Content="Trailing Stop %" HorizontalAlignment="Right" Margin="0,28,195,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost x:Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,84,5,10" Width="223"/>
-                    <TextBox Name="TextBoxWeigthToExit" Height="23" Margin="0,56,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
+                    <TextBox Name="TextBoxWeightToExit" Height="23" Margin="0,56,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
                     <Label Name="Label50" Content="Weight for exit"  Margin="0,56,215,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                 </Grid>
             </TabItem>
@@ -83,7 +83,7 @@
                     </TabControl>
                     <ComboBox x:Name="ComboBoxPlaceToUsePattern" Margin="0,38,1,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="145"/>
                     <Label Name="Label53" Content="Use" HorizontalAlignment="Right" Margin="0,25,32,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
-                    <TextBox x:Name="TextBoxWeigthToTempPattern" HorizontalAlignment="Right" Height="23" Margin="0,76,1,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="145"/>
+                    <TextBox x:Name="TextBoxWeightToTempPattern" HorizontalAlignment="Right" Height="23" Margin="0,76,1,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="145"/>
                     <Label Name="Label54" Content="Weight" HorizontalAlignment="Right" Margin="0,63,32,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
                     <Button Name="ButtonReloadTempPattern" Content="Test" Margin="0,0,1,202" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="144" Click="ButtonReloadTempPattern_Click"/>
                     <WindowsFormsHost x:Name="HostTempPattern" Margin="394,25,152,141"/>

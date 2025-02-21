@@ -41,8 +41,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             ComboBoxDislocation.SelectedItem = server.Dislocation;
            
-            CheckBoxNeadToSaveTrade.IsChecked = server.NeadToSaveTicks;
-            TextBoxCountDaysSave.Text = server.CountDaysTickNeadToSave.ToString();
+            CheckBoxNeedToSaveTrade.IsChecked = server.NeedToSaveTicks;
+            TextBoxCountDaysSave.Text = server.CountDaysTickNeedToSave.ToString();
 
             TextBoxClientCode.Text = server.ClientCode;
 
@@ -52,7 +52,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             LabelPlace.Content = OsLocalization.Market.Message62;
             LabelUserName.Content = OsLocalization.Market.Message63;
             LabelPassword.Content = OsLocalization.Market.Message64;
-            CheckBoxNeadToSaveTrade.Content = OsLocalization.Market.ServerParam1;
+            CheckBoxNeedToSaveTrade.Content = OsLocalization.Market.ServerParam1;
             LabelDaysToLoad.Content = OsLocalization.Market.ServerParam2;
 
             this.Activate();
@@ -82,9 +82,9 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             Enum.TryParse(ComboBoxDislocation.SelectedItem.ToString(), out _server.Dislocation);
 
-            if (CheckBoxNeadToSaveTrade.IsChecked.HasValue)
+            if (CheckBoxNeedToSaveTrade.IsChecked.HasValue)
             {
-                _server.NeadToSaveTicks = CheckBoxNeadToSaveTrade.IsChecked.Value;
+                _server.NeedToSaveTicks = CheckBoxNeedToSaveTrade.IsChecked.Value;
             }
 
             try
@@ -100,7 +100,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
 
 
-            _server.CountDaysTickNeadToSave = Convert.ToInt32(TextBoxCountDaysSave.Text);
+            _server.CountDaysTickNeedToSave = Convert.ToInt32(TextBoxCountDaysSave.Text);
 
             _server.Save();
             _server.StartServer();

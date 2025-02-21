@@ -265,18 +265,18 @@ namespace OsEngine.Charts.CandleChart
                 }
                
                 _timePoints.Clear();
-                bool neadToBackChild = false;
+                bool needToBackChild = false;
 
                 if (_host != null && _host.Child != null)
                 {
                     _host.Child = null;
-                    neadToBackChild = true;
+                    needToBackChild = true;
                 }
 
-                Series oldcandleSeries = FindSeriesByNameSafe("SeriesCandle");
-                if (oldcandleSeries.Points.Count != 0)
+                Series oldCandleSeries = FindSeriesByNameSafe("SeriesCandle");
+                if (oldCandleSeries.Points.Count != 0)
                 {
-                    oldcandleSeries.Points.ClearFast();
+                    oldCandleSeries.Points.ClearFast();
                 }
                     
                 //_chartElements = new List<IChartElement>();
@@ -310,7 +310,7 @@ namespace OsEngine.Charts.CandleChart
                 ClearZoom();
                 _myCandles = null;
 
-                if (neadToBackChild)
+                if (needToBackChild)
                 {
                     _host.Child = _chart;
                 }
@@ -1262,10 +1262,10 @@ namespace OsEngine.Charts.CandleChart
                         }
                     }
 
-                    if (_neadMoveChartToTheRigth)
+                    if (_needMoveChartToTheRight)
                     {
-                        _neadMoveChartToTheRigth = false;
-                        MoveChartToTheRigthLogic(_scaleSizeToMoveChartToTheRight);
+                        _needMoveChartToTheRight = false;
+                        MoveChartToTheRightLogic(_scaleSizeToMoveChartToTheRight);
                         _scaleSizeToMoveChartToTheRight = 0;
                     }
 
@@ -2417,27 +2417,30 @@ namespace OsEngine.Charts.CandleChart
                             i--;
                         }
 
-                        if (price <= candles[i].High
-                            && price >= candles[i].Low)
+                        if(_timeFrame == TimeFrame.Sec1)
                         {
-                            return i;
-                        }
-                        else if (price <= candles[i - 1].High
-                                && price >= candles[i - 1].Low)
-                        {
-                            return i-1;
-                        }
-                        else if (i > 3 &&
-                            price <= candles[i - 2].High
-                         && price >= candles[i - 2].Low)
-                        {
-                            return i-2;
-                        }
-                        else if (i + 1 != end &&
-                           price <= candles[i + 1].High
-                           && price >= candles[i + 1].Low)
-                        {
-                            return i + 1;
+                            if (price <= candles[i].High
+                                && price >= candles[i].Low)
+                            {
+                                return i;
+                            }
+                            else if (price <= candles[i - 1].High
+                                    && price >= candles[i - 1].Low)
+                            {
+                                return i - 1;
+                            }
+                            else if (i > 3 &&
+                                price <= candles[i - 2].High
+                             && price >= candles[i - 2].Low)
+                            {
+                                return i - 2;
+                            }
+                            else if (i + 1 != end &&
+                               price <= candles[i + 1].High
+                               && price >= candles[i + 1].Low)
+                            {
+                                return i + 1;
+                            }
                         }
 
                         return i;
@@ -2457,8 +2460,14 @@ namespace OsEngine.Charts.CandleChart
                     }
                 }
 
-
-                return end-1;
+                if (_timeFrame == TimeFrame.Sec1)
+                {
+                    return end - 1;
+                }
+                else
+                {
+                    return end;
+                }
             }
 
             if (candles[start + (end - start)/2].TimeStart > time)
@@ -7498,20 +7507,20 @@ namespace OsEngine.Charts.CandleChart
       _startProgram == StartProgram.IsOsMiner) &&
      _host != null)
             {
-                MoveChartToTheRigthLogic(scaleSize);
+                MoveChartToTheRightLogic(scaleSize);
             }
             else
             {
-                _neadMoveChartToTheRigth = true;
+                _needMoveChartToTheRight = true;
                 _scaleSizeToMoveChartToTheRight = scaleSize;
             }
         }
 
-        private bool _neadMoveChartToTheRigth;
+        private bool _needMoveChartToTheRight;
 
         private int _scaleSizeToMoveChartToTheRight;
 
-        private void MoveChartToTheRigthLogic(int scaleSize)
+        private void MoveChartToTheRightLogic(int scaleSize)
         {
             if (_chart == null)
             {
@@ -7519,7 +7528,7 @@ namespace OsEngine.Charts.CandleChart
             }
             if (_chart.InvokeRequired)
             {
-                _chart.Invoke(new Action<int>(MoveChartToTheRigthLogic), scaleSize);
+                _chart.Invoke(new Action<int>(MoveChartToTheRightLogic), scaleSize);
 
                 return;
             }

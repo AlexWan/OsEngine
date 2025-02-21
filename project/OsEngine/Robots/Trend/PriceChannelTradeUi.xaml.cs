@@ -24,7 +24,7 @@ namespace OsEngine.Robots.Trend
 
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
 
-            TextBoxSlipage.Text = _strategy.Slipage.ToString();
+            TextBoxSlippage.Text = _strategy.Slippage.ToString();
 
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
@@ -49,7 +49,7 @@ namespace OsEngine.Robots.Trend
             {
 
                 if (TextBoxVolumeOne.Text.ToDecimal() <= 0 ||
-                     TextBoxSlipage.Text.ToDecimal() < 0)
+                     TextBoxSlippage.Text.ToDecimal() < 0)
                 {
                     throw new Exception("");
                 }
@@ -61,7 +61,7 @@ namespace OsEngine.Robots.Trend
             }
 
             _strategy.VolumeFix = TextBoxVolumeOne.Text.ToDecimal();
-            _strategy.Slipage = TextBoxSlipage.Text.ToDecimal();
+            _strategy.Slippage = TextBoxSlippage.Text.ToDecimal();
 
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 

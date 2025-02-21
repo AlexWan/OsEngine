@@ -28,7 +28,7 @@ namespace OsEngine.Robots.CounterTrend
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
             ComboBoxRegime.SelectedItem = _strategy.Regime;
 
-            TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlippage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
 
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
             RsiUp.Text = _strategy.Upline.Value.ToString(new CultureInfo("ru-RU"));
@@ -52,7 +52,7 @@ namespace OsEngine.Robots.CounterTrend
                 if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 || 
                     Convert.ToInt32(RsiUp.Text) <= 0 || 
                     Convert.ToInt32(RsiDown.Text) <= 0 ||
-                    Convert.ToDecimal(TextBoxSlipage.Text) < 0 ||
+                    Convert.ToDecimal(TextBoxSlippage.Text) < 0 ||
                     Convert.ToInt32(TextBoxVolumeOne.Text) <= 0)
                 {
                     throw new Exception("");
@@ -66,7 +66,7 @@ namespace OsEngine.Robots.CounterTrend
             }
 
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
-            _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
+            _strategy.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Upline.Value = Convert.ToDecimal(RsiUp.Text);
             _strategy.Downline.Value = Convert.ToDecimal(RsiDown.Text);

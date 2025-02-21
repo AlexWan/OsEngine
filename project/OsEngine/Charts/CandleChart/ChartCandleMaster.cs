@@ -446,7 +446,7 @@ namespace OsEngine.Charts.CandleChart
                 {
                     for (int i = 0; _indicators != null && i < _indicators.Count; i++)
                     {
-                        _indicators[i].NeedToReloadEvent -= indicator_NeadToReloadEvent;
+                        _indicators[i].NeedToReloadEvent -= indicator_NeedToReloadEvent;
                         _indicators[i].Clear();
                         _indicators[i].Delete();
                     }
@@ -480,7 +480,7 @@ namespace OsEngine.Charts.CandleChart
                 {
                     for (int i = 0; i < _chartElements.Count; i++)
                     {
-                        _chartElements[i].UpdeteEvent -= myElement_UpdeteEvent;
+                        _chartElements[i].UpdateEvent -= myElement_UpdeteEvent;
                         _chartElements[i].DeleteEvent -= myElement_DeleteEvent;
                         _chartElements[i].Delete();
                     }
@@ -853,6 +853,10 @@ namespace OsEngine.Charts.CandleChart
 
         public event Action IndicatorUpdateEvent;
 
+        public event Action<IIndicator> IndicatorManuallyCreateEvent;
+
+        public event Action<IIndicator> IndicatorManuallyDeleteEvent;
+
         /// <summary>
         /// user has chosen to delete indicator in context menu
         /// Пользователь выбрал в контекстном меню удалить индикатор
@@ -871,7 +875,14 @@ namespace OsEngine.Charts.CandleChart
                 List<IIndicator> indicators = _indicators.FindAll(candle => candle.CanDelete == true);
                 if (number < indicators.Count)
                 {
-                    DeleteIndicator(indicators[number]);
+                    IIndicator indicator = indicators[number];
+
+                    DeleteIndicator(indicator);
+
+                    if (IndicatorManuallyDeleteEvent != null)
+                    {
+                        IndicatorManuallyDeleteEvent(indicator);
+                    }
                 }
 
             }
@@ -894,12 +905,32 @@ namespace OsEngine.Charts.CandleChart
         {
             try
             {
+                int indicatorsOld = 0;
+
+                if (Indicators != null)
+                {
+                    indicatorsOld = Indicators.Count;
+                }
+
                 IndicarotCreateUi ui = new IndicarotCreateUi(this);
                 ui.ShowDialog();
 
                 if (IndicatorUpdateEvent != null)
                 {
                     IndicatorUpdateEvent();
+                }
+
+                int indicatorsNow = 0;
+
+                if (Indicators != null)
+                {
+                    indicatorsNow = Indicators.Count;
+                }
+
+                if (indicatorsOld < indicatorsNow &&
+                    IndicatorManuallyCreateEvent != null)
+                {
+                    IndicatorManuallyCreateEvent(Indicators[Indicators.Count - 1]);
                 }
             }
             catch (Exception error)
@@ -1016,8 +1047,8 @@ namespace OsEngine.Charts.CandleChart
 
                 LoadIndicatorOnChart(indicator);
 
-                indicator.NeedToReloadEvent += indicator_NeadToReloadEvent;
-                indicator_NeadToReloadEvent(indicator);
+                indicator.NeedToReloadEvent += indicator_NeedToReloadEvent;
+                indicator_NeedToReloadEvent(indicator);
 
                 return indicator;
             }
@@ -1101,7 +1132,7 @@ namespace OsEngine.Charts.CandleChart
         /// Индикатор изменился. Надо перерисовать
         /// </summary>
         /// <param name="indicator">indicator/индикатор</param>
-        private void indicator_NeadToReloadEvent(IIndicator indicator)
+        private void indicator_NeedToReloadEvent(IIndicator indicator)
         {
             try
             {
@@ -1224,7 +1255,7 @@ namespace OsEngine.Charts.CandleChart
                 if (myElement != null)
                 {
                     _chartElements.Remove(myElement);
-                    myElement.UpdeteEvent -= myElement_UpdeteEvent;
+                    myElement.UpdateEvent -= myElement_UpdeteEvent;
                     myElement.DeleteEvent -= myElement_DeleteEvent;
                 }
 
@@ -1232,7 +1263,7 @@ namespace OsEngine.Charts.CandleChart
 
                 _chartElements.Add(myElement);
 
-                myElement.UpdeteEvent += myElement_UpdeteEvent;
+                myElement.UpdateEvent += myElement_UpdeteEvent;
                 myElement.DeleteEvent += myElement_DeleteEvent;
                 // 2 sending it over for a drawing.
                 // 2 отправляем на прорисовку

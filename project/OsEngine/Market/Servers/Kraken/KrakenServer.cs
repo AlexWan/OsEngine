@@ -21,7 +21,7 @@ namespace OsEngine.Market.Servers.Kraken
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Leverage type", "None", new List<string> (){"None","Two","Three","Four","Five"});
 
         }

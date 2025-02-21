@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.ZB
         {
             ServerRealization = new ZbServerRealization();
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
         }
 
         /// <summary>

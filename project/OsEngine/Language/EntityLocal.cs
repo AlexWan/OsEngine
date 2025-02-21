@@ -385,7 +385,7 @@ namespace OsEngine.Language
 
         public string ColumnPortfolio9 => OsLocalization.ConvertToLocString(
             "Eng:Volume block_" +
-            "Ru:Объём блокирован_");
+            "Ru:Объём блок._");
 
         public string ColumnPortfolio10 => OsLocalization.ConvertToLocString(
             "Eng:Pnl_" +

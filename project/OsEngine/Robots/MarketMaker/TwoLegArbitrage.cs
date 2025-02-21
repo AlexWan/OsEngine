@@ -45,7 +45,7 @@ namespace OsEngine.Robots.MarketMaker
             Upline = CreateParameter("Upline", 10, 50, 80, 3);
             Downline = CreateParameter("Downline", 10, 25, 50, 2);
             Volume = CreateParameter("Volume", 3, 1, 50, 4);
-            Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
+            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
             RsiLength = CreateParameter("RsiLength", 10, 5, 150, 2);
 
             _rsi = new Rsi(name + "RSI", false) { Length = 20, ColorBase = Color.Gold, };

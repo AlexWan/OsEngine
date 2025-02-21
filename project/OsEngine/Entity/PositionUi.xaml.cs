@@ -23,7 +23,7 @@ namespace OsEngine.Entity
         /// </summary>
         public PositionUi(Position position, StartProgram startProgram)
         {
-            _startProgramm = startProgram;
+            _startProgram = startProgram;
             _position = position;
             InitializeComponent();
             _currentCulture = OsLocalization.CurCulture;
@@ -50,7 +50,7 @@ namespace OsEngine.Entity
 
         CultureInfo _currentCulture;
 
-        StartProgram _startProgramm;
+        StartProgram _startProgram;
 
         private void RePaint()
         {
@@ -320,7 +320,7 @@ namespace OsEngine.Entity
         void CloseOrdersAddOrder_Click(object sender, EventArgs e)
         {
             Order newOrder = new Order();
-            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgramm);
+            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
 
             if (_position.Direction == Side.Buy)
             {
@@ -331,7 +331,7 @@ namespace OsEngine.Entity
                 newOrder.Side = Side.Buy;
             }
 
-            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgramm).ToString();
+            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgram).ToString();
             newOrder.TypeOrder = OrderPriceType.Limit;
             newOrder.PortfolioNumber = GetPortfolioName();
             newOrder.PositionConditionType = OrderPositionConditionType.Close;
@@ -456,9 +456,9 @@ namespace OsEngine.Entity
         void OpenOrdersAddOrder_Click(object sender, EventArgs e)
         {
             Order newOrder = new Order();
-            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgramm);
+            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
             newOrder.Side = _position.Direction;
-            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgramm).ToString();
+            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgram).ToString();
             newOrder.TypeOrder = OrderPriceType.Limit;
             newOrder.PortfolioNumber = GetPortfolioName();
             newOrder.PositionConditionType = OrderPositionConditionType.Open;
@@ -725,7 +725,7 @@ namespace OsEngine.Entity
             trade.Side = myOrd.Side;
             trade.NumberOrderParent = myOrd.NumberMarket.ToString();
             trade.NumberPosition = _position.Number.ToString();
-            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgramm).ToString();
+            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgram).ToString();
 
             myOrd.SetTrade(trade);
 
@@ -755,7 +755,7 @@ namespace OsEngine.Entity
             trade.Side = myOrd.Side;
             trade.NumberOrderParent = myOrd.NumberMarket.ToString();
             trade.NumberPosition = _position.Number.ToString();
-            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgramm).ToString();
+            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgram).ToString();
 
             myOrd.SetTrade(trade);
 

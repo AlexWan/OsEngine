@@ -35,7 +35,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// it is necessary to update item on chart
         /// необходимо обновить элемент на чарте
         /// </summary>
-        event Action<IChartElement> UpdeteEvent;
+        event Action<IChartElement> UpdateEvent;
 
         /// <summary>
         /// it's necessary to remove an item from chart forever

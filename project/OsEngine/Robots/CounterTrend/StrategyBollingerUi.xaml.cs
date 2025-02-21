@@ -23,7 +23,7 @@ namespace OsEngine.Robots.CounterTrend
             _strategy = strategy;
 
             TextBoxVolumeOne.Text = _strategy.Volume.ToString();
-            TextBoxSlipage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlippage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
@@ -47,7 +47,7 @@ namespace OsEngine.Robots.CounterTrend
             {
 
                 if (Convert.ToDecimal(TextBoxVolumeOne.Text) <= 0 ||
-                    Convert.ToDecimal(TextBoxSlipage.Text) < 0)
+                    Convert.ToDecimal(TextBoxSlippage.Text) < 0)
                 {
                     throw new Exception("");
                 }
@@ -59,7 +59,7 @@ namespace OsEngine.Robots.CounterTrend
             }
 
             _strategy.Volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
-            _strategy.Slippage = Convert.ToDecimal(TextBoxSlipage.Text);
+            _strategy.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
 
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 

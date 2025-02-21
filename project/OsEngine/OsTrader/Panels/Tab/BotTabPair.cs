@@ -2295,7 +2295,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Calculate the price on security
         /// </summary>
-        private decimal GetPrice(PairTraderSlippageType slipageType, decimal slipageValue, Side side, BotTabSimple tab)
+        private decimal GetPrice(PairTraderSlippageType slippageType, decimal slippageValue, Side side, BotTabSimple tab)
         {
             decimal price = 0;
 
@@ -2308,20 +2308,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 price = tab.PriceBestAsk;
             }
 
-            if(slipageValue == 0)
+            if(slippageValue == 0)
             {
                 return price;
             }
 
             decimal slippage = 0;
 
-            if(slipageType == PairTraderSlippageType.Absolute)
+            if(slippageType == PairTraderSlippageType.Absolute)
             {
-                slippage = slipageValue;
+                slippage = slippageValue;
             }
-            else if(slipageType == PairTraderSlippageType.Percent)
+            else if(slippageType == PairTraderSlippageType.Percent)
             {
-                slippage = price * (slipageValue / 100);
+                slippage = price * (slippageValue / 100);
             }
 
             if (side == Side.Buy)

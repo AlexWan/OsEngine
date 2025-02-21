@@ -34,7 +34,7 @@ namespace OsEngine.Robots.Patterns
 
             //_tab.CandleFinishedEvent += TradeLogic;
             _tab.CandleFinishedEvent += TradeLogic;
-            Slipage = 0;
+            Slippage = 0;
             VolumeFix = 1;
             Stop = 0.5m;
             Load();
@@ -81,7 +81,7 @@ namespace OsEngine.Robots.Patterns
         /// slippage
         ///  проскальзывание
         /// </summary>
-        public decimal Slipage;
+        public decimal Slippage;
 
         /// <summary>
         /// volume
@@ -106,7 +106,7 @@ namespace OsEngine.Robots.Patterns
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
-                    writer.WriteLine(Slipage);
+                    writer.WriteLine(Slippage);
                     writer.WriteLine(VolumeFix);
                     writer.WriteLine(Regime);
                     writer.WriteLine(Stop);
@@ -134,7 +134,7 @@ namespace OsEngine.Robots.Patterns
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
-                    Slipage = Convert.ToDecimal(reader.ReadLine());
+                    Slippage = Convert.ToDecimal(reader.ReadLine());
                     VolumeFix = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Stop = Convert.ToDecimal(reader.ReadLine());
@@ -215,13 +215,13 @@ namespace OsEngine.Robots.Patterns
         {
             if (_lastPriceC > _pivotR1 && _lastPriceO < _pivotR1 && Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
+                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slippage);
                 _pivotR3 = _pivot.ValuesR3[_pivot.ValuesR3.Count - 1];
             }
 
             if (_lastPriceC < _pivotS1 && _lastPriceO > _pivotS1 && Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
+                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slippage);
                 _pivotS3 = _pivot.ValuesS3[_pivot.ValuesS3.Count - 1];
             }
         }
@@ -236,7 +236,7 @@ namespace OsEngine.Robots.Patterns
             {
                 if (_lastPriceC > _pivotR3)
                 {
-                    _tab.CloseAtLimit(openPosition, _lastPriceC - Slipage, openPosition.OpenVolume);
+                    _tab.CloseAtLimit(openPosition, _lastPriceC - Slippage, openPosition.OpenVolume);
                 }
                 if (_lastPriceC < openPosition.EntryPrice - openPosition.EntryPrice / 100m * Stop)
                 {
@@ -248,7 +248,7 @@ namespace OsEngine.Robots.Patterns
             {
                 if (_lastPriceC < _pivotS3)
                 {
-                    _tab.CloseAtLimit(openPosition, _lastPriceC + Slipage, openPosition.OpenVolume);
+                    _tab.CloseAtLimit(openPosition, _lastPriceC + Slippage, openPosition.OpenVolume);
                 }
                 if (_lastPriceC > openPosition.EntryPrice + openPosition.EntryPrice / 100m * Stop)
                 {

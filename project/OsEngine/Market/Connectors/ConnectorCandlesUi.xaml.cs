@@ -285,6 +285,13 @@ namespace OsEngine.Market.Connectors
                 }
 
                 _connectorBot.CandleCreateMethodType = ComboBoxCandleCreateMethodType.Text;
+
+                if(_connectorBot.CandleCreateMethodType != "Simple"
+                    && _connectorBot.TimeFrame != TimeFrame.Sec1)
+                {
+                    _connectorBot.TimeFrame = TimeFrame.Sec1;
+                }
+
                 _connectorBot.SaveTradesInCandles = _saveTradesInCandles;
 
                 ACandlesSeriesRealization candlesCur = _connectorBot.TimeFrameBuilder.CandleSeriesRealization;
@@ -1334,25 +1341,25 @@ namespace OsEngine.Market.Connectors
             {
                 DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
 
-                CandlesParameterString paramStr = (CandlesParameterString)param;
+                CandlesParameterString parameterStr = (CandlesParameterString)param;
 
-                if (paramStr.SysName == "TimeFrame")
+                if (parameterStr.SysName == "TimeFrame")
                 {
                     LoadTimeFrameBox(cell);
                 }
                 else
                 {
-                    for (int i = 0; i < paramStr.ValuesString.Count; i++)
+                    for (int i = 0; i < parameterStr.ValuesString.Count; i++)
                     {
-                        cell.Items.Add(paramStr.ValuesString[i]);
+                        cell.Items.Add(parameterStr.ValuesString[i]);
                     }
                 }
 
                 for (int i = 0; i < cell.Items.Count; i++)
                 {
-                    if (cell.Items[i].ToString() == paramStr.ValueString)
+                    if (cell.Items[i].ToString() == parameterStr.ValueString)
                     {
-                        cell.Value = paramStr.ValueString;
+                        cell.Value = parameterStr.ValueString;
                         break;
                     }
                 }
@@ -1361,7 +1368,7 @@ namespace OsEngine.Market.Connectors
                     cell.Items.Count > 0)
                 {
                     cell.Value = cell.Items[0].ToString();
-                    paramStr.ValueString = cell.Items[0].ToString();
+                    parameterStr.ValueString = cell.Items[0].ToString();
                 }
 
                 row.Cells.Add(cell);

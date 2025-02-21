@@ -26,7 +26,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 {
     public class BotTabScreener : IIBotTab
     {
-        #region staticPart
+        #region Static part
 
         /// <summary>
         /// Activate grid drawing
@@ -230,7 +230,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region service
+        #region Service
 
         /// <summary>
         /// Tab for portfolio securities
@@ -433,7 +433,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         newTab.Connector.SaveTradesInCandles = false;
 
                         Tabs.Add(newTab);
-                        SubscribleOnTab(newTab);
+                        SubscribeOnTab(newTab);
                         UpdateTabSettings(Tabs[Tabs.Count - 1]);
                         PaintNewRow();
 
@@ -444,6 +444,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (Tabs.Count == 1)
                         {
+                            Tabs[0].IndicatorManuallyCreateEvent += BotTabScreener_IndicatorManuallyCreateEvent;
+                            Tabs[0].IndicatorManuallyDeleteEvent += BotTabScreener_IndicatorManuallyDeleteEvent;
                             Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
                         }
                     }
@@ -457,6 +459,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             ReloadIndicatorsOnTabs();
+            SetJournalsInPosViewer();
         }
 
         /// <summary>
@@ -589,6 +592,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 File.Delete(@"Engine\" + TabName + @"ScreenerTabSet.txt");
             }
 
+            if (File.Exists(@"Engine\" + TabName + @"ScreenerIndicators.txt"))
+            {
+                File.Delete(@"Engine\" + TabName + @"ScreenerIndicators.txt");
+            }
+
+            if (_positionViewer != null)
+            {
+                _positionViewer.Delete();
+            }
+
             if (TabDeletedEvent != null)
             {
                 TabDeletedEvent();
@@ -620,7 +633,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region working with tabs
+        #region Working with tabs
 
         /// <summary>
         /// Trade portfolio name
@@ -822,6 +835,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (Tabs.Count != 0)
                 {
+                    Tabs[0].IndicatorManuallyCreateEvent -= BotTabScreener_IndicatorManuallyCreateEvent;
+                    Tabs[0].IndicatorManuallyCreateEvent += BotTabScreener_IndicatorManuallyCreateEvent;
+
+                    Tabs[0].IndicatorManuallyDeleteEvent -= BotTabScreener_IndicatorManuallyDeleteEvent;
+                    Tabs[0].IndicatorManuallyDeleteEvent += BotTabScreener_IndicatorManuallyDeleteEvent;
+
                     Tabs[0].IndicatorUpdateEvent -= BotTabScreener_IndicatorUpdateEvent;
                     Tabs[0].IndicatorUpdateEvent += BotTabScreener_IndicatorUpdateEvent;
                 }
@@ -832,6 +851,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 SaveTabs();
+
+                SetJournalsInPosViewer();
 
                 NeedToReloadTabs = false;
             }
@@ -972,7 +993,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             curTabs.Add(newTab);
 
-            SubscribleOnTab(newTab);
+            SubscribeOnTab(newTab);
         }
 
         /// <summary>
@@ -1062,43 +1083,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// Updated indicator inside tab number one
-        /// </summary>
-        private void BotTabScreener_IndicatorUpdateEvent()
-        {
-            if (Tabs.Count <= 1)
-            {
-                return;
-            }
-
-            List<IIndicator> indicators = Tabs[0].Indicators;
-
-            bool oldIndicatorInArray = false;
-
-            for (int i = 0; Tabs[0].Indicators != null && i < Tabs[0].Indicators.Count; i++)
-            {
-                try
-                {
-                    Aindicator ind = (Aindicator)Tabs[0].Indicators[i];
-                }
-                catch
-                {
-                    Tabs[0].DeleteCandleIndicator(Tabs[0].Indicators[i]);
-                    i--;
-                    oldIndicatorInArray = true;
-                }
-            }
-
-            if (oldIndicatorInArray)
-            {
-                Tabs[0].SetNewLogMessage(OsLocalization.Trader.Label177, LogMessageType.Error);
-            }
-
-            SynchFirstTab();
-            SaveIndicators();
-        }
-
-        /// <summary>
         /// All tab positions
         /// </summary>
         public List<Position> PositionsOpenAll
@@ -1140,7 +1124,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-        #region drawing and working with the GUI
+        #region Drawing and working with the GUI
 
         /// <summary>
         /// Show GUI
@@ -1183,6 +1167,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         List<CandleEngine> _chartEngines = new List<CandleEngine>();
 
+        private GlobalPositionViewer _positionViewer;
+
         /// <summary>
         /// Show GUI
         /// </summary>
@@ -1205,7 +1191,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 bot.GetTabs().Clear();
                 bot.GetTabs().Add(myTab);
                 bot.TabsSimple[0] = myTab;
-                bot.ActivTab = myTab;
+                bot.ActiveTab = myTab;
 
                 bot.ChartClosedEvent += (string nameBot) =>
                 {
@@ -1231,12 +1217,26 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// start drawing this robot
         /// </summary> 
-        public void StartPaint(WindowsFormsHost host)
+        public void StartPaint(WindowsFormsHost host, 
+            WindowsFormsHost hostOpenDeals,
+            WindowsFormsHost hostCloseDeals)
         {
             try
             {
                 _host = host;
                 RePaintSecuritiesGrid();
+
+                if(_positionViewer == null)
+                {
+                    _positionViewer = new GlobalPositionViewer(StartProgram);
+                    _positionViewer.LogMessageEvent += SendNewLogMessage;
+                    _positionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
+                    _positionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+                   
+                }
+
+                SetJournalsInPosViewer();
+                _positionViewer.StartPaint(hostOpenDeals, hostCloseDeals);
             }
             catch (Exception ex)
             {
@@ -1262,12 +1262,45 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
+                if(_positionViewer != null)
+                {
+                    _positionViewer.StopPaint();
+                }
+
                 _host.Child = null;
                 _host = null;
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void SetJournalsInPosViewer()
+        {
+            if (_startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            if(_positionViewer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    if (Tabs[i] != null)
+                    {
+                        _positionViewer.SetJournal(Tabs[i].GetJournal());
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1359,7 +1392,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newGrid.Click += NewGrid_Click;
         }
 
-        private int prevActiveRow;
+        private int _previousActiveRow;
 
         /// <summary>
         /// Click on table
@@ -1389,11 +1422,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (tabColumn == 7)
                     {
                         ShowChart(tabRow);
+                        SecuritiesDataGrid.Rows[tabRow].Cells[0].Selected = true;
                     }
 
-                    SecuritiesDataGrid.Rows[prevActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
                     SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
-                    prevActiveRow = tabRow;
+                    _previousActiveRow = tabRow;
                 }
             }
             catch (Exception ex)
@@ -1512,6 +1546,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+
                 if (Tabs.Count == 0)
                 {
                     return;
@@ -1523,9 +1558,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 SecuritiesDataGrid.ContextMenu = menu;
 
-                SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
-
-                //SuncFirstTab();
+                SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));                
             }
             catch (Exception ex)
             {
@@ -1533,9 +1566,38 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// The user clicked on the table with positions
+        /// </summary>
+        /// <param name="botTabName">The name of the tab that was active when the event was generated</param>
+        private void _globalPositionViewer_UserClickOnPositionShowBotInTableEvent(string botTabName)
+        {
+            if (UserClickOnPositionShowBotInTableEvent != null)
+            {
+                UserClickOnPositionShowBotInTableEvent(botTabName);
+            }
+        }
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
+
+        public event Action<Position, SignalType> UserSelectActionEvent;
+
+        /// <summary>
+        /// The user has selected a position
+        /// </summary>
+        /// <param name="pos">position</param>
+        /// <param name="signal">Action signal</param>
+        private void _globalController_UserSelectActionEvent(Position pos, SignalType signal)
+        {
+            if(UserSelectActionEvent != null)
+            {
+                UserSelectActionEvent(pos, signal);
+            }
+        }
+
         #endregion
 
-        #region Настройки сопровождения позиций
+        #region Position tracking settings
 
         public void ShowManualControlDialog()
         {
@@ -1558,8 +1620,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
-
-        #region создание / удаление / хранение индикаторов
+        #region Creating / deleting / storing indicators
 
         /// <summary>
         /// create indicator / 
@@ -1586,7 +1647,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (param != null)
                 {
-                    indicator.Params = param;
+                    indicator.Parameters = param;
                 }
 
                 _indicators.Add(indicator);
@@ -1639,61 +1700,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (Tabs != null
-                    && Tabs.Count != 0)
-                {
-                    _indicators = new List<IndicatorOnTabs>();
-
-                    List<IIndicator> indic = Tabs[0].Indicators;
-
-                    for (int i = 0; indic != null && i < indic.Count; i++)
-                    {
-                        if (indic[i].GetType().BaseType.Name != "Aindicator")
-                        {
-                            continue;
-                        }
-
-                        Aindicator aindicator = (Aindicator)indic[i];
-
-                        IndicatorOnTabs indicator = new IndicatorOnTabs();
-                        indicator.Num = i + 1;
-
-                        indicator.Type = indic[i].GetType().Name;
-                        indicator.NameArea = indic[i].NameArea;
-
-                        List<string> parameters = new List<string>();
-
-
-                        for (int i2 = 0; i2 < aindicator.Parameters.Count; i2++)
-                        {
-                            string curParam = "";
-
-                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.Int)
-                            {
-                                curParam = ((IndicatorParameterInt)aindicator.Parameters[i2]).ValueInt.ToString();
-                            }
-                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
-                            {
-                                curParam = ((IndicatorParameterDecimal)aindicator.Parameters[i2]).ValueDecimal.ToString();
-                            }
-                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.Bool)
-                            {
-                                curParam = ((IndicatorParameterBool)aindicator.Parameters[i2]).ValueBool.ToString();
-                            }
-                            if (aindicator.Parameters[i2].Type == IndicatorParameterType.String)
-                            {
-                                curParam = ((IndicatorParameterString)aindicator.Parameters[i2]).ValueString;
-                            }
-                            parameters.Add(curParam);
-                        }
-
-                        indicator.Params = parameters;
-
-                        _indicators.Add(indicator);
-
-                    }
-                }
-
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + TabName + @"ScreenerIndicators.txt", false))
                 {
                     for (int i = 0; i < _indicators.Count; i++)
@@ -1734,31 +1740,31 @@ namespace OsEngine.OsTrader.Panels.Tab
             for (int i = 0; i < Tabs.Count; i++)
             {
                 Aindicator newIndicator = IndicatorsFactory.CreateIndicatorByName(ind.Type, ind.Num + ind.Type + TabName, false);
-                newIndicator.CanDelete = false;
+                newIndicator.CanDelete = ind.CanDelete;
 
                 try
                 {
-                    if(ind.Params.Count == newIndicator.Parameters.Count)
+                    if (ind.Parameters.Count == newIndicator.Parameters.Count)
                     {
-                        if (ind.Params != null && ind.Params.Count != 0)
+                        if (ind.Parameters != null && ind.Parameters.Count != 0)
                         {
-                            for (int i2 = 0; i2 < ind.Params.Count; i2++)
+                            for (int i2 = 0; i2 < ind.Parameters.Count; i2++)
                             {
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Int)
                                 {
-                                    ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Params[i2]);
+                                    ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Parameters[i2]);
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
                                 {
-                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Params[i2]);
+                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool)
                                 {
-                                    ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Params[i2]);
+                                    ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Parameters[i2]);
                                 }
                                 if (newIndicator.Parameters[i2].Type == IndicatorParameterType.String)
                                 {
-                                    ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Params[i2];
+                                    ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Parameters[i2];
                                 }
                             }
                         }
@@ -1770,6 +1776,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 newIndicator = (Aindicator)Tabs[i].CreateCandleIndicator(newIndicator, ind.NameArea);
+                newIndicator.CanDelete = ind.CanDelete;
+
                 newIndicator.Save();
             }
         }
@@ -1932,69 +1940,166 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             bool isChange = false;
 
+            if(second.CanDelete != indFirst.CanDelete)
+            {
+                second.CanDelete = indFirst.CanDelete;
+                isChange = true;
+            }
+           
             for (int i = 0; i < indFirst.Parameters.Count; i++)
             {
-                IndicatorParameter paramFirst = indFirst.Parameters[i];
-                IndicatorParameter paramSecond = second.Parameters[i];
+                IndicatorParameter parameterFirst = indFirst.Parameters[i];
+                IndicatorParameter parameterSecond = second.Parameters[i];
 
-                if (paramFirst.Type == IndicatorParameterType.String
+                if (parameterFirst.Type == IndicatorParameterType.String
                     &&
-                    ((IndicatorParameterString)paramSecond).ValueString != ((IndicatorParameterString)paramFirst).ValueString)
+                    ((IndicatorParameterString)parameterSecond).ValueString != ((IndicatorParameterString)parameterFirst).ValueString)
                 {
-                    ((IndicatorParameterString)paramSecond).ValueString = ((IndicatorParameterString)paramFirst).ValueString;
+                    ((IndicatorParameterString)parameterSecond).ValueString = ((IndicatorParameterString)parameterFirst).ValueString;
                     isChange = true;
                 }
-                if (paramFirst.Type == IndicatorParameterType.Bool &&
-                    ((IndicatorParameterBool)paramSecond).ValueBool != ((IndicatorParameterBool)paramFirst).ValueBool)
+                if (parameterFirst.Type == IndicatorParameterType.Bool &&
+                    ((IndicatorParameterBool)parameterSecond).ValueBool != ((IndicatorParameterBool)parameterFirst).ValueBool)
                 {
-                    ((IndicatorParameterBool)paramSecond).ValueBool = ((IndicatorParameterBool)paramFirst).ValueBool;
+                    ((IndicatorParameterBool)parameterSecond).ValueBool = ((IndicatorParameterBool)parameterFirst).ValueBool;
                     isChange = true;
                 }
-                if (paramFirst.Type == IndicatorParameterType.Decimal &&
-                    ((IndicatorParameterDecimal)paramSecond).ValueDecimal != ((IndicatorParameterDecimal)paramFirst).ValueDecimal)
+                if (parameterFirst.Type == IndicatorParameterType.Decimal &&
+                    ((IndicatorParameterDecimal)parameterSecond).ValueDecimal != ((IndicatorParameterDecimal)parameterFirst).ValueDecimal)
                 {
-                    ((IndicatorParameterDecimal)paramSecond).ValueDecimal = ((IndicatorParameterDecimal)paramFirst).ValueDecimal;
+                    ((IndicatorParameterDecimal)parameterSecond).ValueDecimal = ((IndicatorParameterDecimal)parameterFirst).ValueDecimal;
                     isChange = true;
                 }
-                if (paramFirst.Type == IndicatorParameterType.Int &&
-                    ((IndicatorParameterInt)paramSecond).ValueInt != ((IndicatorParameterInt)paramFirst).ValueInt)
+                if (parameterFirst.Type == IndicatorParameterType.Int &&
+                    ((IndicatorParameterInt)parameterSecond).ValueInt != ((IndicatorParameterInt)parameterFirst).ValueInt)
                 {
-                    ((IndicatorParameterInt)paramSecond).ValueInt = ((IndicatorParameterInt)paramFirst).ValueInt;
+                    ((IndicatorParameterInt)parameterSecond).ValueInt = ((IndicatorParameterInt)parameterFirst).ValueInt;
                     isChange = true;
                 }
             }
 
             for (int i = 0; i < indFirst.DataSeries.Count; i++)
             {
-                IndicatorDataSeries paramFirst = indFirst.DataSeries[i];
-                IndicatorDataSeries paramSecond = second.DataSeries[i];
+                IndicatorDataSeries parameterFirst = indFirst.DataSeries[i];
+                IndicatorDataSeries parameterSecond = second.DataSeries[i];
 
-                if (paramFirst.ChartPaintType != paramSecond.ChartPaintType)
+                if (parameterFirst.ChartPaintType != parameterSecond.ChartPaintType)
                 {
-                    paramSecond.ChartPaintType = paramFirst.ChartPaintType;
+                    parameterSecond.ChartPaintType = parameterFirst.ChartPaintType;
                     isChange = true;
                 }
 
-                if (paramFirst.Color != paramSecond.Color)
+                if (parameterFirst.Color != parameterSecond.Color)
                 {
-                    paramSecond.Color = paramFirst.Color;
+                    parameterSecond.Color = parameterFirst.Color;
                     isChange = true;
                 }
 
-                if (paramFirst.IsPaint != paramSecond.IsPaint)
+                if (parameterFirst.IsPaint != parameterSecond.IsPaint)
                 {
-                    paramSecond.IsPaint = paramFirst.IsPaint;
+                    parameterSecond.IsPaint = parameterFirst.IsPaint;
                     isChange = true;
                 }
             }
 
-
             return isChange;
+        }
+
+        private void BotTabScreener_IndicatorManuallyDeleteEvent(IIndicator indicator, BotTabSimple tab)
+        {
+            for(int i = 0;i < _indicators.Count;i++)
+            {
+                IndicatorOnTabs ind = _indicators[i];
+                string name = ind.Num + ind.Type + TabName;
+
+                if (indicator.Name == name)
+                {
+                    _indicators.RemoveAt(i);
+                    SaveIndicators();
+                    SynchFirstTab();
+                    return;
+
+                }
+            }
+        }
+
+        private void BotTabScreener_IndicatorManuallyCreateEvent(IIndicator indicator, BotTabSimple tab)
+        {
+            if (Tabs.Count <= 1)
+            {
+                return;
+            }
+
+            if (Tabs[0].Indicators == null
+                || Tabs[0].Indicators.Count == 0)
+            {
+                return;
+            }
+
+            bool oldIndicatorInArray = false;
+
+            for (int i = 0; Tabs[0].Indicators != null && i < Tabs[0].Indicators.Count; i++)
+            {
+                try
+                {
+                    Aindicator ind = (Aindicator)Tabs[0].Indicators[i];
+                }
+                catch
+                {
+                    Tabs[0].DeleteCandleIndicator(Tabs[0].Indicators[i]);
+                    i--;
+                    oldIndicatorInArray = true;
+                }
+            }
+
+            if (oldIndicatorInArray)
+            {
+                Tabs[0].SetNewLogMessage(OsLocalization.Trader.Label177, LogMessageType.Error);
+                SynchFirstTab();
+                SaveIndicators();
+                return;
+            }
+
+            // Если появляется новый индикатор - надо: 
+            // 1) Проверить чтобы это был индикатор из скриптов
+            // 2) Удалить его.
+            // 3) И создать такой же через меню создания индикаторов в скринере. Чтобы было правильное имя
+
+            Aindicator indNew = (Aindicator)tab.Indicators[tab.Indicators.Count - 1];
+
+            IndicatorParameter[] parameters = indNew.Parameters.ToArray();
+
+            int indicatorsNow = tab.Indicators.Count;
+            string indicatorType = indNew.GetType().Name;
+            string area = indNew.NameArea;
+
+            Tabs[0].DeleteCandleIndicator(indNew);
+            CreateCandleIndicator(indicatorsNow, indicatorType, null, area);
+
+            _indicators[_indicators.Count - 1].CanDelete = true;
+            SaveIndicators();
+
+            Aindicator indNew2 = (Aindicator)tab.Indicators[tab.Indicators.Count - 1];
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                indNew2.Parameters[i] = parameters[i];
+            }
+
+            indNew2.CanDelete = true;
+
+            SynchFirstTab();
+            SaveIndicators();
+        }
+
+        private void BotTabScreener_IndicatorUpdateEvent()
+        {
+            SynchFirstTab();
         }
 
         #endregion
 
-        // log
+        #region Log
 
         /// <summary>
         /// Send log message
@@ -2016,7 +2121,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        // external position management
+        #endregion
+
+        #region External position management
 
         /// <summary>
         /// Close all market positions
@@ -2078,7 +2185,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             return null;
         }
 
-        // outgoing events
+        #endregion
+
+        #region Events
 
         /// <summary>
         /// New tab creation event
@@ -2088,7 +2197,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Subscribe to events in the tab
         /// </summary>
-        private void SubscribleOnTab(BotTabSimple tab)
+        private void SubscribeOnTab(BotTabSimple tab)
         {
             tab.LogMessageEvent += LogMessageEvent;
 
@@ -2300,6 +2409,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Source removed
         /// </summary>
         public event Action TabDeletedEvent;
+
+        #endregion
     }
 
     /// <summary>
@@ -2325,7 +2436,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Parameters for the indicator
         /// </summary>
-        public List<string> Params = new List<string>();
+        public List<string> Parameters = new List<string>();
+
+        /// <summary>
+        /// Can the indicator be removed
+        /// </summary>
+        public bool CanDelete;
 
         /// <summary>
         /// Take the save string
@@ -2334,13 +2450,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             string result = "";
 
-            result += Type + "$" + NameArea + "$" + Num;
+            result += Type + "$" + NameArea + "$" + Num + "$" + CanDelete;
 
-            for (int i = 0; Params != null && i < Params.Count; i++)
+            for (int i = 0; Parameters != null && i < Parameters.Count; i++)
             {
                 result += "$";
 
-                result += Params[i];
+                result += Parameters[i];
 
             }
 
@@ -2358,11 +2474,19 @@ namespace OsEngine.OsTrader.Panels.Tab
             NameArea = str[1];
             Num = Convert.ToInt32(str[2]);
 
-            Params = new List<string>();
+            int startInd = 3;
 
-            for (int i = 3; i < str.Length; i++)
+            if(str.Length > 3)
             {
-                Params.Add(str[i]);
+                CanDelete = Convert.ToBoolean(str[3]);
+                startInd++;
+            }
+
+            Parameters = new List<string>();
+
+            for (int i = startInd; i < str.Length; i++)
+            {
+                Parameters.Add(str[i]);
             }
         }
 

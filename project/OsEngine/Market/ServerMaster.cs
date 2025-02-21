@@ -121,7 +121,7 @@ namespace OsEngine.Market
             {
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + @"ServerMaster.txt", false))
                 {
-                    writer.WriteLine(NeadToConnectAuto);
+                    writer.WriteLine(NeedToConnectAuto);
                     writer.Close();
                 }
             }
@@ -144,7 +144,7 @@ namespace OsEngine.Market
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + @"ServerMaster.txt"))
                 {
-                    NeadToConnectAuto = Convert.ToBoolean(reader.ReadLine());
+                    NeedToConnectAuto = Convert.ToBoolean(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -397,8 +397,8 @@ namespace OsEngine.Market
         /// create server
         /// </summary>
         /// <param name="type"> server type / тип сервера </param>
-        /// <param name="neadLoadTicks"> shows whether upload ticks from storage. this is need for bots with QUIK or Plaza2 servers / нужно ли подгружать тики из хранилища. Актуально в режиме робота для серверов Квик, Плаза 2 </param>
-        public static void CreateServer(ServerType type, bool neadLoadTicks)
+        /// <param name="needLoadTicks"> shows whether upload ticks from storage. this is need for bots with QUIK or Plaza2 servers / нужно ли подгружать тики из хранилища. Актуально в режиме робота для серверов Квик, Плаза 2 </param>
+        public static void CreateServer(ServerType type, bool needLoadTicks)
         {
             try
             {
@@ -581,7 +581,7 @@ namespace OsEngine.Market
                 }
                 else if (type == ServerType.AstsBridge)
                 {
-                    newServer = new AstsBridgeServer(neadLoadTicks);
+                    newServer = new AstsBridgeServer(needLoadTicks);
                 }
                 else if (type == ServerType.Tester)
                 {
@@ -901,9 +901,9 @@ namespace OsEngine.Market
         /// <summary>
         /// shows whether the server-master can be deployed in automatic mode  
         /// </summary>
-        public static bool NeadToConnectAuto;
+        public static bool NeedToConnectAuto;
 
-        private static string _startServerLocker = "startServLocker";
+        private static string _startServerLocker = "startServerLocker";
 
         /// <summary>
         /// select a specific server type for auto connection
@@ -964,7 +964,7 @@ namespace OsEngine.Market
                         return;
                     }
 
-                    if (NeadToConnectAuto == false)
+                    if (NeedToConnectAuto == false)
                     {
                         continue;
                     }

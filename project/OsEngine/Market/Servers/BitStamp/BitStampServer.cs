@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.BitStamp
 
             CreateParameterString(OsLocalization.Market.ServerParamId, "");
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
         }
     }
     

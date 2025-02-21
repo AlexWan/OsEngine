@@ -39,7 +39,7 @@ namespace OsEngine.Market.Servers.BitStamp.BitStampEntity
                 request.AddParameter("nonce", nonce);
                 request.AddParameter("signature", CreateSignature(nonce));
                 _nonce++;
-                _neadToSave = true;
+                _needToSave = true;
             }
         }
 
@@ -54,7 +54,7 @@ namespace OsEngine.Market.Servers.BitStamp.BitStampEntity
         private long _nonce;
         private object _lock = new object();
 
-        private bool _neadToSave = true;
+        private bool _needToSave = true;
 
         private bool _isDisposed;
 
@@ -76,10 +76,10 @@ namespace OsEngine.Market.Servers.BitStamp.BitStampEntity
                         return;
                     }
 
-                    if (_neadToSave)
+                    if (_needToSave)
                     {
                         Save();
-                        _neadToSave = false;
+                        _needToSave = false;
                     }
                 }
                 catch (Exception)

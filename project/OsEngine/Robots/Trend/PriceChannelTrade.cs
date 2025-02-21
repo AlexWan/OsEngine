@@ -36,7 +36,7 @@ namespace OsEngine.Robots.Trend
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-            Slipage = 0;
+            Slippage = 0;
             VolumeFix = 1;
 
 
@@ -80,7 +80,7 @@ namespace OsEngine.Robots.Trend
         /// slippage
         /// проскальзывание
         /// </summary>
-        public decimal Slipage;
+        public decimal Slippage;
 
         /// <summary>
         /// volume
@@ -105,7 +105,7 @@ namespace OsEngine.Robots.Trend
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
-                    writer.WriteLine(Slipage);
+                    writer.WriteLine(Slippage);
                     writer.WriteLine(VolumeFix);
                     writer.WriteLine(Regime);
 
@@ -132,7 +132,7 @@ namespace OsEngine.Robots.Trend
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
-                    Slipage = reader.ReadLine().ToDecimal();
+                    Slippage = reader.ReadLine().ToDecimal();
                     VolumeFix = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
 
@@ -224,12 +224,12 @@ namespace OsEngine.Robots.Trend
 
             if (_lastPriceH > _lastPriceChUp && Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
+                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slippage);
             }
 
             if (_lastPriceL < _lastPriceChDown && Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
+                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slippage);
             }
         }
 
@@ -248,13 +248,13 @@ namespace OsEngine.Robots.Trend
             {
                 if (_lastPriceL < _lastPriceChDown)
                 {
-                    _tab.CloseAtLimit(position, _lastPriceC - Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPriceC - Slippage, position.OpenVolume);
 
                     if (Regime != BotTradeRegime.OnlyLong 
                         && Regime != BotTradeRegime.OnlyClosePosition
                         && _tab.PositionsOpenAll.Count < 3)
                     {
-                        _tab.SellAtLimit(VolumeFix, _lastPriceC - Slipage);
+                        _tab.SellAtLimit(VolumeFix, _lastPriceC - Slippage);
                     }
                 }
             }
@@ -263,13 +263,13 @@ namespace OsEngine.Robots.Trend
             {
                 if (_lastPriceH > _lastPriceChUp)
                 {
-                    _tab.CloseAtLimit(position, _lastPriceC + Slipage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPriceC + Slippage, position.OpenVolume);
 
                     if (Regime != BotTradeRegime.OnlyShort && Regime 
                         != BotTradeRegime.OnlyClosePosition
                         && _tab.PositionsOpenAll.Count < 3)
                     {
-                        _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slipage);
+                        _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slippage);
                     }
                 }
             }

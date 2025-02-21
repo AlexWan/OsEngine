@@ -9,7 +9,7 @@
                     <WindowsFormsHost x:Name="HostGridPatternsToOpen" Margin="14,65,233,5"/>
                     <Label Name="LabelPatterns" Content="Patterns" HorizontalAlignment="Left" Margin="14,37,0,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost x:Name="HostSinglePatternToOpen" HorizontalAlignment="Right" Margin="0,65,5,5" Width="223"/>
-                    <TextBox Name="TextBoxWeigthToInter"  Height="23" Margin="0,10,24,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
+                    <TextBox Name="TextBoxWeightToInter"  Height="23" Margin="0,10,24,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="156"/>
                     <Label Name="LabelEntryWeight" Content="Entry Weight"  Margin="0,10,201,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                     <Label Name="LabelSide" Content="Side" HorizontalAlignment="Left" Margin="118,10,0,0" VerticalAlignment="Top" />
                     <ComboBox Name="ComboBoxSideInter" HorizontalAlignment="Left" Margin="181,10,0,0"   VerticalAlignment="Top" Width="151"/>
@@ -29,7 +29,7 @@
                     <TextBox Name="TextBoxTreilingStopValue"  Height="23" Margin="204,84,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
                     <CheckBox Name="CheckBoxTrailingStopIsOn" Content="Trailing Stop %" HorizontalAlignment="Left" Margin="88,84,0,0" VerticalAlignment="Top"/>
                     <WindowsFormsHost Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,140,5,10" Width="223"/>
-                    <TextBox Name="TextBoxWeigthToExit" Height="23" Margin="0,112,10,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="92"/>
+                    <TextBox Name="TextBoxWeightToExit" Height="23" Margin="0,112,10,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="92"/>
                     <Label Name="LabelWeightForExit" Content="Weight for exit"  Margin="0,112,120,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                     <TextBox Name="TextBoxStopOrderValueSleepage"  HorizontalAlignment="Right" Height="23" Margin="0,0,78,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>
                     <TextBox Name="TextBoxProfitOrderValueSleepage"  HorizontalAlignment="Right" Height="23" Margin="0,28,78,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="141"/>

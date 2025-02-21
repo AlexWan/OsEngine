@@ -186,11 +186,11 @@ namespace OsEngine.Candles.Series
             {
                 return;
             }
-            string[] paramsInArray = value.Split('$');
+            string[] parametersInArray = value.Split('$');
 
-            for (int i = 0; i < paramsInArray.Length; i++)
+            for (int i = 0; i < parametersInArray.Length; i++)
             {
-                string[] curParam = paramsInArray[i].Split('#');
+                string[] curParam = parametersInArray[i].Split('#');
 
                 for (int j = 0; j < Parameters.Count; j++)
                 {

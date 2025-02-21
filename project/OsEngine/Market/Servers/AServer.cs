@@ -91,14 +91,14 @@ namespace OsEngine.Market.Servers
                 _serverRealization.ServerParameters = ServerParameters;
 
                 _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeadToSave = _needToSaveTicksParam.Value;
+                _tickStorage.NeedToSave = _needToSaveTicksParam.Value;
                 _tickStorage.DaysToLoad = _needToSaveTicksDaysCountParam.Value;
                 _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
                 _tickStorage.LogMessageEvent += SendLogMessage;
                 _tickStorage.LoadTick();
 
                 _candleStorage = new ServerCandleStorage(this);
-                _candleStorage.NeadToSave = _needToSaveCandlesParam.Value;
+                _candleStorage.NeedToSave = _needToSaveCandlesParam.Value;
                 _candleStorage.CandlesSaveCount = _needToSaveCandlesCountParam.Value;
                 _candleStorage.LogMessageEvent += SendLogMessage;
 
@@ -560,7 +560,7 @@ namespace OsEngine.Market.Servers
         {
             if (_tickStorage != null)
             {
-                _tickStorage.NeadToSave = _needToSaveTicksParam.Value;
+                _tickStorage.NeedToSave = _needToSaveTicksParam.Value;
             }
         }
 
@@ -571,7 +571,7 @@ namespace OsEngine.Market.Servers
         {
             if (_candleStorage != null)
             {
-                _candleStorage.NeadToSave = _needToSaveCandlesParam.Value;
+                _candleStorage.NeedToSave = _needToSaveCandlesParam.Value;
             }
         }
 
@@ -1791,7 +1791,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         public List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate)
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdate)
         {
             try
             {
@@ -1881,7 +1881,7 @@ namespace OsEngine.Market.Servers
         /// take ticks data for a period
         /// </summary>
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdete)
+        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
             try
             {

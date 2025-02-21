@@ -56,14 +56,14 @@
                         <RowDefinition Height="221*"/>
                     </Grid.RowDefinitions>
                     <Grid x:Name="GridOrdersSettings" >
-                        <TextBox x:Name="TextBoxSlipageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
+                        <TextBox x:Name="TextBoxSlippageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
                         <Label Name = "Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="38,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
-                        <CheckBox Name = "CheckBoxSlipageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="38,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageLimitOff_Checked" Height="23" Width="121"/>
-                        <CheckBox Name = "CheckBoxSlipageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="38,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageLimitOn_Checked" Height="23" Width="92"/>
-                        <TextBox x:Name="TextBoxSlipageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
+                        <CheckBox Name = "CheckBoxSlippageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="38,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageLimitOff_Checked" Height="23" Width="121"/>
+                        <CheckBox Name = "CheckBoxSlippageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="38,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageLimitOn_Checked" Height="23" Width="92"/>
+                        <TextBox x:Name="TextBoxSlippageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
                         <Label Name = "Label33" Content="Stop slippage" Margin="284,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" HorizontalAlignment="Left" Width="208" />
-                        <CheckBox Name = "CheckBoxSlipageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="284,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageStopOff_Checked" Height="24" Width="104"/>
-                        <CheckBox Name = "CheckBoxSlipageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="284,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageStopOn_Checked" Height="23" Width="101"/>
+                        <CheckBox Name = "CheckBoxSlippageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="284,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageStopOff_Checked" Height="24" Width="104"/>
+                        <CheckBox Name = "CheckBoxSlippageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="284,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageStopOn_Checked" Height="23" Width="101"/>
                         <Label Name = "Label34" Content="Order execution" HorizontalAlignment="Left" Margin="544,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
                         <ComboBox Name = "ComboBoxOrderActivationType" HorizontalAlignment="Left" Margin="626,0,0,0" VerticalAlignment="Center" Width="111" Height="23"/>
                         <Label Name = "LabelOrderActivationType" Content="Activation" HorizontalAlignment="Left" Margin="544,0,0,0" VerticalAlignment="Center" Height="24" Width="82"/>

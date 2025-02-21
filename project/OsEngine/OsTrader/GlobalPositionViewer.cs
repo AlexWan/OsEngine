@@ -23,31 +23,10 @@ namespace OsEngine.OsTrader
     /// </summary>
     public class GlobalPositionViewer
     {
-        public GlobalPositionViewer(WindowsFormsHost openPositionHost, WindowsFormsHost closePositionHost, StartProgram startProgram)
+        public GlobalPositionViewer(StartProgram startProgram)
         {
             _startProgram = startProgram;
             _currentCulture = OsLocalization.CurCulture;
-
-            if (openPositionHost != null)
-            {
-                _hostOpenPoses = openPositionHost;
-                _gridOpenPoses = CreateNewTable();
-                _hostOpenPoses.Child = _gridOpenPoses;
-                _hostOpenPoses.Child.Show();
-                _gridOpenPoses.Click += _gridAllPositions_Click;
-                _gridOpenPoses.DoubleClick += _gridOpenPoses_DoubleClick;
-            }
-
-            if(closePositionHost != null)
-            {
-                _hostClosePoses = closePositionHost;
-                _gridClosePoses = CreateNewTable();
-                _hostClosePoses.Child = _gridClosePoses;
-                _hostClosePoses.Child.Show();
-                _gridClosePoses.Click += _gridClosePoses_Click;
-                _gridClosePoses.DoubleClick += _gridClosePoses_DoubleClick;
-
-            }
 
             Task task = new Task(WatcherThreadWorkArea);
             task.Start();
@@ -154,6 +133,39 @@ namespace OsEngine.OsTrader
         /// </summary>
         private List<Journal.Journal> _journals;
 
+        public void Delete()
+        {
+            _journals = null;
+
+            if(_hostOpenPoses != null)
+            {
+                _hostOpenPoses.Child = null;
+                _hostOpenPoses = null;
+            }
+
+            if(_hostClosePoses != null)
+            {
+                _hostClosePoses.Child = null;
+                _hostClosePoses = null;
+            }
+
+            if(_gridOpenPoses != null)
+            {
+                DataGridFactory.ClearLinks(_gridOpenPoses);
+                _gridOpenPoses.Click -= _gridAllPositions_Click;
+                _gridOpenPoses.DoubleClick -= _gridOpenPoses_DoubleClick;
+                _gridOpenPoses = null;
+            }
+
+            if(_gridClosePoses != null)
+            {
+                DataGridFactory.ClearLinks(_gridClosePoses);
+                _gridClosePoses.Click -= _gridClosePoses_Click;
+                _gridClosePoses.DoubleClick -= _gridClosePoses_DoubleClick;
+                _gridClosePoses = null;
+            }
+        }
+
         private WindowsFormsHost _hostOpenPoses;
 
         private DataGridView _gridOpenPoses;
@@ -178,6 +190,11 @@ namespace OsEngine.OsTrader
         {
             try
             {
+                if(_hostOpenPoses == null)
+                {
+                    return;
+                }
+
                 if (!_hostOpenPoses.CheckAccess())
                 {
                     _hostOpenPoses.Dispatcher.Invoke(StopPaint);
@@ -190,7 +207,19 @@ namespace OsEngine.OsTrader
                 {
                     _hostClosePoses.Child = null;
                 }
-               
+
+                if (_hostOpenPoses != null)
+                {
+                    _hostOpenPoses.Child = null;
+                    _hostOpenPoses = null;
+                }
+
+                if (_hostOpenPoses != null)
+                {
+                    _hostClosePoses.Child = null;
+                    _hostClosePoses = null;
+                }
+
             }
             catch (Exception error)
             {
@@ -202,20 +231,52 @@ namespace OsEngine.OsTrader
         /// start drawing elements
         /// запустить прорисовку элементов
         /// </summary>
-        public void StartPaint()
+        public void StartPaint(WindowsFormsHost openPositionHost, WindowsFormsHost closePositionHost)
         {
             try
             {
-                if (!_hostOpenPoses.CheckAccess())
+                _hostOpenPoses = openPositionHost;
+                _hostClosePoses = closePositionHost;
+
+                if(_hostOpenPoses == null ||
+                    _hostClosePoses == null)
                 {
-                    _hostOpenPoses.Dispatcher.Invoke(StartPaint);
                     return;
                 }
-                _hostOpenPoses.Child = _gridOpenPoses;
 
-                if (_hostClosePoses != null)
+                if (!_hostOpenPoses.CheckAccess())
                 {
+                    _hostOpenPoses.Dispatcher.Invoke(
+                        new Action<WindowsFormsHost, WindowsFormsHost>(StartPaint),openPositionHost,closePositionHost);
+                    return;
+                }
+
+                if(_gridOpenPoses == null)
+                {
+                    _gridOpenPoses = CreateNewTable();
+                    _gridOpenPoses.Click += _gridAllPositions_Click;
+                    _gridOpenPoses.DoubleClick += _gridOpenPoses_DoubleClick;
+                }
+
+                if (openPositionHost != null)
+                {
+                    _hostOpenPoses = openPositionHost;
+                    _hostOpenPoses.Child = _gridOpenPoses;
+                    _hostOpenPoses.Child.Show();
+                }
+
+                if (_gridClosePoses == null)
+                {
+                    _gridClosePoses = CreateNewTable();
+                    _gridClosePoses.Click += _gridClosePoses_Click;
+                    _gridClosePoses.DoubleClick += _gridClosePoses_DoubleClick;
+                }
+
+                if (closePositionHost != null)
+                {
+                    _hostClosePoses = closePositionHost;
                     _hostClosePoses.Child = _gridClosePoses;
+                    _hostClosePoses.Child.Show();
                 }
             }
             catch (Exception error)
@@ -588,6 +649,11 @@ namespace OsEngine.OsTrader
         {
             try
             {
+                if(grid == null)
+                {
+                    return;
+                }
+
                 if (grid.InvokeRequired)
                 {
                     grid.Invoke(new Action<DataGridView>(Sort), grid);

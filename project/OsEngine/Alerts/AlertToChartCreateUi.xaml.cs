@@ -35,7 +35,7 @@ namespace OsEngine.Alerts
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _waitOne = false;
             _waitTwo = false;
-            NeadToSave = false;
+            NeedToSave = false;
             _candleOneTime = DateTime.MinValue;
             _candleOneValue = 0;
             _candleTwoTime = DateTime.MinValue;
@@ -106,7 +106,7 @@ namespace OsEngine.Alerts
                 MyAlert = alert;
                 LoadFromAlert();
                 ComboBoxType.IsEnabled = false;
-                NeadToSave = true;
+                NeedToSave = true;
                 ComboBoxSlippageType.SelectedItem = alert.SlippageType;
             }
             
@@ -240,7 +240,7 @@ namespace OsEngine.Alerts
         /// whether you need to save Alert after closing window
         /// нужно ли сохранять Алерт после закрытия окна
         /// </summary>
-        public bool NeadToSave;
+        public bool NeedToSave;
 
         /// <summary>
         /// upload Alert's settings to form
@@ -1010,7 +1010,7 @@ namespace OsEngine.Alerts
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
         {
             SaveAlert();
-            NeadToSave = true;
+            NeedToSave = true;
             Close();
         }
 

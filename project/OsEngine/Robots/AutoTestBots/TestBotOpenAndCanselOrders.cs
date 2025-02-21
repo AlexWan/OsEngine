@@ -63,13 +63,13 @@ namespace OsEngine.Robots.AutoTestBots
 
         private void Button_UserClickOnButtonEvent()
         {
-            if(_neadToWork == false)
+            if(_needToWork == false)
             {
-                _neadToWork = true;
+                _needToWork = true;
             }
         }
 
-        bool _neadToWork;
+        bool _needToWork;
 
         private void WorkerThreadArea()
         {
@@ -77,7 +77,7 @@ namespace OsEngine.Robots.AutoTestBots
             {
                 Thread.Sleep(1000);
 
-                if(_neadToWork)
+                if(_needToWork)
                 {
                     int delay = Delay.ValueInt;
 
@@ -103,7 +103,7 @@ namespace OsEngine.Robots.AutoTestBots
                     }
                 }
 
-                _neadToWork = false;
+                _needToWork = false;
             }
         }
 

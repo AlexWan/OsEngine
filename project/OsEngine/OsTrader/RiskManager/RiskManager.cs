@@ -285,7 +285,7 @@ namespace OsEngine.OsTrader.RiskManager
 
                 for (int i = 0; i < _journals.Count; i++)
                 {
-                    profit += _journals[i].GetProfitFromThatDayInPersent();
+                    profit += _journals[i].GetProfitFromThatDayInPercent();
                 }
 
                 if (profit < -Math.Abs(MaxDrowDownToDayPersent))

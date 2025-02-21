@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
         }
     }
 

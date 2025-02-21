@@ -26,8 +26,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamPassphrase, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterPassphrase, "");
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterEnum("Margin Mode", "Crossed", new List<string> { "Crossed", "Isolated" });
             CreateParameterBoolean("Demo Trading", false);

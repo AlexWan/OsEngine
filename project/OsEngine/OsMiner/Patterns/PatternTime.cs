@@ -24,14 +24,14 @@ namespace OsEngine.OsMiner.Patterns
 
             StartTime = new DateTime(1,1,1,9,0,0);
             EndTime= new DateTime(1,1,1,20,0,0);
-            Weigth = 1;
+            Weight = 1;
         }
 
         /// <summary>
         /// pattern weight while searching for entry and exit
         /// вес паттерна во время поиска входа и выхода
         /// </summary>
-        public decimal Weigth { get; set; }
+        public decimal Weight { get; set; }
 
         /// <summary>
         /// pattern recognition. 100% - maximum
@@ -104,7 +104,7 @@ namespace OsEngine.OsMiner.Patterns
         {
             string[] array = saveString.Split('^');
 
-            Weigth = array[1].ToDecimal();
+            Weight = array[1].ToDecimal();
             StartTime = Convert.ToDateTime(array[2]);
             EndTime = Convert.ToDateTime(array[3]);
         }
@@ -119,7 +119,7 @@ namespace OsEngine.OsMiner.Patterns
             // разделители на предыдущих уровнях: # * ? %
 
             string saveStr = PatternType.Time + "^";
-            saveStr += Weigth + "^";
+            saveStr += Weight + "^";
             saveStr += StartTime + "^";
             saveStr += EndTime + "^";
 

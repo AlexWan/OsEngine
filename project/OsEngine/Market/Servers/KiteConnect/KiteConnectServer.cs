@@ -25,7 +25,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterString("Request Token", "");
             CreateParameterPassword("Access Token", "");
             CreateParameterBoolean("A subscription for downloading historical data has been issued", false);

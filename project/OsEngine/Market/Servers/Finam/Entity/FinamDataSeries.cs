@@ -129,7 +129,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
         /// whether need to update the series automatically
         /// нужно ли обновлять серию автоматически
         /// </summary>
-      // public bool NeadToUpdeate;
+      // public bool NeedToUpdate;
 
         /// <summary>
         /// set had once loaded

@@ -31,7 +31,7 @@ namespace OsEngine.Market.Servers.Bybit
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum(OsLocalization.Market.Label1, Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(), Net_type.TestNet.ToString() });
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
@@ -535,19 +535,23 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     Thread.Sleep(5000);
 
-                    GetPortfolios();
+                    CreateQueryPortfolio(false);
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 }
             }
-
         }
 
         private List<Portfolio> portfolios = new List<Portfolio>();
 
         public void GetPortfolios()
+        {
+            CreateQueryPortfolio(true);
+        }
+
+        private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
             try
             {
@@ -580,7 +584,12 @@ namespace OsEngine.Market.Servers.Bybit
                         PositionOnBoard newPB = new PositionOnBoard();
                         newPB.PortfolioName = oldPB.PortfolioName;
                         newPB.SecurityNameCode = oldPB.SecurityNameCode;
-                        newPB.ValueBegin = oldPB.ValueBegin;
+
+                        if (IsUpdateValueBegin)
+                        {
+                            newPB.ValueBegin = oldPB.ValueBegin;
+                        }
+
                         newPB.ValueBlocked = oldPB.ValueBlocked;
                         newPB.ValueCurrent = 0;
                         newp.SetNewPosition(newPB);
@@ -595,17 +604,16 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     JToken item = JPortolioList[j];
                     string portNumber = "Bybit" + item.SelectToken("accountType").ToString();
-                    Portfolio portfolio = BybitPortfolioCreator(item, portNumber);
+                    Portfolio portfolio = BybitPortfolioCreator(item, portNumber, IsUpdateValueBegin);
                     bool newPort = true;
 
                     for (int i = 0; i < _portfolios.Count; i++)
                     {
                         if (_portfolios[i].Number == portNumber)
                         {
-
-                            _portfolios[i].ValueBegin = portfolio.ValueBegin;
                             _portfolios[i].ValueBlocked = portfolio.ValueBlocked;
                             _portfolios[i].ValueCurrent = portfolio.ValueCurrent;
+                            _portfolios[i].UnrealizedPnl = portfolio.UnrealizedPnl;
                             portfolio = _portfolios[i];
                             newPort = false;
                             break;
@@ -617,8 +625,8 @@ namespace OsEngine.Market.Servers.Bybit
                         _portfolios.Add(portfolio);
                     }
 
-                    List<PositionOnBoard> PositionOnBoard = GetPositionsLinear(portfolio.Number);
-                    PositionOnBoard.AddRange(GetPositionsSpot(item.SelectToken("coin").Children().ToList(), portfolio.Number));
+                    List<PositionOnBoard> PositionOnBoard = GetPositionsLinear(portfolio.Number, IsUpdateValueBegin);
+                    PositionOnBoard.AddRange(GetPositionsSpot(item.SelectToken("coin").Children().ToList(), portfolio.Number, IsUpdateValueBegin));
 
                     for (int i = 0; i < PositionOnBoard.Count; i++)
                     {
@@ -636,7 +644,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private static Portfolio BybitPortfolioCreator(JToken data, string portfolioName)
+        private static Portfolio BybitPortfolioCreator(JToken data, string portfolioName, bool IsUpdateValueBegin)
         {
             try
             {
@@ -644,27 +652,46 @@ namespace OsEngine.Market.Servers.Bybit
                 portfolio.Number = portfolioName;
 
                 portfolio.ValueCurrent = 1;
-                portfolio.ValueBlocked = 1;
+                portfolio.ValueBlocked = 0;
                 portfolio.ValueBegin = 1;
 
-                portfolio.ValueBegin = data.SelectToken("totalWalletBalance").Value<decimal>();
-
-                if (data.SelectToken("totalMarginBalance").Value<string>().Length > 0)
+                if (IsUpdateValueBegin)
                 {
-                    decimal.TryParse(data.SelectToken("totalMarginBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out portfolio.ValueCurrent);
+                    if (data.SelectToken("totalEquity").Value<string>().Length > 0)
+                    {
+                        portfolio.ValueBegin = Math.Round(data.SelectToken("totalEquity").Value<decimal>(), 4);
+                    }
+                    else
+                    {
+                        portfolio.ValueBegin = 1;
+                    }
+                }
+
+                if (data.SelectToken("totalEquity").Value<string>().Length > 0)
+                {
+                    portfolio.ValueCurrent = Math.Round(data.SelectToken("totalEquity").Value<decimal>(), 4);
                 }
                 else
                 {
-                    decimal.TryParse(data.SelectToken("totalWalletBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out portfolio.ValueCurrent);
+                    portfolio.ValueCurrent = 1;
                 }
 
                 if (data.SelectToken("totalInitialMargin").Value<string>().Length > 0)
                 {
-                    decimal.TryParse(data.SelectToken("totalInitialMargin").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out portfolio.ValueBlocked);
+                    portfolio.ValueBlocked = Math.Round(data.SelectToken("totalInitialMargin").Value<decimal>(), 4);
                 }
                 else
                 {
                     portfolio.ValueBlocked = 0;
+                }
+
+                if (data.SelectToken("totalPerpUPL").Value<string>().Length > 0)
+                {
+                    decimal.TryParse(data.SelectToken("totalPerpUPL").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out portfolio.UnrealizedPnl);
+                }
+                else
+                {
+                    portfolio.UnrealizedPnl = 0;
                 }
 
                 return portfolio;
@@ -675,7 +702,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private List<PositionOnBoard> GetPositionsSpot(List<JToken> JCoinList, string portfolioNumber)
+        private List<PositionOnBoard> GetPositionsSpot(List<JToken> JCoinList, string portfolioNumber, bool IsUpdateValueBegin)
         {
             try
             {
@@ -687,10 +714,15 @@ namespace OsEngine.Market.Servers.Bybit
                     PositionOnBoard positions = new PositionOnBoard();
                     positions.PortfolioName = portfolioNumber;
                     positions.SecurityNameCode = item2.SelectToken("coin").Value<string>();
-                    decimal.TryParse(item2.SelectToken("walletBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBegin);
+
+                    if (IsUpdateValueBegin)
+                    {
+                        decimal.TryParse(item2.SelectToken("walletBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBegin);
+                    }
+                       
                     decimal.TryParse(item2.SelectToken("equity").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueCurrent);
                     decimal.TryParse(item2.SelectToken("locked").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBlocked);
-
+                    decimal.TryParse(item2.SelectToken("unrealisedPnl").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.UnrealizedPnl);
                     pb.Add(positions);
                 }
 
@@ -702,7 +734,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private List<PositionOnBoard> GetPositionsLinear(string portfolioNumber)
+        private List<PositionOnBoard> GetPositionsLinear(string portfolioNumber, bool IsUpdateValueBegin)
         {
             List<PositionOnBoard> positionOnBoards = new List<PositionOnBoard>();
             string[] settleCoin = new string[] { "USDT", "USDC", "BTC", "ETH" };
@@ -732,7 +764,7 @@ namespace OsEngine.Market.Servers.Bybit
                             return positionOnBoards;
                         }
 
-                        List<PositionOnBoard> positions = CreatePosOnBoard(position.SelectToken("result.list"), portfolioNumber);
+                        List<PositionOnBoard> positions = CreatePosOnBoard(position.SelectToken("result.list"), portfolioNumber, IsUpdateValueBegin);
 
                         if (positions != null && positions.Count > 0)
                         {
@@ -757,7 +789,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private List<PositionOnBoard> CreatePosOnBoard(JToken data, string potrolioNumber)
+        private List<PositionOnBoard> CreatePosOnBoard(JToken data, string potrolioNumber, bool IsUpdateValueBegin)
         {
             List<PositionOnBoard> poses = new List<PositionOnBoard>();
 
@@ -789,10 +821,13 @@ namespace OsEngine.Market.Servers.Bybit
                     pos.SecurityNameCode = posJson.symbol + ".P";
                 }
 
-                pos.ValueBegin =
-                    posJson.size.ToDecimal() * (posJson.side == "Buy" ? 1 : -1);
+                if (IsUpdateValueBegin)
+                {
+                    pos.ValueBegin = posJson.size.ToDecimal() * (posJson.side == "Buy" ? 1 : -1);
+                }
 
-                pos.ValueCurrent = pos.ValueBegin;
+                pos.UnrealizedPnl = posJson.unrealisedPnl.ToDecimal();
+                pos.ValueCurrent = posJson.size.ToDecimal() * (posJson.side == "Buy" ? 1 : -1);
 
                 poses.Add(pos);
             }

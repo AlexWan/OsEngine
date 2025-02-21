@@ -538,9 +538,9 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <param name="newPtr">OUT address is shifted to the length of the string/OUT адрес сдвинутый на длинну строки</param>
         /// <param name="sdvig">bit shift/побайтовый сдвиг</param>
         /// <param name="newSdvig">new bit shift/новый побайтовый сдвиг</param>
-        /// <param name="neadDefoltValue">wether need to read the default value/нужно ли считывать дефолтное значение</param>
+        /// <param name="needDefoltValue">wether need to read the default value/нужно ли считывать дефолтное значение</param>
         /// <returns>table fields/поля таблицы</returns>
-        private unsafe List<AstsTableField> GetTableFields(int* ptr, out int* newPtr, int sdvig, out int newSdvig, bool neadDefoltValue)
+        private unsafe List<AstsTableField> GetTableFields(int* ptr, out int* newPtr, int sdvig, out int newSdvig, bool needDefoltValue)
         {
             
             int count = GetInt(ptr, out ptr, sdvig);
@@ -609,7 +609,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 }
                 field.TypeEnums = GetString(ptr, out ptr, sdvig, out sdvig);
 
-                if (neadDefoltValue)
+                if (needDefoltValue)
                 {
                     field.DefoltValue = GetString(ptr, out ptr, sdvig, out sdvig);
                 }

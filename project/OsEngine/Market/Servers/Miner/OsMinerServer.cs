@@ -131,7 +131,7 @@ namespace OsEngine.Market.Servers.Miner
             {
                 File.Delete(@"Engine\" + _name + "DataServer.txt");
             }
-            _neadToStopThread = true;
+            _needToStopThread = true;
         }
 
 // work with data connection
@@ -343,7 +343,7 @@ namespace OsEngine.Market.Servers.Miner
 		/// flag that it's time to break the work thread
         /// флаг о том что пора отрубать рабочий поток
         /// </summary>
-        private bool _neadToStopThread;
+        private bool _needToStopThread;
 
         /// <summary>
 		/// work place of main thread
@@ -363,7 +363,7 @@ namespace OsEngine.Market.Servers.Miner
 
                   
 
-                    if (_neadToStopThread)
+                    if (_needToStopThread)
                     {
                         return;
                     }

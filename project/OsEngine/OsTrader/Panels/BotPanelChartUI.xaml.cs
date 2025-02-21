@@ -404,12 +404,12 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
 
-                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                if (_panel.ActiveTab.GetType().Name != "BotTabSimple")
                 {
                     return;
                 }
@@ -425,7 +425,7 @@ namespace OsEngine.OsTrader.Panels
                     MessageBox.Show(OsLocalization.Trader.Label49);
                     return;
                 }
-             ((BotTabSimple)_panel.ActivTab).BuyAtMarket(volume);
+             ((BotTabSimple)_panel.ActiveTab).BuyAtMarket(volume);
             }
             catch (Exception ex)
             {
@@ -437,11 +437,11 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
-                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                if (_panel.ActiveTab.GetType().Name != "BotTabSimple")
                 {
                     return;
                 }
@@ -455,7 +455,7 @@ namespace OsEngine.OsTrader.Panels
                     MessageBox.Show(OsLocalization.Trader.Label49);
                     return;
                 }
-            ((BotTabSimple)_panel.ActivTab).SellAtMarket(volume);
+            ((BotTabSimple)_panel.ActiveTab).SellAtMarket(volume);
             }
             catch (Exception ex)
             {
@@ -467,11 +467,11 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
-                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                if (_panel.ActiveTab.GetType().Name != "BotTabSimple")
                 {
                     return;
                 }
@@ -505,7 +505,7 @@ namespace OsEngine.OsTrader.Panels
                     MessageBox.Show(OsLocalization.Trader.Label50);
                     return;
                 }
-            ((BotTabSimple)_panel.ActivTab).BuyAtLimit(volume, price);
+            ((BotTabSimple)_panel.ActiveTab).BuyAtLimit(volume, price);
             }
             catch (Exception ex)
             {
@@ -517,11 +517,11 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
-                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                if (_panel.ActiveTab.GetType().Name != "BotTabSimple")
                 {
                     return;
                 }
@@ -554,7 +554,7 @@ namespace OsEngine.OsTrader.Panels
                     return;
                 }
 
-            ((BotTabSimple)_panel.ActivTab).SellAtLimit(volume, price);
+            ((BotTabSimple)_panel.ActiveTab).SellAtLimit(volume, price);
             }
             catch (Exception ex)
             {
@@ -566,16 +566,16 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
-                if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                if (_panel.ActiveTab.GetType().Name != "BotTabSimple")
                 {
                     return;
                 }
 
-            ((BotTabSimple)_panel.ActivTab).CloseAllOrderInSystem();
+            ((BotTabSimple)_panel.ActiveTab).CloseAllOrderInSystem();
             }
             catch (Exception ex)
             {
@@ -632,17 +632,17 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
-                if (_panel.ActivTab.GetType().Name == "BotTabSimple")
+                if (_panel.ActiveTab.GetType().Name == "BotTabSimple")
                 {
-                    ((BotTabSimple)_panel.ActivTab).ShowManualControlDialog();
+                    ((BotTabSimple)_panel.ActiveTab).ShowManualControlDialog();
                 }
-                else if (_panel.ActivTab.GetType().Name == "BotTabScreener")
+                else if (_panel.ActiveTab.GetType().Name == "BotTabScreener")
                 {
-                    ((BotTabScreener)_panel.ActivTab).ShowManualControlDialog();
+                    ((BotTabScreener)_panel.ActiveTab).ShowManualControlDialog();
                 }
             }
             catch (Exception ex)
@@ -660,34 +660,34 @@ namespace OsEngine.OsTrader.Panels
                     MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
 
-                if (_panel.ActivTab.GetType().Name == "BotTabSimple")
+                if (_panel.ActiveTab.GetType().Name == "BotTabSimple")
                 {
-                    ((BotTabSimple)_panel.ActivTab).ShowConnectorDialog();
+                    ((BotTabSimple)_panel.ActiveTab).ShowConnectorDialog();
                 }
-                else if (_panel.ActivTab != null &&
-                    _panel.ActivTab.GetType().Name == "BotTabIndex")
+                else if (_panel.ActiveTab != null &&
+                    _panel.ActiveTab.GetType().Name == "BotTabIndex")
                 {
-                    ((BotTabIndex)_panel.ActivTab).ShowDialog();
+                    ((BotTabIndex)_panel.ActiveTab).ShowDialog();
                 }
-                else if (_panel.ActivTab != null &&
-                         _panel.ActivTab.GetType().Name == "BotTabCluster")
+                else if (_panel.ActiveTab != null &&
+                         _panel.ActiveTab.GetType().Name == "BotTabCluster")
                 {
-                    ((BotTabCluster)_panel.ActivTab).ShowDialog();
+                    ((BotTabCluster)_panel.ActiveTab).ShowDialog();
                 }
-                else if (_panel.ActivTab != null &&
-                        _panel.ActivTab.GetType().Name == "BotTabScreener")
+                else if (_panel.ActiveTab != null &&
+                        _panel.ActiveTab.GetType().Name == "BotTabScreener")
                 {
-                    ((BotTabScreener)_panel.ActivTab).ShowDialog();
+                    ((BotTabScreener)_panel.ActiveTab).ShowDialog();
                 }
-                else if (_panel.ActivTab != null &&
-                 _panel.ActivTab.GetType().Name == "BotTabNews")
+                else if (_panel.ActiveTab != null &&
+                 _panel.ActiveTab.GetType().Name == "BotTabNews")
                 {
-                    ((BotTabNews)_panel.ActivTab).ShowDialog();
+                    ((BotTabNews)_panel.ActiveTab).ShowDialog();
                 }
                 else
                 {
@@ -710,7 +710,7 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (_panel.ActivTab == null)
+                if (_panel.ActiveTab == null)
                 {
                     return;
                 }
@@ -719,12 +719,12 @@ namespace OsEngine.OsTrader.Panels
 
                 try
                 {
-                    if (_panel.ActivTab.GetType().Name != "BotTabSimple")
+                    if (_panel.ActiveTab.GetType().Name != "BotTabSimple")
                     {
                         return;
                     }
 
-                    activTab = (BotTabSimple)_panel.ActivTab;
+                    activTab = (BotTabSimple)_panel.ActiveTab;
                 }
                 catch (Exception ex)
                 {

@@ -29,7 +29,7 @@ namespace OsEngine.Market
 
             _hostLog = hostLog;
 
-            _boxCreateServerАutomatically.IsChecked = ServerMaster.NeadToConnectAuto;
+            _boxCreateServerАutomatically.IsChecked = ServerMaster.NeedToConnectAuto;
             _boxCreateServerАutomatically.Click += CheckBoxServerAutoOpen_Click;
 
             ServerMaster.Log.StartPaint(_hostLog);
@@ -385,7 +385,7 @@ namespace OsEngine.Market
             {
                 if (_boxCreateServerАutomatically.IsChecked.HasValue)
                 {
-                    ServerMaster.NeadToConnectAuto = _boxCreateServerАutomatically.IsChecked.Value;
+                    ServerMaster.NeedToConnectAuto = _boxCreateServerАutomatically.IsChecked.Value;
                 }
                 ServerMaster.Save();
             }

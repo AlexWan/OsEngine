@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
         }
 
         public class XTServerSpotRealization : IServerRealization

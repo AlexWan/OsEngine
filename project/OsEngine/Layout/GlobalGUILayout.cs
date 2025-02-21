@@ -19,7 +19,7 @@ namespace OsEngine.Layout
                     _isFirstTime = false;
                     Load();
 
-                    if(ScreenSettingsIsAllRigth() == false)
+                    if(ScreenSettingsIsAllRight() == false)
                     {
                         UiOpenWindows = new List<OpenWindow>();
                     }
@@ -56,7 +56,7 @@ namespace OsEngine.Layout
                     _isFirstTime = false;
                     Load();
                 }
-                _neadToSave = true;
+                _needToSave = true;
             }
 
             SubscribeEvents(ui, name);           
@@ -109,7 +109,7 @@ namespace OsEngine.Layout
                         break;
                     }
                 }
-                _neadToSave = true;
+                _needToSave = true;
             }
         }
 
@@ -195,7 +195,7 @@ namespace OsEngine.Layout
 
         public static List<OpenWindow> UiOpenWindows = new List<OpenWindow>();
 
-        private static bool _neadToSave;
+        private static bool _needToSave;
 
         public static bool IsClosed;
 
@@ -205,7 +205,7 @@ namespace OsEngine.Layout
             {
                 Thread.Sleep(1000);
 
-                if(_neadToSave == false)
+                if(_needToSave == false)
                 {
                     continue;
                 }
@@ -295,7 +295,7 @@ namespace OsEngine.Layout
 
         // Проверка размера экрана
 
-        private static bool ScreenSettingsIsAllRigth()
+        private static bool ScreenSettingsIsAllRight()
         {
             int widthCur = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Width;
             int heightCur = System.Windows.Forms.Screen.PrimaryScreen.Bounds.Size.Height;

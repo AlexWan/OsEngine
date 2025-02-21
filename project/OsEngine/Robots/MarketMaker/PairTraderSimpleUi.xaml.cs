@@ -23,8 +23,8 @@ namespace OsEngine.Robots.MarketMaker
 
             CultureInfo culture = new CultureInfo("ru-RU");
 
-            TextBoxSlipage1.Text = _strategy.Slipage1.ToString(culture);
-            TextBoxSlipage2.Text = _strategy.Slipage2.ToString(culture);
+            TextBoxSlippage1.Text = _strategy.Slippage1.ToString(culture);
+            TextBoxSlippage2.Text = _strategy.Slippage2.ToString(culture);
 
             TextBoxVolume1.Text = _strategy.Volume1.ToString(culture);
             TextBoxVolume2.Text = _strategy.Volume2.ToString(culture);
@@ -61,8 +61,8 @@ namespace OsEngine.Robots.MarketMaker
             {
                 try
                 {
-                    if (TextBoxSlipage1.Text.ToDecimal() < 0 ||
-                        TextBoxSlipage2.Text.ToDecimal() < 0 ||
+                    if (TextBoxSlippage1.Text.ToDecimal() < 0 ||
+                        TextBoxSlippage2.Text.ToDecimal() < 0 ||
                         TextBoxVolume1.Text.ToDecimal() < 0 ||
                         TextBoxVolume2.Text.ToDecimal() < 0 ||
                         Convert.ToInt32(TextBoxCandleCount.Text) < 0 ||
@@ -77,8 +77,8 @@ namespace OsEngine.Robots.MarketMaker
                     return;
                 }
 
-                _strategy.Slipage1 = TextBoxSlipage1.Text.ToDecimal();
-                _strategy.Slipage2 = TextBoxSlipage2.Text.ToDecimal();
+                _strategy.Slippage1 = TextBoxSlippage1.Text.ToDecimal();
+                _strategy.Slippage2 = TextBoxSlippage2.Text.ToDecimal();
                 Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
                 _strategy.CountCandles = Convert.ToInt32(TextBoxCandleCount.Text);
 

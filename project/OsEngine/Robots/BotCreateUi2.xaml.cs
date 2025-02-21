@@ -33,12 +33,12 @@ namespace OsEngine.Robots
             if(_startProgram == StartProgram.IsOsOptimizer)
             {
                 TextBoxName.IsEnabled = false;
-                ButtonWhyNeadName.IsEnabled = false;
+                ButtonWhyNeedName.IsEnabled = false;
                 LabelName.IsEnabled = false;
                 ButtonUpdateRobots.IsEnabled = false;
 
                 TextBoxName.Visibility = Visibility.Collapsed;
-                ButtonWhyNeadName.Visibility = Visibility.Collapsed;
+                ButtonWhyNeedName.Visibility = Visibility.Collapsed;
                 LabelName.Visibility = Visibility.Collapsed;
                 ButtonUpdateRobots.Visibility = Visibility.Collapsed;
             }
@@ -51,7 +51,7 @@ namespace OsEngine.Robots
 
             for (int i = 0; i < botsIncluded.Count; i++)
             {
-                for (int i2 = 0; i2 < botsFromScript.Count; i2++)
+                for (int i2 = 0; botsFromScript != null && i2 < botsFromScript.Count; i2++)
                 {
                     if (botsIncluded[i].Equals(botsFromScript[i2]))
                     {
@@ -1150,7 +1150,7 @@ namespace OsEngine.Robots
 
         #endregion
 
-        private void ButtonWhyNeadName_Click(object sender, RoutedEventArgs e)
+        private void ButtonWhyNeedName_Click(object sender, RoutedEventArgs e)
         {
             CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label301);
             ui.ShowDialog();

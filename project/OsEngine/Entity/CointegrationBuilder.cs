@@ -84,10 +84,10 @@ namespace OsEngine.Entity
         /// </summary>
         /// <param name="candles1">Candles security 1</param>
         /// <param name="candles2">Candles security 1</param>
-        /// <param name="neadToRoundValues">Whether values need to be rounded. false - no need. 
+        /// <param name="needToRoundValues">Whether values need to be rounded. false - no need. 
         /// true - we round up by discarding the irrelevant values and everything becomes prettier, 
         /// but we waste a lot of resources on it.</param>
-        public void ReloadCointegration(List<Candle> candles1, List<Candle> candles2, bool neadToRoundValues)
+        public void ReloadCointegration(List<Candle> candles1, List<Candle> candles2, bool needToRoundValues)
         {
             Cointegration = new List<PairIndicatorValue>();
             _lineUpCointegration = 0;
@@ -138,7 +138,7 @@ namespace OsEngine.Entity
 
             int rounder = 6;
 
-            if (neadToRoundValues)
+            if (needToRoundValues)
             {
                 rounder = GetRounder(curDeviation);
             }
@@ -149,7 +149,7 @@ namespace OsEngine.Entity
             {
                 PairIndicatorValue value = new PairIndicatorValue();
 
-                if (neadToRoundValues == true)
+                if (needToRoundValues == true)
                 {
                     value.Value = Convert.ToDecimal(Math.Round(curDeviation[i], rounder));
                 }

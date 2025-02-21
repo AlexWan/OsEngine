@@ -23,7 +23,7 @@ namespace OsEngine.Robots.Trend
 
             TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
 
-            TextBoxSlipage.Text = _strategy.Slipage.ToString(new CultureInfo("ru-RU"));
+            TextBoxSlippage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
@@ -56,7 +56,7 @@ namespace OsEngine.Robots.Trend
                     Convert.ToInt32(StochUp.Text) <= 0 ||
                     Convert.ToInt32(StochDown.Text) <= 0 ||
                     Convert.ToInt32(Step.Text) <= 0 ||
-                     Convert.ToDecimal(TextBoxSlipage.Text) < 0)
+                     Convert.ToDecimal(TextBoxSlippage.Text) < 0)
                 {
                     throw new Exception("");
                 }
@@ -68,7 +68,7 @@ namespace OsEngine.Robots.Trend
             }
 
             _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
-            _strategy.Slipage = Convert.ToDecimal(TextBoxSlipage.Text);
+            _strategy.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
 
             _strategy.Upline = Convert.ToDecimal(StochUp.Text);
             _strategy.Downline = Convert.ToDecimal(StochDown.Text);

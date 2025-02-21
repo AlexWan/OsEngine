@@ -727,7 +727,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -744,7 +744,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -761,7 +761,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -778,7 +778,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -795,7 +795,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -812,7 +812,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -829,7 +829,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -846,7 +846,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -863,7 +863,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -880,7 +880,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -897,7 +897,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -914,7 +914,7 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (_neadToRebuidVolume)
+                if (_needToRebuidVolume)
                 {
                     ReloadLines();
                 }
@@ -965,14 +965,14 @@ namespace OsEngine.Entity
                 _tradesCount = trades.Count;
             }
 
-            _neadToRebuidVolume = true;
+            _needToRebuidVolume = true;
         }
 
         /// <summary>
         /// flag. Do I need to rebuild obmy before sending data to the top
         /// флаг. Нужно ли перестраивать объмы перед отправкой данных на верх
         /// </summary>
-        private bool _neadToRebuidVolume;
+        private bool _needToRebuidVolume;
 
         /// <summary>
         /// number of trades already accounted for
@@ -1016,7 +1016,7 @@ namespace OsEngine.Entity
         /// </summary>
         private void ReloadLines()
         {
-            _neadToRebuidVolume = false;
+            _needToRebuidVolume = false;
 
             lock (_tradesArrayLocker)
             {

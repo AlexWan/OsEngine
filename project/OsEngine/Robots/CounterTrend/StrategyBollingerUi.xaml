@@ -7,7 +7,7 @@
         <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Left" Margin="23,56,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolumeOne" Height="23" Margin="173,56,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="LabelSlippage" Content="Slippage" HorizontalAlignment="Left" Margin="23,84,0,0" VerticalAlignment="Top" />
-        <TextBox Name="TextBoxSlipage" Height="23" Margin="173,84,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlippage" Height="23" Margin="173,84,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Button Name="ButtonAccept" Content="Accept" Margin="0,0,10,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <ComboBox Name="ComboBoxRegime" Margin="173,25,25,0" VerticalAlignment="Top"/>
         <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="23,25,0,0" VerticalAlignment="Top"/>

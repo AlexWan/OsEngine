@@ -59,9 +59,9 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void Refresh()
         {
-            if (UpdeteEvent != null)
+            if (UpdateEvent != null)
             {
-                UpdeteEvent(this);
+                UpdateEvent(this);
             }
         }
 
@@ -83,9 +83,9 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// </summary>
         public void ShowDialog()
         {
-            if (NeadToShowDialog != null)
+            if (NeedToShowDialog != null)
             {
-                NeadToShowDialog(UniqName.Split('&')[0]);
+                NeedToShowDialog(UniqName.Split('&')[0]);
             }
         }
 
@@ -93,7 +93,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// it's necessary to update item on chart
         /// необходимо обновить элемент на чарте
         /// </summary>
-        public event Action<IChartElement> UpdeteEvent;
+        public event Action<IChartElement> UpdateEvent;
 
         /// <summary>
         /// it's necessary to remove element from chart
@@ -111,7 +111,7 @@ namespace OsEngine.Charts.CandleChart.Elements
         /// need to call up menu
         /// необходимо вызвать меню
         /// </summary>
-        public event Action<string> NeadToShowDialog;
+        public event Action<string> NeedToShowDialog;
         // exclusively for point
         // исключительно для точки
 

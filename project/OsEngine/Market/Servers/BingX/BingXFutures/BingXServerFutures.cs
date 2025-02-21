@@ -28,7 +28,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterBoolean("HedgeMode", false);
         }
     }

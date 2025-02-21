@@ -20,7 +20,7 @@ public class OneLegArbitrage : BotPanel
 
         Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
         Volume = CreateParameter("Volume", 3, 1.0m, 50, 4);
-        Slippage = CreateParameter("Slipage", 0, 0, 20, 1);
+        Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
         _ma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "MovingAverage", false);
         _ma = (Aindicator)_tab1.CreateCandleIndicator(_ma, "Prime");

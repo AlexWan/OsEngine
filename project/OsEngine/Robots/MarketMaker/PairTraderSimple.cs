@@ -32,8 +32,8 @@ namespace OsEngine.Robots.MarketMaker
             Volume1 = 1;
             Volume2 = 1;
 
-            Slipage1 = 0;
-            Slipage2 = 0;
+            Slippage1 = 0;
+            Slippage2 = 0;
 
             CountCandles = 5;
             SpreadDeviation = 1m;
@@ -83,8 +83,8 @@ namespace OsEngine.Robots.MarketMaker
                     writer.WriteLine(Volume1);
                     writer.WriteLine(Volume2);
 
-                    writer.WriteLine(Slipage1);
-                    writer.WriteLine(Slipage2);
+                    writer.WriteLine(Slippage1);
+                    writer.WriteLine(Slippage2);
 
                     writer.WriteLine(CountCandles);
                     writer.WriteLine(SpreadDeviation);
@@ -128,8 +128,8 @@ namespace OsEngine.Robots.MarketMaker
                     Volume1 = Convert.ToDecimal(reader.ReadLine());
                     Volume2 = Convert.ToDecimal(reader.ReadLine());
 
-                    Slipage1 = Convert.ToDecimal(reader.ReadLine());
-                    Slipage2 = Convert.ToDecimal(reader.ReadLine());
+                    Slippage1 = Convert.ToDecimal(reader.ReadLine());
+                    Slippage2 = Convert.ToDecimal(reader.ReadLine());
 
                     CountCandles = Convert.ToInt32(reader.ReadLine());
 
@@ -200,9 +200,9 @@ namespace OsEngine.Robots.MarketMaker
 
         public decimal Volume2;
 
-        public decimal Slipage1;
+        public decimal Slippage1;
 
-        public decimal Slipage2;
+        public decimal Slippage2;
 
         public decimal Loss;
 
@@ -307,8 +307,8 @@ namespace OsEngine.Robots.MarketMaker
 
                 if (positons1 == null || positons1.Count == 0)
                 {
-                    Position pos1 = _tab1.SellAtLimit(Volume1, _candles1[_candles1.Count - 1].Close - Slipage1);
-                    Position pos2 = _tab2.BuyAtLimit(Volume2, _candles2[_candles2.Count - 1].Close + Slipage2);
+                    Position pos1 = _tab1.SellAtLimit(Volume1, _candles1[_candles1.Count - 1].Close - Slippage1);
+                    Position pos2 = _tab2.BuyAtLimit(Volume2, _candles2[_candles2.Count - 1].Close + Slippage2);
 
                     PairDealStausSaver saver = new PairDealStausSaver();
                     saver.Spred = movePersent1 - movePersent2;
@@ -325,8 +325,8 @@ namespace OsEngine.Robots.MarketMaker
 
                 if (positons2 == null || positons2.Count == 0)
                 {
-                    Position pos1 = _tab2.SellAtLimit(Volume2, _candles2[_candles2.Count - 1].Close - Slipage2);
-                    Position pos2 = _tab1.BuyAtLimit(Volume1, _candles1[_candles1.Count - 1].Close + Slipage1);
+                    Position pos1 = _tab2.SellAtLimit(Volume2, _candles2[_candles2.Count - 1].Close - Slippage2);
+                    Position pos2 = _tab1.BuyAtLimit(Volume1, _candles1[_candles1.Count - 1].Close + Slippage1);
 
                     PairDealStausSaver saver = new PairDealStausSaver();
                     saver.Spred = movePersent2 - movePersent1;
@@ -363,8 +363,8 @@ namespace OsEngine.Robots.MarketMaker
                 if (spredNow > pairDeal.Spred &&
                     spredNow - pairDeal.Spred > Loss)
                 {
-                    NeadToClose(pairDeal.NumberPositions[0]);
-                    NeadToClose(pairDeal.NumberPositions[1]);
+                    NeedToClose(pairDeal.NumberPositions[0]);
+                    NeedToClose(pairDeal.NumberPositions[1]);
                     _positionNumbers.Remove(pairDeal);
                     i--;
                     continue;
@@ -373,8 +373,8 @@ namespace OsEngine.Robots.MarketMaker
                 if (pairDeal.Spred > spredNow &&
                     pairDeal.Spred - spredNow > Profit)
                 {
-                    NeadToClose(pairDeal.NumberPositions[0]);
-                    NeadToClose(pairDeal.NumberPositions[1]);
+                    NeedToClose(pairDeal.NumberPositions[0]);
+                    NeedToClose(pairDeal.NumberPositions[1]);
                     _positionNumbers.Remove(pairDeal);
                     i--;
                 }
@@ -385,7 +385,7 @@ namespace OsEngine.Robots.MarketMaker
         /// close position
         /// закрываем позицию по номеру
         /// </summary>
-        private void NeadToClose(int positionNum)
+        private void NeedToClose(int positionNum)
         {
             Position pos;
 

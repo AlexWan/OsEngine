@@ -22,6 +22,37 @@
                     <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top"  />
                 </Grid>
             </TabItem>
+            <TabItem Name="Label30" Header=" Performance settings " FontSize="14">
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="124"/>
+                        <RowDefinition Height="221*"/>
+                    </Grid.RowDefinitions>
+                    <Grid x:Name="GridOrdersSettings" >
+                        <TextBox x:Name="TextBoxSlippageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
+                        <Label Name = "Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="38,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
+                        <CheckBox Name = "CheckBoxSlippageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="38,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageLimitOff_Checked" Height="23" Width="121"/>
+                        <CheckBox Name = "CheckBoxSlippageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="38,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageLimitOn_Checked" Height="23" Width="92"/>
+                        <TextBox x:Name="TextBoxSlippageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
+                        <Label Name = "Label33" Content="Stop slippage" Margin="284,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" HorizontalAlignment="Left" Width="208" />
+                        <CheckBox Name = "CheckBoxSlippageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="284,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageStopOff_Checked" Height="24" Width="104"/>
+                        <CheckBox Name = "CheckBoxSlippageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="284,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageStopOn_Checked" Height="23" Width="101"/>
+                        <Label Name = "Label34" Content="Order execution" HorizontalAlignment="Left" Margin="544,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
+                        <ComboBox Name = "ComboBoxOrderActivationType" HorizontalAlignment="Left" Margin="626,0,0,0" VerticalAlignment="Center" Width="111" Height="23"/>
+                        <Label Name = "LabelOrderActivationType" Content="Activation" HorizontalAlignment="Left" Margin="544,0,0,0" VerticalAlignment="Center" Height="24" Width="82"/>
+                    </Grid>
+                    <Grid Grid.Row="1" >
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="390*"/>
+                            <ColumnDefinition Width="389*"/>
+                        </Grid.ColumnDefinitions>
+                        <WindowsFormsHost Name="HostClearing" Margin="0,26,5,0" />
+                        <WindowsFormsHost Name="HostNonTradePeriods" Grid.Column="1" Margin="5,26,0,0"/>
+                        <Label Name="LabelNonTradePeriod" Grid.Column="1" Content="Non-trading periods" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        <Label Name="LabelClearing" Content="Orders clearing system" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                    </Grid>
+                </Grid>
+            </TabItem>
             <TabItem Name="Label23" Header="Logging" FontSize="14">
                 <Grid >
                     <WindowsFormsHost x:Name="Host" Foreground="Black" Margin="0,10,0,0" />

@@ -373,7 +373,7 @@ namespace OsEngine.Language
 
         public string Label48 => OsLocalization.ConvertToLocString(
           "Eng:Reload_" +
-          "Ru:Перезагрузить_");
+          "Ru:Обновить_");
 
         public string Label49 => OsLocalization.ConvertToLocString(
           "Eng:Results_" +

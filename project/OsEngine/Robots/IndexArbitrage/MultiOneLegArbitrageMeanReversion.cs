@@ -164,13 +164,13 @@ namespace OsEngine.Robots.IndexArbitrage
 
             if(cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up
                 && Regime.ValueString != "OnlyShort")
-            { // nead to short security
+            { // need to short security
                 BuySecurity(tab, CointegrationLineSide.Up.ToString());
             }
 
             if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down
                 && Regime.ValueString != "OnlyLong")
-            { // nead to long security
+            { // need to long security
                 SellSecurity(tab, CointegrationLineSide.Down.ToString());
             }
         }

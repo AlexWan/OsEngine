@@ -24,8 +24,8 @@ namespace OsEngine.Robots.MarketMaker
 
             CultureInfo culture = new CultureInfo("ru-RU");
 
-            TextBoxSlipage1.Text = _strategy.Slipage1.ToString(culture);
-            TextBoxSlipage2.Text = _strategy.Slipage2.ToString(culture);
+            TextBoxSlippage1.Text = _strategy.Slippage1.ToString(culture);
+            TextBoxSlippage2.Text = _strategy.Slippage2.ToString(culture);
 
             TextBoxVolume1.Text = _strategy.Volume1.ToString(culture);
             TextBoxVolume2.Text = _strategy.Volume2.ToString(culture);
@@ -50,8 +50,8 @@ namespace OsEngine.Robots.MarketMaker
         {
             try
             {
-                if (Convert.ToDecimal(TextBoxSlipage1.Text) < 0 ||
-                    Convert.ToDecimal(TextBoxSlipage2.Text) < 0 ||
+                if (Convert.ToDecimal(TextBoxSlippage1.Text) < 0 ||
+                    Convert.ToDecimal(TextBoxSlippage2.Text) < 0 ||
                     Convert.ToDecimal(TextBoxVolume1.Text) < 0 ||
                     Convert.ToDecimal(TextBoxVolume2.Text) < 0)
                 {
@@ -64,8 +64,8 @@ namespace OsEngine.Robots.MarketMaker
                 return;
             }
 
-            _strategy.Slipage1 = Convert.ToDecimal(TextBoxSlipage1.Text);
-            _strategy.Slipage2 = Convert.ToDecimal(TextBoxSlipage2.Text);
+            _strategy.Slippage1 = Convert.ToDecimal(TextBoxSlippage1.Text);
+            _strategy.Slippage2 = Convert.ToDecimal(TextBoxSlippage2.Text);
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 
             _strategy.Volume2 = Convert.ToDecimal(TextBoxVolume2.Text);

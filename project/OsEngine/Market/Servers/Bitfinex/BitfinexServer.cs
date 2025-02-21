@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             ServerRealization = realization;
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
-            CreateParameterPassword(OsLocalization.Market.ServerParamSecretKey, "");
+            CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterBoolean(OsLocalization.Market.ServerParam4, false);
         }
 

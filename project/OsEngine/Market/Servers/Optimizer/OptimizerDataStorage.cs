@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -7,24 +12,17 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.OsOptimizer;
 
 namespace OsEngine.Market.Servers.Optimizer
 {
-    /// <summary>
-	/// data storage for Optimizer
-    /// хранилище данных для оптимизатора
-    /// </summary>
     public class OptimizerDataStorage
     {
+        #region Service and base settings
 
-        private string Name;
-        /// <summary>
-		/// constructor
-        /// конструктор
-        /// </summary>
-        public OptimizerDataStorage(string name, bool neadToCreateThread)
+        public OptimizerDataStorage(string name, bool needToCreateThread)
         {
-            Name = name;
+            _name = name;
 
             _logMaster = new Log("OptimizerServer",StartProgram.IsTester);
             _logMaster.Listen(this)
@@ -32,12 +30,12 @@ namespace OsEngine.Market.Servers.Optimizer
             TypeTesterData = TesterDataType.Candle;
             Load();
 
-            if (_activSet != null)
+            if (_activeSet != null)
             {
                 _needToReloadSecurities = true;
             }
 
-            if(neadToCreateThread == true)
+            if(needToCreateThread == true)
             {
                 _worker = new Thread(WorkThreadArea);
                 _worker.CurrentCulture = new CultureInfo("ru-RU");
@@ -49,9 +47,12 @@ namespace OsEngine.Market.Servers.Optimizer
             CheckSet();
         }
 
+        private string _name;
+
         public void ClearDelete()
         {
             _isDeleted = true;
+            _tradesId = 0;
 
             if (_storages != null)
             {
@@ -74,54 +75,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        private bool _isDeleted;
-
-        /// <summary>
-		/// main thread for downloading all data
-        /// основной поток, которые занимается прогрузкой всех данных
-        /// </summary>
-        private Thread _worker;
-
-        /// <summary>
-		/// it's time to reload securities in the folder
-        /// пора ли перезагружать бумаги в директории
-        /// </summary>
-        private bool _needToReloadSecurities;
-
-        /// <summary>
-		/// work place of main thread
-        /// место работы основного потока
-        /// </summary>
-        private void WorkThreadArea()
-        {
-            while (true)
-            {
-                Thread.Sleep(50);
-                try
-                {
-                    if(_isDeleted == true)
-                    {
-                        return;
-                    }
-                    if (_needToReloadSecurities)
-                    {
-                        _needToReloadSecurities = false;
-                        LoadSecurities();
-                    }
-                }
-                catch (Exception error)
-                {
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    SendLogMessage(error.ToString(), LogMessageType.Error);
-                    Thread.Sleep(1000);
-                }
-            }
-        }
-
-        /// <summary>
-		/// data type for Tester
-        /// тип данных которые заказывает тестер
-        /// </summary>
         public TesterDataType TypeTesterData
         {
             get { return _typeTesterData; }
@@ -139,22 +92,18 @@ namespace OsEngine.Market.Servers.Optimizer
         }
         private TesterDataType _typeTesterData;
 
-        /// <summary>
-		/// load settings from file
-        /// загрузить настройки из файла
-        /// </summary>
         private void Load()
         {
-            if (!File.Exists(@"Engine\" + Name + @"OptimizerDataStorage.txt"))
+            if (!File.Exists(@"Engine\" + _name + @"OptimizerDataStorage.txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + Name + @"OptimizerDataStorage.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + _name + @"OptimizerDataStorage.txt"))
                 {
-                    _activSet = reader.ReadLine();
+                    _activeSet = reader.ReadLine();
                     Enum.TryParse(reader.ReadLine(), out _typeTesterData);
                     Enum.TryParse(reader.ReadLine(), out _sourceDataType);
                     _pathToFolder = reader.ReadLine();
@@ -168,17 +117,13 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-		/// save settings
-        /// сохранить настройки
-        /// </summary>
         public void Save()
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + Name + @"OptimizerDataStorage.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + _name + @"OptimizerDataStorage.txt", false))
                 {
-                    writer.WriteLine(_activSet);
+                    writer.WriteLine(_activeSet);
                     writer.WriteLine(_typeTesterData);
                     writer.WriteLine(_sourceDataType);
                     writer.WriteLine(_pathToFolder);
@@ -191,10 +136,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-		/// data source
-        /// источник данных
-        /// </summary>
         public TesterSourceDataType SourceDataType
         {
             get { return _sourceDataType; }
@@ -211,10 +152,6 @@ namespace OsEngine.Market.Servers.Optimizer
         }
         private TesterSourceDataType _sourceDataType;
 
-        /// <summary>
-		/// data sets
-        /// сеты данных
-        /// </summary>
         private List<string> _sets;
         public List<string> Sets
         {
@@ -228,10 +165,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-		/// take all sets from folder
-        /// взять все сеты из папки
-        /// </summary>
         private void CheckSet()
         {
             if (!Directory.Exists(@"Data"))
@@ -264,21 +197,16 @@ namespace OsEngine.Market.Servers.Optimizer
             Sets = sets;
         }
 
-        /// <summary>
-		/// connect new data set with Tester
-        /// привязать к тестору новый сет данных
-        /// </summary>
-        /// <param name="setName">имя сета</param>
         public void SetNewSet(string setName)
         {
             string newSet = @"Data" + @"\" + @"Set_" + setName;
-            if (newSet == _activSet)
+            if (newSet == _activeSet)
             {
                 return;
             }
 
             SendLogMessage(OsLocalization.Market.Message27 + setName, LogMessageType.System);
-            _activSet = newSet;
+            _activeSet = newSet;
 
             if (_sourceDataType == TesterSourceDataType.Set)
             {
@@ -287,37 +215,6 @@ namespace OsEngine.Market.Servers.Optimizer
             Save();
         }
 
-        /// <summary>
-		/// reload securities
-        /// перезагрузить бумаги
-        /// </summary>
-        public void ReloadSecurities(bool thisThread)
-        {
-            try
-            {
-                // чистим все данные, отключаемся
-                SecuritiesTester = null;
-
-                if (thisThread == false)
-                {
-                    _needToReloadSecurities = true;
-                    Save();
-                }
-                else
-                {
-                    LoadSecurities();
-                }
-            }
-            catch(Exception ex)
-            {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
-            }
-        }
-
-        /// <summary>
-		/// path to folder with data
-        /// путь к папке с данными
-        /// </summary>
         public string PathToFolder
         {
             get { return _pathToFolder; }
@@ -325,20 +222,12 @@ namespace OsEngine.Market.Servers.Optimizer
         }
         private string _pathToFolder;
 
-        /// <summary>
-		/// show settings window
-        /// показать окно настроек
-        /// </summary>
-        public void ShowDialog()
+        public void ShowDialog(OptimizerMaster master)
         {
-            OptimizerDataStorageUi ui = new OptimizerDataStorageUi(this,_logMaster);
+            OptimizerDataStorageUi ui = new OptimizerDataStorageUi(this,_logMaster,master);
             ui.ShowDialog();
         }
 
-        /// <summary>
-		/// show folder path selection window
-        /// вызвать окно выбора пути к папке
-        /// </summary>
         public void ShowPathSenderDialog()
         {
 
@@ -362,73 +251,93 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-// Download data on securities that are in storage
-// Загрузка данных по тем бумагам которые есть в хранилище
+        #endregion
 
-        /// <summary>
-		/// path to data folder. He is the name of the active set
-        /// путь к папке с данными. Он же название активного сета
-        /// </summary>
-        private string _activSet;
-        public string ActiveSet
+        #region Main thread work place
+
+        private void WorkThreadArea()
         {
-            get { return _activSet; }
+            while (true)
+            {
+                Thread.Sleep(50);
+                try
+                {
+                    if (_isDeleted == true)
+                    {
+                        return;
+                    }
+                    if (_needToReloadSecurities)
+                    {
+                        _needToReloadSecurities = false;
+                        LoadSecurities();
+                    }
+                }
+                catch (Exception error)
+                {
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(1000);
+                }
+            }
         }
 
-        /// <summary>
-		/// minimum time that can be set for synchronization
-        /// минимальное время которое можно задать для синхронизации
-        /// </summary>
+        public void ReloadSecurities(bool thisThread)
+        {
+            try
+            {
+                // чистим все данные, отключаемся
+                SecuritiesTester = null;
+
+                if (thisThread == false)
+                {
+                    _needToReloadSecurities = true;
+                    Save();
+                }
+                else
+                {
+                    LoadSecurities();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private bool _isDeleted;
+
+        private Thread _worker;
+
+        private bool _needToReloadSecurities;
+
+        #endregion
+
+        #region Get securities data from file system
+
+        public string ActiveSet
+        {
+            get { return _activeSet; }
+        }
+        private string _activeSet;
+
         public DateTime TimeMin;
 
-        /// <summary>
-		/// maximum time that can be set for synchronization
-        /// максимальное время которое можно задать для синхронизации
-        /// </summary>
         public DateTime TimeMax;
 
-        /// <summary>
-		/// start testing time selected by user
-        /// время начала тестирования выбранное пользователем
-        /// </summary>
         public DateTime TimeStart;
 
-        /// <summary>
-		/// finish testing time selected by user
-        /// время конца тестирования выбранное пользователем
-        /// </summary>
         public DateTime TimeEnd;
 
-        /// <summary>
-		/// synchronizer time at now moment of history
-        /// время синхронизатора в данный момент подачи истории
-        /// </summary>
         public DateTime TimeNow;
 
-        /// <summary>
-		/// securities available for loading
-        /// бумаги доступные для загрузки 
-        /// </summary>
         public List<SecurityTester> SecuritiesTester;
 
         public event Action<DateTime, DateTime> TimeChangeEvent;
 
-        /// <summary>
-		/// securities available for downloading
-        /// бумаги доступные для скачивания
-        /// </summary>
         public List<Security> Securities; 
 
-        /// <summary>
-		/// event: changed list of available securities
-        /// событие: изменился список доступных бумаг
-        /// </summary>
         public event Action<List<Security>> SecuritiesChangeEvent;
 
-        /// <summary>
-		/// download securities data from folder
-        /// загрузить данные о бумагах из директории
-        /// </summary>
         private void LoadSecurities()
         {
             try
@@ -439,13 +348,13 @@ namespace OsEngine.Market.Servers.Optimizer
                 TimeStart = DateTime.MinValue;
                 TimeNow = DateTime.MinValue;
 
-                if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activSet))
+                if (_sourceDataType == TesterSourceDataType.Set && !string.IsNullOrWhiteSpace(_activeSet))
                 {
-                    if (!Directory.Exists(_activSet))
+                    if (!Directory.Exists(_activeSet))
                     {
                         return;
                     }
-                    string[] directories = Directory.GetDirectories(_activSet);
+                    string[] directories = Directory.GetDirectories(_activeSet);
 
                     if (directories.Length == 0)
                     {
@@ -455,7 +364,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     for (int i = 0; i < directories.Length; i++)
                     {
-                        LoadSecuruty(directories[i]);
+                        LoadSingleSecurity(directories[i]);
                     }
 
                 }
@@ -501,12 +410,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-		/// unload one instrument from folder
-        /// выгрузить один инструмент из папки
-        /// </summary>
-        /// <param name="path">instrument folder path/путь к папке с инструментом</param>
-        private void LoadSecuruty(string path)
+        private void LoadSingleSecurity(string path)
         {
             try
             {
@@ -545,10 +449,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-		/// load securities from a folder with candles
-        /// загрузить бумаги из папки со свечками
-        /// </summary>
         private void LoadCandleFromFolder(string folderName)
         {
             lock (_lockerLoadCandles)
@@ -858,10 +758,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-		/// download securities from folder with trades
-        /// загрузить бумаги из папки с трейдами
-        /// </summary>
         private void LoadTickFromFolder(string folderName)
         {
             string[] files = Directory.GetFiles(folderName);
@@ -1088,10 +984,6 @@ namespace OsEngine.Market.Servers.Optimizer
             SetToSecuritiesDopSettings(folderName);
         }
 
-        /// <summary>
-		/// download securities from folder with depths
-        /// загрузить бумаги из папки со стаканами
-        /// </summary>
         private void LoadMarketDepthFromFolder(string folderName)
         {
             string[] files = Directory.GetFiles(folderName);
@@ -1324,10 +1216,6 @@ namespace OsEngine.Market.Servers.Optimizer
 
         }
 
-        /// <summary>
-		/// take timeframe from TimeSpan
-        /// взять таймфрейм из TimeSpan
-        /// </summary>
         private TimeFrame GetTimeFrame(TimeSpan frameSpan)
         {
             TimeFrame timeFrame = TimeFrame.Min1;
@@ -1408,8 +1296,6 @@ namespace OsEngine.Market.Servers.Optimizer
             return timeFrame;
         }
 
-        // получить истинный TimeFrameSpan
-        // get true TimeFrameSpan
         private TimeSpan GetTimeSpan(StreamReader reader)
         {
 
@@ -1462,8 +1348,9 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        // storage of additional data about securities: GO, multipliers, Lots
-        // хранение дополнительных данных о бумагах: ГО, Мультипликаторы, Лоты
+        #endregion
+
+        #region Storage of additional security data: GO, Multipliers, Lots
 
         private void SetToSecuritiesDopSettings(string folderName)
         {
@@ -1471,7 +1358,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (array == null)
             {
-                array = LoadSecurityDopSettings(_activSet + "\\SecuritiesSettings.txt");
+                array = LoadSecurityDopSettings(_activeSet + "\\SecuritiesSettings.txt");
             }
 
             for (int i = 0; array != null && i < array.Count; i++)
@@ -1510,10 +1397,6 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-        /// download security specification
-        /// загрузить спецификацию по бумагам
-        /// </summary>
         private List<string[]> LoadSecurityDopSettings(string path)
         {
             if (SecuritiesTester.Count == 0)
@@ -1548,11 +1431,6 @@ namespace OsEngine.Market.Servers.Optimizer
             return null;
         }
 
-        /// <summary>
-		/// save security specification
-        /// сохранить спецификацию по бумагам
-        /// </summary>
-        /// <param name="securityToSave"></param>
         public void SaveSecurityDopSettings(Security securityToSave)
         {
             if (SecuritiesTester.Count == 0)
@@ -1564,11 +1442,11 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (SourceDataType == TesterSourceDataType.Set)
             {
-                if (string.IsNullOrWhiteSpace(_activSet))
+                if (string.IsNullOrWhiteSpace(_activeSet))
                 {
                     return;
                 }
-                pathToSettings = _activSet + "\\SecuritiesSettings.txt";
+                pathToSettings = _activeSet + "\\SecuritiesSettings.txt";
             }
             else
             {
@@ -1666,22 +1544,14 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-// download data from files
-// загрузка данных из файлов
+        #endregion
 
-        /// <summary>
-		/// all data storages
-        /// все хранилища данных
-        /// </summary>
+        #region Download data from files
+
         private List<DataStorage> _storages = new List<DataStorage>();
 
         private object _storageLocker = new object();
 
-        /// <summary>
-		/// take security data storage
-        /// взять хранилище с данными по бумаге
-        /// </summary>
-        /// <returns></returns>
         public DataStorage GetStorageToSecurity(Security security, TimeFrame timeFrame, DateTime timeStart, DateTime timeEnd)
         {
             lock (_storageLocker)
@@ -1764,10 +1634,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private object _lockerLoadCandles = "candlesLocker";
 
-        /// <summary>
-		/// download candle from file
-        /// загрузить свечи из файла
-        /// </summary>
+        private long _tradesId;
+
         private DataStorage LoadCandlesFromFolder(Security security, TimeFrame timeFrame, DateTime timeStart,
             DateTime timeEnd)
         {
@@ -1831,12 +1699,7 @@ namespace OsEngine.Market.Servers.Optimizer
             }
         }
 
-        /// <summary>
-		/// download trades from file
-        /// загрузить трейды из файла
-        /// </summary>
-        private DataStorage LoadTradesFromFolder(Security security, DateTime timeStart,
-    DateTime timeEnd)
+        private DataStorage LoadTradesFromFolder(Security security, DateTime timeStart, DateTime timeEnd)
         {
             SecurityTester sec = SecuritiesTester.Find(s => s.Security.Name == security.Name && s.DataType == SecurityTesterDataType.Tick);
 
@@ -1854,6 +1717,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 try
                 {
                     trade.SetTradeFromString(reader.ReadLine());
+                    trade.IdInTester = _tradesId++;
                     trade.SecurityNameCode = security.Name;
                 }
                 catch
@@ -1888,12 +1752,7 @@ namespace OsEngine.Market.Servers.Optimizer
             return storage;
         }
 
-        /// <summary>
-		/// download depths from file
-        /// загрузить стаканы из файла
-        /// </summary>
-        private DataStorage LoadMarketDepthFromFolder(Security security, DateTime timeStart,
-DateTime timeEnd)
+        private DataStorage LoadMarketDepthFromFolder(Security security, DateTime timeStart, DateTime timeEnd)
         {
             SecurityTester sec = SecuritiesTester.Find(s => s.Security.Name == security.Name && s.DataType == SecurityTesterDataType.Tick);
 
@@ -1936,7 +1795,7 @@ DateTime timeEnd)
             }
 
             DataStorage storage = new DataStorage();
-            storage.MaketDepths = marketDepths;
+            storage.MarketDepths = marketDepths;
             storage.Security = security;
             storage.TimeEnd = timeEnd;
             storage.TimeStart = timeStart;
@@ -1945,12 +1804,10 @@ DateTime timeEnd)
             return storage;
         }
 
-// logging
-// логирование
-        /// <summary>
-		/// save a new log message
-        /// сохранить новую запись в лог
-        /// </summary>
+        #endregion
+
+        #region Log
+
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -1959,72 +1816,29 @@ DateTime timeEnd)
             }
         }
 
-        /// <summary>
-		/// log manager
-        /// лог менеджер
-        /// </summary>
-        /// 
         private Log _logMaster;
 
-        /// <summary>
-		/// called when there is a new log message
-        /// вызывается когда есть новое сообщение в логе
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 
-    /// <summary>
-	/// downloaded candles
-    /// загруженные свечки
-    /// </summary>
     public class DataStorage
     {
-        /// <summary>
-		/// what keeps the storage
-        /// что хранит в себе хранилище
-        /// </summary>
         public TesterDataType StorageType;
 
-        /// <summary>
-		/// security on which candles are loaded
-        /// бумага по которой свечи загружены
-        /// </summary>
         public Security Security;
 
-        /// <summary>
-		/// candles of this security
-        /// свечи этой бумаги
-        /// </summary>
         public List<Candle> Candles;
 
-        /// <summary>
-		/// trades of this security 
-        /// трейды этой бумаги
-        /// </summary>
         public List<Trade> Trades;
 
-        /// <summary>
-		/// depths of this security
-        /// стаканы этой бумаги
-        /// </summary>
-        public List<MarketDepth> MaketDepths; 
+        public List<MarketDepth> MarketDepths; 
 
-        /// <summary>
-		/// candles timeframe
-        /// таймФрейм свечек
-        /// </summary>
         public TimeFrame TimeFrame;
 
-        /// <summary>
-		/// start time of downloading this candle series
-        /// время старта скачивания этой серии свечек
-        /// </summary>
         public DateTime TimeStart;
 
-        /// <summary>
-		/// finish time of downloading this candle series
-        /// время завершения скачивания этой серии свечек
-        /// </summary>
         public DateTime TimeEnd;
 
         public DateTime TimeEndAddDay
@@ -2057,13 +1871,12 @@ DateTime timeEnd)
                 Trades = null;
             }
 
-            if (MaketDepths != null)
+            if (MarketDepths != null)
             {
-                MaketDepths.Clear();
-                MaketDepths = null;
+                MarketDepths.Clear();
+                MarketDepths = null;
             }
 
         }
     }
-
 }

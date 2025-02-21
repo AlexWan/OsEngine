@@ -226,6 +226,11 @@ namespace OsEngine.Robots.AutoTestBots
 
         private void _tab_NewTabCreateEvent(BotTabSimple tab)
         {
+            if(tab.Connector == null)
+            {
+                return;
+            }
+
             if (MainWindow.GetDispatcher.CheckAccess() == false)
             {
                 MainWindow.GetDispatcher.Invoke((Action<BotTabSimple>)_tab_NewTabCreateEvent, tab);

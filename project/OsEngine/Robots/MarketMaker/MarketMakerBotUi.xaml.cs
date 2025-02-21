@@ -30,12 +30,12 @@ namespace OsEngine.Robots.MarketMaker
             TextBoxVolumeOne.Text = _strategy.Volume.ToString();
             TextBoxSpreadBeetwenLine.Text = _strategy.PersentToSpreadLines.ToString();
 
-            CheckBoxNeadToPaint.IsChecked = _strategy.PaintOn;
+            CheckBoxNeedToPaint.IsChecked = _strategy.PaintOn;
 
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelBetweenLines.Content = OsLocalization.Trader.Label130;
-            CheckBoxNeadToPaint.Content = OsLocalization.Trader.Label131;
+            CheckBoxNeedToPaint.Content = OsLocalization.Trader.Label131;
             ButtonAccept.Content = OsLocalization.Trader.Label117;
 
             this.Activate();
@@ -62,9 +62,9 @@ namespace OsEngine.Robots.MarketMaker
             _strategy.PersentToSpreadLines = TextBoxSpreadBeetwenLine.Text.ToDecimal();
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
 
-            if (CheckBoxNeadToPaint.IsChecked.HasValue)
+            if (CheckBoxNeedToPaint.IsChecked.HasValue)
             {
-                _strategy.PaintOn = CheckBoxNeadToPaint.IsChecked.Value;
+                _strategy.PaintOn = CheckBoxNeedToPaint.IsChecked.Value;
             }
 
             _strategy.Save();

@@ -29,7 +29,7 @@ namespace OsEngine.Alerts
         /// slippage
         /// проскальзывание
         /// </summary>
-        public decimal Slipage;
+        public decimal Slippage;
 
         /// <summary>
         /// transaction type

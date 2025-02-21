@@ -40,7 +40,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
             Thread.Sleep(1000);
 
-            _threadsNeadToStop = true;
+            _threadsNeedToStop = true;
 
             _marketDepths = new List<MarketDepth>();
         }
@@ -128,7 +128,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 		/// whether need threads to be stopped
         /// нужно ли чтобы потоки были остановлены
         /// </summary>
-        private bool _threadsNeadToStop;
+        private bool _threadsNeedToStop;
 
         /// <summary>
 		/// messages for sending to Ninja
@@ -147,7 +147,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
                 Thread.Sleep(100);
                 try
                 {
-                    if (_threadsNeadToStop == true)
+                    if (_threadsNeedToStop == true)
                     {
                         return;
                     }

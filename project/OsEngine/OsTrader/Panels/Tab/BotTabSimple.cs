@@ -72,14 +72,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
                 _journal.LogMessageEvent += SetNewLogMessage;
 
-                _connector.CommissionType = _journal.ComissionType;
-                _connector.CommissionValue = _journal.ComissionValue;
+                _connector.CommissionType = _journal.CommissionType;
+                _connector.CommissionValue = _journal.CommissionValue;
 
                 _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
                 _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _chartMaster.IndicatorUpdateEvent += _chartMaster_IndicatorUpdateEvent;
+                _chartMaster.IndicatorManuallyCreateEvent += _chartMaster_IndicatorManuallyCreateEvent;
+                _chartMaster.IndicatorManuallyDeleteEvent += _chartMaster_IndicatorManuallyDeleteEvent;
 
                 if (StartProgram != StartProgram.IsOsOptimizer)
                 {
@@ -161,6 +163,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _lastTradeTime = DateTime.MinValue;
             _lastTradeIndex = 0;
+            _lastTradeIdInTester = 0;
 
             if (_chartMaster == null)
             {
@@ -395,6 +398,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (_chartMaster != null)
                 {
                     _chartMaster.IndicatorUpdateEvent -= _chartMaster_IndicatorUpdateEvent;
+                    _chartMaster.IndicatorManuallyCreateEvent -= _chartMaster_IndicatorManuallyCreateEvent;
+                    _chartMaster.IndicatorManuallyDeleteEvent -= _chartMaster_IndicatorManuallyDeleteEvent;
                     _chartMaster.Delete();
                     _chartMaster.LogMessageEvent -= SetNewLogMessage;
                     _chartMaster = null;
@@ -937,11 +942,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return ComissionType.None;
                 }
-                return _journal.ComissionType;
+                return _journal.CommissionType;
             }
             set
             {
-                _journal.ComissionType = value;
+                _journal.CommissionType = value;
                 _connector.CommissionType = value;
             }
         }
@@ -958,11 +963,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return 0;
                 }
 
-                return _journal.ComissionValue;
+                return _journal.CommissionValue;
             }
             set
             {
-                _journal.ComissionValue = value;
+                _journal.CommissionValue = value;
                 _connector.CommissionValue = value;
             }
         }
@@ -1286,8 +1291,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _connector.ShowDialog(true);
 
-            _journal.ComissionType = _connector.CommissionType;
-            _journal.ComissionValue = _connector.CommissionValue;
+            _journal.CommissionType = _connector.CommissionType;
+            _journal.CommissionValue = _connector.CommissionValue;
         }
 
         /// <summary>
@@ -1297,52 +1302,52 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             bool stopIsOnStartValue = ManualPositionSupport.StopIsOn;
             decimal stopDistance = ManualPositionSupport.StopDistance;
-            decimal stopSlipage = ManualPositionSupport.StopSlippage;
+            decimal stopSlippage = ManualPositionSupport.StopSlippage;
 
             bool profitOnStartValue = ManualPositionSupport.ProfitIsOn;
             decimal profitDistance = ManualPositionSupport.ProfitDistance;
-            decimal profitSlipage = ManualPositionSupport.ProfitSlippage;
+            decimal profitSlippage = ManualPositionSupport.ProfitSlippage;
 
-            ManualPositionSupport.ShowDialog();
+            ManualPositionSupport.ShowDialog(StartProgram);
 
-            bool neadToReplaceStop = false;
+            bool needToReplaceStop = false;
 
             if(ManualPositionSupport.StopIsOn == true
                 && stopIsOnStartValue == false)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if(ManualPositionSupport.StopIsOn == true
                 && stopDistance != ManualPositionSupport.StopDistance)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if (ManualPositionSupport.StopIsOn == true
-                && stopSlipage != ManualPositionSupport.StopSlippage)
+                && stopSlippage != ManualPositionSupport.StopSlippage)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
 
             if (ManualPositionSupport.ProfitIsOn == true
                 && profitOnStartValue == false)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if (ManualPositionSupport.ProfitIsOn == true
                 && profitDistance != ManualPositionSupport.ProfitDistance)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
             if (ManualPositionSupport.ProfitIsOn == true
-                && profitSlipage != ManualPositionSupport.ProfitSlippage)
+                && profitSlippage != ManualPositionSupport.ProfitSlippage)
             {
-                neadToReplaceStop = true;
+                needToReplaceStop = true;
             }
 
             List<Position> positions = this.PositionsOpenAll;
 
             if(positions.Count > 0 &&
-                neadToReplaceStop &&
+                needToReplaceStop &&
                 IsCreatedByScreener == false)
             {
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label386);
@@ -4892,7 +4897,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (openOrder.TradesIsComing == false)
                         {
                             PositionToSecondLoopSender sender = new PositionToSecondLoopSender() { Position = position };
-                            sender.PositionNeadToStopSend += ManualReloadStopsAndProfitToPosition;
+                            sender.PositionNeedToStopSend += ManualReloadStopsAndProfitToPosition;
 
                             Task task = new Task(sender.Start);
                             task.Start();
@@ -5124,11 +5129,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         if (position.Direction == Side.Buy)
                         {
-                            price = _connector.BestBid - signal.Slipage;
+                            price = _connector.BestBid - signal.Slippage;
                         }
                         else
                         {
-                            price = _connector.BestAsk + signal.Slipage;
+                            price = _connector.BestAsk + signal.Slippage;
                         }
 
                         CloseDeal(position, OrderPriceType.Limit, price, ManualPositionSupport.SecondToClose, true, true);
@@ -5145,7 +5150,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
-                        BuyAtLimit(signal.Volume, _connector.BestAsk + signal.Slipage);
+                        BuyAtLimit(signal.Volume, _connector.BestAsk + signal.Slippage);
                     }
                 }
                 else if (signal.SignalType == SignalType.Sell)
@@ -5158,7 +5163,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
-                        SellAtLimit(signal.Volume, _connector.BestBid - signal.Slipage);
+                        SellAtLimit(signal.Volume, _connector.BestBid - signal.Slippage);
                     }
                 }
             }
@@ -5316,7 +5321,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="candles">candles</param>
         private void CancelStopOpenerByNewCandle(List<Candle> candles)
         {
-            bool neadSave = false;
+            bool needSave = false;
 
             for (int i = 0; PositionOpenerToStop != null && i < PositionOpenerToStop.Count; i++)
             {
@@ -5329,7 +5334,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     PositionOpenerToStop.RemoveAt(i);
                     i--;
-                    neadSave = true;
+                    needSave = true;
                     continue;
                 }
 
@@ -5337,11 +5342,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     PositionOpenerToStop[i].LastCandleTime = candles[candles.Count - 1].TimeStart;
                     PositionOpenerToStop[i].ExpiresBars = PositionOpenerToStop[i].ExpiresBars - 1;
-                    neadSave = true;
+                    needSave = true;
                 }
             }
 
-            if (neadSave == true)
+            if (needSave == true)
             {
                 UpdateStopLimits();
             }
@@ -5360,7 +5365,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                bool neadSave = false;
+                bool needSave = false;
 
                 for (int i = 0;
                     i > -1 && PositionOpenerToStop != null && PositionOpenerToStop.Count != 0 && i < PositionOpenerToStop.Count;
@@ -5396,7 +5401,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 PositionBuyAtStopActivateEvent(pos);
                             }
-                            neadSave = true;
+                            needSave = true;
                             continue;
                         }
                         else if (PositionOpenerToStop[i].Side == Side.Sell)
@@ -5424,14 +5429,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 PositionSellAtStopActivateEvent(pos);
                             }
-                            neadSave = true;
+                            needSave = true;
                             continue;
                         }
                         i--;
                     }
                 }
 
-                if (neadSave == true)
+                if (needSave == true)
                 {
                     UpdateStopLimits();
                 }
@@ -5921,7 +5926,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private DateTime _lastTradeTime;
 
+        private decimal _lastTradeQty;
+
+        private decimal _lastTradePrice;
+
         private int _lastTradeIndex;
+
+        private long _lastTradeIdInTester;
 
         /// <summary>
         /// new tiki came
@@ -5950,6 +5961,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _lastTradeTime = DateTime.MinValue;
                 _lastTradeIndex = 0;
+                _lastTradeIdInTester = 0;
+                return;
             }
 
             if(StartProgram == StartProgram.IsOsTrader)
@@ -5991,35 +6004,71 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Trade> newTrades = new List<Trade>();
 
-            if (trades.Count > 1000)
-            { // if deleting trades from the system is disabled
+            if(StartProgram == StartProgram.IsOsTrader)
+            {
+                if (trades.Count > 1000)
+                { // if deleting trades from the system is disabled
 
-                int newTradesCount = trades.Count - _lastTradeIndex;
+                    int newTradesCount = trades.Count - _lastTradeIndex;
 
-                if (newTradesCount <= 0)
-                {
-                    return;
+                    if (newTradesCount <= 0)
+                    {
+                        return;
+                    }
+
+                    newTrades = trades.GetRange(_lastTradeIndex, newTradesCount);
                 }
-
-                newTrades = trades.GetRange(_lastTradeIndex, newTradesCount);
+                else
+                {
+                    if (_lastTradeTime == DateTime.MinValue)
+                    {
+                        newTrades = trades;
+                    }
+                    else
+                    {
+                        for (int i = 0; i < trades.Count; i++)
+                        {
+                            try
+                            {
+                                if (trades[i].Time < _lastTradeTime)
+                                {
+                                    continue;
+                                }
+                                if (trades[i].Time == _lastTradeTime
+                                    && trades[i].Price == _lastTradePrice
+                                    && trades[i].Volume == _lastTradeQty)
+                                {
+                                    continue;
+                                }
+                                newTrades.Add(trades[i]);
+                            }
+                            catch
+                            {
+                                continue;
+                            }
+                        }
+                    }
+                }
             }
-            else
+            else // Tester, Optimizer
             {
                 if (_lastTradeTime == DateTime.MinValue)
                 {
                     newTrades = trades;
+                    _lastTradeIdInTester = newTrades[newTrades.Count - 1].IdInTester;
                 }
                 else
                 {
-                    for (int i = 0; i < trades.Count; i++)
+                    for (int i = trades.Count-1; i < trades.Count; i--)
                     {
                         try
                         {
-                            if (trades[i].Time <= _lastTradeTime)
+                            if (trades[i].IdInTester <= _lastTradeIdInTester)
                             {
-                                continue;
+                                break;
                             }
-                            newTrades.Add(trades[i]);
+
+                            newTrades.Insert(0,trades[i]);
                         }
                         catch
                         {
@@ -6105,6 +6154,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _lastTradeIndex = trades.Count;
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
+            _lastTradeIdInTester = newTrades[newTrades.Count - 1].IdInTester;
+            _lastTradeQty = newTrades[newTrades.Count - 1].Volume;
+            _lastTradePrice = newTrades[newTrades.Count - 1].Price;
 
             if (StartProgram == StartProgram.IsOsTrader)
             {
@@ -6206,6 +6258,22 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (IndicatorUpdateEvent != null)
             {
                 IndicatorUpdateEvent();
+            }
+        }
+
+        private void _chartMaster_IndicatorManuallyCreateEvent(IIndicator newIndicator)
+        {
+            if(IndicatorManuallyCreateEvent != null)
+            {
+                IndicatorManuallyCreateEvent(newIndicator, this);
+            }
+        }
+
+        private void _chartMaster_IndicatorManuallyDeleteEvent(IIndicator indicator)
+        {
+            if(IndicatorManuallyDeleteEvent != null)
+            {
+                IndicatorManuallyDeleteEvent(indicator, this);
             }
         }
 
@@ -6457,6 +6525,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// The robot is removed from the system
         /// </summary>
         public event Action<int> DeleteBotEvent;
+
+        public event Action<IIndicator, BotTabSimple> IndicatorManuallyCreateEvent;
+
+        public event Action<IIndicator, BotTabSimple> IndicatorManuallyDeleteEvent;
     }
 
     /// <summary>
@@ -6469,13 +6541,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         public async void Start()
         {
             await Task.Delay(3000);
-            if (PositionNeadToStopSend != null)
+            if (PositionNeedToStopSend != null)
             {
-                PositionNeadToStopSend(Position);
+                PositionNeedToStopSend(Position);
             }
         }
 
-        public event Action<Position> PositionNeadToStopSend;
+        public event Action<Position> PositionNeedToStopSend;
     }
 
     public class PositionAwaitMyTradesToSendEvent

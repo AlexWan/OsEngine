@@ -205,14 +205,14 @@ namespace OsEngine.Market.Servers
         /// Начать выгрузку данных по инструменту
         /// </summary>
         List<Candle> GetCandleDataToSecurity(string securityName, string securityClass, TimeFrameBuilder timeFrameBuilder,
-            DateTime startTime, DateTime endTime, DateTime actualTime, bool neadToUpdate);
+            DateTime startTime, DateTime endTime, DateTime actualTime, bool needToUpdate);
 
         /// <summary>
         /// take ticks instrument data for a certain period
         /// взять тиковые данные по инструменту за определённый период
         /// </summary>
         List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, DateTime endTime, DateTime actualTime,
-            bool neadToUpdete);
+            bool needToUpdete);
 
         /// <summary>
         /// take all trades on the instrument that have in the system
