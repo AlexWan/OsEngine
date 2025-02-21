@@ -375,7 +375,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             if(responce != null)
             {
-                UpdatePortfolio(responce);
+                UpdatePortfolio(responce, true);
             }
         }
 
@@ -396,7 +396,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     if (resp != null)
                     {
-                        UpdatePortfolio(resp);
+                        UpdatePortfolio(resp, false);
                     }
                 }
                 catch (Exception ex)
@@ -443,7 +443,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private List<Portfolio> _portfolios = new List<Portfolio>();
 
-        private void UpdatePortfolio(AccountResponseFutures portfs)
+        private void UpdatePortfolio(AccountResponseFutures portfs, bool IsUpdateValueBegin)
         {
             try
             {
@@ -464,6 +464,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     return;
                 }
 
+                decimal positionInUSDT = 0;
+                decimal sizeUSDT = 0;
+                decimal resultPnL = 0;
+
                 foreach (var onePortf in portfs.assets)
                 {
                     PositionOnBoard newPortf = new PositionOnBoard();
@@ -473,11 +477,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newPortf.ValueCurrent =
                         onePortf.marginBalance.ToDecimal();
                     newPortf.PortfolioName = "BinanceFutures";
+                    newPortf.UnrealizedPnl =
+                        onePortf.unrealizedProfit.ToDecimal();
 
                     decimal lockedBalanceUSDT = 0m;
+
                     if (onePortf.asset.Equals("USDT"))
                     {
-
                         foreach (var position in portfs.positions)
                         {
                             if (position.symbol == "USDTUSDT") continue;
@@ -489,6 +495,25 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     newPortf.ValueBlocked = lockedBalanceUSDT;
 
                     myPortfolio.SetNewPosition(newPortf);
+
+                    if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
+                    {
+                        if (onePortf.asset.Equals("USDT"))
+                        {
+                            sizeUSDT = onePortf.marginBalance.ToDecimal();
+                        }
+                        else if (onePortf.asset.Equals("BFUSD")
+                            || onePortf.asset.Equals("FDUSD"))
+                        {
+                            continue;
+                        }
+                        else
+                        {
+                            positionInUSDT += GetPriceSecurity(onePortf.asset + "USDT") * onePortf.marginBalance.ToDecimal();
+                        }
+
+                        resultPnL += onePortf.unrealizedProfit.ToDecimal();
+                    }
                 }
 
                 foreach (var onePortf in portfs.positions)
@@ -511,7 +536,21 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                     newPortf.PortfolioName = "BinanceFutures";
 
+                    newPortf.UnrealizedPnl =
+                        onePortf.unrealizedProfit.ToDecimal();
+
                     myPortfolio.SetNewPosition(newPortf);
+                }
+
+                if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
+                {
+                    if (IsUpdateValueBegin)
+                    {
+                        myPortfolio.ValueBegin = Math.Round(sizeUSDT + positionInUSDT, 4);
+                    }
+
+                    myPortfolio.ValueCurrent = Math.Round(sizeUSDT + positionInUSDT, 4);
+                    myPortfolio.UnrealizedPnl = resultPnL;
                 }
 
                 if (PortfolioEvent != null)
@@ -523,6 +562,37 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private decimal GetPriceSecurity(string security)
+        {
+            try
+            {
+                string res = null;
+                decimal price = 0;
+
+                Dictionary<string, string> param = new Dictionary<string, string>();
+                param.Add("symbol=", security);
+
+                res = CreateQuery(Method.GET, "/fapi/v1/ticker/price", param, true);
+
+                if (res == null)
+                {
+                    return 0;
+                }
+
+                PriceTicker resp = JsonConvert.DeserializeAnonymousType(res, new PriceTicker());
+
+                price = resp.price.ToDecimal();
+
+                return price;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+            return 0;
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
