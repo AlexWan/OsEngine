@@ -109,15 +109,15 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // свечки за прошлый год
 
-            DateTime startTime = lastMidnightTime.AddDays(-365);//18.02.2024 0:01:01
-            DateTime endTime = lastMidnightTime.AddDays(-1).AddHours(-1);//15.02.2025 23:01:01
+            DateTime startTime = lastMidnightTime.AddDays(-365);
+            DateTime endTime = lastMidnightTime.AddDays(-1).AddHours(-1);
 
             CheckCandlesToSeciruty(security, startTime, endTime, permission);
 
             // свечки за год назад
 
-            startTime = lastMidnightTime.AddDays(-730);//18.02.2023 0:01:01
-            endTime = lastMidnightTime.AddDays(-1).AddHours(-1).AddDays(-365);//15.02.2025 23:01:01//16.02.24
+            startTime = lastMidnightTime.AddDays(-730);
+            endTime = lastMidnightTime.AddDays(-1).AddHours(-1).AddDays(-365);
 
             CheckCandlesToSeciruty(security, startTime, endTime, permission);
         }

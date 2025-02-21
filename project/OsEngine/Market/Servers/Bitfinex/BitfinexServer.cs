@@ -25,6 +25,8 @@ using System.Timers;
 using Newtonsoft.Json;
 using System.IO;
 using ErrorEventArgs = WebSocketSharp.ErrorEventArgs;
+using Kraken.WebSockets.Messages;
+using OsEngine.Market.Servers.KiteConnect.Json;
 
 
 namespace OsEngine.Market.Servers.Bitfinex
@@ -558,7 +560,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (newTrades == null || newTrades.Count == 0)
                 {
-                    SendLogMessage($"No data for interval {nextStartTime} - {nextEndTime}", LogMessageType.Error);
+                    SendLogMessage($"No data available for the { security} pair for the specified period.", LogMessageType.Error);
                     return null;
                 }
 
@@ -688,7 +690,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (rangeCandles == null)
                 {
-                    SendLogMessage($"Error: rangeCandles is null, security:{nameSec},periodStart{periodStart},periodEnd{periodEnd},timeFrame:{timeFrame}", LogMessageType.Error);
+                    SendLogMessage($"Error: rangeCandles is null, security:{nameSec}, periodStart:{periodStart}, periodEnd:{periodEnd}, timeFrame:{timeFrame}", LogMessageType.Error);
                     
                     return null;
                 }
@@ -870,7 +872,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (candles == null || candles.Count == 0)
                     {
-                        SendLogMessage($"No data {nameSec} period {startTime} - {endTime},timeFrame:{tf}", LogMessageType.Error);
+                        SendLogMessage($"No data {nameSec}, timeFrame:{tf}", LogMessageType.Error);
                         return null;
                     }
                     List<BitfinexCandle> candleList = new List<BitfinexCandle>();
