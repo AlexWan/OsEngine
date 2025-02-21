@@ -25,8 +25,6 @@ using System.Timers;
 using Newtonsoft.Json;
 using System.IO;
 using ErrorEventArgs = WebSocketSharp.ErrorEventArgs;
-using Google.Protobuf.WellKnownTypes;
-using System.Runtime.InteropServices.ComTypes;
 
 
 namespace OsEngine.Market.Servers.Bitfinex
@@ -268,7 +266,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage("Securities request exception" + exception.ToString(), LogMessageType.Error);
             }
         }
-      
         private int DigitsAfterComma(string valueNumber)
         {
             int commaPosition = valueNumber.IndexOf(',');
@@ -660,16 +657,11 @@ namespace OsEngine.Market.Servers.Bitfinex
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool isOsData, int countToLoad, DateTime timeEnd)
         {
 
-            // int limit = 10000;
             int limit = 5000;
 
             List<Candle> allCandles = new List<Candle>();
-            //перескакивает на сутки назад
-            // TimeStart = EndTime - (Количество_свечей * Длительность_таймфрейма)
-            //ровно сутки данных, то N = 24 * 60 / 5 = 288 свечей.
+          
             DateTime startTime = timeEnd - TimeSpan.FromMinutes(tf.TotalMinutes * countToLoad);
-
-            // DateTime startTime = timeEnd.AddMinutes(-tf.TotalMinutes * countToLoad);
 
             HashSet<DateTime> uniqueTimes = new HashSet<DateTime>();
 
@@ -677,7 +669,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             DateTime periodEnd = startTime;
 
-            while (candlesLoaded < countToLoad || periodEnd < timeEnd)
+            while (candlesLoaded < countToLoad && periodEnd < timeEnd)
             {
                 int candlesToLoad = Math.Min(limit, countToLoad - candlesLoaded);
 
@@ -720,9 +712,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 candlesLoaded += actualCandlesLoaded;
 
-                //  startTime = rangeCandles[rangeCandles.Count - 1].TimeStart.AddMinutes(tf.TotalMinutes);
                 startTime = rangeCandles[rangeCandles.Count - 1].TimeStart;
-
 
                 if (periodEnd >= timeEnd)
                 {
@@ -746,7 +736,6 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return allCandles;
         }
-       
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
@@ -901,23 +890,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                         candleList.Add(newCandle);
                     }
-                    string filePath = @"C:\Users\Public\Documents\candles.txt";
-
-                    File.AppendAllText(filePath, "Новые данные\n");
-
-                    using (StreamWriter writer = new StreamWriter(filePath, false, Encoding.UTF8))
-                    {
-                        foreach (BitfinexCandle candle in candleList)
-                        {
-                            long mts = long.Parse(candle.Mts);
-
-                            DateTime date = DateTimeOffset.FromUnixTimeMilliseconds(mts).DateTime;
-
-                            string line = $"{date:yyyy-MM-dd HH:mm:ss},{candle.Open},{candle.High},{candle.Low},{candle.Close},{candle.Volume}";
-                          
-                            writer.WriteLine(line);
-                        }
-                    }
+                  
                     return ConvertToCandles(candleList);
                 }
             }
@@ -2693,7 +2666,6 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-
 
         #endregion
 
