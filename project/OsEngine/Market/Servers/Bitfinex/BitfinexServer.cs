@@ -519,14 +519,14 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             List<Trade> trades = new List<Trade>();
 
-            DateTime now = DateTime.Now;
+            DateTime now = DateTime.UtcNow;
 
             if (endTime > now)
             {
                 endTime = now;
             }
-            if ((startTime < DateTime.Now.AddYears(-20)) ||
-                (endTime < DateTime.Now.AddYears(-20)) ||
+            if ((startTime < DateTime.UtcNow.AddYears(-20)) ||
+                (endTime < DateTime.UtcNow.AddYears(-20)) ||
                 (startTime >= now) || (actualTime > endTime) ||
                 (actualTime > now) ||
                 (startTime > endTime))
@@ -677,7 +677,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             DateTime periodEnd = startTime;
 
-            while (candlesLoaded < countToLoad /*||*/&& periodEnd < timeEnd)
+            while (candlesLoaded < countToLoad || periodEnd < timeEnd)
             {
                 int candlesToLoad = Math.Min(limit, countToLoad - candlesLoaded);
 
@@ -685,9 +685,9 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 periodEnd = periodStart.AddMinutes(tf.TotalMinutes * candlesToLoad);
 
-                if (periodEnd > DateTime.Now)
+                if (periodEnd > DateTime.UtcNow)
                 {
-                    periodEnd = DateTime.Now;
+                    periodEnd = DateTime.UtcNow;
                 }
 
                 string timeFrame = GetInterval(tf);
@@ -697,14 +697,14 @@ namespace OsEngine.Market.Servers.Bitfinex
                 if (rangeCandles == null)
                 {
                     SendLogMessage($"Error: rangeCandles is null, security:{nameSec},periodStart{periodStart},periodEnd{periodEnd},timeFrame:{timeFrame}", LogMessageType.Error);
-                    //break;
+                    
                     return null;
                 }
 
                 if (rangeCandles.Count == 0)
                 {
                     SendLogMessage("Error: rangeCandles is empty", LogMessageType.Error);
-                    // break;
+                   
                     return null;
                 }
 
@@ -746,81 +746,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return allCandles;
         }
-        //public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool isOsData, int countToLoad, DateTime timeEnd)
-        //{
-        //    int limit = 5000; // Ограничение на загрузку
-        //    List<Candle> allCandles = new List<Candle>();
-        //    HashSet<DateTime> uniqueTimes = new HashSet<DateTime>();
-
-        //    // 1. Вычисляем начальное время
-        //    DateTime startTime = timeEnd - TimeSpan.FromMinutes(countToLoad * tf.TotalMinutes);
-
-        //    // 2. Округляем `startTime` до ближайшего таймфрейма
-        //    int tfMinutes = (int)tf.TotalMinutes;
-        //    startTime = RoundToTimeFrame(startTime, tfMinutes);
-
-        //    // 3. Корректируем, если время вышло за пределы нужного дня
-        //    if (startTime.Date != timeEnd.Date)
-        //    {
-        //        startTime = new DateTime(timeEnd.Year, timeEnd.Month, timeEnd.Day, 0, 0, 0);
-        //    }
-
-        //    int candlesLoaded = 0;
-        //    DateTime periodEnd = startTime;
-
-        //    while (candlesLoaded < countToLoad && periodEnd < timeEnd)
-        //    {
-        //        int candlesToLoad = Math.Min(limit, countToLoad - candlesLoaded);
-        //        DateTime periodStart = startTime;
-        //        periodEnd = periodStart.AddMinutes(tf.TotalMinutes * candlesToLoad);
-
-        //        if (periodEnd > DateTime.UtcNow)
-        //        {
-        //            periodEnd = DateTime.UtcNow;
-        //        }
-
-        //        string timeFrame = GetInterval(tf);
-        //        List<Candle> rangeCandles = CreateQueryCandles(nameSec, timeFrame, periodStart, periodEnd, candlesToLoad);
-
-        //        if (rangeCandles == null || rangeCandles.Count == 0)
-        //        {
-        //            SendLogMessage("Error: Candles not loaded", LogMessageType.Error);
-        //            return null;
-        //        }
-
-        //        foreach (var candle in rangeCandles)
-        //        {
-        //            if (uniqueTimes.Add(candle.TimeStart))
-        //            {
-        //                allCandles.Add(candle);
-        //            }
-        //        }
-
-        //        candlesLoaded += rangeCandles.Count;
-
-        //        if (rangeCandles.Count > 0)
-        //        {
-        //            startTime = rangeCandles[rangeCandles.Count - 1].TimeStart.AddMinutes(tf.TotalMinutes);
-        //        }
-
-        //        if (periodEnd >= timeEnd)
-        //        {
-        //            break;
-        //        }
-        //    }
-
-        //    allCandles.RemoveAll(c => c.TimeStart > timeEnd);
-        //    return allCandles;
-        //}
-
-        //// Функция округления времени до таймфрейма
-        //private DateTime RoundToTimeFrame(DateTime time, int tfMinutes)
-        //{
-        //    int minute = time.Minute;
-        //    int remainder = minute % tfMinutes;
-        //    return time.AddMinutes(-remainder).AddSeconds(-time.Second).AddMilliseconds(-time.Millisecond);
-        //}
-
+       
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
@@ -829,13 +755,11 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 return null;
             }
-           DateTime startTime = DateTime.Now.AddMinutes(-timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount);
-            //DateTime startTime = DateTime.UtcNow.AddMinutes(-timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount);
+           DateTime startTime = DateTime.UtcNow.AddMinutes(-timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount);
 
-            DateTime timeStart = DateTime.Now - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount);
+            DateTime timeStart = DateTime.UtcNow - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount);
 
-            // DateTime endTime = DateTime.UtcNow;
-            DateTime endTime = DateTime.Now;
+            DateTime endTime = DateTime.UtcNow;
 
             return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
         }
@@ -846,9 +770,9 @@ namespace OsEngine.Market.Servers.Bitfinex
                 startTime = actualTime;
             }
 
-            if (endTime > DateTime.Now)
+            if (endTime > DateTime.UtcNow)
             {
-                endTime = DateTime.Now;
+                endTime = DateTime.UtcNow;
             }
 
             if (!CheckTime(startTime, endTime, actualTime))
@@ -863,10 +787,10 @@ namespace OsEngine.Market.Servers.Bitfinex
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now ||
-                endTime < DateTime.Now.AddYears(-20))
+                actualTime > DateTime.UtcNow ||
+                endTime < DateTime.UtcNow.AddYears(-20))
             {
                 SendLogMessage("Error: The date is incorrect", LogMessageType.User);
 
@@ -938,15 +862,10 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 _rateGateCandleHistory.WaitToProceed();
 
-                //long startDate = (long)(startTime.ToUniversalTime() - new DateTime(1970, 1, 1)).TotalMilliseconds;//1739480461000//1739484000000
-                //long endDate = (long)(endTime.ToUniversalTime() - new DateTime(1970, 1, 1)).TotalMilliseconds;//1739649661000//1739649600000
-                //long startDate = new DateTimeOffset(startTime.ToUniversalTime()).ToUnixTimeMilliseconds();//1739480461000
-                //long endDate = new DateTimeOffset(endTime.ToUniversalTime()).ToUnixTimeMilliseconds();//1739649661000
-
-                //TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
-                string _apiPath = $"/v2/candles/trade:{tf}:{nameSec}/hist?sort=1&start={TimeManager.GetTimeStampMilliSecondsToDateTime(startTime)}&end={TimeManager.GetTimeStampMilliSecondsToDateTime(endTime)}&limit={limit}";
-
-               // string _apiPath = $"/v2/candles/trade:{tf}:{nameSec}/hist?sort=1&start={startDate}&end={endDate}&limit={limit}";
+                long startDate = TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
+                long endDate = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
+             
+                string _apiPath = $"/v2/candles/trade:{tf}:{nameSec}/hist?sort=1&start={startDate}&end={endDate}&limit={limit}";
 
                 RestClient client = new RestClient(_baseUrl);
                 RestRequest request = new RestRequest(_apiPath, Method.GET);
