@@ -107,4 +107,11 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
         public string nextFundingTime;              //1597392000000,
         public string interestRate;                 //0.00010000",
     }
+
+    public class PriceTicker
+    {
+        public string symbol;                       // "BTCUSDT",
+        public string price;                        //"6000.01",
+        public string time;                         // 1589437530011   // Transaction time
+    }
 }

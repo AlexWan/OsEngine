@@ -186,7 +186,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     "USDT",
                     "USD",
                     "BTC",
-                    "ETH"
+                    "ETH",
+                    "USDC"
                 };
 
                 return values;
