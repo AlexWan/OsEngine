@@ -76,68 +76,68 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 return;
             }
 
-            if (permission.DataFeedTfTickCanLoad)
-            {
-                CheckTradeData(TimeFrame.Tick, security, startTime, endTime);
-            }
-            else
-            {
-                CheckTradeNullData(TimeFrame.Tick, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTfTickCanLoad)
+            //{
+            //    CheckTradeData(TimeFrame.Tick, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckTradeNullData(TimeFrame.Tick, security, startTime, endTime);
+            //}
 
-            if (permission.DataFeedTf1MinuteCanLoad)
-            {
-                CheckCandleData(TimeFrame.Min1, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Min1, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf1MinuteCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Min1, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Min1, security, startTime, endTime);
+            //}
 
-            if (permission.DataFeedTf2MinuteCanLoad)
-            {
-                CheckCandleData(TimeFrame.Min2, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Min2, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf2MinuteCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Min2, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Min2, security, startTime, endTime);
+            //}
 
-            if (permission.DataFeedTf5MinuteCanLoad)
-            {
-                CheckCandleData(TimeFrame.Min5, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Min5, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf5MinuteCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Min5, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Min5, security, startTime, endTime);
+            //}
 
-            if (permission.DataFeedTf10MinuteCanLoad)
-            {
-                CheckCandleData(TimeFrame.Min10, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Min10, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf10MinuteCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Min10, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Min10, security, startTime, endTime);
+            //}
 
-            if (permission.DataFeedTf15MinuteCanLoad)
-            {
-                CheckCandleData(TimeFrame.Min15, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Min15, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf15MinuteCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Min15, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Min15, security, startTime, endTime);
+            //}
 
-            if (permission.DataFeedTf30MinuteCanLoad)
-            {
-                CheckCandleData(TimeFrame.Min30, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Min30, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf30MinuteCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Min30, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Min30, security, startTime, endTime);
+            //}
 
             if (permission.DataFeedTf1HourCanLoad)
             {
@@ -148,23 +148,23 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 CheckNullCandleData(TimeFrame.Hour1, security, startTime, endTime);
             }
 
-            if (permission.DataFeedTf2HourCanLoad)
-            {
-                CheckCandleData(TimeFrame.Hour2, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Hour2, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf2HourCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Hour2, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Hour2, security, startTime, endTime);
+            //}
 
-            if (permission.DataFeedTf4HourCanLoad)
-            {
-                CheckCandleData(TimeFrame.Hour4, security, startTime, endTime);
-            }
-            else
-            {
-                CheckNullCandleData(TimeFrame.Hour4, security, startTime, endTime);
-            }
+            //if (permission.DataFeedTf4HourCanLoad)
+            //{
+            //    CheckCandleData(TimeFrame.Hour4, security, startTime, endTime);
+            //}
+            //else
+            //{
+            //    CheckNullCandleData(TimeFrame.Hour4, security, startTime, endTime);
+            //}
         }
 
         private void CheckCandleData(TimeFrame timeFrame, Security security, DateTime startTime, DateTime endTime)
@@ -215,8 +215,14 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (candles[i].TimeStart.Day != curDay)
                 {
+                    //SetNewError($"{candles[i]}," +
+                    //    $"{candles[i].TimeStart.Day}," +
+                    //    $"{curDay} " + timeFrame.ToString());
+                   
                     daysCount++;
                     curDay = candles[i].TimeStart.Day;
+                    //SetNewError($"{daysCount}," +
+                    //    $"{curDay},");
                 }
             }
 
@@ -276,6 +282,10 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     daysCount++;
                     curDay = trades[i].Time.Day;
+                    SetNewError(  timeFrame.ToString() + "\n"
+                  + " StartTime: " + startTimeReal.ToString()
+                  + " EndTime: " + endTimeReal.ToString());
+
                 }
             }
 
