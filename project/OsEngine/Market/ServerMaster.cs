@@ -70,7 +70,6 @@ using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
 using OsEngine.Market.Servers.CoinEx.Spot;
-using OsEngine.Market.Servers.CoinEx.Futures;
 
 
 namespace OsEngine.Market
@@ -228,7 +227,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Mexc);
                 serverTypes.Add(ServerType.AstsBridge);
                 serverTypes.Add(ServerType.CoinExSpot);
-                serverTypes.Add(ServerType.CoinExFutures);
 
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
@@ -333,7 +331,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.YahooFinance);
                 serverTypes.Add(ServerType.Polygon);
                 serverTypes.Add(ServerType.CoinExSpot);
-                serverTypes.Add(ServerType.CoinExFutures);
 
                 return serverTypes;
             }
@@ -646,10 +643,6 @@ namespace OsEngine.Market
                 else if (type == ServerType.CoinExSpot)
                 {
                     newServer = new CoinExServerSpot();
-                }
-                else if (type == ServerType.CoinExFutures)
-                {
-                    newServer = new CoinExServerFutures();
                 }
 
                 if (newServer == null)
@@ -1287,10 +1280,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new CoinExServerSpotPermission();
                 }
-                else if (type == ServerType.CoinExFutures)
-                {
-                    serverPermission = new CoinExServerFuturesPermission();
-                }
 
                 if (serverPermission != null)
                 {
@@ -1769,12 +1758,6 @@ namespace OsEngine.Market
         /// Spot for cryptocurrency exchange CoinEx.com
         /// Спот биржи криптовалют CoinEx.com
         /// </summary>
-        CoinExSpot,
-
-        /// <summary>
-        /// Futures for cryptocurrency exchange CoinEx.com
-        /// Фьючерсы биржи криптовалют CoinEx.com
-        /// </summary>
-        CoinExFutures,
+        CoinExSpot
     }
 }
