@@ -69,6 +69,7 @@ using OsEngine.Market.Servers.KiteConnect;
 using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
+using OsEngine.Market.Servers.CoinEx.Spot;
 
 
 namespace OsEngine.Market
@@ -225,6 +226,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
                 serverTypes.Add(ServerType.Mexc);
                 serverTypes.Add(ServerType.AstsBridge);
+                serverTypes.Add(ServerType.CoinExSpot);
 
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
@@ -328,6 +330,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.YahooFinance);
                 serverTypes.Add(ServerType.Polygon);
+                serverTypes.Add(ServerType.CoinExSpot);
 
                 return serverTypes;
             }
@@ -636,6 +639,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Polygon)
                 {
                     newServer = new PolygonServer();
+                }
+                else if (type == ServerType.CoinExSpot)
+                {
+                    newServer = new CoinExServerSpot();
                 }
 
                 if (newServer == null)
@@ -1269,6 +1276,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new PolygonServerPermission();
                 }
+                else if (type == ServerType.CoinExSpot)
+                {
+                    serverPermission = new CoinExServerSpotPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1742,5 +1753,11 @@ namespace OsEngine.Market
         /// Polygon.io
         /// </summary>
         Polygon,
+
+        /// <summary>
+        /// Spot for cryptocurrency exchange CoinEx.com
+        /// Спот биржи криптовалют CoinEx.com
+        /// </summary>
+        CoinExSpot
     }
 }
