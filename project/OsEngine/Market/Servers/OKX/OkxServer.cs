@@ -317,6 +317,8 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 4 Portfolios
 
+        public List<Portfolio> Portfolios;
+
         private bool _portfolioIsStarted = true;
        
         public void GetPortfolios()
@@ -1301,10 +1303,12 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                Portfolio portfolio = new Portfolio();
-                portfolio.Number = "OKX";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
+                Portfolio portfolio = Portfolios[0];
+
+                if (portfolio == null)
+                {
+                    return;
+                }
 
                 if (positions != null)
                 {
@@ -1325,18 +1329,21 @@ namespace OsEngine.Market.Servers.OKX
                                     pos.SecurityNameCode = item.instId + "_LONG";
                                     pos.ValueCurrent = GetAvailPos(item.availPos);
                                     pos.ValueBlocked = 0;
+                                    pos.UnrealizedPnl = GetAvailPos(item.upl);
                                 }
                                 else if (item.posSide.Contains("short"))
                                 {
                                     pos.SecurityNameCode = item.instId + "_SHORT";
                                     pos.ValueCurrent = -GetAvailPos(item.availPos);
                                     pos.ValueBlocked = 0;
+                                    pos.UnrealizedPnl = GetAvailPos(item.upl);
                                 }
                                 else if (item.posSide.Contains("net"))
                                 {
                                     pos.SecurityNameCode = item.instId;
                                     pos.ValueCurrent = GetAvailPos(item.pos);
                                     pos.ValueBlocked = 0;
+                                    pos.UnrealizedPnl = GetAvailPos(item.upl);
                                 }
                             }
                             else
@@ -1344,19 +1351,20 @@ namespace OsEngine.Market.Servers.OKX
                                 pos.SecurityNameCode = item.instId;
                                 pos.ValueCurrent = GetAvailPos(item.pos);
                                 pos.ValueBlocked = 0;
+                                pos.UnrealizedPnl = GetAvailPos(item.upl);
                             }
 
                             portfolio.SetNewPosition(pos);
-                        }                      
+                        }
                     }
                 }
                 else
                 {
                     SendLogMessage("OKX ERROR. NO POSITIONS IN REQUEST.", LogMessageType.Error);
                 }
-                _portfolioIsStarted = true;
+                // _portfolioIsStarted = true;
 
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent(Portfolios);
             }
             catch (Exception ex)
             {
@@ -1385,10 +1393,31 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                Portfolio portfolio = new Portfolio();
+                if (Portfolios == null)
+                {
+                    Portfolios = new List<Portfolio>();
+
+                    Portfolio portfolioInitial = new Portfolio();
+                    portfolioInitial.Number = "OKX";
+                    portfolioInitial.ValueBegin = 1;
+                    portfolioInitial.ValueCurrent = 1;
+                    portfolioInitial.ValueBlocked = 0;
+
+                    Portfolios.Add(portfolioInitial);
+
+                    PortfolioEvent(Portfolios);
+                }
+
+                Portfolio portfolio = Portfolios[0];
                 portfolio.Number = "OKX";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
+
+                if (_portfolioIsStarted)
+                {
+                    portfolio.ValueBegin = Math.Round(assets.data[0].totalEq.ToDecimal(), 4);
+                    _portfolioIsStarted = false;
+                }
+
+                portfolio.ValueCurrent = Math.Round(assets.data[0].totalEq.ToDecimal(), 4);
 
                 for (int i = 0; i < assets.data[0].details.Count; i++)
                 {
@@ -1397,19 +1426,21 @@ namespace OsEngine.Market.Servers.OKX
                     PortfolioDetails item = assets.data[0].details[i];
 
                     pos.PortfolioName = "OKX";
-                    pos.SecurityNameCode = item.ccy;                    
+                    pos.SecurityNameCode = item.ccy;
                     pos.ValueCurrent = item.availBal.ToDecimal();
                     pos.ValueBlocked = item.frozenBal.ToDecimal();
+                    pos.UnrealizedPnl = GetAvailPos(item.upl);
 
-                    if (_portfolioIsStarted)
+                    if (item.ccy == "USDT")
                     {
-                        pos.ValueBegin = item.availBal.ToDecimal();
-                        _portfolioIsStarted = false;
-                    }   
+                        portfolio.UnrealizedPnl = GetAvailPos(item.upl);
+                    }
+
+                    pos.ValueBegin = item.eq.ToDecimal();
                     portfolio.SetNewPosition(pos);
                 }
 
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent(Portfolios);
             }
             catch (Exception ex)
             {

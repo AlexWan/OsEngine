@@ -89,7 +89,8 @@ namespace OsEngine.Market.Servers.OKX.Entity
 
     public class ResponseWsAccount
     {
-        public List<PortfolioDetails> details;        
+        public List<PortfolioDetails> details;
+        public string totalEq;
     }
 
     public class PortfolioDetails
@@ -97,6 +98,8 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string availBal;
         public string ccy;
         public string frozenBal;
+        public string upl;
+        public string eq;
     }
 
     public class ResponseMessagePositions
@@ -105,5 +108,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string posSide;
         public string availPos;
         public string pos;
+        public string upl;
+        public string realizedPnl;
     }
 }
