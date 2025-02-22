@@ -408,7 +408,7 @@ namespace OsEngine.Language
            "Ru:П/У % 1 контракт _");
 
         public string Label57 => OsLocalization.ConvertToLocString(
-           "Eng:Set Standart Params_" +
+           "Eng:Set Standard Params_" +
            "Ru:Вернуть стандартные параметры_");
 
         public string Label58 => OsLocalization.ConvertToLocString(
@@ -434,5 +434,17 @@ namespace OsEngine.Language
         public string Label63 => OsLocalization.ConvertToLocString(
            "Eng:Time to end_" +
            "Ru:Время до конца_");
+
+        public string Label64 => OsLocalization.ConvertToLocString(
+           "Eng:Source type_" +
+           "Ru:Тип источника_");
+
+        public string Label65 => OsLocalization.ConvertToLocString(
+           "Eng:First security_" +
+           "Ru:Первая бумага_");
+
+        public string Label66 => OsLocalization.ConvertToLocString(
+           "Eng:Timeframe_" +
+           "Ru:Таймфрейм_");
     }
 }

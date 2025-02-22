@@ -1606,7 +1606,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// user toggled tabs
         /// </summary>
-        void _tabBotTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void _tabBotTab_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {

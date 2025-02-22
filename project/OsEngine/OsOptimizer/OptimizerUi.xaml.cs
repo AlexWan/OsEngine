@@ -879,21 +879,21 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = "Source type";
+            column1.HeaderText = OsLocalization.Optimizer.Label64;
             column1.ReadOnly = false;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridSources.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = "First security";
+            column2.HeaderText = OsLocalization.Optimizer.Label65;
             column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridSources.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = "First timeframe";
+            column3.HeaderText = OsLocalization.Optimizer.Label66;
             column3.ReadOnly = false;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridSources.Columns.Add(column3);
@@ -973,6 +973,12 @@ namespace OsEngine.OsOptimizer
                 {
                     row = GetBotTabScreenerRow((BotTabScreener)sources[i], i + 1);
                 }
+
+                if(row == null)
+                {
+                    return;
+                }
+
                 _gridSources.Rows.Add(row);
             }
         }
