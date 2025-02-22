@@ -236,8 +236,8 @@ namespace OsEngine.Language
             "Ru:Начальные средства_");
 
         public string Label14 => OsLocalization.ConvertToLocString(
-            "Eng:Tabs securities_" +
-            "Ru:Бумаги для вкладок_");
+            "Eng:Sources and data_" +
+            "Ru:Источники и данные_");
 
         public string Label15 => OsLocalization.ConvertToLocString(
             "Eng:Index_" +
