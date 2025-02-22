@@ -20,8 +20,6 @@ namespace OsEngine.Entity
 
         BotPanel _panel;
 
-        private ParamGuiSettings _settings;
-
         public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings, BotPanel panel)
         {
             InitializeComponent();
@@ -33,8 +31,6 @@ namespace OsEngine.Entity
 
             _parameters = parameters;
             _panel = panel;
-
-            _settings = settings;
 
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
             ButtonUpdate.Content = OsLocalization.Entity.ButtonUpdate;
@@ -162,7 +158,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                ParamTabPainter painter = new ParamTabPainter(par, tabName, TabControlSettings, _settings);
+                ParamTabPainter painter = new ParamTabPainter(par, tabName, TabControlSettings, _panel.ParamGuiSettings); 
                 painter.ErrorEvent += Painter_ErrorEvent;
                 _tabs.Add(painter);
             }
@@ -259,6 +255,7 @@ namespace OsEngine.Entity
 
                     _grid.RowPostPaint -= _grid_RowPostPaint;         
                     _grid.CellFormatting -= _grid_CellFormatting;     
+                    _grid.CellPainting -= _grid_CellPainting;   
 
                     _grid.Rows.Clear();
                     DataGridFactory.ClearLinks(_grid);
@@ -314,6 +311,7 @@ namespace OsEngine.Entity
 
             _grid.RowPostPaint += _grid_RowPostPaint;
             _grid.CellFormatting += _grid_CellFormatting;
+            _grid.CellPainting += _grid_CellPainting;
 
             _host.Child = _grid;
         }
@@ -543,11 +541,33 @@ namespace OsEngine.Entity
                 if (_paramGUIsettings.ParameterDesigns.Count != 0)
                 {
                     string paramName = _grid.Rows[e.RowIndex].Cells[0].Value?.ToString();
+
+                    if (paramName == "")
+                    {
+                        paramName = _grid.Rows[e.RowIndex].Cells[1].Value?.ToString();
+                    }
+
                     string key = paramName + ParamDesignType.BorderUnder.ToString();
 
                     if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
                     {
-                        using (System.Drawing.Pen pen = new System.Drawing.Pen(_paramGUIsettings.ParameterDesigns[key].Color, _paramGUIsettings.ParameterDesigns[key].Thickness))
+                        int thickness = _paramGUIsettings.ParameterDesigns[key].Thickness;
+                        int editThickness;
+
+                        if (thickness < 1)
+                        {
+                            editThickness = 1;
+                        }
+                        else if (thickness > 10)
+                        {
+                            editThickness = 10;
+                        }
+                        else
+                        {
+                            editThickness = thickness;
+                        }
+
+                        using (System.Drawing.Pen pen = new System.Drawing.Pen(_paramGUIsettings.ParameterDesigns[key].Color, editThickness))
                         {
                             int y = e.RowBounds.Bottom - 1;
                             e.Graphics.DrawLine(pen, e.RowBounds.Left, y, e.RowBounds.Right, y);
@@ -571,11 +591,54 @@ namespace OsEngine.Entity
                 if (_paramGUIsettings.ParameterDesigns.Count != 0 && e.Value != null)
                 {
                     string paramName = _grid.Rows[e.RowIndex].Cells[0].Value?.ToString();
+
+                    if (paramName == "")
+                    {
+                        paramName = _grid.Rows[e.RowIndex].Cells[1].Value?.ToString();
+                    }
+
                     string key = paramName + ParamDesignType.ForeColor.ToString();
 
                     if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
                     {
                         e.CellStyle.ForeColor = _paramGUIsettings.ParameterDesigns[key].Color;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                if (ErrorEvent != null)
+                {
+                    ErrorEvent(ex.ToString());
+                }
+            }
+        }
+
+        private void _grid_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            try
+            {
+                if (_paramGUIsettings.ParameterDesigns.Count != 0)
+                {
+                    if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && _grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Selected)
+                    {
+                        string paramName = _grid.Rows[e.RowIndex].Cells[0].Value?.ToString();
+
+                        if (paramName == "")
+                        {
+                            paramName = _grid.Rows[e.RowIndex].Cells[1].Value?.ToString();
+                        }
+
+                        string key = paramName + ParamDesignType.SelectionColor.ToString();
+
+                        if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
+                        {
+                            e.CellStyle.SelectionForeColor = _paramGUIsettings.ParameterDesigns[key].Color;
+
+                            e.PaintBackground(e.CellBounds, true);
+                            e.PaintContent(e.CellBounds);
+                            e.Handled = true;
+                        }
                     }
                 }
             }

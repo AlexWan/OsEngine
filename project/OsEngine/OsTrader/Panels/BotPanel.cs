@@ -2213,29 +2213,14 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// set border under of Parameter
         /// </summary>
-        /// <param name="paramName">Parameter name</param>
+        /// <param name="paramName">Parameter name (do not empty names "" of StrategyParameter; for StrategyParameterButton use "buttonLabel"; for StrategyParameterLabel use "label")</param>
         /// <param name="color">border color</param>
         /// <param name="thickness">border thickness (min 1, max 10)</param>
         public void SetBorderUnderParameter(string paramName, System.Drawing.Color color, int thickness)
         {
             try
             {
-                int editThickness;
-
-                if (thickness < 1)
-                {
-                    editThickness = 1;
-                }
-                else if (thickness > 10)
-                {
-                    editThickness = 10;
-                }
-                else
-                {
-                    editThickness = thickness;
-                }
-
-                ParamDesign newBorderSet = new ParamDesign(ParamDesignType.BorderUnder, paramName, color, editThickness);
+                ParamDesign newBorderSet = new ParamDesign(ParamDesignType.BorderUnder, paramName, color, thickness);
 
                 if (_parameterDesigns.ContainsKey(paramName + ParamDesignType.BorderUnder.ToString()))
                 {
@@ -2255,7 +2240,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// set fore color of Parameter (text color)
         /// </summary>
-        /// <param name="paramName">Parameter name</param>
+        /// <param name="paramName">Parameter name (do not empty names "" of StrategyParameter; for StrategyParameterButton use "buttonLabel"; for StrategyParameterLabel use "label")</param>
         /// <param name="color">color</param>
         public void SetForeColorParameter(string paramName, System.Drawing.Color color)
         {
@@ -2277,7 +2262,33 @@ position => position.State != PositionStateType.OpeningFail
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
-       
+   
+        /// <summary>
+        /// set selection color of Parameter
+        /// </summary>
+        /// <param name="paramName">Parameter name (do not empty names "" of StrategyParameter; for StrategyParameterButton use "buttonLabel"; for StrategyParameterLabel use "label")</param>
+        /// <param name="color">color</param>
+        public void SetSelectionColorParameter(string paramName, System.Drawing.Color color)
+        {
+            try
+            {
+                ParamDesign newSelectionColorSet = new ParamDesign(ParamDesignType.SelectionColor, paramName, color, 1);
+
+                if (_parameterDesigns.ContainsKey(paramName + ParamDesignType.SelectionColor.ToString()))
+                {
+                    _parameterDesigns[paramName + ParamDesignType.SelectionColor.ToString()] = newSelectionColorSet;
+                }
+                else
+                {
+                    _parameterDesigns.Add(paramName + ParamDesignType.SelectionColor.ToString(), newSelectionColorSet);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         /// <summary>
         /// visual designs of Parameters
         /// </summary>
@@ -2420,6 +2431,11 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// border under of Parameter 
         /// </summary>
-        BorderUnder
+        BorderUnder,
+		
+        /// <summary>
+        /// selection color of Parameter
+        /// </summary>
+        SelectionColor		
     }	
 }
