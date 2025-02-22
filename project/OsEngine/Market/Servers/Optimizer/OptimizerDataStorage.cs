@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             _name = name;
 
-            _logMaster = new Log("OptimizerServer",StartProgram.IsTester);
+            _logMaster = new Log("OptimizerServer", StartProgram.IsTester);
             _logMaster.Listen(this)
                 ;
             TypeTesterData = TesterDataType.Candle;
@@ -35,7 +35,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _needToReloadSecurities = true;
             }
 
-            if(needToCreateThread == true)
+            if (needToCreateThread == true)
             {
                 _worker = new Thread(WorkThreadArea);
                 _worker.CurrentCulture = new CultureInfo("ru-RU");
@@ -224,7 +224,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public void ShowDialog(OptimizerMaster master)
         {
-            OptimizerDataStorageUi ui = new OptimizerDataStorageUi(this,_logMaster,master);
+            OptimizerDataStorageUi ui = new OptimizerDataStorageUi(this, _logMaster, master);
             ui.ShowDialog();
         }
 
@@ -334,7 +334,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public event Action<DateTime, DateTime> TimeChangeEvent;
 
-        public List<Security> Securities; 
+        public List<Security> Securities;
 
         public event Action<List<Security>> SecuritiesChangeEvent;
 
@@ -342,6 +342,8 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             try
             {
+                Securities = new List<Security>();
+
                 TimeMax = DateTime.MinValue;
                 TimeEnd = DateTime.MaxValue;
                 TimeMin = DateTime.MaxValue;
@@ -404,9 +406,9 @@ namespace OsEngine.Market.Servers.Optimizer
                     TimeChangeEvent(TimeStart, TimeEnd);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -443,7 +445,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -733,7 +735,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 {
                     for (int i = 0; i < SecuritiesTester.Count; i++)
                     {
-                        if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue) 
+                        if ((TimeMin == DateTime.MinValue && SecuritiesTester[i].TimeStart != DateTime.MinValue)
                             ||
                             (SecuritiesTester[i].TimeStart != DateTime.MinValue && SecuritiesTester[i].TimeStart < TimeMin))
                         {
@@ -741,7 +743,7 @@ namespace OsEngine.Market.Servers.Optimizer
                             TimeStart = SecuritiesTester[i].TimeStart;
                             TimeNow = SecuritiesTester[i].TimeStart;
                         }
-                        if (SecuritiesTester[i].TimeEnd != DateTime.MinValue 
+                        if (SecuritiesTester[i].TimeEnd != DateTime.MinValue
                             &&
                             SecuritiesTester[i].TimeEnd > TimeMax)
                         {
@@ -1367,7 +1369,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (secuAll != null && secuAll.Count != 0)
                 {
-                    for(int i2 = 0;i2 < secuAll.Count;i2++)
+                    for (int i2 = 0; i2 < secuAll.Count; i2++)
                     {
                         Security secu = secuAll[i2];
 
@@ -1568,7 +1570,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                     storage = LoadCandlesFromFolder(security, timeFrame, timeStart, timeEnd);
 
-                    if(storage == null)
+                    if (storage == null)
                     {
                         return null;
                     }
@@ -1645,7 +1647,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 SecurityTester sec =
                 SecuritiesTester.Find(
                     s =>
-                        s != null && 
+                        s != null &&
                         s.Security.Name == security.Name && s.TimeFrame == timeFrame &&
                         s.DataType == SecurityTesterDataType.Candle);
 
@@ -1833,7 +1835,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public List<Trade> Trades;
 
-        public List<MarketDepth> MarketDepths; 
+        public List<MarketDepth> MarketDepths;
 
         public TimeFrame TimeFrame;
 
@@ -1859,13 +1861,13 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             Security = null;
 
-            if(Candles != null)
+            if (Candles != null)
             {
                 Candles.Clear();
                 Candles = null;
             }
 
-            if(Trades != null)
+            if (Trades != null)
             {
                 Trades.Clear();
                 Trades = null;

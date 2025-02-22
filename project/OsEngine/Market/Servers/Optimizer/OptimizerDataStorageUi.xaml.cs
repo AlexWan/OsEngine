@@ -139,13 +139,13 @@ namespace OsEngine.Market.Servers.Optimizer
         {
             _master = null;
 
-            if(_server != null)
+            if (_server != null)
             {
                 _server.SecuritiesChangeEvent -= _server_SecuritiesChangeEvent;
                 _server = null;
             }
 
-            if(_myGridView != null)
+            if (_myGridView != null)
             {
                 DataGridFactory.ClearLinks(_myGridView);
                 _myGridView.DoubleClick -= _myGridView_DoubleClick;
@@ -154,7 +154,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _myGridView = null;
             }
 
-            if(_gridNonTradePeriods != null)
+            if (_gridNonTradePeriods != null)
             {
                 HostNonTradePeriods.Child = null;
                 DataGridFactory.ClearLinks(_gridNonTradePeriods);
@@ -163,7 +163,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 _gridNonTradePeriods = null;
             }
 
-            if(_gridClearing != null)
+            if (_gridClearing != null)
             {
                 HostClearing.Child = null;
                 DataGridFactory.ClearLinks(_gridClearing);
@@ -191,9 +191,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 Enum.TryParse(ComboBoxDataSourseType.SelectedItem.ToString(), out sourceDataType);
                 _server.SourceDataType = sourceDataType;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1009,6 +1009,6 @@ namespace OsEngine.Market.Servers.Optimizer
         }
 
         #endregion
-        
+
     }
 }

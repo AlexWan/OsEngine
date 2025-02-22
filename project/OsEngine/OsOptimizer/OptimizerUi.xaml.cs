@@ -20,9 +20,9 @@ using ProgressBar = System.Windows.Controls.ProgressBar;
 using OsEngine.OsOptimizer.OptEntity;
 using System.Threading;
 using OsEngine.Layout;
-using System.IO;
 using System.Windows.Markup;
 using System.Globalization;
+using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsOptimizer
 {
@@ -42,8 +42,7 @@ namespace OsEngine.OsOptimizer
             _master.TestReadyEvent += _master_TestReadyEvent;
             _master.TimeToEndChangeEvent += _master_TimeToEndChangeEvent;
 
-            CreateTableTabsSimple();
-            CreateTableTabsIndex();
+            CreateTableSources();
             CreateTableResults();
             CreateTableFazes();
             CreateTableParameters();
@@ -102,6 +101,7 @@ namespace OsEngine.OsOptimizer
             DatePickerStart.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerEnd.Language = XmlLanguage.GetLanguage(OsLocalization.CurLocalizationCode);
             DatePickerStart.DisplayDate = _master.TimeStart;
+            
             DatePickerEnd.DisplayDate = _master.TimeEnd;
 
             TextBoxPercentFiltration.Text = _master.PercentOnFiltration.ToString();
@@ -148,7 +148,6 @@ namespace OsEngine.OsOptimizer
             Label12.Content = OsLocalization.Optimizer.Label12;
             Label13.Content = OsLocalization.Optimizer.Label13;
             LabelTabsEndTimeFrames.Content = OsLocalization.Optimizer.Label14;
-            Label15.Content = OsLocalization.Optimizer.Label15;
             TabItemParameters.Header = OsLocalization.Optimizer.Label16;
             Label17.Content = OsLocalization.Optimizer.Label17;
             TabItemFazes.Header = OsLocalization.Optimizer.Label18;
@@ -181,7 +180,7 @@ namespace OsEngine.OsOptimizer
             _resultsCharting = new OptimizerReportCharting(
                 HostStepsOfOptimizationTable,
                 HostRobustness,
-                ComboBoxSortResultsType, 
+                ComboBoxSortResultsType,
                 LabelRobustnessMetricValue,
                 ComboBoxSortResultsBotNumPercent);
 
@@ -230,10 +229,10 @@ namespace OsEngine.OsOptimizer
             TextBoxStartPortfolio.IsEnabled = false;
             CommissionTypeComboBox.IsEnabled = false;
             HostTabsSimple.IsEnabled = false;
-            HostTabsIndex.IsEnabled = false;
             ButtonServerDialog.IsEnabled = false;
             CommissionValueTextBox.IsEnabled = false;
             TextBoxStrategyName.IsEnabled = false;
+            ButtonStrategyReload.IsEnabled = false;
         }
 
         private void StartUserActivity()
@@ -259,10 +258,10 @@ namespace OsEngine.OsOptimizer
             TextBoxStartPortfolio.IsEnabled = true;
             CommissionTypeComboBox.IsEnabled = true;
             HostTabsSimple.IsEnabled = true;
-            HostTabsIndex.IsEnabled = true;
             ButtonServerDialog.IsEnabled = true;
             CommissionValueTextBox.IsEnabled = true;
             TextBoxStrategyName.IsEnabled = true;
+            ButtonStrategyReload.IsEnabled = true;
         }
 
         private DateTime _lastTestEndEventTime = DateTime.MinValue;
@@ -271,9 +270,9 @@ namespace OsEngine.OsOptimizer
 
         private void _master_TestReadyEvent(List<OptimizerFazeReport> reports)
         {
-            lock(_testEndEventLocker)
+            lock (_testEndEventLocker)
             {
-                if(_lastTestEndEventTime.AddSeconds(3) > DateTime.Now)
+                if (_lastTestEndEventTime.AddSeconds(3) > DateTime.Now)
                 {
                     return;
                 }
@@ -551,9 +550,9 @@ namespace OsEngine.OsOptimizer
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -616,10 +615,10 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            if(_master.Fazes != null &&
+            if (_master.Fazes != null &&
                 _master.Fazes.Count > 1 &&
-                (_master.FilterDealsCountIsOn 
-                || _master.FilterMaxDrawDownIsOn 
+                (_master.FilterDealsCountIsOn
+                || _master.FilterMaxDrawDownIsOn
                 || _master.FilterMiddleProfitIsOn
                 || _master.FilterProfitFactorIsOn
                 || _master.FilterProfitIsOn))
@@ -634,7 +633,7 @@ namespace OsEngine.OsOptimizer
                 }
             }
 
-            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9 
+            if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label9
                 && _master.Start())
             {
                 ButtonGo.Content = OsLocalization.Optimizer.Label32;
@@ -717,7 +716,7 @@ namespace OsEngine.OsOptimizer
 
             List<string> includeNames = BotFactory.GetIncludeNamesStrategy();
 
-            for(int i = 0;i< scriptsNames.Count;i++)
+            for (int i = 0; i < scriptsNames.Count; i++)
             {
                 if (namesForOptimization.Find(s => s == scriptsNames[i]) == null)
                 {
@@ -747,6 +746,7 @@ namespace OsEngine.OsOptimizer
 
             _master.StrategyName = ui.NameStrategy;
             _master.IsScript = ui.IsScript;
+            _master.CreateBot();
             TextBoxStrategyName.Text = ui.NameStrategy;
             ReloadStrategy();
         }
@@ -755,13 +755,9 @@ namespace OsEngine.OsOptimizer
         {
             _parameters = _master.Parameters;
             _parametersActive = _master.ParametersOn;
-            PaintTableTabsSimple();
+            PaintTableSources();
             PaintTableParameters();
-            PaintTableTabsIndex();
             PaintCountBotsInOptimization();
-
-            LoadTableTabsSimpleSecuritiesSettings();
-            LoadTableTabsIndexSecuritiesSettings();
         }
 
         private void TextBoxStartPortfolio_TextChanged(object sender, TextChangedEventArgs e)
@@ -815,27 +811,20 @@ namespace OsEngine.OsOptimizer
             {
                 if (_master.ShowDataStorageDialog())
                 {
-                    // нужно перезагрузить робота. Данные изменились.
-
-                    if (_master.TabsSimpleNamesAndTimeFrames != null)
-                    {
-                        _master.TabsSimpleNamesAndTimeFrames.Clear();
-                    }
-
-                    if (_master.TabsIndexNamesAndTimeFrames != null)
-                    {
-                        _master.TabsIndexNamesAndTimeFrames.Clear();
-                    }
-
-                    if(_master.Fazes != null)
+                    if (_master.Fazes != null)
                     {
                         _master.Fazes.Clear();
                     }
+
+                    _master.UpdateServerToSettings();
+                    _master.CreateBot();
+
+                    PaintTableSources();
                 }
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -865,90 +854,131 @@ namespace OsEngine.OsOptimizer
 
         #endregion
 
-        #region Table of Securities and Time Frames for ordinary sources
+        #region Table of Sources
 
-        private DataGridView _gridTableTabsSimple;
+        private DataGridView _gridSources;
 
         private void _master_NewSecurityEvent(List<Security> securities)
         {
-            if (securities == null
-                || securities.Count == 0)
-            {
-                return;
-            }
-
-            PaintTableTabsSimple();
-            PaintTableTabsIndex();
+            PaintTableSources();
         }
 
-        private void CreateTableTabsSimple()
+        private void CreateTableSources()
         {
-            _gridTableTabsSimple = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.AllCells);
+            _gridSources = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _gridTableTabsSimple.DefaultCellStyle;
+            cell0.Style = _gridSources.DefaultCellStyle;
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
             column0.HeaderText = OsLocalization.Optimizer.Message20;
             column0.ReadOnly = true;
-            column0.Width = 100;
-
-            _gridTableTabsSimple.Columns.Add(column0);
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            _gridSources.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = OsLocalization.Optimizer.Message21;
+            column1.HeaderText = "Source type";
             column1.ReadOnly = false;
-            column1.Width = 150;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridSources.Columns.Add(column1);
 
-            _gridTableTabsSimple.Columns.Add(column1);
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = "First security";
+            column2.ReadOnly = false;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridSources.Columns.Add(column2);
 
-            DataGridViewColumn column = new DataGridViewColumn();
-            column.CellTemplate = cell0;
-            column.HeaderText = OsLocalization.Optimizer.Label2;
-            column.ReadOnly = false;
-            column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridTableTabsSimple.Columns.Add(column);
+            DataGridViewColumn column3 = new DataGridViewColumn();
+            column3.CellTemplate = cell0;
+            column3.HeaderText = "First timeframe";
+            column3.ReadOnly = false;
+            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridSources.Columns.Add(column3);
 
-            _gridTableTabsSimple.Rows.Add(null, null);
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            column4.HeaderText = "";
+            column4.ReadOnly = false;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridSources.Columns.Add(column4);
 
-            HostTabsSimple.Child = _gridTableTabsSimple;
+            _gridSources.Rows.Add(null, null);
 
-            _gridTableTabsSimple.CellValueChanged += _grid_CellValueChanged;
+            HostTabsSimple.Child = _gridSources;
+
+            _gridSources.CellValueChanged += _grid_CellValueChanged;
+            _gridSources.CellClick += _gridSources_CellClick;
         }
 
-        private void PaintTableTabsSimple()
+        private void PaintTableSources()
         {
-            if (_gridTableTabsSimple == null)
+            if (_gridSources == null)
             {
                 return;
             }
 
-            if (_gridTableTabsSimple.InvokeRequired)
-            {
-                _gridTableTabsSimple.Invoke(new Action(PaintTableTabsSimple));
-                return;
-            }
+            // берём робота которого хотим оптимизировать
 
-            List<SecurityTester> securities = _master.SecurityTester;
+            string nameBot = _master.StrategyName;
 
-            if (securities == null)
+            if (string.IsNullOrEmpty(nameBot))
             {
                 return;
             }
 
-            _gridTableTabsSimple.Rows.Clear();
-            List<string> names = new List<string>();
+            BotPanel bot = _master.BotToTest;
 
-            for (int i = 0; i < securities.Count; i++)
+            if (bot == null)
             {
-                if (names.Find(n => n == securities[i].Security.Name) == null)
+                PaintSources(null);
+                return;
+            }
+
+            List<IIBotTab> botSources = bot.GetTabs();
+
+            PaintSources(botSources);
+        }
+
+        private void PaintSources(List<IIBotTab> sources)
+        {
+            if (_gridSources.InvokeRequired)
+            {
+                _gridSources.Invoke(new Action<List<IIBotTab>>(PaintSources), sources);
+                return;
+            }
+
+            _gridSources.Rows.Clear();
+
+            if (sources == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < sources.Count; i++)
+            {
+                DataGridViewRow row = null;
+
+                if (sources[i].TabType == BotTabType.Simple)
                 {
-                    names.Add(securities[i].Security.Name);
+                    row = GetBotTabSimpleRow((BotTabSimple)sources[i], i + 1);
                 }
+                else if (sources[i].TabType == BotTabType.Index)
+                {
+                    row = GetBotTabIndexRow((BotTabIndex)sources[i], i + 1);
+                }
+                else if (sources[i].TabType == BotTabType.Screener)
+                {
+                    row = GetBotTabScreenerRow((BotTabScreener)sources[i], i + 1);
+                }
+                _gridSources.Rows.Add(row);
             }
+        }
 
+        private List<string> GetTimeFramesList(List<SecurityTester> securities)
+        {
             List<string> timeFrame = new List<string>();
 
             if (securities[0].DataType == SecurityTesterDataType.Candle)
@@ -981,394 +1011,301 @@ namespace OsEngine.OsOptimizer
                 timeFrame.Add(TimeFrame.Hour4.ToString());
             }
 
-            string nameBot = _master.StrategyName;
-
-            if(string.IsNullOrEmpty(nameBot))
-            {
-                return;
-            }
-
-            BotPanel bot = BotFactory.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer, _master.IsScript);
-
-            if (bot == null)
-            {
-                return;
-            }
-
-            PaintBotParameters(bot, names, timeFrame);
+            return timeFrame;
         }
 
-        private void PaintBotParameters(BotPanel bot, List<string> names, List<string> timeFrame)
+        private DataGridViewRow GetBotTabSimpleRow(BotTabSimple source, int num)
         {
-            if (_gridTableTabsSimple.InvokeRequired)
+            // 1 берём бумаги доступные для тестов
+
+            List<SecurityTester> securities = _master.SecurityTester;
+
+            if (securities == null)
             {
-                _gridTableTabsIndex.Invoke(new Action<BotPanel, List<string>, List<string>>(PaintBotParameters),bot,names,timeFrame);
-                return;
+                return null;
             }
 
-            int countTab = 0;
+            List<string> names = new List<string>();
 
-            if (bot.TabsSimple != null)
+            for (int i = 0; i < securities.Count; i++)
             {
-                countTab += bot.TabsSimple.Count;
-            }
-            if (countTab == 0)
-            {
-                return;
-            }
-
-            _gridTableTabsSimple.Rows.Clear();
-
-            for (int i = 0; i < countTab; i++)
-            {
-                DataGridViewRow row = new DataGridViewRow();
-
-                row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[0].Value = i;
-
-                DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
-                for (int i2 = 0; i2 < names.Count; i2++)
+                if (names.Find(n => n == securities[i].Security.Name) == null)
                 {
-                    cell.Items.Add(names[i2]);
+                    names.Add(securities[i].Security.Name);
                 }
-                row.Cells.Add(cell);
+            }
 
-                DataGridViewComboBoxCell cell2 = new DataGridViewComboBoxCell();
+            // 2 берём таймфреймы доступные для тестов
+
+            List<string> timeFrame = GetTimeFramesList(securities);
+
+            // 3 генерируем строку
+
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[0].Value = num;
+            row.Cells[0].ReadOnly = true;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[1].Value = "BotTabSimple";
+            row.Cells[1].ReadOnly = true;
+
+            // 4 SecurityToTrade
+
+            string securityInSource = null;
+
+            if (source.Connector != null)
+            {
+                securityInSource = source.Connector.SecurityName;
+            }
+
+            bool isInArray = false;
+
+            DataGridViewComboBoxCell cell = new DataGridViewComboBoxCell();
+            for (int i2 = 0; i2 < names.Count; i2++)
+            {
+                cell.Items.Add(names[i2]);
+
+                if (string.IsNullOrEmpty(securityInSource) == false
+                     && securityInSource == names[i2])
+                {
+                    isInArray = true;
+                }
+            }
+
+            if (isInArray)
+            {
+                cell.Value = securityInSource;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(securityInSource) == false)
+                {
+                    source.Connector.SecurityName = "";
+                }
+            }
+
+            row.Cells.Add(cell);
+
+            // 5 TimeFrame
+
+            string timeFrameInSource = null;
+
+            if (source.Connector != null)
+            {
+                timeFrameInSource = source.Connector.TimeFrame.ToString();
+            }
+
+            isInArray = false;
+
+            DataGridViewComboBoxCell cell2 = new DataGridViewComboBoxCell();
+
+            if (source.Connector.CandleCreateMethodType == CandleCreateMethodType.Simple.ToString())
+            {
                 for (int i2 = 0; i2 < timeFrame.Count; i2++)
                 {
                     cell2.Items.Add(timeFrame[i2]);
-                }
-                row.Cells.Add(cell2);
 
-                _gridTableTabsSimple.Rows.Insert(0, row);
+                    if (timeFrameInSource == timeFrame[i2])
+                    {
+                        isInArray = true;
+                    }
+                }
+
+                if (isInArray)
+                {
+                    cell2.Value = timeFrameInSource;
+                }
+                else
+                {
+                    source.Connector.TimeFrame = TimeFrame.Sec1;
+                }
+            }
+            else
+            {
+                cell2.Items.Add(source.Connector.CandleCreateMethodType);
+                cell2.Value = source.Connector.CandleCreateMethodType;
             }
 
+            row.Cells.Add(cell2);
+
+            DataGridViewButtonCell button = new DataGridViewButtonCell();
+            button.Value = "Settings";
+            row.Cells.Add(button);
+
+            return row;
+        }
+
+        private DataGridViewRow GetBotTabIndexRow(BotTabIndex source, int num)
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[0].Value = num;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[1].Value = "BotTabIndex";
+
+            DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+
+            if (source.Tabs != null &&
+                source.Tabs.Count > 0)
+            {
+                cell.Value = source.Tabs[0].SecurityName;
+            }
+
+            row.Cells.Add(cell);
+
+            DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
+
+            if (source.Tabs != null &&
+                source.Tabs.Count > 0)
+            {
+                cell2.Value = source.Tabs[0].TimeFrame.ToString();
+            }
+
+            row.Cells.Add(cell2);
+
+            DataGridViewButtonCell button = new DataGridViewButtonCell();
+            button.Value = "Settings";
+            row.Cells.Add(button);
+
+            return row;
+        }
+
+        private DataGridViewRow GetBotTabScreenerRow(BotTabScreener source, int num)
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[0].Value = num;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[1].Value = "BotTabScreener";
+
+            DataGridViewTextBoxCell cell = new DataGridViewTextBoxCell();
+
+            if (source.Tabs != null &&
+                source.Tabs.Count > 0
+                && source.Tabs[0].Connector != null)
+            {
+                cell.Value = source.Tabs[0].Connector.SecurityName;
+            }
+
+            row.Cells.Add(cell);
+            cell.ReadOnly = true;
+
+            DataGridViewTextBoxCell cell2 = new DataGridViewTextBoxCell();
+
+            if (source.Tabs != null &&
+                source.Tabs.Count > 0)
+            {
+                cell2.Value = source.Tabs[0].Connector.TimeFrame.ToString();
+            }
+
+            row.Cells.Add(cell2);
+            cell2.ReadOnly = true;
+
+            DataGridViewButtonCell button = new DataGridViewButtonCell();
+            button.Value = "Settings";
+            row.Cells.Add(button);
+
+            return row;
         }
 
         private void _grid_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            for (int i = 0; i < _gridTableTabsSimple.Rows.Count; i++)
+            // здесь только работа с BotTabIndex!!! Имя + Таймфрейм
+
+            int rowIndex = e.RowIndex;
+            int columnIndex = e.ColumnIndex;
+
+            if (columnIndex != 2 &&
+                columnIndex != 3)
             {
-                if (_gridTableTabsSimple.Rows[i].Cells[1].Value == null ||
-                    _gridTableTabsSimple.Rows[i].Cells[2].Value == null)
+                return;
+            }
+
+            BotPanel bot = _master.BotToTest;
+
+            List<IIBotTab> sources = bot.GetTabs();
+
+            if (rowIndex >= sources.Count)
+            {
+                return;
+            }
+
+            IIBotTab curTab = sources[rowIndex];
+
+            if (curTab.TabType != BotTabType.Simple)
+            {
+                return;
+            }
+
+            BotTabSimple simpleTab = (BotTabSimple)curTab;
+
+            if (columnIndex == 2)
+            {
+                simpleTab.Connector.SecurityName = _gridSources.Rows[rowIndex].Cells[2].Value.ToString();
+            }
+            else if (columnIndex == 3)
+            {
+                TimeFrame newFrame = new TimeFrame();
+
+                if (Enum.TryParse(_gridSources.Rows[rowIndex].Cells[3].Value.ToString(), out newFrame))
+                {
+                    simpleTab.Connector.TimeFrame = newFrame;
+                }
+            }
+        }
+
+        private void _gridSources_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int rowIndex = e.RowIndex;
+                int columnIndex = e.ColumnIndex;
+
+                if (columnIndex != 4)
                 {
                     return;
                 }
-            }
 
-            List<TabSimpleEndTimeFrame> _tabs = new List<TabSimpleEndTimeFrame>();
-            for (int i = 0; i < _gridTableTabsSimple.Rows.Count; i++)
-            {
-                TabSimpleEndTimeFrame tab = new TabSimpleEndTimeFrame();
+                BotPanel bot = _master.BotToTest;
 
-                tab.NumberOfTab = i;
+                List<IIBotTab> sources = bot.GetTabs();
 
-                tab.NameSecurity = _gridTableTabsSimple.Rows[i].Cells[1].Value.ToString();
-                Enum.TryParse(_gridTableTabsSimple.Rows[i].Cells[2].Value.ToString(), out tab.TimeFrame);
-                _tabs.Add(tab);
-                _gridTableTabsSimple.Rows[i].Cells[0].Style = new DataGridViewCellStyle();
-            }
-
-            _master.TabsSimpleNamesAndTimeFrames = _tabs;
-
-            SaveTableTabsSimpleSecuritiesSettings();
-        }
-
-        private void SaveTableTabsSimpleSecuritiesSettings()
-        {
-            string savePath = @"Engine\" + "OptimizerSettinsTabsSimpleSecurities_" + _master.StrategyName + ".txt";
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(savePath, false)
-                    )
+                if (rowIndex >= sources.Count)
                 {
-                    List<TabSimpleEndTimeFrame> _tabs = _master.TabsSimpleNamesAndTimeFrames;
-
-                    for (int i = 0; i < _tabs.Count; i++)
-                    {
-                        writer.WriteLine(_tabs[i].GetSaveString());
-                    }
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-
-        private void LoadTableTabsSimpleSecuritiesSettings()
-        {
-            if (_gridTableTabsSimple.InvokeRequired)
-            {
-                _gridTableTabsSimple.Invoke(new Action(LoadTableTabsSimpleSecuritiesSettings));
-                return;
-            }
-
-            string loadPath = @"Engine\" + "OptimizerSettinsTabsSimpleSecurities_" + _master.StrategyName + ".txt";
-
-            if (!File.Exists(loadPath))
-            {
-                return;
-            }
-
-            _gridTableTabsSimple.CellValueChanged -= _grid_CellValueChanged;
-
-            try
-            {
-
-                List<TabSimpleEndTimeFrame> _tabs = new List<TabSimpleEndTimeFrame>();
-
-                using (StreamReader reader = new StreamReader(loadPath))
-                {
-                    while (reader.EndOfStream == false)
-                    {
-                        string saveStr = reader.ReadLine();
-
-                        TabSimpleEndTimeFrame newTab = new TabSimpleEndTimeFrame();
-                        newTab.SetFromString(saveStr);
-                        _tabs.Add(newTab);
-
-                        int rowIndx = _tabs.Count - 1;
-
-                        DataGridViewComboBoxCell nameCell = (DataGridViewComboBoxCell)_gridTableTabsSimple.Rows[rowIndx].Cells[1];
-
-                        for (int i = 0; nameCell.Items != null && i < nameCell.Items.Count; i++)
-                        {
-                            if (nameCell.Items[i] == null)
-                            {
-                                continue;
-                            }
-                            if (nameCell.Items[i].ToString() == newTab.NameSecurity)
-                            {
-                                nameCell.Value = newTab.NameSecurity;
-                                break;
-                            }
-                        }
-
-                        DataGridViewComboBoxCell timeFrameCell = (DataGridViewComboBoxCell)_gridTableTabsSimple.Rows[rowIndx].Cells[2];
-
-                        for (int i = 0; timeFrameCell.Items != null && i < timeFrameCell.Items.Count; i++)
-                        {
-                            if (timeFrameCell.Items[i] == null)
-                            {
-                                continue;
-                            }
-                            if (timeFrameCell.Items[i].ToString() == newTab.TimeFrame.ToString())
-                            {
-                                timeFrameCell.Value = newTab.TimeFrame.ToString();
-                                break;
-                            }
-                        }
-                    }
-
-                    reader.Close();
-                }
-                if (_tabs != null)
-                {
-                    _master.TabsSimpleNamesAndTimeFrames = _tabs;
+                    return;
                 }
 
-            }
-            catch (Exception)
-            {
-                //ignore
-            }
+                IIBotTab curTab = sources[rowIndex];
 
-            _gridTableTabsSimple.CellValueChanged += _grid_CellValueChanged;
-
-        }
-
-        #endregion
-
-        #region Table of Securities and Time Frames for indexes
-
-        private DataGridView _gridTableTabsIndex;
-
-        private void CreateTableTabsIndex()
-        {
-            _gridTableTabsIndex = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, DataGridViewAutoSizeRowsMode.AllCells);
-
-            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            cell0.Style = _gridTableTabsIndex.DefaultCellStyle;
-
-            DataGridViewColumn column0 = new DataGridViewColumn();
-            column0.CellTemplate = cell0;
-            column0.HeaderText = OsLocalization.Optimizer.Message20;
-            column0.ReadOnly = true;
-            column0.Width = 100;
-
-            _gridTableTabsIndex.Columns.Add(column0);
-
-            DataGridViewButtonColumn column1 = new DataGridViewButtonColumn();
-            column1.CellTemplate = new DataGridViewButtonCell();
-            column1.HeaderText = @"";
-            column1.ReadOnly = false;
-            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-
-            _gridTableTabsIndex.Columns.Add(column1);
-            HostTabsIndex.Child = _gridTableTabsIndex;
-
-            _gridTableTabsIndex.CellClick += _gridTableTabsIndex_CellClick;
-        }
-
-        private void PaintTableTabsIndex()
-        {
-            if (_gridTableTabsSimple.InvokeRequired)
-            {
-                _gridTableTabsIndex.Invoke(new Action(PaintTableTabsIndex));
-                return;
-            }
-            List<SecurityTester> securities = _master.SecurityTester;
-
-            if (_gridTableTabsIndex == null)
-            {
-                return;
-            }
-
-            _gridTableTabsIndex.Rows.Clear();
-
-            int countTab = 0;
-            string nameBot = _master.StrategyName;
-
-            if (string.IsNullOrEmpty(nameBot))
-            {
-                return;
-            }
-
-            BotPanel bot = BotFactory.GetStrategyForName(nameBot, "", StartProgram.IsOsOptimizer, _master.IsScript);
-
-            _master.TabsIndexNamesAndTimeFrames = new List<TabIndexEndTimeFrame>();
-
-            if (bot == null)
-            {
-                return;
-            }
-            if (bot.TabsIndex != null)
-            {
-                countTab += bot.TabsIndex.Count;
-            }
-            if (countTab == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < countTab; i++)
-            {
-                _master.TabsIndexNamesAndTimeFrames.Add(new TabIndexEndTimeFrame());
-
-                DataGridViewRow row = new DataGridViewRow();
-
-                row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[0].Value = i;
-                row.Cells[0].Style = new DataGridViewCellStyle();
-
-                DataGridViewButtonCell cell2 = new DataGridViewButtonCell();
-                cell2.Style = new DataGridViewCellStyle();
-                cell2.Value = OsLocalization.Optimizer.Message22;
-                row.Cells.Add(cell2);
-
-                _gridTableTabsIndex.Rows.Insert(0, row);
-            }
-        }
-
-        private void _gridTableTabsIndex_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex < 0 || e.RowIndex > _master.TabsIndexNamesAndTimeFrames.Count)
-            {
-                return;
-            }
-
-            if(_master.SecurityTester == null ||
-                _master.SecurityTester.Count == 0)
-            {
-                _master.SendLogMessage(OsLocalization.Market.Label111, LogMessageType.Error);
-                return;
-            }
-
-            if (e.ColumnIndex == 1)
-            {
-                TabIndexOptimizerUi ui = new TabIndexOptimizerUi(_master.SecurityTester,
-                    _master.TabsIndexNamesAndTimeFrames[e.RowIndex]);
-                ui.ShowDialog();
-
-                if (ui.NeedToSave)
+                if (curTab.TabType == BotTabType.Simple)
                 {
-                    _master.TabsIndexNamesAndTimeFrames[e.RowIndex] = ui.Index;
-                    SaveTableTabsIndexSecuritiesSettings();
+                    BotTabSimple simpleTab = (BotTabSimple)curTab;
+                    simpleTab.ShowConnectorDialog();
                 }
-            }
-        }
-
-        private void SaveTableTabsIndexSecuritiesSettings()
-        {
-            string savePath = @"Engine\" + "OptimizerSettinsTabsIndexSecurities_" + _master.StrategyName + ".txt";
-
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(savePath, false)
-                    )
+                else if (curTab.TabType == BotTabType.Index)
                 {
-                    List<TabIndexEndTimeFrame> _tabs = _master.TabsIndexNamesAndTimeFrames;
-
-                    for (int i = 0; i < _tabs.Count; i++)
-                    {
-                        writer.WriteLine(_tabs[i].GetSaveString());
-                    }
-
-                    writer.Close();
+                    BotTabIndex simpleTab = (BotTabIndex)curTab;
+                    simpleTab.ShowDialog();
                 }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-
-        private void LoadTableTabsIndexSecuritiesSettings()
-        {
-            if (_gridTableTabsSimple.InvokeRequired)
-            {
-                _gridTableTabsSimple.Invoke(new Action(LoadTableTabsIndexSecuritiesSettings));
-                return;
-            }
-
-            string loadPath = @"Engine\" + "OptimizerSettinsTabsIndexSecurities_" + _master.StrategyName + ".txt";
-
-            if (!File.Exists(loadPath))
-            {
-                return;
-            }
-
-            try
-            {
-
-                List<TabIndexEndTimeFrame> _tabs = new List<TabIndexEndTimeFrame>();
-
-                using (StreamReader reader = new StreamReader(loadPath))
+                else if (curTab.TabType == BotTabType.Screener)
                 {
-                    while (reader.EndOfStream == false)
-                    {
-                        string saveStr = reader.ReadLine();
-
-                        TabIndexEndTimeFrame newTab = new TabIndexEndTimeFrame();
-                        newTab.SetFromString(saveStr);
-                        _tabs.Add(newTab);
-                    }
-
-                    reader.Close();
-                }
-                if (_tabs != null)
-                {
-                    _master.TabsIndexNamesAndTimeFrames = _tabs;
+                    BotTabScreener screenerTab = (BotTabScreener)curTab;
+                    screenerTab.ShowDialog();
+                    screenerTab.TryLoadTabs();
+                    screenerTab.TryReLoadTabs();
                 }
 
+                PaintTableSources();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //ignore
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1381,7 +1318,7 @@ namespace OsEngine.OsOptimizer
             _master.ReloadFazes();
             PaintTableOptimizeFazes();
 
-            if(_master.Fazes == null ||
+            if (_master.Fazes == null ||
                 _master.Fazes.Count == 0)
             {
                 return;
@@ -1621,11 +1558,11 @@ namespace OsEngine.OsOptimizer
 
         private void _gridParameters_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            if(_master == null)
+            if (_master == null)
             {
                 return;
             }
-            _master.SendLogMessage(e.ToString(),LogMessageType.Error);
+            _master.SendLogMessage(e.ToString(), LogMessageType.Error);
         }
 
         private void PaintTableParameters()
@@ -1690,7 +1627,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1715,7 +1652,7 @@ namespace OsEngine.OsOptimizer
 
         private void StopRedactTableAction()
         {
-            if(_gridParameters.InvokeRequired)
+            if (_gridParameters.InvokeRequired)
             {
                 _gridParameters.Invoke(new Action(StopRedactTableAction));
                 return;
@@ -1737,7 +1674,7 @@ namespace OsEngine.OsOptimizer
 
                 _gridParameters.Rows[_lastRowClickParamGridNum].Cells[1].Selected = true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
@@ -1752,7 +1689,7 @@ namespace OsEngine.OsOptimizer
             row.Cells[0].ReadOnly = true;
             row.Cells[0].Style.BackColor = System.Drawing.Color.DimGray;
             row.Cells[0].Style.SelectionBackColor = System.Drawing.Color.DimGray;
-            
+
             // 1 Param Name by User
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[1].Value = parameter.Name;
@@ -1902,7 +1839,7 @@ namespace OsEngine.OsOptimizer
             return row;
         }
 
-        private DataGridViewRow GetRowInt(IIStrategyParameter parameter,bool isOptimize)
+        private DataGridViewRow GetRowInt(IIStrategyParameter parameter, bool isOptimize)
         {
             DataGridViewRow row = new DataGridViewRow();
 
@@ -1945,8 +1882,8 @@ namespace OsEngine.OsOptimizer
 
             // 5 Step optimize
 
-                row.Cells.Add(new DataGridViewTextBoxCell());
-                row.Cells[5].Value = ((StrategyParameterInt)parameter).ValueIntStep.ToString();
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[5].Value = ((StrategyParameterInt)parameter).ValueIntStep.ToString();
 
 
             if (isOptimize == false)
@@ -1961,7 +1898,7 @@ namespace OsEngine.OsOptimizer
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[6].Value = ((StrategyParameterInt)parameter).ValueIntStop.ToString();
 
-            if(isOptimize == false)
+            if (isOptimize == false)
             {
                 row.Cells[6].ReadOnly = true;
                 row.Cells[6].Style.BackColor = System.Drawing.Color.DimGray;
@@ -1999,9 +1936,9 @@ namespace OsEngine.OsOptimizer
                 row.Cells[3].Style.SelectionBackColor = System.Drawing.Color.DimGray;
             }
 
-                // 4 Start optimize value
+            // 4 Start optimize value
 
-                row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells[4].Value = ((StrategyParameterDecimal)parameter).ValueDecimalStart.ToString();
 
             if (isOptimize == false)
@@ -2163,7 +2100,7 @@ namespace OsEngine.OsOptimizer
                         isInArray = true;
                     }
                 }
-                if(isInArray)
+                if (isInArray)
                 {
                     cell.Value = param.ValueString;
                 }
@@ -2171,7 +2108,7 @@ namespace OsEngine.OsOptimizer
                 {
                     cell.Value = param.ValuesString[0];
                 }
-                
+
                 row.Cells.Add(cell);
             }
             else if (param.ValuesString.Count == 1)
@@ -2221,7 +2158,7 @@ namespace OsEngine.OsOptimizer
             try
             {
 
-                for (int i_param = 0,i_grid = 0; i_param < _parameters.Count; i_param++, i_grid++)
+                for (int i_param = 0, i_grid = 0; i_param < _parameters.Count; i_param++, i_grid++)
                 {
                     IIStrategyParameter parameter = _parameters[i_param];
                     DataGridViewRow row = _gridParameters.Rows[i_grid];
@@ -2244,13 +2181,13 @@ namespace OsEngine.OsOptimizer
 
                         if (isChecked)
                         {
-                            ((StrategyParameterCheckBox)parameter).CheckState  = CheckState.Checked;
+                            ((StrategyParameterCheckBox)parameter).CheckState = CheckState.Checked;
                         }
                         else
                         {
                             ((StrategyParameterCheckBox)parameter).CheckState = CheckState.Unchecked;
                         }
-                       
+
                         _parametersActive[i_param] = false;
                     }
                     else if (parameter.Type == StrategyParameterType.TimeOfDay)
@@ -2383,7 +2320,7 @@ namespace OsEngine.OsOptimizer
                             _parametersActive[i_param] = true;
                             ActivateRowOptimizing(row);
                         }
-                    }					
+                    }
                     else //if (parameter.Type == StrategyParameterType.Label)
                     {//неизвестный или не реализованный параметр
                         i_grid--;
@@ -2474,7 +2411,7 @@ namespace OsEngine.OsOptimizer
                 _parameters = par;
                 ReloadStrategy();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _master.SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
             }
@@ -2595,7 +2532,7 @@ namespace OsEngine.OsOptimizer
 
         private void CreateTableResults()
         {
-            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
+            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect,
                 DataGridViewAutoSizeRowsMode.None);
 
             _gridResults.ScrollBars = ScrollBars.Vertical;

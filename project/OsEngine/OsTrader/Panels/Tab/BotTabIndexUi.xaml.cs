@@ -178,7 +178,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if(_spread.CalculationDepth != value)
+                if (_spread.CalculationDepth != value)
                 {
                     _spread.CalculationDepth = value;
                     _spread.Save();
@@ -201,12 +201,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(_spread.PercentNormalization != CheckBoxPercentNormalization.IsChecked.Value)
+                if (_spread.PercentNormalization != CheckBoxPercentNormalization.IsChecked.Value)
                 {
                     _spread.PercentNormalization = CheckBoxPercentNormalization.IsChecked.Value;
                     _spread.Save();
 
-                    if(_spread.Candles != null &&
+                    if (_spread.Candles != null &&
                         _spread.Candles.Count > 0)
                     {
                         _spread.RebuildHard();
@@ -657,7 +657,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(_sourcesGrid == null)
+                if (_sourcesGrid == null)
                 {
                     return;
                 }
@@ -691,7 +691,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (candles != null
                         && candles.Count > 0)
                     {
-                        priceInStr = 
+                        priceInStr =
                             candles[candles.Count - 1].Close.ToString() + " " + candles[candles.Count - 1].TimeStart.TimeOfDay;
                     }
 

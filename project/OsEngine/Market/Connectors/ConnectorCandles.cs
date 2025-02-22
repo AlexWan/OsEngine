@@ -565,7 +565,7 @@ namespace OsEngine.Market.Connectors
                 try
                 {
                     if (value != TimeFrameBuilder.TimeFrame
-                        || (value == TimeFrame.Sec1 && 
+                        || (value == TimeFrame.Sec1 &&
                         TimeFrameBuilder.TimeFrameTimeSpan.TotalSeconds == 0))
                     {
                         TimeFrameBuilder.TimeFrame = value;
@@ -1185,7 +1185,7 @@ namespace OsEngine.Market.Connectors
                 }
 
                 decimal bestBid = 0;
-                
+
                 if (glass.Bids != null &&
                      glass.Bids.Count > 0)
                 {
@@ -1193,13 +1193,13 @@ namespace OsEngine.Market.Connectors
                 }
 
                 decimal bestAsk = 0;
-                
-                if(glass.Asks!= null &&
+
+                if (glass.Asks != null &&
                     glass.Asks.Count > 0)
                 {
                     bestAsk = glass.Asks[0].Price;
                 }
-              
+
 
                 if (EmulatorIsOn)
                 {

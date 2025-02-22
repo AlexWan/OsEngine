@@ -18,6 +18,8 @@ using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Globalization;
+using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market;
 
 namespace OsEngine.OsOptimizer
 {
@@ -33,7 +35,7 @@ namespace OsEngine.OsOptimizer
             _threadsCount = 1;
             _startDeposit = 100000;
 
-            Storage = new OptimizerDataStorage("Prime",true);
+            Storage = new OptimizerDataStorage("Prime", true);
             Storage.SecuritiesChangeEvent += _storage_SecuritiesChangeEvent;
             Storage.TimeChangeEvent += _storage_TimeChangeEvent;
 
@@ -54,6 +56,8 @@ namespace OsEngine.OsOptimizer
 
             ManualControl = new BotManualControl("OptimizerManualControl", null, StartProgram.IsOsTrader);
 
+            CreateBot();
+
             _optimizerExecutor = new OptimizerExecutor(this);
             _optimizerExecutor.LogMessageEvent += SendLogMessage;
             _optimizerExecutor.TestingProgressChangeEvent += _optimizerExecutor_TestingProgressChangeEvent;
@@ -67,15 +71,15 @@ namespace OsEngine.OsOptimizer
 
         public int GetMaxBotsCount()
         {
-            if(_parameters == null ||
-                _parametersOn == null )
+            if (_parameters == null ||
+                _parametersOn == null)
             {
                 return 0;
             }
 
             int value = _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn) * IterationCount * 2;
 
-            if(LastInSample)
+            if (LastInSample)
             {
                 value = value - _optimizerExecutor.BotCountOneFaze(_parameters, _parametersOn);
             }
@@ -149,7 +153,7 @@ namespace OsEngine.OsOptimizer
                     _filterProfitFactorValue = reader.ReadLine().ToDecimal();
                     _filterProfitFactorIsOn = Convert.ToBoolean(reader.ReadLine());
 
-                    _timeStart = Convert.ToDateTime(reader.ReadLine(),CultureInfo.InvariantCulture);
+                    _timeStart = Convert.ToDateTime(reader.ReadLine(), CultureInfo.InvariantCulture);
                     _timeEnd = Convert.ToDateTime(reader.ReadLine(), CultureInfo.InvariantCulture);
                     _percentOnFiltration = reader.ReadLine().ToDecimal();
 
@@ -157,7 +161,7 @@ namespace OsEngine.OsOptimizer
                     _filterDealsCountIsOn = Convert.ToBoolean(reader.ReadLine());
                     _isScript = Convert.ToBoolean(reader.ReadLine());
                     _iterationCount = Convert.ToInt32(reader.ReadLine());
-                    _commissionType = (ComissionType) Enum.Parse(typeof(ComissionType), 
+                    _commissionType = (ComissionType)Enum.Parse(typeof(ComissionType),
                         reader.ReadLine() ?? ComissionType.None.ToString());
                     _commissionValue = reader.ReadLine().ToDecimal();
                     _lastInSample = Convert.ToBoolean(reader.ReadLine());
@@ -181,12 +185,12 @@ namespace OsEngine.OsOptimizer
 
         private void _optimizerExecutor_PrimeProgressChangeEvent(int curVal, int maxVal)
         {
-            if(PrimeProgressBarStatus.CurrentValue != curVal)
+            if (PrimeProgressBarStatus.CurrentValue != curVal)
             {
                 PrimeProgressBarStatus.CurrentValue = curVal;
             }
 
-            if(PrimeProgressBarStatus.MaxValue != maxVal)
+            if (PrimeProgressBarStatus.MaxValue != maxVal)
             {
                 PrimeProgressBarStatus.MaxValue = maxVal;
             }
@@ -194,7 +198,7 @@ namespace OsEngine.OsOptimizer
 
         private void _optimizerExecutor_TestReadyEvent(List<OptimizerFazeReport> reports)
         {
-            if(PrimeProgressBarStatus.CurrentValue != PrimeProgressBarStatus.MaxValue)
+            if (PrimeProgressBarStatus.CurrentValue != PrimeProgressBarStatus.MaxValue)
             {
                 PrimeProgressBarStatus.CurrentValue = PrimeProgressBarStatus.MaxValue;
             }
@@ -228,7 +232,7 @@ namespace OsEngine.OsOptimizer
             {
                 return;
             }
-             
+
             if (status == null)
             {
                 status = new ProgressBarStatus();
@@ -257,8 +261,8 @@ namespace OsEngine.OsOptimizer
 
             Storage.ShowDialog(this);
 
-            if(storageSource != Storage.SourceDataType
-                || folder != Storage.PathToFolder 
+            if (storageSource != Storage.SourceDataType
+                || folder != Storage.PathToFolder
                 || storageDataType != Storage.TypeTesterData
                 || setName != Storage.ActiveSet)
             {
@@ -310,8 +314,6 @@ namespace OsEngine.OsOptimizer
             set
             {
                 _strategyName = value;
-                TabsSimpleNamesAndTimeFrames = new List<TabSimpleEndTimeFrame>();
-                TabsIndexNamesAndTimeFrames = new List<TabIndexEndTimeFrame>();
                 Save();
             }
         }
@@ -328,10 +330,6 @@ namespace OsEngine.OsOptimizer
         }
         private bool _isScript;
 
-        public List<TabSimpleEndTimeFrame> TabsSimpleNamesAndTimeFrames;
-
-        public List<TabIndexEndTimeFrame> TabsIndexNamesAndTimeFrames;
-
         public List<SecurityTester> SecurityTester
         {
             get { return Storage.SecuritiesTester; }
@@ -339,9 +337,173 @@ namespace OsEngine.OsOptimizer
 
         public BotManualControl ManualControl;
 
+        public BotPanel BotToTest;
+
+        public OptimizerServer ServerToTestBot;
+
         public void ShowManualControlDialog()
         {
             ManualControl.ShowDialog(StartProgram.IsOsOptimizer);
+        }
+
+        public void UpdateBotManualControlSettings()
+        {
+            if (string.IsNullOrEmpty(_strategyName))
+            {
+                return;
+            }
+
+            if (BotToTest == null)
+            {
+                string botName = "OptimizerBot" + _strategyName.RemoveExcessFromSecurityName();
+
+                BotToTest = BotFactory.GetStrategyForName(_strategyName, botName, StartProgram.IsTester, _isScript);
+            }
+
+            List<IIBotTab> sources = BotToTest.GetTabs();
+
+            for (int i = 0; i < sources.Count; i++)
+            {
+                IIBotTab curTab = sources[i];
+
+                if (curTab.TabType == BotTabType.Simple)
+                {
+                    BotTabSimple simpleTab = (BotTabSimple)curTab;
+                    simpleTab.Connector.ServerType = Market.ServerType.Optimizer;
+                    simpleTab.Connector.ServerUid = -1;
+                    simpleTab.CommissionType = CommissionType;
+                    simpleTab.CommissionValue = CommissionValue;
+
+                    CopyManualSupportSettings(simpleTab.ManualPositionSupport);
+                }
+                if (curTab.TabType == BotTabType.Screener)
+                {
+                    BotTabScreener screenerTab = (BotTabScreener)curTab;
+                    screenerTab.ServerType = Market.ServerType.Optimizer;
+                    screenerTab.ServerUid = -1;
+                    screenerTab.CommissionType = CommissionType;
+                    screenerTab.CommissionValue = CommissionValue;
+                }
+            }
+
+            UpdateServerToSettings();
+        }
+
+        public void CreateBot()
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_strategyName))
+                {
+                    return;
+                }
+
+                /* string storageName = "";
+
+                 if(Storage.SourceDataType == TesterSourceDataType.Set)
+                 {
+                     if (string.IsNullOrEmpty(Storage.ActiveSet) == false)
+                     {
+                         storageName = Storage.ActiveSet;
+                     }
+                 }*/
+
+                string botName = "OptimizerBot" + _strategyName.RemoveExcessFromSecurityName();
+
+                if (Storage.SourceDataType == TesterSourceDataType.Set
+                    && string.IsNullOrEmpty(Storage.ActiveSet) == false)
+                {
+                    string[] setNameArray = Storage.ActiveSet.Split('_');
+
+                    botName += setNameArray[setNameArray.Length - 1];
+                }
+
+                BotToTest = BotFactory.GetStrategyForName(_strategyName, botName, StartProgram.IsTester, _isScript);
+
+                List<IIBotTab> sources = BotToTest.GetTabs();
+
+                for (int i = 0; i < sources.Count; i++)
+                {
+                    IIBotTab curTab = sources[i];
+
+                    if (curTab.TabType == BotTabType.Simple)
+                    {
+                        BotTabSimple simpleTab = (BotTabSimple)curTab;
+                        simpleTab.Connector.ServerType = Market.ServerType.Optimizer;
+                        simpleTab.Connector.ServerUid = -1;
+                        simpleTab.CommissionType = CommissionType;
+                        simpleTab.CommissionValue = CommissionValue;
+
+                        CopyManualSupportSettings(simpleTab.ManualPositionSupport);
+                    }
+                    if (curTab.TabType == BotTabType.Screener)
+                    {
+                        BotTabScreener screenerTab = (BotTabScreener)curTab;
+                        screenerTab.ServerType = Market.ServerType.Optimizer;
+                        screenerTab.ServerUid = -1;
+                        screenerTab.CommissionType = CommissionType;
+                        screenerTab.CommissionValue = CommissionValue;
+                        screenerTab.ManualPositionSupportFromOptimizer = ManualControl;
+                        screenerTab.TryLoadTabs();
+                        screenerTab.NeedToReloadTabs = true;
+                        screenerTab.TryReLoadTabs();
+                    }
+                }
+
+                UpdateServerToSettings();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Can`t create bot " + _strategyName + " Exception: " + ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void UpdateServerToSettings()
+        {
+            List<Market.Servers.IServer> servers = ServerMaster.GetServers();
+
+            for (int i = 0; servers != null && i < servers.Count; i++)
+            {
+                if (servers[i].ServerType != ServerType.Optimizer)
+                {
+                    continue;
+                }
+                OptimizerServer curServer = (OptimizerServer)servers[i];
+
+                if (curServer.NumberServer == -1)
+                {
+
+                    ServerMaster.RemoveOptimizerServer(curServer);
+                    break;
+                }
+            }
+
+            ServerToTestBot = ServerMaster.CreateNextOptimizerServer(Storage, -1, 10000);
+        }
+
+        public void CopyManualSupportSettings(BotManualControl manualControlTo)
+        {
+
+            manualControlTo.DoubleExitIsOn = ManualControl.DoubleExitIsOn;
+            manualControlTo.DoubleExitSlippage = ManualControl.DoubleExitSlippage;
+            manualControlTo.OrderTypeTime = ManualControl.OrderTypeTime;
+            manualControlTo.ProfitDistance = ManualControl.ProfitDistance;
+            manualControlTo.ProfitIsOn = ManualControl.ProfitIsOn;
+            manualControlTo.ProfitSlippage = ManualControl.ProfitSlippage;
+            manualControlTo.SecondToClose = ManualControl.SecondToClose;
+            manualControlTo.SecondToCloseIsOn = ManualControl.SecondToCloseIsOn;
+            manualControlTo.SecondToOpen = ManualControl.SecondToOpen;
+            manualControlTo.SecondToOpenIsOn = ManualControl.SecondToOpenIsOn;
+            manualControlTo.SetbackToCloseIsOn = ManualControl.SetbackToCloseIsOn;
+            manualControlTo.SetbackToClosePosition = ManualControl.SetbackToClosePosition;
+            manualControlTo.SetbackToOpenIsOn = ManualControl.SetbackToOpenIsOn;
+            manualControlTo.SetbackToOpenPosition = ManualControl.SetbackToOpenPosition;
+            manualControlTo.StopDistance = ManualControl.StopDistance;
+            manualControlTo.StopIsOn = ManualControl.StopIsOn;
+            manualControlTo.StopSlippage = ManualControl.StopSlippage;
+            manualControlTo.TypeDoubleExitOrder = ManualControl.TypeDoubleExitOrder;
+            manualControlTo.ValuesType = ManualControl.ValuesType;
+
         }
 
         #endregion
@@ -407,8 +569,14 @@ namespace OsEngine.OsOptimizer
             get => _commissionType;
             set
             {
+                if (_commissionType == value)
+                {
+                    return;
+                }
+
                 _commissionType = value;
                 Save();
+                UpdateBotManualControlSettings();
             }
         }
         private ComissionType _commissionType;
@@ -418,8 +586,14 @@ namespace OsEngine.OsOptimizer
             get => _commissionValue;
             set
             {
+                if (_commissionValue == value)
+                {
+                    return;
+                }
+
                 _commissionValue = value;
                 Save();
+                UpdateBotManualControlSettings();
             }
         }
         private decimal _commissionValue;
@@ -699,7 +873,7 @@ namespace OsEngine.OsOptimizer
 
         public bool IsAcceptedByFilter(OptimizerReport report)
         {
-            if(report == null)
+            if (report == null)
             {
                 return false;
             }
@@ -790,11 +964,11 @@ namespace OsEngine.OsOptimizer
 
         public bool LastInSample
         {
-            get 
-            { 
-                return _lastInSample; 
+            get
+            {
+                return _lastInSample;
             }
-            set 
+            set
             {
                 _lastInSample = value;
                 Save();
@@ -803,7 +977,7 @@ namespace OsEngine.OsOptimizer
 
         private bool _lastInSample;
 
-        private decimal GetInSampleRecurs(decimal curLengthInSample,int fazeCount, bool lastInSample, int allDays)
+        private decimal GetInSampleRecurs(decimal curLengthInSample, int fazeCount, bool lastInSample, int allDays)
         {
             // х = Y + Y/P * С;
             // x - общая длинна в днях. Уже известна
@@ -815,14 +989,14 @@ namespace OsEngine.OsOptimizer
 
             int count = fazeCount;
 
-            if(lastInSample)
+            if (lastInSample)
             {
                 count--;
             }
 
             int allLength = Convert.ToInt32(curLengthInSample + outOfSampleLength * count);
 
-            if(allLength > allDays)
+            if (allLength > allDays)
             {
                 curLengthInSample--;
                 return GetInSampleRecurs(curLengthInSample, fazeCount, lastInSample, allDays);
@@ -875,8 +1049,8 @@ namespace OsEngine.OsOptimizer
                 newFaze.Days = daysOnInSample;
                 Fazes.Add(newFaze);
 
-                if(_lastInSample 
-                    && i +1 == fazeCount)
+                if (_lastInSample
+                    && i + 1 == fazeCount)
                 {
                     newFaze.Days = daysOnInSample;
                     break;
@@ -891,9 +1065,9 @@ namespace OsEngine.OsOptimizer
                 Fazes.Add(newFazeOut);
             }
 
-            for(int i = 0;i < Fazes.Count;i++)
+            for (int i = 0; i < Fazes.Count; i++)
             {
-                if(Fazes[i].Days <= 0)
+                if (Fazes[i].Days <= 0)
                 {
                     SendLogMessage(OsLocalization.Optimizer.Label50, LogMessageType.Error);
                     Fazes = new List<OptimizerFaze>();
@@ -969,7 +1143,7 @@ namespace OsEngine.OsOptimizer
                     return null;
                 }
 
-                if(_parameters != null)
+                if (_parameters != null)
                 {
                     _parameters.Clear();
                     _parameters = null;
@@ -977,12 +1151,12 @@ namespace OsEngine.OsOptimizer
 
                 _parameters = new List<IIStrategyParameter>();
 
-                for(int i = 0;i < bot.Parameters.Count;i++)
+                for (int i = 0; i < bot.Parameters.Count; i++)
                 {
                     _parameters.Add(bot.Parameters[i]);
                 }
-                
-                for(int i = 0;i < _parameters.Count;i++)
+
+                for (int i = 0; i < _parameters.Count; i++)
                 {
                     GetValueParameterSaveByUser(_parameters[i]);
                 }
@@ -1075,7 +1249,7 @@ namespace OsEngine.OsOptimizer
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + _strategyName + @"_StandartOptimizerParameters.txt", false)
                     )
                 {
-                    for(int i = 0;i < _parameters.Count;i++)
+                    for (int i = 0; i < _parameters.Count; i++)
                     {
                         writer.WriteLine(_parameters[i].GetStringToSave());
                     }
@@ -1104,7 +1278,7 @@ namespace OsEngine.OsOptimizer
 
                 List<bool> parametersOnSaveBefore = GetParametersOnOffByStrategy();
 
-                if(parametersOnSaveBefore != null && 
+                if (parametersOnSaveBefore != null &&
                     parametersOnSaveBefore.Count == _parametersOn.Count)
                 {
                     _parametersOn = parametersOnSaveBefore;
@@ -1210,23 +1384,92 @@ namespace OsEngine.OsOptimizer
                 return false;
             }
 
-            if (TabsSimpleNamesAndTimeFrames == null ||
-                TabsSimpleNamesAndTimeFrames.Count == 0)
+            List<IIBotTab> sources = BotToTest.GetTabs();
+
+            // проверяем наличие данных в источниках
+
+            for (int i = 0; i < sources.Count; i++)
             {
-                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
-                ui.ShowDialog();
-                SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
-                if (NeedToMoveUiToEvent != null)
-                {
-                    NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
+                if (sources[i].TabType == BotTabType.Simple)
+                {// BotTabSimple
+                    BotTabSimple simple = (BotTabSimple)sources[i];
+
+                    if (string.IsNullOrEmpty(simple.Connector.SecurityName))
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
+                        ui.ShowDialog();
+                        SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
+                        if (NeedToMoveUiToEvent != null)
+                        {
+                            NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
+                        }
+                        return false;
+                    }
+
+                    if (HaveSecurityAndTfInStorage(
+                        simple.Connector.SecurityName, simple.Connector.TimeFrame) == false)
+                    {
+                        return false;
+                    }
                 }
-                return false;
+                else if (sources[i].TabType == BotTabType.Index)
+                {// BotTabIndex
+                    BotTabIndex index = (BotTabIndex)sources[i];
+
+                    if (index.Tabs == null ||
+                        index.Tabs.Count == 0)
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
+                        ui.ShowDialog();
+                        SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
+                        if (NeedToMoveUiToEvent != null)
+                        {
+                            NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
+                        }
+                        return false;
+                    }
+
+                    for (int i2 = 0; i2 < index.Tabs.Count; i2++)
+                    {
+                        if (HaveSecurityAndTfInStorage(
+                            index.Tabs[i2].SecurityName, index.Tabs[i2].TimeFrame) == false)
+                        {
+                            return false;
+                        }
+                    }
+                }
+                else if (sources[i].TabType == BotTabType.Screener)
+                {// BotTabScreener
+                    BotTabScreener screener = (BotTabScreener)sources[i];
+
+                    if (screener.Tabs == null ||
+                        screener.Tabs.Count == 0)
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message15);
+                        ui.ShowDialog();
+                        SendLogMessage(OsLocalization.Optimizer.Message15, LogMessageType.System);
+                        if (NeedToMoveUiToEvent != null)
+                        {
+                            NeedToMoveUiToEvent(NeedToMoveUiTo.TabsAndTimeFrames);
+                        }
+                        return false;
+                    }
+
+                    for (int i2 = 0; i2 < screener.Tabs.Count; i2++)
+                    {
+                        if (HaveSecurityAndTfInStorage(
+                            screener.Tabs[i2].Connector.SecurityName, screener.Tabs[i2].Connector.TimeFrame) == false)
+                        {
+                            return false;
+                        }
+                    }
+                }
             }
 
-            if ((string.IsNullOrEmpty(Storage.ActiveSet) 
+            if ((string.IsNullOrEmpty(Storage.ActiveSet)
                 && Storage.SourceDataType == TesterSourceDataType.Set)
                 ||
-                Storage.SecuritiesTester == null 
+                Storage.SecuritiesTester == null
                 ||
                 Storage.SecuritiesTester.Count == 0)
             {
@@ -1251,40 +1494,6 @@ namespace OsEngine.OsOptimizer
                     NeedToMoveUiToEvent(NeedToMoveUiTo.NameStrategy);
                 }
                 return false;
-            }
-
-            // проверяем наличие тайм-фрейма в обойме
-
-            for (int i = 0; i < TabsSimpleNamesAndTimeFrames.Count; i++)
-            {
-                TabSimpleEndTimeFrame curFrame = TabsSimpleNamesAndTimeFrames[i];
-
-                bool isInArray = false;
-
-                for(int j = 0; j < Storage.SecuritiesTester.Count;j++)
-                {
-                    if (Storage.SecuritiesTester[j].Security.Name == curFrame.NameSecurity
-                        && 
-                        (Storage.SecuritiesTester[j].TimeFrame == curFrame.TimeFrame 
-                        || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Sec1
-                        || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Tick))
-                    {
-                        isInArray = true;
-                    }
-                }
-
-                if(isInArray == false)
-                {
-                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message43);
-                    ui.ShowDialog();
-                    SendLogMessage(OsLocalization.Optimizer.Message43, LogMessageType.System);
-
-                    if (NeedToMoveUiToEvent != null)
-                    {
-                        NeedToMoveUiToEvent(NeedToMoveUiTo.NameStrategy);
-                    }
-                    return false;
-                }
             }
 
             bool onParametersReady = false;
@@ -1350,6 +1559,40 @@ namespace OsEngine.OsOptimizer
             return true;
         }
 
+        private bool HaveSecurityAndTfInStorage(string secName, TimeFrame timeFrame)
+        {
+            // проверяем наличие тайм-фрейма в обойме
+
+            bool isInArray = false;
+
+            for (int j = 0; j < Storage.SecuritiesTester.Count; j++)
+            {
+                if (Storage.SecuritiesTester[j].Security.Name == secName
+                    &&
+                    (Storage.SecuritiesTester[j].TimeFrame == timeFrame
+                    || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Sec1
+                    || Storage.SecuritiesTester[j].TimeFrame == TimeFrame.Tick))
+                {
+                    isInArray = true;
+                }
+            }
+
+            if (isInArray == false)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message43);
+                ui.ShowDialog();
+                SendLogMessage(OsLocalization.Optimizer.Message43, LogMessageType.System);
+
+                if (NeedToMoveUiToEvent != null)
+                {
+                    NeedToMoveUiToEvent(NeedToMoveUiTo.NameStrategy);
+                }
+                return false;
+            }
+
+            return true;
+        }
+
         private void _optimizerExecutor_NeedToMoveUiToEvent(NeedToMoveUiTo moveUiTo)
         {
             if (NeedToMoveUiToEvent != null)
@@ -1366,7 +1609,7 @@ namespace OsEngine.OsOptimizer
 
         public BotPanel TestBot(OptimizerFazeReport faze, OptimizerReport report)
         {
-            if(_aloneTestIsOver == false)
+            if (_aloneTestIsOver == false)
             {
                 return null;
             }
@@ -1385,7 +1628,7 @@ namespace OsEngine.OsOptimizer
             ui.ShowDialog();
 
             Thread.Sleep(500);
-           
+
             return _resultBotAloneTest;
         }
 
@@ -1402,8 +1645,8 @@ namespace OsEngine.OsOptimizer
         private async void RunAloneBotTest()
         {
             await Task.Delay(2000);
-            _resultBotAloneTest = 
-                _optimizerExecutor.TestBot(_fazeToTestAloneTest, _reportToTestAloneTest, 
+            _resultBotAloneTest =
+                _optimizerExecutor.TestBot(_fazeToTestAloneTest, _reportToTestAloneTest,
                 StartProgram.IsTester, _awaitUiMasterAloneTest);
 
             _aloneTestIsOver = true;
@@ -1554,7 +1797,7 @@ namespace OsEngine.OsOptimizer
             result += TimeFrame + "%";
             result += Formula + "%";
 
-            for (int i = 0;i < NamesSecurity.Count;i++)
+            for (int i = 0; i < NamesSecurity.Count; i++)
             {
                 result += NamesSecurity[i];
 

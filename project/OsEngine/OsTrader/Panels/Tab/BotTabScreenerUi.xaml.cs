@@ -12,13 +12,13 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Input;
 using MessageBox = System.Windows.MessageBox;
 
@@ -59,6 +59,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ComboBoxTypeServer.Items.Add(servers[i].ServerType);
                 }
 
+                if (servers.Count > 0
+                    && servers[0].ServerType == ServerType.Optimizer)
+                {
+                    _selectedServerType = ServerType.Optimizer;
+                    connectorBot.ServerType = ServerType.Optimizer;
+                }
+
                 if (connectorBot.ServerType != ServerType.None)
                 {
                     ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
@@ -79,9 +86,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
                     ComboBoxPortfolio.IsEnabled = false;
-
-                    connectorBot.ServerType = ServerType.Tester;
-                    _selectedServerType = ServerType.Tester;
                 }
 
                 CreateGrid();
@@ -310,7 +314,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                                 if (Enum.TryParse(tfStr, out tf))
                                 {
-                                   _screener.TimeFrame = tf;
+                                    _screener.TimeFrame = tf;
                                 }
                             }
                         }
@@ -534,7 +538,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                var securities = server.Securities;
+                List<Security> securities = null;
+
+                if (server.ServerType == ServerType.Optimizer)
+                {
+                    securities = ((OptimizerServer)server).SecuritiesFromStorage;
+                }
+                else
+                {
+                    securities = server.Securities;
+                }
 
                 ComboBoxClass.Items.Clear();
 
@@ -594,7 +607,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 // download available instruments
 
-                var securities = server.Securities;
+                List<Security> securities = null;
+
+                if (server.ServerType == ServerType.Optimizer)
+                {
+                    securities = ((OptimizerServer)server).SecuritiesFromStorage;
+                }
+                else
+                {
+                    securities = server.Securities;
+                }
 
                 List<Security> securitiesToLoad = new List<Security>();
 
@@ -936,15 +958,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                         }
 
                         _searchResults.Add(i);
-                    }	
+                    }
                 }
-				
+
                 if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
                 {
                     int index = _searchResults.IndexOf(indexFirstSec);
                     _searchResults.RemoveAt(index);
                     _searchResults.Insert(0, indexFirstSec);
-                }							
+                }
             }
             catch (Exception ex)
             {
@@ -1478,8 +1500,26 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 // Timeframe
                 // таймФрейм
-                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
-                if (server.TypeTesterData != TesterDataType.Candle)
+
+                TesterServer serverTester = null;
+                OptimizerServer serverOpt = null;
+
+                IServer serverI = ServerMaster.GetServers()[0];
+
+                if (serverI.ServerType == ServerType.Tester)
+                {
+                    serverTester = (TesterServer)serverI;
+                }
+                else if (serverI.ServerType == ServerType.Optimizer)
+                {
+                    serverOpt = (OptimizerServer)serverI;
+                }
+
+                if ((serverTester != null &&
+                    serverTester.TypeTesterData != TesterDataType.Candle)
+                    ||
+                    (serverOpt != null &&
+                    serverOpt.TypeTesterData != TesterDataType.Candle))
                 {
                     // if we build data on ticks or depths, then any Timeframe can be used
                     // candle manager builds any Timeframe
@@ -1516,14 +1556,16 @@ namespace OsEngine.OsTrader.Panels.Tab
                     // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
                     // и вставляются они только когда мы выбираем бумагу в методе 
 
-                    TesterServer serverr = (TesterServer)ServerMaster.GetServers()[0];
+                    List<SecurityTester> securities = null;
 
-                    if (serverr.TypeTesterData != TesterDataType.Candle)
+                    if (serverTester != null)
                     {
-                        return;
+                        securities = serverTester.SecuritiesTester;
                     }
-
-                    List<SecurityTester> securities = serverr.SecuritiesTester;
+                    else if (serverOpt != null)
+                    {
+                        securities = serverOpt.SecuritiesTester;
+                    }
 
                     if (securities == null ||
                         securities.Count == 0)

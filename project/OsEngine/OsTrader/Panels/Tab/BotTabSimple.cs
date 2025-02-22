@@ -122,7 +122,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     UpdateStopLimits();
 
-                    if(_senderThreadIsStarted == false)
+                    if (_senderThreadIsStarted == false)
                     {
                         _senderThreadIsStarted = true;
 
@@ -143,12 +143,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// source type
         /// </summary>
-        public BotTabType TabType 
+        public BotTabType TabType
         {
             get
             {
                 return BotTabType.Simple;
-            } 
+            }
         }
 
         /// <summary>
@@ -236,7 +236,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Tab number
         /// </summary>
         public int TabNum { get; set; }
-		
+
         /// <summary>
         /// has this BotTabScreener tab been created
         /// создана ли вкладка BotTabScreener
@@ -247,32 +247,32 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// are events sent to the top from the tab?
         /// </summary>
-        public bool EventsIsOn 
-        { 
-            get 
+        public bool EventsIsOn
+        {
+            get
             {
-                if(Connector == null)
+                if (Connector == null)
                 {
                     return false;
                 }
 
                 return Connector.EventsIsOn;
-            } 
-            set 
+            }
+            set
             {
                 if (Connector == null)
                 {
                     return;
                 }
 
-                if(Connector.EventsIsOn == value)
+                if (Connector.EventsIsOn == value)
                 {
                     return;
                 }
 
                 Connector.EventsIsOn = value;
-            } 
-        
+            }
+
         }
 
         /// <summary>
@@ -294,7 +294,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 return _nameStrategy;
             }
-        }		
+        }
 
         /// <summary>
         /// Clear
@@ -436,12 +436,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     DeleteBotEvent(TabNum);
                 }
 
-                if(TabDeletedEvent != null)
+                if (TabDeletedEvent != null)
                 {
                     TabDeletedEvent();
                 }
 
-                if(StartProgram == StartProgram.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     try
                     {
@@ -460,7 +460,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                
+
             }
             catch (Exception error)
             {
@@ -540,7 +540,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (indicator == null)
                 throw new Exception("Error! Indicator with name " + nameArea + " not found");
 
-            if(_chartMaster == null)
+            if (_chartMaster == null)
             {
                 return null;
             }
@@ -865,7 +865,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     _portfolio = _connector.Portfolio;
                 }
-                else if(StartProgram == StartProgram.IsOsTrader)
+                else if (StartProgram == StartProgram.IsOsTrader)
                 {
                     _portfolio = _connector.Portfolio;
                 }
@@ -1257,7 +1257,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                if(_connector == null)
+                if (_connector == null)
                 {
                     return false;
                 }
@@ -1312,12 +1312,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             bool needToReplaceStop = false;
 
-            if(ManualPositionSupport.StopIsOn == true
+            if (ManualPositionSupport.StopIsOn == true
                 && stopIsOnStartValue == false)
             {
                 needToReplaceStop = true;
             }
-            if(ManualPositionSupport.StopIsOn == true
+            if (ManualPositionSupport.StopIsOn == true
                 && stopDistance != ManualPositionSupport.StopDistance)
             {
                 needToReplaceStop = true;
@@ -1346,7 +1346,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Position> positions = this.PositionsOpenAll;
 
-            if(positions.Count > 0 &&
+            if (positions.Count > 0 &&
                 needToReplaceStop &&
                 IsCreatedByScreener == false)
             {
@@ -1354,9 +1354,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ui.ShowDialog();
 
-                if(ui.UserAcceptActioin)
+                if (ui.UserAcceptActioin)
                 {
-                    for(int i = 0;i < positions.Count;i++)
+                    for (int i = 0; i < positions.Count; i++)
                     {
                         ManualReloadStopsAndProfitToPosition(positions[i]);
                     }
@@ -1671,7 +1671,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (volume == 0)
                 {
-                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System); 
+                    SetNewLogMessage(OsLocalization.Trader.Label63, LogMessageType.System);
                     return null;
                 }
 
@@ -1727,18 +1727,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newDeal.PriceStepCost = Security.PriceStepCost;
                 newDeal.PriceStep = Security.PriceStep;
 
-                if(StartProgram == StartProgram.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     newDeal.PortfolioValueOnOpenPosition = Portfolio.ValueCurrent;
                 }
                 else
                 { // Tester, Optimizer, etc
-                    newDeal.PortfolioValueOnOpenPosition = Math.Round(Portfolio.ValueCurrent,2);
+                    newDeal.PortfolioValueOnOpenPosition = Math.Round(Portfolio.ValueCurrent, 2);
                 }
 
                 _journal.SetNewDeal(newDeal);
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen,
                     ordersCount, newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit, 0);
 
                 return newDeal;
@@ -1826,7 +1826,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestAsk;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount,
                     newDeal, IcebergType.Open, volume, this, OrderPriceType.Market, minMillisecondsDistance);
 
                 return newDeal;
@@ -2368,7 +2368,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount,
                     position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Limit, 0);
             }
             catch (Exception error)
@@ -2415,7 +2415,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestAsk;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen,
                     ordersCount, position, IcebergType.ModifyBuy, volume, this, OrderPriceType.Market, minMillisecondsDistance);
             }
             catch (Exception error)
@@ -2623,7 +2623,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _journal.SetNewDeal(newDeal);
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount,
                     newDeal, IcebergType.Open, volume, this, OrderPriceType.Limit, 0);
 
                 return newDeal;
@@ -2719,7 +2719,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestBid;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, orderCount,
                     newDeal, IcebergType.Open, volume, this, OrderPriceType.Market, minMillisecondsDistance);
 
                 return newDeal;
@@ -3002,7 +3002,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 positionOpener.LifeTimeType = lifeTimeType;
                 positionOpener.PriceRedLine = priceRedLine;
 
-                if(StartProgram == StartProgram.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     positionOpener.PriceOrder = priceLimit;
                 }
@@ -3271,7 +3271,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen,
                     ordersCount, position, IcebergType.ModifySell, volume, this, OrderPriceType.Limit, 0);
             }
             catch (Exception error)
@@ -3318,7 +3318,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 decimal price = PriceBestBid;
 
-                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount, 
+                _icebergMaker.MakeNewIceberg(price, ManualPositionSupport.SecondToOpen, ordersCount,
                     position, IcebergType.ModifySell, volume, this, OrderPriceType.Market, minMillisecondsDistance);
             }
             catch (Exception error)
@@ -3441,14 +3441,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.State = PositionStateType.Closing;
 
                 Order closeOrder
-                    = _dealCreator.CreateCloseOrderForDeal(Security, position, price, 
+                    = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
                     OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1), StartProgram, ManualPositionSupport.OrderTypeTime);
 
                 closeOrder.SecurityNameCode = Security.Name;
                 closeOrder.SecurityClassCode = Security.NameClass;
                 closeOrder.PortfolioNumber = Portfolio.Number;
 
-                if(volume < position.OpenVolume &&
+                if (volume < position.OpenVolume &&
                     closeOrder.Volume != volume)
                 {
                     closeOrder.Volume = volume;
@@ -3965,7 +3965,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.ProfitOrderPrice = priceActivation;
                 position.ProfitOrderRedLine = priceActivation;
                 position.ProfitIsMarket = true;
-                
+
                 position.ProfitOrderIsActiv = true;
 
                 _chartMaster.SetPosition(_journal.AllPosition);
@@ -4111,18 +4111,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
-            if(order == null)
+            if (order == null)
             {
                 return;
             }
 
-            if(StartProgram != StartProgram.IsOsTrader)
+            if (StartProgram != StartProgram.IsOsTrader)
             {
                 SetNewLogMessage(OsLocalization.Trader.Label371, LogMessageType.Error);
                 return;
             }
 
-            if(IsConnected == false ||
+            if (IsConnected == false ||
                 IsReadyToTrade == false)
             {
                 SetNewLogMessage(OsLocalization.Trader.Label372, LogMessageType.Error);
@@ -4267,7 +4267,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, Side.Sell);
 
-                if(safeRegime == true)
+                if (safeRegime == true)
                 {
                     if (position.OpenOrders != null &&
                         position.OpenOrders.Count > 0)
@@ -4283,7 +4283,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Order newOrder = _dealCreator.CreateOrder(Security, Side.Sell, price, volume, orderType,
-                    ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open,ManualPositionSupport.OrderTypeTime);
+                    ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open, ManualPositionSupport.OrderTypeTime);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
@@ -4391,7 +4391,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 price = RoundPrice(price, Security, Side.Buy);
 
-                if(safeRegime == true)
+                if (safeRegime == true)
                 {
                     if (position.OpenOrders != null &&
                         position.OpenOrders.Count > 0)
@@ -4448,7 +4448,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     return;
                 }
-                if(safeRegime)
+                if (safeRegime)
                 {
                     for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                     {
@@ -4487,7 +4487,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 position.State = PositionStateType.Closing;
 
-                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price, 
+                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
                     priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime);
 
                 closeOrder.SecurityNameCode = Security.Name;
@@ -4543,7 +4543,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if(safeRegime == true)
+                if (safeRegime == true)
                 {
                     if (position.CloseOrders != null)
                     {
@@ -4582,7 +4582,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 price = RoundPrice(price, Security, sideCloseOrder);
 
-                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price, 
+                Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
                     priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime);
 
                 if (closeOrder == null)
@@ -4870,7 +4870,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if(position == null ||
+                if (position == null ||
                     ManualPositionSupport == null)
                 {
                     return;
@@ -4885,7 +4885,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         return;
                     }
 
-                    if(StartProgram == StartProgram.IsOsTrader)
+                    if (StartProgram == StartProgram.IsOsTrader)
                     {
                         if (position.OpenOrders[position.OpenOrders.Count - 1] == null)
                         {
@@ -4942,19 +4942,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                         position.ProfitOrderIsActiv = false;
                         position.StopOrderIsActiv = false;
 
-                        if(string.IsNullOrEmpty(position.SignalTypeStop) == false)
+                        if (string.IsNullOrEmpty(position.SignalTypeStop) == false)
                         {
                             position.SignalTypeClose = position.SignalTypeStop;
                         }
- 
+
                         SetNewLogMessage(
                             "Close Position at Stop. StopPrice: " +
                             position.StopOrderRedLine
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        if(position.StopIsMarket == false
-                            || StartProgram == StartProgram.IsTester 
+                        if (position.StopIsMarket == false
+                            || StartProgram == StartProgram.IsTester
                             || StartProgram == StartProgram.IsOsOptimizer)
                         {
                             CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true, true);
@@ -5297,12 +5297,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (position.Direction == Side.Sell && position.OpenVolume < 0)
                 {
-                    ShortUpdate(position, PriceBestBid - Security.PriceStep * 30, 
+                    ShortUpdate(position, PriceBestBid - Security.PriceStep * 30,
                         Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
                 if (position.Direction == Side.Buy && position.OpenVolume < 0)
                 {
-                    LongUpdate(position, PriceBestAsk + Security.PriceStep * 30, 
+                    LongUpdate(position, PriceBestAsk + Security.PriceStep * 30,
                         Math.Abs(position.OpenVolume), new TimeSpan(0, 0, 1, 0), false, OrderPriceType.Limit, true);
                 }
             }
@@ -5380,7 +5380,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         if (PositionOpenerToStop[i].Side == Side.Buy)
                         {
                             PositionOpenerToStopLimit opener = PositionOpenerToStop[i];
-                            Position pos = LongCreate(PositionOpenerToStop[i].PriceOrder, 
+                            Position pos = LongCreate(PositionOpenerToStop[i].PriceOrder,
                                 PositionOpenerToStop[i].Volume, PositionOpenerToStop[i].OrderPriceType,
                                 ManualPositionSupport.SecondToOpen, true);
 
@@ -5407,7 +5407,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                         else if (PositionOpenerToStop[i].Side == Side.Sell)
                         {
                             PositionOpenerToStopLimit opener = PositionOpenerToStop[i];
-                            Position pos = ShortCreate(PositionOpenerToStop[i].PriceOrder, 
+                            Position pos = ShortCreate(PositionOpenerToStop[i].PriceOrder,
                                 PositionOpenerToStop[i].Volume, PositionOpenerToStop[i].OrderPriceType,
                                 ManualPositionSupport.SecondToOpen, true);
 
@@ -5505,7 +5505,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_PortfolioOnExchangeChangedEvent(Portfolio portfolio)
         {
-            if(PortfolioOnExchangeChangedEvent != null)
+            if (PortfolioOnExchangeChangedEvent != null)
             {
                 PortfolioOnExchangeChangedEvent(portfolio);
             }
@@ -5552,7 +5552,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             continue;
                         }
 
-                        if(marketDepth.Asks != null && marketDepth.Asks.Count > 0)
+                        if (marketDepth.Asks != null && marketDepth.Asks.Count > 0)
                         {
                             CheckStop(openPositions[i], marketDepth.Asks[0].Price);
                         }
@@ -5562,7 +5562,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             continue;
                         }
 
-                        if(marketDepth.Bids != null && marketDepth.Bids.Count > 0)
+                        if (marketDepth.Bids != null && marketDepth.Bids.Count > 0)
                         {
                             CheckStop(openPositions[i], marketDepth.Bids[0].Price);
                         }
@@ -5613,8 +5613,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                             && position.CloseOrders[position.CloseOrders.Count - 1].MyTrades.Count > 0)
                         {
                             SetNewLogMessage(
-                                OsLocalization.Trader.Label408 
-                                + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n" 
+                                OsLocalization.Trader.Label408
+                                + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
                                 + position.PositionSpecification, LogMessageType.Trade);
 
                             if (PositionClosingSuccesEvent != null)
@@ -5673,7 +5673,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else if (position.State == PositionStateType.Open)
                 {
-                    if(StartProgram == StartProgram.IsOsTrader)
+                    if (StartProgram == StartProgram.IsOsTrader)
                     {
                         // высылаем оповещение, только если уже есть закрывающие MyTrades
 
@@ -5703,7 +5703,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                     else
                     {
-                        if(StartProgram == StartProgram.IsTester)
+                        if (StartProgram == StartProgram.IsTester)
                         {
                             SetNewLogMessage(
                             OsLocalization.Trader.Label407
@@ -5965,14 +5965,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if(StartProgram == StartProgram.IsOsTrader)
+            if (StartProgram == StartProgram.IsOsTrader)
             {
-                if(ServerStatus == ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
 
-                if(_lastTradeTime == DateTime.MinValue &&
+                if (_lastTradeTime == DateTime.MinValue &&
                     _lastTradeIndex == 0)
                 {
                     _lastTradeIndex = trades.Count;
@@ -5980,10 +5980,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
             }
-            else if(StartProgram == StartProgram.IsTester ||
+            else if (StartProgram == StartProgram.IsTester ||
                 StartProgram == StartProgram.IsOsOptimizer)
             {
-                if(trades[trades.Count - 1].TimeFrameInTester != Entity.TimeFrame.Sec1 &&
+                if (trades[trades.Count - 1].TimeFrameInTester != Entity.TimeFrame.Sec1 &&
                     trades[trades.Count - 1].TimeFrameInTester != Connector.TimeFrame)
                 {
                     return;
@@ -6004,7 +6004,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             List<Trade> newTrades = new List<Trade>();
 
-            if(StartProgram == StartProgram.IsOsTrader)
+            if (StartProgram == StartProgram.IsOsTrader)
             {
                 if (trades.Count > 1000)
                 { // if deleting trades from the system is disabled
@@ -6059,7 +6059,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 else
                 {
-                    for (int i = trades.Count-1; i < trades.Count; i--)
+                    for (int i = trades.Count - 1; i < trades.Count; i--)
                     {
                         try
                         {
@@ -6068,7 +6068,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                                 break;
                             }
 
-                            newTrades.Insert(0,trades[i]);
+                            newTrades.Insert(0, trades[i]);
                         }
                         catch
                         {
@@ -6093,7 +6093,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
-            if(_journal == null)
+            if (_journal == null)
             {
                 return;
             }
@@ -6217,7 +6217,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private void _connector_OrderChangeEvent(Order order)
         {
-            if(_isDelete)
+            if (_isDelete)
             {
                 return;
             }
@@ -6263,7 +6263,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _chartMaster_IndicatorManuallyCreateEvent(IIndicator newIndicator)
         {
-            if(IndicatorManuallyCreateEvent != null)
+            if (IndicatorManuallyCreateEvent != null)
             {
                 IndicatorManuallyCreateEvent(newIndicator, this);
             }
@@ -6271,7 +6271,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _chartMaster_IndicatorManuallyDeleteEvent(IIndicator indicator)
         {
-            if(IndicatorManuallyDeleteEvent != null)
+            if (IndicatorManuallyDeleteEvent != null)
             {
                 IndicatorManuallyDeleteEvent(indicator, this);
             }
@@ -6289,7 +6289,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     Thread.Sleep(10);
 
-                    if(MainWindow.ProccesIsWorked == false)
+                    if (MainWindow.ProccesIsWorked == false)
                     {
                         return;
                     }
@@ -6306,7 +6306,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 catch
                 {
-                   // ignore
+                    // ignore
                 }
             }
         }
@@ -6315,10 +6315,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private static List<BotTabSimple> _tabsToCheckPositionEvent = new List<BotTabSimple>();
 
-        private ConcurrentQueue<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsQueue 
-            = new ConcurrentQueue<PositionAwaitMyTradesToSendEvent> ();
+        private ConcurrentQueue<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsQueue
+            = new ConcurrentQueue<PositionAwaitMyTradesToSendEvent>();
 
-        private List<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsList 
+        private List<PositionAwaitMyTradesToSendEvent> _positionsAwaitSendInEventsList
             = new List<PositionAwaitMyTradesToSendEvent>();
 
         public void CheckAwaitPositionsArea()
@@ -6384,7 +6384,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             {
                                 SetNewLogMessage(
                                 OsLocalization.Trader.Label408
-                                +", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
+                                + ", " + OsLocalization.Trader.Label409 + ": " + NameStrategy + "\n"
                                 + curPos.Position.PositionSpecification, LogMessageType.Trade);
 
                                 if (PositionClosingSuccesEvent != null)
@@ -6403,9 +6403,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
             }
-            catch(Exception error)
+            catch (Exception error)
             {
-                SetNewLogMessage(error.ToString(),LogMessageType.Error);
+                SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 

@@ -1086,9 +1086,6 @@
     <Compile Include="OsOptimizer\OptimizerUi.xaml.cs">
       <DependentUpon>OptimizerUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OsOptimizer\TabIndexOptimizerUi.xaml.cs">
-      <DependentUpon>TabIndexOptimizerUi.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Layout\GlobalGUILayout.cs" />
     <Compile Include="OsTrader\BuyAtStopPositionsViewer.cs" />
     <Compile Include="OsTrader\GlobalPositionViewer.cs" />
@@ -1792,10 +1789,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsOptimizer\OptimizerUi.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="OsOptimizer\TabIndexOptimizerUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

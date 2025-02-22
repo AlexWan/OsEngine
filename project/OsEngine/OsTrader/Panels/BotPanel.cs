@@ -1554,6 +1554,55 @@ position => position.State != PositionStateType.OpeningFail
         }
         private List<BotTabNews> _tabsNews = new List<BotTabNews>();
 
+        public DateTime TimeServer
+        {
+            get
+            {
+                DateTime result = DateTime.MinValue;
+
+                if (_tabSimple != null
+                    && _tabSimple.Count > 0)
+                {
+                    for (int i = 0; i < _tabSimple.Count; i++)
+                    {
+                        if (_tabSimple[i].IsConnected == false)
+                        {
+                            continue;
+                        }
+
+                        if (_tabSimple[i].TimeServerCurrent > result)
+                        {
+                            result = _tabSimple[i].TimeServerCurrent;
+                        }
+                    }
+                }
+
+                if (_tabsScreener != null
+                    && _tabsScreener.Count > 0)
+                {
+                    for (int i = 0; i < _tabsScreener.Count; i++)
+                    {
+                        for (int j = 0; j < _tabsScreener[i].Tabs.Count; j++)
+                        {
+                            BotTabSimple tab = _tabsScreener[i].Tabs[j];
+
+                            if (tab.IsConnected == false)
+                            {
+                                continue;
+                            }
+
+                            if (tab.TimeServerCurrent > result)
+                            {
+                                result = tab.TimeServerCurrent;
+                            }
+                        }
+                    }
+                }
+
+                return result;
+            }
+        }
+
         /// <summary>
         /// user toggled tabs
         /// </summary>

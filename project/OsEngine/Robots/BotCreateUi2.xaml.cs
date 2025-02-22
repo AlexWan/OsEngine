@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
@@ -10,7 +15,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Input;
 
 namespace OsEngine.Robots
@@ -30,7 +34,7 @@ namespace OsEngine.Robots
 
             _startProgram = startProgram;
 
-            if(_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 TextBoxName.IsEnabled = false;
                 ButtonWhyNeedName.IsEnabled = false;
@@ -271,13 +275,13 @@ namespace OsEngine.Robots
                 return;
             }
 
-            for (int i = 0;i < _grid.Rows.Count;i++)
+            for (int i = 0; i < _grid.Rows.Count; i++)
             {
                 if (i == row)
                 {
                     NameStrategy = _grid.Rows[i].Cells[1].Value.ToString();
 
-                    if(_grid.Rows[i].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+                    if (_grid.Rows[i].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
                     {
                         IsScript = true;
                     }
@@ -314,7 +318,7 @@ namespace OsEngine.Robots
                         }
 
                         string path =
-                            System.Windows.Forms.Application.ExecutablePath.Replace("OsEngine.exe", "") 
+                            System.Windows.Forms.Application.ExecutablePath.Replace("OsEngine.exe", "")
                             + "Custom\\Robots\\";
 
                         string filePath = path + className + ".cs";
@@ -330,7 +334,7 @@ namespace OsEngine.Robots
 
                     }
                 }
-                else if(col == 5)
+                else if (col == 5)
                 {
                     int botNum = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
 
@@ -347,7 +351,7 @@ namespace OsEngine.Robots
                         }
                     }
 
-                    if(description != null &&
+                    if (description != null &&
                         string.IsNullOrEmpty(description.Description) == false)
                     {
                         CustomMessageBoxUi ui = new CustomMessageBoxUi(description.Description);
@@ -356,7 +360,7 @@ namespace OsEngine.Robots
 
                 }
             }
-            catch(Exception ex) 
+            catch (Exception ex)
             {
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
                 ui.Show();
@@ -367,11 +371,11 @@ namespace OsEngine.Robots
         {
             List<BotDescription> descriptions = GetBotDescriptions();
 
-            for(int i = 0;i < _botsFromScript.Count;i++)
+            for (int i = 0; i < _botsFromScript.Count; i++)
             {
                 bool isInArray = false;
 
-                for(int i2 = 0;i2 < descriptions.Count;i2++)
+                for (int i2 = 0; i2 < descriptions.Count; i2++)
                 {
                     if (descriptions[i2].ClassName == _botsFromScript[i])
                     {
@@ -380,7 +384,7 @@ namespace OsEngine.Robots
                     }
                 }
 
-                if(isInArray == false)
+                if (isInArray == false)
                 {
                     BotDescription newDesk = new BotDescription();
                     newDesk.ClassName = _botsFromScript[i];
@@ -416,7 +420,7 @@ namespace OsEngine.Robots
 
             string lockation = ComboBoxLockation.SelectedItem.ToString();
 
-            for(int i = 0;i < descriptions.Count;i++)
+            for (int i = 0; i < descriptions.Count; i++)
             {
                 BotDescription curDesc = descriptions[i];
 
@@ -433,7 +437,7 @@ namespace OsEngine.Robots
                         }
                     }
 
-                    if(badBot)
+                    if (badBot)
                     {
                         continue;
                     }
@@ -456,11 +460,6 @@ namespace OsEngine.Robots
                             break;
                         }
                         if (curDesc.Sources[j].Contains("Cluster"))
-                        {
-                            badBot = true;
-                            break;
-                        }
-                        if (curDesc.Sources[j].Contains("Screener"))
                         {
                             badBot = true;
                             break;
@@ -488,7 +487,7 @@ namespace OsEngine.Robots
             }
 
             _lastLoadDescriptions = descriptions;
-					
+
             UpdateSearchResults();
             UpdateSearchPanel();
         }
@@ -554,7 +553,7 @@ namespace OsEngine.Robots
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = description.ClassName;
 
-            if(description.Location == BotCreationType.Script)
+            if (description.Location == BotCreationType.Script)
             {
                 DataGridViewButtonCell buttonLockation = new DataGridViewButtonCell();
                 buttonLockation.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -589,7 +588,7 @@ namespace OsEngine.Robots
         {
             List<BotDescription> descriptions = GetBotDescriptionsFromFile();
 
-            if(descriptions == null || descriptions.Count == 0)
+            if (descriptions == null || descriptions.Count == 0)
             {
                 descriptions = GetBotDesctiptionsAsunc();
                 SaveDesctiptionsInFile(descriptions);
@@ -597,19 +596,19 @@ namespace OsEngine.Robots
 
             List<BotDescription> sortDescription = new List<BotDescription>();
 
-            for (int i = 0;i < descriptions.Count;i++)
+            for (int i = 0; i < descriptions.Count; i++)
             {
                 BotDescription curBotDescription = descriptions[i];
                 sortDescription.Add(curBotDescription);
             }
 
-            for(int i = 0;i < sortDescription.Count;i++)
+            for (int i = 0; i < sortDescription.Count; i++)
             {
                 string curStrategy = sortDescription[i].ClassName;
 
                 bool isInArray = false;
 
-                for(int j = 0;j < _botsFromScript.Count;j++)
+                for (int j = 0; j < _botsFromScript.Count; j++)
                 {
                     if (_botsFromScript[j] == curStrategy)
                     {
@@ -627,7 +626,7 @@ namespace OsEngine.Robots
                     }
                 }
 
-                if(isInArray == false)
+                if (isInArray == false)
                 {
                     sortDescription.RemoveAt(i);
                     i--;
@@ -640,7 +639,7 @@ namespace OsEngine.Robots
 
         private List<BotDescription> GetBotDescriptionsFromFile()
         {
-            List <BotDescription> descriptions = new List<BotDescription>();
+            List<BotDescription> descriptions = new List<BotDescription>();
 
             if (!File.Exists(@"BotsDescriprion.txt"))
             {
@@ -651,7 +650,7 @@ namespace OsEngine.Robots
             {
                 using (StreamReader reader = new StreamReader(@"BotsDescriprion.txt"))
                 {
-                    while(reader.EndOfStream == false)
+                    while (reader.EndOfStream == false)
                     {
                         string saveStr = reader.ReadLine();
 
@@ -701,11 +700,11 @@ namespace OsEngine.Robots
             if (bot.TabsSimple != null &&
                bot.TabsSimple.Count > 0)
             {
-                for(int i = 0;i < bot.TabsSimple.Count;i++)
+                for (int i = 0; i < bot.TabsSimple.Count; i++)
                 {
                     List<string> curInd = GetIndicatorsNamesFromSimpleSource(bot.TabsSimple[i]);
 
-                    if(curInd != null 
+                    if (curInd != null
                         && curInd.Count > 0)
                     {
                         indicators.AddRange(curInd);
@@ -749,7 +748,7 @@ namespace OsEngine.Robots
         {
             List<string> indicators = new List<string>();
 
-            for(int i = 0;i <tab.Indicators.Count;i++)
+            for (int i = 0; i < tab.Indicators.Count; i++)
             {
                 string curInd = tab.Indicators[i].GetType().Name;
 
@@ -842,7 +841,7 @@ namespace OsEngine.Robots
 
             ui.ShowDialog();
 
-            if(ui.UserAcceptActioin == false)
+            if (ui.UserAcceptActioin == false)
             {
                 return;
             }
@@ -875,8 +874,8 @@ namespace OsEngine.Robots
         {
             List<BotDescription> descriptions = new List<BotDescription>();
 
-            for (int i = 0; 
-                _botsIncluded != null && i < _botsIncluded.Count; 
+            for (int i = 0;
+                _botsIncluded != null && i < _botsIncluded.Count;
                 i++)
             {
                 BotDescription curDescription = GetBotDescription(_botsIncluded[i], false);
@@ -887,8 +886,8 @@ namespace OsEngine.Robots
                 }
             }
 
-            for (int i = 0; 
-                _botsFromScript != null && i < _botsFromScript.Count; 
+            for (int i = 0;
+                _botsFromScript != null && i < _botsFromScript.Count;
                 i++)
             {
                 BotDescription curDescription = GetBotDescription(_botsFromScript[i], true);
@@ -1019,7 +1018,7 @@ namespace OsEngine.Robots
                 indicators = indicators.ToLower();
 
                 if (strategy.Contains(key) ||
-                    secSources.Contains(key)||
+                    secSources.Contains(key) ||
                     indicators.Contains(key))
                 {
                     _searchResults.Add(i);
@@ -1181,11 +1180,11 @@ namespace OsEngine.Robots
             {
                 string res = "";
 
-                for(int i = 0; Sources != null && i < Sources.Count;i++)
+                for (int i = 0; Sources != null && i < Sources.Count; i++)
                 {
                     res += Sources[i];
 
-                    if(i +1 < Sources.Count)
+                    if (i + 1 < Sources.Count)
                     {
                         res += "\n";
                     }
@@ -1228,7 +1227,7 @@ namespace OsEngine.Robots
 
             string sources = "";
 
-            for(int i = 0;i < Sources.Count;i++)
+            for (int i = 0; i < Sources.Count; i++)
             {
                 sources += Sources[i].ToString() + "*";
             }
@@ -1249,12 +1248,12 @@ namespace OsEngine.Robots
 
         public void LoadFromSaveStr(string str)
         {
-            string [] saveStr = str.Split('&');
+            string[] saveStr = str.Split('&');
 
             ClassName = saveStr[0];
             Description = saveStr[1];
             Enum.TryParse(saveStr[2], out Location);
-            
+
             PathToFolder = saveStr[3];
 
             string[] sources = saveStr[4].Split('*');

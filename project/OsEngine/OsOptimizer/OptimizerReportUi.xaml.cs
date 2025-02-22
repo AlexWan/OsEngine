@@ -58,12 +58,6 @@ namespace OsEngine.OsOptimizer
             LabelAverageProfitPersent.Content = OsLocalization.Optimizer.Label56;
 
             Title += "   " + master.StrategyName;
-            
-            if(master.TabsSimpleNamesAndTimeFrames != null &&
-                master.TabsSimpleNamesAndTimeFrames.Count == 1)
-            {
-                Title += "  " + master.TabsSimpleNamesAndTimeFrames[0].NameSecurity + "  " + master.TabsSimpleNamesAndTimeFrames[0].TimeFrame;
-            }
 
             this.Activate();
             this.Focus();
@@ -182,12 +176,6 @@ namespace OsEngine.OsOptimizer
 
                 string saveFileName = _master.StrategyName;
 
-                if (_master.TabsSimpleNamesAndTimeFrames != null && _master.TabsSimpleNamesAndTimeFrames.Count != 0)
-                {
-                    saveFileName += "_" + _master.TabsSimpleNamesAndTimeFrames[0].NameSecurity;
-                    saveFileName += "_" + _master.TabsSimpleNamesAndTimeFrames[0].TimeFrame;
-                }
-
                 IIStrategyParameter regime = _master._optimizerExecutor._parameters.Find(p => p.Name == "Regime");
 
                 if (regime != null)
@@ -288,7 +276,7 @@ namespace OsEngine.OsOptimizer
 
         private void CreateTableFazes()
         {
-            _gridFazesEnd = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, 
+            _gridFazesEnd = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells, true);
 
             _gridFazesEnd.ScrollBars = ScrollBars.Vertical;
@@ -405,7 +393,7 @@ namespace OsEngine.OsOptimizer
 
         private void CreateTableResults()
         {
-            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
+            _gridResults = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect,
                 DataGridViewAutoSizeRowsMode.None, true);
 
             _gridResults.ScrollBars = ScrollBars.Vertical;
@@ -500,7 +488,7 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewButtonColumn column12 = new DataGridViewButtonColumn();
             column12.CellTemplate = new DataGridViewButtonCell();
-           // column12.HeaderText = OsLocalization.Optimizer.Message42;
+            // column12.HeaderText = OsLocalization.Optimizer.Message42;
             column12.ReadOnly = true;
             column12.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridResults.Columns.Add(column12);
@@ -729,7 +717,7 @@ namespace OsEngine.OsOptimizer
                 ShowParametersDialog(e);
             }
         }
-       
+
         private void _gridResults_SelectionChanged(object sender, EventArgs e)
         {
             if (_gridResults.SelectedCells.Count == 0)

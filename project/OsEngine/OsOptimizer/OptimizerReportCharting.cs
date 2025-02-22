@@ -20,9 +20,9 @@ namespace OsEngine.OsOptimizer
     public class OptimizerReportCharting
     {
         public OptimizerReportCharting(
-            WindowsFormsHost hostStepsOfOptimization, 
+            WindowsFormsHost hostStepsOfOptimization,
             WindowsFormsHost hostRobustness,
-            System.Windows.Controls.ComboBox boxTypeSort, 
+            System.Windows.Controls.ComboBox boxTypeSort,
             System.Windows.Controls.Label labelRobustnessMetricValue,
             System.Windows.Controls.ComboBox boxTypeSortBotNum)
         {
@@ -48,7 +48,7 @@ namespace OsEngine.OsOptimizer
 
             _boxTypeSortBotNum = boxTypeSortBotNum;
 
-            for(int i = 0;i < 99;i++)
+            for (int i = 0; i < 99; i++)
             {
                 _boxTypeSortBotNum.Items.Add(i.ToString());
             }
@@ -146,7 +146,7 @@ namespace OsEngine.OsOptimizer
             {
                 _reports = reports;
 
-                if (_reports == null 
+                if (_reports == null
                     || _reports.Count <= 1)
                 {
                     return;
@@ -173,7 +173,7 @@ namespace OsEngine.OsOptimizer
 
         private void GetBestBotNum(List<OptimizerReport> reports)
         {
-            if(_sortBotPercent == 0)
+            if (_sortBotPercent == 0)
             {
                 _sortBotNumber = 0;
                 return;
@@ -185,7 +185,7 @@ namespace OsEngine.OsOptimizer
 
             _sortBotNumber = Convert.ToInt32(result);
 
-            if(_sortBotNumber > reports.Count)
+            if (_sortBotNumber > reports.Count)
             {
                 _sortBotNumber = reports.Count - 1;
             }
@@ -207,8 +207,8 @@ namespace OsEngine.OsOptimizer
 
         private void CreateStepsOfOptimization()
         {
-            _gridStepsOfOptimization = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect, 
-                DataGridViewAutoSizeRowsMode.None,true);
+            _gridStepsOfOptimization = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.ColumnHeaderSelect,
+                DataGridViewAutoSizeRowsMode.None, true);
 
             _gridStepsOfOptimization.ScrollBars = ScrollBars.Vertical;
 
@@ -421,7 +421,7 @@ namespace OsEngine.OsOptimizer
                     _gridStepsOfOptimization.Rows.Add(row);
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -540,7 +540,7 @@ namespace OsEngine.OsOptimizer
                                 {
                                     countBestTwenty += 1;
 
-                                    if(countBestTwenty > max)
+                                    if (countBestTwenty > max)
                                     {
                                         max = countBestTwenty;
                                     }
@@ -645,7 +645,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -716,7 +716,7 @@ namespace OsEngine.OsOptimizer
 
         private void UpdateTotalProfitChart()
         {
-            if(_chartTotalProfit == null)
+            if (_chartTotalProfit == null)
             {
                 return;
             }
@@ -834,11 +834,11 @@ namespace OsEngine.OsOptimizer
                     }
                     close = profitsSumm[i];
 
-                    if(close > max)
+                    if (close > max)
                     {
                         max = close;
                     }
-                    if(close < min)
+                    if (close < min)
                     {
                         min = close;
                     }
@@ -886,13 +886,13 @@ namespace OsEngine.OsOptimizer
 
                 }
 
-                if(max != decimal.MinValue &&
+                if (max != decimal.MinValue &&
                     min != decimal.MaxValue)
                 {
                     max = Math.Round(max + max * 0.2m, 4);
                     min = Math.Round(min, 4);
 
-                    if(max > min)
+                    if (max > min)
                     {
                         _chartTotalProfit.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(max);
                         _chartTotalProfit.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(min);
@@ -916,9 +916,9 @@ namespace OsEngine.OsOptimizer
         public void ActivateAverageProfitChart(WindowsFormsHost hostAverageProfit)
         {
             _hostAverageProfitChart = hostAverageProfit;
-            
+
             CreateAverageProfitChart();
-             
+
             ReLoad(_reports);
         }
 
@@ -1124,7 +1124,7 @@ namespace OsEngine.OsOptimizer
             }
             catch (Exception ex)
             {
-                SendLogMessage(ex.ToString(),LogMessageType.Error);
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
 
 
@@ -1277,7 +1277,7 @@ namespace OsEngine.OsOptimizer
                 decimal max = decimal.MinValue;
                 decimal min = decimal.MaxValue;
 
-                    for (int i = 0; i < values.Count; i++)
+                for (int i = 0; i < values.Count; i++)
                 {
                     seriesOosValues.Points.AddXY(i + 1, values[i]);
 

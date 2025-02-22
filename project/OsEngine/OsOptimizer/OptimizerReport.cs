@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
 using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsOptimizer
 {
@@ -31,7 +32,7 @@ namespace OsEngine.OsOptimizer
 
             result += Faze.GetSaveString() + "^";
 
-            for(int i = 0;i < Reports.Count;i++)
+            for (int i = 0; i < Reports.Count; i++)
             {
                 result += Reports[i].GetSaveString() + "^";
             }
@@ -45,8 +46,8 @@ namespace OsEngine.OsOptimizer
 
             Faze = new OptimizerFaze();
             Faze.LoadFromString(str[0]);
-            
-            for(int i = 1;i < str.Length -1;i++)
+
+            for (int i = 1; i < str.Length - 1; i++)
             {
                 OptimizerReport newReport = new OptimizerReport();
                 newReport.LoadFromString(str[i]);
@@ -58,9 +59,9 @@ namespace OsEngine.OsOptimizer
 
         public static void SortResults(List<OptimizerReport> reports, SortBotsType sortType)
         {
-            if (reports ==  null || reports.Count == 0) 
-            { 
-                return; 
+            if (reports == null || reports.Count == 0)
+            {
+                return;
             }
 
             if (sortType == SortBotsType.BotName)
@@ -142,7 +143,7 @@ namespace OsEngine.OsOptimizer
         {
             for (int i = 0; i < parameters.Count; i++)
             {
-                StrategyParameters.Add(parameters[i].Type + "$" + parameters[i].GetStringToSave() + "$"+  parameters[i].Name);
+                StrategyParameters.Add(parameters[i].Type + "$" + parameters[i].GetStringToSave() + "$" + parameters[i].Name);
             }
         }
 
@@ -246,7 +247,7 @@ namespace OsEngine.OsOptimizer
                 }
                 else if (type == StrategyParameterType.Label)
                 {
-                    param = new StrategyParameterLabel(name,"","",0,0,System.Drawing.Color.White);
+                    param = new StrategyParameterLabel(name, "", "", 0, 0, System.Drawing.Color.White);
                     param.LoadParamFromString(StrategyParameters[i].Split('$')[1].Split('#'));
                 }
                 else if (type == StrategyParameterType.CheckBox)
@@ -273,23 +274,46 @@ namespace OsEngine.OsOptimizer
             BotName = bot.NameStrategyUniq;
             // фасуем отчёты по вкладкам
 
-            List<Position> allPositionsForAllTabs = new List<Position>(); 
+            List<Position> allPositionsForAllTabs = new List<Position>();
 
-            for (int i = 0; i < bot.TabsSimple.Count; i++)
+            List<BotTabSimple> tabsSimple = new List<BotTabSimple>();
+
+            List<IIBotTab> sources = bot.GetTabs();
+
+
+            for (int i = 0; i < sources.Count; i++)
+            {
+                if (sources[i].TabType == BotTabType.Simple)
+                {
+                    tabsSimple.Add((BotTabSimple)sources[i]);
+                }
+                else if (sources[i].TabType == BotTabType.Screener)
+                {
+                    BotTabScreener screener = (BotTabScreener)sources[i];
+
+                    for (int j = 0; j < screener.Tabs.Count; j++)
+                    {
+                        tabsSimple.Add(screener.Tabs[j]);
+                    }
+                }
+            }
+
+
+            for (int i = 0; i < tabsSimple.Count; i++)
             {
                 OptimizerReportTab tab = new OptimizerReportTab();
                 List<Position> positions =
-                    bot.TabsSimple[i].GetJournal().AllPosition.FindAll(
+                    tabsSimple[i].GetJournal().AllPosition.FindAll(
                         pos => pos.State != PositionStateType.OpeningFail && pos.State != PositionStateType.ClosingFail);
 
-                for(int j= 0;j< positions.Count;j++)
+                for (int j = 0; j < positions.Count; j++)
                 {
                     Position pos = positions[j];
-                    if(pos.State == PositionStateType.Open ||
+                    if (pos.State == PositionStateType.Open ||
                         pos.State == PositionStateType.Closing ||
                         pos.State == PositionStateType.ClosingFail)
                     {
-                        pos.SetBidAsk(bot.TabsSimple[i].PriceBestBid, bot.TabsSimple[i].PriceBestAsk);
+                        pos.SetBidAsk(tabsSimple[i].PriceBestBid, tabsSimple[i].PriceBestAsk);
                     }
                 }
 
@@ -304,21 +328,21 @@ namespace OsEngine.OsOptimizer
 
                 Position[] posesArray = positions.ToArray();
 
-                tab.SecurityName = bot.TabsSimple[i].Security.Name;
+                tab.SecurityName = tabsSimple[i].Security.Name;
                 tab.PositionsCount = positions.Count;
                 tab.TotalProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(posesArray);
                 tab.TotalProfitPercent = PositionStatisticGenerator.GetAllProfitPercent(posesArray);
                 tab.MaxDrawDawn = PositionStatisticGenerator.GetMaxDownPercent(posesArray);
 
-                tab.AverageProfit = tab.TotalProfit / (posesArray.Length+1);
-                
+                tab.AverageProfit = tab.TotalProfit / (posesArray.Length + 1);
+
                 tab.AverageProfitPercentOneContract = PositionStatisticGenerator.GetMiddleProfitInPercentOneContract(posesArray);
 
                 tab.ProfitFactor = PositionStatisticGenerator.GetProfitFactor(posesArray);
                 tab.Recovery = PositionStatisticGenerator.GetRecovery(posesArray);
                 tab.PayOffRatio = PositionStatisticGenerator.GetPayOffRatio(posesArray);
-                tab.SharpRatio = PositionStatisticGenerator.GetSharpRatio(posesArray,7);
-                tab.TabType = bot.TabsSimple[i].GetType().Name;
+                tab.SharpRatio = PositionStatisticGenerator.GetSharpRatio(posesArray, 7);
+                tab.TabType = tabsSimple[i].GetType().Name;
             }
 
             if (TabsReports.Count == 0)
@@ -387,7 +411,7 @@ namespace OsEngine.OsOptimizer
 
             // Сохраняем основное
             result += BotName + "@";
-            result +=  PositionsCount + "@";
+            result += PositionsCount + "@";
             result += TotalProfit + "@";
             result += MaxDrawDawn + "@";
             result += AverageProfit + "@";
@@ -401,7 +425,7 @@ namespace OsEngine.OsOptimizer
             // сохраняем параметры в строковом представлении
             string parameters = "";
 
-            for(int i = 0;i < StrategyParameters.Count;i++)
+            for (int i = 0; i < StrategyParameters.Count; i++)
             {
                 parameters += StrategyParameters[i] + "&";
             }
@@ -437,16 +461,16 @@ namespace OsEngine.OsOptimizer
             TotalProfitPercent = Convert.ToDecimal(str[9]);
             SharpRatio = Convert.ToDecimal(str[10]);
 
-            string [] param = str[11].Split('&');
+            string[] param = str[11].Split('&');
 
-            for(int i = 0;i < param.Length-1;i++)
+            for (int i = 0; i < param.Length - 1; i++)
             {
                 StrategyParameters.Add(param[i]);
             }
 
-            string [] reportTabs = str[12].Split('&');
+            string[] reportTabs = str[12].Split('&');
 
-            for(int i = 0;i < reportTabs.Length-1;i++)
+            for (int i = 0; i < reportTabs.Length - 1; i++)
             {
                 OptimizerReportTab faze = new OptimizerReportTab();
                 faze.LoadFromSaveString(reportTabs[i]);
@@ -517,7 +541,7 @@ namespace OsEngine.OsOptimizer
             Recovery = save[9].ToDecimal();
             TotalProfitPercent = save[10].ToDecimal();
 
-            if(save.Length == 11)
+            if (save.Length == 11)
             {
                 return;
             }

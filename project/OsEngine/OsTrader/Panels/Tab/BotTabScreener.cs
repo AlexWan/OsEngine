@@ -21,6 +21,7 @@ using OsEngine.Candles.Series;
 using OsEngine.Candles;
 using OsEngine.Market.Servers;
 using OsEngine.Candles.Factory;
+using OsEngine.OsTrader.Panels.Tab.Internal;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -117,7 +118,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         BotTabScreener curScreener = _screeners[i];
 
-                        if(curScreener._host != null)
+                        if (curScreener.ServerType == ServerType.Optimizer)
+                        {
+                            continue;
+                        }
+
+                        if (curScreener._host != null)
                         {
                             for (int i2 = 0; curScreener.Tabs != null &&
                                  curScreener.Tabs.Count != 0 &&
@@ -142,7 +148,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Draw the last ask, bid, last and number of positions
         /// </summary>
-        private static void PaintLastBidAsk(BotTabSimple tab, DataGridView securitiesDataGrid)
+        public static void PaintLastBidAsk(BotTabSimple tab, DataGridView securitiesDataGrid)
         {
             if (securitiesDataGrid.InvokeRequired)
             {
@@ -161,9 +167,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     DataGridViewRow row = securitiesDataGrid.Rows[i];
 
-                    if (row.Cells == null 
-                        || row.Cells.Count == 0 
-                        || row.Cells.Count < 4 
+                    if (row.Cells == null
+                        || row.Cells.Count == 0
+                        || row.Cells.Count < 4
                         || row.Cells[2].Value == null)
                     {
                         continue;
@@ -196,10 +202,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         row.Cells[3].Value = lastInStr;
                     }
-                    
+
                     string bidInStr = bid.ToString();
 
-                    if(row.Cells[4].Value == null ||
+                    if (row.Cells[4].Value == null ||
                         row.Cells[4].Value.ToString() != bidInStr)
                     {
                         row.Cells[4].Value = bidInStr;
@@ -207,15 +213,15 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     string askInStr = ask.ToString();
 
-                    if(row.Cells[5].Value == null ||
-                        row.Cells[5].Value.ToString() !=  askInStr)
+                    if (row.Cells[5].Value == null ||
+                        row.Cells[5].Value.ToString() != askInStr)
                     {
                         row.Cells[5].Value = askInStr;
                     }
-                    
+
                     string curPoses = posCurr.ToString() + "/" + posTotal.ToString();
 
-                    if(row.Cells[6].Value == null 
+                    if (row.Cells[6].Value == null
                         || row.Cells[6].Value.ToString() != curPoses)
                     {
                         row.Cells[6].Value = curPoses;
@@ -251,8 +257,17 @@ namespace OsEngine.OsTrader.Panels.Tab
             LoadIndicators();
             ReloadIndicatorsOnTabs();
 
-            AddNewTabToWatch(this);
+            if (startProgram != StartProgram.IsOsOptimizer)
+            {
+                AddNewTabToWatch(this);
+            }
+
             this.TabDeletedEvent += BotTabScreener_DeleteEvent;
+
+            if (startProgram == StartProgram.IsTester)
+            {
+                ServerType = ServerType.Tester;
+            }
         }
 
         /// <summary>
@@ -313,6 +328,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return "";
             }
         }
+
+        /// <summary>
+        /// unique server number. Service data for the optimizer
+        /// </summary>
+        public int ServerUid;
 
         /// <summary>
         /// Time of the last update of the candle
@@ -409,7 +429,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ServerMaster.SetServerToAutoConnection(ServerType); //AVP
                 }
-                return;
             }
 
             if (_tabIsLoad == true)
@@ -753,7 +772,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Reload tabs
         /// </summary>
-        private void TryReLoadTabs()
+        public void TryReLoadTabs()
         {
             try
             {
@@ -869,81 +888,88 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             bool haveNewSettings = false;
 
-            if(tab.Connector.PortfolioName != PortfolioName)
+            if (tab.Connector.PortfolioName != PortfolioName)
             {
                 tab.Connector.PortfolioName = PortfolioName;
                 haveNewSettings = true;
             }
-            
+
             if (tab.Connector.ServerType != ServerType)
             {
                 tab.Connector.ServerType = ServerType;
                 haveNewSettings = true;
             }
 
-            if(tab.Connector.EmulatorIsOn != _emulatorIsOn)
+            if (tab.Connector.EmulatorIsOn != _emulatorIsOn)
             {
                 tab.Connector.EmulatorIsOn = _emulatorIsOn;
                 haveNewSettings = true;
             }
-            
-            if(tab.Connector.CandleMarketDataType != CandleMarketDataType)
+
+            if (tab.Connector.CandleMarketDataType != CandleMarketDataType)
             {
                 tab.Connector.CandleMarketDataType = CandleMarketDataType;
                 haveNewSettings = true;
             }
-            
-            if(tab.Connector.CandleCreateMethodType != CandleCreateMethodType)
+
+            if (tab.Connector.CandleCreateMethodType != CandleCreateMethodType)
             {
                 tab.Connector.CandleCreateMethodType = CandleCreateMethodType;
                 haveNewSettings = true;
             }
-            
-            if(tab.Connector.TimeFrame != this.TimeFrame)
+
+            if (tab.Connector.TimeFrame != this.TimeFrame)
             {
                 tab.Connector.TimeFrame = this.TimeFrame;
                 haveNewSettings = true;
             }
-            
+
             if (tab.Connector.TimeFrameBuilder.CandleSeriesRealization.GetSaveString() != CandleSeriesRealization.GetSaveString())
             {
                 tab.Connector.TimeFrameBuilder.CandleSeriesRealization.SetSaveString(CandleSeriesRealization.GetSaveString());
                 haveNewSettings = true;
             }
-            
+
             if (tab.Connector.SaveTradesInCandles != SaveTradesInCandles)
             {
                 tab.Connector.SaveTradesInCandles = SaveTradesInCandles;
                 haveNewSettings = true;
             }
-           
-            if(tab.Connector.CommissionType != CommissionType)
+
+            if (tab.Connector.CommissionType != CommissionType)
             {
                 tab.Connector.CommissionType = CommissionType;
                 haveNewSettings = true;
             }
-            
-            if(tab.Connector.CommissionValue != CommissionValue)
+
+            if (tab.Connector.CommissionValue != CommissionValue)
             {
                 tab.Connector.CommissionValue = CommissionValue;
                 haveNewSettings = true;
             }
-           
-            if(tab.CommissionType != CommissionType)
+
+            if (tab.CommissionType != CommissionType)
             {
                 tab.CommissionType = CommissionType;
                 haveNewSettings = true;
             }
-            
-            if(tab.CommissionValue != CommissionValue)
+
+            if (tab.CommissionValue != CommissionValue)
             {
                 tab.CommissionValue = CommissionValue;
                 haveNewSettings = true;
             }
-           
+
+            if (tab.Connector.ServerUid != ServerUid)
+            {
+                tab.Connector.ServerUid = ServerUid;
+            }
+
             tab.IsCreatedByScreener = true;
 
-            if(haveNewSettings)
+
+
+            if (haveNewSettings)
             {
                 tab.Connector.ReconnectHard();
             }
@@ -977,6 +1003,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             BotTabSimple newTab = new BotTabSimple(nameStart, _startProgram);
             newTab.Connector.SecurityName = sec.SecurityName;
             newTab.Connector.SecurityClass = sec.SecurityClass;
+            newTab.Connector.ServerUid = ServerUid;
             newTab.TimeFrameBuilder.TimeFrame = frame;
             newTab.Connector.PortfolioName = PortfolioName;
             newTab.Connector.ServerType = ServerType;
@@ -1018,13 +1045,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return false;
             }
 
-            if(tab.TimeFrameBuilder.CandleSeriesRealization.GetType().Name 
+            if (tab.TimeFrameBuilder.CandleSeriesRealization.GetType().Name
                 != CandleSeriesRealization.GetType().Name)
             {
                 return false;
             }
 
-            for(int i = 0;i < tab.TimeFrameBuilder.CandleSeriesRealization.Parameters.Count;i++)
+            for (int i = 0; i < tab.TimeFrameBuilder.CandleSeriesRealization.Parameters.Count; i++)
             {
                 ICandleSeriesParameter paramInTab = tab.TimeFrameBuilder.CandleSeriesRealization.Parameters[i];
                 ICandleSeriesParameter paramInScreener = CandleSeriesRealization.Parameters[i];
@@ -1122,6 +1149,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        public BotManualControl ManualPositionSupportFromOptimizer;
+
         #endregion
 
         #region Drawing and working with the GUI
@@ -1156,7 +1185,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 BotTabScreenerUi ui = new BotTabScreenerUi(this);
                 ui.ShowDialog();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
@@ -1217,7 +1246,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// start drawing this robot
         /// </summary> 
-        public void StartPaint(WindowsFormsHost host, 
+        public void StartPaint(WindowsFormsHost host,
             WindowsFormsHost hostOpenDeals,
             WindowsFormsHost hostCloseDeals)
         {
@@ -1226,13 +1255,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _host = host;
                 RePaintSecuritiesGrid();
 
-                if(_positionViewer == null)
+                if (_positionViewer == null)
                 {
                     _positionViewer = new GlobalPositionViewer(StartProgram);
                     _positionViewer.LogMessageEvent += SendNewLogMessage;
                     _positionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
                     _positionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
-                   
+
                 }
 
                 SetJournalsInPosViewer();
@@ -1262,7 +1291,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if(_positionViewer != null)
+                if (_positionViewer != null)
                 {
                     _positionViewer.StopPaint();
                 }
@@ -1283,7 +1312,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            if(_positionViewer == null)
+            if (_positionViewer == null)
             {
                 return;
             }
@@ -1432,7 +1461,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
             catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1461,6 +1490,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 for (int i = 0; i < Tabs.Count; i++)
                 {
                     SecuritiesDataGrid.Rows.Add(GetRowFromTab(Tabs[i], i));
+                    PaintLastBidAsk(Tabs[i], SecuritiesDataGrid);
                 }
 
                 if (_host != null)
@@ -1558,7 +1588,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 SecuritiesDataGrid.ContextMenu = menu;
 
-                SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));                
+                SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception ex)
             {
@@ -1589,7 +1619,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="signal">Action signal</param>
         private void _globalController_UserSelectActionEvent(Position pos, SignalType signal)
         {
-            if(UserSelectActionEvent != null)
+            if (UserSelectActionEvent != null)
             {
                 UserSelectActionEvent(pos, signal);
             }
@@ -1632,7 +1662,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void CreateCandleIndicator(int num, string type, List<string> param, string nameArea = "Prime")
         {
             try
-            {       
+            {
 
                 if (_indicators.Find(ind => ind.Num == num) != null)
                 {
@@ -1724,7 +1754,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// активировать индикаторы
         /// </summary>
-        private void ReloadIndicatorsOnTabs()
+        public void ReloadIndicatorsOnTabs()
         {
             for (int i = 0; i < _indicators.Count; i++)
             {
@@ -1799,7 +1829,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                 for (int i = 1; i < Tabs.Count; i++)
                 {
                     SynchTabsIndicators(firstTab, Tabs[i]);
-                    SyncTabsManualPositionControl(firstTab, Tabs[i]);
+                }
+
+                BotManualControl control = Tabs[0].ManualPositionSupport;
+
+                int startIndex = 1;
+
+                if (ManualPositionSupportFromOptimizer != null)
+                {
+                    control = ManualPositionSupportFromOptimizer;
+                    startIndex = 0;
+                }
+
+                for (int i = startIndex; i < Tabs.Count; i++)
+                {
+                    SyncTabsManualPositionControl(control, Tabs[i]);
                 }
             }
             catch (Exception error)
@@ -1808,27 +1852,27 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void SyncTabsManualPositionControl(BotTabSimple first, BotTabSimple second)
+        private void SyncTabsManualPositionControl(BotManualControl control, BotTabSimple second)
         {
-            second.ManualPositionSupport.SecondToClose = first.ManualPositionSupport.SecondToClose;
-            second.ManualPositionSupport.SecondToOpen = first.ManualPositionSupport.SecondToOpen;
-            second.ManualPositionSupport.DoubleExitIsOn = first.ManualPositionSupport.DoubleExitIsOn;
-            second.ManualPositionSupport.DoubleExitSlippage = first.ManualPositionSupport.DoubleExitSlippage;
-            second.ManualPositionSupport.ProfitDistance = first.ManualPositionSupport.ProfitDistance;
-            second.ManualPositionSupport.ProfitIsOn = first.ManualPositionSupport.ProfitIsOn;
-            second.ManualPositionSupport.ProfitSlippage = first.ManualPositionSupport.ProfitSlippage;
-            second.ManualPositionSupport.SecondToCloseIsOn = first.ManualPositionSupport.SecondToCloseIsOn;
-            second.ManualPositionSupport.SecondToOpenIsOn = first.ManualPositionSupport.SecondToOpenIsOn;
-            second.ManualPositionSupport.SetbackToCloseIsOn = first.ManualPositionSupport.SetbackToCloseIsOn;
-            second.ManualPositionSupport.SetbackToClosePosition = first.ManualPositionSupport.SetbackToOpenPosition;
-            second.ManualPositionSupport.SetbackToOpenIsOn = first.ManualPositionSupport.SetbackToOpenIsOn;
-            second.ManualPositionSupport.SetbackToOpenPosition = first.ManualPositionSupport.SetbackToOpenPosition;
-            second.ManualPositionSupport.StopDistance = first.ManualPositionSupport.StopDistance;
-            second.ManualPositionSupport.StopIsOn = first.ManualPositionSupport.StopIsOn;
-            second.ManualPositionSupport.StopSlippage = first.ManualPositionSupport.StopSlippage;
-            second.ManualPositionSupport.TypeDoubleExitOrder = first.ManualPositionSupport.TypeDoubleExitOrder;
-            second.ManualPositionSupport.ValuesType = first.ManualPositionSupport.ValuesType;
-            second.ManualPositionSupport.OrderTypeTime = first.ManualPositionSupport.OrderTypeTime;
+            second.ManualPositionSupport.SecondToClose = control.SecondToClose;
+            second.ManualPositionSupport.SecondToOpen = control.SecondToOpen;
+            second.ManualPositionSupport.DoubleExitIsOn = control.DoubleExitIsOn;
+            second.ManualPositionSupport.DoubleExitSlippage = control.DoubleExitSlippage;
+            second.ManualPositionSupport.ProfitDistance = control.ProfitDistance;
+            second.ManualPositionSupport.ProfitIsOn = control.ProfitIsOn;
+            second.ManualPositionSupport.ProfitSlippage = control.ProfitSlippage;
+            second.ManualPositionSupport.SecondToCloseIsOn = control.SecondToCloseIsOn;
+            second.ManualPositionSupport.SecondToOpenIsOn = control.SecondToOpenIsOn;
+            second.ManualPositionSupport.SetbackToCloseIsOn = control.SetbackToCloseIsOn;
+            second.ManualPositionSupport.SetbackToClosePosition = control.SetbackToOpenPosition;
+            second.ManualPositionSupport.SetbackToOpenIsOn = control.SetbackToOpenIsOn;
+            second.ManualPositionSupport.SetbackToOpenPosition = control.SetbackToOpenPosition;
+            second.ManualPositionSupport.StopDistance = control.StopDistance;
+            second.ManualPositionSupport.StopIsOn = control.StopIsOn;
+            second.ManualPositionSupport.StopSlippage = control.StopSlippage;
+            second.ManualPositionSupport.TypeDoubleExitOrder = control.TypeDoubleExitOrder;
+            second.ManualPositionSupport.ValuesType = control.ValuesType;
+            second.ManualPositionSupport.OrderTypeTime = control.OrderTypeTime;
             second.ManualPositionSupport.Save();
         }
 
@@ -1940,12 +1984,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             bool isChange = false;
 
-            if(second.CanDelete != indFirst.CanDelete)
+            if (second.CanDelete != indFirst.CanDelete)
             {
                 second.CanDelete = indFirst.CanDelete;
                 isChange = true;
             }
-           
+
             for (int i = 0; i < indFirst.Parameters.Count; i++)
             {
                 IndicatorParameter parameterFirst = indFirst.Parameters[i];
@@ -2007,7 +2051,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void BotTabScreener_IndicatorManuallyDeleteEvent(IIndicator indicator, BotTabSimple tab)
         {
-            for(int i = 0;i < _indicators.Count;i++)
+            for (int i = 0; i < _indicators.Count; i++)
             {
                 IndicatorOnTabs ind = _indicators[i];
                 string name = ind.Num + ind.Type + TabName;
@@ -2476,7 +2520,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             int startInd = 3;
 
-            if(str.Length > 3)
+            if (str.Length > 3)
             {
                 CanDelete = Convert.ToBoolean(str[3]);
                 startInd++;

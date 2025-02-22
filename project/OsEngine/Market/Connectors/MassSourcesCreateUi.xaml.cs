@@ -18,6 +18,7 @@ using System.IO;
 using OsEngine.Candles;
 using OsEngine.Candles.Factory;
 using OsEngine.Candles.Series;
+using OsEngine.Market.Servers.Optimizer;
 
 namespace OsEngine.Market.Connectors
 {
@@ -580,7 +581,16 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                var securities = server.Securities;
+                List<Security> securities = null;
+
+                if (server.ServerType == ServerType.Optimizer)
+                {
+                    securities = ((OptimizerServer)server).SecuritiesFromStorage;
+                }
+                else
+                {
+                    securities = server.Securities;
+                }
 
                 ComboBoxClass.Items.Clear();
 
@@ -715,10 +725,16 @@ namespace OsEngine.Market.Connectors
                 // clear all
                 // стираем всё
 
-                // download available instruments
-                // грузим инструменты доступные для скачивания
+                List<Security> securities = null;
 
-                var securities = server.Securities;
+                if (server.ServerType == ServerType.Optimizer)
+                {
+                    securities = ((OptimizerServer)server).SecuritiesFromStorage;
+                }
+                else
+                {
+                    securities = server.Securities;
+                }
 
                 List<Security> securitiesToLoad = new List<Security>();
 
@@ -940,7 +956,7 @@ namespace OsEngine.Market.Connectors
                 key = key.ToLower();
 
                 int indexFirstSec = int.MaxValue;
-				
+
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
                     string security = "";
@@ -967,15 +983,15 @@ namespace OsEngine.Market.Connectors
                         }
 
                         _searchResults.Add(i);
-                    }	
+                    }
                 }
-				
+
                 if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
                 {
-                    int index = _searchResults.IndexOf(indexFirstSec);    
-                    _searchResults.RemoveAt(index);     
+                    int index = _searchResults.IndexOf(indexFirstSec);
+                    _searchResults.RemoveAt(index);
                     _searchResults.Insert(0, indexFirstSec);
-                }				
+                }
             }
             catch (Exception ex)
             {
@@ -1325,8 +1341,27 @@ namespace OsEngine.Market.Connectors
             {
                 // Timeframe
                 // таймФрейм
-                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
-                if (server.TypeTesterData != TesterDataType.Candle)
+
+                TesterServer serverTester = null;
+                OptimizerServer serverOpt = null;
+
+                IServer serverI = ServerMaster.GetServers()[0];
+
+                if (serverI.ServerType == ServerType.Tester)
+                {
+                    serverTester = (TesterServer)serverI;
+                }
+                else if (serverI.ServerType == ServerType.Optimizer)
+                {
+                    serverOpt = (OptimizerServer)serverI;
+                }
+
+
+                if ((serverTester != null &&
+                     serverTester.TypeTesterData != TesterDataType.Candle)
+                     ||
+                     (serverOpt != null &&
+                     serverOpt.TypeTesterData != TesterDataType.Candle))
                 {
                     // if we build data on ticks or depths, then any Timeframe can be used
                     // candle manager builds any Timeframe
@@ -1363,15 +1398,16 @@ namespace OsEngine.Market.Connectors
                     // далее, если используем готовые свечки, то нужно ставить только те ТФ, которые есть
                     // и вставляются они только когда мы выбираем бумагу в методе 
 
+                    List<SecurityTester> securities = null;
 
-                    TesterServer serverr = (TesterServer)ServerMaster.GetServers()[0];
-
-                    if (serverr.TypeTesterData != TesterDataType.Candle)
+                    if (serverTester != null)
                     {
-                        return;
+                        securities = serverTester.SecuritiesTester;
                     }
-
-                    List<SecurityTester> securities = serverr.SecuritiesTester;
+                    else if (serverOpt != null)
+                    {
+                        securities = serverOpt.SecuritiesTester;
+                    }
 
                     if (securities == null ||
                         securities.Count == 0)

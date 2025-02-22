@@ -66,7 +66,7 @@ namespace OsEngine.Robots
         /// </summary>
         public static BotPanel GetStrategyForName(string nameClass, string name, StartProgram startProgram, bool isScript)
         {
-            if(string.IsNullOrEmpty(nameClass))
+            if (string.IsNullOrEmpty(nameClass))
             {
                 return null;
             }
@@ -287,7 +287,7 @@ namespace OsEngine.Robots
 
             try
             {
-                lock(_listSerializedBotsLocker)
+                lock (_listSerializedBotsLocker)
                 {
                     for (int i = 0; i < _serializedPanels.Count; i++)
                     {
@@ -433,7 +433,7 @@ namespace OsEngine.Robots
                     }
 
                     throw new Exception(errorString);
-                }               
+                }
 
                 List<object> param = new List<object>();
                 param.Add(name);
@@ -632,32 +632,25 @@ namespace OsEngine.Robots
                 try
                 {
                     BotPanel bot = null;
-                    
-                    if(i < countIncludeBots)
+
+                    if (i < countIncludeBots)
                     {
-                        bot = GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer, false); 
+                        bot = GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer, false);
                     }
                     else
                     {
                         bot = GetStrategyForName(names[i], numThread.ToString(), StartProgram.IsOsOptimizer, true);
                     }
-                    
-                    if(bot == null)
+
+                    if (bot == null)
                     {
                         continue;
                     }
 
                     if (bot.Parameters.Count != 0)
                     {
-                        if (bot.TabsPair != null 
+                        if (bot.TabsPair != null
                             && bot.TabsPair.Count > 0)
-                        {
-                            bot.Delete();
-                            continue;
-                        }
-
-                        if (bot.TabsScreener != null
-                            && bot.TabsScreener.Count > 0)
                         {
                             bot.Delete();
                             continue;
@@ -677,12 +670,27 @@ namespace OsEngine.Robots
                             continue;
                         }
 
-                        lock(_listNamesLocker)
+                        if (bot.GetTabs() == null ||
+                            bot.GetTabs().Count == 0)
+                        {
+                            continue;
+                        }
+
+                        if ((bot.TabsSimple == null
+                          || bot.TabsSimple.Count == 0)
+                          && (bot.TabsScreener == null
+                          || bot.TabsScreener.Count == 0))
+                        {
+                            bot.Delete();
+                            continue;
+                        }
+
+                        lock (_listNamesLocker)
                         {
                             _namesWithParam.Add(names[i]);
-                        }      
+                        }
                     }
-                    
+
                     bot.Delete();
                 }
                 catch
