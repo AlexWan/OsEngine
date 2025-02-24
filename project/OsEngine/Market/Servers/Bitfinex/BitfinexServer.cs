@@ -1,4 +1,8 @@
-﻿
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -25,8 +29,6 @@ using System.Timers;
 using Newtonsoft.Json;
 using ErrorEventArgs = WebSocketSharp.ErrorEventArgs;
 
-
-
 namespace OsEngine.Market.Servers.Bitfinex
 {
     public class BitfinexServer : AServer
@@ -40,9 +42,11 @@ namespace OsEngine.Market.Servers.Bitfinex
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
         }
     }
+
     public class BitfinexServerRealization : IServerRealization
     {
         #region 1 Constructor, Status, Connection
+
         public BitfinexServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -59,7 +63,9 @@ namespace OsEngine.Market.Servers.Bitfinex
             threadForPrivateMessages.Name = "PrivateMessageReaderBitfinex";
             threadForPrivateMessages.Start();
         }
+
         public DateTime ServerTime { get; set; }
+
         public void Connect()
         {
             try
@@ -109,6 +115,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 DisconnectEvent();
             }
         }
+
         public void Dispose()
         {
             try
@@ -124,7 +131,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             catch (Exception exception)
             {
-                SendLogMessage("Connection closed by Bitfinex. WebSocket Data Closed Event" + exception.ToString(), LogMessageType.System);
+                SendLogMessage("Dispose method error: " + exception.ToString(), LogMessageType.System);
             }
 
             finally
@@ -137,6 +144,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
             }
         }
+
         public ServerType ServerType
         {
             get { return ServerType.Bitfinex; }
@@ -149,7 +157,9 @@ namespace OsEngine.Market.Servers.Bitfinex
         #endregion
 
         #region 2 Properties 
+
         public List<IServerParameter> ServerParameters { get; set; }
+
         public ServerConnectStatus ServerStatus { get; set; }
 
         private string _publicKey = "";
@@ -169,6 +179,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private RateGate _rateGateSecurity = new RateGate(30, TimeSpan.FromMinutes(1));
 
         private List<Security> _securities = new List<Security>();
+
         public void GetSecurities()
         {
             try
@@ -266,6 +277,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage("Securities request exception" + exception.ToString(), LogMessageType.Error);
             }
         }
+
         private int DigitsAfterComma(string valueNumber)
         {
             int commaPosition = valueNumber.IndexOf(',');
@@ -274,6 +286,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return digitsAfterComma;
         }
+
         public void RequestMinSizes()
         {
             try
@@ -326,6 +339,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage($"Error : {ex.Message}", LogMessageType.Error);
             }
         }
+
         public decimal GetMinSize(string symbol)
         {
             if (minSizes.TryGetValue(symbol, out decimal minSize))
@@ -335,6 +349,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return 1;
         }
+
         private SecurityType GetSecurityType(string type)
         {
             SecurityType _securityType = type.StartsWith("t") ? SecurityType.CurrencyPair : SecurityType.Futures;
@@ -351,6 +366,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         public event Action<List<Portfolio>> PortfolioEvent;
 
         private RateGate _rateGatePortfolio = new RateGate(90, TimeSpan.FromMinutes(1));
+
         public void GetPortfolios()
         {
             CreateQueryPortfolio();
@@ -360,6 +376,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 PortfolioEvent?.Invoke(_portfolios);
             }
         }
+
         private void CreateQueryPortfolio()
         {
             try
@@ -429,7 +446,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                         PortfolioEvent?.Invoke(_portfolios);
                     }
                 }
-
                 else
                 {
                     SendLogMessage($"Error rest request: Invalid public or secret key.{response.Content}", LogMessageType.Error);
@@ -444,6 +460,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void UpdatePortfolio(string json)
         {
             try
@@ -509,6 +526,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private RateGate _rateGateCandleHistory = new RateGate(25, TimeSpan.FromMinutes(1));
 
         private HashSet<(string security, DateTime start, DateTime end)> _loadedIntervals = new HashSet<(string, DateTime, DateTime)>();
+
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
 
@@ -586,6 +604,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
             return trades;
         }
+
         private List<Trade> GetTrades(string security, int limit, DateTime startTime, DateTime endTime)
         {
             try
@@ -654,6 +673,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 return new List<Trade>();
             }
         }
+
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool isOsData, int countToLoad, DateTime timeEnd)
         {
 
@@ -736,6 +756,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return allCandles;
         }
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
@@ -752,6 +773,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
         }
+
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime != actualTime)
@@ -773,6 +795,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return GetCandleHistory(security.NameFull, timeFrameBuilder.TimeFrameTimeSpan, true, countNeedToLoad, endTime);
         }
+
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
@@ -788,6 +811,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return true;
         }
+
         private bool CheckTf(int timeFrameMinutes)
         {
             if (timeFrameMinutes == 1 ||
@@ -802,6 +826,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
             return false;
         }
+
         private string GetInterval(TimeSpan tf)
         {
             if (tf.Days > 0)
@@ -823,6 +848,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 return null;
             }
         }
+
         private int GetCountCandlesFromPeriod(DateTime startTime, DateTime endTime, TimeSpan tf)
         {
             TimeSpan timePeriod = endTime - startTime;
@@ -845,6 +871,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
             return 0;
         }
+
         private List<Candle> CreateQueryCandles(string nameSec, string tf, DateTime startTime, DateTime endTime, int limit)
         {
             try
@@ -901,6 +928,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return null;
         }
+
         private List<Candle> ConvertToCandles(List<BitfinexCandle> candleList)
         {
             List<Candle> candles = new List<Candle>();
@@ -980,6 +1008,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private ConcurrentQueue<string> _webSocketPublicMessage = new ConcurrentQueue<string>();
 
         private ConcurrentQueue<string> _webSocketPrivateMessage = new ConcurrentQueue<string>();
+
         private void CreateWebSocketConnection()
         {
             _publicSocketActive = false;
@@ -1016,6 +1045,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void DeleteWebSocketConnection()
         {
             try
@@ -1075,6 +1105,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         public event Action<MarketDepth> MarketDepthEvent;
 
         private List<MarketDepth> _marketDepths = new List<MarketDepth>();
+
         private void WebSocketPublic_Opened(object sender, EventArgs e)
         {
             Thread.Sleep(2000);
@@ -1097,6 +1128,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPublic_Closed(object sender, CloseEventArgs e)
         {
             try
@@ -1122,6 +1154,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
             try
@@ -1136,6 +1169,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage("Data socket exception: " + exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPublic_MessageReceived(object sender, MessageEventArgs e)
         {
             try
@@ -1152,6 +1186,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPrivate_Opened(object sender, EventArgs e)
         {
             _privateSocketActive = true;
@@ -1170,6 +1205,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPrivate_Closed(object sender, CloseEventArgs e)
         {
             try
@@ -1194,6 +1230,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             SendLogMessage("Connection Closed by Bitfinex. WebSocket Private closed", LogMessageType.Error);
         }
+
         private void WebSocketPrivate_Error(object sender, ErrorEventArgs e)
         {
             try
@@ -1208,6 +1245,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void WebSocketPrivate_MessageReceived(object sender, MessageEventArgs e)
         {
             try
@@ -1224,6 +1262,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void GenerateAuthenticate()
         {
             try
@@ -1259,6 +1298,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void CheckActivationSockets()
         {
             lock (_lockerCheckActivateionSockets)
@@ -1294,6 +1334,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
             }
         }
+
         private void SendPing(object sender, ElapsedEventArgs e)
         {
             try
@@ -1317,6 +1358,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         #region  8  WebSocket security subscrible
 
         private List<Security> _subscribledSecurities = new List<Security>();
+
         public void Subscrible(Security security)
         {
             try
@@ -1330,6 +1372,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void CreateSubscribleMessageWebSocket(Security security)
         {
             try
@@ -1360,6 +1403,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void UnsubscribeFromAllChannels()
         {
             try
@@ -1428,6 +1472,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private Dictionary<int, string> _tradeDictionary = new Dictionary<int, string>();
 
         private Dictionary<int, string> _depthDictionary = new Dictionary<int, string>();
+
         private void PublicMessageReader()
         {
             while (true)
@@ -1521,6 +1566,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
             }
         }
+
         private void PrivateMessageReader()
         {
             while (true)
@@ -1594,6 +1640,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
             }
         }
+
         private void SnapshotDepth(string message)
         {
             try
@@ -1700,6 +1747,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
         private void UpdateDepth(string message)
         {
             try
@@ -1861,6 +1909,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
         private void UpdateTrade(string message)
         {
             if (message.Contains("tu"))
@@ -1918,6 +1967,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void UpdateMyTrade(string message)
         {
             try
@@ -1970,6 +2020,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         private void UpdateOrder(string message)
         {
             try
@@ -2042,6 +2093,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         private RateGate _rateGateOrder = new RateGate(90, TimeSpan.FromMinutes(1));
 
         private RateGate _rateGateTrades = new RateGate(13, TimeSpan.FromMinutes(1));
+
         public void SendOrder(Order order)
         {
             try
@@ -2165,6 +2217,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage("Order send exception " + exception.ToString(), LogMessageType.Error);
             }
         }
+
         public void CancelAllOrders()
         {
             try
@@ -2222,6 +2275,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         public void CancelOrder(Order order)
         {
             try
@@ -2287,6 +2341,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             _rateGateOrder.WaitToProceed();
@@ -2371,10 +2426,12 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         public void CancelAllOrdersToSecurity(Security security)
         {
             throw new NotImplementedException();
         }
+
         public List<Order> GetAllActiveOrders()
         {
             List<Order> orders = new List<Order>();
@@ -2457,6 +2514,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return orders;
         }
+
         public void GetOrderStatus(Order order)
         {
             try
@@ -2510,6 +2568,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
+
         public void GetAllActivOrders()
         {
             List<Order> orders = GetAllActiveOrders();
@@ -2525,6 +2584,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 MyOrderEvent?.Invoke(orders[i]);
             }
         }
+
         public List<Order> GetHistoryOrders()
         {
             _rateGateOrder.WaitToProceed();
@@ -2617,6 +2677,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return ordersHistory;
         }
+
         private OrderStateType GetOrderState(string orderStateResponse)
         {
             if (orderStateResponse.StartsWith("ACTIVE"))
@@ -2638,6 +2699,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
             return OrderStateType.None;
         }
+
         private string GetSymbolByKeyInTrades(int channelId)
         {
             string symbol = "";
@@ -2648,6 +2710,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
             return null;
         }
+
         private string GetSymbolByKeyInDepth(int channelId)
         {
             string symbol = "";
@@ -2660,6 +2723,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         }
 
         public event Action<News> NewsEvent;
+
         public bool SubscribeNews()
         {
             return false;
@@ -2670,6 +2734,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         #endregion
 
         #region  11 Helpers
+
         private string ComputeHmacSha384(string apiSecret, string signature)
         {
             using HMACSHA384 hmac = new HMACSHA384(Encoding.UTF8.GetBytes(apiSecret));
@@ -2685,6 +2750,7 @@ namespace OsEngine.Market.Servers.Bitfinex
         #region 12 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);
@@ -2693,8 +2759,3 @@ namespace OsEngine.Market.Servers.Bitfinex
         #endregion
     }
 }
-
-
-
-
-
