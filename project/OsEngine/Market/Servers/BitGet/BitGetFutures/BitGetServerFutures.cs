@@ -1784,8 +1784,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         continue;
                     }
 
-
-
                     Order newOrder = new Order();
                     newOrder.SecurityNameCode = item.instId;
                     newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
@@ -1798,8 +1796,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     newOrder.ServerType = ServerType.BitGetFutures;
                     newOrder.PortfolioNumber = "BitGetFutures";
                     newOrder.SecurityClassCode = order.arg.instType.ToString();
-
-
 
                     if (item.orderType.Equals("market"))
                     {
@@ -2046,7 +2042,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 jsonContent.Add("symbol", order.SecurityNameCode);
                 jsonContent.Add("productType", order.SecurityClassCode.ToLower());
                 jsonContent.Add("marginMode", _marginMode);
-                jsonContent.Add("marginCoin", order.SecurityClassCode.Split('-')[0]);
+
+                if (order.SecurityClassCode == "COIN-FUTURES")
+                {
+                    string securityName = order.SecurityNameCode.Substring(0, order.SecurityNameCode.IndexOf("USD"));
+                    jsonContent.Add("marginCoin", securityName);
+                }
+                else
+                {
+                    jsonContent.Add("marginCoin", order.SecurityClassCode.Split('-')[0]);
+                }
+
                 jsonContent.Add("side", posSide);
                 jsonContent.Add("orderType", order.TypeOrder.ToString().ToLower());
                 jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
