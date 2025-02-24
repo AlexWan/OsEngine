@@ -800,6 +800,12 @@ namespace OsEngine.Entity
 
             for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
             {
+                if (_activeSeriesBasedOnTrades[i] == null ||
+                    _activeSeriesBasedOnTrades[i].Security == null)
+                {
+                    continue;
+                }
+
                 if (_activeSeriesBasedOnTrades[i].Security.Name == nameSecurity && _activeSeriesBasedOnTrades[i].TimeFrameSpan == timeFrame)
                 {
                     _activeSeriesBasedOnTrades[i].SetNewCandleInArray(candle);
@@ -808,6 +814,11 @@ namespace OsEngine.Entity
 
             for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
             {
+                if (_activeSeriesBasedOnMd[i] == null ||
+                    _activeSeriesBasedOnMd[i].Security == null)
+                {
+                    continue;
+                }
                 if (_activeSeriesBasedOnMd[i].Security.Name == nameSecurity && _activeSeriesBasedOnMd[i].TimeFrameSpan == timeFrame)
                 {
                     _activeSeriesBasedOnMd[i].SetNewCandleInArray(candle);

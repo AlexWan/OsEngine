@@ -19,6 +19,11 @@ namespace OsEngine.Robots.AutoTestBots
         
         public TestBotOption(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            if(startProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
             TabCreate(BotTabType.Screener);
             _screener = TabsScreener[0];
 
