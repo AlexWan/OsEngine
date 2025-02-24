@@ -8,15 +8,14 @@ using System.Text;
 using System.Threading.Tasks;
 using OsEngine.Logging;
 
-
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 {
     public class CoinExRestClient : IDisposable
     {
         private readonly string _apiUrl = "https://api.coinex.com/v2";
 
-
         private string _apiKey;
+
         private string _apiSecret;
 
         private HttpClient _client = new HttpClient();
@@ -101,5 +100,4 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
-     
 }

@@ -1,7 +1,4 @@
-﻿using OsEngine.Entity;
-using OsEngine.Market.Servers.Mexc.Json;
-using System;
-
+﻿
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 {
     /*
@@ -32,30 +29,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
         // Timestamp (millisecond)
         public long created_at { get; set; }
-
-        public static implicit operator Candle(CexCandle cexCandle)
-        {
-            Candle candle = new Candle();
-            candle.Open = cexCandle.open.ToString().ToDecimal();
-            candle.High = cexCandle.high.ToString().ToDecimal();
-            candle.Low = cexCandle.low.ToString().ToDecimal();
-            candle.Close = cexCandle.close.ToString().ToDecimal();
-            candle.Volume = cexCandle.volume.ToString().ToDecimal();
-            //candle.TimeStart = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexCandle.created_at);
-            candle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(cexCandle.created_at);
-
-            //fix candle
-            if (candle.Open < candle.Low)
-                candle.Open = candle.Low;
-            if (candle.Open > candle.High)
-                candle.Open = candle.High;
-
-            if (candle.Close < candle.Low)
-                candle.Close = candle.Low;
-            if (candle.Close > candle.High)
-                candle.Close = candle.High;
-
-            return candle;
-        }
     }
 }

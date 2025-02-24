@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Text;
 using OsEngine.Language;
@@ -9,7 +14,7 @@ using OsEngine.Logging;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
-using WebSocket4Net;
+using WebSocketSharp;
 using System.Collections.Concurrent;
 using System.IO.Compression;
 using System.IO;
@@ -249,6 +254,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 SendLogMessage($"Error loading stocks: {e.Message}" + e.ToString(), LogMessageType.Error);
             }
         }
+
         #endregion
 
         #region 4 Portfolios
@@ -289,7 +295,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             try
             {
-                Portfolio myPortfolio = _portfolios.Find(p => p.Number == "BinanceSpot");
+                Portfolio myPortfolio = _portfolios.Find(p => p.Number == _portfolioName);
 
                 if (myPortfolio == null)
                 {
@@ -310,7 +316,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 for (int i = 0; i < portfolioItems.Count; i++)
                 {
-                    PositionOnBoard pos = (PositionOnBoard)portfolioItems[i];
+                    CexPortfolioItem cexPortfolioItem = portfolioItems[i];
+
+                    PositionOnBoard pos = new PositionOnBoard();
+
+                    pos.SecurityNameCode = cexPortfolioItem.ccy;
+                    pos.ValueBlocked = cexPortfolioItem.frozen.ToString().ToDecimal();
+                    pos.ValueCurrent = cexPortfolioItem.available.ToString().ToDecimal();
                     pos.PortfolioName = _portfolioName;
                     pos.ValueBegin = pos.ValueCurrent;
 
@@ -524,7 +536,29 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 {
                     for (int i = 0; i < history.Count; i++)
                     {
-                        newCandles.Add((Candle)history[i]);
+                        CexCandle cexCandle = history[i];
+
+                        Candle candle = new Candle();
+                        candle.Open = cexCandle.open.ToString().ToDecimal();
+                        candle.High = cexCandle.high.ToString().ToDecimal();
+                        candle.Low = cexCandle.low.ToString().ToDecimal();
+                        candle.Close = cexCandle.close.ToString().ToDecimal();
+                        candle.Volume = cexCandle.volume.ToString().ToDecimal();
+                        //candle.TimeStart = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexCandle.created_at);
+                        candle.TimeStart = new DateTime(1970, 1, 1).AddMilliseconds(cexCandle.created_at);
+
+                        //fix candle
+                        if (candle.Open < candle.Low)
+                            candle.Open = candle.Low;
+                        if (candle.Open > candle.High)
+                            candle.Open = candle.High;
+
+                        if (candle.Close < candle.Low)
+                            candle.Close = candle.Low;
+                        if (candle.Close > candle.High)
+                            candle.Close = candle.High;
+
+                        newCandles.Add(candle);
                     }
                     history.Clear();
 
@@ -596,13 +630,19 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 lock (_socketLocker)
                 {
                     _webSocketMessage = new ConcurrentQueue<string>();
-                    _wsClient.EnableAutoSendPing = true;
-                    _wsClient.AutoSendPingInterval = 15;
-                    _wsClient.Opened += WebSocket_Opened;
-                    _wsClient.Closed += WebSocket_Closed;
-                    _wsClient.Error += WebSocketData_Error;
-                    _wsClient.DataReceived += WebSocket_DataReceived;
-                    _wsClient.Open();
+                    _wsClient.EmitOnPing = true;
+                    _wsClient.SslConfiguration.EnabledSslProtocols
+                     = System.Security.Authentication.SslProtocols.Ssl3
+                      | System.Security.Authentication.SslProtocols.Tls11
+                      | System.Security.Authentication.SslProtocols.Tls12
+                      | System.Security.Authentication.SslProtocols.Tls13
+                      | System.Security.Authentication.SslProtocols.Tls;
+
+                    _wsClient.OnOpen += WebSocket_Opened;
+                    _wsClient.OnClose += WebSocket_Closed;
+                    _wsClient.OnError += WebSocketData_Error;
+                    _wsClient.OnMessage += WebSocket_DataReceived;
+                    _wsClient.Connect();
                 }
             }
             catch (Exception exeption)
@@ -644,12 +684,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     SendLogMessage("CoinEx server orders unsubscribe: " + message, LogMessageType.Connect);
                     wsClient.Send(message.ToString());
 
-                    wsClient.Close();
-                    wsClient.Dispose();
-                    wsClient.Opened -= WebSocket_Opened;
-                    wsClient.Closed -= WebSocket_Closed;
-                    wsClient.DataReceived -= WebSocket_DataReceived;
-                    wsClient.Error -= WebSocketData_Error;
+                    wsClient.OnOpen += WebSocket_Opened;
+                    wsClient.OnClose += WebSocket_Closed;
+                    wsClient.OnError += WebSocketData_Error;
+                    wsClient.OnMessage += WebSocket_DataReceived;
+                    wsClient.CloseAsync();
                 }
             }
             catch (Exception ex)
@@ -694,17 +733,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 SetDisconnected();
         }
 
-        private void WebSocketData_Error(Object sender, SuperSocket.ClientEngine.ErrorEventArgs error)
+        private void WebSocketData_Error(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             try
             {
-                if (error.Exception != null)
+                if (e.Exception != null)
                 {
-                    SendLogMessage("Web Socket Error: " + error.Exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("Web Socket Error: " + e.Exception.ToString(), LogMessageType.Error);
                 }
                 else
                 {
-                    SendLogMessage("Web Socket Error: " + error.ToString(), LogMessageType.Error);
+                    SendLogMessage("Web Socket Error: " + e.ToString(), LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -713,7 +752,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        private void WebSocket_DataReceived(Object sender, DataReceivedEventArgs e)
+        private void WebSocket_DataReceived(object sender, MessageEventArgs e)
         {
             try
             {
@@ -724,7 +763,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     return;
                 }
 
-                if (e.Data.Length == 0)
+                if (e.RawData.Length == 0)
                 {
                     return;
                 }
@@ -739,7 +778,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     return;
                 }
 
-                string message = Decompress(e.Data);
+                string message = Decompress(e.RawData);
 
                 _webSocketMessage.Enqueue(message);
 
@@ -781,14 +820,14 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 }
                 WebSocket wsClient = _wsClients[_wsClients.Count - 1];
 
-                if (wsClient.State == WebSocketState.Open
+                if (wsClient.ReadyState == WebSocketState.Open
                         && _subscribedSecurities.Count != 0
                         && _subscribedSecurities.Count % 50 == 0)
                 {
                     WebSocket newSocket = CreateWebSocketConnection();
 
                     DateTime timeEnd = DateTime.Now.AddSeconds(10);
-                    while (newSocket.State != WebSocketState.Open)
+                    while (newSocket.ReadyState != WebSocketState.Open)
                     {
                         Thread.Sleep(500);
 
@@ -798,7 +837,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         }
                     }
 
-                    if (newSocket.State == WebSocketState.Open)
+                    if (newSocket.ReadyState == WebSocketState.Open)
                     {
                         _wsClients.Add(newSocket);
                         wsClient = newSocket;
@@ -930,7 +969,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 for (int i = data.deal_list.Count - 1; i >= 0; i--)
                 {
-                    Trade trade = (Trade)data.deal_list[i];
+                    CexTransactionItem cexTrade = data.deal_list[i];
+
+                    Trade trade = new Trade();
+                    //trade.SecurityNameCode = cexTrade.Market;
+                    trade.Price = cexTrade.price.ToString().ToDecimal();
+                    //trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
+                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
+                    //trade.Id = quotes.s_t.ToString() + quotes.side + quotes.symbol;
+                    trade.Id = cexTrade.deal_id.ToString();
+                    trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : trade.Side = Side.Sell;
+                    trade.Volume = cexTrade.amount.ToDecimal();
                     trade.SecurityNameCode = data.market;
 
                     if (trade.Price == 0 || trade.Volume == 0 || string.IsNullOrEmpty(trade.Id))
@@ -957,21 +1006,49 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 {
                     return;
                 }
+                CexWsDepth cexDepth = data.depth;
 
-                MarketDepth newMD = (MarketDepth)data.depth;
-                newMD.SecurityNameCode = data.market;
-
-                if (_lastMdTime != DateTime.MinValue &&
-                    _lastMdTime >= newMD.Time)
+                MarketDepth depth = new MarketDepth();
+                //depth.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexDepth.updated_at);
+                depth.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexDepth.updated_at);
+                for (int k = 0; k < cexDepth.bids.Count; k++)
                 {
-                    newMD.Time = _lastMdTime.AddMilliseconds(1);
+                    (string price, string size) = (cexDepth.bids[k][0], cexDepth.bids[k][1]);
+                    MarketDepthLevel newBid = new MarketDepthLevel();
+                    newBid.Price = price.ToString().ToDecimal();
+                    newBid.Bid = size.ToString().ToDecimal();
+                    if (newBid.Bid > 0)
+                    {
+                        depth.Bids.Add(newBid);
+                    }
                 }
 
-                _lastMdTime = newMD.Time;
+                for (int k = 0; k < cexDepth.asks.Count; k++)
+                {
+                    (string price, string size) = (cexDepth.asks[k][0], cexDepth.asks[k][1]);
+                    MarketDepthLevel newAsk = new MarketDepthLevel();
+                    newAsk.Price = price.ToString().ToDecimal();
+                    newAsk.Ask = size.ToString().ToDecimal();
+                    if (newAsk.Ask > 0)
+                    {
+                        depth.Asks.Add(newAsk);
+                    }
+                }
+
+
+                depth.SecurityNameCode = data.market;
+
+                if (_lastMdTime != DateTime.MinValue &&
+                    _lastMdTime >= depth.Time)
+                {
+                    depth.Time = _lastMdTime.AddMilliseconds(1);
+                }
+
+                _lastMdTime = depth.Time;
 
                 if (MarketDepthEvent != null)
                 {
-                    MarketDepthEvent(newMD);
+                    MarketDepthEvent(depth);
                 }
             }
         }
@@ -1028,10 +1105,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 {
                     PositionOnBoard pos =
                         portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == data.balance_list[i].ccy);
+
                     if (pos == null)
                     {
-                        pos = (PositionOnBoard)data.balance_list[i];
+                        CexWsBalanceItem cexPosition = data.balance_list[i];
+
+                        pos = new PositionOnBoard();
+                        pos.ValueCurrent = cexPosition.available.ToString().ToDecimal();
+                        pos.ValueBlocked = cexPosition.frozen.ToString().ToDecimal();
+                        pos.SecurityNameCode = cexPosition.ccy;
                         pos.PortfolioName = _portfolioName;
+                        
                         portfolio.SetNewPosition(pos);
                         continue;
                     }
@@ -1168,7 +1252,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     {
                         CreateOrderFail(order);
                         string msg = string.Format("Cancel order executed, but answer is wrong! {0}cexOrder: {1}{0}order: {2}", Environment.NewLine,
-                            cexOrder.ToString(),
+                            cexOrder.ToStringValue(),
                             order.GetStringForSave().ToString()
                         );
                         SendLogMessage(msg, LogMessageType.Error);
@@ -1221,7 +1305,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         continue;
                     }
 
-                    Order order = (Order)cexOrders[i];
+                    Order order = GetOrderOsEngineFromCexOrder(cexOrders[i]);
                     order.PortfolioNumber = _portfolioName;
 
                     if (order == null)
@@ -1261,7 +1345,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 if (!string.IsNullOrEmpty(cexOrder.client_id))
                 {
-                    Order order = (Order)cexOrder;
+                    Order order = GetOrderOsEngineFromCexOrder(cexOrder);
                     order.PortfolioNumber = _portfolioName;
                     return order;
                 }
@@ -1316,6 +1400,87 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
+        private Order GetOrderOsEngineFromCexOrder(CexOrder cexOrder)
+        {
+            Order order = new Order();
+
+            order.NumberUser = Convert.ToInt32(cexOrder.client_id);
+
+            order.SecurityNameCode = cexOrder.market;
+            order.SecurityClassCode = cexOrder.market.Substring(cexOrder.ccy?.Length ?? cexOrder.market.Length - 3); // Fix for Futures (no Currency info)
+            order.Volume = cexOrder.amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
+            order.VolumeExecute = cexOrder.filled_amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
+
+            //order.PortfolioNumber = this.PortfolioName;
+
+            order.Price = cexOrder.price.ToString().ToDecimal();
+            if (cexOrder.type == CexOrderType.LIMIT.ToString())
+            {
+                order.TypeOrder = OrderPriceType.Limit;
+            }
+            else if (cexOrder.type == CexOrderType.MARKET.ToString())
+            {
+                order.TypeOrder = OrderPriceType.Market;
+                // TODO нужно заполнить цену ?
+            }
+
+            order.ServerType = ServerType.CoinExSpot;
+
+            order.NumberMarket = cexOrder.order_id.ToString();
+
+            //order.TimeCallBack = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexOrder.updated_at);
+            order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
+            order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);
+
+            order.Side = (cexOrder.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
+
+
+            // Order placed successfully (unfilled/partially filled)
+            order.State = OrderStateType.None;
+            if (!string.IsNullOrEmpty(cexOrder.status))
+            {
+                if (cexOrder.status == CexOrderStatus.OPEN.ToString())
+                {
+                    order.State = OrderStateType.Active;
+                }
+                else if (cexOrder.status == CexOrderStatus.PART_FILLED.ToString())
+                {
+                    order.State = OrderStateType.Partial;
+                }
+                else if (cexOrder.status == CexOrderStatus.FILLED.ToString())
+                {
+                    order.State = OrderStateType.Done;
+                    order.TimeDone = order.TimeCallBack;
+                }
+                else if (cexOrder.status == CexOrderStatus.PART_CANCELED.ToString())
+                {
+                    order.State = OrderStateType.Cancel;
+                    order.TimeCancel = order.TimeCallBack;
+                }
+                else if (cexOrder.status == CexOrderStatus.CANCELED.ToString())
+                {
+                    order.State = OrderStateType.Cancel;
+                    order.TimeCancel = order.TimeCallBack;
+                }
+                else
+                {
+                    order.State = OrderStateType.Fail;
+                }
+            }
+            else
+            {
+                if (cexOrder.unfilled_amount.ToString().ToDecimal() > 0)
+                {
+                    order.State = cexOrder.amount == cexOrder.unfilled_amount ? OrderStateType.Activ : OrderStateType.Patrial;
+                }
+            }
+
+            // Cancelled определять в точке вызова по типу запроса [Filled Order, Unfilled Order, ...]
+
+            return order;
+            return null;
+        }
+
         private List<MyTrade> GetTradesForOrder(string orderId, string market)
         {
             _rateGateOrdersHistory.WaitToProceed();
@@ -1332,7 +1497,19 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                     for (int i = 0; i < cexTrades.Count; i++)
                     {
-                        MyTrade trade = (MyTrade)cexTrades[i];
+                        CexOrderTransaction cexTrade = cexTrades[i];
+
+                        MyTrade trade = new MyTrade();
+                        trade.NumberOrderParent = cexTrade.order_id.ToString();
+                        trade.NumberTrade = cexTrade.deal_id.ToString();
+                        trade.SecurityNameCode = cexTrade.market;
+                        //trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
+                        trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
+                        trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
+                        trade.Price = cexTrade.price.ToString().ToDecimal();
+                        trade.Volume = cexTrade.amount.ToString().ToDecimal();
+
+
                         trade.NumberOrderParent = orderId; // Patch CEX API error
                         trades.Add(trade);
                     }
@@ -1365,7 +1542,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 for (int i = cexDeals.Count - 1; i >= 0; i--)
                 {
-                    Trade trade = (Trade)cexDeals[i];
+                    CexTransaction cexTrade = cexDeals[i];
+
+                    Trade trade = new Trade();
+                    trade.Id = cexTrade.deal_id.ToString();
+                    //trade.SecurityNameCode = cexTrade.market;
+                    //trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
+                    trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
+                    trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
+                    trade.Price = cexTrade.price.ToString().ToDecimal();
+                    trade.Volume = cexTrade.amount.ToString().ToDecimal();
+
                     if (trade.Time >= startTime && trade.Time <= endTime && trade.Price > 0 && !string.IsNullOrEmpty(trade.Id))
                     {
                         trades.Add(trade);
@@ -1419,7 +1606,19 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 List<CexCandle> cexCandles = new List<CexCandle>();
                 for (int i = 0; i < resp.data.Count; i++)
                 {
-                    CexCandle candle = (CexCandle)(new CexCandleExtra { data = resp.data[i], market = security.Name });
+                    CexCandle candle = new CexCandle();
+                    candle.market = security.Name;
+
+                    List<object> data = resp.data[i];
+
+                    candle.created_at = 1000 * (long)data[0];
+                    candle.open = data[1].ToString();
+                    candle.close = data[2].ToString();
+                    candle.high = data[3].ToString();
+                    candle.low = data[4].ToString();
+                    candle.volume = data[5].ToString();
+                    candle.value = data[6].ToString();
+
                     cexCandles.Add(candle);
                 }
                 if (cexCandles != null && cexCandles.Count > 0)
@@ -1498,7 +1697,42 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         private Order ConvertWsUpdateToOsEngineOrder(CexWsOrderUpdate cexEventUpdate)
         {
             CexOrderUpdate cexOrder = cexEventUpdate.order;
-            Order order = (Order)cexOrder;
+
+            Order order = new Order();
+            order.State = OrderStateType.Active;
+            order.NumberUser = string.IsNullOrEmpty(cexOrder.client_id) ? 0 : Convert.ToInt32(cexOrder.client_id);
+
+            order.SecurityNameCode = cexOrder.market;
+            //order.SecurityClassCode = cexOrder.Market.Substring(cexOrder.Currency.Length);
+            // Cex.Amount - объём в единицах тикера
+            // Cex.Value - объём в деньгах
+            order.Volume = cexOrder.amount.ToString().ToDecimal();
+            order.VolumeExecute = cexOrder.filled_amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
+
+            //order.PortfolioNumber = this.PortfolioName;
+
+            if (cexOrder.type == CexOrderType.LIMIT.ToString())
+            {
+                order.Price = cexOrder.price.ToString().ToDecimal();
+                order.TypeOrder = OrderPriceType.Limit;
+            }
+            else if (cexOrder.type == CexOrderType.MARKET.ToString())
+            {
+                order.TypeOrder = OrderPriceType.Market;
+                // TODO нужно заполнить цену ?
+            }
+
+            order.ServerType = ServerType.CoinExSpot;
+
+            order.NumberMarket = cexOrder.order_id.ToString();
+
+
+            //order.TimeCallBack = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexOrder.updated_at);
+            order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
+            order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);
+
+            order.Side = (cexOrder.side == CexOrderSide.BUY.ToString()) ? OsEngine.Entity.Side.Buy : OsEngine.Entity.Side.Sell;
+
             if (order == null)
             {
                 string msg = string.Format("Failed to convert CexWsOrderUpdate в Os Engine Order!{0}cexEventUpdate: {1}{0}order: null", Environment.NewLine,

@@ -354,6 +354,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(woo);
 
+            SupportConnection coinEx = new SupportConnection()
+            {
+                ServerType = ServerType.CoinExSpot,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\CoinEx.png",
+                LingSiteUrl = "https://www.coinex.com/register?rc=3hscg",
+                Discount = 5
+            };
+            supportList.Add(coinEx);
+
             SupportConnection bitMart = new SupportConnection()
             {
                 ServerType = ServerType.BitMart,

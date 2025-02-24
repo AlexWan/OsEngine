@@ -1,7 +1,4 @@
-﻿using OsEngine.Entity;
-using OsEngine.OsData;
-using System;
-
+﻿
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 {
     /*

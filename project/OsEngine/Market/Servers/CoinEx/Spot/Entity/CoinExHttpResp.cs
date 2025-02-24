@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.Http;
+﻿using System.Net.Http;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 {
@@ -30,4 +29,3 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public bool has_next { get; set; }
     }
 }
-

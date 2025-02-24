@@ -1,5 +1,4 @@
-﻿using System;
-using System.Net.WebSockets;
+﻿using System.Net.WebSockets;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 {

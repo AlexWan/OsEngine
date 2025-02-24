@@ -22,15 +22,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public string frozen { get; set; }
 
         public long updated_at { get; set; }
-
-        public static explicit operator PositionOnBoard(CexWsBalanceItem cexPosition)
-        {
-            PositionOnBoard position = new PositionOnBoard();
-            position.ValueCurrent = cexPosition.available.ToString().ToDecimal();
-            position.ValueBlocked = cexPosition.frozen.ToString().ToDecimal();
-            position.SecurityNameCode = cexPosition.ccy;
-            //position.PortfolioName = this.PortfolioName;
-            return position;
-        }
     }
 }

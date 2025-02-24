@@ -16,15 +16,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         // Frozen balance. Unavailable asset balances, including frozen assets in orders and other cases
         public string frozen { get; set; }
 
-        public static explicit operator PositionOnBoard(CexPortfolioItem cexPortfolioItem)
-        {
-            return new PositionOnBoard()
-            {
-                PortfolioName = "",
-                SecurityNameCode = cexPortfolioItem.ccy,
-                ValueBlocked = cexPortfolioItem.frozen.ToString().ToDecimal(),
-                ValueCurrent = cexPortfolioItem.available.ToString().ToDecimal()
-            };
-        }
     }
 }

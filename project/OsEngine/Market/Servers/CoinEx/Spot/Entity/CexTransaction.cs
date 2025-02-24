@@ -30,19 +30,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         // Value - объём в деньгах
         public string amount { get; set; }
 
-        public static explicit operator Trade(CexTransaction cexTrade)
-        {
-            Trade trade = new Trade();
-            trade.Id = cexTrade.deal_id.ToString();
-            //trade.SecurityNameCode = cexTrade.market;
-            //trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
-            trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
-            trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
-            trade.Price = cexTrade.price.ToString().ToDecimal();
-            trade.Volume = cexTrade.amount.ToString().ToDecimal();
-
-            return trade;
-        }
-
     }
 }

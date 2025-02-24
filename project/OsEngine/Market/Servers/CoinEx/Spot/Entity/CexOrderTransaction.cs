@@ -48,20 +48,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         // Trading fee currency
         public string fee_ccy { get; set; }
 
-        public static explicit operator MyTrade(CexOrderTransaction cexTrade)
-        {
-            MyTrade trade = new MyTrade();
-            trade.NumberOrderParent = cexTrade.order_id.ToString();
-            trade.NumberTrade = cexTrade.deal_id.ToString();
-            trade.SecurityNameCode = cexTrade.market;
-            //trade.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexTrade.created_at);
-            trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
-            trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
-            trade.Price = cexTrade.price.ToString().ToDecimal();
-            trade.Volume = cexTrade.amount.ToString().ToDecimal();
-
-            return trade;
-        }
-
     }
 }

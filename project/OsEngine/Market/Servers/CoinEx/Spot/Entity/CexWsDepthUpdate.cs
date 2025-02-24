@@ -30,37 +30,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         // Data checksum
         public long checksum { get; set; }
 
-        public static explicit operator MarketDepth(CexWsDepth cexDepth)
-        {
-            MarketDepth depth = new MarketDepth();
-            //depth.Time = CoinExServerRealization.ConvertToDateTimeFromUnixFromMilliseconds(cexDepth.updated_at);
-            depth.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexDepth.updated_at);
-            for (int k = 0; k < cexDepth.bids.Count; k++)
-            {
-                (string price, string size) = (cexDepth.bids[k][0], cexDepth.bids[k][1]);
-                MarketDepthLevel newBid = new MarketDepthLevel();
-                newBid.Price = price.ToString().ToDecimal();
-                newBid.Bid = size.ToString().ToDecimal();
-                if (newBid.Bid > 0)
-                {
-                    depth.Bids.Add(newBid);
-                }
-            }
-
-            for (int k = 0; k < cexDepth.asks.Count; k++)
-            {
-                (string price, string size) = (cexDepth.asks[k][0], cexDepth.asks[k][1]);
-                MarketDepthLevel newAsk = new MarketDepthLevel();
-                newAsk.Price = price.ToString().ToDecimal();
-                newAsk.Ask = size.ToString().ToDecimal();
-                if (newAsk.Ask > 0)
-                {
-                    depth.Asks.Add(newAsk);
-                }
-            }
-
-            return depth;
-        }
     }
-
 }

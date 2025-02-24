@@ -478,7 +478,6 @@
     <Compile Include="Market\Servers\BitMex\BitMexServerPermission.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\CoinExServerSpot.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\CoinExServerSpotPermission.cs" />
-    <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexCandleExtra.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexCandle.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexOrder.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexMarketInfoItem.cs" />
