@@ -55,6 +55,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             Thread thread = new Thread(CheckAliveWebSocket);
             thread.Name = "CheckAliveWebSocket";
             thread.Start();
+
+            Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
+            threadGetPortfolios.IsBackground = true;
+            threadGetPortfolios.Name = "ThreadBitGetFuturesPortfolios";
+            threadGetPortfolios.Start();
         }
 
         public void Connect()
@@ -324,14 +329,343 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #region 4 Portfolios
 
+        public List<Portfolio> Portfolios;
+
+        private RateGate _rateGatePortfolio = new RateGate(10, TimeSpan.FromSeconds(1));
+
+        private void ThreadGetPortfolios()
+        {
+            Thread.Sleep(15000);
+
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
+                try
+                {
+                    Thread.Sleep(5000);
+
+                    if (_portfolioIsStarted == false)
+                    {
+                        continue;
+                    }
+
+                    if (Portfolios == null)
+                    {
+                        GetNewPortfolio();
+                    }
+
+                    for (int i = 0; i < _listCoin.Count; i++)
+                    {
+                        CreatePortfolio(false, _listCoin[i]);
+                        CreatePositions(_listCoin[i]);
+                    }
+
+                    GetUSDTMasterPortfolio(false);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+            }
+        }
+
+        List<string> resultPositionInUSDT = new List<string>();
+        List<string> resultPositionPnL = new List<string>();
+
         public void GetPortfolios()
         {
+            if (Portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
+            for (int i = 0; i < _listCoin.Count; i++)
+            {
+                CreatePortfolio(true, _listCoin[i]);
+                CreatePositions(_listCoin[i]);
+            }
+
+            GetUSDTMasterPortfolio(true);
+
+            _portfolioIsStarted = true;
+        }
+
+        private void CreatePortfolio(bool IsUpdateValueBegin, string productType)
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string path = "/api/v2/mix/account/accounts" + "?productType=" + productType;
+
+                IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
+                string json = responseMessage.Content;
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<Account>> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<Account>>());
+
+                    if (stateResponse.code.Equals("00000") == true)
+                    {
+                        if (Portfolios == null)
+                        {
+                            return;
+                        }
+
+                        Portfolio portfolio = Portfolios[0];
+
+                        decimal positionInUSDT = 0;
+                        decimal positionPnL = 0;
+
+                        for (int i = 0; i < stateResponse.data.Count; i++)
+                        {
+                            if (productType == "COIN-FUTURES"
+                                && stateResponse.data[i].marginCoin.ToString() == "USDC")
+                            {
+                                continue;
+                            }
+
+                            if (stateResponse.data[i].marginCoin.ToString() == "USDT")
+                            {
+                                positionInUSDT = stateResponse.data[i].unionTotalMargin.ToDecimal();
+                                positionPnL = stateResponse.data[i].unrealizedPL.ToDecimal();
+                            }
+                            else
+                            {
+                                positionInUSDT += stateResponse.data[i].usdtEquity.ToDecimal();
+                                positionPnL += stateResponse.data[i].unrealizedPL.ToDecimal();
+                            }
+
+                            PositionOnBoard pos = new PositionOnBoard();
+                            pos.PortfolioName = "BitGetFutures";
+                            pos.SecurityNameCode = stateResponse.data[i].marginCoin.ToString();
+                            pos.ValueBlocked = stateResponse.data[i].locked.ToDecimal();
+                            pos.ValueCurrent = stateResponse.data[i].available.ToDecimal();
+                            pos.UnrealizedPnl = Math.Round(stateResponse.data[i].unrealizedPL.ToDecimal(), 6);
+
+                            if (IsUpdateValueBegin)
+                            {
+                                pos.ValueBegin = stateResponse.data[i].accountEquity.ToDecimal();
+                            }
+
+                            portfolio.SetNewPosition(pos);
+                        }
+
+                        resultPositionInUSDT.Add(positionInUSDT.ToString());
+                        resultPositionPnL.Add(positionPnL.ToString());
+
+                        PortfolioEvent(Portfolios);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private void GetNewPortfolio()
+        {
+            Portfolios = new List<Portfolio>();
+
+            Portfolio portfolioInitial = new Portfolio();
+            portfolioInitial.Number = "BitGetFutures";
+            portfolioInitial.ValueBegin = 1;
+            portfolioInitial.ValueCurrent = 1;
+            portfolioInitial.ValueBlocked = 0;
+
+            Portfolios.Add(portfolioInitial);
+
+            PortfolioEvent(Portfolios);
+        }
+
+        private void CreatePositions(string productType)
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string path = "/api/v2/mix/position/all-position" + "?productType=" + productType;
+
+                IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
+                string json = responseMessage.Content;
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<RestMessagePositions>> positions = JsonConvert.DeserializeAnonymousType(json, new ResponseRestMessage<List<RestMessagePositions>>());
+
+                    if (positions.code.Equals("00000") == true)
+                    {
+                        if (positions.data == null)
+                        {
+                            return;
+                        }
+
+                        if (Portfolios == null)
+                        {
+                            GetNewPortfolio();
+                        }
+
+                        Portfolio portfolio = Portfolios[0];
+
+                        if (positions != null)
+                        {
+                            if (positions.data.Count > 0)
+                            {
+                                for (int i = 0; i < positions.data.Count; i++)
+                                {
+                                    PositionOnBoard pos = new PositionOnBoard();
+                                    pos.PortfolioName = "BitGetFutures";
+                                    pos.SecurityNameCode = positions.data[i].symbol;
+
+                                    if (positions.data[i].posMode == "hedge_mode")
+                                    {
+                                        if (positions.data[i].holdSide == "long")
+                                        {
+                                            pos.SecurityNameCode = positions.data[i].symbol + "_" + "LONG";
+                                        }
+                                        if (positions.data[i].holdSide == "short")
+                                        {
+                                            pos.SecurityNameCode = positions.data[i].symbol + "_" + "SHORT";
+                                        }
+                                    }
+
+                                    if (positions.data[i].holdSide == "long")
+                                    {
+                                        pos.ValueCurrent = positions.data[i].available.ToDecimal();
+                                    }
+                                    else if (positions.data[i].holdSide == "short")
+                                    {
+                                        pos.ValueCurrent = positions.data[i].available.ToDecimal() * -1;
+                                    }
+
+                                    pos.ValueBlocked = positions.data[i].locked.ToDecimal();
+                                    pos.UnrealizedPnl = positions.data[i].unrealizedPL.ToDecimal();
+
+                                    portfolio.SetNewPosition(pos);
+
+                                    if (!_allPositions.ContainsKey(productType))
+                                    {
+                                        _allPositions.Add(productType, new List<string>());
+                                    }
+
+                                    if (!_allPositions[productType].Contains(pos.SecurityNameCode))
+                                    {
+                                        _allPositions[productType].Add(pos.SecurityNameCode);
+                                    }
+                                }
+                            }
+
+                            if (_allPositions.ContainsKey(productType))
+                            {
+                                if (_allPositions[productType].Count > 0)
+                                {
+                                    for (int indAllPos = 0; indAllPos < _allPositions[productType].Count; indAllPos++)
+                                    {
+                                        bool isInData = false;
+
+                                        if (positions.data.Count > 0)
+                                        {
+                                            for (int indData = 0; indData < positions.data.Count; indData++)
+                                            {
+                                                if (positions.data[indData].posMode == "hedge_mode")
+                                                {
+                                                    if (_allPositions[productType][indAllPos] == positions.data[indData].symbol + "_" + positions.data[indData].holdSide.ToUpper())
+                                                    {
+                                                        isInData = true;
+                                                        break;
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    if (_allPositions[productType][indAllPos] == positions.data[indData].symbol)
+                                                    {
+                                                        isInData = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                        if (!isInData)
+                                        {
+                                            PositionOnBoard pos = new PositionOnBoard();
+                                            pos.PortfolioName = "BitGetFutures";
+                                            pos.SecurityNameCode = _allPositions[productType][indAllPos];
+                                            pos.ValueCurrent = 0;
+                                            pos.ValueBlocked = 0;
+
+                                            portfolio.SetNewPosition(pos);
+
+                                            _allPositions[productType].RemoveAt(indAllPos);
+                                            indAllPos--;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage("BITGET ERROR. NO POSITIONS IN REQUEST.", LogMessageType.Error);
+                        }
+
+                        PortfolioEvent(Portfolios);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {positions.code}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private void GetUSDTMasterPortfolio(bool IsUpdateValueBegin)
+        {
+            decimal portfolioInUSDT = 0;
+            decimal portfolioPnL = 0;
+
+            for (int i = 0; i < resultPositionInUSDT.Count; i++)
+            {
+                portfolioInUSDT += resultPositionInUSDT[i].ToDecimal();
+            }
+
+            for (int i = 0; i < resultPositionPnL.Count; i++)
+            {
+                portfolioPnL += resultPositionPnL[i].ToDecimal();
+            }
+
+            Portfolio portfolio = Portfolios[0];
+
+            if (IsUpdateValueBegin)
+            {
+                portfolio.ValueBegin = Math.Round(portfolioInUSDT, 4);
+            }
+
+            portfolio.ValueCurrent = Math.Round(portfolioInUSDT, 4);
+            portfolio.UnrealizedPnl = Math.Round(portfolioPnL, 6);
+
+            PortfolioEvent(Portfolios);
+
+            resultPositionInUSDT.Clear();
+            resultPositionPnL.Clear();
         }
 
         private bool _portfolioIsStarted = false;
 
         public event Action<List<Portfolio>> PortfolioEvent;
-
         #endregion
 
         #region 5 Data
@@ -1246,129 +1580,143 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void UpdatePositions(string message)
         {
-            ResponseWebSocketMessageAction<List<ResponseMessagePositions>> positions = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseMessagePositions>>());
-
-            if (positions.data == null)
+            if (_portfolioIsStarted == false)
             {
                 return;
             }
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "BitGetFutures";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            if (positions != null)
+            try
             {
-                if (positions.data.Count > 0)
+                ResponseWebSocketMessageAction<List<ResponseMessagePositions>> positions = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseMessagePositions>>());
+
+                if (positions.data == null)
                 {
-                    for (int i = 0; i < positions.data.Count; i++)
-                    {
-                        PositionOnBoard pos = new PositionOnBoard();
-                        pos.PortfolioName = "BitGetFutures";
-                        pos.SecurityNameCode = positions.data[i].instId;
-
-                        if (positions.data[i].posMode == "hedge_mode")
-                        {
-                            if(positions.data[i].holdSide == "long")
-                            {
-                                pos.SecurityNameCode = positions.data[i].instId + "_" + "LONG";
-                            }
-                            if (positions.data[i].holdSide == "short")
-                            {
-                                pos.SecurityNameCode = positions.data[i].instId + "_" + "SHORT";
-                            }
-                        }
-
-                        if (positions.data[i].holdSide == "long")
-                        {
-                            pos.ValueCurrent = positions.data[i].available.ToDecimal();
-                            pos.ValueBlocked = positions.data[i].frozen.ToDecimal();
-                        }
-                        else if (positions.data[i].holdSide == "short")
-                        {
-                            pos.ValueCurrent = positions.data[i].available.ToDecimal() * -1;
-                            pos.ValueBlocked = positions.data[i].frozen.ToDecimal();
-                        }
-
-                        if (_portfolioIsStarted == false)
-                        {
-                            pos.ValueBegin = pos.ValueCurrent;
-                        }
-
-                        portfolio.SetNewPosition(pos);
-
-                        if (!_allPositions.ContainsKey(positions.arg.instType))
-                        {
-                            _allPositions.Add(positions.arg.instType, new List<string>());
-                        }
-
-                        if (!_allPositions[positions.arg.instType].Contains(pos.SecurityNameCode))
-                        {
-                            _allPositions[positions.arg.instType].Add(pos.SecurityNameCode);
-                        }
-                    }
+                    return;
                 }
 
-                if (_allPositions.ContainsKey(positions.arg.instType))
+                if (Portfolios == null)
                 {
-                    if (_allPositions[positions.arg.instType].Count > 0)
-                    {
-                        for (int indAllPos = 0; indAllPos < _allPositions[positions.arg.instType].Count; indAllPos++)
-                        {
-                            bool isInData = false;
+                    GetNewPortfolio();
+                }
 
-                            if (positions.data.Count > 0)
+                Portfolio portfolio = Portfolios[0];
+
+                if (positions != null)
+                {
+                    if (positions.data.Count > 0)
+                    {
+                        for (int i = 0; i < positions.data.Count; i++)
+                        {
+                            PositionOnBoard pos = new PositionOnBoard();
+                            pos.PortfolioName = "BitGetFutures";
+                            pos.SecurityNameCode = positions.data[i].instId;
+
+                            if (positions.data[i].posMode == "hedge_mode")
                             {
-                                for (int indData = 0; indData < positions.data.Count; indData++)
+                                if (positions.data[i].holdSide == "long")
                                 {
-                                    if (positions.data[indData].posMode == "hedge_mode")
-                                    {
-                                        if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId + "_" + positions.data[indData].holdSide.ToUpper())
-                                        {
-                                            isInData = true;
-                                            break;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId)
-                                        {
-                                            isInData = true;
-                                            break;
-                                        }
-                                    }
+                                    pos.SecurityNameCode = positions.data[i].instId + "_" + "LONG";
+                                }
+                                if (positions.data[i].holdSide == "short")
+                                {
+                                    pos.SecurityNameCode = positions.data[i].instId + "_" + "SHORT";
                                 }
                             }
 
-                            if (!isInData)
+                            if (positions.data[i].holdSide == "long")
                             {
-                                PositionOnBoard pos = new PositionOnBoard();
-                                pos.PortfolioName = "BitGetFutures";
-                                pos.SecurityNameCode = _allPositions[positions.arg.instType][indAllPos];
-                                pos.ValueCurrent = 0;
-                                pos.ValueBlocked = 0;
+                                pos.ValueCurrent = positions.data[i].available.ToDecimal();
+                            }
+                            else if (positions.data[i].holdSide == "short")
+                            {
+                                pos.ValueCurrent = positions.data[i].available.ToDecimal() * -1;
+                            }
 
-                                portfolio.SetNewPosition(pos);
+                            pos.ValueBlocked = positions.data[i].frozen.ToDecimal();
+                            pos.UnrealizedPnl = positions.data[i].unrealizedPL.ToDecimal();
 
-                                _allPositions[positions.arg.instType].RemoveAt(indAllPos);
-                                indAllPos--;
+                            portfolio.SetNewPosition(pos);
+
+                            if (!_allPositions.ContainsKey(positions.arg.instType))
+                            {
+                                _allPositions.Add(positions.arg.instType, new List<string>());
+                            }
+
+                            if (!_allPositions[positions.arg.instType].Contains(pos.SecurityNameCode))
+                            {
+                                _allPositions[positions.arg.instType].Add(pos.SecurityNameCode);
+                            }
+                        }
+                    }
+
+                    if (_allPositions.ContainsKey(positions.arg.instType))
+                    {
+                        if (_allPositions[positions.arg.instType].Count > 0)
+                        {
+                            for (int indAllPos = 0; indAllPos < _allPositions[positions.arg.instType].Count; indAllPos++)
+                            {
+                                bool isInData = false;
+
+                                if (positions.data.Count > 0)
+                                {
+                                    for (int indData = 0; indData < positions.data.Count; indData++)
+                                    {
+                                        if (positions.data[indData].posMode == "hedge_mode")
+                                        {
+                                            if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId + "_" + positions.data[indData].holdSide.ToUpper())
+                                            {
+                                                isInData = true;
+                                                break;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            if (_allPositions[positions.arg.instType][indAllPos] == positions.data[indData].instId)
+                                            {
+                                                isInData = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                if (!isInData)
+                                {
+                                    PositionOnBoard pos = new PositionOnBoard();
+                                    pos.PortfolioName = "BitGetFutures";
+                                    pos.SecurityNameCode = _allPositions[positions.arg.instType][indAllPos];
+                                    pos.ValueCurrent = 0;
+                                    pos.ValueBlocked = 0;
+
+                                    portfolio.SetNewPosition(pos);
+
+                                    _allPositions[positions.arg.instType].RemoveAt(indAllPos);
+                                    indAllPos--;
+                                }
                             }
                         }
                     }
                 }
-            }
-            else
-            {
-                SendLogMessage("BITGET ERROR. NO POSITIONS IN REQUEST.", LogMessageType.Error);
-            }
-            _portfolioIsStarted = true;
+                else
+                {
+                    SendLogMessage("BITGET ERROR. NO POSITIONS IN REQUEST.", LogMessageType.Error);
+                }
 
-            PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent(Portfolios);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
         }
 
         private void UpdateAccount(string message)
         {
+            if (_portfolioIsStarted == false)
+            {
+                return;
+            }
+
             try
             {
                 ResponseWebSocketMessageAction<List<ResponseWebSocketAccount>> assets = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseWebSocketAccount>>());
@@ -1379,11 +1727,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     return;
                 }
 
-                Portfolio portfolio = new Portfolio();
-                portfolio.Number = "BitGetFutures";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
+                if (Portfolios == null)
+                {
+                    GetNewPortfolio();
+                }
 
+                Portfolio portfolio = Portfolios[0];
 
                 for (int i = 0; i < assets.data.Count; i++)
                 {
@@ -1397,7 +1746,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     portfolio.SetNewPosition(pos);
                 }
 
-                PortfolioEvent(new List<Portfolio> { portfolio });
+                PortfolioEvent(Portfolios);
             }
             catch (Exception ex)
             {
