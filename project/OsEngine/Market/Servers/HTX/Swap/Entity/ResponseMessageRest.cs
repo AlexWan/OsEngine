@@ -57,6 +57,7 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
             public string margin_asset { get; set; }
             public string margin_frozen { get; set; }
             public string margin_balance { get; set; }
+            public string cross_profit_unreal { get; set; }
         }
     }
 
@@ -149,6 +150,31 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
             public string trade_volume { get; set; }
             public string trade_price { get; set; }
             public string created_at { get; set; }
+        }
+    }
+
+    public class ResponseTrades
+    {
+        public string ch { get; set; }
+        public string status { get; set; }
+        public string ts { get; set; }
+        public Tick tick { get; set; }
+
+        public class Tick
+        {
+            public string id { get; set; }
+            public string ts { get; set; }
+            public List<Data> data { get; set; }
+        }
+
+        public class Data
+        {
+            public string id { get; set; }
+            public string ts { get; set; }
+            public string tradeid { get; set; }
+            public string price { get; set; }
+            public string amount { get; set; }
+            public string direction { get; set; }
         }
     }
 }

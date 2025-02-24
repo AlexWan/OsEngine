@@ -280,8 +280,15 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
+        public List<Portfolio> Portfolios;
+
         public void GetPortfolios()
         {
+            if (Portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
             if (_usdtSwapValue)
             {
                 CreateQueryPortfolioUsdt(true);
@@ -290,6 +297,21 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 CreateQueryPortfolioCoin(true);
             }
+        }
+
+        private void GetNewPortfolio()
+        {
+            Portfolios = new List<Portfolio>();
+
+            Portfolio portfolioInitial = new Portfolio();
+            portfolioInitial.Number = "HTXSwapPortfolio";
+            portfolioInitial.ValueBegin = 1;
+            portfolioInitial.ValueCurrent = 1;
+            portfolioInitial.ValueBlocked = 0;
+
+            Portfolios.Add(portfolioInitial);
+
+            PortfolioEvent(Portfolios);
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -795,13 +817,19 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 try
                 {
-                    Thread.Sleep(5000);
+                    Thread.Sleep(10000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(2000);
                         continue;
                     }
+
+                    if (Portfolios == null)
+                    {
+                        GetNewPortfolio();
+                    }
+
                     if (_usdtSwapValue)
                     {
                         CreateQueryPortfolioUsdt(false);
@@ -1226,22 +1254,17 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 return;
             }
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "HTXSwapPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            if (Portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
+            Portfolio portfolio = Portfolios[0];
 
             if (item.Count != 0)
             {
                 for (int i = 0; i < item.Count; i++)
                 {
-                    if (item[i].margin_asset == "USDT")
-                    {
-                        portfolio.ValueBegin = Math.Round(item[i].margin_static.ToDecimal(), 3);
-                        portfolio.ValueCurrent = Math.Round(item[i].margin_balance.ToDecimal(), 3);
-                        portfolio.ValueBlocked = Math.Round(item[i].margin_frozen.ToDecimal(), 3);
-                    }
-
                     PositionOnBoard pos = new PositionOnBoard();
 
                     pos.PortfolioName = "HTXSwapPortfolio";
@@ -1252,7 +1275,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     portfolio.SetNewPosition(pos);
                 }
             }
-            PortfolioEvent(new List<Portfolio> { portfolio });
+
+            PortfolioEvent(Portfolios);
         }
 
         private void UpdatePositionFromSubscrible(string message)
@@ -1266,10 +1290,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 return;
             }
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "HTXSwapPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            if (Portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
+            Portfolio portfolio = Portfolios[0];
 
             if (item.Count != 0)
             {
@@ -1303,7 +1329,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     portfolio.SetNewPosition(pos);
                 }
             }
-            PortfolioEvent(new List<Portfolio> { portfolio });
+
+            PortfolioEvent(Portfolios);
         }
 
         public event Action<Order> MyOrderEvent;
@@ -1848,10 +1875,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
             ResponseMessagePortfoliosCoin response = JsonConvert.DeserializeObject<ResponseMessagePortfoliosCoin>(json);
             List<ResponseMessagePortfoliosCoin.Data> item = response.data;
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "HTXSwapPortfolio";
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
+            if (Portfolios == null)
+            {
+                return;
+            }
+
+            Portfolio portfolio = Portfolios[0];
 
             for (int i = 0; i < item.Count; i++)
             {
@@ -1896,7 +1925,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         pos.SecurityNameCode = itemPosition[j].contract_code + "_" + "SHORT";
                     }
                     pos.ValueBlocked = GetSecurityLot(itemPosition[j].contract_code) * itemPosition[j].frozen.ToDecimal();
-                    pos.UnrealizedPnl = itemPosition[j].profit_unreal.ToDecimal();
+                    pos.UnrealizedPnl = GetSecurityLot(itemPosition[j].contract_code) * itemPosition[j].profit_unreal.ToDecimal();
 
                     if (itemPosition[j].direction == "buy")
                     {
@@ -1914,7 +1943,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     portfolio.SetNewPosition(pos);
                 }
             }
-            PortfolioEvent(new List<Portfolio> { portfolio });
+            PortfolioEvent(Portfolios);
         }
 
         private void CreateQueryPortfolioUsdt(bool IsUpdateValueBegin)
@@ -1951,8 +1980,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
             ResponseMessagePortfoliosUsdt response = JsonConvert.DeserializeObject<ResponseMessagePortfoliosUsdt>(json);
             List<ResponseMessagePortfoliosUsdt.Data> itemPortfolio = response.data;
 
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = "HTXSwapPortfolio";
+            if (Portfolios == null)
+            {
+                return;
+            }
+
+            Portfolio portfolio = Portfolios[0];
+
+            decimal positionInUSDT = 0;
+            decimal sizeUSDT = 0;
+            decimal resultPnL = 0;
 
             for (int i = 0; i < itemPortfolio.Count; i++)
             {
@@ -1963,9 +2000,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 if (itemPortfolio[i].margin_asset == "USDT")
                 {
-                    portfolio.ValueBegin = Math.Round(itemPortfolio[i].margin_static.ToDecimal(), 3);
-                    portfolio.ValueCurrent = Math.Round(itemPortfolio[i].margin_balance.ToDecimal(), 3);
-                    portfolio.ValueBlocked = Math.Round(itemPortfolio[i].margin_frozen.ToDecimal(), 3);
+                    sizeUSDT = itemPortfolio[i].margin_balance.ToDecimal();
+                }
+                else if (itemPortfolio[i].margin_asset != "HUSD"
+                    || itemPortfolio[i].margin_asset != "HT")
+                {
+                    positionInUSDT += GetPriceSecurity(itemPortfolio[i].margin_asset.ToLower() + "usdt") * itemPortfolio[i].margin_balance.ToDecimal();
                 }
 
                 PositionOnBoard pos = new PositionOnBoard();
@@ -1974,7 +2014,25 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 pos.ValueBlocked = itemPortfolio[i].margin_frozen.ToDecimal();
                 pos.ValueCurrent = itemPortfolio[i].margin_balance.ToDecimal();
 
+                if (IsUpdateValueBegin)
+                {
+                    pos.ValueBegin = itemPortfolio[i].margin_balance.ToDecimal();
+                }
+
                 portfolio.SetNewPosition(pos);
+            }
+
+            if (IsUpdateValueBegin)
+            {
+                portfolio.ValueBegin = Math.Round(sizeUSDT + positionInUSDT, 4);
+            }
+
+            portfolio.ValueCurrent = Math.Round(sizeUSDT + positionInUSDT, 4);
+
+            if (portfolio.ValueCurrent == 0)
+            {
+                portfolio.ValueBegin = 1;
+                portfolio.ValueCurrent = 1;
             }
 
             for (int i = 0; i < 2; i++)
@@ -2033,6 +2091,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                         pos.ValueBlocked = lot * itemPosition[j].frozen.ToDecimal();
                         pos.UnrealizedPnl = itemPosition[j].profit_unreal.ToDecimal();
+                        resultPnL += pos.UnrealizedPnl;
 
                         if (IsUpdateValueBegin)
                         {
@@ -2041,8 +2100,58 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         portfolio.SetNewPosition(pos);
                     }
                 }
-                PortfolioEvent(new List<Portfolio> { portfolio });
+
+                portfolio.UnrealizedPnl = resultPnL;
+
+                PortfolioEvent(Portfolios);
             }
+        }
+
+        private decimal GetPriceSecurity(string security)
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string _baseUrl = "api.huobi.pro";
+
+                string url = $"https://{_baseUrl}/market/trade?symbol={security}";
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+                string JsonResponse = responseMessage.Content;
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseTrades responseTrade = JsonConvert.DeserializeObject<ResponseTrades>(JsonResponse);
+
+                    if (responseTrade == null)
+                    {
+                        return 0;
+                    }
+
+                    if (responseTrade.tick == null)
+                    {
+                        return 0;
+                    }
+
+                    List<ResponseTrades.Data> item = responseTrade.tick.data;
+
+                    decimal price = item[0].price.ToDecimal();
+
+                    return price;
+
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+            return 0;
         }
 
         public static string Decompress(byte[] input)

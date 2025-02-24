@@ -1327,31 +1327,31 @@ namespace OsEngine.Market.Servers.OKX
                                 if (item.posSide.Contains("long"))
                                 {
                                     pos.SecurityNameCode = item.instId + "_LONG";
-                                    pos.ValueCurrent = GetAvailPos(item.availPos);
+                                    pos.ValueCurrent = Math.Round(GetAvailPos(item.pos), 6);
                                     pos.ValueBlocked = 0;
-                                    pos.UnrealizedPnl = GetAvailPos(item.upl);
+                                    pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                                 }
                                 else if (item.posSide.Contains("short"))
                                 {
                                     pos.SecurityNameCode = item.instId + "_SHORT";
-                                    pos.ValueCurrent = -GetAvailPos(item.availPos);
+                                    pos.ValueCurrent = -Math.Round(GetAvailPos(item.pos), 6);
                                     pos.ValueBlocked = 0;
-                                    pos.UnrealizedPnl = GetAvailPos(item.upl);
+                                    pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                                 }
                                 else if (item.posSide.Contains("net"))
                                 {
                                     pos.SecurityNameCode = item.instId;
-                                    pos.ValueCurrent = GetAvailPos(item.pos);
+                                    pos.ValueCurrent = Math.Round(GetAvailPos(item.pos), 6);
                                     pos.ValueBlocked = 0;
-                                    pos.UnrealizedPnl = GetAvailPos(item.upl);
+                                    pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                                 }
                             }
                             else
                             {
                                 pos.SecurityNameCode = item.instId;
-                                pos.ValueCurrent = GetAvailPos(item.pos);
+                                pos.ValueCurrent = Math.Round(GetAvailPos(item.pos), 6);
                                 pos.ValueBlocked = 0;
-                                pos.UnrealizedPnl = GetAvailPos(item.upl);
+                                pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                             }
 
                             portfolio.SetNewPosition(pos);
@@ -1427,16 +1427,16 @@ namespace OsEngine.Market.Servers.OKX
 
                     pos.PortfolioName = "OKX";
                     pos.SecurityNameCode = item.ccy;
-                    pos.ValueCurrent = item.availBal.ToDecimal();
-                    pos.ValueBlocked = item.frozenBal.ToDecimal();
-                    pos.UnrealizedPnl = GetAvailPos(item.upl);
+                    pos.ValueCurrent = Math.Round(item.availBal.ToDecimal(), 6);
+                    pos.ValueBlocked = Math.Round(item.frozenBal.ToDecimal(), 6);
+                    pos.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
 
                     if (item.ccy == "USDT")
                     {
-                        portfolio.UnrealizedPnl = GetAvailPos(item.upl);
+                        portfolio.UnrealizedPnl = Math.Round(GetAvailPos(item.upl), 6);
                     }
 
-                    pos.ValueBegin = item.eq.ToDecimal();
+                    pos.ValueBegin = Math.Round(item.eq.ToDecimal(), 6);
                     portfolio.SetNewPosition(pos);
                 }
 

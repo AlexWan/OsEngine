@@ -191,7 +191,20 @@
                     "SBTC",
                     "SEOS",
                     "SETH",
-                    "SUSDC"
+                    "SUSDC",
+                    "USDC",
+                    "BCH",
+                    "EOS",
+                    "DOT",
+                    "DOGE",
+                    "SOL",
+                    "AVAX",
+                    "XRP",
+                    "USDE",
+                    "LTC",
+                    "LINK",
+                    "TRX",
+                    "ADA"
                 };
 
                 return values;

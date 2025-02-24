@@ -70,25 +70,29 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
 
     public class ResponseMessagePositions
     {
-        public string marginCoin;
+        public string posId;
         public string instId;
+        public string marginCoin;
+        public string marginSize;
+        public string marginMode;
         public string holdSide;
-        public string frozen;
-        public string margin;
-        public string available;
-        public string locked;
+        public string posMode;
         public string total;
+        public string available;
+        public string frozen;
+        public string openPriceAvg;
         public string leverage;
         public string achievedProfits;
-        public string averageOpenPrice;
-        public string marginMode;
-        public string holdMode;
         public string unrealizedPL;
+        public string unrealizedPLR;
         public string liquidationPrice;
         public string keepMarginRate;
         public string marketPrice;
         public string cTime;
-        public string instType;
-        public string posMode;
+        public string breakEvenPrice;
+        public string totalFee;
+        public string deductedFee;
+        public string uTime;
+        public string autoMargin;
     }
 }

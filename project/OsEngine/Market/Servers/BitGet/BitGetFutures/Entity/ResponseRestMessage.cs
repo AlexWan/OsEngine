@@ -39,46 +39,31 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string pricePlace;
     }
 
-    public class RestMessageAccount
-    {
-        public string marginCoin;
-        public string locked;
-        public string available;
-        public string crossMaxAvailable;
-        public string fixedMaxAvailable;
-        public string maxTransferOut;
-        public string equity;
-        public string usdtEquity;
-        public string btcEquity;
-        public string crossRiskRate;
-        public string crossMarginLeverage;
-        public string fixedLongLeverage;
-        public string fixedShortLeverage;
-        public string marginMode;
-        public string holdMode;
-        public string unrealizedPL;
-        public string bonus;
-    }
-
     public class RestMessagePositions
     {
         public string marginCoin;
         public string symbol;
         public string holdSide;
         public string openDelegateCount;
-        public string margin;
+        public string marginSize;
         public string available;
         public string locked;
         public string total;
         public string leverage;
         public string achievedProfits;
-        public string averageOpenPrice;
-        public string marginMode;
-        public string holdMode;
+        public string openPriceAvg;
+        public string posMode;
         public string unrealizedPL;
         public string liquidationPrice;
         public string keepMarginRate;
-        public string marketPrice;
+        public string markPrice;
+        public string breakEvenPrice;
+        public string totalFee;
+        public string deductedFee;
+        public string marginRatio;
+        public string assetMode;
+        public string uTime;
+        public string autoMargin;
         public string cTime;
     }
 
@@ -160,5 +145,36 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string holdMode;
         public string takerMakerFlag;
         public string cTime;
+    }
+
+    public class Account
+    {
+        public string marginCoin { get; set; } // Margin coin
+        public string locked { get; set; } // Locked quantity (margin coin)
+        public string available { get; set; } // Available quantity in the account
+        public string crossedMaxAvailable { get; set; } // Maximum available balance to open positions under the cross margin mode (margin coin)
+        public string isolatedMaxAvailable { get; set; } // Maximum available balance to open positions under the isolated margin mode (margin coin)
+        public string maxTransferOut { get; set; } // Maximum transferable amount
+        public string accountEquity { get; set; } // Account equity (margin coin), Includes unrealized PnL(based on mark price)
+        public string usdtEquity { get; set; } // Account equity in USDT
+        public string btcEquity { get; set; } // Account equity in BTC
+        public string crossedRiskRate { get; set; } // Risk ratio in cross margin mode
+        public string unrealizedPL { get; set; } // Unrealized PnL
+        public string coupon { get; set; } // Trading bonus
+        public string unionTotalMargin { get; set; } // Multi-assets
+        public string unionAvailable { get; set; } // Total available
+        public string unionMm { get; set; } // Maintenance margin
+        public List<Asset> assetList { get; set; } // Asset list
+        public string isolatedMargin { get; set; } // Isolated Margin Occupied
+        public string crossedMargin { get; set; } // Crossed Margin Occupied
+        public string crossedUnrealizedPL { get; set; } // unrealizedPL for croessed
+        public string isolatedUnrealizedPL { get; set; } // unrealizedPL for isolated
+        public string assetMode { get; set; } // Assets mode union Multi-assets mode single Single-assets mode
+    }
+
+    public class Asset
+    {
+        public string Coin { get; set; } // Asset
+        public string Balance { get; set; } // Balance
     }
 }
