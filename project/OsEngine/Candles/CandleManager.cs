@@ -151,9 +151,6 @@ namespace OsEngine.Entity
             {
                 while (true)
                 {
-
-                    await Task.Delay(20);
-
                     if (_isDisposed == true)
                     {
                         return;
@@ -164,7 +161,11 @@ namespace OsEngine.Entity
                         return;
                     }
 
-                    if (_candleSeriesNeedToStart.Count != 0)
+                    if (_candleSeriesNeedToStart.Count == 0)
+                    {
+                        await Task.Delay(20);
+                    }
+                    else
                     {
                         CandleSeries series = _candleSeriesNeedToStart.Dequeue();
 

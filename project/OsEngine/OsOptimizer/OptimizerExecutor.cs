@@ -699,6 +699,8 @@ namespace OsEngine.OsOptimizer
                 _botsInTest.Add(bot);
             }
 
+            Thread.Sleep(200);
+
             server.TestingStart();
         }
 

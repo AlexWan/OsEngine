@@ -101,5 +101,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         public event Action<string, LogMessageType> LogMessageEvent;
 
     }
-
+     
 }

@@ -34,10 +34,15 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
     public class CoinExServerRealization : IServerRealization
     {
         #region 1 Constructor, Status, Connection
+
         public ServerConnectStatus ServerStatus { get; set; }
+
         public event Action ConnectEvent;
+
         public event Action DisconnectEvent;
+
         public DateTime ServerTime { get; set; }
+
         public ServerType ServerType
         {
             get { return ServerType.CoinExSpot; }
@@ -57,14 +62,16 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 _securities.Clear();
                 _portfolios.Clear();
                 _wsClients.Clear();
-                _subscribledSecurities.Clear();
+                _subscribedSecurities.Clear();
 
                 SendLogMessage("Start CoinEx Spot Connection", LogMessageType.Connect);
 
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 //_marketMode = ((ServerParameterEnum)ServerParameters[2]).Value;
+
                 _marketMode = MARKET_MODE_SPOT;
+
                 _marketDepth = Int16.Parse(((ServerParameterEnum)ServerParameters[2]).Value);
 
                 if (string.IsNullOrEmpty(_publicKey) || string.IsNullOrEmpty(_secretKey))
@@ -106,7 +113,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 }
                 _securities.Clear();
                 _portfolios.Clear();
-                _subscribledSecurities.Clear();
+                _subscribedSecurities.Clear();
                 _securities = new List<Security>();
                 _restClient?.Dispose();
                 SendLogMessage("Dispose. Connection Closed.", LogMessageType.System);
@@ -139,22 +146,33 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 DisconnectEvent?.Invoke();
             }
         }
+
         #endregion
 
         #region 2 Properties
+
         public List<IServerParameter> ServerParameters { get; set; }
+
         private string _publicKey;
+
         private string _secretKey;
+
         private int _marketDepth;
 
         // Spot or Margin
+
         private string _marketMode;
+
         private const string MARKET_MODE_SPOT = "spot";
+
         private const string MARKET_MODE_MARGIN = "margin";
+
         #endregion
 
         #region 3 Securities
+
         private List<Security> _securities = new List<Security>();
+
         public event Action<List<Security>> SecurityEvent;
 
         public void GetSecurities()
@@ -198,7 +216,27 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 for (int i = 0; i < stocks.Count; i++)
                 {
-                    _securities.Add((Security)stocks[i]);
+                    CexSecurity cexSecurity = stocks[i];
+
+                    Security security = new Security();
+                    security.Name = cexSecurity.market;
+                    security.NameId = cexSecurity.market;
+                    security.NameFull = cexSecurity.market;
+                    security.NameClass = cexSecurity.quote_ccy;
+
+                    security.State = SecurityStateType.Activ;
+                    security.Decimals = Convert.ToInt32(cexSecurity.quote_ccy_precision);
+                    security.MinTradeAmount = cexSecurity.min_amount.ToDecimal();
+                    security.DecimalsVolume = security.MinTradeAmount.ToStringWithNoEndZero().DecimalsCount(); // Число знаков объёма
+
+                    security.PriceStep = CoinExServerRealization.GetPriceStep(security.Decimals);
+                    security.PriceStepCost = security.PriceStep; // FIX Сомнительно! Проверить!
+
+                    security.Lot = 1;
+                    security.SecurityType = SecurityType.CurrencyPair;
+                    security.Exchange = ServerType.CoinExSpot.ToString();
+                   
+                    _securities.Add(security);
                 }
 
                 _securities.Sort(delegate (Security x, Security y)
@@ -214,8 +252,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         #endregion
 
         #region 4 Portfolios
+
         public event Action<List<Portfolio>> PortfolioEvent;
+
         private List<Portfolio> _portfolios = new List<Portfolio>();
+
         private string _portfolioName = "CoinExSpot";
 
         public void GetPortfolios()
@@ -369,21 +410,29 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
             return cexInfo;
         }
+
         #endregion
 
         #region 5 Data
+
         private CoinExRestClient _restClient;
 
         // https://docs.coinex.com/api/v2/rate-limit
         private RateGate _rateGateSendOrder = new RateGate(30, TimeSpan.FromMilliseconds(950));
+
         private RateGate _rateGateCancelOrder = new RateGate(60, TimeSpan.FromMilliseconds(950));
+
         private RateGate _rateGateGetOrder = new RateGate(50, TimeSpan.FromMilliseconds(950));
+
         private RateGate _rateGateOrdersHistory = new RateGate(10, TimeSpan.FromMilliseconds(950));
+
         private RateGate _rateGateAccountStatus = new RateGate(10, TimeSpan.FromMilliseconds(950));
+
         private RateGate _rateGateCandlesHistory = new RateGate(60, TimeSpan.FromMilliseconds(950));
 
         // Max candles in history
         private const int _maxCandlesHistory = 5000;
+
         private readonly Dictionary<int, string> _allowedTf = new Dictionary<int, string>() {
             { 1,  "1min" },
             { 3,  "3min" },
@@ -517,14 +566,21 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         #endregion
 
         #region 6 WebSocket creation
+
         public event Action<MarketDepth> MarketDepthEvent;
+
         public event Action<Trade> NewTradesEvent;
+
         public event Action<Order> MyOrderEvent;
+
         public event Action<MyTrade> MyTradeEvent;
+
         private ConcurrentQueue<string> _webSocketMessage = new ConcurrentQueue<string>();
+
         private readonly string _wsUrl = "wss://socket.coinex.com/v2/spot";
+
         private string _socketLocker = "webSocketLockerCoinEx";
-        //private WebSocket _wsClient;
+
         private List<WebSocket> _wsClients = new List<WebSocket>();
 
         private WebSocket CreateWebSocketConnection()
@@ -613,9 +669,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             SendLogMessage("CoinEx server auth: " + message, LogMessageType.Connect);
             wsClient.Send(message.ToString());
         }
+
         #endregion
 
         #region 7 WebSocket events
+
         private void WebSocket_Opened(Object sender, EventArgs e)
         {
             if (_wsClients.Count > 1) return;
@@ -694,28 +752,28 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #endregion
 
-        #region 8 WebSocket check alive
-        #endregion
+        #region 8 Security subscrible
 
-        #region 9 Security subscrible
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
-        private List<Security> _subscribledSecurities = new List<Security>();
-        private List<Security> _currentSubscribledSecurities = new List<Security>();
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
+
+        private List<Security> _subscribedSecurities = new List<Security>();
+
+        private List<Security> _currentSubscribedSecurities = new List<Security>();
 
         public void Subscrible(Security security)
         {
             try
             {
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    if (_subscribledSecurities[i].NameClass == security.NameClass
-                        && _subscribledSecurities[i].Name == security.Name)
+                    if (_subscribedSecurities[i].NameClass == security.NameClass
+                        && _subscribedSecurities[i].Name == security.Name)
                     {
                         return;
                     }
                 }
 
-                _rateGateSubscrible.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
                 if (_wsClients.Count == 0)
                 {
@@ -724,8 +782,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 WebSocket wsClient = _wsClients[_wsClients.Count - 1];
 
                 if (wsClient.State == WebSocketState.Open
-                        && _subscribledSecurities.Count != 0
-                        && _subscribledSecurities.Count % 50 == 0)
+                        && _subscribedSecurities.Count != 0
+                        && _subscribedSecurities.Count % 50 == 0)
                 {
                     WebSocket newSocket = CreateWebSocketConnection();
 
@@ -744,7 +802,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     {
                         _wsClients.Add(newSocket);
                         wsClient = newSocket;
-                        _currentSubscribledSecurities.Clear();
+                        _currentSubscribedSecurities.Clear();
                         ServerMaster.SendNewLogMessage("Next 300 securities", LogMessageType.System);
                     }
                     else
@@ -752,21 +810,21 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         SendLogMessage("Error while creating new socket!", LogMessageType.Error);
                     }
                 }
-                _subscribledSecurities.Add(security);
-                _currentSubscribledSecurities.Add(security);
+                _subscribedSecurities.Add(security);
+                _currentSubscribedSecurities.Add(security);
 
                 // Trades subscription
-                CexRequestSocketSubscribeDeals message = new CexRequestSocketSubscribeDeals(_currentSubscribledSecurities);
+                CexRequestSocketSubscribeDeals message = new CexRequestSocketSubscribeDeals(_currentSubscribedSecurities);
                 SendLogMessage("SubcribeToTradesData: " + message, LogMessageType.Connect);
                 wsClient.Send(message.ToString());
 
                 // Market depth subscription
-                CexRequestSocketSubscribeMarketDepth message1 = new CexRequestSocketSubscribeMarketDepth(_currentSubscribledSecurities, _marketDepth);
+                CexRequestSocketSubscribeMarketDepth message1 = new CexRequestSocketSubscribeMarketDepth(_currentSubscribedSecurities, _marketDepth);
                 SendLogMessage("SubcribeToMarketDepthData: " + message1, LogMessageType.Connect);
                 wsClient.Send(message1.ToString());
 
                 // My orders subscription
-                CexRequestSocketSubscribeMyOrders message2 = new CexRequestSocketSubscribeMyOrders(_currentSubscribledSecurities);
+                CexRequestSocketSubscribeMyOrders message2 = new CexRequestSocketSubscribeMyOrders(_currentSubscribedSecurities);
                 SendLogMessage("SubcribeToMyOrdersData: " + message2, LogMessageType.Connect);
                 _wsClients?[0].Send(message2.ToString());
             }
@@ -778,8 +836,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #endregion
 
-        #region 10 WebSocket parsing the messages
+        #region 9 WebSocket parsing the messages
+
         private DateTime _lastMdTime = DateTime.MinValue;
+
         private void DataMessageReaderThread()
         {
             Thread.Sleep(1000);
@@ -851,6 +911,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         }
 
         private readonly Object _updateTradesLocker = new Object();
+
         private void UpdateTrade(CexWsTransactionUpdate data)
         {
             // https://docs.coinex.com/api/v2/spot/market/ws/market-deals
@@ -886,6 +947,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         }
 
         private readonly Object _updateMarketDepthLocker = new Object();
+
         private void UpdateMarketDepth(CexWsDepthUpdate data)
         {
             // https://docs.coinex.com/api/v2/spot/market/ws/market-depth
@@ -987,8 +1049,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         }
         #endregion
 
-        #region 11 Trade
+        #region 10 Trade
+
         private string _lockOrder = "lockOrder";
+
         public void GetAllActivOrders()
         {
             List<Order> openOrders = cexGetAllActiveOrders();
@@ -1015,6 +1079,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 // https://docs.coinex.com/api/v2/spot/order/http/put-order#http-request
                 Dictionary<string, Object> body = (new CexRequestSendOrder(_marketMode, order)).parameters;
+
                 CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/order", body, true).Result;
 
                 if (cexOrder.order_id > 0)
@@ -1118,9 +1183,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public void CancelAllOrders()
         {
-            for (int i = 0; i < _subscribledSecurities.Count; i++)
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
             {
-                CancelAllOrdersToSecurity(_subscribledSecurities[i]);
+                CancelAllOrdersToSecurity(_subscribedSecurities[i]);
             }
         }
 
@@ -1282,9 +1347,11 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             return null;
         }
+
         #endregion
 
-        #region 12 Queries
+        #region 11 Queries
+
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
@@ -1370,11 +1437,15 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             return null;
         }
+
         #endregion
 
-        #region 13 Log
+        #region 12 Log
+
         public event Action<string, LogMessageType> LogMessageEvent;
+
         public event Action<News> NewsEvent;
+
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType type)
@@ -1386,7 +1457,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         }
         #endregion
 
-        #region 14 Helpers
+        #region 13 Helpers
+
         public static decimal GetPriceStep(int ScalePrice)
         {
             if (ScalePrice == 0)
@@ -1520,10 +1592,12 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             throw new NotImplementedException();
         }
+
         #endregion
     }
 
-    #region 15 Signer
+    #region 14 Signer
+
     public static class Signer
     {
         public static string Sign(string message, string secret)
@@ -1541,5 +1615,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             return Sign(message, secret);
         }
     }
+
     #endregion
 }
