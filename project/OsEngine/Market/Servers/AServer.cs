@@ -129,8 +129,8 @@ namespace OsEngine.Market.Servers
                 _ordersHub.ActivStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
                 _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
 
-                _comparePositionsModule = new ComparePositionsModule(this);
-                _comparePositionsModule.LogMessageEvent += SendLogMessage;
+                ComparePositionsModule = new ComparePositionsModule(this);
+                ComparePositionsModule.LogMessageEvent += SendLogMessage;
             }
             get { return _serverRealization; }
         }
@@ -2884,7 +2884,7 @@ namespace OsEngine.Market.Servers
 
         #region Compare positions module
 
-        private ComparePositionsModule _comparePositionsModule;
+        public ComparePositionsModule ComparePositionsModule;
 
         public void ShowComparePositionsModuleDialog(string portfolioName)
         {
@@ -2901,7 +2901,7 @@ namespace OsEngine.Market.Servers
 
             if (myUi == null)
             {
-                myUi = new ComparePositionsModuleUi(_comparePositionsModule,portfolioName);
+                myUi = new ComparePositionsModuleUi(ComparePositionsModule,portfolioName);
                 myUi.GuiClosed += MyUi_GuiClosed;
                 _comparePositionsModuleUi.Add(myUi);
                 myUi.Show();
