@@ -709,62 +709,69 @@ namespace OsEngine.Market
 
         private void ClosePositionOnBoardClick(object sender, DataGridViewCellEventArgs e)
         {
-            int rowInd = e.RowIndex;
-            int colInd = e.ColumnIndex;
-
-            string secName = _gridPortfolio.Rows[rowInd].Cells[4].Value.ToString();
-
-            if (String.IsNullOrEmpty(secName))
+            try
             {
-                return;
-            }
+                int rowInd = e.RowIndex;
+                int colInd = e.ColumnIndex;
 
-            string secVol = _gridPortfolio.Rows[rowInd].Cells[6].Value.ToString();
+                string secName = _gridPortfolio.Rows[rowInd].Cells[5].Value.ToString();
 
-            AcceptDialogUi ui = new AcceptDialogUi(secName + OsLocalization.Market.Label83);
-
-            ui.ShowDialog();
-
-            if (ui.UserAcceptActioin == false)
-            {
-                return;
-            }
-
-            string portfolioName = "";
-
-            for (int i = rowInd; i >= 0; i--)
-            {
-                if (_gridPortfolio.Rows[i].Cells[0] == null)
+                if (String.IsNullOrEmpty(secName))
                 {
-                    continue;
-                }
-                if (_gridPortfolio.Rows[i].Cells[0].Value == null)
-                {
-                    continue;
-                }
-                if (_gridPortfolio.Rows[i].Cells[0].Value.ToString() == "")
-                {
-                    continue;
+                    return;
                 }
 
-                portfolioName = _gridPortfolio.Rows[i].Cells[0].Value.ToString();
-                break;
+                string secVol = _gridPortfolio.Rows[rowInd].Cells[7].Value.ToString();
+
+                AcceptDialogUi ui = new AcceptDialogUi(secName + OsLocalization.Market.Label83);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptActioin == false)
+                {
+                    return;
+                }
+
+                string portfolioName = "";
+
+                for (int i = rowInd; i >= 0; i--)
+                {
+                    if (_gridPortfolio.Rows[i].Cells[0] == null)
+                    {
+                        continue;
+                    }
+                    if (_gridPortfolio.Rows[i].Cells[0].Value == null)
+                    {
+                        continue;
+                    }
+                    if (_gridPortfolio.Rows[i].Cells[0].Value.ToString() == "")
+                    {
+                        continue;
+                    }
+
+                    portfolioName = _gridPortfolio.Rows[i].Cells[0].Value.ToString();
+                    break;
+                }
+
+                IServer myServer = GetServerByPortfolioName(portfolioName);
+
+                if (myServer == null)
+                {
+                    return;
+                }
+
+                string trimmedSecName = TrimmSecName(secName, myServer);
+
+                if (ClearPositionOnBoardEvent != null)
+                {
+                    ClearPositionOnBoardEvent(trimmedSecName, myServer, secName);
+                }
+
             }
-
-            IServer myServer = GetServerByPortfolioName(portfolioName);
-
-            if (myServer == null)
+            catch (Exception ex )
             {
-                return;
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
             }
-
-            string trimmedSecName = TrimmSecName(secName, myServer);
-
-            if (ClearPositionOnBoardEvent != null)
-            {
-                ClearPositionOnBoardEvent(trimmedSecName, myServer, secName);
-            }
-
         }
 
         /// <summary>
