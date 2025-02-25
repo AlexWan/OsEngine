@@ -134,17 +134,24 @@ namespace OsEngine.Market
         {
             while (true)
             {
-               await Task.Delay(5000);
-
-                if (MainWindow.ProccesIsWorked == false)
+                try
                 {
-                    return;
+                    await Task.Delay(5000);
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    if (_needToPaintPortfolio)
+                    {
+                        RePaintPortfolio();
+                        _needToPaintPortfolio = false;
+                    }
                 }
-
-                if (_needToPaintPortfolio)
+                catch(Exception ex)
                 {
-                    RePaintPortfolio();
-                    _needToPaintPortfolio = false;
+                    SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -681,30 +688,37 @@ namespace OsEngine.Market
 
         private void ShowPositionsCompareUi(object sender, DataGridViewCellEventArgs e)
         {
-            int rowInd = e.RowIndex;
-            int colInd = e.ColumnIndex;
-
-            string portfolioName = _gridPortfolio.Rows[rowInd].Cells[0].Value.ToString();
-
-            IServer myServer = GetServerByPortfolioName(portfolioName);
-
-            if (myServer == null)
-            {
-                return;
-            }
-
-            AServer aServer = null;
-
             try
             {
-                aServer = (AServer)myServer;
-            }
-            catch (Exception ex)
-            {
-                return;
-            }
+                int rowInd = e.RowIndex;
+                int colInd = e.ColumnIndex;
 
-            aServer.ShowComparePositionsModuleDialog(portfolioName);
+                string portfolioName = _gridPortfolio.Rows[rowInd].Cells[0].Value.ToString();
+
+                IServer myServer = GetServerByPortfolioName(portfolioName);
+
+                if (myServer == null)
+                {
+                    return;
+                }
+
+                AServer aServer = null;
+
+                try
+                {
+                    aServer = (AServer)myServer;
+                }
+                catch (Exception ex)
+                {
+                    return;
+                }
+
+                aServer.ShowComparePositionsModuleDialog(portfolioName);
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
         }
 
         private void ClosePositionOnBoardClick(object sender, DataGridViewCellEventArgs e)
