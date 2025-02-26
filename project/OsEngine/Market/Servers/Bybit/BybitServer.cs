@@ -320,7 +320,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string main_Url = "https://api.bybit.com";
 
-        private string test_Url = "https://api-testnet.bybit.com";
+        private string test_Url = "https://api-demo.bybit.com";
 
         private string mainWsPublicUrl = "wss://stream.bybit.com/v5/public/";    // +  linear, spot;
 
