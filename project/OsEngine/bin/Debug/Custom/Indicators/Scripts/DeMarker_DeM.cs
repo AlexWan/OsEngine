@@ -88,17 +88,16 @@ namespace OsEngine.Indicators
                 DeMax = _lastHigh - _prevHigh;
             }
             else
+            {
                 DeMax = 0;
+            }
 
-            if (_listDeMax.Count < _lengthSma.ValueInt)
+            while (_listDeMax.Count < index+1)
             {
-                _listDeMax.Add(DeMax);
+                _listDeMax.Add(0);
             }
-            else
-            {
-                _listDeMax.RemoveAt(0);
-                _listDeMax.Add(DeMax);
-            }
+
+            _listDeMax[index] = DeMax;
 
             decimal DeMin;
 
@@ -109,26 +108,31 @@ namespace OsEngine.Indicators
             else
                 DeMin = 0;
 
-            if (_listDeMin.Count < _lengthSma.ValueInt)
+            while (_listDeMin.Count < index+1)
             {
-                _listDeMin.Add(DeMin);
+                _listDeMin.Add(0);
             }
-            else
-            {
-                _listDeMin.RemoveAt(0);
-                _listDeMin.Add(DeMin);
-            }
+
+            _listDeMin[index] = DeMin;
         }
 
         public decimal CalcSmaDem(List<decimal> listD, int index)
         {
             decimal smaD = 0;
+            int realSmaLen = 0;
 
-            for (int i = 0; i < _listDeMax.Count && i < _listDeMin.Count; i++)
+            for (int i = index; i >= 0 && i > index - _lengthSma.ValueInt; i--)
             {
+                realSmaLen++;
                 smaD += listD[i];
             }
-            smaD = smaD / _lengthSma.ValueInt;
+
+            if(realSmaLen == 0)
+            {
+                return 0;
+            }
+
+            smaD = smaD / realSmaLen;
 
             return smaD;
         }
