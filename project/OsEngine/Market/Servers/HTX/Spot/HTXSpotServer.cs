@@ -1092,7 +1092,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return;
             }
 
-            ResponseChannelUpdateMyTrade.Data item = response.data;                    
+            ResponseChannelUpdateMyTrade.Data item = response.data;
 
             MyTrade myTrade = new MyTrade();
 
@@ -1102,7 +1102,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
             myTrade.Price = item.tradePrice.ToDecimal();
             myTrade.SecurityNameCode = item.symbol;
             myTrade.Side = item.orderSide.Equals("buy") ? Side.Buy : Side.Sell;
-            myTrade.Volume = item.tradeVolume.ToDecimal();
+
+            string comissionSecName = item.feeCurrency;
+
+            if (myTrade.SecurityNameCode.StartsWith(comissionSecName))
+            {
+                myTrade.Volume = item.tradeVolume.ToDecimal() - item.transactFee.ToDecimal();
+            }
+            else
+            {
+                myTrade.Volume = item.tradeVolume.ToDecimal();
+            }
 
             MyTradeEvent(myTrade);
 
@@ -1122,7 +1132,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     //ignore
                 }
-               
+
                 newOrder.NumberMarket = item.orderId.ToString();
                 newOrder.Side = item.orderSide.Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = GetOrderState(item.orderStatus);
@@ -1144,7 +1154,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 MyOrderEvent(newOrder);
             }
-            CreateQueryPortfolio(false);
         }
 
         private void UpdateOrder(string message)
@@ -1158,7 +1167,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return;
             }
 
-            if (item.eventType.Equals("creation") || item.eventType.Equals("cancellation"))
+            if (item.eventType.Equals("creation")
+                || item.eventType.Equals("cancellation")
+                || item.eventType.Equals("trade"))
             {
                 Order newOrder = new Order();
 
@@ -1171,10 +1182,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.lastActTime));
                 }
-                
+                else if (item.eventType.Equals("trade"))
+                {
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.tradeTime));
+                }
+
                 newOrder.ServerType = ServerType.HTXSpot;
-                newOrder.SecurityNameCode = item.symbol;           
-                
+                newOrder.SecurityNameCode = item.symbol;
+
                 try
                 {
                     newOrder.NumberUser = Convert.ToInt32(item.clientOrderId);
@@ -1187,8 +1202,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 newOrder.NumberMarket = item.orderId.ToString();
                 newOrder.Side = item.type.Split('-')[0].Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = GetOrderState(item.orderStatus);
-                newOrder.Volume = item.orderSize.ToDecimal();                
+
+                newOrder.Volume = item.orderSize.ToDecimal();
                 newOrder.Price = item.orderPrice.ToDecimal();
+
+                if (item.eventType.Equals("trade")
+                    && newOrder.State == OrderStateType.Done)
+                {
+                    newOrder.Volume = item.tradeVolume.ToDecimal();
+                    newOrder.Price = item.tradePrice.ToDecimal();
+                }
 
                 if (item.type.Split('-')[1] == "market")
                 {
@@ -1212,7 +1235,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 newOrder.PortfolioNumber = $"HTX_{source}_{item.accountId}_Portfolio";
 
                 MyOrderEvent(newOrder);
-            }        
+            }
         }
 
         private OrderStateType GetOrderState(string orderStateResponse)
@@ -1287,21 +1310,23 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 jsonContent.Add("account-id", accountData[2]);
                 jsonContent.Add("symbol", order.SecurityNameCode);
                 jsonContent.Add("type", order.Side == Side.Buy ? $"buy-{typeOrder}" : $"sell-{typeOrder}");
-                jsonContent.Add("amount", order.Volume.ToString().Replace(",","."));
+                jsonContent.Add("amount", order.Volume.ToString().Replace(",", "."));
+
                 if (order.TypeOrder != OrderPriceType.Market)
                 {
                     jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
                 }
+
                 jsonContent.Add("source", source_portfolio);
                 jsonContent.Add("client-order-id", order.NumberUser.ToString());
 
                 string url = _privateUriBuilder.Build("POST", $"/v1/order/orders/place");
-                          
+
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
                 request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
-                                
+
                 PlaceOrderResponse orderResponse = JsonConvert.DeserializeObject<PlaceOrderResponse>(responseMessage.Content);
 
                 if (orderResponse.status != "ok")
@@ -1310,7 +1335,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     MyOrderEvent(order);
                     SendLogMessage($"SendOrder. Error: {responseMessage.Content}", LogMessageType.Error);
                 }
-
             }
             catch (Exception exception)
             {

@@ -186,4 +186,37 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
             public string trade_id { get; set; }
         }
     }
+
+    public class ResponseAccountValuation
+    {
+        public string code { get; set; }
+        public Data data { get; set; }
+
+        public class Data
+        {
+            public Updated updated { get; set; }
+            public string todayProfitRate { get; set; }
+            public string totalBalance { get; set; }
+            public string todayProfit { get; set; }
+            public List<ProfitAccountBalance> profitAccountBalanceList { get; set; }
+        }
+
+        public class Updated
+        {
+            public string success { get; set; }
+            public string time { get; set; }
+        }
+
+        public class ProfitAccountBalance
+        {
+            public string spotBalanceState { get; set; }
+            public string distributionType { get; set; }
+            public string balance { get; set; }
+            public string accountBalanceUsdt { get; set; }
+            public string success { get; set; }
+            public string accountBalance { get; set; }
+        }
+
+        public string success { get; set; }
+    }
 }
