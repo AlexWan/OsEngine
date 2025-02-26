@@ -82,6 +82,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                     _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreateWebSocketConnection();
+                    CheckActivationSockets();
                 }
                 catch (Exception exception)
                 {
@@ -101,12 +102,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public void Dispose()
         {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
-
             try
             {
                 UnsubscribeFromAllWebSockets();
@@ -131,6 +126,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
         }
 
         public ServerType ServerType
@@ -535,9 +541,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void CreateWebSocketConnection()
         {
-            _publicSocketActivate = false;
-            _privateSocketActivate = false;
-
             _webSocketPublic = new WebSocket(_webSocketUrlPublic);
             _webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
             _webSocketPublic.OnOpen += webSocketPublic_OnOpen;
@@ -596,30 +599,30 @@ namespace OsEngine.Market.Servers.HTX.Spot
             }
         }
 
-        private bool _publicSocketActivate = false;
-
-        private bool _privateSocketActivate = false;
-
         private string _lockerCheckActivateionSockets = "lockerCheckActivateionSockets";
 
         private void CheckActivationSockets()
         {
             lock (_lockerCheckActivateionSockets)
             {
-                if(_publicSocketActivate == false)
+                if (_webSocketPrivate == null
+                      || _webSocketPrivate.ReadyState != WebSocketState.Open)
                 {
+                    Disconnect();
                     return;
                 }
-                if (_privateSocketActivate == false)
+                if (_webSocketPublic == null
+                    || _webSocketPublic.ReadyState != WebSocketState.Open)
                 {
+                    Disconnect();
                     return;
                 }
 
-                if(ServerStatus == ServerConnectStatus.Disconnect)
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
 
-                    if(ConnectEvent != null)
+                    if (ConnectEvent != null)
                     {
                         ConnectEvent();
                     }
@@ -664,8 +667,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 else if (e.IsText)
                 {
                     _FIFOListWebSocketPublicMessage.Enqueue(e.Data);
-                }
-                                
+                }                
             }
             catch (Exception error)
             {
@@ -688,7 +690,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             SendLogMessage("Connection Websocket Public Open", LogMessageType.System);
 
-            _publicSocketActivate = true;
             CheckActivationSockets();
         }
 
@@ -726,7 +727,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     _FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
                 }
-
             }
             catch (Exception error)
             {
@@ -749,7 +749,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
         {
             SendLogMessage("Connection Websocket Private Open", LogMessageType.System);
 
-            _privateSocketActivate = true;
             CheckActivationSockets();
 
             try
