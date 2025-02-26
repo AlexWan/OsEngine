@@ -531,10 +531,18 @@ namespace OsEngine.Entity
                             }
                             if (trades[i].Time == _lastTradeTime)
                             {
-                                if (string.IsNullOrEmpty(trades[i].Id))
+                                if (string.IsNullOrEmpty(trades[i].Id) &&
+                                    trades[i].IdInTester == 0)
                                 {
                                     // если IDшников нет - просто игнорируем трейды с идентичным временем
                                     continue;
+                                }
+                                else if (trades[i].IdInTester != 0)
+                                {
+                                    if (trades[i].IdInTester <= _lastTradeIndexInTester)
+                                    {
+                                        continue;
+                                    }
                                 }
                                 else if (isNewTradesFurther == false)
                                 {
@@ -567,6 +575,8 @@ namespace OsEngine.Entity
 
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
 
+            _lastTradeIndexInTester = newTrades[newTrades.Count - 1].IdInTester;
+
             for (int i2 = 0; i2 < newTrades.Count; i2++)
             {
                 if (newTrades[i2] == null)
@@ -584,6 +594,8 @@ namespace OsEngine.Entity
         }
 
         private int _lastTradeIndex;
+
+        private long _lastTradeIndexInTester;
 
         private DateTime _lastTradeTime;
 
