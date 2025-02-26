@@ -293,10 +293,215 @@ namespace OsEngine.Market.Servers.HTX.Spot
         #region 4 Portfolios
 
         private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(200));
-     
+
+        public List<Portfolio> Portfolios;
+
         public void GetPortfolios()
-        {          
-            CreateQueryPortfolio(true);           
+        {
+            if (Portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
+            CreatePositions(true);
+            GetUSDTMasterPortfolio(true);
+        }
+
+        private void GetNewPortfolio()
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                Portfolios = new List<Portfolio>();
+
+                string url = _privateUriBuilder.Build("GET", "/v1/account/accounts");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                string JsonResponse = responseMessage.Content;
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseMessagePortfolios response = JsonConvert.DeserializeObject<ResponseMessagePortfolios>(JsonResponse);
+                    List<ResponseMessagePortfolios.Data> item = response.data;
+
+                    for (int i = 0; i < item.Count; i++)
+                    {
+                        Portfolio portfolio = new Portfolio();
+                        portfolio.Number = $"HTX_{item[i].type}_{item[i].id}_Portfolio";
+                        portfolio.ValueBegin = 1;
+                        portfolio.ValueCurrent = 1;
+                        portfolio.ValueBlocked = 0;
+
+                        Portfolios.Add(portfolio);
+                    }
+
+                    PortfolioEvent(Portfolios);
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CreatePositions(bool IsUpdateValueBegin)
+        {
+            if (Portfolios == null)
+            {
+                return;
+            }
+
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                for (int i = 0; i < Portfolios.Count; i++)
+                {
+                    Portfolio portfolio = Portfolios[i];
+
+                    string type = portfolio.Number.Split('_')[1];
+                    string id = portfolio.Number.Split('_')[2]; ;
+
+                    string url = _privateUriBuilder.Build("GET", $"/v1/account/accounts/{id}/balance");
+
+                    RestClient client = new RestClient(url);
+                    RestRequest request = new RestRequest(Method.GET);
+                    IRestResponse responseMessage = client.Execute(request);
+
+                    string JsonResponse = responseMessage.Content;
+
+                    if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                    {
+                        ResponseMessagePositions responsePosition = JsonConvert.DeserializeObject<ResponseMessagePositions>(JsonResponse);
+
+                        if (responsePosition.data == null)
+                        {
+                            continue;
+                        }
+
+                        List<ResponseMessagePositions.Lists> positions = responsePosition.data.list;
+
+                        for (int j = 0; j < positions.Count; j++)
+                        {
+                            PositionOnBoard pos = new PositionOnBoard();
+
+                            if (positions[j].type == "trade" && positions[j].balance == "0")
+                            {
+                                continue;
+                            }
+                            if (positions[j].type == "frozen")
+                            {
+                                continue;
+                            }
+                            pos.PortfolioName = $"HTX_{type}_{id}_Portfolio";
+                            pos.SecurityNameCode = positions[j].currency;
+
+                            if (positions[j].type == "trade")
+                            {
+                                pos.ValueCurrent = Math.Round(positions[j].balance.ToDecimal(), 6);
+
+                                if (j != positions.Count - 1)
+                                {
+                                    if (positions[j + 1].type == "frozen"
+                                        && positions[j].currency == positions[j + 1].currency)
+                                    {
+                                        pos.ValueBlocked = Math.Round(positions[j + 1].balance.ToDecimal(), 6);
+                                    }
+                                }
+
+                                if (IsUpdateValueBegin)
+                                {
+                                    pos.ValueBegin = Math.Round(positions[j].balance.ToDecimal(), 6);
+                                }
+                            }
+
+                            portfolio.SetNewPosition(pos);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                    }
+                }
+
+                PortfolioEvent(Portfolios);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private RateGate _rateGateAccountValuation = new RateGate(3, TimeSpan.FromSeconds(1));
+
+        private void GetUSDTMasterPortfolio(bool IsUpdateValueBegin)
+        {
+            if (Portfolios == null)
+            {
+                return;
+            }
+
+            _rateGateAccountValuation.WaitToProceed();
+
+            try
+            {
+                string url = _privateUriBuilder.Build("GET", "/v2/account/valuation");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                string JsonResponse = responseMessage.Content;
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    ResponseAccountValuation response = JsonConvert.DeserializeObject<ResponseAccountValuation>(JsonResponse);
+
+                    if (response.code == "200")
+                    {
+                        List<ResponseAccountValuation.ProfitAccountBalance> accountBalance = response.data.profitAccountBalanceList;
+
+                        for (int i = 0; i < Portfolios.Count; i++)
+                        {
+                            Portfolio portfolio = Portfolios[i];
+
+                            string type = portfolio.Number.Split('_')[1];
+
+                            for (int j = 0; j < accountBalance.Count; j++)
+                            {
+                                if (accountBalance[j].distributionType == "1"
+                                    && type == "spot")
+                                {
+                                    if (IsUpdateValueBegin)
+                                    {
+                                        portfolio.ValueBegin = Math.Round(accountBalance[j].accountBalanceUsdt.ToDecimal(), 4);
+                                    }
+
+                                    portfolio.ValueCurrent = Math.Round(accountBalance[j].accountBalanceUsdt.ToDecimal(), 4);
+
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -768,7 +973,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void ThreadUpdatePortfolio()
         {
-            Thread.Sleep(5000);
+            Thread.Sleep(10000);
 
             while (true)
             {
@@ -781,7 +986,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
                         Thread.Sleep(2000);
                         continue;
                     }
-                    CreateQueryPortfolio(false);
+
+                    if (Portfolios == null)
+                    {
+                        continue;
+                    }
+
+                    CreatePositions(false);
+                    GetUSDTMasterPortfolio(false);
                 }
                 catch (Exception error)
                 {
@@ -1819,116 +2031,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     // ignore
                 }
             }
-        }
-
-        private void CreateQueryPortfolio(bool IsUpdateValueBegin)
-        {
-            _rateGatePortfolio.WaitToProceed();
-
-            try
-            {   
-                string url = _privateUriBuilder.Build("GET", "/v1/account/accounts");
-                       
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
-
-                string JsonResponse = responseMessage.Content;
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    UpdatePorfolio(JsonResponse, IsUpdateValueBegin);                   
-                }
-                else
-                {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void UpdatePorfolio(string json, bool IsUpdateValueBegin)
-        {
-            ResponseMessagePortfolios response = JsonConvert.DeserializeObject<ResponseMessagePortfolios>(json);
-
-            List<Portfolio> portfolios = new List<Portfolio>();
-
-            List<ResponseMessagePortfolios.Data> item = response.data;
-
-            for (int i = 0; i < item.Count; i++)
-            {
-                Portfolio portfolio = new Portfolio();
-
-                portfolio.Number = $"HTX_{item[i].type}_{item[i].id}_Portfolio";
-                portfolio.ValueBegin = 1;
-                portfolio.ValueCurrent = 1;
-
-                string url = _privateUriBuilder.Build("GET", $"/v1/account/accounts/{item[i].id}/balance");
-
-                RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);
-                IRestResponse responseMessage = client.Execute(request);
-
-                string JsonResponse = responseMessage.Content;
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    ResponseMessagePositions responsePosition = JsonConvert.DeserializeObject<ResponseMessagePositions>(JsonResponse);
-
-                    if(responsePosition.data == null)
-                    {
-                        continue;
-                    }
-
-                    List<ResponseMessagePositions.Lists> positions = responsePosition.data.list;
-
-                    for (int j = 0; j < positions.Count; j++)
-                    {
-                        PositionOnBoard pos = new PositionOnBoard();
-
-                        if (positions[j].type == "trade" && positions[j].balance == "0")
-                        {
-                            continue;
-                        }
-                        if (positions[j].type == "frozen")
-                        {
-                            continue;
-                        }
-                        pos.PortfolioName = $"HTX_{item[i].type}_{item[i].id}_Portfolio";
-                        pos.SecurityNameCode = positions[j].currency;
-                        
-                        if (positions[j].type == "trade")
-                        {                           
-                            pos.ValueCurrent = positions[j].balance.ToDecimal();
-                            
-                            if (j != positions.Count-1)
-                            {
-                                if (positions[j + 1].type == "frozen" 
-                                    && positions[j].currency == positions[j + 1].currency)
-                                {
-                                    pos.ValueBlocked = positions[j+1].balance.ToDecimal();
-                                }
-                            }
-
-                            if (IsUpdateValueBegin)
-                            {
-                                pos.ValueBegin = positions[j].balance.ToDecimal();                                
-                            }
-                        }
-                        portfolio.SetNewPosition(pos);                        
-                    }
-                    portfolios.Add(portfolio);
-                }
-                else
-                {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
-                }
-            }
-
-            PortfolioEvent(portfolios);
         }
 
         public static string Decompress(byte[] input)
