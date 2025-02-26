@@ -47,6 +47,7 @@
         {
             get { return false; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
             get { return false; }
@@ -54,40 +55,49 @@
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
+
         public bool DataFeedTfDayCanLoad
         {
             get { return false; }
@@ -147,7 +157,7 @@
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = false,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = true
+                TimeFrameDayIsOn = false
             };
 
 

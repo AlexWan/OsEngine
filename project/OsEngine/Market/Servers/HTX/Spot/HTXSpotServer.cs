@@ -14,6 +14,7 @@ using RestSharp;
 using System.IO.Compression;
 using System.IO;
 using System.Security.Authentication;
+using OsEngine.Language;
 
 namespace OsEngine.Market.Servers.HTX.Spot
 {
@@ -25,7 +26,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             ServerRealization = realization;
 
             CreateParameterString("Access Key", "");
-            CreateParameterString("Secret Key", "");            
+            CreateParameterString("Secret Key", "");
         }
     }
 
@@ -67,15 +68,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return;
             }
 
-            string url = $"https://{_baseUrl}/v2/market-status";
-            RestClient client = new RestClient(url);
-            RestRequest request = new RestRequest(Method.GET);
-            IRestResponse responseMessage = client.Execute(request);
-  
-            if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+            try
             {
-                try
+                string url = $"https://{_baseUrl}/v2/market-status";
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
+
                     _privateUriBuilder = new PrivateUrlBuilder(_accessKey, _secretKey, _baseUrl);
                     _signer = new Signer(_secretKey);
 
@@ -83,17 +85,18 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreateWebSocketConnection();
                     CheckActivationSockets();
+
                 }
-                catch (Exception exception)
+                else
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. HTXSpot. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
             }
-            else
+            catch (Exception exception)
             {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 SendLogMessage("Connection can be open. HTXSpot. Error request", LogMessageType.Error);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
@@ -114,7 +117,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             _subscribledSecurities.Clear();
             _arrayPrivateChannels.Clear();
             _arrayPublicChannels.Clear();
-            
+
             try
             {
                 DeleteWebscoektConnection();
@@ -163,11 +166,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
         private string _baseUrl = "api.huobi.pro";
 
         private string _webSocketUrlPublic = "wss://api.huobi.pro/ws";
-               
+
         private string _webSocketUrlPrivate = "wss://api.huobi.pro/ws/v2";
 
-        private int _limitCandles = 300;
-               
+        private int _limitCandles = 2000;
+
         private List<string> _arrayPrivateChannels = new List<string>();
 
         private List<string> _arrayPublicChannels = new List<string>();
@@ -186,14 +189,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         #region 3 Securities
 
-        public void GetSecurities() 
+        public void GetSecurities()
         {
             try
-            {      
+            {
                 string url = $"https://{_baseUrl}/v1/settings/common/market-symbols";
                 RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);                
-                IRestResponse responseMessage = client.Execute(request);                
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
                 string JsonResponse = responseMessage.Content;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -203,7 +206,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 else
                 {
                     SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
-                }               
+                }
             }
             catch (Exception exception)
             {
@@ -222,7 +225,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 ResponseMessageSecurities.Data item = response.data[i];
 
                 if (item.state == "online")
-                {   
+                {
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = ServerType.HTXSpot.ToString();
@@ -397,10 +400,12 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             {
                                 continue;
                             }
+
                             if (positions[j].type == "frozen")
                             {
                                 continue;
                             }
+
                             pos.PortfolioName = $"HTX_{type}_{id}_Portfolio";
                             pos.SecurityNameCode = positions[j].currency;
 
@@ -518,6 +523,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
             if (!CheckTime(startTime, endTime, actualTime))
             {
@@ -531,62 +539,56 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 return null;
             }
 
+            int countNeedToLoad = GetCountCandlesToLoad();
+
             List<Candle> allCandles = new List<Candle>();
 
-            DateTime startTimeData = startTime;
-            DateTime endTimeData = startTimeData.AddMinutes(tfTotalMinutes * _limitCandles);
-
-            do
+            if (countNeedToLoad > _limitCandles)
             {
-                long from = TimeManager.GetTimeStampSecondsToDateTime(startTimeData);
-                long to = TimeManager.GetTimeStampSecondsToDateTime(endTimeData);
+                countNeedToLoad = _limitCandles;
+            }
 
-                string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
+            string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
 
-                List<Candle> candles = RequestCandleHistory(security.Name, interval, from, to);
+            List<Candle> candles = RequestCandleHistory(security.Name, interval, countNeedToLoad);
 
-                if (candles == null || candles.Count == 0)
+            if (candles == null || candles.Count == 0)
+            {
+                return null;
+            }
+
+            if (allCandles.Count > 0
+                && allCandles[allCandles.Count - 1].TimeStart == candles[0].TimeStart)
+            {
+                candles.RemoveAt(0);
+            }
+
+            if (candles.Count == 0)
+            {
+                return null;
+            }
+
+            Candle last = candles[candles.Count - 1];
+
+            if (last.TimeStart >= endTime)
+
+            {
+                for (int i = 0; i < candles.Count; i++)
                 {
-                    break;
-                }
-
-                Candle last = candles[candles.Count - 1];
-
-                if (last.TimeStart >= endTime)
-
-                {
-                    for (int i = 0; i < candles.Count; i++)
+                    if (candles[i].TimeStart <= endTime)
                     {
-                        if (candles[i].TimeStart <= endTime)
-                        {
-                            allCandles.Add(candles[i]);
-                        }
+                        allCandles.Add(candles[i]);
                     }
-                    break;
                 }
+            }
 
-                allCandles.AddRange(candles);
+            allCandles.AddRange(candles);
 
-                startTimeData = endTimeData;
-                endTimeData = startTimeData.AddMinutes(tfTotalMinutes * _limitCandles);
-
-                if (startTimeData >= DateTime.UtcNow)
-                {
-                    break;
-                }
-
-                if (endTimeData > DateTime.Now)
-                {
-                    endTimeData = DateTime.Now;
-                }
-
-            } while (true);
-
-            if(allCandles != null && allCandles.Count > 0)
+            if (allCandles != null && allCandles.Count > 0)
             {
-                for(int i = 1;i < allCandles.Count;i++)
+                for (int i = 1; i < allCandles.Count; i++)
                 {
-                    if (allCandles[i-1].TimeStart == allCandles[i].TimeStart)
+                    if (allCandles[i - 1].TimeStart == allCandles[i].TimeStart)
                     {
                         allCandles.RemoveAt(i);
                         i--;
@@ -597,13 +599,37 @@ namespace OsEngine.Market.Servers.HTX.Spot
             return allCandles;
         }
 
+        private int GetCountCandlesToLoad()
+        {
+            AServer server = null;
+
+            for (int i = 0; i < ServerMaster.GetServers().Count; i++)
+            {
+                if (ServerMaster.GetServers()[i].ServerType == ServerType.HTXSpot)
+                {
+                    server = (AServer)ServerMaster.GetServers()[i];
+                    break;
+                }
+            }
+
+            for (int i = 0; i < server.ServerParameters.Count; i++)
+            {
+                if (server.ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
+                {
+                    ServerParameterInt Param = (ServerParameterInt)server.ServerParameters[i];
+                    return Param.Value;
+                }
+            }
+
+            return 300;
+        }
+
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now ||
-                endTime < DateTime.UtcNow.AddYears(-20))
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -612,7 +638,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private bool CheckTf(int timeFrameMinutes)
         {
-            if (timeFrameMinutes == 1 ||                
+            if (timeFrameMinutes == 1 ||
                 timeFrameMinutes == 5 ||
                 timeFrameMinutes == 15 ||
                 timeFrameMinutes == 30 ||
@@ -645,38 +671,35 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     return "1day";
                 default:
                     return null;
-            }           
+            }
         }
 
         private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(100));
-               
-        private List<Candle> RequestCandleHistory(string security, string interval, long fromTimeStamp, long toTimeStamp)
+
+        private List<Candle> RequestCandleHistory(string security, string interval, int countCandles)
         {
             _rgCandleData.WaitToProceed();
 
             try
             {
-                string clientId = "";
+                string queryParam = $"symbol={security}&";
+                queryParam += $"period={interval}&";
+                queryParam += $"size={countCandles}";
 
-                string topic = $"market.{security}.kline.{interval}";
+                string url = $"https://{_baseUrl}/market/history/kline?{queryParam}";
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+                string JsonResponse = responseMessage.Content;
 
-                string request = $"{{ \"req\": \"{topic}\",\"id\": \"{clientId}\", \"from\":{fromTimeStamp}, \"to\":{toTimeStamp} }}";
-
-                _webSocketPublic.Send(request);
-
-                DateTime startLoadingTime = DateTime.Now;
-
-                while (startLoadingTime.AddSeconds(30) > DateTime.Now)
+                if (!JsonResponse.Contains("error"))
                 {
-                    if (_allCandleSeries != null)
-                    {
-                        List<Candle> candles = ConvertCandles(_allCandleSeries);
-                        _allCandleSeries = null;
-
-                        return candles;
-                    }
-                    Thread.Sleep(100);
-                }                               
+                    return ConvertCandles(JsonResponse);
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode} - {JsonResponse}", LogMessageType.Error);
+                }
             }
             catch (Exception exception)
             {
@@ -712,6 +735,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 candles.Add(candle);
             }
+            candles.Reverse();
+
             return candles;
         }
 
@@ -730,7 +755,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.Now;
+            DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
             return GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, endTime);
@@ -773,7 +798,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 _webSocketPublic.OnMessage -= webSocketPublic_OnMessage;
                 _webSocketPublic.OnError -= webSocketPublic_OnError;
                 _webSocketPublic.OnClose -= webSocketPublic_OnClose;
-               
+
                 try
                 {
                     _webSocketPublic.CloseAsync();
@@ -791,7 +816,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 _webSocketPrivate.OnMessage -= webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError -= webSocketPrivate_OnError;
                 _webSocketPrivate.OnClose -= webSocketPrivate_OnClose;
-               
+
                 try
                 {
                     _webSocketPrivate.CloseAsync();
@@ -811,7 +836,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             lock (_lockerCheckActivateionSockets)
             {
                 if (_webSocketPrivate == null
-                      || _webSocketPrivate.ReadyState != WebSocketState.Open)
+                     || _webSocketPrivate.ReadyState != WebSocketState.Open)
                 {
                     Disconnect();
                     return;
@@ -857,14 +882,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     return;
                 }
+
                 if (e == null)
                 {
                     return;
-                }                               
+                }
+
                 if (_FIFOListWebSocketPublicMessage == null)
                 {
                     return;
                 }
+
                 if (e.IsBinary)
                 {
                     _FIFOListWebSocketPublicMessage.Enqueue(Decompress(e.RawData));
@@ -872,7 +900,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 else if (e.IsText)
                 {
                     _FIFOListWebSocketPublicMessage.Enqueue(e.Data);
-                }                
+                }
             }
             catch (Exception error)
             {
@@ -882,7 +910,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPublic_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null 
+            if (DisconnectEvent != null
                 && ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by HTXSpot. WebSocket Public Closed Event", LogMessageType.System);
@@ -916,14 +944,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     return;
                 }
+
                 if (e == null)
                 {
                     return;
                 }
+
                 if (_FIFOListWebSocketPrivateMessage == null)
                 {
                     return;
                 }
+
                 if (e.IsBinary)
                 {
                     _FIFOListWebSocketPrivateMessage.Enqueue(Decompress(e.RawData));
@@ -941,7 +972,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null 
+            if (DisconnectEvent != null
                 & ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage("Connection Closed by HTXSpot. WebSocket Private Closed Event", LogMessageType.System);
@@ -1065,7 +1096,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     try
                     {
                         if (message.Contains("ping"))
-                        {                            
+                        {
                             CreatePingMessageWebSocketPublic(message);
                             continue;
                         }
@@ -1136,24 +1167,25 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     {
                         if (message.Contains("ping"))
                         {
-                            CreatePingMessageWebSocketPrivate(message);                            
+                            CreatePingMessageWebSocketPrivate(message);
                             continue;
                         }
 
                         if (message.Contains("auth"))
-                        {                            
+                        {
                             SendSubscriblePrivate();
                             continue;
                         }
-                        
+
                         if (message.Contains("orders#"))
                         {
                             UpdateOrder(message);
                         }
+
                         if (message.Contains("trade.clearing"))
                         {
                             UpdateMyTrade(message);
-                        }                      
+                        }
                     }
                     catch (Exception exception)
                     {
@@ -1173,7 +1205,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
         private void UpdateTrade(string message)
         {
             ResponseChannelTrades responseTrade = JsonConvert.DeserializeObject<ResponseChannelTrades>(message);
-           
+
             if (responseTrade == null)
             {
                 return;
@@ -1182,11 +1214,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
             if (responseTrade.tick == null)
             {
                 return;
-            }                      
+            }
 
             List<ResponseChannelTrades.Data> item = responseTrade.tick.data;
-                
-            for (int i = 0;  i < item.Count; i++)
+
+            for (int i = 0; i < item.Count; i++)
             {
                 Trade trade = new Trade();
                 trade.SecurityNameCode = GetSecurityName(responseTrade.ch);
@@ -1241,7 +1273,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     MarketDepthLevel level = new MarketDepthLevel();
                     level.Ask = ask;
                     level.Price = price;
-                    asks.Add(level);                               
+                    asks.Add(level);
                 }
             }
 
@@ -1252,8 +1284,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     decimal bid = item.bids[i][1].ToString().ToDecimal();
                     decimal price = item.bids[i][0].ToString().ToDecimal();
 
-                    if (bid == 0 ||
-                        price == 0)
+                    if (bid == 0 
+                        || price == 0)
                     {
                         continue;
                     }
@@ -1261,12 +1293,12 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     MarketDepthLevel level = new MarketDepthLevel();
                     level.Bid = bid;
                     level.Price = price;
-                    bids.Add(level);           
+                    bids.Add(level);
                 }
             }
 
-            if (asks.Count == 0 ||
-                bids.Count == 0)
+            if (asks.Count == 0 
+                || bids.Count == 0)
             {
                 return;
             }
@@ -1283,7 +1315,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             _lastMdTime = marketDepth.Time;
 
-
             MarketDepthEvent(marketDepth);
         }
 
@@ -1294,7 +1325,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             string[] strings = ch.Split('.');
             return strings[1];
         }
-       
+
         private void UpdateMyTrade(string message)
         {
             ResponseChannelUpdateMyTrade response = JsonConvert.DeserializeObject<ResponseChannelUpdateMyTrade>(message);
@@ -1353,10 +1384,12 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 newOrder.Price = item.orderPrice.ToDecimal();
 
                 string source = "spot";
+
                 if (item.source == "margin-api")
                 {
                     source = "margin";
                 }
+
                 if (item.source == "super-margin-api")
                 {
                     source = "super-margin";
@@ -1429,16 +1462,19 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 {
                     newOrder.TypeOrder = OrderPriceType.Market;
                 }
+
                 if (item.type.Split('-')[1] == "limit")
                 {
                     newOrder.TypeOrder = OrderPriceType.Limit;
                 }
 
                 string source = "spot";
+
                 if (item.orderSource == "margin-api")
                 {
                     source = "margin";
                 }
+
                 if (item.orderSource == "super-margin-api")
                 {
                     source = "super-margin";
@@ -1461,7 +1497,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     break;
                 case ("filled"):
                     stateType = OrderStateType.Done;
-                    break;                
+                    break;
                 case ("partial-filled"):
                     stateType = OrderStateType.Partial;
                     break;
@@ -1469,7 +1505,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     stateType = OrderStateType.Cancel;
                     break;
                 case ("created"):
-                    stateType = OrderStateType.Pending; 
+                    stateType = OrderStateType.Pending;
                     break;
                 default:
                     stateType = OrderStateType.None;
@@ -1555,15 +1591,15 @@ namespace OsEngine.Market.Servers.HTX.Spot
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
-        {            
+        {
         }
 
         public void CancelAllOrders()
-        {           
+        {
         }
 
         public void CancelAllOrdersToSecurity(Security security)
-        {            
+        {
         }
 
         public void CancelOrder(Order order)
@@ -1574,6 +1610,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             {
                 return;
             }
+
             try
             {
                 string url = _privateUriBuilder.Build("POST", $"/v1/order/orders/{order.NumberMarket}/submitcancel");
@@ -1670,15 +1707,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             newOrder.ServerType = ServerType.HTXSpot;
                             newOrder.SecurityNameCode = item[i].symbol;
                             newOrder.NumberUser = Convert.ToInt32(item[i].client_order_id);
-                            newOrder.NumberMarket = item[i].id.ToString();                            
+                            newOrder.NumberMarket = item[i].id.ToString();
                             newOrder.State = GetOrderState(item[i].state);
                             newOrder.Volume = item[i].amount.ToDecimal();
                             newOrder.Price = item[i].price.ToDecimal();
-                            
+
                             if (item[i].type.Split('-')[1] == "market")
                             {
                                 newOrder.TypeOrder = OrderPriceType.Market;
                             }
+
                             if (item[i].type.Split('-')[1] == "limit")
                             {
                                 newOrder.TypeOrder = OrderPriceType.Limit;
@@ -1698,6 +1736,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                             {
                                 source = "margin";
                             }
+
                             if (item[i].source == "super-margin-api")
                             {
                                 source = "super-margin";
@@ -1796,11 +1835,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
             Order newOrder = new Order();
 
             try
-            {                
+            {
                 string url = _privateUriBuilder.Build("GET", $"/v1/order/orders/{numberMarket}");
 
                 RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);                
+                RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
 
                 ResponseMessageGetOrder response = JsonConvert.DeserializeObject<ResponseMessageGetOrder>(responseMessage.Content);
@@ -1962,7 +2001,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
         }
 
         private void SendSubscriblePrivate()
-        {  
+        {
             string chOrders = "orders#*";
             string chTrades = "trade.clearing#*#0";
             _webSocketPrivate.Send($"{{\"action\": \"sub\",\"ch\": \"{chOrders}\"}}");
@@ -1982,7 +2021,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
             else
             {
                 _webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
-            }            
+            }
         }
 
         private void CreatePingMessageWebSocketPrivate(string message)
@@ -2070,14 +2109,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
             string signature = _signer.Sign("GET", _baseUrl, "/ws/v2", request.BuildParams());
 
             WebSocketAuthenticationRequestV2 auth = new WebSocketAuthenticationRequestV2();
-            auth.@params = new WebSocketAuthenticationRequestV2.Params();           
+            auth.@params = new WebSocketAuthenticationRequestV2.Params();
             auth.@params.accessKey = _accessKey;
             auth.@params.signature = signature;
             auth.@params.timestamp = strDateTime;
-            
+
             return JsonConvert.SerializeObject(auth);
         }
-        
+
         #endregion
 
         #region 13 Log
