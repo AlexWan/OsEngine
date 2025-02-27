@@ -1111,15 +1111,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     return;
                 }
+
                 if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
+
                 if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
-
 
                 if (FIFOListWebSocketPublicMessage == null)
                 {
@@ -1176,10 +1177,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     return;
                 }
+
                 if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
+
                 if (e.Data.Length == 4)
                 { // pong message
                     return;
@@ -1270,7 +1273,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             DisconnectEvent();
                         }
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -1294,7 +1296,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 _rateGateSubscrible.WaitToProceed();
                 CreateSubscribleSecurityMessageWebSocket(security);
-
             }
             catch (Exception exception)
             {
@@ -2326,6 +2327,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+                List<Order> orders = new List<Order>();
+
                 for (int i = 0; i < _listCoin.Count; i++)
                 {
                     IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/mix/order/orders-pending?productType={_listCoin[i]}", Method.GET, null, null);
@@ -2339,18 +2342,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         {
                             if (stateResponse.data.entrustedList == null)
                             {
-                                return null;
+                                continue;
                             }
-
-                            List<Order> orders = new List<Order>();
 
                             for (int ind = 0; ind < stateResponse.data.entrustedList.Count; ind++)
                             {
                                 Order curOder = ConvertRestToOrder(stateResponse.data.entrustedList[ind]);
                                 orders.Add(curOder);
                             }
-
-                            return orders;
                         }
                         else
                         {
@@ -2359,7 +2358,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         }
                     }
                 }
-                return null;
+
+                return orders;
             }
             catch (Exception e)
             {
