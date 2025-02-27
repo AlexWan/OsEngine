@@ -1979,7 +1979,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 else if (marketDepth.Time == _lastTimeMd)
                 {
-                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+                    _lastTimeMd = _lastTimeMd.AddMilliseconds(1);
                     marketDepth.Time = _lastTimeMd;
                 }
 
@@ -1993,7 +1993,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private DateTime _lastTimeMd;
+        private DateTime _lastTimeMd = DateTime.MinValue;
 
         public event Action<Order> MyOrderEvent;
 
