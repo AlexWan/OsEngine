@@ -116,6 +116,25 @@ namespace OsEngine.Market.Connectors
                 ComboBoxTypeServer.Items.Add(servers[i].ServerType);
             }
 
+            if (servers.Count > 0
+                && servers[0].ServerType == ServerType.Tester)
+            {
+                ComboBoxTypeServer.IsEnabled = false;
+                CheckBoxIsEmulator.IsEnabled = false;
+                ComboBoxTypeServer.SelectedItem = ServerType.Tester;
+                SourcesCreator.ServerType = ServerType.Tester;
+                _selectedType = ServerType.Tester;
+            }
+            else if (servers.Count > 0
+                && servers[0].ServerType == ServerType.Optimizer)
+            {
+                ComboBoxTypeServer.IsEnabled = false;
+                CheckBoxIsEmulator.IsEnabled = false;
+                ComboBoxTypeServer.SelectedItem = ServerType.Optimizer;
+                SourcesCreator.ServerType = ServerType.Optimizer;
+                _selectedType = ServerType.Optimizer;
+            }
+
             if (SourcesCreator.ServerType != ServerType.None)
             {
                 ComboBoxTypeServer.SelectedItem = SourcesCreator.ServerType;
@@ -127,17 +146,7 @@ namespace OsEngine.Market.Connectors
                 _selectedType = servers[0].ServerType;
             }
 
-            if (SourcesCreator.StartProgram == StartProgram.IsTester)
-            {
-                ComboBoxTypeServer.IsEnabled = false;
-                CheckBoxIsEmulator.IsEnabled = false;
-                ComboBoxTypeServer.SelectedItem = ServerType.Tester;
-                //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
-                //ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
 
-                SourcesCreator.ServerType = ServerType.Tester;
-                _selectedType = ServerType.Tester;
-            }
 
             CreateGrid();
 

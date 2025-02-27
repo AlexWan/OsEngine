@@ -64,6 +64,22 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     _selectedServerType = ServerType.Optimizer;
                     connectorBot.ServerType = ServerType.Optimizer;
+                    ComboBoxTypeServer.IsEnabled = false;
+                    CheckBoxIsEmulator.IsEnabled = false;
+                    ComboBoxTypeServer.SelectedItem = ServerType.Optimizer;
+                    ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
+                    ComboBoxPortfolio.IsEnabled = false;
+                }
+                else if (servers.Count > 0
+                     && servers[0].ServerType == ServerType.Tester)
+                {
+                    _selectedServerType = ServerType.Tester;
+                    connectorBot.ServerType = ServerType.Tester;
+                    ComboBoxTypeServer.IsEnabled = false;
+                    CheckBoxIsEmulator.IsEnabled = false;
+                    ComboBoxTypeServer.SelectedItem = ServerType.Tester;
+                    ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
+                    ComboBoxPortfolio.IsEnabled = false;
                 }
 
                 if (connectorBot.ServerType != ServerType.None)
@@ -75,17 +91,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
                     _selectedServerType = servers[0].ServerType;
-                }
-
-                if (connectorBot.StartProgram == StartProgram.IsTester)
-                {
-                    ComboBoxTypeServer.IsEnabled = false;
-                    CheckBoxIsEmulator.IsEnabled = false;
-                    ComboBoxTypeServer.SelectedItem = ServerType.Tester;
-                    //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
-
-                    ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
-                    ComboBoxPortfolio.IsEnabled = false;
                 }
 
                 CreateGrid();
