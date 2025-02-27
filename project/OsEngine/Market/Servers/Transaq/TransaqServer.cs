@@ -161,6 +161,7 @@ namespace OsEngine.Market.Servers.Transaq
                 cmd = cmd + "<password>" + password + "</password>";
                 cmd = cmd + "<host>" + serverIp + "</host>";
                 cmd = cmd + "<port>" + serverPort + "</port>";
+                cmd = cmd + "<milliseconds>true</milliseconds>";
                 cmd = cmd + "<push_pos_equity>" + 3 + "</push_pos_equity>";
                 cmd = cmd + "<rqdelay>100</rqdelay>";
                 cmd = cmd + "</command>";
