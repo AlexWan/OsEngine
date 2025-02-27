@@ -479,6 +479,7 @@
     <Compile Include="Market\Servers\CoinEx\Spot\CoinExServerSpot.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\CoinExServerSpotPermission.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexCandle.cs" />
+    <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexMarginPortfolioItem.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexOrder.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexMarketInfoItem.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexTransaction.cs" />
@@ -488,7 +489,7 @@
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexRequestsSocket.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexRestResp.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexSecurity.cs" />
-    <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexPortfolioItem.cs" />
+    <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexSpotPortfolioItem.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexWsBalance.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexWsDepthUpdate.cs" />
     <Compile Include="Market\Servers\CoinEx\Spot\Entity\CexWsOrderUpdate.cs" />
