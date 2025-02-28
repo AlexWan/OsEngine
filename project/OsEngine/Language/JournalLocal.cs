@@ -248,8 +248,8 @@ namespace OsEngine.Language
             "Ru:Среднее время удержания_");
 
         public string GridRow18 => OsLocalization.ConvertToLocString(
-            "Eng:Sharp ratio_" +
-            "Ru:Sharp ratio_");
+            "Eng:Sharpe ratio_" +
+            "Ru:Sharpe ratio_");
 
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:You must select a file to save!_" +
