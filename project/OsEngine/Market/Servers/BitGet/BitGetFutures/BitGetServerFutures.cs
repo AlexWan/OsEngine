@@ -226,6 +226,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 try
                 {
+                    _rateGateSecurity.WaitToProceed();
+
                     string requestStr = $"/api/v2/mix/market/contracts?productType={_listCoin[indCoin]}";
                     RestRequest requestRest = new RestRequest(requestStr, Method.GET);
                     IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
@@ -272,15 +274,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             securities.Add(newSecurity);
                         }
                     }
+
                     SecurityEvent(securities);
                 }
-
                 catch (Exception exception)
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
             }
         }
+
+        private RateGate _rateGateSecurity = new RateGate(2, TimeSpan.FromMilliseconds(100));
 
         private decimal GetVolumeStep(int ScalePrice)
         {
@@ -331,7 +335,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         public List<Portfolio> Portfolios;
 
-        private RateGate _rateGatePortfolio = new RateGate(10, TimeSpan.FromSeconds(1));
+        private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
         private void ThreadGetPortfolios()
         {
@@ -824,11 +828,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        private readonly RateGate _rgCandleData = new RateGate(2, TimeSpan.FromMilliseconds(100));
 
         private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, bool isOsData, int limitCandles)
         {
-            _rgCandleData.WaitToProceed(100);
+            _rgCandleData.WaitToProceed();
 
             string stringUrl = "/api/v2/mix/market/candles";
 
@@ -903,6 +907,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 return true;
             }
+
             return false;
         }
 
@@ -1980,7 +1985,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
                 else if (marketDepth.Time == _lastTimeMd)
                 {
-                    _lastTimeMd = _lastTimeMd.AddMilliseconds(1);
+                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
                     marketDepth.Time = _lastTimeMd;
                 }
 
@@ -2010,9 +2015,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         #region 11 Trade
 
-        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
-        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateOrder = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
         public void SendOrder(Order order)
         {
@@ -2039,7 +2042,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     posSide = order.Side == Side.Buy ? "buy" : "sell";
                 }
 
-                _rateGateSendOrder.WaitToProceed();
+                _rateGateOrder.WaitToProceed();
 
                 Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
 
@@ -2110,7 +2113,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateOrder.WaitToProceed();
 
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
 
@@ -2178,6 +2181,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+                _rateGateOrder.WaitToProceed();
+
                 string path = "/api/v2/mix/order/detail?symbol=" + order.SecurityNameCode + "&productType=" + order.SecurityClassCode + "&clientOid=" + order.NumberUser;
 
                 IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
@@ -2235,6 +2240,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+                _rateGateOrder.WaitToProceed();
+
                 string path = $"/api/v2/mix/order/fills?symbol={order.SecurityNameCode}&productType={order.SecurityClassCode}";
 
                 IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null, null);
@@ -2284,7 +2291,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateOrder.WaitToProceed();
 
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
 
@@ -2305,7 +2312,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateOrder.WaitToProceed();
 
                 for (int i = 0; i < _listCoin.Count; i++)
                 {
@@ -2327,6 +2334,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         {
             try
             {
+                _rateGateOrder.WaitToProceed();
+
                 List<Order> orders = new List<Order>();
 
                 for (int i = 0; i < _listCoin.Count; i++)

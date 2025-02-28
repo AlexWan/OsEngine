@@ -21,6 +21,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
         public string quantityPrecision;
         public string pricePrecision;
         public string status;
+        public string quoteCoin;  // "USDT"
     }
 
     public class RestMessageAccount
