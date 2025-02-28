@@ -176,6 +176,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public void GetSecurities()
         {
+            _rateGateSecurity.WaitToProceed();
+
             try
             {
                 string requestStr = $"/api/v2/spot/public/symbols";
@@ -212,7 +214,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         newSecurity.Lot = GetVolumeStep(newSecurity.DecimalsVolume);
                         newSecurity.Name = item.symbol;
                         newSecurity.NameFull = item.symbol;
-                        newSecurity.NameClass = "Spot";
+                        newSecurity.NameClass = "Spot"; //+ "_" + item.quoteCoin;
                         newSecurity.NameId = item.symbol;
                         newSecurity.SecurityType = SecurityType.CurrencyPair;
                         newSecurity.Decimals = Convert.ToInt32(item.pricePrecision);
@@ -223,14 +225,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         securities.Add(newSecurity);
                     }
                 }
+
                 SecurityEvent(securities);
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-           
+            } 
         }
+
+        private RateGate _rateGateSecurity = new RateGate(2, TimeSpan.FromMilliseconds(100));
 
         private decimal GetVolumeStep(int quantityPrecision)
         {
@@ -283,10 +287,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         public void GetPortfolios()
         {
             CreateQueryPortfolio(true);
+            _portfolioIsStarted = true;
         }
-                
+
+        private bool _portfolioIsStarted = false;
+
+        private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
+            _rateGatePortfolio.WaitToProceed();
+
             try
             {
                 HttpResponseMessage responseMessage = CreatePrivateQueryOrders("/api/v2/spot/account/assets", "GET", null, null);
@@ -373,6 +384,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private List<Candle> GetCandleData(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime, bool isOsData)
         {
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
             if (!CheckTime(startTime, endTime, actualTime))
             {
                 return null;
@@ -471,10 +486,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now ||
-                endTime < DateTime.UtcNow.AddYears(-20))
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -512,7 +526,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private List<Candle> RequestCandleHistory(Security security, string interval, long startTime, long endTime, bool isOsData, int limitCandles)
         {
-            _rgCandleData.WaitToProceed(100);
+            _rgCandleData.WaitToProceed();
 
             string stringUrl = "/api/v2/spot/market/candles";
 
@@ -1133,7 +1147,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                                 SubscribleState.msg, LogMessageType.Error);
 
                             if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
-                            { // если на старте вёб-сокета проблемы, то надо его перезапускать
+                            { // if there are problems with the web socket startup, you need to restart it
                                 ServerStatus = ServerConnectStatus.Disconnect;
                                 DisconnectEvent();
                             }
@@ -1219,7 +1233,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                                 SubscribleState.msg, LogMessageType.Error);
 
                             if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
-                            { // если на старте вёб-сокета проблемы, то надо его перезапускать
+                            { // if there are problems with the web socket startup, you need to restart it
                                 ServerStatus = ServerConnectStatus.Disconnect;
                                 DisconnectEvent();
                             }
@@ -1257,6 +1271,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private void UpdateAccount(string message)
         {
+            if (_portfolioIsStarted == false)
+            {
+                return;
+            }
+
             try
             {
                 ResponseWebSocketMessageAction<List<ResponseWebSocketAccount>> assets = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseWebSocketAccount>>());
@@ -1271,7 +1290,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 portfolio.Number = "BitGetSpot";
                 portfolio.ValueBegin = 1;
                 portfolio.ValueCurrent = 1;
-
 
                 for (int i = 0; i < assets.data.Count; i++)
                 {
@@ -1534,15 +1552,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         #region 11 Trade
 
-        private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
-
-        private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
+        private RateGate _rateGateOrder = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
         public void SendOrder(Order order)
         {
             try
             {
-                _rateGateSendOrder.WaitToProceed();
+                _rateGateOrder.WaitToProceed();
 
                 Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
 
@@ -1596,7 +1612,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             try
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateOrder.WaitToProceed();
 
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
 
@@ -1645,7 +1661,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             try
             {
-                _rateGateCancelOrder.WaitToProceed();
+                _rateGateOrder.WaitToProceed();
 
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
 
@@ -1689,6 +1705,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public void GetOrderStatus(Order order)
         {
+            _rateGateOrder.WaitToProceed();
+
             try
             {
                 IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/spot/trade/orderInfo?clientOid={order.NumberUser}", Method.GET, null, null);
@@ -1736,8 +1754,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             }
                         }
                     }
-                }
-                   
+                }    
             }
             catch (Exception ex)
             {
@@ -1747,6 +1764,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private void FindMyTradesToOrder(Order order)
         {
+            _rateGateOrder.WaitToProceed();
+
             try
             {
                 string path = $"/api/v2/spot/trade/fills?symbol={order.SecurityNameCode}";
@@ -1766,6 +1785,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             {
                                 continue;
                             }
+
                             DataMyTrades item = stateResponse.data[i];
 
                             MyTrade myTrade = new MyTrade();
@@ -1813,7 +1833,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         }
                
         public List<Order> GetAllOpenOrders()
-        {            
+        {
+            _rateGateOrder.WaitToProceed();
+
             try
             {               
                 IRestResponse responseMessage = CreatePrivateQuery($"/api/v2/spot/trade/unfilled-orders", Method.GET, null, null);
