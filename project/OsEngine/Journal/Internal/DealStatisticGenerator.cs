@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using OsEngine.Entity;
 
 namespace OsEngine.Journal.Internal
@@ -260,13 +261,36 @@ namespace OsEngine.Journal.Internal
             return Math.Round(profit / deals.Length, 6);
         }
 
+        // helper method to calculate the average return from individual trades
+        private static decimal GetAverageReturn(Position[] deals)
+        {
+            if (deals == null || deals.Length == 0)
+                return 0;
+
+            decimal totalReturn = 0;
+
+            foreach (Position deal in deals)
+            {
+                // 1. Get the portfolio return percentage for the trade
+                decimal tradeReturnPercent = deal.ProfitPortfolioPersent;
+
+                // 2. Apply scaling from MultToJournal (e.g., 50% → 0.5)
+                decimal scaledReturn = tradeReturnPercent * (deal.MultToJournal / 100m)/100m;
+
+                totalReturn += scaledReturn;
+            }
+
+            // 4. Calculate arithmetic mean  and scaling from percent to decimal
+            return totalReturn/ deals.Length;
+        }
+
         public static decimal GetSharpRatio(Position[] deals, decimal riskFreeProfitInYear)
         {
             /*
 
-            Sharpe Ratio = (AHPR - (1+RFR)) / SD
+            Sharpe Ratio = (AHPR - RFR) / SD
 
-            AHPR - усреднённая прибыль в % к портфелю со всех сделок за всё время 
+            AHPR - усреднённая прибыль в % к портфелю со всех сделок за всё время (Average Holding Period Return (AHPR) as the arithmetic mean of individual trade returns)
             RFR - безрисковая ставка, рассчитанная за всё время которое мог получить инвестор от открытия первой сделки до открытия последней
             SD - стандартное отклонение массива прибылей всех сделок в отдельности
 
@@ -278,9 +302,9 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
 
-            // 1 берём AHRP - прибыль в % к портфелю со всех сделок за всё время 
+            // 1 берём AHRP - усредненная прибыль одной сделки в % к портфелю со всех сделок за всё время 
 
-            decimal ahpr = GetAllProfitPercent(deals);
+            decimal ahpr = GetAverageReturn(deals);
 
             if (ahpr == 0)
             {
@@ -298,12 +322,7 @@ namespace OsEngine.Journal.Internal
                 {
                     timeFirstDeal = deals[i].TimeOpen;
                 }
-
-                if (deals[i].TimeOpen > timeEndDeal)
-                {
-                    timeEndDeal = deals[i].TimeOpen;
-                }
-
+           
                 if (deals[i].TimeClose > timeEndDeal)
                 {
                     timeEndDeal = deals[i].TimeClose;
@@ -311,70 +330,49 @@ namespace OsEngine.Journal.Internal
             }
 
             decimal rfr = 0;
-
-            if (timeFirstDeal != DateTime.MaxValue &&
-                timeEndDeal != DateTime.MinValue &&
-                riskFreeProfitInYear != 0)
+            if (timeFirstDeal != DateTime.MaxValue && timeEndDeal != DateTime.MinValue && riskFreeProfitInYear != 0)
             {
-                int daysCountInPoses = Convert.ToInt32((timeEndDeal - timeFirstDeal).TotalDays);
-                decimal riskFreeProfitInDay = riskFreeProfitInYear / 365;
-                rfr = daysCountInPoses * riskFreeProfitInDay;
+                int daysCountInPoses = (int)(timeEndDeal - timeFirstDeal).TotalDays;
+                decimal riskFreeProfitInYearDecimal = riskFreeProfitInYear / 100m; // Convert to decimal
+                decimal riskFreeProfitInDay = riskFreeProfitInYearDecimal / 365;
+                rfr = daysCountInPoses * riskFreeProfitInDay/deals.Length; // average risk-free return from holding time 
             }
 
-            // берём SD - стандартное отклонение массива прибылей всех сделок в отдельности
-
-            List<decimal> profitArray = new List<decimal>();
-
-            for (int i = 0; i < deals.Length; i++)
+            // 3. Calculate standard deviation
+            List<decimal> portfolioReturns = new List<decimal>();
+            foreach (Position deal in deals)
             {
-                profitArray.Add(deals[i].ProfitPortfolioPersent);
+                decimal scaledReturn = (deal.ProfitPortfolioPersent * (deal.MultToJournal / 100m))/100m;
+                portfolioReturns.Add(scaledReturn);
             }
 
-            decimal sd = GetValueStandardDeviation(profitArray);
+            decimal sd = GetValueStandardDeviation(portfolioReturns);
 
-            // Sharpe Ratio = (AHPR - (1+RFR)) / SD
-
+            // 4. Compute Sharpe Ratio
             if (sd == 0)
-            {
                 return 0;
-            }
 
-            decimal sharp = (ahpr - (1 + rfr)) / sd;
-
+            decimal sharp = (ahpr - rfr) / sd;
             return Math.Round(sharp, 4);
         }
 
         private static decimal GetValueStandardDeviation(List<decimal> candles)
         {
-            int length = candles.Count - 1;
+            int length = candles.Count;
+            if (length < 1) return 0;
 
-            if (length < 2)
-            {
-                return 0;
-            }
-
+            decimal sum = candles.Sum();
+            decimal m = sum / length;  // Correct mean
             decimal sd = 0;
 
-            decimal sum = 0;
-
-            for (int j = length; j > -1; j--)
+            foreach (decimal value in candles)
             {
-                sum += candles[j];
+                decimal x = value - m;
+                sd += x * x;  // Avoid double conversion
             }
 
-            var m = sum / length;
-
-            for (int i = length; i > -1; i--)
-            {
-                decimal x = candles[i] - m;  //Difference between values for period and average/разница между значениями за период и средней
-                double g = Math.Pow((double)x, 2.0);   // difference square
-                sd += (decimal)g;   //square footage/ сумма квадратов
-            }
-
-            sd = (decimal)Math.Sqrt((double)sd / length);  //find the root of sum/period // находим корень из суммы/период 
-
+            sd = (decimal)Math.Sqrt((double)(sd / length));  // Population SD
             return Math.Round(sd, 5);
-
         }
 
         private static int GetProfitDial(Position[] deals)

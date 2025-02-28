@@ -474,7 +474,7 @@ namespace OsEngine.OsOptimizer
 
             DataGridViewColumn column9 = new DataGridViewColumn();
             column9.CellTemplate = cell0;
-            column9.HeaderText = "Sharp Ratio";
+            column9.HeaderText = "Sharpe Ratio";
             column9.ReadOnly = false;
             column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridResults.Columns.Add(column9);
@@ -558,7 +558,7 @@ namespace OsEngine.OsOptimizer
                 _gridResults.Columns[9].HeaderText += " vvv";
             }
 
-            _gridResults.Columns[10].HeaderText = "Sharp Ratio";
+            _gridResults.Columns[10].HeaderText = "Sharpe Ratio";
             if (_sortBotsType == SortBotsType.SharpRatio)
             {
                 _gridResults.Columns[10].HeaderText += " vvv";
