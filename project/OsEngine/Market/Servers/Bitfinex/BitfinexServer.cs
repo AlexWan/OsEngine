@@ -105,6 +105,15 @@ namespace OsEngine.Market.Servers.Bitfinex
                         SendLogMessage("Start Bitfinex Connection", LogMessageType.System);
                     }
                 }
+                else
+                {
+                    SendLogMessage("No connection to Bitfinex server", LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+
+                    return;
+                }
+
             }
             catch (Exception exception)
             {
