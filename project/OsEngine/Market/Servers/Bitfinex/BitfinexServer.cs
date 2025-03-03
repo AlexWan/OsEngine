@@ -278,7 +278,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
                 else
                 {
-                    SendLogMessage("Securities request exception. Status: " + response.Content, LogMessageType.Error);
+                    SendLogMessage("Securities request error. Status: " + response.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -341,6 +341,10 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                         }
                     }
+                }
+                else
+                {
+                    SendLogMessage($"Error : Failed to request min sizes", LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -928,6 +932,10 @@ namespace OsEngine.Market.Servers.Bitfinex
                     }
 
                     return ConvertToCandles(candleList);
+                }
+                else
+                {
+                    SendLogMessage($"Error : Failed to query candles", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2278,6 +2286,10 @@ namespace OsEngine.Market.Servers.Bitfinex
                         SendLogMessage($" {response.Content}", LogMessageType.Error);
                     }
                 }
+                else
+                {
+                    SendLogMessage($"Error : Failed to cancel all orders", LogMessageType.Error);
+                }
             }
             catch (Exception exception)
             {
@@ -2341,7 +2353,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                     order.State = OrderStateType.Fail;
 
                     MyOrderEvent?.Invoke(order);
-
                 }
             }
             catch (Exception exception)
@@ -2422,7 +2433,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                     SendLogMessage("Order change price. New price: " + order.Price
                       + "  " + order.SecurityNameCode, LogMessageType.Trade);
                 }
-
                 else
                 {
                     SendLogMessage("Change price order Fail. Status: "
@@ -2510,7 +2520,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                         orders.Add(activeOrder);
                     }
                 }
-
                 else
                 {
                     SendLogMessage($" Can't get all orders. State Code: {response.Content}", LogMessageType.Error);
@@ -2672,7 +2681,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                         }
                     }
                 }
-
                 else
                 {
                     SendLogMessage($"GetOrderState. Http State Code: {response.StatusCode}, Content: {response.Content}", LogMessageType.Error);
