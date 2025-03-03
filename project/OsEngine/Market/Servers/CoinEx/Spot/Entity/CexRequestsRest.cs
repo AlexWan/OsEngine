@@ -32,13 +32,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
     // https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
     public class CexRequestPendingOrders : CexRequestRest
     {
-        public CexRequestPendingOrders(string marketType, long? userOrderId, int limit = 1000)
+        public CexRequestPendingOrders(string marketType, string? market = null, long? userOrderId = null, int limit = 1000)
         {
             parameters.Add("market_type", marketType);
             parameters.Add("limit", limit);
             if (userOrderId != null)
             {
                 parameters.Add("client_id", userOrderId);
+            }
+            if (market != null)
+            {
+                parameters.Add("market", market);
             }
         }
     }

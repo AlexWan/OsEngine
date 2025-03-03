@@ -5,7 +5,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
     /*
         https://docs.coinex.com/api/v2/assets/balance/http/get-spot-balance#http-request
     */
-    struct CexPortfolioItem
+    struct CexSpotPortfolioItem
     {
         // Currency name [USDT]
         public string ccy { get; set; }
