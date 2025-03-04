@@ -154,6 +154,10 @@ namespace OsEngine.OsData
             {
                 ComboBoxClass.SelectedItem = "МосБиржа топ";
             }
+            else if (classes.Find(clas => clas == "МосБиржа Акции и ПИФы#16") != null)
+            {
+                ComboBoxClass.SelectedItem = "МосБиржа Акции и ПИФы#16";
+            }
             else
             {
                 ComboBoxClass.SelectedItem = "All";
