@@ -192,7 +192,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             // https://docs.coinex.com/api/v2/spot/market/http/list-market
             try
             {
-                List<CexSecurity> securities = _restClient.Get<List<CexSecurity>>("/spot/market").Result;
+                List<CexSecurity> securities = _restClient.Get<List<CexSecurity>>("/spot/market");
                 UpdateSecuritiesFromServer(securities);
             }
             catch (Exception exception)
@@ -279,12 +279,12 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 if (_marketMode == CexMarketType.SPOT.ToString())
                 {
-                    List<CexSpotPortfolioItem>? cexPortfolio = _restClient.Get<List<CexSpotPortfolioItem>>("/assets/spot/balance", true).Result;
+                    List<CexSpotPortfolioItem>? cexPortfolio = _restClient.Get<List<CexSpotPortfolioItem>>("/assets/spot/balance", true);
                     ConvertSpotToPortfolio(cexPortfolio);
                 }
                 if (_marketMode == CexMarketType.MARGIN.ToString())
                 {
-                    List<CexMarginPortfolioItem>? cexPortfolio = _restClient.Get<List<CexMarginPortfolioItem>>("/assets/margin/balance", true).Result;
+                    List<CexMarginPortfolioItem>? cexPortfolio = _restClient.Get<List<CexMarginPortfolioItem>>("/assets/margin/balance", true);
                     ConvertMarginToPortfolio(cexPortfolio);
                 }
                 return _portfolios.Count > 0;
@@ -496,7 +496,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 cexInfo = _restClient.Get<List<CexMarketInfoItem>>(endPoint, false, new Dictionary<string, Object>()
                 {
                     { "market", String.Join(",", securities.ToArray())},
-                }).Result;
+                });
             }
             catch (Exception exception)
             {
@@ -1288,7 +1288,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 // https://docs.coinex.com/api/v2/spot/order/http/put-order#http-request
                 Dictionary<string, Object> body = (new CexRequestSendOrder(_marketMode, order)).parameters;
 
-                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/order", body, true).Result;
+                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/order", body, true);
 
                 if (cexOrder.order_id > 0)
                 {
@@ -1336,7 +1336,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 // https://docs.coinex.com/api/v2/spot/order/http/edit-order
                 Dictionary<string, Object> body = (new CexRequestEditOrder(_marketMode, order, newPrice)).parameters;
-                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/modify-order", body, true).Result;
+                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/modify-order", body, true);
 
                 if (cexOrder.order_id > 0)
                 {
@@ -1365,7 +1365,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 {
                     // https://docs.coinex.com/api/v2/spot/order/http/cancel-order
                     Dictionary<string, Object> body = (new CexRequestCancelOrder(_marketMode, order.NumberMarket, order.SecurityNameCode)).parameters;
-                    CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/cancel-order", body, true).Result;
+                    CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/cancel-order", body, true);
 
                     if (cexOrder.order_id > 0)
                     {
@@ -1418,7 +1418,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     {
                         _rateGateGetOrder.WaitToProceed();
                         Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode, _subscribedSecurities[i].Name)).parameters;
-                        List<CexOrder> tmpCexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters).Result;
+                        List<CexOrder> tmpCexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters);
                         if (tmpCexOrders != null && tmpCexOrders.Count > 0)
                         {
                             cexOrders.AddRange(tmpCexOrders);
@@ -1428,7 +1428,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 else
                 {
                     Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode)).parameters;
-                    cexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters).Result;
+                    cexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters);
                 }
 
                 if (cexOrders == null || cexOrders.Count == 0)
@@ -1484,7 +1484,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 // https://docs.coinex.com/api/v2/spot/order/http/get-order-status
                 Dictionary<string, Object> parameters = (new CexRequestOrderStatus(orderId, market)).parameters;
-                CexOrder cexOrder = _restClient.Get<CexOrder>("/spot/order-status", true, parameters).Result;
+                CexOrder cexOrder = _restClient.Get<CexOrder>("/spot/order-status", true, parameters);
 
                 if (!string.IsNullOrEmpty(cexOrder.client_id))
                 {
@@ -1514,7 +1514,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 {
                     // https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
                     Dictionary<string, Object> body = (new CexRequestCancelAllOrders(_marketMode, security)).parameters;
-                    Object result = _restClient.Post<Object>("/spot/cancel-all-order", body, true).Result;
+                    Object result = _restClient.Post<Object>("/spot/cancel-all-order", body, true);
                 }
                 catch (Exception exception)
                 {
@@ -1629,7 +1629,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 // https://docs.coinex.com/api/v2/spot/deal/http/list-user-order-deals#http-request
                 Dictionary<string, Object> parameters = (new CexRequestOrderDeals(_marketMode, orderId, market)).parameters;
-                List<CexOrderTransaction> cexTrades = _restClient.Get<List<CexOrderTransaction>>("/spot/order-deals", true, parameters).Result;
+                List<CexOrderTransaction> cexTrades = _restClient.Get<List<CexOrderTransaction>>("/spot/order-deals", true, parameters);
 
                 if (cexTrades != null)
                 {
@@ -1674,7 +1674,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             try
             {
                 Dictionary<string, Object> parameters = (new CexRequestGetDeals(security.Name)).parameters;
-                List<CexTransaction> cexDeals = _restClient.Get<List<CexTransaction>>("/spot/deals", false, parameters).Result;
+                List<CexTransaction> cexDeals = _restClient.Get<List<CexTransaction>>("/spot/deals", false, parameters);
 
                 for (int i = cexDeals.Count - 1; i >= 0; i--)
                 {
