@@ -265,7 +265,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             return "Margin " + securityName;
         }
 
-
         public void GetPortfolios()
         {
             GetCurrentPortfolios();
@@ -374,7 +373,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         newPortf.ServerType = ServerType;
                         newPortf.ValueBegin = 1;
                         newPortf.ValueCurrent = 1;
-                        //_portfolios.Add(newPortf);
                         myPortfolio = newPortf;
                     }
 
@@ -489,7 +487,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 if (securities.Count > 10)
                 {
-                    // If empty list gets all markets info
+                    // If list is empty - gets all markets info
                     securities = new List<string>();
                 }
 
@@ -703,11 +701,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             WebSocket _wsClient = new WebSocket(_wsUrl);
             try
             {
-                //if (_wsClient != null)
-                //{
-                //    return;
-                //}
-
                 lock (_socketLocker)
                 {
                     _webSocketMessage = new ConcurrentQueue<string>();
@@ -810,7 +803,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private void WebSocket_Closed(Object sender, EventArgs e)
         {
-            //SendLogMessage("WebSocket connection closed. WebSocket Data Closed Event", LogMessageType.Error);
             SetDisconnected();
         }
 
@@ -1113,7 +1105,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         depth.Asks.Add(newAsk);
                     }
                 }
-
 
                 depth.SecurityNameCode = data.market;
 
@@ -1438,8 +1429,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 List<Order> orders = new List<Order>();
 
-                //HashSet<string> securities = new HashSet<string>();
-
                 for (int i = 0; i < cexOrders.Count; i++)
                 {
                     if (string.IsNullOrEmpty(cexOrders[i].client_id))
@@ -1457,7 +1446,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     order.PortfolioNumber = getPortfolioName(order.SecurityNameCode);
 
                     orders.Add(order);
-                    //securities.Add(order.SecurityNameCode);
                 }
 
                 return orders;
@@ -1554,8 +1542,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             order.Volume = cexOrder.amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
             order.VolumeExecute = cexOrder.filled_amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
 
-            //order.PortfolioNumber = this.PortfolioName;
-
             order.Price = cexOrder.price.ToString().ToDecimal();
             if (cexOrder.type == CexOrderType.LIMIT.ToString())
             {
@@ -1616,8 +1602,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 }
             }
 
-            // Cancelled определять в точке вызова по типу запроса [Filled Order, Unfilled Order, ...]
-
             return order;
         }
 
@@ -1660,7 +1644,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             return null;
         }
-
         #endregion
 
         #region 11 Queries
@@ -1765,7 +1748,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
             catch (Exception ex)
             {
-                //SendLogMessage(ex.Message, LogMessageType.Error);
                 SendLogMessage("Candles request error:" + ex.ToString(), LogMessageType.Error);
             }
 
@@ -1789,6 +1771,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 LogMessageEvent(message, type);
             }
         }
+
         #endregion
 
         #region 13 Helpers
@@ -1837,13 +1820,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             order.NumberUser = string.IsNullOrEmpty(cexOrder.client_id) ? 0 : Convert.ToInt32(cexOrder.client_id);
 
             order.SecurityNameCode = cexOrder.market;
-            //order.SecurityClassCode = cexOrder.Market.Substring(cexOrder.Currency.Length);
             // Cex.Amount - объём в единицах тикера
             // Cex.Value - объём в деньгах
             order.Volume = cexOrder.amount.ToString().ToDecimal();
             order.VolumeExecute = cexOrder.filled_amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
-
-            //order.PortfolioNumber = this.PortfolioName;
 
             if (cexOrder.type == CexOrderType.LIMIT.ToString())
             {
@@ -1853,7 +1833,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             else if (cexOrder.type == CexOrderType.MARKET.ToString())
             {
                 order.TypeOrder = OrderPriceType.Market;
-                // TODO нужно заполнить цену ?
             }
 
             order.ServerType = ServerType.CoinExSpot;

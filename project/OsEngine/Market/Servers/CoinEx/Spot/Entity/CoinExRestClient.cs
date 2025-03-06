@@ -54,7 +54,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
                 req.Content = new StringContent(bodyContent, Encoding.UTF8, "application/json");
             }
 
-
             if (isSign)
             {
                 long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -82,7 +81,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
             return (new CoinExHttpResp<T>()).data;
-
         }
 
         public T Get<T>(string path, bool isSign = false, Dictionary<string, object>? args = null) => Request<T>("GET", path, args, null, isSign);
@@ -93,6 +91,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         {
             _client.Dispose();
         }
+
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent?.Invoke(message, messageType);
