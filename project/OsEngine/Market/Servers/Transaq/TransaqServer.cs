@@ -1930,6 +1930,7 @@ namespace OsEngine.Market.Servers.Transaq
                 else
                 {
                     order.NumberUser = result.TransactionId;
+                    order.Price = newPrice;
                 }
 
                 order.TimeCallBack = ServerTime;
