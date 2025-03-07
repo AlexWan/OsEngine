@@ -70,6 +70,7 @@ using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
 using OsEngine.Market.Servers.CoinEx.Spot;
+using OsEngine.Market.Servers.RSSNews;
 
 
 namespace OsEngine.Market
@@ -227,6 +228,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Mexc);
                 serverTypes.Add(ServerType.AstsBridge);
                 serverTypes.Add(ServerType.CoinExSpot);
+                serverTypes.Add(ServerType.RSSNews);
 
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
@@ -422,7 +424,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
-
+                if (type == ServerType.RSSNews)
+                {
+                    newServer = new RSSNewsServer();
+                }
                 if (type == ServerType.MoexFixFastTwimeFutures)
                 {
                     newServer = new MoexFixFastTwimeFuturesServer();
@@ -1279,6 +1284,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new CoinExServerSpotPermission();
                 }
+                else if (type == ServerType.RSSNews)
+                {
+                    serverPermission = new RSSNewsServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -1757,6 +1766,12 @@ namespace OsEngine.Market
         /// Spot for cryptocurrency exchange CoinEx.com
         /// Спот биржи криптовалют CoinEx.com
         /// </summary>
-        CoinExSpot
+        CoinExSpot,
+
+        /// <summary>
+        /// Reading news from RSS feeds
+        /// Чтение новостей с RSS лент
+        /// </summary>
+        RSSNews
     }
 }
