@@ -540,17 +540,24 @@ namespace OsEngine.Entity
                 }
                 else if (newOrder.State == OrderStateType.Fail 
                     && newOrder.VolumeExecute == 0 
-                    && OpenVolume == 0)
+                    && OpenVolume == 0
+                    && MaxVolume == 0
+                    && CloseActiv == false
+                    && OpenActiv == false)
                 {
                     State = PositionStateType.OpeningFail;
                 }
                 else if (newOrder.State == OrderStateType.Cancel
                     && newOrder.VolumeExecute == 0 
-                    && OpenVolume == 0)
+                    && OpenVolume == 0
+                    && MaxVolume == 0
+                    && CloseActiv == false
+                    && OpenActiv == false)
                 {
                     State = PositionStateType.OpeningFail;
                 }
-                else if (newOrder.State == OrderStateType.Cancel
+                else if ((newOrder.State == OrderStateType.Cancel
+                    || newOrder.State == OrderStateType.Fail)
                     && OpenVolume != 0)
                 {
                     State = PositionStateType.Open;
@@ -558,7 +565,15 @@ namespace OsEngine.Entity
                 else if (newOrder.State == OrderStateType.Done 
                     && OpenVolume == 0 
                     && CloseOrders != null 
-                    && CloseOrders.Count > 0)
+                    && CloseOrders.Count > 0
+                    && CloseActiv == false
+                    && OpenActiv == false)
+                {
+                    State = PositionStateType.Done;
+                }
+                else if (OpenVolume == 0 
+                    && CloseActiv == false 
+                    && OpenActiv == false)
                 {
                     State = PositionStateType.Done;
                 }
@@ -612,28 +627,35 @@ namespace OsEngine.Entity
                     closeOrder.VolumeExecute = newOrder.VolumeExecute;
                 }
 
-                if (closeOrder.State == OrderStateType.Done && OpenVolume == 0)
+                if(OpenVolume == 0 
+                    && CloseActiv == false 
+                    && OpenActiv == false)
                 {
-                    //AlertMessageManager.ThrowAlert(null, "Done", "");
                     State = PositionStateType.Done;
                 }
-                else if (closeOrder.State == OrderStateType.Fail && !CloseActiv && OpenVolume != 0)
+                else if (closeOrder.State == OrderStateType.Fail 
+                    && CloseActiv == false
+                    && OpenVolume != 0)
                 {
                     //AlertMessageManager.ThrowAlert(null, "Fail", "");
                     State = PositionStateType.ClosingFail;
                 }
-                else if (closeOrder.State == OrderStateType.Cancel && !CloseActiv && OpenVolume != 0)
+                else if (closeOrder.State == OrderStateType.Cancel 
+                    && CloseActiv == false
+                    && OpenVolume != 0)
                 {
                     // if not fully closed and this is the last order in the closing orders
                     //AlertMessageManager.ThrowAlert(null, "Cancel", "");
                     State = PositionStateType.ClosingFail;
                 }
-                else if (closeOrder.State == OrderStateType.Done && OpenVolume < 0)
+                else if (closeOrder.State == OrderStateType.Done 
+                    && OpenVolume < 0)
                 {
                     State = PositionStateType.ClosingSurplus;
                 }
 
-                if (State == PositionStateType.Done && CloseOrders != null)
+                if (State == PositionStateType.Done 
+                    && CloseOrders != null)
                 {
                     CalculateProfitToPosition();
                 }
@@ -687,7 +709,8 @@ namespace OsEngine.Entity
                         {
                             State = PositionStateType.Open;
                         }
-                        else if (OpenVolume == 0)
+                        else if (OpenVolume == 0 
+                            && OpenActiv == false && CloseActiv == false)
                         {
                             curOrdOpen.TimeDone = trade.Time;
                             State = PositionStateType.Done;
@@ -708,7 +731,8 @@ namespace OsEngine.Entity
                         trade.NumberPosition = Number.ToString();
                         curOrdClose.SetTrade(trade);
 
-                        if (OpenVolume == 0)
+                        if (OpenVolume == 0
+                            && OpenActiv == false && CloseActiv == false)
                         {
                             State = PositionStateType.Done;
                             curOrdClose.TimeDone = trade.Time;

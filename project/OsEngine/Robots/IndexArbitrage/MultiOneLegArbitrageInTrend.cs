@@ -283,7 +283,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 return 0;
             }
 
-            decimal moneyOnPosition = portfolioPrimeAsset * (MoneyPercentFromDepoOnPosition.ValueDecimal / 100);
+            decimal moneyOnPosition = portfolioPrimeAsset * (MoneyPercentFromDepoOnPosition.ValueDecimal / 100) / tab.Security.Lot;
 
             decimal qty = moneyOnPosition / tab.PriceBestAsk;
 
