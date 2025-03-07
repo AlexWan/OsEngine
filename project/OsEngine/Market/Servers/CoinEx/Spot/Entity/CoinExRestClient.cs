@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using OsEngine.Logging;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
@@ -20,9 +19,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
         private HttpClient _client = new HttpClient();
 
-        //rate limiter
-        private RateGate _rateGateRest = new RateGate(1, TimeSpan.FromMilliseconds(30));
-
         public CoinExRestClient(string apiKey, string apiSecret)
         {
             this._apiKey = apiKey;
@@ -34,15 +30,18 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
             return Signer.RestSign(method, path, body, timestamp, _apiSecret);
         }
 
-        private async Task<T> Request<T>(string method, string path,
+        private T Request<T>(string method, string path,
             Dictionary<string, object>? args, Dictionary<string, object>? body, bool isSign = false)
         {
-            _rateGateRest.WaitToProceed();
             if (args != null)
             {
-                IEnumerable<KeyValuePair<string, string>> _args 
-                    = args.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString()!));
-                string query = await new FormUrlEncodedContent(_args).ReadAsStringAsync();
+                List<KeyValuePair<string, string>> _args = new List<KeyValuePair<string, string>>();
+                for (int i = 0; i < args.Count; i++)
+                {
+                    KeyValuePair<string, object> itm = args.ElementAt(i);
+                    _args.Add(new KeyValuePair<string, string>(itm.Key, itm.Value.ToString()));
+                }
+                string query = new FormUrlEncodedContent(_args).ReadAsStringAsync().Result;
                 path += "?" + query;
             }
 
@@ -55,7 +54,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
                 req.Content = new StringContent(bodyContent, Encoding.UTF8, "application/json");
             }
 
-
             if (isSign)
             {
                 long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -64,7 +62,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
                 req.Headers.Add("X-COINEX-TIMESTAMP", now.ToString());
             }
 
-            HttpResponseMessage response = await _client.SendAsync(req);
+            HttpResponseMessage response = _client.SendAsync(req).Result;
             response.EnsureSuccessStatusCode();
             try
             {
@@ -83,14 +81,16 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
             return (new CoinExHttpResp<T>()).data;
-
         }
 
-        public async Task<T> Get<T>(string path, bool isSign = false, Dictionary<string, object>? args = null) => await Request<T>("GET", path, args, null, isSign);
+        public T Get<T>(string path, bool isSign = false, Dictionary<string, object>? args = null) => Request<T>("GET", path, args, null, isSign);
 
-        public async Task<T> Post<T>(string path, Dictionary<string, object> body, bool isSign = false) => await Request<T>("POST", path, null, body, isSign);
+        public T Post<T>(string path, Dictionary<string, object> body, bool isSign = false) => Request<T>("POST", path, null, body, isSign);
 
-        public void Dispose() => _client.Dispose();
+        public void Dispose()
+        {
+            _client.Dispose();
+        }
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
