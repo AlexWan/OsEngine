@@ -53,87 +53,73 @@ namespace OsEngine.OsOptimizer
                 newReport.LoadFromString(str[i]);
                 Reports.Add(newReport);
             }
-
-
         }
 
         public static void SortResults(List<OptimizerReport> reports, SortBotsType sortType)
         {
-            if (reports == null || reports.Count == 0)
+            for (int i = 0; i < reports.Count; i++)
             {
-                return;
+                for (int i2 = 0; i2 < reports.Count - 1; i2++)
+                {
+                    if (FirstLessSecond(reports[i2], reports[i2 + 1], sortType))
+                    {
+                        OptimizerReport glass = reports[i2];
+                        reports[i2] = reports[i2 + 1];
+                        reports[i2 + 1] = glass;
+                    }
+                }
+            }
+        }
+
+        private static bool FirstLessSecond(OptimizerReport rep1, OptimizerReport rep2, SortBotsType sortType)
+        {
+            if (sortType == SortBotsType.TotalProfit &&
+                rep1.TotalProfit < rep2.TotalProfit)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.PositionCount &&
+                     rep1.PositionsCount < rep2.PositionsCount)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.MaxDrawDawn &&
+                     rep1.MaxDrawDawn < rep2.MaxDrawDawn)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.AverageProfit &&
+                     rep1.AverageProfit < rep2.AverageProfit)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.AverageProfitPercent &&
+                     rep1.AverageProfitPercentOneContract < rep2.AverageProfitPercentOneContract)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.ProfitFactor &&
+                     rep1.ProfitFactor < rep2.ProfitFactor)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.PayOffRatio &&
+                     rep1.PayOffRatio < rep2.PayOffRatio)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.Recovery &&
+                     rep1.Recovery < rep2.Recovery)
+            {
+                return true;
+            }
+            else if (sortType == SortBotsType.SharpRatio &&
+                    rep1.SharpRatio < rep2.SharpRatio)
+            {
+                return true;
             }
 
-            if (sortType == SortBotsType.BotName)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return Convert.ToInt32(rep1.BotName.Split(' ')[0]).CompareTo(Convert.ToInt32(rep2.BotName.Split(' ')[0]));
-                });
-            }
-            else if (sortType == SortBotsType.TotalProfit)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.TotalProfit.CompareTo(rep1.TotalProfit);
-                });
-            }
-            else if (sortType == SortBotsType.PositionCount)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.PositionsCount.CompareTo(rep1.PositionsCount);
-                });
-            }
-            else if (sortType == SortBotsType.MaxDrawDawn)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.MaxDrawDawn.CompareTo(rep1.MaxDrawDawn);
-                });
-            }
-            else if (sortType == SortBotsType.AverageProfit)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.AverageProfit.CompareTo(rep1.AverageProfit);
-                });
-            }
-            else if (sortType == SortBotsType.AverageProfitPercent)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.AverageProfitPercentOneContract.CompareTo(rep1.AverageProfitPercentOneContract);
-                });
-            }
-            else if (sortType == SortBotsType.ProfitFactor)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.ProfitFactor.CompareTo(rep1.ProfitFactor);
-                });
-            }
-            else if (sortType == SortBotsType.PayOffRatio)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.PayOffRatio.CompareTo(rep1.PayOffRatio);
-                });
-            }
-            else if (sortType == SortBotsType.Recovery)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.Recovery.CompareTo(rep1.Recovery);
-                });
-            }
-            else if (sortType == SortBotsType.SharpRatio)
-            {
-                reports.Sort(delegate (OptimizerReport rep1, OptimizerReport rep2)
-                {
-                    return rep2.SharpRatio.CompareTo(rep1.SharpRatio);
-                });
-            }
+            return false;
         }
     }
 
