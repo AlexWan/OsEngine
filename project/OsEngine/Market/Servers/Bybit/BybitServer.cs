@@ -324,11 +324,11 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string mainWsPublicUrl = "wss://stream.bybit.com/v5/public/";    // +  linear, spot;
 
-        private string testWsPublicUrl = "wss://stream-testnet.bybit.com/v5/public/";    // +  linear, spot";
+        private string testWsPublicUrl = "wss://stream.bybit.com/v5/public/";    // +  linear, spot";
 
         private string mainWsPrivateUrl = "wss://stream.bybit.com/v5/private";
 
-        private string testWsPrivateUrl = "wss://stream-testnet.bybit.com/v5/private";
+        private string testWsPrivateUrl = "wss://stream.bybit.com/v5/private";
 
         private string wsPublicUrl(Category category = Category.spot)
         {
