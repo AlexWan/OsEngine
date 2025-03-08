@@ -1808,6 +1808,55 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newIndicator = (Aindicator)Tabs[i].CreateCandleIndicator(newIndicator, ind.NameArea);
                 newIndicator.CanDelete = ind.CanDelete;
 
+                try
+                {
+                    bool parametersChanged = false;
+
+                    if (ind.Parameters.Count == newIndicator.Parameters.Count)
+                    {
+
+                        if (ind.Parameters != null && ind.Parameters.Count != 0)
+                        {
+                            for (int i2 = 0; i2 < ind.Parameters.Count; i2++)
+                            {
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Int
+                                    && ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt != Convert.ToInt32(ind.Parameters[i2]))
+                                {
+                                    ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Parameters[i2]);
+                                    parametersChanged = true;
+                                }
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal
+                                    && ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal != Convert.ToDecimal(ind.Parameters[i2]))
+                                {
+                                    ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
+                                    parametersChanged = true;
+                                }
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool
+                                    && ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool != Convert.ToBoolean(ind.Parameters[i2]))
+                                {
+                                    ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Parameters[i2]);
+                                    parametersChanged = true;
+                                }
+                                if (newIndicator.Parameters[i2].Type == IndicatorParameterType.String
+                                    && ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString != ind.Parameters[i2])
+                                {
+                                    ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Parameters[i2];
+                                    parametersChanged = true;
+                                }
+                            }
+                        }
+                    }
+
+                    if(parametersChanged)
+                    {
+                        newIndicator.Reload();
+                    }
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+
                 newIndicator.Save();
             }
         }
