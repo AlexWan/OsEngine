@@ -59,6 +59,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             Thread worker = new Thread(DataMessageReaderThread);
             worker.Name = "DataMessageReaderCoinEx";
             worker.Start();
+
+            Thread worker1 = new Thread(ConnectionCheckThread);
+            worker1.Name = "CheckAliveCoinEx";
+            worker1.Start();
         }
 
         public void Connect()
@@ -106,13 +110,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             try
             {
-                if (_wsClients != null)
+                for (int i = 0; i < _wsClients.Count; i++)
                 {
-                    for (int i = 0; i < _wsClients.Count; i++)
-                    {
-                        DeleteWebSocketConnection(_wsClients[i]);
-                        Thread.Sleep(10);
-                    }
+                    DeleteWebSocketConnection(_wsClients[i]);
+                    Thread.Sleep(10);
                 }
                 _securities.Clear();
                 _portfolios.Clear();
@@ -257,7 +258,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public string getPortfolioName(string securityName = "")
         {
-            if(_marketMode == CexMarketType.SPOT.ToString())
+            if (_marketMode == CexMarketType.SPOT.ToString())
             {
                 return "CoinExSpot";
             }
@@ -779,7 +780,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             if (_wsClients.Count > 1) return;
             CexRequestSocketSign message = new CexRequestSocketSign(_publicKey, _secretKey);
-            SendLogMessage("CoinEx server auth: " + message, LogMessageType.Connect);
+            SendLogMessage("Auth in socket", LogMessageType.Connect);
             wsClient.Send(message.ToString());
         }
 
@@ -797,12 +798,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             Thread.Sleep(2000);
 
             CexRequestSocketSubscribePortfolio message = new CexRequestSocketSubscribePortfolio();
-            SendLogMessage("Subcribe to portfolios data: " + message, LogMessageType.Connect);
+            SendLogMessage("Subscribe to portfolios data", LogMessageType.Connect);
             ((WebSocket)sender).Send(message.ToString());
         }
 
-        private void WebSocket_Closed(Object sender, EventArgs e)
+        private void WebSocket_Closed(Object sender, CloseEventArgs e)
         {
+            SendLogMessage($"Close reason: {e.Code} {e.Reason}", LogMessageType.Connect);
             SetDisconnected();
         }
 
@@ -864,7 +866,59 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #endregion
 
-        #region 8 Security subscrible
+        #region 8 WebSocket check alive
+
+        private DateTime _lastTimeWsCheckConnection = DateTime.MinValue;
+
+        private void ConnectionCheckThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(50000); // Sleep1
+
+                try
+                {
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        continue;
+                    }
+
+                    SendWsPing();
+                    Thread.Sleep(3000); // Sleep2
+
+                    // Sleep1 + Sleep2 + some overhead
+                    // Trigger when twice fail
+                    if (_lastTimeWsCheckConnection.AddSeconds(5) < DateTime.Now && _lastTimeWsCheckConnection > DateTime.MinValue)
+                    {
+                        if (ServerStatus == ServerConnectStatus.Connect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+                }
+                catch (Exception error)
+                {
+                    if (ServerStatus == ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(1000);
+                }
+            }
+        }
+
+        private void SendWsPing()
+        {
+            if (_wsClients.Count == 0) { return; }
+            CexRequestSocketPing message = new CexRequestSocketPing();
+            _wsClients[0].Send(message.ToString());
+        }
+        #endregion
+
+        #region 9 Security subscrible
 
         private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
@@ -938,7 +992,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 // My orders subscription
                 CexRequestSocketSubscribeMyOrders message2 = new CexRequestSocketSubscribeMyOrders(_currentSubscribedSecurities);
                 SendLogMessage("SubcribeToMyOrdersData: " + message2, LogMessageType.Connect);
-                _wsClients?[0].Send(message2.ToString());
+                _wsClients[0].Send(message2.ToString());
             }
             catch (Exception exeption)
             {
@@ -948,7 +1002,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #endregion
 
-        #region 9 WebSocket parsing the messages
+        #region 10 WebSocket parsing the messages
 
         private DateTime _lastMdTime = DateTime.MinValue;
 
@@ -1142,7 +1196,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             MyOrderEvent?.Invoke(order);
 
             if (MyTradeEvent != null)
-                //(order.State == OrderStateType.Done || order.State == OrderStateType.Partial ))
+            //(order.State == OrderStateType.Done || order.State == OrderStateType.Partial ))
             {
                 UpdateTrades(order);
             }
@@ -1251,7 +1305,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #endregion
 
-        #region 10 Trade
+        #region 11 Trade
 
         private string _lockOrder = "lockOrder";
 
@@ -1646,7 +1700,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         }
         #endregion
 
-        #region 11 Queries
+        #region 12 Queries
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
@@ -1756,7 +1810,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #endregion
 
-        #region 12 Log
+        #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
@@ -1774,7 +1828,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         #endregion
 
-        #region 13 Helpers
+        #region 14 Helpers
 
         public static decimal GetPriceStep(int ScalePrice)
         {
@@ -1938,7 +1992,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         #endregion
     }
 
-    #region 14 Signer
+    #region 15 Signer
 
     public static class Signer
     {
