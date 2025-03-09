@@ -1265,6 +1265,7 @@
     <Compile Include="Robots\PositionsMicromanagement\UnsafeLimitsClosingSample.cs" />
     <Compile Include="Robots\Screeners\BollingerMomentumScreener.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
+    <Compile Include="Robots\Screeners\PinBarVolatilityScreener.cs" />
     <Compile Include="Robots\Screeners\PriceChannelAdaptiveRsiScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
