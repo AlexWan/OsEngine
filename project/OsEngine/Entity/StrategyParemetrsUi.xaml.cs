@@ -11,6 +11,7 @@ using System.Windows.Forms.Integration;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Layout;
+using System.Threading.Tasks;
 
 namespace OsEngine.Entity
 {
@@ -19,6 +20,8 @@ namespace OsEngine.Entity
         private List<IIStrategyParameter> _parameters;
 
         BotPanel _panel;
+
+        private bool _isParametersUiClosed;
 
         public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings, BotPanel panel)
         {
@@ -72,6 +75,8 @@ namespace OsEngine.Entity
                 CreateCustomTab(settings.CustomTabs[i]);
             }
 
+            RePaintParameterTablesAsync();
+
             this.Closed += ParemetrsUi_Closed;
 
             this.Activate();
@@ -86,6 +91,8 @@ namespace OsEngine.Entity
             {
                 this.Closed -= ParemetrsUi_Closed;
                 _parameters = null;
+
+                _isParametersUiClosed = true;
 
                 if (_tabs != null)
                 {
@@ -206,7 +213,47 @@ namespace OsEngine.Entity
         {
             _panel?.SendNewLogMessage(error,Logging.LogMessageType.Error);
         }
+		
+        /// <summary>
+        /// method serves repainting of Parameter window tables
+        /// </summary>
+        private async void RePaintParameterTablesAsync()
+        {
+            bool _rePaint = _panel.ParamGuiSettings.IsRePaintParameterTables;
+
+            while (true)
+            {
+                try
+                {
+                    if (_isParametersUiClosed == true)
+                    {
+                        return;
+                    }
+                    
+                    if (_rePaint != _panel.ParamGuiSettings.IsRePaintParameterTables)
+                    {
+                        _rePaint = _panel.ParamGuiSettings.IsRePaintParameterTables;
+
+                        for (int i = 0; i < _tabs.Count; i++)
+                        {
+                            _tabs[i]?.PaintTable();                        
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _panel.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
+
+                await Task.Delay(50);
+            }
+        }
+	
     }
+
+
+
+
 
     public class ParamTabPainter
     {
@@ -315,8 +362,8 @@ namespace OsEngine.Entity
 
             _host.Child = _grid;
         }
-
-        private void PaintTable()
+		
+        public void PaintTable()	
         {
             _grid.Rows.Clear();
 
