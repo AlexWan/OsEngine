@@ -47,7 +47,8 @@ namespace OsEngine.Robots.Screeners
         private void SmaScreener_ParametrsChangeByUser()
         {
             _screenerTab._indicators[0].Parameters = new List<string>() { SmaLength.ValueInt.ToString(), "Close"};
-            _screenerTab.ReloadIndicatorsOnTabs();
+
+            _screenerTab.UpdateIndicatorsParameters();
         }
 
         public override string GetNameStrategyType()
