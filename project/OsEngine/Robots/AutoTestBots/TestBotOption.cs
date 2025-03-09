@@ -19,7 +19,8 @@ namespace OsEngine.Robots.AutoTestBots
         
         public TestBotOption(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            if(startProgram == StartProgram.IsOsOptimizer)
+            if(startProgram == StartProgram.IsOsOptimizer 
+                || startProgram == StartProgram.IsTester)
             {
                 return;
             }

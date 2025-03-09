@@ -13,6 +13,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Globalization;
 using System.IO;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Robots.Screeners
 {
@@ -51,8 +52,23 @@ namespace OsEngine.Robots.Screeners
             {
                 LoadTradeSettings();
             }
+            else if(startProgram == StartProgram.IsTester)
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if(servers != null && servers.Count > 0)
+                {
+                    TesterServer server = (TesterServer)servers[0];
+                    server.TestingStartEvent += Server_TestingStartEvent;
+                }
+            }
 
             this.DeleteEvent += ThreeSoldierAdaptiveScreener_DeleteEvent;
+        }
+
+        private void Server_TestingStartEvent()
+        {
+            _tradeSettings.Clear();
         }
 
         public override string GetNameStrategyType()
