@@ -52,7 +52,7 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            _seriesX.Values[index] = Math.Max(Math.Truncate(_ratio.ValueInt / _adx.DataSeries[0].Last), 1);
+            _seriesX.Values[index] = Math.Max(Math.Truncate(_ratio.ValueInt / _adx.DataSeries[0].Values[index]), 1);
 
             int x = (Int32)_seriesX.Values[index];
 
