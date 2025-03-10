@@ -245,7 +245,7 @@ namespace OsEngine.Entity
                     _panel.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 }
 
-                await Task.Delay(50);
+                await Task.Delay(10);
             }
         }
 	
