@@ -18,7 +18,7 @@ namespace OsEngine.Market.Servers.RSSNews
             RSSNewsServerRealization realization = new RSSNewsServerRealization();
             ServerRealization = realization;
 
-            CreateParameterString("RSS feed URL", "");
+            CreateParameterString("RSS feeds URL", "");
             CreateParameterInt("Update period news (sec)", 30);
         }
     }
@@ -41,57 +41,78 @@ namespace OsEngine.Market.Servers.RSSNews
 
         public void Connect()
         {
-            try
+            _rssUrlsString = ((ServerParameterString)ServerParameters[0]).Value;
+            _updatePeriod = ((ServerParameterInt)ServerParameters[1]).Value;
+
+            if (string.IsNullOrEmpty(_rssUrlsString))
             {
-                _rssUrl = ((ServerParameterString)ServerParameters[0]).Value;
-                _updatePeriod = ((ServerParameterInt)ServerParameters[1]).Value;
+                SendLogMessage("Can`t run connector. No RSS Url feed are specified", LogMessageType.Error);
+                return;
+            }
 
-                if (string.IsNullOrEmpty(_rssUrl))
+            if (_updatePeriod <= 0)
+            {
+                SendLogMessage("Can`t run connector. The news update period parameter must be a positive number.", LogMessageType.Error);
+                return;
+            }
+
+            string[] rssUrls = _rssUrlsString.Split(',');
+
+            _rssReadSettings.DtdProcessing = DtdProcessing.Ignore;
+
+            int countChannel = 0;
+
+            for (int i = 0; i < rssUrls.Length; i++)
+            {
+                try
                 {
-                    SendLogMessage("Can`t run connector. No RSS Url feed are specified", LogMessageType.Error);
-                    return;
-                }
+                    _reader = XmlReader.Create(rssUrls[i], _rssReadSettings);
 
-                if (_updatePeriod <= 0)
+                    SyndicationFeed feed = SyndicationFeed.Load(_reader);
+
+                    _reader.Close();
+
+                    IEnumerator<SyndicationItem> enumerator = feed.Items.GetEnumerator();
+
+                    while (enumerator.MoveNext() && i == countChannel)
+                    {
+                        News news = new News();
+
+                        news.TimeMessage = enumerator.Current.PublishDate.DateTime;
+                        news.Source = feed.Title.Text;
+
+                        string newsText = enumerator.Current?.Title?.Text ?? "There is no news name";
+                        newsText += "\n";
+                        newsText += enumerator.Current?.Summary?.Text ?? "";
+
+                        news.Value = CleanString(newsText);
+
+                        _newsList.Add(news);
+
+                        countChannel++;
+                    }
+
+                    SendLogMessage($"{feed.Title.Text} channel page was loaded", LogMessageType.Connect);
+
+                    _availableUrls.Add(rssUrls[i]);
+
+                }
+                catch (Exception ex)
                 {
-                    SendLogMessage("Can`t run connector. The news update period parameter must be a positive number.", LogMessageType.Error);
-                    return;
+                    SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+                    SendLogMessage("Couldn't access the RSS feed " + rssUrls[i], LogMessageType.Error);
+
+                    countChannel++;
                 }
+            }
 
-                _rssReadSettings.DtdProcessing = DtdProcessing.Ignore;
-
-                _reader = XmlReader.Create(_rssUrl, _rssReadSettings);
-
-                SyndicationFeed feed = SyndicationFeed.Load(_reader);
-
-                _reader.Close();
-
-                IEnumerator<SyndicationItem> enumerator = feed.Items.GetEnumerator();
-
-                while (enumerator.MoveNext() && _newsList.Count == 0)
-                {
-                    News news = new News();
-
-                    news.TimeMessage = enumerator.Current.PublishDate.DateTime;
-                    news.Source = feed.Title.Text;
-
-                    string newsText = enumerator.Current?.Title?.Text ?? "There is no news name";
-                    newsText += "\n";
-                    newsText += enumerator.Current?.Summary?.Text ?? "";
-
-                    news.Value = CleanString(newsText);
-
-                    _newsList.Add(news);
-                }
-
-                SendLogMessage($"{feed.Title.Text} channel page was loaded", LogMessageType.Connect);
-
+            if (_availableUrls.Count > 0)
+            {
                 ServerStatus = ServerConnectStatus.Connect;
                 ConnectEvent();
             }
-            catch (Exception ex)
+            else
             {
-                SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
                 SendLogMessage("Couldn't access the RSS feed", LogMessageType.Error);
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -100,11 +121,13 @@ namespace OsEngine.Market.Servers.RSSNews
                     DisconnectEvent();
                 }
             }
+
         }
 
         public void Dispose()
         {
             _newsList.Clear();
+            _availableUrls.Clear();
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -129,7 +152,9 @@ namespace OsEngine.Market.Servers.RSSNews
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private string _rssUrl;
+        private string _rssUrlsString;
+
+        List<string> _availableUrls = new List<string>();
 
         private int _updatePeriod;
 
@@ -140,6 +165,8 @@ namespace OsEngine.Market.Servers.RSSNews
         private XmlReaderSettings _rssReadSettings = new XmlReaderSettings();
 
         private bool _newsIsSubscribed = false;
+
+        private int _additionsSum;
 
         #endregion
 
@@ -154,6 +181,8 @@ namespace OsEngine.Market.Servers.RSSNews
 
             _newsIsSubscribed = true;
 
+            _additionsSum = _newsList.Count;
+
             return true;
         }
 
@@ -163,73 +192,76 @@ namespace OsEngine.Market.Servers.RSSNews
 
         private void RSSChannelsReader()
         {
-            int additionsSum = 1;
-
             string newsText = string.Empty;
 
             _rssReadSettings.DtdProcessing = DtdProcessing.Ignore;
 
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect || !_newsIsSubscribed)
-                {
-                    Thread.Sleep(3000);
-                    continue;
-                }
-
                 try
                 {
-                    _reader = XmlReader.Create(_rssUrl, _rssReadSettings);
-
-                    SyndicationFeed feed = SyndicationFeed.Load(_reader);
-
-                    _reader.Close();
-
-                    IEnumerator<SyndicationItem> enumerator = feed.Items.GetEnumerator();
-
-                    while (enumerator.MoveNext())
+                    if (ServerStatus != ServerConnectStatus.Connect || !_newsIsSubscribed)
                     {
-                        News news = new News();
+                        Thread.Sleep(3000);
+                        continue;
+                    }
 
-                        news.TimeMessage = enumerator.Current.PublishDate.DateTime;
-                        news.Source = feed.Title.Text;
+                    for (int i = 0; i < _availableUrls.Count; i++)
+                    {
+                        _reader = XmlReader.Create(_availableUrls[i], _rssReadSettings);
 
-                        newsText = enumerator.Current?.Title?.Text ?? "There is no news name";
-                        newsText += "\n";
-                        newsText += enumerator.Current?.Summary?.Text ?? "";
+                        SyndicationFeed feed = SyndicationFeed.Load(_reader);
 
-                        news.Value = CleanString(newsText);
+                        _reader.Close();
 
-                        if (_newsList.Find(n => n.TimeMessage == news.TimeMessage) != null)
+                        IEnumerator<SyndicationItem> enumerator = feed.Items.GetEnumerator();
+
+                        while (enumerator.MoveNext())
                         {
-                            break;
+                            News news = new News();
+
+                            news.TimeMessage = enumerator.Current.PublishDate.DateTime;
+                            news.Source = feed.Title.Text;
+
+                            newsText = enumerator.Current?.Title?.Text ?? "There is no news name";
+                            newsText += "\n";
+                            newsText += enumerator.Current?.Summary?.Text ?? "";
+
+                            news.Value = CleanString(newsText);
+
+                            if (_newsList.Find(n => n.TimeMessage == news.TimeMessage) != null)
+                            {
+                                break;
+                            }
+                            else
+                            {
+                                _newsList.Add(news);
+                                _additionsSum++;
+                            }
                         }
-                        else
+
+                        for (int k = _newsList.Count - 1; _additionsSum > 0; k--)
                         {
-                            _newsList.Add(news);
-                            additionsSum++;
+                            NewsEvent(_newsList[k]);
+
+                            _additionsSum--;
                         }
                     }
+
+                    Thread.Sleep(_updatePeriod * 1000);
+
                 }
                 catch (Exception ex)
                 {
                     SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
                     SendLogMessage("Couldn't access the RSS feed", LogMessageType.Error);
+
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
                         DisconnectEvent();
                     }
                 }
-
-                for (int i = _newsList.Count - 1; additionsSum > 0; i--)
-                {
-                    NewsEvent(_newsList[i]);
-
-                    additionsSum--;
-                }
-
-                Thread.Sleep(_updatePeriod * 1000);
             }
         }
 
@@ -370,6 +402,8 @@ namespace OsEngine.Market.Servers.RSSNews
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
     }
 }
+
