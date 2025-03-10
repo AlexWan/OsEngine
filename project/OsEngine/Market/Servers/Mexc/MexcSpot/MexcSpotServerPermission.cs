@@ -5,12 +5,14 @@
 
 namespace OsEngine.Market.Servers.Mexc
 {
-    class MexcServerPermission : IServerPermission
+    class MexcSpotServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.Mexc; }
+            get { return ServerType.MexcSpot; }
         }
+
+        #region DataFeedPermissions
 
         public bool DataFeedTf1SecondCanLoad
         {
@@ -107,6 +109,10 @@ namespace OsEngine.Market.Servers.Mexc
             get { return true; }
         }
 
+        #endregion
+
+        #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
             get { return false; }
@@ -132,11 +138,6 @@ namespace OsEngine.Market.Servers.Mexc
             get { return false; }
         }
 
-        public bool IsTradeServer
-        {
-            get { return false; }
-        }
-
         public TimeFramePermission TradeTimeFramePermission
         {
             get { return _tradeTimeFramePermission; }
@@ -145,13 +146,13 @@ namespace OsEngine.Market.Servers.Mexc
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = false,
@@ -167,10 +168,7 @@ namespace OsEngine.Market.Servers.Mexc
                 TimeFrameDayIsOn = true
             };
 
-        public bool ManuallyClosePositionOnBoard_IsOn
-        {
-            get { return true; }
-        }
+
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
@@ -180,6 +178,16 @@ namespace OsEngine.Market.Servers.Mexc
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
             get { return null; }
+        }
+
+        public bool ManuallyClosePositionOnBoard_IsOn
+        {
+            get { return false; }
+        }
+
+        public bool IsTradeServer
+        {
+            get { return true; }
         }
 
         public bool CanQueryOrdersAfterReconnect
@@ -192,9 +200,15 @@ namespace OsEngine.Market.Servers.Mexc
             get { return true; }
         }
 
+        #endregion
+
+        #region Other Permissions
+
         public bool IsNewsServer
         {
             get { return false; }
         }
+
+        #endregion
     }
 }

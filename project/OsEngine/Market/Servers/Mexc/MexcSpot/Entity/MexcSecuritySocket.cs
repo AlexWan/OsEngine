@@ -3,13 +3,12 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using Jayrock.Json;
 using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.Mexc.Json
 {
     public class SoketBaseMessage
-    { 
+    {
         public string c { get; set; } //channel
         public object d { get; set; } //data
         public string s { get; set; } //symbol
@@ -30,7 +29,6 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string v { get; set; }
     }
 
-
     public class MexcDepthRow
     {
         public string p { get; set; }
@@ -44,5 +42,4 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string e { get; set; }
         public string r { get; set; }
     }
-
 }
