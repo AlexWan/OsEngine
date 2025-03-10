@@ -3,9 +3,7 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace OsEngine.Market.Servers.Mexc.Json
 {
@@ -126,7 +124,6 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string timeInForce { get; set; }
         public string type { get; set; }
         public string side { get; set; }
-
         public string stopPrice { get; set; }
         public string icebergQty { get; set; }
         public ulong time { get; set; }

@@ -3,8 +3,6 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System.Collections.Generic;
-
 namespace OsEngine.Market.Servers.Mexc.Json
 {
     public class MexcListenKey
@@ -12,20 +10,20 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string listenKey;
     }
 
-// Example
-//    {
-//    "c": "spot@private.account.v3.api",
-//    "d": {
-//        "a": "USDT",
-//        "c": 1678185928428,
-//        "f": "302.185113007893322435",
-//        "fd": "-4.990689704",
-//        "l": "4.990689704",
-//        "ld": "4.990689704",
-//        "o": "ENTRUST_PLACE"
-//    },
-//    "t": 1678185928435
-//}
+    // Example
+    //    {
+    //    "c": "spot@private.account.v3.api",
+    //    "d": {
+    //        "a": "USDT",
+    //        "c": 1678185928428,
+    //        "f": "302.185113007893322435",
+    //        "fd": "-4.990689704",
+    //        "l": "4.990689704",
+    //        "ld": "4.990689704",
+    //        "o": "ENTRUST_PLACE"
+    //    },
+    //    "t": 1678185928435
+    //}
 
     public class MexcSocketBalance
     {
@@ -56,5 +54,4 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public decimal cv { get; set; }
         public decimal ca { get; set; }
     }
-
 }
