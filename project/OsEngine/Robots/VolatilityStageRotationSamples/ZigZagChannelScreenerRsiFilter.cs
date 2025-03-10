@@ -77,9 +77,15 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             if (StartProgram == StartProgram.IsTester && ServerMaster.GetServers() != null)
             {
-                TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
+                List<IServer> servers = ServerMaster.GetServers();
 
-                server.TestingStartEvent += Server_TestingStartEvent;
+                if (servers != null
+                    && servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
+                {
+                    TesterServer server = (TesterServer)servers[0];
+                    server.TestingStartEvent += Server_TestingStartEvent;
+                }
             }
         }
 

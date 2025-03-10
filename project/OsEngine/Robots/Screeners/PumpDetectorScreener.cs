@@ -67,7 +67,9 @@ namespace OsEngine.Robots.Screeners
             {
                 List<IServer> servers = ServerMaster.GetServers();
 
-                if (servers != null && servers.Count > 0)
+                if (servers != null 
+                    && servers.Count > 0
+                     && servers[0].ServerType == ServerType.Tester)
                 {
                     TesterServer server = (TesterServer)servers[0];
                     server.TestingStartEvent += Server_TestingStartEvent;
