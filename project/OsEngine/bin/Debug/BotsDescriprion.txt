@@ -65,6 +65,7 @@ PriceChannelScreenerOnIndexVolatility&&Include&&Index 1*Screener 1*&VolatilitySt
 PriceChannelTrendAtrFilter&&Include&&Simple 1*&PriceChannel*ATR*&
 ParabolicSarTrade&Trend strategy at the intersection of the ParabolicSar indicator. if Price < lastSar - close position and open Short. if Price > lastSar - close position and open Long.&Include&&Simple 1*&ParabolicSaR*&
 PriceChannelTrade&Trend strategy on interseption PriceChannel indicator. if PriceLow < _lastPriceChDown - close position and open Short. if PriceHigh > _lastPriceChUp - close position and open Long.&Include&&Simple 1*&PriceChannel*&
+PlateDetectorScreener&&Include&&Screener 1*&&
 PumpDetectorScreener&&Include&&Screener 1*&&
 PinBarScreener&&Include&&Screener 1*&&
 PinBarVolatilityScreener&&Include&&Screener 1*&&
