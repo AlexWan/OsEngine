@@ -42,7 +42,7 @@ namespace OsEngine.Robots.Screeners
 
             DaysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 5, 0, 20, 1);
 
-            HeightPinBarVolaPercent = CreateParameter("Height soldiers volatility percent", 30, 0, 20, 1m);
+            HeightPinBarVolaPercent = CreateParameter("Height PinBar volatility percent", 30, 0, 20, 1m);
 
             SmaFilterIsOn = CreateParameter("Sma filter is on", true);
 

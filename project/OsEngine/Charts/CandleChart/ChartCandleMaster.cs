@@ -1852,6 +1852,11 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
+            if(_serverType == ServerType.None)
+            {
+                _isFirstTimeSetSecurity = true;
+            }
+
             if (ChartCandle != null)
             {
                 ChartCandle.ClearDataPointsAndSizeValue();
