@@ -1834,6 +1834,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             if (parametersChanged)
                             {
                                 newIndicator.Reload();
+                                newIndicator.Save();
                             }
                         }
                         catch (Exception error)
@@ -1843,6 +1844,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                         newIndicator.Save();
                     }
                 }
+
+                SaveIndicators();
             }
             catch (Exception e)
             {
