@@ -27,7 +27,7 @@ namespace OsEngine.Charts.CandleChart
     /// </summary>
     public class ChartCandleMaster
     {
-        // service  сервис
+        // service сервис
 
         /// <summary>
         /// constructor

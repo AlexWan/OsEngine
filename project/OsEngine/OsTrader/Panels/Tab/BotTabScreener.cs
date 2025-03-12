@@ -1110,29 +1110,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// All tab positions
-        /// </summary>
-        public List<Position> PositionsOpenAll
-        {
-            get
-            {
-                List<Position> positions = new List<Position>();
-
-                for (int i = 0; i < Tabs.Count; i++)
-                {
-                    List<Position> curPoses = Tabs[i].PositionsOpenAll;
-
-                    if (curPoses.Count != 0)
-                    {
-                        positions.AddRange(curPoses);
-                    }
-                }
-
-                return positions;
-            }
-        }
-
-        /// <summary>
         /// Correct program removal of security from the screener
         /// </summary>
         public void RemoveTabBySecurityName(string securityName, string securityClass)
@@ -1454,7 +1431,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SecuritiesDataGrid.Rows[tabRow].Cells[0].Selected = true;
                     }
 
-                    SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    if(_previousActiveRow < SecuritiesDataGrid.Rows.Count)
+                    {
+                        SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    }
+
                     SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
                     _previousActiveRow = tabRow;
                 }
@@ -2335,14 +2316,32 @@ namespace OsEngine.OsTrader.Panels.Tab
             return null;
         }
 
+        /// <summary>
+        /// All tab positions
+        /// </summary>
+        public List<Position> PositionsOpenAll
+        {
+            get
+            {
+                List<Position> positions = new List<Position>();
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    List<Position> curPoses = Tabs[i].PositionsOpenAll;
+
+                    if (curPoses.Count != 0)
+                    {
+                        positions.AddRange(curPoses);
+                    }
+                }
+
+                return positions;
+            }
+        }
+
         #endregion
 
         #region Events
-
-        /// <summary>
-        /// New tab creation event
-        /// </summary>
-        public event Action<BotTabSimple> NewTabCreateEvent;
 
         /// <summary>
         /// Subscribe to events in the tab
@@ -2474,6 +2473,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             };
         }
+
+        /// <summary>
+        /// New tab creation event
+        /// </summary>
+        public event Action<BotTabSimple> NewTabCreateEvent;
 
         /// <summary>
         /// Last candle finishede
