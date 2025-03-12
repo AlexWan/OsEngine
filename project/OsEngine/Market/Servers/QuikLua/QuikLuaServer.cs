@@ -34,6 +34,7 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterBoolean(OsLocalization.Market.Label109, false);
             CreateParameterString("Client code", null);
+            CreateParameterBoolean(OsLocalization.Market.Label162, false);
 
             ServerParameters[0].Comment = OsLocalization.Market.Label107;
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
@@ -42,6 +43,7 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerParameters[4].Comment = OsLocalization.Market.Label97;
             ServerParameters[5].Comment = OsLocalization.Market.Label110;
             ServerParameters[6].Comment = OsLocalization.Market.Label121;
+            ServerParameters[7].Comment = OsLocalization.Market.Label163;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
@@ -106,6 +108,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     _useCurrency = (ServerParameterBool)ServerParameters[2];
                     _useOptions = (ServerParameterBool)ServerParameters[3];
                     _useOther = (ServerParameterBool)ServerParameters[4];
+                    _isClientCodeOne = ((ServerParameterBool)ServerParameters[7]).Value;
 
                     QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
                     //QuikLua.DefaultSendTimeout = new TimeSpan(0, 0, 5);
@@ -230,6 +233,8 @@ namespace OsEngine.Market.Servers.QuikLua
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private RateGate _gateToGetCandles = new RateGate(1, TimeSpan.FromMilliseconds(500));
+
+        private bool _isClientCodeOne = false;
 
         /// <summary>
         /// called when order changed
@@ -572,14 +577,11 @@ namespace OsEngine.Market.Servers.QuikLua
 
                         myPortfolio.Number = accaunts[i].TrdaccId;
 
-                        PortfolioInfo qPortfolio =
-                            QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, accaunts[i].TrdaccId).Result;   //AVP сделал accaunts[i].TrdaccId, для финама , БКС, когда в квике несколько клиенткодов,  было clientCode 
-
-                        if (qPortfolio == null)    // AVP для тех брокеров у которых через accaunts[i].TrdaccId портфель не находит, и клиент-код всего один.
-                        {
-                            qPortfolio =
-                            QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
-                        }
+                        PortfolioInfo qPortfolio = new PortfolioInfo();
+                        if (_isClientCodeOne == false)
+                            qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, accaunts[i].TrdaccId).Result;
+                        else
+                            qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
 
                         if (qPortfolio.Assets == null ||
                             qPortfolio.Assets.ToDecimal() == 0)
@@ -664,8 +666,9 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
                     Portfolio needPortf;
-                    foreach (DepoLimitEx pos in spotPos)
+                    for (int i = 0; i < spotPos.Count; i++)
                     {
+                        DepoLimitEx pos = spotPos[i];
                         Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
 
                         if (pos.LimitKind == LimitKind.T0 && sec != null)

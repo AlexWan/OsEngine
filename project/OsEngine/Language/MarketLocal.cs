@@ -681,6 +681,14 @@ namespace OsEngine.Language
             "Eng:Count news to save_" +
             "Ru:Хранить новости. Кол-во_");
 
+        public string Label162 => OsLocalization.ConvertToLocString(
+          "Eng:Multiple client codes_" +
+          "Ru:Несколько клиентских кодов_");
+
+        public string Label163 => OsLocalization.ConvertToLocString(
+          "Eng:If the broker uses several client codes, the value is true (for example, Finam , BCS), if there is only one client code, the value is false (for example, VTB). By default, false_" +
+          "Ru:Если брокер использует несколько клиентcких кодов, то значение true (например, Финам, БКС), если клиент код всего один, то значение false (например, ВТБ). По умолчанию false_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
