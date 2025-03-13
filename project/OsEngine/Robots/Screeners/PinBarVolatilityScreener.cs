@@ -65,7 +65,7 @@ namespace OsEngine.Robots.Screeners
                 }
             }
 
-            this.DeleteEvent += ThreeSoldierAdaptiveScreener_DeleteEvent;
+            this.DeleteEvent += Screener_DeleteEvent;
         }
 
         private void Server_TestingStartEvent()
@@ -165,7 +165,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
-        private void ThreeSoldierAdaptiveScreener_DeleteEvent()
+        private void Screener_DeleteEvent()
         {
             try
             {
@@ -180,7 +180,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
-        private void AdaptSoldiersHeight(List<Candle> candles, SecuritiesVolatilitySettings settings)
+        private void AdaptPinBarHeight(List<Candle> candles, SecuritiesVolatilitySettings settings)
         {
             if (DaysVolatilityAdaptive.ValueInt <= 0
                 || HeightPinBarVolaPercent.ValueDecimal <= 0)
@@ -292,7 +292,7 @@ namespace OsEngine.Robots.Screeners
 
             if (mySettings.LastUpdateTime.Date != candles[candles.Count - 1].TimeStart.Date)
             {
-                AdaptSoldiersHeight(candles, mySettings);
+                AdaptPinBarHeight(candles, mySettings);
 
                 if (tab.StartProgram == StartProgram.IsOsTrader)
                 {

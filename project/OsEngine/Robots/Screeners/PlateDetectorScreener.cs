@@ -23,8 +23,6 @@ namespace OsEngine.Robots.Screeners
 
         public StrategyParameterInt MaxPositions;
 
-        public StrategyParameterInt SecondsToAnalyze;
-
         public StrategyParameterDecimal BestBidMinRatioToAll;
 
         public StrategyParameterString VolumeType;
@@ -48,8 +46,6 @@ namespace OsEngine.Robots.Screeners
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
             MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
-
-            SecondsToAnalyze = CreateParameter("Seconds to analyze", 2, 0, 20, 1);
 
             BestBidMinRatioToAll = CreateParameter("Best bid min ratio", 5m, 0, 20, 1m);
 
@@ -108,8 +104,6 @@ namespace OsEngine.Robots.Screeners
                     LogicClosePosition(tab, openPositions[i]);
                 }
             }
-
-
         }
 
         private void LogicEntry(MarketDepth marketDepth, BotTabSimple tab)
