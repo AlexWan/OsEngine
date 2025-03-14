@@ -12,8 +12,8 @@ using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using System.Security.Cryptography;
-using OsEngine.Market.Servers.CoinEx.Spot.Entity;
-using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
+using OsEngine.Market.Servers.CoinEx.Futures.Entity;
+using OsEngine.Market.Servers.CoinEx.Futures.Entity.Enums;
 using WebSocketSharp;
 using System.Collections.Concurrent;
 using System.IO.Compression;
@@ -21,11 +21,11 @@ using System.IO;
 using Newtonsoft.Json;
 using System.Net.Http;
 
-namespace OsEngine.Market.Servers.CoinEx.Spot
+namespace OsEngine.Market.Servers.CoinEx.Futures
 {
-    public class CoinExServerSpot : AServer
+    public class CoinExServerFutures : AServer
     {
-        public CoinExServerSpot()
+        public CoinExServerFutures()
         {
             CoinExServerRealization realization = new CoinExServerRealization();
             ServerRealization = realization;
@@ -33,7 +33,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Market depth", "20", new List<string> { "5", "10", "20", "50" });
-            CreateParameterEnum("Market Mode", CexMarketType.SPOT.ToString(), new List<string> { CexMarketType.SPOT.ToString(), CexMarketType.MARGIN.ToString() });
         }
     }
 
@@ -51,7 +50,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public ServerType ServerType
         {
-            get { return ServerType.CoinExSpot; }
+            get { return ServerType.CoinExFutures; }
         }
 
         public CoinExServerRealization()
@@ -74,12 +73,12 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 _wsClients.Clear();
                 _subscribedSecurities.Clear();
 
-                SendLogMessage("Start CoinEx Spot Connection", LogMessageType.Connect);
+                SendLogMessage("Start CoinEx Futures Connection", LogMessageType.Connect);
 
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 _marketDepth = Int16.Parse(((ServerParameterEnum)ServerParameters[2]).Value);
-                _marketMode = ((ServerParameterEnum)ServerParameters[3]).Value;
+                _marketMode = CexMarketType.FUTURES.ToString();
 
                 if (string.IsNullOrEmpty(_publicKey) || string.IsNullOrEmpty(_secretKey))
                 {
@@ -163,7 +162,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private int _marketDepth;
 
-        // Spot or Margin
+        // Futures only
         private string _marketMode;
         #endregion
 
@@ -190,10 +189,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private void UpdateSec()
         {
-            // https://docs.coinex.com/api/v2/spot/market/http/list-market
+            // https://docs.coinex.com/api/v2/futures/market/http/list-market
             try
             {
-                List<CexSecurity> securities = _restClient.Get<List<CexSecurity>>("/spot/market");
+                List<CexSecurity> securities = _restClient.Get<List<CexSecurity>>("/futures/market");
                 UpdateSecuritiesFromServer(securities);
             }
             catch (Exception exception)
@@ -232,7 +231,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                     security.Lot = 1;
                     security.SecurityType = SecurityType.CurrencyPair;
-                    security.Exchange = ServerType.CoinExSpot.ToString();
+                    security.Exchange = ServerType.CoinExFutures.ToString();
 
                     _securities.Add(security);
                 }
@@ -258,12 +257,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public string getPortfolioName(string securityName = "")
         {
-            if (_marketMode == CexMarketType.SPOT.ToString())
-            {
-                return ServerType.CoinExSpot.ToString();
-            }
-
-            return "Margin " + securityName;
+            return ServerType.CoinExFutures.ToString();
         }
 
         public void GetPortfolios()
@@ -277,16 +271,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                if (_marketMode == CexMarketType.SPOT.ToString())
-                {
-                    List<CexSpotPortfolioItem>? cexPortfolio = _restClient.Get<List<CexSpotPortfolioItem>>("/assets/spot/balance", true);
-                    ConvertSpotToPortfolio(cexPortfolio);
-                }
-                if (_marketMode == CexMarketType.MARGIN.ToString())
-                {
-                    List<CexMarginPortfolioItem>? cexPortfolio = _restClient.Get<List<CexMarginPortfolioItem>>("/assets/margin/balance", true);
-                    ConvertMarginToPortfolio(cexPortfolio);
-                }
+                List<CexFuturesPortfolioItem>? cexPortfolio = _restClient.Get<List<CexFuturesPortfolioItem>>("/assets/futures/balance", true);
+                ConvertFuturesToPortfolio(cexPortfolio);
                 return _portfolios.Count > 0;
             }
             catch (Exception exception)
@@ -296,7 +282,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             return false;
         }
 
-        private void ConvertSpotToPortfolio(List<CexSpotPortfolioItem> portfolioItems)
+        private void ConvertFuturesToPortfolio(List<CexFuturesPortfolioItem> portfolioItems)
         {
             string portfolioName = getPortfolioName();
             try
@@ -322,7 +308,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
                 for (int i = 0; i < portfolioItems.Count; i++)
                 {
-                    CexSpotPortfolioItem cexPortfolioItem = portfolioItems[i];
+                    CexFuturesPortfolioItem cexPortfolioItem = portfolioItems[i];
 
                     PositionOnBoard pos = new PositionOnBoard();
 
@@ -344,74 +330,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 myPortfolio.ValueCurrent = getPortfolioValue(myPortfolio);
 
                 PortfolioEvent?.Invoke(_portfolios);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void ConvertMarginToPortfolio(List<CexMarginPortfolioItem> portfolioItems)
-        {
-            try
-            {
-                if (portfolioItems == null || portfolioItems.Count == 0)
-                {
-                    SendLogMessage("No portfolios detected!", LogMessageType.System);
-                    return;
-                }
-
-                for (int i = 0; i < portfolioItems.Count; i++)
-                {
-                    CexMarginPortfolioItem cexPortfolioItem = portfolioItems[i];
-                    string portfolioName = getPortfolioName(cexPortfolioItem.margin_account);
-                    Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
-
-                    if (myPortfolio == null)
-                    {
-                        Portfolio newPortf = new Portfolio();
-                        newPortf.Number = portfolioName;
-                        newPortf.ServerType = ServerType;
-                        newPortf.ValueBegin = 1;
-                        newPortf.ValueCurrent = 1;
-                        myPortfolio = newPortf;
-                    }
-
-                    PositionOnBoard pos = new PositionOnBoard();
-                    pos.SecurityNameCode = cexPortfolioItem.base_ccy;
-                    pos.ValueBlocked = cexPortfolioItem.frozen.base_ccy.ToString().ToDecimal();
-                    pos.ValueCurrent = cexPortfolioItem.available.base_ccy.ToString().ToDecimal();
-                    pos.PortfolioName = portfolioName;
-                    pos.ValueBegin = pos.ValueCurrent;
-
-                    if (pos.ValueBlocked + pos.ValueCurrent > 0)
-                    {
-                        myPortfolio.SetNewPosition(pos);
-                    }
-
-                    pos = new PositionOnBoard();
-                    pos.SecurityNameCode = cexPortfolioItem.quote_ccy;
-                    pos.ValueBlocked = cexPortfolioItem.frozen.quote_ccy.ToString().ToDecimal();
-                    pos.ValueCurrent = cexPortfolioItem.available.quote_ccy.ToString().ToDecimal();
-                    pos.PortfolioName = portfolioName;
-                    pos.ValueBegin = pos.ValueCurrent;
-
-                    if (pos.ValueBlocked + pos.ValueCurrent > 0)
-                    {
-                        myPortfolio.SetNewPosition(pos);
-                    }
-
-                    List<PositionOnBoard> poses = myPortfolio.GetPositionOnBoard();
-
-                    if (poses == null || poses.Count == 0) { continue; }
-
-                    _portfolios.Add(myPortfolio);
-
-                    myPortfolio.ValueCurrent = getPortfolioValue(myPortfolio);
-
-                    PortfolioEvent?.Invoke(_portfolios);
-                }
-
             }
             catch (Exception error)
             {
@@ -480,10 +398,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         public List<CexMarketInfoItem> GetMarketsInfo(List<string> securities)
         {
-            // https://docs.coinex.com/api/v2/spot/market/http/list-market-ticker
+            // https://docs.coinex.com/api/v2/futures/market/http/list-market-ticker
             List<CexMarketInfoItem> cexInfo = new List<CexMarketInfoItem>();
 
-            string endPoint = "/spot/ticker";
+            string endPoint = "/futures/ticker";
             try
             {
                 if (securities.Count > 10)
@@ -691,7 +609,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private ConcurrentQueue<string> _webSocketMessage = new ConcurrentQueue<string>();
 
-        private readonly string _wsUrl = "wss://socket.coinex.com/v2/spot";
+        private readonly string _wsUrl = "wss://socket.coinex.com/v2/futures";
 
         private string _socketLocker = "webSocketLockerCoinEx";
 
@@ -1080,7 +998,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private void UpdateTrade(CexWsTransactionUpdate data)
         {
-            // https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+            // https://docs.coinex.com/api/v2/futures/market/ws/market-deals
             lock (_updateTradesLocker)
             {
                 if (data.deal_list == null || data.deal_list.Count == 0)
@@ -1125,7 +1043,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private void UpdateMarketDepth(CexWsDepthUpdate data)
         {
-            // https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+            // https://docs.coinex.com/api/v2/futures/market/ws/market-depth
             lock (_updateMarketDepthLocker)
             {
                 if (data.depth.asks.Count == 0 && data.depth.bids.Count == 0)
@@ -1216,14 +1134,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     return;
                 }
 
-                if (_marketMode == CexMarketType.SPOT.ToString())
-                {
-                    wsUpdateSpotPortfolio(data);
-                }
-                if (_marketMode == CexMarketType.MARGIN.ToString())
-                {
-                    wsUpdateMarginPortfolio(data);
-                }
+                wsUpdateFuturesPortfolio(data);
             }
             catch (Exception error)
             {
@@ -1231,7 +1142,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        private void wsUpdateSpotPortfolio(CexWsBalance data)
+        private void wsUpdateFuturesPortfolio(CexWsBalance data)
         {
             string portfolioName = getPortfolioName();
             Portfolio portfolio = _portfolios.Find(p => p.Number == portfolioName);
@@ -1266,43 +1177,6 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             PortfolioEvent?.Invoke(_portfolios);
         }
-
-        private void wsUpdateMarginPortfolio(CexWsBalance data)
-        {
-            for (int i = 0; i < data.balance_list.Length; i++)
-            {
-                string portfolioName = getPortfolioName(data.balance_list[i].margin_market);
-                Portfolio portfolio = _portfolios.Find(p => p.Number == portfolioName);
-
-                if (portfolio == null)
-                {
-                    continue;
-                }
-
-                PositionOnBoard pos =
-                    portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == data.balance_list[i].ccy);
-
-                if (pos == null)
-                {
-                    CexWsBalanceItem cexPosition = data.balance_list[i];
-
-                    pos = new PositionOnBoard();
-                    pos.ValueCurrent = cexPosition.available.ToString().ToDecimal();
-                    pos.ValueBlocked = cexPosition.frozen.ToString().ToDecimal();
-                    pos.SecurityNameCode = cexPosition.ccy;
-                    pos.PortfolioName = portfolioName;
-
-                    portfolio.SetNewPosition(pos);
-                    continue;
-                }
-
-                pos.ValueCurrent = data.balance_list[i].available.ToString().ToDecimal();
-                pos.ValueBlocked = data.balance_list[i].frozen.ToString().ToDecimal();
-            }
-
-            PortfolioEvent?.Invoke(_portfolios);
-        }
-
         #endregion
 
         #region 11 Trade
@@ -1330,10 +1204,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                // https://docs.coinex.com/api/v2/spot/order/http/put-order#http-request
+                // https://docs.coinex.com/api/v2/futures/order/http/put-order#http-request
                 Dictionary<string, Object> body = (new CexRequestSendOrder(_marketMode, order)).parameters;
 
-                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/order", body, true);
+                CexOrder cexOrder = _restClient.Post<CexOrder>("/futures/order", body, true);
 
                 if (cexOrder.order_id > 0)
                 {
@@ -1379,9 +1253,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                // https://docs.coinex.com/api/v2/spot/order/http/edit-order
+                // https://docs.coinex.com/api/v2/futures/order/http/edit-order
                 Dictionary<string, Object> body = (new CexRequestEditOrder(_marketMode, order, newPrice)).parameters;
-                CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/modify-order", body, true);
+                CexOrder cexOrder = _restClient.Post<CexOrder>("/futures/modify-order", body, true);
 
                 if (cexOrder.order_id > 0)
                 {
@@ -1408,9 +1282,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 try
                 {
-                    // https://docs.coinex.com/api/v2/spot/order/http/cancel-order
+                    // https://docs.coinex.com/api/v2/futures/order/http/cancel-order
                     Dictionary<string, Object> body = (new CexRequestCancelOrder(_marketMode, order.NumberMarket, order.SecurityNameCode)).parameters;
-                    CexOrder cexOrder = _restClient.Post<CexOrder>("/spot/cancel-order", body, true);
+                    CexOrder cexOrder = _restClient.Post<CexOrder>("/futures/cancel-order", body, true);
 
                     if (cexOrder.order_id > 0)
                     {
@@ -1454,27 +1328,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         {
             try
             {
-                //_subscribedSecurities
+                _rateGateGetOrder.WaitToProceed();
                 List<CexOrder> cexOrders = new List<CexOrder>();
-                // https://docs.coinex.com/api/v2/spot/order/http/list-pending-order
-                if (_marketMode == CexMarketType.MARGIN.ToString())
-                {
-                    for (int i = 0; i < _subscribedSecurities.Count; i++)
-                    {
-                        _rateGateGetOrder.WaitToProceed();
-                        Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode, _subscribedSecurities[i].Name)).parameters;
-                        List<CexOrder> tmpCexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters);
-                        if (tmpCexOrders != null && tmpCexOrders.Count > 0)
-                        {
-                            cexOrders.AddRange(tmpCexOrders);
-                        }
-                    }
-                }
-                else
-                {
-                    Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode)).parameters;
-                    cexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters);
-                }
+                // https://docs.coinex.com/api/v2/futures/order/http/list-pending-order
+                // https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+
+                Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode)).parameters;
+                cexOrders = _restClient.Get<List<CexOrder>?>("/futures/pending-order", true, parameters);
 
                 if (cexOrders == null || cexOrders.Count == 0)
                 {
@@ -1524,9 +1384,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                // https://docs.coinex.com/api/v2/spot/order/http/get-order-status
+                // https://docs.coinex.com/api/v2/futures/order/http/get-order-status
                 Dictionary<string, Object> parameters = (new CexRequestOrderStatus(orderId, market)).parameters;
-                CexOrder cexOrder = _restClient.Get<CexOrder>("/spot/order-status", true, parameters);
+                CexOrder cexOrder = _restClient.Get<CexOrder>("/futures/order-status", true, parameters);
 
                 if (!string.IsNullOrEmpty(cexOrder.client_id))
                 {
@@ -1554,9 +1414,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 try
                 {
-                    // https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+                    // https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
                     Dictionary<string, Object> body = (new CexRequestCancelAllOrders(_marketMode, security)).parameters;
-                    Object result = _restClient.Post<Object>("/spot/cancel-all-order", body, true);
+                    Object result = _restClient.Post<Object>("/futures/cancel-all-order", body, true);
                 }
                 catch (Exception exception)
                 {
@@ -1592,7 +1452,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             order.NumberUser = Convert.ToInt32(cexOrder.client_id);
 
             order.SecurityNameCode = cexOrder.market;
-            order.SecurityClassCode = cexOrder.market.Substring(cexOrder.ccy?.Length ?? cexOrder.market.Length - 3); // Fix for Futures (no Currency info)
+            order.SecurityClassCode = cexOrder.market.Substring(cexOrder.market.Length - 4);
             order.Volume = cexOrder.amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
             order.VolumeExecute = cexOrder.filled_amount.ToString().ToDecimal(); // FIX Разобраться с названием параметра!
 
@@ -1606,7 +1466,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 order.TypeOrder = OrderPriceType.Market;
             }
 
-            order.ServerType = ServerType.CoinExSpot;
+            order.ServerType = ServerType.CoinExFutures;
 
             order.NumberMarket = cexOrder.order_id.ToString();
 
@@ -1665,9 +1525,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             try
             {
-                // https://docs.coinex.com/api/v2/spot/deal/http/list-user-order-deals#http-request
+                // https://docs.coinex.com/api/v2/futures/deal/http/list-user-order-deals#http-request
                 Dictionary<string, Object> parameters = (new CexRequestOrderDeals(_marketMode, orderId, market)).parameters;
-                List<CexOrderTransaction> cexTrades = _restClient.Get<List<CexOrderTransaction>>("/spot/order-deals", true, parameters);
+                List<CexOrderTransaction> cexTrades = _restClient.Get<List<CexOrderTransaction>>("/futures/order-deals", true, parameters);
 
                 if (cexTrades != null)
                 {
@@ -1679,7 +1539,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         MyTrade trade = new MyTrade();
                         trade.NumberOrderParent = cexTrade.order_id.ToString();
                         trade.NumberTrade = cexTrade.deal_id.ToString();
-                        trade.SecurityNameCode = string.IsNullOrEmpty(cexTrade.margin_market) ? cexTrade.market : cexTrade.margin_market;
+                        trade.SecurityNameCode = cexTrade.market;
                         trade.Time = new DateTime(1970, 1, 1).AddMilliseconds(cexTrade.created_at);
                         trade.Side = (cexTrade.side == CexOrderSide.BUY.ToString()) ? Side.Buy : Side.Sell;
                         trade.Price = cexTrade.price.ToString().ToDecimal();
@@ -1705,13 +1565,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
-            // https://docs.coinex.com/api/v2/spot/market/http/list-market-deals#http-request
+            // https://docs.coinex.com/api/v2/futures/market/http/list-market-deals#http-request
             // Max 1000 deals at all
             List<Trade> trades = new List<Trade>();
             try
             {
                 Dictionary<string, Object> parameters = (new CexRequestGetDeals(security.Name)).parameters;
-                List<CexTransaction> cexDeals = _restClient.Get<List<CexTransaction>>("/spot/deals", false, parameters);
+                List<CexTransaction> cexDeals = _restClient.Get<List<CexTransaction>>("/futures/deals", false, parameters);
 
                 for (int i = cexDeals.Count - 1; i >= 0; i--)
                 {
@@ -1757,8 +1617,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
             if (tsStartTime > tsEndTime || tsStartTime < 0 || tsEndTime < 0) { return null; }
 
-            // https://www.coinex.com/res/market/kline?market=XRPUSDT&start_time=1719781200&end_time=1725138000&interval=300
-            string url = string.Format("https://www.coinex.com/res/market/kline?market={0}&start_time={1}&end_time={2}&interval={3}",
+            //https://www.coinex.com/res/contract/market/kline?market=TONUSDT&start_time=1741330800&end_time=1741374900&interval=900
+            string url = string.Format("https://www.coinex.com/res/contract/market/kline?market={0}&start_time={1}&end_time={2}&interval={3}",
                 security.Name,
                 tsStartTime,
                 tsEndTime,
@@ -1889,7 +1749,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 order.TypeOrder = OrderPriceType.Market;
             }
 
-            order.ServerType = ServerType.CoinExSpot;
+            order.ServerType = ServerType.CoinExFutures;
             order.NumberMarket = cexOrder.order_id.ToString();
             order.TimeCallBack = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.updated_at);
             order.TimeCreate = new DateTime(1970, 1, 1).AddMilliseconds(cexOrder.created_at);

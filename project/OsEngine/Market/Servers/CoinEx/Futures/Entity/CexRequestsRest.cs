@@ -5,7 +5,7 @@ using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
 using System.Globalization;
 using System.Text;
 
-namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
+namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
 {
     public class CexRequestRest
     {
@@ -47,7 +47,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
         }
     }
 
-    // https://docs.coinex.com/api/v2/spot/order/http/cancel-all-order
+    // https://docs.coinex.com/api/v2/futures/order/http/cancel-all-order
     public class CexRequestCancelAllOrders : CexRequestRest
     {
         public CexRequestCancelAllOrders(string marketType, string security)

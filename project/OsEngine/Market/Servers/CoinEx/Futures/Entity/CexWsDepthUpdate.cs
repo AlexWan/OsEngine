@@ -1,8 +1,6 @@
-﻿using OsEngine.Entity;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
+namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
 {
     struct CexWsDepthUpdate
     {
@@ -29,6 +27,5 @@ namespace OsEngine.Market.Servers.CoinEx.Spot.Entity
 
         // Data checksum
         public string checksum { get; set; }
-
     }
 }
