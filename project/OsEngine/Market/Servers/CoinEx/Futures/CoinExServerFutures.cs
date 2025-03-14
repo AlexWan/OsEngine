@@ -1155,7 +1155,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             for (int i = 0; i < data.balance_list.Length; i++)
             {
                 PositionOnBoard pos =
-                    portfolio.GetPositionOnBoard().Find(p => p.SecurityNameCode == data.balance_list[i].ccy);
+                    portfolio.GetPositionOnBoard()?.Find(p => p.SecurityNameCode == data.balance_list[i].ccy);
 
                 if (pos == null)
                 {
@@ -1612,7 +1612,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 SendLogMessage($"Too much candles for TF {tfTotalMinutes}", LogMessageType.Error);
                 return null;
             }
-            long tsStartTime = (startTime > DateTime.UtcNow) ? TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow) : TimeManager.GetTimeStampSecondsToDateTime(startTime);
+            if (startTime > DateTime.UtcNow) return null;
+            long tsStartTime = TimeManager.GetTimeStampSecondsToDateTime(startTime);
             long tsEndTime = (endTime > DateTime.UtcNow) ? TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow) : TimeManager.GetTimeStampSecondsToDateTime(endTime);
 
             if (tsStartTime > tsEndTime || tsStartTime < 0 || tsEndTime < 0) { return null; }

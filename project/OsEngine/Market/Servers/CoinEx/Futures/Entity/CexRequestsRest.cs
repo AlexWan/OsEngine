@@ -83,7 +83,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
             parameters.Add("side", cexOrderSide);
             parameters.Add("amount", order.Volume.ToString(CultureInfo.InvariantCulture).Replace(",", "."));
             parameters.Add("client_id", order.NumberUser.ToString());
-            parameters.Add("ccy", order.SecurityClassCode);
+            //parameters.Add("ccy", order.SecurityClassCode);
 
             if (order.TypeOrder == OrderPriceType.Limit)
             {

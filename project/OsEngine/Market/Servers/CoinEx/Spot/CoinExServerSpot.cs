@@ -1472,6 +1472,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 }
                 else
                 {
+                    _rateGateGetOrder.WaitToProceed();
                     Dictionary<string, Object> parameters = (new CexRequestPendingOrders(_marketMode)).parameters;
                     cexOrders = _restClient.Get<List<CexOrder>?>("/spot/pending-order", true, parameters);
                 }
@@ -1752,7 +1753,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 SendLogMessage($"Too much candles for TF {tfTotalMinutes}", LogMessageType.Error);
                 return null;
             }
-            long tsStartTime = (startTime > DateTime.UtcNow) ? TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow) : TimeManager.GetTimeStampSecondsToDateTime(startTime);
+
+            if (startTime > DateTime.UtcNow) return null;
+            long tsStartTime = TimeManager.GetTimeStampSecondsToDateTime(startTime);
             long tsEndTime = (endTime > DateTime.UtcNow) ? TimeManager.GetTimeStampSecondsToDateTime(DateTime.UtcNow) : TimeManager.GetTimeStampSecondsToDateTime(endTime);
 
             if (tsStartTime > tsEndTime || tsStartTime < 0 || tsEndTime < 0) { return null; }
