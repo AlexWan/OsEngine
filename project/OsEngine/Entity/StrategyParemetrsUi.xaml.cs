@@ -225,12 +225,19 @@ namespace OsEngine.Entity
             {
                 try
                 {
+                    if (_panel?.ParamGuiSettings == null)
+                    {
+                        ParemetrsUi_Closed(null, null);
+                        Close();
+                        return;
+                    }
+					
                     if (_isParametersUiClosed == true)
                     {
                         return;
                     }
                     
-                    if (_rePaint != _panel.ParamGuiSettings.IsRePaintParameterTables)
+                    if (_rePaint != _panel?.ParamGuiSettings.IsRePaintParameterTables)
                     {
                         _rePaint = _panel.ParamGuiSettings.IsRePaintParameterTables;
 
@@ -242,7 +249,8 @@ namespace OsEngine.Entity
                 }
                 catch (Exception ex)
                 {
-                    _panel.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                    _panel?.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                    return;
                 }
 
                 await Task.Delay(10);

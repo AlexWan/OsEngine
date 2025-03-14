@@ -2350,8 +2350,8 @@ position => position.State != PositionStateType.OpeningFail
         }
         private Dictionary<string, ParamDesign> _parameterDesigns = new Dictionary<string, ParamDesign>();
 
-        /// <summary>
-        ///  repaint Parameter tables
+        /// <summary>	
+        ///  repaint Parameter tables (it is not recommended to call often, recommended >100 ms)
         /// </summary>
         public void RePaintParameterTables()
         {
