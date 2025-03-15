@@ -1689,7 +1689,6 @@ namespace OsEngine.Market.Servers.Tester
             if (ui.IsChanged)
             {
                 _server.SaveSecurityDopSettings(security);
-                _server.ReloadSecurities();
             }
         }
 

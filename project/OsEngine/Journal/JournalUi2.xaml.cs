@@ -3710,6 +3710,7 @@ namespace OsEngine.Journal
                 column4.HeaderText = OsLocalization.Journal.Label12;
                 column4.ReadOnly = false;
                 column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                column4.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
                 _gridLeftSecuritiesPanel.Columns.Add(column4);
 
                 HostSecuritiesSelected.Child = _gridLeftSecuritiesPanel;

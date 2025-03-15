@@ -37,7 +37,7 @@ namespace OsEngine.Entity
 
             CultureInfo culture = new CultureInfo("ru-RU");
 
-            TextBoxGoPersent.Text = (security.Go * 100).ToString(culture);
+            TextBoxGoPersent.Text = (security.Go).ToString(culture);
             TextBoxLot.Text = security.Lot.ToString(culture);
             TextBoxStep.Text = security.PriceStep.ToString(culture);
             TextBoxStepCost.Text = security.PriceStepCost.ToString(culture);
