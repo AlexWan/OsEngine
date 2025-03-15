@@ -36,7 +36,7 @@ namespace OsEngine.Market.Servers.Alor
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
-            CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "1", "10", "20", "50" });
+            CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "1", "10", "20" });
         }
     }
 
