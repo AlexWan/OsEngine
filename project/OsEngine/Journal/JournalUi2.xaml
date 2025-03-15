@@ -61,7 +61,6 @@
         </Grid>
         <Grid Name="GridActivBots" Margin="0,0" HorizontalAlignment="Left" Width="510">
             <Rectangle RadiusX="0" Margin="0,0,0,36" Stroke="Black"/>
-            <WindowsFormsHost x:Name="HostBotsSelected" Margin="0,65,0,27.667"/>
             <Button x:Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click" RenderTransformOrigin="0.5,0.508"/>
             <Label Name="LabelFrom" Content="From" HorizontalAlignment="Left" Margin="0,9,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelTo" Content="To" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
@@ -80,8 +79,14 @@
             </Slider>
             <Button Name="ButtonReload" Content="Reload" HorizontalAlignment="Right" Margin="0,41,0,0" VerticalAlignment="Top" Width="110" Height="21" Click="ButtonReload_Click"/>
             <CheckBox Name="ButtonAutoReload" Content="Auto update" HorizontalAlignment="Left" Margin="400,5,0,0" VerticalAlignment="Top" Width="110"/>
+            <TabControl Margin="5,67,0,36">
+                <TabItem Header="Bots filter">
+                    <WindowsFormsHost x:Name="HostBotsSelected" Margin="0,0,0,0"/>
+                </TabItem>
+                <TabItem Header="Securities filter">
+                    <WindowsFormsHost x:Name="HostSecuritiesSelected" Margin="0,0,0,0"/>
+                </TabItem>
+            </TabControl>
         </Grid>
-
-
     </Grid>
 </Window>

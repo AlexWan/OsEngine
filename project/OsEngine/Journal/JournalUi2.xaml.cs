@@ -95,11 +95,15 @@ namespace OsEngine.Journal
             ButtonAutoReload.IsChecked = false;
 
             LabelEqutyCharteType.Content = OsLocalization.Journal.Label8;
-            
+
             CreatePositionsLists();
 
             SelectOpenPosesPages();
             SelectCLosePosesPages();
+
+            CreateSecuritiesFilterGrid();
+            PaintSecuritiesFilterGrid();
+            UpDateSelectedSecurities();
 
             Closing += JournalUi_Closing;
 
@@ -131,7 +135,6 @@ namespace OsEngine.Journal
             {
                 JournalName = "Journal2Ui_" + botNames + startProgram.ToString();
             }
-            
 
             LoadSettings();
 
@@ -257,6 +260,15 @@ namespace OsEngine.Journal
                     DataGridFactory.ClearLinks(_gridLeftBotsPanel);
                     _gridLeftBotsPanel = null;
                 }
+
+                if(_gridLeftSecuritiesPanel != null)
+                {
+                    HostSecuritiesSelected.Child = null;
+                    _gridLeftSecuritiesPanel.CellClick -= _gridLeftSecuritiesPanel_CellClick;
+                    DataGridFactory.ClearLinks(_gridLeftSecuritiesPanel);
+                    _gridLeftSecuritiesPanel = null;
+                }
+                
             }
             catch(Exception ex)
             {
@@ -2494,6 +2506,33 @@ namespace OsEngine.Journal
                 return null;
             }
 
+            if (_selectedSecurities.Count > 0)
+            {
+                for (int i = 0; i < positionsAll.Count; i++)
+                {
+                    Position curPos = positionsAll[i];
+
+                    string secName = curPos.SecurityName;
+
+                    bool isAccepted = false;
+
+                    for (int i2 = 0; i2 < _selectedSecurities.Count; i2++)
+                    {
+                        if (_selectedSecurities[i2].Name == secName)
+                        {
+                            isAccepted = _selectedSecurities[i2].IsOn;
+                            break;
+                        }
+                    }
+
+                    if (isAccepted == false)
+                    {
+                        positionsAll.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
             bool showDontOpenPositions = false;
 
             if (CheckBoxShowDontOpenPoses.IsChecked.HasValue)
@@ -2875,9 +2914,9 @@ namespace OsEngine.Journal
 
         #endregion
 
-        #region Left panel managment
+        #region Left panel managment. Bots
 
-        DataGridView _gridLeftBotsPanel;
+        private DataGridView _gridLeftBotsPanel;
 
         private void CreateBotsGrid()
         {
@@ -3636,6 +3675,244 @@ namespace OsEngine.Journal
 
         #endregion
 
+        #region Left panel managment. Securities
+
+        private DataGridView _gridLeftSecuritiesPanel;
+
+        private void CreateSecuritiesFilterGrid()
+        {
+            try
+            {
+                _gridLeftSecuritiesPanel
+    = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, DataGridViewAutoSizeRowsMode.AllCells, false);
+
+                _gridLeftSecuritiesPanel.AllowUserToResizeRows = true;
+                _gridLeftSecuritiesPanel.ScrollBars = ScrollBars.Vertical;
+
+                CustomDataGridViewCell cell0 = new CustomDataGridViewCell();
+                cell0.Style = _gridLeftSecuritiesPanel.DefaultCellStyle;
+
+                DataGridViewColumn column1 = new DataGridViewColumn();
+                column1.CellTemplate = cell0;
+                column1.HeaderText = @"#";
+                column1.ReadOnly = true;
+                column1.Width = 75;
+                _gridLeftSecuritiesPanel.Columns.Add(column1);
+
+                DataGridViewColumn column2 = new DataGridViewColumn();
+                column2.CellTemplate = cell0;
+                column2.HeaderText = OsLocalization.Journal.Label10;
+                column2.ReadOnly = true;
+                column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                _gridLeftSecuritiesPanel.Columns.Add(column2);
+
+                DataGridViewCheckBoxColumn column4 = new DataGridViewCheckBoxColumn();
+                column4.HeaderText = OsLocalization.Journal.Label12;
+                column4.ReadOnly = false;
+                column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                _gridLeftSecuritiesPanel.Columns.Add(column4);
+
+                HostSecuritiesSelected.Child = _gridLeftSecuritiesPanel;
+                HostSecuritiesSelected.Child.Show();
+
+                _gridLeftSecuritiesPanel.CellClick += _gridLeftSecuritiesPanel_CellClick;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void PaintSecuritiesFilterGrid()
+        {
+            try
+            {
+                if (!TabControlPrime.CheckAccess())
+                {
+                    TabControlPrime.Dispatcher.Invoke(PaintSecuritiesFilterGrid);
+                    return;
+                }
+
+                List<SecurityToPaint> securities = GetAllSecuritiesToPaint();
+
+                int showRowNum = _gridLeftSecuritiesPanel.FirstDisplayedScrollingRowIndex;
+
+                _gridLeftSecuritiesPanel.Rows.Clear();
+
+                // first row
+
+                DataGridViewRow firstRow = new DataGridViewRow();
+
+                firstRow.Cells.Add(new DataGridViewTextBoxCell());
+                firstRow.Cells.Add(new DataGridViewTextBoxCell());
+
+                DataGridViewCheckBoxCell cell = new DataGridViewCheckBoxCell();
+                cell.Value = true;
+                firstRow.Cells.Add(cell); // вкл / выкл
+
+                _gridLeftSecuritiesPanel.Rows.Add(firstRow);
+
+                // securities row
+
+                for (int i = 0;i < securities.Count;i++)
+                {
+                    DataGridViewRow newRow = new DataGridViewRow();
+
+                    newRow.Cells.Add(new DataGridViewTextBoxCell()); // номер
+                    newRow.Cells[0].Value = i + 1;
+
+                    newRow.Cells.Add(new DataGridViewTextBoxCell()); // имя
+                    newRow.Cells[1].Value = securities[i].Name;
+
+                    DataGridViewCheckBoxCell cellCheckBox = new DataGridViewCheckBoxCell();
+                    cellCheckBox.Value = securities[i].IsOn;
+                    newRow.Cells.Add(cellCheckBox); // вкл / выкл
+
+                    _gridLeftSecuritiesPanel.Rows.Add(newRow);
+                }
+
+                if (showRowNum > 0 &&
+                    _gridLeftSecuritiesPanel.Rows.Count != 0 &&
+                    showRowNum <= _gridLeftSecuritiesPanel.Rows.Count)
+                {
+                    _gridLeftSecuritiesPanel.FirstDisplayedScrollingRowIndex = showRowNum;
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _gridLeftSecuritiesPanel_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                if (e.ColumnIndex == 2)
+                {
+                    _lastSecuritiesEvent = e;
+                    _gridLeftSecuritiesPanel.Rows[e.RowIndex].Cells[2].Selected = false;
+                    TextBoxFrom.Focus();
+                    Task.Run(ChangeSecuritiesOnOff);
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+        }
+
+        private DataGridViewCellEventArgs _lastSecuritiesEvent;
+
+        private void ChangeSecuritiesOnOff()
+        {
+            try
+            {
+                if (TextBoxFrom.Dispatcher.CheckAccess() == false)
+                {
+                    Thread.Sleep(500);
+                    TextBoxFrom.Dispatcher.Invoke(new Action(ChangeSecuritiesOnOff));
+                    return;
+                }
+
+                int rowIndex = _lastSecuritiesEvent.RowIndex;
+
+                int columnIndex = _lastSecuritiesEvent.ColumnIndex;
+
+                if (columnIndex != 2)
+                {
+                    return;
+                }
+
+                if (rowIndex == 0)
+                { // меняем у всех вкл/выкл
+
+                    _gridLeftSecuritiesPanel.CellClick -= _gridLeftSecuritiesPanel_CellClick;
+
+                    DataGridViewCheckBoxCell cell = (DataGridViewCheckBoxCell)_gridLeftSecuritiesPanel.Rows[0].Cells[2];
+
+                    bool curValue = Convert.ToBoolean(cell.EditedFormattedValue.ToString());
+
+                    for (int i = 1; i < _gridLeftSecuritiesPanel.Rows.Count; i++)
+                    {
+                        _gridLeftSecuritiesPanel.Rows[i].Cells[2].Value = curValue;
+                    }
+
+                    _gridLeftSecuritiesPanel.CellClick += _gridLeftSecuritiesPanel_CellClick;
+                }
+
+                UpDateSelectedSecurities();
+                RePaint();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+
+
+        }
+
+        private List<SecurityToPaint> GetAllSecuritiesToPaint()
+        {
+            List<SecurityToPaint> securities = new List<SecurityToPaint>();
+
+            if (_allPositions == null)
+            {
+                return securities;
+            }
+
+            for (int i = 0;i < _allPositions.Count;i++)
+            {
+                Position position = _allPositions[i];
+
+                string secName = position.SecurityName;
+
+                SecurityToPaint security = new SecurityToPaint();
+                security.Name = secName;
+                security.IsOn = true;
+
+                bool isInArray = false;
+
+                for(int i2 = 0;i2 < securities.Count;i2++)
+                {
+                    if (securities[i2].Name == security.Name)
+                    {
+                        isInArray = true; 
+                        break;
+                    }
+                }
+
+                if(isInArray == false)
+                {
+                    securities.Add(security);
+                }
+            }
+
+            return securities;
+        }
+
+        private List<SecurityToPaint> _selectedSecurities = new List<SecurityToPaint>();
+
+        private void UpDateSelectedSecurities()
+        {
+            _selectedSecurities.Clear();
+
+            for(int i = 1;i <_gridLeftSecuritiesPanel.Rows.Count;i++)
+            {
+                DataGridViewRow row = _gridLeftSecuritiesPanel.Rows[i];
+
+                SecurityToPaint newSecurity = new SecurityToPaint();
+
+                newSecurity.Name = row.Cells[1].Value.ToString();
+                newSecurity.IsOn = Convert.ToBoolean(row.Cells[2].EditedFormattedValue.ToString());
+
+                _selectedSecurities.Add(newSecurity);
+            }
+        }
+
+        #endregion
+
         #region Positions managment
 
         private void CreatePositionsLists()
@@ -3670,6 +3947,32 @@ namespace OsEngine.Journal
                     }
                 }
 
+                if(_selectedSecurities.Count > 0)
+                {
+                    for (int i = 0; i < positionsAll.Count; i++)
+                    {
+                        Position curPos = positionsAll[i];
+
+                        string secName = curPos.SecurityName;
+
+                        bool isAccepted = false;
+
+                        for (int i2 = 0; i2 < _selectedSecurities.Count; i2++)
+                        {
+                            if (_selectedSecurities[i2].Name == secName)
+                            {
+                                isAccepted = _selectedSecurities[i2].IsOn;
+                                break;
+                            }
+                        }
+
+                        if (isAccepted == false)
+                        {
+                            positionsAll.RemoveAt(i);
+                            i--;
+                        }
+                    }
+                }
 
                 if(positionsAll.Count > 1)
                 {
@@ -4021,6 +4324,12 @@ namespace OsEngine.Journal
         public string BotGroup = "none";
 
         public List<BotPanelJournal> Panels = new List<BotPanelJournal>();
+    }
 
+    public class SecurityToPaint
+    {
+        public string Name;
+
+        public bool IsOn;
     }
 }
