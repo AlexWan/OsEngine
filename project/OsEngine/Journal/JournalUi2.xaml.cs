@@ -716,6 +716,8 @@ namespace OsEngine.Journal
             }
         }
 
+        private int _lastMouseXValue = -1;
+
         private void _chartEquity_MouseMove(object sender, MouseEventArgs e)
         {
             try
@@ -729,6 +731,13 @@ namespace OsEngine.Journal
                 {
                     return;
                 }
+
+                if(e.X == _lastMouseXValue)
+                {
+                    return;
+                }
+
+                _lastMouseXValue = e.X;
 
                 int curCountOfPoints = 0;
 
@@ -775,6 +784,10 @@ namespace OsEngine.Journal
                 if (_chartEquity.ChartAreas[0].CursorX.Position != curPointNum)
                 {
                     _chartEquity.ChartAreas[0].CursorX.SetCursorPosition(curPointNum);
+                }
+                else
+                {
+                    return;
                 }
 
                 int numPointInt = Convert.ToInt32(curPointNum);
@@ -2515,7 +2528,12 @@ namespace OsEngine.Journal
                 return null;
             }
 
-            for (int i = 0; i < closePositions.Count; i++)
+            if(closePositions.Count > 1)
+            {
+                closePositions = closePositions.OrderBy(x => x.TimeClose).ToList();
+            }
+
+           /* for (int i = 0; i < closePositions.Count; i++)
             {
                 for (int i2 = i; i2 < closePositions.Count; i2++)
                 {
@@ -2526,7 +2544,7 @@ namespace OsEngine.Journal
                         closePositions[i] = pos;
                     }
                 }
-            }
+            }*/
 
             return closePositions;
         }
@@ -2833,7 +2851,9 @@ namespace OsEngine.Journal
                 ComboBoxClosePosesShowNumbers.Items.Add(curPositionNum + " > " + (curPositionNum + countPosOnPage));
                 curPositionNum += countPosOnPage;
             }
+
             _volumeControlUpdated = true;
+
             ComboBoxClosePosesShowNumbers.SelectedIndex = ComboBoxClosePosesShowNumbers.Items.Count-1;
             ComboBoxClosePosesShowNumbers.SelectionChanged += ComboBoxClosePosesShowNumbers_SelectionChanged;
 
@@ -3644,48 +3664,20 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < myJournals.Count; i++)
                 {
-                    if (myJournals[i].AllPosition != null) positionsAll.AddRange(myJournals[i].AllPosition);
+                    if (myJournals[i].AllPosition != null)
+                    {
+                        positionsAll.AddRange(myJournals[i].AllPosition);
+                    }
                 }
 
-                List<Position> newPositionsAll = new List<Position>();
 
-                for (int i = 0; i < positionsAll.Count; i++)
+                if(positionsAll.Count > 1)
                 {
-                    Position pose = positionsAll[i];
-
-                    if (pose.State == PositionStateType.OpeningFail)
-                    {
-                        continue;
-                    }
-
-                    DateTime timeCreate = pose.TimeCreate;
-
-                    if (newPositionsAll.Count == 0 ||
-                        newPositionsAll[newPositionsAll.Count - 1].TimeCreate <= timeCreate)
-                    {
-                        newPositionsAll.Add(pose);
-                    }
-                    else if (newPositionsAll[0].TimeCreate >= timeCreate)
-                    {
-                        newPositionsAll.Insert(0, pose);
-                    }
-                    else
-                    {
-                        for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
-                        {
-                            if (newPositionsAll[i2].TimeCreate <= timeCreate &&
-                                newPositionsAll[i2 + 1].TimeCreate >= timeCreate)
-                            {
-                                newPositionsAll.Insert(i2 + 1, pose);
-                                break;
-                            }
-                        }
-                    }
+                    positionsAll = positionsAll.OrderBy(x => x.TimeClose).ToList();
                 }
-
-                positionsAll = newPositionsAll;
 
                 _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
+
                 _longPositions = _allPositions.FindAll(p => p.Direction == Side.Buy);
                 _shortPositions = _allPositions.FindAll(p => p.Direction == Side.Sell);
 
