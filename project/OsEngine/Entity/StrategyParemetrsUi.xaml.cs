@@ -12,10 +12,7 @@ using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Layout;
 using System.Threading.Tasks;
-using OsEngine.Logging;
-using OsEngine.Market.Connectors;
 using System.IO;
-using System.Diagnostics.Eventing.Reader;
 
 namespace OsEngine.Entity
 {
@@ -41,6 +38,8 @@ namespace OsEngine.Entity
 
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
             ButtonUpdate.Content = OsLocalization.Entity.ButtonUpdate;
+            ButtonSaveSettings.Content = OsLocalization.Entity.ButtonSave;
+            ButtonLoadSettings.Content = OsLocalization.Entity.ButtonLoad;
 
             if (string.IsNullOrEmpty(settings.Title))
             {

@@ -335,6 +335,14 @@ namespace OsEngine.Language
             "Eng:No_" +
             "Ru:Нет_");
 
+        public string ButtonSave => OsLocalization.ConvertToLocString(
+            "Eng:Save_" +
+            "Ru:Сохранить_");
+
+        public string ButtonLoad => OsLocalization.ConvertToLocString(
+            "Eng:Load_" +
+            "Ru:Загрузить_");
+
         public string ErrorSave => OsLocalization.ConvertToLocString(
             "Eng:The saving process is interrupted. One of the fields does not have a valid value_" +
             "Ru:Процесс сохранения прерван. В одном из полей не допустимое значение_");
