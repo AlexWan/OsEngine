@@ -12,6 +12,10 @@ using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Layout;
 using System.Threading.Tasks;
+using OsEngine.Logging;
+using OsEngine.Market.Connectors;
+using System.IO;
+using System.Diagnostics.Eventing.Reader;
 
 namespace OsEngine.Entity
 {
@@ -19,7 +23,7 @@ namespace OsEngine.Entity
     {
         private List<IIStrategyParameter> _parameters;
 
-        BotPanel _panel;
+        private BotPanel _panel;
 
         private bool _isParametersUiClosed;
 
@@ -118,7 +122,7 @@ namespace OsEngine.Entity
             }
         }
 
-        List<List<IIStrategyParameter>> GetParamSortedByTabName()
+        private List<List<IIStrategyParameter>> GetParamSortedByTabName()
         {
             List<List<IIStrategyParameter>> sorted = new List<List<IIStrategyParameter>>();
 
@@ -175,7 +179,7 @@ namespace OsEngine.Entity
             }
         }
 
-        List<ParamTabPainter> _tabs = new List<ParamTabPainter>();
+        private List<ParamTabPainter> _tabs = new List<ParamTabPainter>();
 
         private void ButtonAccept_Click(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -256,12 +260,198 @@ namespace OsEngine.Entity
                 await Task.Delay(10);
             }
         }
-	
+
+        private void ButtonSaveSettings_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            try
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(saveFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = saveFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    using (FileStream stream = File.Create(filePath))
+                    {
+                        // do nothin
+                    }
+                }
+
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(filePath))
+                    {
+                        writer.WriteLine(GetSaveParamString());
+                    }
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ButtonLoadSettings_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+                openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                openFileDialog.RestoreDirectory = true;
+                openFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(openFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = openFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    return;
+                }
+
+                try
+                {
+                    using (StreamReader reader = new StreamReader(filePath))
+                    {
+                        string fileStr = reader.ReadToEnd();
+                        LoadParametersFromString(fileStr);
+                    }
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                // ignore
+            }
+        }
+
+        private string GetSaveParamString()
+        {
+            string result = "";
+
+            for(int i = 0; i < _parameters.Count; i++)
+            {
+                IIStrategyParameter parameter = _parameters[i];
+
+                if (parameter.Type == StrategyParameterType.Button
+                    || parameter.Type == StrategyParameterType.Label)
+                {
+                    continue;
+                }
+                else if (parameter.Type == StrategyParameterType.Bool)
+                {
+                    StrategyParameterBool parameterBool = (StrategyParameterBool)parameter;
+
+                    result += 
+                        StrategyParameterType.Bool.ToString() + "#"
+                        + parameterBool.Name + "#"
+                        + parameterBool.ValueBool + "#"
+                        + "\n";
+                }
+                else if(parameter.Type == StrategyParameterType.CheckBox)
+                {
+                    StrategyParameterCheckBox parameterCheckBox = (StrategyParameterCheckBox)parameter;
+
+                    result +=
+                        StrategyParameterType.DecimalCheckBox.ToString() + "#"
+                        + parameterCheckBox.Name + "#"
+                        + parameterCheckBox.CheckState + "#"
+                        + "\n";
+                }
+                else if(parameter.Type == StrategyParameterType.Decimal)
+                {
+                    StrategyParameterDecimal parameterDecimal = (StrategyParameterDecimal)parameter;
+
+                    result +=
+                        StrategyParameterType.Decimal.ToString() + "#"
+                        + parameterDecimal.Name + "#"
+                        + parameterDecimal.ValueDecimal + "#"
+                        + "\n";
+                }
+                else if(parameter.Type == StrategyParameterType.DecimalCheckBox)
+                {
+                    StrategyParameterDecimalCheckBox parameterCheckBoxDecimal = (StrategyParameterDecimalCheckBox)parameter;
+
+                    result +=
+                        StrategyParameterType.DecimalCheckBox.ToString() + "#"
+                        + parameterCheckBoxDecimal.Name + "#"
+                        + parameterCheckBoxDecimal.ValueDecimal + "#"
+                        + parameterCheckBoxDecimal.CheckState + "#"
+                        + "\n";
+                }
+                else if(parameter.Type == StrategyParameterType.Int)
+                {
+                    StrategyParameterInt parameterInt = (StrategyParameterInt)parameter;
+
+                    result +=
+                        StrategyParameterType.Int.ToString() + "#"
+                        + parameterInt.Name + "#"
+                        + parameterInt.ValueInt + "#"
+                        + "\n";
+                }
+                else if (parameter.Type == StrategyParameterType.String)
+                {
+                    StrategyParameterString parameterString = (StrategyParameterString)parameter;
+
+                    result +=
+                        StrategyParameterType.String.ToString() + "#"
+                        + parameterString.Name + "#"
+                        + parameterString.ValueString + "#"
+                        + "\n";
+                }
+                else if (parameter.Type == StrategyParameterType.TimeOfDay)
+                {
+                    StrategyParameterTimeOfDay parameterTimeOfDay = (StrategyParameterTimeOfDay)parameter;
+
+                    result +=
+                        StrategyParameterType.TimeOfDay.ToString() + "#"
+                        + parameterTimeOfDay.Name + "#"
+                        + parameterTimeOfDay.Value + "#"
+                        + "\n";
+                }
+            }
+
+            return result;
+        }
+
+        private void LoadParametersFromString(string parametersString)
+        {
+            string[] rows = parametersString.Split('\n');
+
+            for(int i = 0;i < rows.Length;i++)
+            {
+                string[] parameter = rows[i].Split('#');
+
+                for(int i2 = 0; i2< _tabs.Count; i2++)
+                {
+                    _tabs[i2].LoadParameterOnTable(parameter);
+                }
+            }
+        }
     }
-
-
-
-
 
     public class ParamTabPainter
     {
@@ -323,7 +513,7 @@ namespace OsEngine.Entity
             }
         }
 
-        List<IIStrategyParameter> _parameters;
+        private List<IIStrategyParameter> _parameters;
 
         private WindowsFormsHost _host;
 
@@ -781,6 +971,90 @@ namespace OsEngine.Entity
             if (ErrorEvent != null)
             {
                 ErrorEvent("Parameters window exception: " + e.ToString());
+            }
+        }
+
+        public void LoadParameterOnTable(string[] parameter)
+        {
+            if(_grid == null 
+                || _grid.Rows == null 
+                || _grid.Rows.Count == 0)
+            {
+                return;
+            }
+
+            if(parameter.Length < 2)
+            {
+                return;
+            }
+
+            string parameterType = parameter[0];
+            string parameterName = parameter[1];
+            
+            if(parameterName == "")
+            {
+                return;
+            }
+
+            for(int i = 0;i < _grid.Rows.Count;i++)
+            {
+                DataGridViewRow row = _grid.Rows[i];
+
+                if (row.Cells == null 
+                    || row.Cells.Count == 0 
+                    || row.Cells[0].Value == null)
+                {
+                    continue;
+                }
+
+                string gridName = row.Cells[0].Value.ToString();
+
+                if(parameterName != gridName)
+                {
+                    continue;
+                }
+
+                if (parameterType == StrategyParameterType.Bool.ToString())
+                {
+                    DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)row.Cells[1];
+                    cell.Value = parameter[2];
+                }
+                else if (parameterType == StrategyParameterType.CheckBox.ToString())
+                {
+                    DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)row.Cells[1];
+                    cell.Value = parameter[2];
+                }
+                else if (parameterType == StrategyParameterType.Decimal.ToString())
+                {
+                    DataGridViewTextBoxCell cell = (DataGridViewTextBoxCell)row.Cells[1];
+                    cell.Value = parameter[2];
+                }
+                else if (parameterType == StrategyParameterType.DecimalCheckBox.ToString())
+                {
+                    DataGridViewTextBoxCell cell1 =  (DataGridViewTextBoxCell)row.Cells[1];
+                    cell1.Value = parameter[2];
+
+                    DataGridViewCheckBoxCell cell2 = (DataGridViewCheckBoxCell)row.Cells[2];
+                    cell2.Value = parameter[3];
+                }
+                else if (parameterType == StrategyParameterType.Int.ToString())
+                {
+                    DataGridViewTextBoxCell cell = (DataGridViewTextBoxCell)row.Cells[1];
+                    cell.Value = parameter[2];
+                }
+                else if (parameterType == StrategyParameterType.String.ToString())
+                {
+                    DataGridViewCell cell = (DataGridViewCell)row.Cells[1];
+                    cell.Value = parameter[2];
+                }
+                else if (parameterType == StrategyParameterType.TimeOfDay.ToString())
+                {
+                    DataGridViewTextBoxCell cell = (DataGridViewTextBoxCell)row.Cells[1];
+                    cell.Value = parameter[2];
+                }
+
+                return;
+
             }
         }
 

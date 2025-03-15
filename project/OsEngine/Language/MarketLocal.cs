@@ -1225,6 +1225,10 @@ namespace OsEngine.Language
           "Eng:View securities_" +
           "Ru:Просмотр бумаг_");
 
+        public string ServerParam13 => OsLocalization.ConvertToLocString(
+          "Eng:Market depth levels_" +
+          "Ru:Уровней в стакане_");
+
         public string UseStock => OsLocalization.ConvertToLocString(
             "Eng:Stock_" +
             "Ru:Акции_");
@@ -1256,6 +1260,8 @@ namespace OsEngine.Language
         public string Exchange => OsLocalization.ConvertToLocString(
             "Eng:Exchange_" +
             "Ru:Биржа_"
+
+
         );
     }
 }
