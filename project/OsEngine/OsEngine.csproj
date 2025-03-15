@@ -717,7 +717,6 @@
     <Compile Include="Market\Servers\GateIo\GateIoFutures\GateIoServerFuturesPermission.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\Entities\ApiEntities.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\Entities\PortfolioUpdateEvent.cs" />
-    <Compile Include="Market\Servers\GateIo\GateIoSpot\Entities\Singer.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\GateIoServerSpot.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\GateIoSpotServerPermission.cs" />
     <Compile Include="Market\Servers\GateIo\ResponceWebsocketMessage.cs" />
@@ -1273,7 +1272,7 @@
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
     <Compile Include="Robots\TechSamples\CustomChartInParamWindowSample.cs" />
     <Compile Include="Robots\TechSamples\CustomParamsUseBotSample.cs" />
-	<Compile Include="Robots\TechSamples\VisualSettingsParametersExample.cs" />
+    <Compile Include="Robots\TechSamples\VisualSettingsParametersExample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdTrail.cs" />
