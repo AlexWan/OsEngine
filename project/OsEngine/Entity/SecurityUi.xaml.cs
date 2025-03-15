@@ -10,22 +10,10 @@ using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
-    /// <summary>
-    /// Paper setup window
-    /// Окно настроек бумаги
-    /// </summary>
     public partial class SecurityUi
     {
-        /// <summary>
-        /// security
-        /// бумага
-        /// </summary>
         private Security _security;
 
-        /// <summary>
-        /// if the settings have changed.
-        /// изменились ли настройки
-        /// </summary>
         public bool IsChanged;
 
         public SecurityUi(Security security)
@@ -55,12 +43,15 @@ namespace OsEngine.Entity
 
             this.Activate();
             this.Focus();
+
+            Closed += SecurityUi_Closed;
         }
 
-        /// <summary>
-        /// accept button 
-        /// кнопка принять 
-        /// </summary>
+        private void SecurityUi_Closed(object sender, EventArgs e)
+        {
+            _security = null;
+        }
+
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
             decimal go;

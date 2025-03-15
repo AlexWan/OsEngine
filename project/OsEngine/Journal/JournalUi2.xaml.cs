@@ -75,6 +75,9 @@ namespace OsEngine.Journal
             ButtonReload.Content = OsLocalization.Journal.Label7;
             ButtonAutoReload.Content = OsLocalization.Journal.Label15;
 
+            TabItemBotFilters.Header = OsLocalization.Journal.Label21;
+            TabItemSecurityFilters.Header = OsLocalization.Journal.Label22;
+
             LabelVolumeShowNumbers.Content = OsLocalization.Journal.Label16;
 
             ComboBoxClosePosesOnPage.Items.Add(OsLocalization.Journal.Label18);

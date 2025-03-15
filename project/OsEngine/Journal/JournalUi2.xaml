@@ -80,10 +80,10 @@
             <Button Name="ButtonReload" Content="Reload" HorizontalAlignment="Right" Margin="0,41,0,0" VerticalAlignment="Top" Width="110" Height="21" Click="ButtonReload_Click"/>
             <CheckBox Name="ButtonAutoReload" Content="Auto update" HorizontalAlignment="Left" Margin="400,5,0,0" VerticalAlignment="Top" Width="110"/>
             <TabControl Margin="5,67,0,36">
-                <TabItem Header="Bots filter">
+                <TabItem Name="TabItemBotFilters" Header="Bots filter">
                     <WindowsFormsHost x:Name="HostBotsSelected" Margin="0,0,0,0"/>
                 </TabItem>
-                <TabItem Header="Securities filter">
+                <TabItem Name="TabItemSecurityFilters" Header="Securities filter">
                     <WindowsFormsHost x:Name="HostSecuritiesSelected" Margin="0,0,0,0"/>
                 </TabItem>
             </TabControl>
