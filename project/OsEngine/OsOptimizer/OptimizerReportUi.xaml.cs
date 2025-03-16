@@ -14,6 +14,7 @@ using OsEngine.Logging;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.OsOptimizer.OptEntity;
 using System.IO;
+using System.Text;
 
 namespace OsEngine.OsOptimizer
 {
@@ -202,13 +203,12 @@ namespace OsEngine.OsOptimizer
                     fileName = fileName + ".txt";
                 }
 
-                string saveStr = "";
+                StringBuilder saveStr = new StringBuilder();
 
                 for (int i = 0; i < _reports.Count; i++)
                 {
-                    saveStr += _reports[i].GetSaveString() + "\r\n";
+                    saveStr.Append(_reports[i].GetSaveString() + "\r\n");
                 }
-
 
                 StreamWriter writer = new StreamWriter(fileName);
                 writer.Write(saveStr);

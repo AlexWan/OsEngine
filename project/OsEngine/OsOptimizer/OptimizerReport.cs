@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text;
 using OsEngine.Entity;
 using OsEngine.Journal.Internal;
 using OsEngine.OsTrader.Panels;
@@ -26,15 +27,15 @@ namespace OsEngine.OsOptimizer
             Reports.Add(report);
         }
 
-        public string GetSaveString()
+        public StringBuilder GetSaveString()
         {
-            string result = "";
+            StringBuilder result = new StringBuilder();
 
-            result += Faze.GetSaveString() + "^";
+            result.Append(Faze.GetSaveString() + "^");
 
             for (int i = 0; i < Reports.Count; i++)
             {
-                result += Reports[i].GetSaveString() + "^";
+                result.Append(Reports[i].GetSaveString() + "^");
             }
 
             return result;
@@ -391,42 +392,43 @@ namespace OsEngine.OsOptimizer
 
         public decimal SharpRatio;
 
-        public string GetSaveString()
+        public StringBuilder GetSaveString()
         {
-            string result = "";
+            StringBuilder result = new StringBuilder();
 
             // Сохраняем основное
-            result += BotName + "@";
-            result += PositionsCount + "@";
-            result += TotalProfit + "@";
-            result += MaxDrawDawn + "@";
-            result += AverageProfit + "@";
-            result += AverageProfitPercentOneContract + "@";
-            result += ProfitFactor + "@";
-            result += PayOffRatio + "@";
-            result += Recovery + "@";
-            result += TotalProfitPercent + "@";
-            result += SharpRatio + "@";
+            result.Append(BotName + "@");
+            result.Append(PositionsCount + "@");
+            result.Append(TotalProfit + "@");
+            result.Append(MaxDrawDawn + "@");
+            result.Append(AverageProfit + "@");
+            result.Append(AverageProfitPercentOneContract + "@");
+            result.Append(ProfitFactor + "@");
+            result.Append(PayOffRatio + "@");
+            result.Append(Recovery + "@");
+            result.Append(TotalProfitPercent + "@");
+            result.Append(SharpRatio + "@");
 
             // сохраняем параметры в строковом представлении
-            string parameters = "";
+            StringBuilder parameters = new StringBuilder();
 
             for (int i = 0; i < StrategyParameters.Count; i++)
             {
-                parameters += StrategyParameters[i] + "&";
+                parameters.Append(StrategyParameters[i] + "&");
             }
 
-            result += parameters + "@";
+            result.Append(parameters + "@");
 
             // сохраняем отдельные репорты по вкладкам
 
-            string reportTabs = "";
+            StringBuilder reportTabs = new StringBuilder();
 
             for (int i = 0; i < TabsReports.Count; i++)
             {
-                reportTabs += TabsReports[i].GetSaveString() + "&";
+                reportTabs.Append(TabsReports[i].GetSaveString() + "&");
             }
-            result += reportTabs + "@";
+
+            result.Append(reportTabs + "@");
 
             return result;
         }
