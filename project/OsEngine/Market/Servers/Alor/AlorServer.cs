@@ -315,6 +315,11 @@ namespace OsEngine.Market.Servers.Alor
                 {
                     AlorSecurity item = stocks[i];
 
+                    if(item.symbol == "IMOEX2")
+                    {
+
+                    }
+
                     SecurityType instrumentType = GetSecurityType(item);
 
                     if (!CheckNeedSecurity(instrumentType))
@@ -547,6 +552,10 @@ namespace OsEngine.Market.Servers.Alor
             else if(cfiCode.StartsWith("EUX"))
             {
                 return SecurityType.Fund;
+            }
+            else if(security.description.Contains("Индекс"))
+            {
+                return SecurityType.Index;
             }
 
             var board = security.board;
