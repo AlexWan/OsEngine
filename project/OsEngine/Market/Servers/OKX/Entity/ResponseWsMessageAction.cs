@@ -4,6 +4,8 @@ namespace OsEngine.Market.Servers.OKX.Entity
 {
     public class ResponseWsMessageAction<T>
     {
+        public string @event;
+        public string msg;
         public ResponseWsMessageArg arg;
         public T data;
     }
@@ -111,4 +113,45 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string upl;
         public string realizedPnl;
     }
+
+    public class ResponseWsGreeks
+    {
+        public string instType { get; set; }
+        public string instId { get; set; }
+        public string uly { get; set; }
+        public string delta { get; set; }
+        public string gamma { get; set; }
+        public string vega { get; set; }
+        public string theta { get; set; }
+        public string lever { get; set; }
+        public string markVol { get; set; }
+        public string bidVol { get; set; }
+        public string askVol { get; set; }
+        public string realVol { get; set; }
+        public string deltaBS { get; set; }
+        public string gammaBS { get; set; }
+        public string thetaBS { get; set; }
+        public string vegaBS { get; set; }
+        public string ts { get; set; }
+        public string fwdPx { get; set; }
+        public string volLv { get; set; }
+    }
+
+    public class ResponseWsOpenInterest
+    {
+        public string instType { get; set; }
+        public string instId { get; set; }
+        public string oi { get; set; }
+        public string oiCcy { get; set; }
+        public string ts { get; set; }
+    }
+
+    public class ResponseWsMarkPrice
+    {
+        public string instType { get; set; }
+        public string instId { get; set; }
+        public string markPx { get; set; }
+        public string ts { get; set; }
+    }
+
 }

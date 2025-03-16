@@ -28,6 +28,7 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated"});
+            CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
         }
     }
 
@@ -85,7 +86,9 @@ namespace OsEngine.Market.Servers.OKX
             else
             {
                 _marginMode = "isolated";
-            }            
+            }
+
+            _useOptions = ((ServerParameterBool)ServerParameters[5]).Value;
 
             try
             {
@@ -178,9 +181,14 @@ namespace OsEngine.Market.Servers.OKX
 
         private string _marginMode;
 
+        private bool _useOptions;
+
+
         #endregion
 
         #region 3 Securities
+
+        private List<string> _baseOptionSerurities = null;
 
         public void GetSecurities()
         {
@@ -189,6 +197,15 @@ namespace OsEngine.Market.Servers.OKX
                 SecurityResponse securityResponseFutures = GetFuturesSecurities();
                 SecurityResponse securityResponseSpot = GetSpotSecurities();
                 securityResponseFutures.data.AddRange(securityResponseSpot.data);
+
+                if (_useOptions)
+                {
+                    _baseOptionSerurities = GetOptionBaseSecurities();
+                    SecurityResponse securityResponseOptions = GetOptionSecurities(_baseOptionSerurities);
+
+                    securityResponseFutures.data.AddRange(securityResponseOptions.data);
+                }
+
                 UpdatePairs(securityResponseFutures);
             }
             catch (Exception error)
@@ -204,6 +221,7 @@ namespace OsEngine.Market.Servers.OKX
 
         private SecurityResponse GetFuturesSecurities()
         {
+
             HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SWAP").Result;
 
             string json = response.Content.ReadAsStringAsync().Result;
@@ -216,6 +234,68 @@ namespace OsEngine.Market.Servers.OKX
             SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
 
             return securityResponse;
+        }
+
+
+        private List<string> GetOptionBaseSecurities()
+        {
+
+            //get list of possible options
+            HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/underlying?instType=OPTION").Result;
+
+
+            string json = response.Content.ReadAsStringAsync().Result;
+
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                SendLogMessage($"GetOptionSecurities - {json}", LogMessageType.Error);
+            }
+
+            SecurityUnderlyingResponse baseSecuritiesResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityUnderlyingResponse());
+
+            if (baseSecuritiesResponse == null ||
+                baseSecuritiesResponse.data == null ||
+                baseSecuritiesResponse.data.Count == 0)
+            {
+                SendLogMessage($"GetOptionSecurities - Empty underlying", LogMessageType.Error);
+                return null;
+            }
+
+            var baseSecurities = baseSecuritiesResponse.data[0];
+
+            return baseSecurities;
+        }
+
+        private SecurityResponse GetOptionSecurities(List<string> baseSecurities)
+        {
+            SecurityResponse ret = null;
+
+            for (int k = 0; k < baseSecurities.Count; k++)
+            {
+                string baseSecurity = baseSecurities[k];
+
+                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=OPTION&uly="+ baseSecurity).Result;
+
+                string json = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage($"GetOptionSecurities - {json}", LogMessageType.Error);
+                }
+
+                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+
+                if (ret == null)
+                {
+                    ret = securityResponse;
+                }
+                else
+                {
+                    ret.data.AddRange(securityResponse.data);
+                }
+            }
+
+            return ret;
         }
 
         private SecurityResponse GetSpotSecurities()
@@ -249,6 +329,10 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     securityType = SecurityType.Futures;
                 }
+                else if (item.instType.Equals("OPTION"))
+                {
+                    securityType = SecurityType.Option;
+                }
 
                 security.Lot = item.minSz.ToDecimal();
 
@@ -261,17 +345,15 @@ namespace OsEngine.Market.Servers.OKX
                     security.DecimalsVolume = volStep.Split('.')[1].Length;
                 }
 
+                security.Name = item.instId;
+                security.NameFull = item.instId;
+
                 if (securityType == SecurityType.CurrencyPair)
                 {
-                    security.Name = item.instId;
-                    security.NameFull = item.instId;
                     security.NameClass = "SPOT_" + item.quoteCcy;
                 }
                 if (securityType == SecurityType.Futures)
                 {
-                    security.Name = item.instId;
-                    security.NameFull = item.instId;
-
                     if (item.instId.Contains("-USD-"))
                     {
                         security.NameClass = "SWAP_USD";
@@ -279,6 +361,17 @@ namespace OsEngine.Market.Servers.OKX
                     else
                     {
                         security.NameClass = "SWAP_" + item.settleCcy;
+                    }
+                }
+                if (securityType == SecurityType.Option) 
+                {
+                    if (item.quoteCcy == "")
+                    {
+                        security.NameClass = "OPTION_USD";
+                    } 
+                    else
+                    {
+                        security.NameClass = "OPTION_" + item.quoteCcy;
                     }
                 }
 
@@ -1038,9 +1131,10 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 9 Security subscribe
 
-        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(350));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(450));
 
-        private List<Security> _subscribedSecurities = new List<Security>();
+        //mapping: secutity name -> option (true or false)
+        private Dictionary<string, bool> _subscribedSecurities = new Dictionary<string, bool>();
 
         public void Subscrible(Security security)
         {
@@ -1065,19 +1159,41 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                for (int i = 0; i < _subscribedSecurities.Count; i++)
-                {
-                    if (_subscribedSecurities[i].Name == security.Name
-                        && _subscribedSecurities[i].NameClass == security.NameClass)
-                    {
-                        return;
-                    }
-                }
+                string securityName = security.Name;
 
-                _subscribedSecurities.Add(security);
+                if (_subscribedSecurities.ContainsKey(securityName))
+                {
+                    return;
+                }
 
                 SubscribeTrades(security);
                 SubscribeDepths(security);
+
+                if (_useOptions && security.SecurityType == SecurityType.Option)
+                {
+                    _subscribedSecurities.Add(securityName, true);
+
+                    _rateGateSubscribe.WaitToProceed();
+
+                    SubscribeOpenInterest(security.Name);
+                    SubscribeMarkPrice(security.Name);
+
+                    securityName = securityName.Substring(0, 7);
+
+                    string key = securityName + "-OPTION";
+                    if (!_subscribedSecurities.ContainsKey(key))
+                    {
+                        SubscribeOptionSummary(securityName);
+                        //for underlying price
+                        SubscribeMarkPrice(securityName + "-SWAP");
+
+                        _subscribedSecurities.Add(key, false);
+                    }
+                }
+                else
+                {
+                    _subscribedSecurities.Add(securityName, false);
+                }
             }
             catch (Exception ex)
             {
@@ -1109,6 +1225,43 @@ namespace OsEngine.Market.Servers.OKX
             _webSocketPublic.Send(json);           
         }
 
+        public void SubscribeOptionSummary(string securityName)
+        {
+            RequestSubscribe<SubscribeArgsOption> requestTrade = new RequestSubscribe<SubscribeArgsOption>();
+            requestTrade.args = new List<SubscribeArgsOption>() { new SubscribeArgsOption() };
+            requestTrade.args[0].channel = "opt-summary";
+            requestTrade.args[0].instFamily = securityName; //"BTC-USD"
+            
+
+            string json = JsonConvert.SerializeObject(requestTrade);
+
+            _webSocketPublic.Send(json);
+        }
+
+        public void SubscribeOpenInterest(string name)
+        {
+            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
+            requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
+            requestTrade.args[0].channel = "open-interest";
+            requestTrade.args[0].instId = name; //"LTC-USD-SWAP"
+
+            string json = JsonConvert.SerializeObject(requestTrade);
+
+            _webSocketPublic.Send(json);
+        }
+
+        public void SubscribeMarkPrice(string name)
+        {
+            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
+            requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
+            requestTrade.args[0].channel = "mark-price";
+            requestTrade.args[0].instId = name; //"LTC-USD-SWAP"
+
+            string json = JsonConvert.SerializeObject(requestTrade);
+
+            _webSocketPublic.Send(json);
+        }
+
         private void SubscribePrivate()
         {
             try
@@ -1120,7 +1273,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
                 _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");                              
+                _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
             }
             catch (Exception exception)
             {
@@ -1137,10 +1290,27 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     if (_subscribedSecurities != null)
                     {
-                        for (int i = 0; i < _subscribedSecurities.Count; i++)
+                        foreach (var item in _subscribedSecurities)
                         {
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{_subscribedSecurities[i].Name}\"}}]}}");
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{_subscribedSecurities[i].Name}\"}}]}}");                                                      
+                            string name = item.Key;
+                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
+                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
+
+                            if (item.Value)
+                            {
+                                //option
+                                _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
+                                _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
+                            }
+                        }
+                    }
+
+                    if (_baseOptionSerurities != null)
+                    {
+                        foreach (string name in _baseOptionSerurities)
+                        {
+                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
+                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
                         }
                     }
                 }
@@ -1212,7 +1382,12 @@ namespace OsEngine.Market.Servers.OKX
                                         
                     ResponseWsMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<object>());
 
-                    if (action.arg != null)
+                    if (action.@event != null && action.@event.Contains("subscribe"))
+                    {
+                        //ignore
+                        SendLogMessage("[WS Public] Got subscribe msg: " + action.msg, LogMessageType.System);
+                    }
+                    else if (action.arg != null)
                     {
                         if (action.arg.channel.Equals("books5"))
                         {                            
@@ -1224,7 +1399,30 @@ namespace OsEngine.Market.Servers.OKX
                             UpdateTrades(message);
                             continue;
                         }
-                    }                    
+                        if (action.arg.channel.Equals("opt-summary"))
+                        {
+                            UpdateOptionSummary(message);
+                            continue;
+                        }
+                        if (action.arg.channel.Equals("open-interest"))
+                        {
+                            UpdateOpenInterest(message);
+                            continue;
+                        }
+                        if (action.arg.channel.Equals("mark-price"))
+                        {
+                            UpdateMarkPrice(message);
+                            continue;
+                        }
+                    }  
+                    else
+                    {
+                        if (action.@event != null && action.@event.Equals("error"))
+                        {
+                            SendLogMessage("[WS Public] Got error msg: "+action.msg, LogMessageType.Error);
+                        }
+                        
+                    }                  
                 }
                 catch (Exception exception)
                 {
@@ -1282,6 +1480,7 @@ namespace OsEngine.Market.Servers.OKX
                             UpdateOrder(message);
                             continue;
                         }
+
                     }                   
                 }
                 catch (Exception exception)
@@ -1298,7 +1497,7 @@ namespace OsEngine.Market.Servers.OKX
             {
                 ResponseWsMessageAction<List<ResponseMessagePositions>> positions = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseMessagePositions>>());
 
-                if (positions.data == null)
+                if (positions.data == null || Portfolios == null)
                 {
                     return;
                 }
@@ -1699,6 +1898,153 @@ namespace OsEngine.Market.Servers.OKX
             }
             return stateType;
         }
+
+        private void UpdateOptionSummary(string message)
+        {
+            try
+            {
+
+                ResponseWsMessageAction<List<ResponseWsGreeks>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseWsGreeks>>());
+
+                if (response.data == null || response.data.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < response.data.Count; i++)
+                {
+                    ResponseWsGreeks greeks = response.data[i];
+
+                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                    data.SecurityName = greeks.instId;
+                    data.UnderlyingAsset = greeks.uly;
+
+                    data.Delta = greeks.delta;
+                    data.Gamma = greeks.gamma;
+                    data.Vega = greeks.vega;
+                    data.Theta = greeks.theta;
+                    data.TimeCreate = greeks.ts;
+                    data.BidIV = greeks.bidVol;
+                    data.AskIV = greeks.askVol;
+                    data.MarkIV = greeks.markVol;
+
+                    AdditionalOptionData additionalData;
+                    if (_additionalOptionData.TryGetValue(greeks.instId, out additionalData))
+                    {
+                        data.OpenInterest = additionalData.OpenInterest;
+                        data.MarkPrice = additionalData.MarkPrice;
+                    }
+
+                    string uprice;
+                    if (_underlyingPrice.TryGetValue(greeks.uly, out uprice))
+                    {
+                        data.UnderlyingPrice = uprice;
+                    }
+
+                    //absend
+                    //data.Rho = greeks.rho;
+
+                    AdditionalMarketDataEvent(data);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
+        class AdditionalOptionData
+        {
+            public string MarkPrice;
+            public string OpenInterest;
+        }
+
+        private ConcurrentDictionary<string, AdditionalOptionData> _additionalOptionData = 
+            new ConcurrentDictionary<string, AdditionalOptionData>();
+
+        private ConcurrentDictionary<string, string> _underlyingPrice =
+            new ConcurrentDictionary<string, string>();
+
+        private void UpdateOpenInterest(string message)
+        {
+            try
+            {
+
+                ResponseWsMessageAction<List<ResponseWsOpenInterest>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseWsOpenInterest>>());
+
+                if (response.data == null || response.data.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < response.data.Count; i++)
+                {
+                    ResponseWsOpenInterest data = response.data[i];
+
+                    if (!_additionalOptionData.ContainsKey(data.instId))
+                    {
+                        _additionalOptionData.TryAdd(data.instId, new AdditionalOptionData());
+                    }
+
+                    _additionalOptionData[data.instId].OpenInterest = data.oi;
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
+        private void UpdateMarkPrice(string message)
+        {
+            try
+            {
+
+                ResponseWsMessageAction<List<ResponseWsMarkPrice>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseWsMarkPrice>>());
+
+                if (response.data == null || response.data.Count == 0)
+                {
+                    return;
+                }
+
+
+                for (int i = 0; i < response.data.Count; i++)
+                {
+                    ResponseWsMarkPrice data = response.data[i];
+
+                    if (data == null) {
+                        continue;
+                    }
+
+                    string name = data.instId;
+
+                    if (data.instId.Contains("-SWAP"))
+                    {
+                        name = name.Replace("-SWAP", "");
+                        _underlyingPrice[name] = data.markPx;
+                    }
+                    else
+                    {
+
+                        if (!_additionalOptionData.ContainsKey(data.instId))
+                        {
+                            _additionalOptionData.TryAdd(data.instId, new AdditionalOptionData());
+                        }
+
+                        _additionalOptionData[data.instId].MarkPrice = data.markPx;
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
 
         public event Action<Order> MyOrderEvent;
 
