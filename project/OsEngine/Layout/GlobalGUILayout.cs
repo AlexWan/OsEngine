@@ -35,6 +35,7 @@ namespace OsEngine.Layout
                 {
                     SetLayoutInWindow(ui, UiOpenWindows[i].Layout);
                     UiOpenWindows[i].WindowCreateTime = DateTime.Now;
+                    UiOpenWindows[i].IsActivate = false;
 
                     SubscribeEvents(ui, name);
                     return;
@@ -94,6 +95,8 @@ namespace OsEngine.Layout
             {
                 UiClosedEvent(ui, name);
             };
+
+          
         }
 
         private static void UiLocationChangeEvent(System.Windows.Window ui, string name)
