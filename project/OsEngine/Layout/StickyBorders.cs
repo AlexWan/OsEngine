@@ -93,6 +93,13 @@ namespace OsEngine.Layout
                     return;
                 }
 
+                if (window.LastUpdateTime.AddMilliseconds(50) > DateTime.Now)
+                {
+                    return;
+                }
+
+                window.LastUpdateTime = DateTime.Now;
+
                 window.UpdatePosition();
 
                 if (window.IsReady() == false)
@@ -140,7 +147,14 @@ namespace OsEngine.Layout
                     return;
                 }
 
-                if(window.IsReady() == false)
+                if(window.LastUpdateTime.AddMilliseconds(50) > DateTime.Now)
+                {
+                    return;
+                }
+
+                window.LastUpdateTime = DateTime.Now;
+
+                if (window.IsReady() == false)
                 {
                     return;
                 }
@@ -308,6 +322,8 @@ namespace OsEngine.Layout
     /// </summary>
     public class MoveWindow
     {
+        public DateTime LastUpdateTime;
+
         public bool IsReady()
         {
             if (Ui.IsVisible == false)
