@@ -21,4 +21,10 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string instType;
     }
 
+    public class SubscribeArgsOption
+    {
+        public string channel;
+        public string instFamily;
+    }
+
 }

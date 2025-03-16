@@ -41,4 +41,10 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string uly;
     }
 
+    public class SecurityUnderlyingResponse
+    {
+        public string code;
+        public List<List<string>> data;
+    }
+
 }
