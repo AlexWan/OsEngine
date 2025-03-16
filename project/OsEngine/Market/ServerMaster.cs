@@ -70,11 +70,8 @@ using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
 using OsEngine.Market.Servers.CoinEx.Spot;
-<<<<<<< HEAD
 using OsEngine.Market.Servers.CoinEx.Futures;
-=======
 using OsEngine.Market.Servers.RSSNews;
->>>>>>> master
 
 
 namespace OsEngine.Market
@@ -176,7 +173,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                
+
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.QuikDde);
                 serverTypes.Add(ServerType.QuikLua);
@@ -194,7 +191,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.TraderNet);
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
-               
+
                 serverTypes.Add(ServerType.GateIoSpot);
                 serverTypes.Add(ServerType.GateIoFutures);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
@@ -223,7 +220,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
-                
+
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.BitMart);
                 serverTypes.Add(ServerType.BitMartFutures);
@@ -232,11 +229,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MexcSpot);
                 serverTypes.Add(ServerType.AstsBridge);
                 serverTypes.Add(ServerType.CoinExSpot);
-<<<<<<< HEAD
                 serverTypes.Add(ServerType.CoinExFutures);
-=======
                 serverTypes.Add(ServerType.RSSNews);
->>>>>>> master
 
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
@@ -245,9 +239,9 @@ namespace OsEngine.Market
 
                 for (int i = 0; i < popularity.Count; i++)
                 {
-                    for(int i2 = 0;i2 < serverTypes.Count;i2++)
+                    for (int i2 = 0; i2 < serverTypes.Count; i2++)
                     {
-                        if(serverTypes[i2] == popularity[i].ServerType)
+                        if (serverTypes[i2] == popularity[i].ServerType)
                         {
                             serverTypes.RemoveAt(i2);
                             i2--;
@@ -272,14 +266,14 @@ namespace OsEngine.Market
 
                     for (int i2 = 0; i2 < serverTypes.Count; i2++)
                     {
-                        if(serverTypes[i2].ToString() == popularity[i].ServerType.ToString())
+                        if (serverTypes[i2].ToString() == popularity[i].ServerType.ToString())
                         {
                             isInArray = true;
                             break;
                         }
                     }
 
-                    if(isInArray)
+                    if (isInArray)
                     {
                         continue;
                     }
@@ -289,7 +283,7 @@ namespace OsEngine.Market
 
                 for (int i = 0; i < serverTypes.Count; i++)
                 {
-                    if(serverTypes[i].ToString() == "None")
+                    if (serverTypes[i].ToString() == "None")
                     {
                         serverTypes.RemoveAt(i);
                         break;
@@ -394,11 +388,11 @@ namespace OsEngine.Market
             }
             catch (Exception error)
             {
-                SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
-        private static List<ServerType> _alreadyCreatedServers = new List<ServerType>(); 
+        private static List<ServerType> _alreadyCreatedServers = new List<ServerType>();
 
         /// <summary>
         /// create server
@@ -419,7 +413,7 @@ namespace OsEngine.Market
                     return;
                 }
 
-                for(int i = 0;i < _alreadyCreatedServers.Count;i++)
+                for (int i = 0; i < _alreadyCreatedServers.Count; i++)
                 {
                     if (_alreadyCreatedServers[i] == type)
                     {
@@ -427,7 +421,7 @@ namespace OsEngine.Market
                     }
                 }
 
-                _alreadyCreatedServers.Add(type);  
+                _alreadyCreatedServers.Add(type);
 
                 SaveMostPopularServers(type);
 
@@ -691,9 +685,9 @@ namespace OsEngine.Market
 
             bool isInArray = false;
 
-            for(int i = 0;i < servers.Count;i++)
+            for (int i = 0; i < servers.Count; i++)
             {
-                if(servers[i].ServerType == type)
+                if (servers[i].ServerType == type)
                 {
                     servers[i].CountOfCreation += 1;
                     isInArray = true;
@@ -715,19 +709,19 @@ namespace OsEngine.Market
                 {
                     List<ServerType> alreadySaveServers = new List<ServerType>();
 
-                    for(int i = 0;i < servers.Count;i++)
+                    for (int i = 0; i < servers.Count; i++)
                     {
                         bool isSaved = false;
-                        for(int i2 = 0; i2 < alreadySaveServers.Count;i2++)
+                        for (int i2 = 0; i2 < alreadySaveServers.Count; i2++)
                         {
-                            if(alreadySaveServers[i2] == servers[i].ServerType)
+                            if (alreadySaveServers[i2] == servers[i].ServerType)
                             {
                                 isSaved = true;
                                 break;
                             }
                         }
 
-                        if(isSaved)
+                        if (isSaved)
                         {
                             continue;
                         }
@@ -761,11 +755,11 @@ namespace OsEngine.Market
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + @"MostPopularServers.txt"))
                 {
-                    while(reader.EndOfStream == false)
+                    while (reader.EndOfStream == false)
                     {
                         string res = reader.ReadLine();
 
-                        if(res.Split('&').Length <= 1)
+                        if (res.Split('&').Length <= 1)
                         {
                             continue;
                         }
@@ -788,16 +782,16 @@ namespace OsEngine.Market
                 // ignore
             }
 
-            if(servers.Count > 1)
+            if (servers.Count > 1)
             {
 
-                for(int i = 0;i < servers.Count;i++)
+                for (int i = 0; i < servers.Count; i++)
                 {
                     ServerPop curServ = servers[i];
 
-                    for(int i2 = i;i2 < servers.Count;i2++)
+                    for (int i2 = i; i2 < servers.Count; i2++)
                     {
-                        if(servers[i2].CountOfCreation < curServ.CountOfCreation)
+                        if (servers[i2].CountOfCreation < curServ.CountOfCreation)
                         {
                             servers[i] = servers[i2];
                             servers[i2] = curServ;
@@ -995,9 +989,9 @@ namespace OsEngine.Market
                         TryStartThisServerInAutoType(_needServerTypes[i]);
                     }
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                    SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 }
             }
         }
@@ -1045,7 +1039,7 @@ namespace OsEngine.Market
             }
             catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1073,7 +1067,7 @@ namespace OsEngine.Market
         /// </summary>
         public static IServerPermission GetServerPermission(ServerType type)
         {
-            for(int i = 0;i < _serversPermissions.Count;i++)
+            for (int i = 0; i < _serversPermissions.Count; i++)
             {
                 if (_serversPermissions[i] == null)
                 {
@@ -1085,7 +1079,7 @@ namespace OsEngine.Market
                 }
             }
 
-            for(int i = 0;i < _noServerPermissionServers.Count;i++)
+            for (int i = 0; i < _noServerPermissionServers.Count; i++)
             {
                 if (_noServerPermissionServers[i] == type)
                 {
@@ -1093,7 +1087,7 @@ namespace OsEngine.Market
                 }
             }
 
-            lock(_serverPermissionGeterLocker)
+            lock (_serverPermissionGeterLocker)
             {
                 for (int i = 0; i < _serversPermissions.Count; i++)
                 {
@@ -1297,15 +1291,13 @@ namespace OsEngine.Market
                 {
                     serverPermission = new CoinExServerSpotPermission();
                 }
-<<<<<<< HEAD
                 else if (type == ServerType.CoinExFutures)
                 {
                     serverPermission = new CoinExServerFuturesPermission();
-=======
+                }
                 else if (type == ServerType.RSSNews)
                 {
                     serverPermission = new RSSNewsServerPermission();
->>>>>>> master
                 }
 
                 if (serverPermission != null)
@@ -1331,7 +1323,7 @@ namespace OsEngine.Market
         /// </summary>
         public static void StartPaint()
         {
-             _painterPortfolios.StartPaint();
+            _painterPortfolios.StartPaint();
             _ordersStorage.StartPaint();
         }
 
@@ -1363,7 +1355,7 @@ namespace OsEngine.Market
         /// <summary>
         /// add items on which portfolios and orders will be drawn
         /// </summary>
-        public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders, 
+        public static void SetHostTable(WindowsFormsHost hostPortfolio, WindowsFormsHost hostActiveOrders,
             WindowsFormsHost hostHistoricalOrders)
         {
             if (_painterPortfolios == null)
@@ -1374,7 +1366,7 @@ namespace OsEngine.Market
                 _painterPortfolios.SetHostTable(hostPortfolio);
             }
 
-            if(_ordersStorage == null)
+            if (_ordersStorage == null)
             {
                 _ordersStorage = new ServerMasterOrdersPainter();
                 _ordersStorage.LogMessageEvent += SendNewLogMessage;
@@ -1396,7 +1388,7 @@ namespace OsEngine.Market
 
         private static void _painterPortfolios_ClearPositionOnBoardEvent(string sec, IServer server, string fullName)
         {
-            if(ClearPositionOnBoardEvent != null)
+            if (ClearPositionOnBoardEvent != null)
             {
                 ClearPositionOnBoardEvent(sec, server, fullName);
             }
@@ -1404,7 +1396,7 @@ namespace OsEngine.Market
 
         private static void _ordersStorage_RevokeOrderToEmulatorEvent(Order order)
         {
-            if(RevokeOrderToEmulatorEvent != null)
+            if (RevokeOrderToEmulatorEvent != null)
             {
                 RevokeOrderToEmulatorEvent(order);
             }
@@ -1425,7 +1417,7 @@ namespace OsEngine.Market
         {
             if (Log == null)
             {
-                Log = new Log("ServerMaster",StartProgram.IsOsTrader);
+                Log = new Log("ServerMaster", StartProgram.IsOsTrader);
                 Log.ListenServerMaster();
             }
         }
@@ -1662,7 +1654,7 @@ namespace OsEngine.Market
         /// BitGetFutures exchange
         /// </summary>
         BitGetFutures,
-        
+
         /// <summary>
         /// Alor OpenAPI & Websocket
         /// </summary>
@@ -1786,20 +1778,17 @@ namespace OsEngine.Market
         /// Спот биржи криптовалют CoinEx.com
         /// </summary>
         CoinExSpot,
-<<<<<<< HEAD
-        
+
         /// <summary>
         /// Futures for cryptocurrency exchange CoinEx.com
         /// Фьючерсы биржи криптовалют CoinEx.com
         /// </summary>
-        CoinExFutures
-=======
+        CoinExFutures,
 
         /// <summary>
         /// Reading news from RSS feeds
         /// Чтение новостей с RSS лент
         /// </summary>
         RSSNews
->>>>>>> master
     }
 }
