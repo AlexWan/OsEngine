@@ -14,6 +14,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         public string market { get; set; }
 
         // Market Type
+        // Rest request only
         public string market_type { get; set; }
 
         // Position side
@@ -104,6 +105,14 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
 
         // Settlement value, calculated as mark price
         public string settle_value { get; set; }
+
+        // The first filled price of the position
+        // WS Update only
+        public string first_filled_price { get; set; }
+
+        // The latest filled price of the position
+        // WS Update only
+        public string latest_filled_price { get; set; }
 
         // Order creation time
         public long created_at { get; set; }

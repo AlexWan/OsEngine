@@ -275,6 +275,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
                 Dictionary<string, Object> parameters = (new CexRequestGetPendingPosition(_marketMode)).parameters;
                 List<CexPositionItem>? cexPendingPositions = _restClient.Get<List<CexPositionItem>>("/futures/pending-position", true, parameters);
+
                 ConvertFuturesToPortfolio(cexBalance, cexPendingPositions);
                 return _portfolios.Count > 0;
             }
@@ -347,7 +348,13 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                             pos.ValueBegin = pos.ValueCurrent + pos.ValueBlocked;
                         }
 
-                        if (pos.ValueBlocked + pos.ValueCurrent > 0)
+                        if (cexPositionItem.side == "short")
+                        {
+                            pos.ValueCurrent = -pos.ValueCurrent;
+                            pos.ValueBlocked = -pos.ValueBlocked;
+                        }
+
+                        if (Math.Abs(pos.ValueBlocked + pos.ValueCurrent) > 0)
                         {
                             myPortfolio.SetNewPosition(pos);
                         }
@@ -1103,7 +1110,10 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     return;
                 }
 
-                wsUpdateFuturesPortfolio(data);
+                Dictionary<string, Object> parameters = (new CexRequestGetPendingPosition(_marketMode)).parameters;
+                List<CexPositionItem>? cexPendingPositions = _restClient.Get<List<CexPositionItem>>("/futures/pending-position", true, parameters);
+
+                wsUpdateFuturesPortfolio(data, cexPendingPositions);
             }
             catch (Exception error)
             {
@@ -1111,37 +1121,62 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        private void wsUpdateFuturesPortfolio(CexWsBalance data)
+        private void wsUpdateFuturesPortfolio(CexWsBalance data, List<CexPositionItem> pendingPositions)
         {
             string portfolioName = getPortfolioName();
-            Portfolio portfolio = _portfolios.Find(p => p.Number == portfolioName);
+            Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
 
-            if (portfolio == null)
+            if (myPortfolio == null)
             {
                 return;
             }
 
             for (int i = 0; i < data.balance_list.Length; i++)
             {
-                PositionOnBoard pos =
-                    portfolio.GetPositionOnBoard()?.Find(p => p.SecurityNameCode == data.balance_list[i].ccy);
-
-                if (pos == null)
+                CexWsBalanceItem cexPosition = data.balance_list[i];
+                if (cexPosition.ccy == "USDT"
+                    || cexPosition.ccy == "USDC"
+                    || cexPosition.ccy == "USD"
+                    || cexPosition.ccy == "RUB"
+                    || cexPosition.ccy == "EUR")
                 {
-                    CexWsBalanceItem cexPosition = data.balance_list[i];
+                    myPortfolio.ValueCurrent = Math.Round(cexPosition.available.ToDecimal(), 2);
+                    myPortfolio.UnrealizedPnl = Math.Round(cexPosition.unrealized_pnl.ToDecimal(), 2);
+                    myPortfolio.ValueBlocked = Math.Round(cexPosition.margin.ToDecimal(), 2);
+                    break;
+                }
+            }
 
-                    pos = new PositionOnBoard();
-                    pos.ValueCurrent = cexPosition.available.ToString().ToDecimal();
-                    pos.ValueBlocked = cexPosition.frozen.ToString().ToDecimal();
-                    pos.SecurityNameCode = cexPosition.ccy;
+            if (pendingPositions != null && pendingPositions.Count > 0)
+            {
+                for (int i = 0; i < pendingPositions.Count; i++)
+                {
+                    CexPositionItem cexPositionItem = pendingPositions[i];
+
+                    PositionOnBoard pos = new PositionOnBoard();
+
+                    pos.SecurityNameCode = cexPositionItem.market;
+                    pos.ValueCurrent = cexPositionItem.open_interest.ToDecimal();
+                    pos.ValueBlocked = pos.ValueCurrent;
                     pos.PortfolioName = portfolioName;
+                    pos.UnrealizedPnl = cexPositionItem.unrealized_pnl.ToDecimal();
+                    if (pos.ValueBegin == 1)
+                    {
+                        pos.ValueBegin = pos.ValueCurrent + pos.ValueBlocked;
+                    }
 
-                    portfolio.SetNewPosition(pos);
-                    continue;
+                    if (cexPositionItem.side == "short")
+                    {
+                        pos.ValueCurrent = -pos.ValueCurrent;
+                        pos.ValueBlocked = -pos.ValueBlocked;
+                    }
+
+                    if (Math.Abs(pos.ValueBlocked + pos.ValueCurrent) > 0)
+                    {
+                        myPortfolio.SetNewPosition(pos);
+                    }
                 }
 
-                pos.ValueCurrent = data.balance_list[i].available.ToString().ToDecimal();
-                pos.ValueBlocked = data.balance_list[i].frozen.ToString().ToDecimal();
             }
 
             PortfolioEvent?.Invoke(_portfolios);
