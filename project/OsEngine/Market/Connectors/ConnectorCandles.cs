@@ -1043,7 +1043,8 @@ namespace OsEngine.Market.Connectors
 
                 DateTime timeLastCandle = candles[candles.Count - 1].TimeStart;
 
-                if (timeLastCandle == _timeLastEndCandle)
+                if (timeLastCandle == _timeLastEndCandle
+                    && CandleCreateMethodType == "Simple")
                 {
                     return;
                 }
