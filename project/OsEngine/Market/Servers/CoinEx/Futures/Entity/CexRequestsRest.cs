@@ -153,4 +153,22 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
             parameters.Add("limit", limit);
         }
     }
+
+    // https://docs.coinex.com/api/v2/futures/position/http/list-pending-position
+    public class CexRequestGetPendingPosition : CexRequestRest
+    {
+        public CexRequestGetPendingPosition(string marketType, string? market = null, int limit = 1000, int page = 1)
+        {
+            parameters.Add("market_type", marketType);
+            parameters.Add("limit", limit);
+            if (!string.IsNullOrEmpty(market))
+            {
+                parameters.Add("market", market);
+            }
+            if (page > 1)
+            {
+                parameters.Add("page", page);
+            }
+        }
+    }
 }

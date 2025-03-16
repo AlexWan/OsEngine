@@ -5,7 +5,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
     /*
         https://docs.coinex.com/api/v2/assets/balance/http/get-futures-balance#http-request
     */
-    struct CexFuturesPortfolioItem
+    struct CexPortfolioItem
     {
         // Currency name [USDT]
         public string ccy { get; set; }
@@ -39,7 +39,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
         /// </summary>
         public string unrealized_pnl { get; set; }
 
-        public static explicit operator PositionOnBoard(CexFuturesPortfolioItem cexPortfolioItem)
+        public static explicit operator PositionOnBoard(CexPortfolioItem cexPortfolioItem)
         {
             return new PositionOnBoard()
             {

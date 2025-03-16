@@ -479,11 +479,12 @@
     <Compile Include="Market\Servers\CoinEx\Futures\CoinExServerFutures.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\CoinExServerFuturesPermission.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexCandle.cs" />
+    <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexPositionItem.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexMarketInfoItem.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexOrder.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexOrderTransaction.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexOrderUpdate.cs" />
-    <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexFuturesPortfolioItem.cs" />
+    <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexPortfolioItem.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexRequestsRest.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexRequestsSocket.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexSecurity.cs" />
