@@ -104,7 +104,27 @@ namespace OsEngine.Layout
                 {
                     if (UiOpenWindows[i].Name == name)
                     {
+                        if (UiOpenWindows[i].IsActivate == false)
+                        {
+                            if (UiOpenWindows[i].WindowCreateTime.AddSeconds(1) > DateTime.Now)
+                            {
+                                SetLayoutInWindow(ui, UiOpenWindows[i].Layout);
+                            }
+                            else
+                            {
+                                UiOpenWindows[i].IsActivate = true;
+                            }
+
+                            return;
+                        }
+                        
+                        if (UiOpenWindows[i].WindowUpdateTime.AddMilliseconds(300) > DateTime.Now)
+                        {
+                            return;
+                        }
+
                         SetLayoutFromWindow(ui, UiOpenWindows[i]);
+                        UiOpenWindows[i].WindowUpdateTime = DateTime.Now;
 
                         break;
                     }
@@ -115,11 +135,6 @@ namespace OsEngine.Layout
 
         private static void SetLayoutFromWindow(System.Windows.Window ui, OpenWindow windowLayout)
         {
-            if(windowLayout.WindowCreateTime.AddSeconds(1) > DateTime.Now)
-            {
-                SetLayoutInWindow(ui, windowLayout.Layout);
-                return;
-            }
 
             if (double.IsNaN(ui.ActualHeight) == false)
             {
@@ -367,6 +382,10 @@ namespace OsEngine.Layout
         public string Name;
 
         public DateTime WindowCreateTime;
+
+        public bool IsActivate = false;
+
+        public DateTime WindowUpdateTime;
 
         public string GetSaveString()
         {
