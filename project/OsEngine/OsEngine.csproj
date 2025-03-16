@@ -144,6 +144,7 @@
     <Reference Include="System.Runtime.Serialization">
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Text.Encoding.CodePages, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Text.Encoding.CodePages.4.7.0\lib\net461\System.Text.Encoding.CodePages.dll</HintPath>
     </Reference>
@@ -743,7 +744,6 @@
     <Compile Include="Market\Servers\GateIo\GateIoFutures\GateIoServerFuturesPermission.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\Entities\ApiEntities.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\Entities\PortfolioUpdateEvent.cs" />
-    <Compile Include="Market\Servers\GateIo\GateIoSpot\Entities\Singer.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\GateIoServerSpot.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\GateIoSpotServerPermission.cs" />
     <Compile Include="Market\Servers\GateIo\ResponceWebsocketMessage.cs" />
@@ -866,15 +866,13 @@
     <Compile Include="Market\Servers\Lmax\LmaxFixClient.cs" />
     <Compile Include="Market\Servers\Lmax\LmaxServer.cs" />
     <Compile Include="Market\Servers\Lmax\Tags.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcClient.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcOrdersRest.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcPortfolioRest.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcPortfolioSocket.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcSecurityRest.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcSecuritySocket.cs" />
-    <Compile Include="Market\Servers\Mexc\Entity\MexcSubscribeSocket.cs" />
-    <Compile Include="Market\Servers\Mexc\Mexc.cs" />
-    <Compile Include="Market\Servers\Mexc\MexcPermission.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcSpot\Entity\MexcOrdersRest.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcSpot\Entity\MexcPortfolioRest.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcSpot\Entity\MexcPrivateSocket.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcSpot\Entity\MexcSecurityRest.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcSpot\Entity\MexcSecuritySocket.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcSpot\MexcSpotServer.cs" />
+    <Compile Include="Market\Servers\Mexc\MexcSpot\MexcSpotServerPermission.cs" />
     <Compile Include="Market\Servers\MFD\MfdServer.cs" />
     <Compile Include="Market\Servers\MFD\MfdServerPermission.cs" />
     <Compile Include="Market\Servers\MoexAlgopack\Entity\MoexAlgopackAuth.cs" />
@@ -960,6 +958,8 @@
     <Compile Include="Market\Servers\QuikLua\QuikLuaServer.cs" />
     <Compile Include="Market\ServerMasterPortfoliosPainter.cs" />
     <Compile Include="Market\Servers\QuikLua\QuikLuaServerPermission.cs" />
+    <Compile Include="Market\Servers\RSSNews\RSSNewsServer.cs" />
+    <Compile Include="Market\Servers\RSSNews\RSSNewsServerPermission.cs" />
     <Compile Include="Market\Servers\ServerCandleStorage.cs" />
     <Compile Include="Market\Servers\ServerTickStorage.cs" />
     <Compile Include="Market\Servers\Entity\MarshalUTF8.cs" />
@@ -1288,13 +1288,18 @@
     <Compile Include="Robots\PositionsMicromanagement\UnsafeAveragePosition.cs" />
     <Compile Include="Robots\PositionsMicromanagement\UnsafeLimitsClosingSample.cs" />
     <Compile Include="Robots\Screeners\BollingerMomentumScreener.cs" />
+    <Compile Include="Robots\Screeners\PlateDetectorScreener.cs" />
+    <Compile Include="Robots\Screeners\PumpDetectorScreener.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
+    <Compile Include="Robots\Screeners\PinBarVolatilityScreener.cs" />
+    <Compile Include="Robots\Screeners\PriceChannelAdaptiveRsiScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
     <Compile Include="Robots\TechSamples\CandlesLoggingSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
     <Compile Include="Robots\TechSamples\CustomChartInParamWindowSample.cs" />
     <Compile Include="Robots\TechSamples\CustomParamsUseBotSample.cs" />
+    <Compile Include="Robots\TechSamples\VisualSettingsParametersExample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdTrail.cs" />

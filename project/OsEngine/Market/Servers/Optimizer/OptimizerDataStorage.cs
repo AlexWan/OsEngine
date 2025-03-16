@@ -1440,6 +1440,22 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
+            for (int i = 0; i < Securities.Count; i++)
+            {
+                if (Securities[i].Name == securityToSave.Name)
+                {
+                    Securities[i].LoadFromString(securityToSave.GetSaveStr());
+                }
+            }
+
+            for (int i = 0; i < SecuritiesTester.Count; i++)
+            {
+                if (SecuritiesTester[i].Security.Name == securityToSave.Name)
+                {
+                    SecuritiesTester[i].Security.LoadFromString(securityToSave.GetSaveStr());
+                }
+            }
+
             string pathToSettings = "";
 
             if (SourceDataType == TesterSourceDataType.Set)

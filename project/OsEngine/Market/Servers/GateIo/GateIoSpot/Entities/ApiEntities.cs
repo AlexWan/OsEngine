@@ -35,7 +35,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot.Entities
         public string locked;
     }
 
-
     public class MessageDepths
     {
         public long t;
@@ -75,6 +74,14 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot.Entities
         public string text;
         public string amend_text;
         public string biz_info;
+        public string sequence_id;
+    }
+
+    public class OrderResponse
+    {
+        public string currency_pair;
+        public string total;
+        public List<MessageUserOrder> orders;
     }
 
     public class MessageUserOrder
@@ -85,18 +92,25 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot.Entities
         public string update_time;
         public string currency_pair;
         public string type;
+        public string status;
         public string account;
         public string side;
         public string amount;
         public string price;
+        public string iceberg;
         public string time_in_force;
         public string left;
         public string filled_total;
+        public string fill_price;
+        public string filled_amount;
         public string avg_deal_price;
         public string fee;
         public string fee_currency;
         public string point_fee;
         public string gt_fee;
+        public string gt_discount;
+        public string gt_maker_fee;
+        public string gt_taker_fee;
         public string rebated_fee;
         public string rebated_fee_currency;
         public string create_time_ms;

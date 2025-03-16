@@ -217,7 +217,8 @@ namespace OsEngine.Robots.MyRobots
                 // Long
                 if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastEmaFast > _prevEmaMiddle && _prevEmaFast > _prevEmaSlow &&
+                    if (_lastEmaFast > _prevEmaMiddle 
+                        && _prevEmaFast > _prevEmaSlow &&
                         lastPrice > _lastParabolic)
                     {
                         // We put a stop on the buy                       
@@ -228,7 +229,8 @@ namespace OsEngine.Robots.MyRobots
                 // Short
                 if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (_lastEmaFast < _prevEmaMiddle && _prevEmaFast < _prevEmaSlow &&
+                    if (_lastEmaFast < _prevEmaMiddle 
+                        && _prevEmaFast < _prevEmaSlow &&
                         lastPrice < _lastParabolic)
                     {
                         // Putting a stop on sale

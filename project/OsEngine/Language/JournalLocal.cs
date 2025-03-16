@@ -143,6 +143,14 @@ namespace OsEngine.Language
          "Eng:1000 / page_" +
          "Ru:1000 / страница_");
 
+        public string Label21 => OsLocalization.ConvertToLocString(
+         "Eng:Bots filter_" +
+         "Ru:Роботы_");
+
+        public string Label22 => OsLocalization.ConvertToLocString(
+         "Eng:Securities filter_" +
+         "Ru:Фильтр по бумагам_");
+
         public string TabItem1 => OsLocalization.ConvertToLocString(
             "Eng:Equity_" +
             "Ru:Эквити_");

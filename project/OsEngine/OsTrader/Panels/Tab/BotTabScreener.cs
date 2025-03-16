@@ -1110,29 +1110,6 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
-        /// All tab positions
-        /// </summary>
-        public List<Position> PositionsOpenAll
-        {
-            get
-            {
-                List<Position> positions = new List<Position>();
-
-                for (int i = 0; i < Tabs.Count; i++)
-                {
-                    List<Position> curPoses = Tabs[i].PositionsOpenAll;
-
-                    if (curPoses.Count != 0)
-                    {
-                        positions.AddRange(curPoses);
-                    }
-                }
-
-                return positions;
-            }
-        }
-
-        /// <summary>
         /// Correct program removal of security from the screener
         /// </summary>
         public void RemoveTabBySecurityName(string securityName, string securityClass)
@@ -1454,7 +1431,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         SecuritiesDataGrid.Rows[tabRow].Cells[0].Selected = true;
                     }
 
-                    SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    if(_previousActiveRow < SecuritiesDataGrid.Rows.Count)
+                    {
+                        SecuritiesDataGrid.Rows[_previousActiveRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(154, 156, 158);
+                    }
+
                     SecuritiesDataGrid.Rows[tabRow].DefaultCellStyle.ForeColor = System.Drawing.Color.FromArgb(255, 255, 255);
                     _previousActiveRow = tabRow;
                 }
@@ -1762,6 +1743,116 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        public void UpdateIndicatorsParameters()
+        {
+            try
+            {
+                for (int i1 = 0; i1 < _indicators.Count; i1++)
+                {
+                    IndicatorOnTabs ind = (IndicatorOnTabs)_indicators[i1];
+
+                    for (int i = 0; i < Tabs.Count; i++)
+                    {
+                        Aindicator newIndicator = IndicatorsFactory.CreateIndicatorByName(ind.Type, ind.Num + ind.Type + TabName, false);
+                        newIndicator.CanDelete = ind.CanDelete;
+
+                        try
+                        {
+                            if (ind.Parameters.Count == newIndicator.Parameters.Count)
+                            {
+                                if (ind.Parameters != null && ind.Parameters.Count != 0)
+                                {
+                                    for (int i2 = 0; i2 < ind.Parameters.Count; i2++)
+                                    {
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Int)
+                                        {
+                                            ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Parameters[i2]);
+                                        }
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal)
+                                        {
+                                            ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
+                                        }
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool)
+                                        {
+                                            ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Parameters[i2]);
+                                        }
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.String)
+                                        {
+                                            ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Parameters[i2];
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        }
+
+                        newIndicator = (Aindicator)Tabs[i].CreateCandleIndicator(newIndicator, ind.NameArea);
+                        newIndicator.CanDelete = ind.CanDelete;
+
+                        try
+                        {
+                            bool parametersChanged = false;
+
+                            if (ind.Parameters.Count == newIndicator.Parameters.Count)
+                            {
+
+                                if (ind.Parameters != null && ind.Parameters.Count != 0)
+                                {
+                                    for (int i2 = 0; i2 < ind.Parameters.Count; i2++)
+                                    {
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Int
+                                            && ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt != Convert.ToInt32(ind.Parameters[i2]))
+                                        {
+                                            ((IndicatorParameterInt)newIndicator.Parameters[i2]).ValueInt = Convert.ToInt32(ind.Parameters[i2]);
+                                            parametersChanged = true;
+                                        }
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Decimal
+                                            && ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal != Convert.ToDecimal(ind.Parameters[i2]))
+                                        {
+                                            ((IndicatorParameterDecimal)newIndicator.Parameters[i2]).ValueDecimal = Convert.ToDecimal(ind.Parameters[i2]);
+                                            parametersChanged = true;
+                                        }
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.Bool
+                                            && ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool != Convert.ToBoolean(ind.Parameters[i2]))
+                                        {
+                                            ((IndicatorParameterBool)newIndicator.Parameters[i2]).ValueBool = Convert.ToBoolean(ind.Parameters[i2]);
+                                            parametersChanged = true;
+                                        }
+                                        if (newIndicator.Parameters[i2].Type == IndicatorParameterType.String
+                                            && ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString != ind.Parameters[i2])
+                                        {
+                                            ((IndicatorParameterString)newIndicator.Parameters[i2]).ValueString = ind.Parameters[i2];
+                                            parametersChanged = true;
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (parametersChanged)
+                            {
+                                newIndicator.Reload();
+                                newIndicator.Save();
+                            }
+                        }
+                        catch (Exception error)
+                        {
+                            SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                        }
+                        newIndicator.Save();
+                    }
+                }
+
+                SaveIndicators();
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(),LogMessageType.Error);
+            }
+        }
+
         /// <summary>
         /// создать индикатор для вкладок
         /// </summary>
@@ -1807,7 +1898,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 newIndicator = (Aindicator)Tabs[i].CreateCandleIndicator(newIndicator, ind.NameArea);
                 newIndicator.CanDelete = ind.CanDelete;
-
                 newIndicator.Save();
             }
         }
@@ -2229,14 +2319,32 @@ namespace OsEngine.OsTrader.Panels.Tab
             return null;
         }
 
+        /// <summary>
+        /// All tab positions
+        /// </summary>
+        public List<Position> PositionsOpenAll
+        {
+            get
+            {
+                List<Position> positions = new List<Position>();
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    List<Position> curPoses = Tabs[i].PositionsOpenAll;
+
+                    if (curPoses.Count != 0)
+                    {
+                        positions.AddRange(curPoses);
+                    }
+                }
+
+                return positions;
+            }
+        }
+
         #endregion
 
         #region Events
-
-        /// <summary>
-        /// New tab creation event
-        /// </summary>
-        public event Action<BotTabSimple> NewTabCreateEvent;
 
         /// <summary>
         /// Subscribe to events in the tab
@@ -2368,6 +2476,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             };
         }
+
+        /// <summary>
+        /// New tab creation event
+        /// </summary>
+        public event Action<BotTabSimple> NewTabCreateEvent;
 
         /// <summary>
         /// Last candle finishede

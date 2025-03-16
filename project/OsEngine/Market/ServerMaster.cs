@@ -70,7 +70,11 @@ using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
 using OsEngine.Market.Servers.CoinEx.Spot;
+<<<<<<< HEAD
 using OsEngine.Market.Servers.CoinEx.Futures;
+=======
+using OsEngine.Market.Servers.RSSNews;
+>>>>>>> master
 
 
 namespace OsEngine.Market
@@ -225,10 +229,14 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BitMartFutures);
                 serverTypes.Add(ServerType.MoexFixFastCurrency);
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
-                serverTypes.Add(ServerType.Mexc);
+                serverTypes.Add(ServerType.MexcSpot);
                 serverTypes.Add(ServerType.AstsBridge);
                 serverTypes.Add(ServerType.CoinExSpot);
+<<<<<<< HEAD
                 serverTypes.Add(ServerType.CoinExFutures);
+=======
+                serverTypes.Add(ServerType.RSSNews);
+>>>>>>> master
 
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
@@ -425,7 +433,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
-
+                if (type == ServerType.RSSNews)
+                {
+                    newServer = new RSSNewsServer();
+                }
                 if (type == ServerType.MoexFixFastTwimeFutures)
                 {
                     newServer = new MoexFixFastTwimeFuturesServer();
@@ -626,9 +637,9 @@ namespace OsEngine.Market
                 {
                     newServer = new TraderNetServer();
                 }
-                else if (type == ServerType.Mexc)
+                else if (type == ServerType.MexcSpot)
                 {
-                    newServer = new MexcServer();
+                    newServer = new MexcSpotServer();
                 }
                 else if (type == ServerType.KiteConnect)
                 {
@@ -1266,9 +1277,9 @@ namespace OsEngine.Market
                 {
                     serverPermission = new TraderNetServerPermission();
                 }
-                else if (type == ServerType.Mexc)
+                else if (type == ServerType.MexcSpot)
                 {
-                    serverPermission = new MexcServerPermission();
+                    serverPermission = new MexcSpotServerPermission();
                 }
                 else if (type == ServerType.KiteConnect)
                 {
@@ -1286,9 +1297,15 @@ namespace OsEngine.Market
                 {
                     serverPermission = new CoinExServerSpotPermission();
                 }
+<<<<<<< HEAD
                 else if (type == ServerType.CoinExFutures)
                 {
                     serverPermission = new CoinExServerFuturesPermission();
+=======
+                else if (type == ServerType.RSSNews)
+                {
+                    serverPermission = new RSSNewsServerPermission();
+>>>>>>> master
                 }
 
                 if (serverPermission != null)
@@ -1742,7 +1759,7 @@ namespace OsEngine.Market
         /// <summary>
         /// Mexc Spot
         /// </summary>
-        Mexc,
+        MexcSpot,
 
         /// <summary>
         /// Mexc Spot
@@ -1769,11 +1786,20 @@ namespace OsEngine.Market
         /// Спот биржи криптовалют CoinEx.com
         /// </summary>
         CoinExSpot,
+<<<<<<< HEAD
         
         /// <summary>
         /// Futures for cryptocurrency exchange CoinEx.com
         /// Фьючерсы биржи криптовалют CoinEx.com
         /// </summary>
         CoinExFutures
+=======
+
+        /// <summary>
+        /// Reading news from RSS feeds
+        /// Чтение новостей с RSS лент
+        /// </summary>
+        RSSNews
+>>>>>>> master
     }
 }

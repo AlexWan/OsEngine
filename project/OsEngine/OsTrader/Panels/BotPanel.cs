@@ -2349,7 +2349,34 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
         private Dictionary<string, ParamDesign> _parameterDesigns = new Dictionary<string, ParamDesign>();
-	
+
+        /// <summary>	
+        ///  repaint Parameter tables (it is not recommended to call often, recommended >100 ms)
+        /// </summary>
+        public void RePaintParameterTables()
+        {
+            if (_isRePaintParameterTables == false)
+            {
+                _isRePaintParameterTables = true;
+            }
+            else
+            {
+                _isRePaintParameterTables = false;
+            }
+        }
+
+        /// <summary>
+        /// status of Parameter tables repaint (it is not specific pointer)
+        /// </summary>
+        public bool IsRePaintParameterTables
+        {
+            get
+            {
+                return _isRePaintParameterTables;
+            }
+        }
+        private bool _isRePaintParameterTables;
+
     }
 
     /// <summary>

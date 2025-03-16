@@ -27,7 +27,7 @@ namespace OsEngine.Charts.CandleChart
     /// </summary>
     public class ChartCandleMaster
     {
-        // service  сервис
+        // service сервис
 
         /// <summary>
         /// constructor
@@ -1850,6 +1850,11 @@ namespace OsEngine.Charts.CandleChart
                 _candleCreateMethodTypeOnThisChart == timeFrameBuilder.CandleCreateMethodType)
             {
                 return;
+            }
+
+            if(_serverType == ServerType.None)
+            {
+                _isFirstTimeSetSecurity = true;
             }
 
             if (ChartCandle != null)

@@ -63,11 +63,10 @@ namespace OsEngine.Market.Servers
 
             _parametersGrid.CellValueChanged -= _newGrid_CellValueChanged;
             _parametersGrid.Click -= _newGrid_Click;
+            _parametersGrid.DataError -= _parametersGrid_DataError;
             _parametersGrid.Rows.Clear();
             DataGridFactory.ClearLinks(_parametersGrid);
             _parametersGrid = null;
-
-          
         }
 
         private void AServerParameterUi_Closed(object sender, EventArgs e)
@@ -146,6 +145,12 @@ namespace OsEngine.Market.Servers
             _parametersGrid.CellValueChanged += _newGrid_CellValueChanged;
             _parametersGrid.Click += _newGrid_Click;
             _parametersGrid.CellClick += _parametersGrid_CellClick;
+            _parametersGrid.DataError += _parametersGrid_DataError;
+        }
+
+        private void _parametersGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            ServerMaster.SendNewLogMessage(e.Exception.ToString(),Logging.LogMessageType.Error);
         }
 
         private void _parametersGrid_CellClick(object sender, DataGridViewCellEventArgs e)

@@ -2451,6 +2451,22 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
+            for(int i = 0;i < Securities.Count;i++)
+            {
+                if (Securities[i].Name == securityToSave.Name)
+                {
+                    Securities[i].LoadFromString(securityToSave.GetSaveStr());
+                }
+            }
+
+            for(int i = 0;i < SecuritiesTester.Count;i++)
+            {
+                if(SecuritiesTester[i].Security.Name == securityToSave.Name)
+                {
+                    SecuritiesTester[i].Security.LoadFromString(securityToSave.GetSaveStr());
+                }
+            }
+
             string pathToSettings = GetSecuritiesSettingsPath();
 
             List<string[]> saves = LoadSecurityDopSettings(pathToSettings);
