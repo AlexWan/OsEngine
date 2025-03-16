@@ -114,7 +114,6 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string realizedPnl;
     }
 
-    // Root myDeserializedClass = JsonConvert.DeserializeObject<Root>(myJsonResponse);
     public class ResponseWsGreeks
     {
         public string instType { get; set; }

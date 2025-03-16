@@ -196,9 +196,7 @@ namespace OsEngine.Market.Servers.OKX
             {
                 SecurityResponse securityResponseFutures = GetFuturesSecurities();
                 SecurityResponse securityResponseSpot = GetSpotSecurities();
-                
                 securityResponseFutures.data.AddRange(securityResponseSpot.data);
-
 
                 if (_useOptions)
                 {
@@ -209,11 +207,6 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 UpdatePairs(securityResponseFutures);
-
-                if (SecurityEvent != null)
-                {
-                    SecurityEvent(_securities);
-                }
             }
             catch (Exception error)
             {
@@ -260,8 +253,6 @@ namespace OsEngine.Market.Servers.OKX
 
             SecurityUnderlyingResponse baseSecuritiesResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityUnderlyingResponse());
 
-            // /api/v5/public/instrument-tick-bands ???
-
             if (baseSecuritiesResponse == null ||
                 baseSecuritiesResponse.data == null ||
                 baseSecuritiesResponse.data.Count == 0)
@@ -277,7 +268,6 @@ namespace OsEngine.Market.Servers.OKX
 
         private SecurityResponse GetOptionSecurities(List<string> baseSecurities)
         {
-
             SecurityResponse ret = null;
 
             for (int k = 0; k < baseSecurities.Count; k++)
@@ -383,7 +373,6 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         security.NameClass = "OPTION_" + item.quoteCcy;
                     }
-                    
                 }
 
                 security.Exchange = ServerType.OKX.ToString();
@@ -1972,11 +1961,10 @@ namespace OsEngine.Market.Servers.OKX
             public string OpenInterest;
         }
 
-        ConcurrentDictionary<string, AdditionalOptionData> _additionalOptionData = 
+        private ConcurrentDictionary<string, AdditionalOptionData> _additionalOptionData = 
             new ConcurrentDictionary<string, AdditionalOptionData>();
 
-        //public string UnderlyingPrice;
-        ConcurrentDictionary<string, string> _underlyingPrice =
+        private ConcurrentDictionary<string, string> _underlyingPrice =
             new ConcurrentDictionary<string, string>();
 
         private void UpdateOpenInterest(string message)
