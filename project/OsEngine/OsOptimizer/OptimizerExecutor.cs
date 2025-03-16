@@ -1223,18 +1223,19 @@ namespace OsEngine.OsOptimizer
 
                     for (int i = 0; i < _testBotsTime.Count; i++)
                     {
-                        allTime = TimeSpan.FromMilliseconds(allTime.TotalMilliseconds + _testBotsTime[i].TotalMilliseconds);
+                        allTime = TimeSpan.FromMilliseconds(allTime.TotalMilliseconds + _testBotsTime[i].TotalMilliseconds + 1000);
                     }
 
-                    int secondsOnOneTest = Convert.ToInt32(allTime.TotalSeconds / _testBotsTime.Count);
+                    decimal secondsOnOneTest = Convert.ToDecimal(allTime.TotalSeconds / _testBotsTime.Count);
 
-                    int secondsToEndAllTests = (_countAllServersMax - _testBotsTime.Count) * secondsOnOneTest;
+                    decimal secondsToEndAllTests = (_countAllServersMax - _testBotsTime.Count) * secondsOnOneTest;
 
-                    int secondsToEndDivideThreads = secondsToEndAllTests / _master.ThreadsCount;
+                    decimal secondsToEndDivideThreads = secondsToEndAllTests / _master.ThreadsCount;
 
-                    TimeSpan timeToEnd = TimeSpan.FromSeconds(secondsToEndDivideThreads);
+                    TimeSpan timeToEnd = TimeSpan.FromSeconds(Convert.ToInt32(secondsToEndDivideThreads));
 
-                    if (TimeToEndChangeEvent != null)
+                    if (TimeToEndChangeEvent != null
+                        && timeToEnd.TotalSeconds != 0)
                     {
                         TimeToEndChangeEvent(timeToEnd);
                     }
