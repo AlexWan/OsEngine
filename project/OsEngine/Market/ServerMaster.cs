@@ -70,6 +70,7 @@ using OsEngine.Market.Servers.YahooFinance;
 using OsEngine.Market.Servers.Atp;
 using OsEngine.Market.Servers.Polygon;
 using OsEngine.Market.Servers.CoinEx.Spot;
+using OsEngine.Market.Servers.CoinEx.Futures;
 using OsEngine.Market.Servers.RSSNews;
 
 
@@ -228,6 +229,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MexcSpot);
                 serverTypes.Add(ServerType.AstsBridge);
                 serverTypes.Add(ServerType.CoinExSpot);
+                serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.RSSNews);
 
 
@@ -332,6 +334,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.YahooFinance);
                 serverTypes.Add(ServerType.Polygon);
                 serverTypes.Add(ServerType.CoinExSpot);
+                serverTypes.Add(ServerType.CoinExFutures);
 
                 return serverTypes;
             }
@@ -647,6 +650,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.CoinExSpot)
                 {
                     newServer = new CoinExServerSpot();
+                }
+                else if (type == ServerType.CoinExFutures)
+                {
+                    newServer = new CoinExServerFutures();
                 }
 
                 if (newServer == null)
@@ -1284,6 +1291,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new CoinExServerSpotPermission();
                 }
+                else if (type == ServerType.CoinExFutures)
+                {
+                    serverPermission = new CoinExServerFuturesPermission();
+                }
                 else if (type == ServerType.RSSNews)
                 {
                     serverPermission = new RSSNewsServerPermission();
@@ -1767,6 +1778,12 @@ namespace OsEngine.Market
         /// Спот биржи криптовалют CoinEx.com
         /// </summary>
         CoinExSpot,
+        
+        /// <summary>
+        /// Futures for cryptocurrency exchange CoinEx.com
+        /// Фьюючерсы биржи криптовалют CoinEx.com
+        /// </summary>
+        CoinExFutures,
 
         /// <summary>
         /// Reading news from RSS feeds
