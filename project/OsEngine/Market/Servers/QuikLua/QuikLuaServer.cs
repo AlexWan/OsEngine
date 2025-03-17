@@ -1683,8 +1683,7 @@ namespace OsEngine.Market.Servers.QuikLua
             try
             {
                 QuikSharp.DataStructures.Transaction.Order foundOrder =
-                QuikLua.Orders.GetOrder_by_transID(order.SecurityClassCode, order.SecurityNameCode.Split('+')[0],
-                order.NumberUser).Result;
+                QuikLua.Orders.GetOrder(order.SecurityNameCode.Split('+')[1], Convert.ToInt64(order.NumberMarket)).Result;
 
                 if (foundOrder != null)
                 {
@@ -1692,8 +1691,6 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
                 else
                 {
-                    order.State = OrderStateType.Fail;
-
                     SendLogMessage($"The order was not found. NumberUser - {order.NumberUser}", LogMessageType.System);
 
                     if (MyOrderEvent != null)
