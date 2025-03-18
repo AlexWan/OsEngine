@@ -1241,6 +1241,10 @@ namespace OsEngine.Language
             "Eng:Options_" +
             "Ru:Опционы_");
 
+        public string UseBonds => OsLocalization.ConvertToLocString(
+            "Eng:Bonds_" +
+            "Ru:Облигации_");
+
         public string UseCurrency => OsLocalization.ConvertToLocString(
             "Eng:Currency_" +
             "Ru:Валюты_");

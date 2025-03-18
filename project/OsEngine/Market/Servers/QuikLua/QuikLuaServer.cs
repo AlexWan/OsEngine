@@ -31,6 +31,7 @@ namespace OsEngine.Market.Servers.QuikLua
             CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
+            CreateParameterBoolean(OsLocalization.Market.UseBonds, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterBoolean(OsLocalization.Market.Label109, false);
             CreateParameterString("Client code", null);
@@ -40,19 +41,21 @@ namespace OsEngine.Market.Servers.QuikLua
             ServerParameters[1].Comment = OsLocalization.Market.Label107;
             ServerParameters[2].Comment = OsLocalization.Market.Label107;
             ServerParameters[3].Comment = OsLocalization.Market.Label96;
-            ServerParameters[4].Comment = OsLocalization.Market.Label97;
-            ServerParameters[5].Comment = OsLocalization.Market.Label110;
-            ServerParameters[6].Comment = OsLocalization.Market.Label121;
-            ServerParameters[7].Comment = OsLocalization.Market.Label163;
+            ServerParameters[4].Comment = OsLocalization.Market.Label107;
+            ServerParameters[5].Comment = OsLocalization.Market.Label97;
+            ServerParameters[6].Comment = OsLocalization.Market.Label110;
+            ServerParameters[7].Comment = OsLocalization.Market.Label121;
+            ServerParameters[8].Comment = OsLocalization.Market.Label163;
 
             ((ServerParameterBool)ServerParameters[0]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[1]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[2]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[3]).ValueChange += QuikLuaServer_ParametrValueChange;
             ((ServerParameterBool)ServerParameters[4]).ValueChange += QuikLuaServer_ParametrValueChange;
+            ((ServerParameterBool)ServerParameters[5]).ValueChange += QuikLuaServer_ParametrValueChange;
 
             ((QuikLuaServerRealization)ServerRealization).ClientCodeFromSettings
-                = (ServerParameterString)ServerParameters[6];
+                = (ServerParameterString)ServerParameters[7];
         }
 
         /// <summary>
@@ -107,11 +110,11 @@ namespace OsEngine.Market.Servers.QuikLua
                     _useFutures = (ServerParameterBool)ServerParameters[1];
                     _useCurrency = (ServerParameterBool)ServerParameters[2];
                     _useOptions = (ServerParameterBool)ServerParameters[3];
-                    _useOther = (ServerParameterBool)ServerParameters[4];
-                    _isClientCodeOne = ((ServerParameterBool)ServerParameters[7]).Value;
+                    _useBonds = (ServerParameterBool)ServerParameters[4];
+                    _useOther = (ServerParameterBool)ServerParameters[5];
+                    _isClientCodeOne = ((ServerParameterBool)ServerParameters[8]).Value;
 
                     QuikLua = new QuikSharp.Quik(QuikSharp.Quik.DefaultPort, new InMemoryStorage());
-                    //QuikLua.DefaultSendTimeout = new TimeSpan(0, 0, 5);
                     QuikLua.Events.OnConnected += EventsOnOnConnected;
                     QuikLua.Events.OnDisconnected += EventsOnOnDisconnected;
                     QuikLua.Events.OnConnectedToQuik += EventsOnOnConnectedToQuik;
@@ -221,6 +224,8 @@ namespace OsEngine.Market.Servers.QuikLua
         private ServerParameterBool _useStock; //AVP 6 строк для контроля изменения набора классов инструментов
 
         private ServerParameterBool _useFutures;
+
+        private ServerParameterBool _useBonds;
 
         private ServerParameterBool _useOptions;
 
@@ -363,8 +368,9 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
 
                 List<Security> securities = new List<Security>();
-                foreach (SecurityInfo oneSec in allSec)
+                for (int i = 0; i < allSec.Count; i++)
                 {
+                    SecurityInfo oneSec = allSec[i];
                     BuildSecurity(oneSec, securities);
                 }
 
@@ -458,8 +464,18 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
 
                 newSec.Name = oneSec.SecCode + "+" + oneSec.ClassCode;
-                newSec.NameFull = oneSec.Name;
-                newSec.NameId = oneSec.Name;
+
+                if (oneSec.Name == null || oneSec.Name == "")
+                {
+                    newSec.NameFull = newSec.Name;
+                    newSec.NameId = newSec.Name;
+                }
+                else
+                {
+                    newSec.NameFull = oneSec.Name;
+                    newSec.NameId = oneSec.Name;
+                }
+
                 newSec.State = SecurityStateType.Activ;
                 newSec.Exchange = "MOEX";
 
@@ -666,8 +682,9 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     List<DepoLimitEx> spotPos = QuikLua.Trading.GetDepoLimits().Result;
                     Portfolio needPortf;
-                    foreach (DepoLimitEx pos in spotPos)
+                    for (int i = 0; i < spotPos.Count; i++)
                     {
+                        DepoLimitEx pos = spotPos[i];
                         Security sec = _securities.Find(sec => sec.Name.Split('+')[0] == pos.SecCode);
 
                         if (pos.LimitKind == LimitKind.T0 && sec != null)
@@ -1227,7 +1244,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     MarketDepth myDepth = new MarketDepth();
 
                     myDepth.SecurityNameCode = curName;
-                    myDepth.Time = DateTime.Now;
+                    myDepth.Time = TimeManager.GetExchangeTime("Russian Standard Time");
 
                     myDepth.Bids = new List<MarketDepthLevel>();
                     for (int i = 0; i < orderBook.bid.Length; i++)
@@ -1682,8 +1699,17 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             try
             {
-                QuikSharp.DataStructures.Transaction.Order foundOrder =
-                QuikLua.Orders.GetOrder(order.SecurityNameCode.Split('+')[1], Convert.ToInt64(order.NumberMarket)).Result;
+                QuikSharp.DataStructures.Transaction.Order foundOrder;
+
+                if (order.NumberMarket != null)
+                {
+                    foundOrder = QuikLua.Orders.GetOrder(order.SecurityNameCode.Split('+')[1], Convert.ToInt64(order.NumberMarket)).Result;
+                }
+                else
+                {
+                    foundOrder = QuikLua.Orders.GetOrder_by_transID(order.SecurityNameCode.Split('+')[1], order.SecurityNameCode.Split('+')[0],
+                 order.NumberUser).Result;
+                }
 
                 if (foundOrder != null)
                 {
@@ -1731,6 +1757,16 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                     return false;
                 }
+
+                if (classesSec.Contains("TQCB"))
+                {
+                    if (_useBonds.Value)
+                    {
+                        return true;
+                    }
+                    return false;
+                }
+
                 if (classesSec.Contains("FUT"))
                 {
                     if (_useFutures.Value)
@@ -1739,6 +1775,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                     return false;
                 }
+
                 if (classesSec.Contains("OPT"))
                 {
                     if (_useOptions.Value)
@@ -1747,6 +1784,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                     return false;
                 }
+
                 if (classesSec.Contains("CETS") || classesSec == "CURRENCY")
                 {
                     if (_useCurrency.Value)
@@ -1755,6 +1793,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
                     return false;
                 }
+
                 if (_useOther.Value)
                 {
                     return true;
