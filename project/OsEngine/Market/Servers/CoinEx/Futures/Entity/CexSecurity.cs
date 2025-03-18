@@ -53,25 +53,5 @@ namespace OsEngine.Market.Servers.CoinEx.Futures.Entity
 
         // Whether to enable copy trading
         public bool is_copy_trading_available { get; set; }
-
-        public static explicit operator Security(CexSecurity cexSecurity)
-        {
-            Security security = new Security();
-            security.Name = cexSecurity.market;
-            security.NameId = cexSecurity.market;
-            security.NameFull = cexSecurity.market;
-            security.NameClass = cexSecurity.quote_ccy;
-            security.State = SecurityStateType.Activ;
-            security.Decimals = Convert.ToInt32(cexSecurity.quote_ccy_precision); // Шаг цены (Число знаков)
-            security.DecimalsVolume = 8; // Число знаков объёма
-            security.PriceStep = CoinExServerRealization.GetPriceStep(security.Decimals);
-            security.PriceStepCost = security.PriceStep; // FIX Сомнительно! Проверить!
-            security.Lot = 1; // FIX Сомнительно! Проверить!
-            security.SecurityType = SecurityType.CurrencyPair;
-            security.Exchange = ServerType.CoinExFutures.ToString();
-            security.MinTradeAmount = cexSecurity.min_amount.ToDecimal();
-
-            return security;
-        }
     }
 }
