@@ -1,82 +1,35 @@
-﻿using Newtonsoft.Json;
-
+﻿
 namespace OsEngine.Market.Servers.GateIo.GateIoFutures.Entities.Response
 {
     public partial class GfPosition
     {
-        [JsonProperty("user", NullValueHandling = NullValueHandling.Ignore)]
-        public long? User { get; set; }
-
-        [JsonProperty("contract", NullValueHandling = NullValueHandling.Ignore)]
-        public string Contract { get; set; }
-
-        [JsonProperty("size", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Size { get; set; }
-
-        [JsonProperty("leverage", NullValueHandling = NullValueHandling.Ignore)]
-        public string Leverage { get; set; }
-
-        [JsonProperty("risk_limit", NullValueHandling = NullValueHandling.Ignore)]
-        public string RiskLimit { get; set; }
-
-        [JsonProperty("leverage_max", NullValueHandling = NullValueHandling.Ignore)]
-        public string LeverageMax { get; set; }
-
-        [JsonProperty("maintenance_rate", NullValueHandling = NullValueHandling.Ignore)]
-        public string MaintenanceRate { get; set; }
-
-        [JsonProperty("value", NullValueHandling = NullValueHandling.Ignore)]
-        public string Value { get; set; }
-
-        [JsonProperty("margin", NullValueHandling = NullValueHandling.Ignore)]
-        public string Margin { get; set; }
-
-        [JsonProperty("entry_price", NullValueHandling = NullValueHandling.Ignore)]
-        public string EntryPrice { get; set; }
-
-        [JsonProperty("liq_price", NullValueHandling = NullValueHandling.Ignore)]
-        public string LiqPrice { get; set; }
-
-        [JsonProperty("mark_price", NullValueHandling = NullValueHandling.Ignore)]
-        public string MarkPrice { get; set; }
-
-        [JsonProperty("unrealised_pnl", NullValueHandling = NullValueHandling.Ignore)]
-        public string UnrealisedPnl { get; set; }
-
-        [JsonProperty("realised_pnl", NullValueHandling = NullValueHandling.Ignore)]
-        public string RealisedPnl { get; set; }
-
-        [JsonProperty("history_pnl", NullValueHandling = NullValueHandling.Ignore)]
-        public string HistoryPnl { get; set; }
-
-        [JsonProperty("last_close_pnl", NullValueHandling = NullValueHandling.Ignore)]
-        public string LastClosePnl { get; set; }
-
-        [JsonProperty("realised_point", NullValueHandling = NullValueHandling.Ignore)]
-        public string RealisedPoint { get; set; }
-
-        [JsonProperty("history_point", NullValueHandling = NullValueHandling.Ignore)]
-        public string HistoryPoint { get; set; }
-
-        [JsonProperty("adl_ranking", NullValueHandling = NullValueHandling.Ignore)]
-        public long? AdlRanking { get; set; }
-
-        [JsonProperty("pending_orders", NullValueHandling = NullValueHandling.Ignore)]
-        public long? PendingOrders { get; set; }
-
-        [JsonProperty("close_order", NullValueHandling = NullValueHandling.Ignore)]
-        public CloseOrder CloseOrder { get; set; }
+        public string user { get; set; }
+        public string contract { get; set; }
+        public string size { get; set; }
+        public string leverage { get; set; }
+        public string risk_limit { get; set; }
+        public string leverage_max { get; set; }
+        public string maintenance_rate { get; set; }
+        public string value { get; set; }
+        public string margin { get; set; }
+        public string entry_price { get; set; }
+        public string liq_price { get; set; }
+        public string mark_price { get; set; }
+        public string unrealised_pnl { get; set; }
+        public string realised_pnl { get; set; }
+        public string history_pnl { get; set; }
+        public string last_close_pnl { get; set; }
+        public string realised_point { get; set; }
+        public string history_point { get; set; }
+        public string adl_ranking { get; set; }
+        public string pending_orders { get; set; }
+        public CloseOrder close_order { get; set; }
     }
 
     public partial class CloseOrder
     {
-        [JsonProperty("id", NullValueHandling = NullValueHandling.Ignore)]
-        public long? Id { get; set; }
-
-        [JsonProperty("price", NullValueHandling = NullValueHandling.Ignore)]
-        public string Price { get; set; }
-
-        [JsonProperty("is_liq", NullValueHandling = NullValueHandling.Ignore)]
-        public bool? IsLiq { get; set; }
+        public string id { get; set; }
+        public string price { get; set; }
+        public string is_liq { get; set; }
     }
 }

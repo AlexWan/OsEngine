@@ -1,31 +1,18 @@
-﻿using Newtonsoft.Json;
-
+﻿
 namespace OsEngine.Market.Servers.GateIo.Futures.Request
 {
     public class FuturesPing
     {
-        [JsonProperty("time")]
-        public long Time { get; set; }
-
-        [JsonProperty("channel")]
-        public string Channel { get; set; }
+        public long time { get; set; }
+        public string channel { get; set; }
     }
 
     public class FuturesPong
     {
-        [JsonProperty("time")]
-        public long Time { get; set; }
-
-        [JsonProperty("channel")]
-        public string Channel { get; set; }
-
-        [JsonProperty("event")]
-        public string Event { get; set; }
-
-        [JsonProperty("error")]
-        public object Error { get; set; }
-
-        [JsonProperty("result")]
-        public object Result { get; set; }
+        public string time { get; set; }
+        public string channel { get; set; }
+        public string @event { get; set; }
+        public string error { get; set; }
+        public string result { get; set; }
     }
 }

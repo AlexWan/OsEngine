@@ -724,7 +724,7 @@
     <Compile Include="Market\Servers\FixProtocolEntities\FixMessage.cs" />
     <Compile Include="Market\Servers\FixProtocolEntities\StandartHeaderSettings.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\BalanceResponse.cs" />
-    <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\CancelOrderResponese.cs" />
+    <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\CancelOrderResponse.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\CreateOrderRequest.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\CreateOrderResponse.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\DataCandle.cs" />
@@ -735,9 +735,7 @@
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\GfSecurity.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\GfTrades.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\MdResponse.cs" />
-    <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\PositionResponceSwap.cs" />
-    <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\RestRequestBuilder.cs" />
-    <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\Signer.cs" />
+    <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\PositionResponseSwap.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\UserTradeResponse.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\Entities\WsRequestBuilder.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoFutures\GateIoServerFutures.cs" />
@@ -746,7 +744,7 @@
     <Compile Include="Market\Servers\GateIo\GateIoSpot\Entities\PortfolioUpdateEvent.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\GateIoServerSpot.cs" />
     <Compile Include="Market\Servers\GateIo\GateIoSpot\GateIoSpotServerPermission.cs" />
-    <Compile Include="Market\Servers\GateIo\ResponceWebsocketMessage.cs" />
+    <Compile Include="Market\Servers\GateIo\ResponseWebsocketMessage.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcClient.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcEntity.cs" />
     <Compile Include="Market\Servers\Hitbtc\HitbtcServer.cs" />

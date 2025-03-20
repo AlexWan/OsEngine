@@ -1,62 +1,28 @@
-﻿using Newtonsoft.Json;
-
+﻿
 namespace OsEngine.Market.Servers.GateIo.GateIoFutures.Entities.Response
 {
     public class GfAccount
-        {
-        [JsonProperty("order_margin")]
-        public string OrderMargin { get; set; }
-
-        [JsonProperty("point")]
-        public string Point { get; set; }
-
-        [JsonProperty("history")]
-        public CanselOrderResponseHistory History { get; set; }
-
-        [JsonProperty("unrealised_pnl")]
-        public string UnrealisedPnl { get; set; }
-
-        [JsonProperty("total")]
-        public string Total { get; set; }
-
-        [JsonProperty("available")]
-        public string Available { get; set; }
-
-        [JsonProperty("currency")]
-        public string Currency { get; set; }
-
-        [JsonProperty("position_margin")]
-        public string PositionMargin { get; set; }
-
-        [JsonProperty("user")]
-        public long User { get; set; }
-    }
-
-    public class CanselOrderResponseHistory
     {
-        [JsonProperty("dnw")]
-        public decimal Dnw { get; set; }
-
-        [JsonProperty("pnl")]
-        public string Pnl { get; set; }
-
-        [JsonProperty("point_refr")]
-        public string PointRefr { get; set; }
-
-        [JsonProperty("refr")]
-        public string Refr { get; set; }
-
-        [JsonProperty("point_fee")]
-        public string PointFee { get; set; }
-
-        [JsonProperty("fund")]
-        public string Fund { get; set; }
-
-        [JsonProperty("fee")]
-        public string Fee { get; set; }
-
-        [JsonProperty("point_dnw")]
-        public string PointDnw { get; set; }
+        public string order_margin { get; set; }
+        public string point { get; set; }
+        public CancelOrderResponseHistory history { get; set; }
+        public string unrealised_pnl { get; set; }
+        public string total { get; set; }
+        public string available { get; set; }
+        public string currency { get; set; }
+        public string position_margin { get; set; }
+        public string user { get; set; }
     }
 
+    public class CancelOrderResponseHistory
+    {
+        public decimal dnw { get; set; }
+        public string pnl { get; set; }
+        public string point_refr { get; set; }
+        public string refr { get; set; }
+        public string point_fee { get; set; }
+        public string fund { get; set; }
+        public string fee { get; set; }
+        public string point_dnw { get; set; }
+    }
 }

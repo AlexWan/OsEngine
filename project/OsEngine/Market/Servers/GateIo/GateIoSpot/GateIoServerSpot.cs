@@ -255,8 +255,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             List<Candle> allCandles = new List<Candle>();
 
-            int countNeedToLoad = GetCountCandlesFromSliceTime(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
-
             int timeRange = tfTotalMinutes * 10000;
 
             DateTime maxStartTime = DateTime.UtcNow.AddMinutes(-timeRange);
@@ -316,26 +314,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             } while (true);
 
             return allCandles;
-        }
-
-        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
-        {
-            if (tf.Hours != 0)
-            {
-                TimeSpan TimeSlice = endTime - startTime;
-
-                return Convert.ToInt32(TimeSlice.TotalHours / tf.Hours);
-            }
-            else if (tf.Minutes != 0)
-            {
-                TimeSpan TimeSlice = endTime - startTime;
-                return Convert.ToInt32(TimeSlice.TotalMinutes / tf.Minutes);
-            }
-            else
-            {
-                TimeSpan TimeSlice = endTime - startTime;
-                return Convert.ToInt32(TimeSlice.TotalDays / tf.Days);
-            }
         }
 
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
@@ -802,7 +780,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private void SendPing()
         {
-            FuturesPing ping = new FuturesPing { Time = TimeManager.GetUnixTimeStampSeconds(), Channel = "spot.ping" };
+            FuturesPing ping = new FuturesPing { time = TimeManager.GetUnixTimeStampSeconds(), channel = "spot.ping" };
             string message = JsonConvert.SerializeObject(ping);
             _webSocket.Send(message);
         }
@@ -1045,11 +1023,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                     }
                     if (_fifoListWebSocketMessage.TryDequeue(out string message))
                     {
-                        ResponceWebsocketMessage<object> responseWebsocketMessage;
+                        ResponseWebsocketMessage<object> responseWebsocketMessage;
 
                         try
                         {
-                            responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<object>());
+                            responseWebsocketMessage = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<object>());
                         }
                         catch
                         {
@@ -1094,16 +1072,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             try
             {
-                ResponceWebsocketMessage<MessagePublicTrades> responceTrades = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<MessagePublicTrades>());
+                ResponseWebsocketMessage<MessagePublicTrades> responseTrades = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<MessagePublicTrades>());
 
                 Trade trade = new Trade();
-                trade.SecurityNameCode = responceTrades.result.currency_pair;
+                trade.SecurityNameCode = responseTrades.result.currency_pair;
 
-                trade.Price = responceTrades.result.price.ToDecimal();
-                trade.Id = responceTrades.result.id;
-                trade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responceTrades.result.create_time));
-                trade.Volume = responceTrades.result.amount.ToDecimal();
-                trade.Side = responceTrades.result.side.Equals("sell") ? Side.Sell : Side.Buy;
+                trade.Price = responseTrades.result.price.ToDecimal();
+                trade.Id = responseTrades.result.id;
+                trade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responseTrades.result.create_time));
+                trade.Volume = responseTrades.result.amount.ToDecimal();
+                trade.Side = responseTrades.result.side.Equals("sell") ? Side.Sell : Side.Buy;
 
                 NewTradesEvent(trade);
             }
@@ -1119,36 +1097,36 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             try
             {
-                ResponceWebsocketMessage<MessageDepths> responceDepths = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<MessageDepths>());
+                ResponseWebsocketMessage<MessageDepths> responseDepths = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<MessageDepths>());
 
                 MarketDepth depth = new MarketDepth();
-                depth.SecurityNameCode = responceDepths.result.s;
+                depth.SecurityNameCode = responseDepths.result.s;
 
                 List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
                 List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
-                for (int i = 0; i < responceDepths.result.asks.Count; i++)
+                for (int i = 0; i < responseDepths.result.asks.Count; i++)
                 {
                     ascs.Add(new MarketDepthLevel()
                     {
-                        Ask = responceDepths.result.asks[i][1].ToDecimal(),
-                        Price = responceDepths.result.asks[i][0].ToDecimal()
+                        Ask = responseDepths.result.asks[i][1].ToDecimal(),
+                        Price = responseDepths.result.asks[i][0].ToDecimal()
                     });
                 }
 
-                for (int i = 0; i < responceDepths.result.bids.Count; i++)
+                for (int i = 0; i < responseDepths.result.bids.Count; i++)
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Bid = responceDepths.result.bids[i][1].ToDecimal(),
-                        Price = responceDepths.result.bids[i][0].ToDecimal()
+                        Bid = responseDepths.result.bids[i][1].ToDecimal(),
+                        Price = responseDepths.result.bids[i][0].ToDecimal()
                     });
                 }
 
                 depth.Asks = ascs;
                 depth.Bids = bids;
 
-                depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceDepths.result.t));
+                depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepths.result.t));
 
                 if (depth.Time <= _lastMdTime)
                 {
@@ -1173,28 +1151,28 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             try
             {
-                ResponceWebsocketMessage<List<MessageUserTrade>> responceMyTrade = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<List<MessageUserTrade>>());
+                ResponseWebsocketMessage<List<MessageUserTrade>> responseMyTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<List<MessageUserTrade>>());
 
-                for (int i = 0; i < responceMyTrade.result.Count; i++)
+                for (int i = 0; i < responseMyTrade.result.Count; i++)
                 {
-                    string security = responceMyTrade.result[i].currency_pair;
+                    string security = responseMyTrade.result[i].currency_pair;
 
-                    long time = Convert.ToInt64(responceMyTrade.result[i].create_time);
+                    long time = Convert.ToInt64(responseMyTrade.result[i].create_time);
 
                     MyTrade newTrade = new MyTrade();
 
                     newTrade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(time);
                     newTrade.SecurityNameCode = security;
-                    newTrade.NumberOrderParent = responceMyTrade.result[i].order_id;
-                    newTrade.Price = responceMyTrade.result[i].price.ToDecimal();
-                    newTrade.NumberTrade = responceMyTrade.result[i].id;
-                    newTrade.Side = responceMyTrade.result[i].side.Equals("sell") ? Side.Sell : Side.Buy;
+                    newTrade.NumberOrderParent = responseMyTrade.result[i].order_id;
+                    newTrade.Price = responseMyTrade.result[i].price.ToDecimal();
+                    newTrade.NumberTrade = responseMyTrade.result[i].id;
+                    newTrade.Side = responseMyTrade.result[i].side.Equals("sell") ? Side.Sell : Side.Buy;
 
-                    string comissionSecName = responceMyTrade.result[i].fee_currency;
+                    string comissionSecName = responseMyTrade.result[i].fee_currency;
 
                     if (newTrade.SecurityNameCode.StartsWith(comissionSecName))
                     {
-                        newTrade.Volume = responceMyTrade.result[i].amount.ToDecimal() - responceMyTrade.result[i].fee.ToDecimal();
+                        newTrade.Volume = responseMyTrade.result[i].amount.ToDecimal() - responseMyTrade.result[i].fee.ToDecimal();
                         int decimalVolum = GetDecimalsVolume(security);
                         if (decimalVolum > 0)
                         {
@@ -1203,7 +1181,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                     }
                     else
                     {
-                        newTrade.Volume = responceMyTrade.result[i].amount.ToDecimal();
+                        newTrade.Volume = responseMyTrade.result[i].amount.ToDecimal();
                     }
 
                     MyTradeEvent(newTrade);
@@ -1232,27 +1210,27 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
             try
             {
-                ResponceWebsocketMessage<List<MessageUserOrder>> responceOrders = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<List<MessageUserOrder>>());
+                ResponseWebsocketMessage<List<MessageUserOrder>> responseOrders = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<List<MessageUserOrder>>());
 
-                for (int i = 0; i < responceOrders.result.Count; i++)
+                for (int i = 0; i < responseOrders.result.Count; i++)
                 {
                     Order newOrder = new Order();
-                    newOrder.SecurityNameCode = responceOrders.result[i].currency_pair;
-                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responceOrders.result[i].create_time));
+                    newOrder.SecurityNameCode = responseOrders.result[i].currency_pair;
+                    newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(responseOrders.result[i].create_time));
 
                     OrderStateType orderState = OrderStateType.None;
 
-                    if (responceOrders.result[i].Event.Equals("put"))
+                    if (responseOrders.result[i].Event.Equals("put"))
                     {
                         orderState = OrderStateType.Active;
                     }
-                    else if (responceOrders.result[i].Event.Equals("update"))
+                    else if (responseOrders.result[i].Event.Equals("update"))
                     {
                         orderState = OrderStateType.Partial;
                     }
                     else
                     {
-                        if (responceOrders.result[i].finish_as.Equals("cancelled"))
+                        if (responseOrders.result[i].finish_as.Equals("cancelled"))
                         {
                             orderState = OrderStateType.Cancel;
                         }
@@ -1264,28 +1242,28 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                     try
                     {
-                        newOrder.NumberUser = Convert.ToInt32(responceOrders.result[i].text.Replace("t-", ""));
+                        newOrder.NumberUser = Convert.ToInt32(responseOrders.result[i].text.Replace("t-", ""));
                     }
                     catch
                     {
                         // ignore
                     }
 
-                    newOrder.NumberMarket = responceOrders.result[i].id;
-                    newOrder.Side = responceOrders.result[i].side.Equals("buy") ? Side.Buy : Side.Sell;
+                    newOrder.NumberMarket = responseOrders.result[i].id;
+                    newOrder.Side = responseOrders.result[i].side.Equals("buy") ? Side.Buy : Side.Sell;
 
-                    if (responceOrders.result[i].type == "market")
+                    if (responseOrders.result[i].type == "market")
                     {
                         newOrder.TypeOrder = OrderPriceType.Market;
                     }
-                    if (responceOrders.result[i].type == "limit")
+                    if (responseOrders.result[i].type == "limit")
                     {
                         newOrder.TypeOrder = OrderPriceType.Limit;
                     }
 
                     newOrder.State = orderState;
-                    newOrder.Volume = responceOrders.result[i].amount.Replace('.', ',').ToDecimal();
-                    newOrder.Price = responceOrders.result[i].price.Replace('.', ',').ToDecimal();
+                    newOrder.Volume = responseOrders.result[i].amount.Replace('.', ',').ToDecimal();
+                    newOrder.Price = responseOrders.result[i].price.Replace('.', ',').ToDecimal();
                     newOrder.ServerType = ServerType.GateIoSpot;
                     newOrder.PortfolioNumber = "GateIO_Spot";
 
@@ -1300,28 +1278,30 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private void UpdatePortfolio(string message)
         {
-            ResponceWebsocketMessage<List<CurrencyBalance>> responsePortfolio = JsonConvert.DeserializeAnonymousType(message, new ResponceWebsocketMessage<List<CurrencyBalance>>());
-
-            for (int i = 0; i < responsePortfolio.result.Count; i++)
+            try
             {
-                CurrencyBalance current = responsePortfolio.result[i];
+                ResponseWebsocketMessage<List<CurrencyBalance>> responsePortfolio = JsonConvert.DeserializeAnonymousType(message, new ResponseWebsocketMessage<List<CurrencyBalance>>());
 
-                PositionOnBoard positionOnBoard = new PositionOnBoard();
+                for (int i = 0; i < responsePortfolio.result.Count; i++)
+                {
+                    CurrencyBalance current = responsePortfolio.result[i];
 
-                positionOnBoard.SecurityNameCode = current.Currency;
-                positionOnBoard.ValueBegin = current.Total.ToDecimal();
-                positionOnBoard.ValueCurrent = current.Available.ToDecimal();
-                positionOnBoard.ValueBlocked = current.Freeze.ToDecimal();
+                    PositionOnBoard positionOnBoard = new PositionOnBoard();
 
-                _myPortfolio.SetNewPosition(positionOnBoard);
+                    positionOnBoard.SecurityNameCode = current.currency;
+                    positionOnBoard.ValueBegin = Math.Round(current.total.ToDecimal(), 5);
+                    positionOnBoard.ValueCurrent = Math.Round(current.available.ToDecimal(), 5);
+                    positionOnBoard.ValueBlocked = Math.Round(current.freeze.ToDecimal(), 5);
+
+                    _myPortfolio.SetNewPosition(positionOnBoard);
+                }
+
+                PortfolioEvent(new List<Portfolio> { _myPortfolio });
             }
-
-            PortfolioEvent(new List<Portfolio> { _myPortfolio });
-        }
-
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
         }
 
         public event Action<Order> MyOrderEvent;
@@ -1742,15 +1722,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    List<MessageUserTrade> responceMyTrade = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new List<MessageUserTrade>());
+                    List<MessageUserTrade> responseMyTrade = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new List<MessageUserTrade>());
 
-                    for (int i = 0; i < responceMyTrade.Count; i++)
+                    for (int i = 0; i < responseMyTrade.Count; i++)
                     {
                         int userNumber = 0;
 
-                        if (responceMyTrade[i].text.Contains("t"))
+                        if (responseMyTrade[i].text.Contains("t"))
                         {
-                            userNumber = Convert.ToInt32(responceMyTrade[i].text.Replace("t-", ""));
+                            userNumber = Convert.ToInt32(responseMyTrade[i].text.Replace("t-", ""));
                         }
                         else
                         {
@@ -1759,24 +1739,24 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                         if (userNumber == numberUser)
                         {
-                            string security = responceMyTrade[i].currency_pair;
+                            string security = responseMyTrade[i].currency_pair;
 
-                            long time = Convert.ToInt64(responceMyTrade[i].create_time);
+                            long time = Convert.ToInt64(responseMyTrade[i].create_time);
 
                             MyTrade newTrade = new MyTrade();
 
                             newTrade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(time);
                             newTrade.SecurityNameCode = security;
-                            newTrade.NumberOrderParent = responceMyTrade[i].order_id;
-                            newTrade.Price = responceMyTrade[i].price.ToDecimal();
-                            newTrade.NumberTrade = responceMyTrade[i].id;
-                            newTrade.Side = responceMyTrade[i].side.Equals("sell") ? Side.Sell : Side.Buy;
+                            newTrade.NumberOrderParent = responseMyTrade[i].order_id;
+                            newTrade.Price = responseMyTrade[i].price.ToDecimal();
+                            newTrade.NumberTrade = responseMyTrade[i].id;
+                            newTrade.Side = responseMyTrade[i].side.Equals("sell") ? Side.Sell : Side.Buy;
 
-                            string comissionSecName = responceMyTrade[i].fee_currency;
+                            string comissionSecName = responseMyTrade[i].fee_currency;
 
                             if (newTrade.SecurityNameCode.StartsWith(comissionSecName))
                             {
-                                newTrade.Volume = responceMyTrade[i].amount.ToDecimal() - responceMyTrade[i].fee.ToDecimal();
+                                newTrade.Volume = responseMyTrade[i].amount.ToDecimal() - responseMyTrade[i].fee.ToDecimal();
                                 int decimalVolum = GetDecimalsVolume(security);
                                 if (decimalVolum > 0)
                                 {
@@ -1785,7 +1765,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                             }
                             else
                             {
-                                newTrade.Volume = responceMyTrade[i].amount.ToDecimal();
+                                newTrade.Volume = responseMyTrade[i].amount.ToDecimal();
                             }
 
                             MyTradeEvent(newTrade);
@@ -1813,7 +1793,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private readonly Dictionary<string, Security> _subscribedSecurities = new Dictionary<string, Security>();
 
-        private RateGate _rateGatePortfolio = new RateGate(2, TimeSpan.FromMilliseconds(100));
+        private RateGate _rateGatePortfolio = new RateGate(2, TimeSpan.FromMilliseconds(250));
 
         private void CreateQueryPortfolio()
         {
@@ -1842,7 +1822,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    List<GetCurrencyVolumeResponce> getCurrencyVolumeResponse = JsonConvert.DeserializeAnonymousType(responseContent, new List<GetCurrencyVolumeResponce>());
+                    List<GetCurrencyVolumeResponse> getCurrencyVolumeResponse = JsonConvert.DeserializeAnonymousType(responseContent, new List<GetCurrencyVolumeResponse>());
 
                     UpdatePortfolio(getCurrencyVolumeResponse);
                 }
@@ -1859,7 +1839,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private Portfolio _myPortfolio;
 
-        private void UpdatePortfolio(List<GetCurrencyVolumeResponce> getCurrencyVolumeResponse)
+        private void UpdatePortfolio(List<GetCurrencyVolumeResponse> getCurrencyVolumeResponse)
         {
             try
             {
@@ -1878,9 +1858,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 {
                     PositionOnBoard newPortf = new PositionOnBoard();
                     newPortf.SecurityNameCode = getCurrencyVolumeResponse[i].currency;
-                    newPortf.ValueBegin = getCurrencyVolumeResponse[i].available.ToDecimal();
-                    newPortf.ValueCurrent = getCurrencyVolumeResponse[i].available.ToDecimal();
-                    newPortf.ValueBlocked = getCurrencyVolumeResponse[i].locked.ToDecimal();
+                    newPortf.ValueBegin = Math.Round(getCurrencyVolumeResponse[i].available.ToDecimal(), 5);
+                    newPortf.ValueCurrent = Math.Round(getCurrencyVolumeResponse[i].available.ToDecimal(), 5);
+                    newPortf.ValueBlocked = Math.Round(getCurrencyVolumeResponse[i].locked.ToDecimal(), 5);
                     _myPortfolio.SetNewPosition(newPortf);
                 }
 

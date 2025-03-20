@@ -1,76 +1,33 @@
-﻿using Newtonsoft.Json;
-
+﻿
 namespace OsEngine.Market.Servers.GateIo.GateIoFutures.Entities
 {
     public class CreateOrderResponse
     {
-        [JsonProperty("contract")]
-        public string Contract { get; set; }
-
-        [JsonProperty("create_time")]
-        public string CreateTime { get; set; }
-
-        [JsonProperty("create_time_ms")]
-        public long CreateTimeMs { get; set; }
-
-        [JsonProperty("fill_price")]
-        public string FillPrice { get; set; }
-
-        [JsonProperty("finish_as")]
-        public string FinishAs { get; set; }
-
-        [JsonProperty("finish_time")]
-        public string FinishTime { get; set; }
-
-        [JsonProperty("finish_time_ms")]
-        public long FinishTimeMs { get; set; }
-
-        [JsonProperty("iceberg")]
-        public int Iceberg { get; set; }
-
-        [JsonProperty("id")]
-        public string Id { get; set; }
-
-        [JsonProperty("is_close")]
-        public bool IsClose { get; set; }
-
-        [JsonProperty("is_liq")]
-        public bool IsLiq { get; set; }
-
-        [JsonProperty("is_reduce_only")]
-        public bool IsReduceOnly { get; set; }
-
-        [JsonProperty("left")]
-        public int Left { get; set; }
-
-        [JsonProperty("mkfr")]
-        public string Mkfr { get; set; }
-
-        [JsonProperty("price")]
-        public string Price { get; set; }
-
-        [JsonProperty("refr")]
-        public int Refr { get; set; }
-
-        [JsonProperty("refu")]
-        public int Refu { get; set; }
-
-        [JsonProperty("size")]
-        public string Size { get; set; }
-
-        [JsonProperty("status")]
-        public string Status { get; set; }
-
-        [JsonProperty("text")]
-        public string Text { get; set; }
-
-        [JsonProperty("tif")]
-        public string Tif { get; set; }
-
-        [JsonProperty("tkfr")]
-        public string Tkfr { get; set; }
-
-        [JsonProperty("user")]
-        public string User { get; set; }
+        public string contract { get; set; }
+        public string create_time { get; set; }
+        public string create_time_ms { get; set; }
+        public string fill_price { get; set; }
+        public string finish_as { get; set; }
+        public string finish_time { get; set; }
+        public string finish_time_ms { get; set; }
+        public string iceberg { get; set; }
+        public string id { get; set; }
+        public string is_close { get; set; }
+        public string is_liq { get; set; }
+        public string is_reduce_only { get; set; }
+        public string left { get; set; }
+        public string mkfr { get; set; }
+        public string price { get; set; }
+        public string refr { get; set; }
+        public string refu { get; set; }
+        public string size { get; set; }
+        public string status { get; set; }
+        public string text { get; set; }
+        public string tif { get; set; }
+        public string tkfr { get; set; }
+        public string user { get; set; }
+        public string stp_id { get; set; }
+        public string stp_act { get; set; }
+        public string amend_text { get; set; }
     }
 }
