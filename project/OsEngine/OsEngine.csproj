@@ -965,6 +965,8 @@
     <Compile Include="Market\Servers\Entity\MarshalUTF8.cs" />
     <Compile Include="Market\Servers\Entity\ServerWorkingTimeSettings.cs" />
     <Compile Include="Market\Servers\Entity\TimeManager.cs" />
+    <Compile Include="Market\Servers\SmartLabNews\SmartLabNewsServer.cs" />
+    <Compile Include="Market\Servers\SmartLabNews\SmartLabNewsServerPermission.cs" />
     <Compile Include="Market\Servers\Tester\GoToUi.xaml.cs">
       <DependentUpon>GoToUi.xaml</DependentUpon>
     </Compile>
