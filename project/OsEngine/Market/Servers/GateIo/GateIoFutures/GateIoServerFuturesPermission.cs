@@ -13,46 +13,57 @@
         {
             get { return false; }
         }
+
         public bool DataFeedTf2SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf20SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf30SecondCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf1MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf2MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf5MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf10MinuteCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf15MinuteCanLoad
         {
             get { return false; }
@@ -61,36 +72,44 @@
         {
             get { return false; }
         }
+
         public bool DataFeedTf1HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf2HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTf4HourCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfDayCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfTickCanLoad
         {
             get { return false; }
         }
+
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         #endregion
 
+        #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsTradeServer
@@ -129,9 +148,9 @@
                 TimeFrameMin5IsOn = true,
                 TimeFrameMin10IsOn = false,
                 TimeFrameMin15IsOn = true,
-                TimeFrameMin20IsOn = true,
+                TimeFrameMin20IsOn = false,
                 TimeFrameMin30IsOn = true,
-                TimeFrameMin45IsOn = true,
+                TimeFrameMin45IsOn = false,
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = true,
                 TimeFrameHour4IsOn = true,
@@ -150,33 +169,60 @@
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return false; }
+            get { return true; }
         }
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT"
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "POINT_USDT",
+                    "USDT",
+                    "POINT_BTC",
+                    "BTC",
+                    "USDC"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
+
+        #endregion
+
+        #region Other Permissions
 
         public bool IsNewsServer
         {
             get { return false; }
         }
+
+        #endregion
     }
 }
 

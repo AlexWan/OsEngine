@@ -28,7 +28,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot.Entities
         public string buy_start;
     }
 
-    public class GetCurrencyVolumeResponce
+    public class GetCurrencyVolumeResponse
     {
         public string currency;
         public string available;

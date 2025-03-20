@@ -1,61 +1,33 @@
-﻿using Newtonsoft.Json;
-
+﻿
 namespace OsEngine.Market.Servers.GateIo.Futures.Request
 {
-    public partial class CreateOrderRequst
+    public partial class CreateOrderRequest
     {
-        [JsonProperty("contract")]
-        public string Contract { get; set; }
+        public string contract { get; set; }
+        public string size { get; set; }
+        public string iceberg { get; set; }
+        public string price { get; set; }
+        public string tif { get; set; }
+        public string text { get; set; }
+        public string amend_text { get; set; }
 
-        [JsonProperty("size")]
-        public long Size { get; set; }
-
-        [JsonProperty("iceberg")]
-        public long Iceberg { get; set; }
-
-        [JsonProperty("price")]
-        public string Price { get; set; }
-
-        [JsonProperty("tif")]
-        public string Tif { get; set; }
-
-        [JsonProperty("text")]
-        public string Text { get; set; }
-
-        [JsonProperty("amend_text")]
-        public string AmendText { get; set; }
+        //public string auto_size { get; set; }
+        public string close { get; set; }
+        public string reduce_only { get; set; }
     }
 
-    public partial class CreateOrderRequstDoubleModeClose
+    public partial class CreateOrderRequestDoubleModeClose
     {
-        [JsonProperty("contract")]
-        public string Contract { get; set; }
+        public string contract { get; set; }
+        public string size { get; set; }
+        public string iceberg { get; set; }
+        public string price { get; set; }
+        public string tif { get; set; }
+        public string text { get; set; }
+        public string amend_text { get; set; }
 
-        [JsonProperty("size")]
-        public long Size { get; set; }
-
-        [JsonProperty("iceberg")]
-        public long Iceberg { get; set; }
-
-        [JsonProperty("price")]
-        public string Price { get; set; }
-
-        [JsonProperty("tif")]
-        public string Tif { get; set; }
-
-        [JsonProperty("text")]
-        public string Text { get; set; }
-
-        [JsonProperty("amend_text")]
-        public string AmendText { get; set; }
-
-        //[JsonProperty("auto_size")]
-        //public string AutoSize { get; set; }
-
-        [JsonProperty("close")]
-        public bool Close { get; set; }
-
-        [JsonProperty("reduce_only")]
-        public bool Reduce_only { get; set; }
+        //public string auto_size { get; set; }
+        public string close { get; set; }
+        public string reduce_only { get; set; }
     }
 }

@@ -1,37 +1,21 @@
-﻿using Newtonsoft.Json;
+﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.GateIo.GateIoFutures.Entities.Response
 {
     public class GfTrades
     {
-        [JsonProperty("channel")]
-        public string Channel { get; set; }
-
-        [JsonProperty("event")]
-        public string Event { get; set; }
-
-        [JsonProperty("time")]
-        public long Time { get; set; }
-
-        [JsonProperty("result")]
-        public GfTradeResult[] Result { get; set; }
+        public string channel { get; set; }
+        public string @event { get; set; }
+        public long time { get; set; }
+        public List<GfTradeResult> result { get; set; }
     }
 
     public class GfTradeResult
     {
-        [JsonProperty("size")]
-        public long Size { get; set; }
-
-        [JsonProperty("id")]
-        public long Id { get; set; }
-
-        [JsonProperty("create_time")]
-        public long CreateTime { get; set; }
-
-        [JsonProperty("price")]
-        public string Price { get; set; }
-
-        [JsonProperty("contract")]
-        public string Contract { get; set; }
+        public string size { get; set; }
+        public string id { get; set; }
+        public string create_time { get; set; }
+        public string price { get; set; }
+        public string contract { get; set; }
     }
 }
