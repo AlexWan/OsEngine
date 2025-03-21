@@ -26,7 +26,6 @@ namespace OsEngine.Market.Servers.QuikLua
         {
             ServerRealization = new QuikLuaServerRealization();
 
-            //AVP новые параметры и обработка изменений
             CreateParameterBoolean(OsLocalization.Market.UseStock, true);
             CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
             CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
@@ -106,7 +105,7 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 if (QuikLua == null)
                 {
-                    _useStock = (ServerParameterBool)ServerParameters[0];   // AVP линкуем параметры в локальные переменные
+                    _useStock = (ServerParameterBool)ServerParameters[0];
                     _useFutures = (ServerParameterBool)ServerParameters[1];
                     _useCurrency = (ServerParameterBool)ServerParameters[2];
                     _useOptions = (ServerParameterBool)ServerParameters[3];
@@ -221,7 +220,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private static readonly string SecuritiesCachePath = @"Engine\QuikLuaSecuritiesCache.txt";
 
-        private ServerParameterBool _useStock; //AVP 6 строк для контроля изменения набора классов инструментов
+        private ServerParameterBool _useStock;
 
         private ServerParameterBool _useFutures;
 
@@ -975,7 +974,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private ConcurrentQueue<OrderBook> _mdQueue = new ConcurrentQueue<OrderBook>();
 
-
         private void ThreadTradesParsingWorkPlace()
         {
             while (true)
@@ -1349,7 +1347,7 @@ namespace OsEngine.Market.Servers.QuikLua
                     }
 
                     Order order = new Order();
-                    order.NumberUser = Convert.ToInt32(qOrder.TransID); //Convert.qOrder.OrderNum;TransID
+                    order.NumberUser = Convert.ToInt32(qOrder.TransID);
                     order.NumberMarket = qOrder.OrderNum.ToString(new CultureInfo("ru-RU"));
                     order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(qOrder.LuaTimeStamp);
                     order.SecurityNameCode = qOrder.SecCode + "+" + qOrder.ClassCode;
@@ -1701,7 +1699,7 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 QuikSharp.DataStructures.Transaction.Order foundOrder;
 
-                if (order.NumberMarket != null)
+                if (order.NumberMarket != null && order.NumberMarket != "")
                 {
                     foundOrder = QuikLua.Orders.GetOrder(order.SecurityNameCode.Split('+')[1], Convert.ToInt64(order.NumberMarket)).Result;
                 }
@@ -1746,7 +1744,7 @@ namespace OsEngine.Market.Servers.QuikLua
         /// </summary>
         /// <param name="classesSec"></param>
         /// <returns></returns>
-        private bool CheckFilter(string classesSec) //AVP
+        private bool CheckFilter(string classesSec)
         {
             {
                 if (classesSec.EndsWith("TQBR") || classesSec.EndsWith("TQOB") || classesSec.EndsWith("QJSIM"))
@@ -1886,5 +1884,4 @@ namespace OsEngine.Market.Servers.QuikLua
         #endregion
 
     }
-
 }
