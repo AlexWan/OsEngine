@@ -326,6 +326,16 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
         private decimal GetVolatilityDiff(List<Candle> sec, List<Candle> index, int len)
         {
+            if(sec == null || sec.Count == 0)
+            {
+                return 0;
+            }
+
+            if (index == null || index.Count == 0)
+            {
+                return 0;
+            }
+
             // волатильность. Берём внутридневную волу за N дней в % по бумаге(V1) и по индексу(V2)
             // делим V1 / V2 - получаем отношение волатильности бумаги к индексу. 
 
@@ -344,6 +354,12 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
         private decimal GetVolatility(List<Candle> candles, int len)
         {
+            if (candles == null
+                || candles.Count == 0)
+            {
+                return 0;
+            }
+
             List<decimal> curDaysVola = new List<decimal>();
 
             decimal curMinInDay = decimal.MaxValue;
