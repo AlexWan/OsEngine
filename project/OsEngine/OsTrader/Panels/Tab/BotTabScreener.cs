@@ -595,6 +595,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Delete()
         {
+            if (_ui != null)
+            {
+                _ui.Close();
+            }
+
             for (int i = 0; Tabs != null && i < Tabs.Count; i++)
             {
                 Tabs[i].Clear();
@@ -1159,14 +1164,32 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                BotTabScreenerUi ui = new BotTabScreenerUi(this);
-                ui.ShowDialog();
+                if(_ui == null)
+                {
+                    _ui = new BotTabScreenerUi(this);
+                    _ui.LogMessageEvent += SendNewLogMessage;
+                    _ui.Closed += _ui_Closed;
+                    _ui.Show();
+                }
+                else
+                {
+                    _ui.Activate();
+                }
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
+
+        private void _ui_Closed(object sender, EventArgs e)
+        {
+            _ui.LogMessageEvent -= SendNewLogMessage;
+            _ui.Closed -= _ui_Closed;
+            _ui = null;
+        }
+
+        private BotTabScreenerUi _ui;
 
         /// <summary>
         /// Things to call individual windows by tool

@@ -16,7 +16,7 @@ using System.IO;
 
 namespace OsEngine.Entity
 {
-    public partial class ParemetrsUi
+    public partial class StrategyParametersUi
     {
         private List<IIStrategyParameter> _parameters;
 
@@ -24,7 +24,7 @@ namespace OsEngine.Entity
 
         private bool _isParametersUiClosed;
 
-        public ParemetrsUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings, BotPanel panel)
+        public StrategyParametersUi(List<IIStrategyParameter> parameters, ParamGuiSettings settings, BotPanel panel)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -80,7 +80,7 @@ namespace OsEngine.Entity
 
             RePaintParameterTablesAsync();
 
-            this.Closed += ParemetrsUi_Closed;
+            this.Closed += StrategyParametersUi_Closed;
 
             this.Activate();
             this.Focus();
@@ -88,11 +88,11 @@ namespace OsEngine.Entity
             GlobalGUILayout.Listen(this, "botPanelParameters_" + panel.NameStrategyUniq);
         }
 
-        private void ParemetrsUi_Closed(object sender, EventArgs e)
+        private void StrategyParametersUi_Closed(object sender, EventArgs e)
         {
             try
             {
-                this.Closed -= ParemetrsUi_Closed;
+                this.Closed -= StrategyParametersUi_Closed;
                 _parameters = null;
 
                 _isParametersUiClosed = true;
@@ -217,9 +217,6 @@ namespace OsEngine.Entity
             _panel?.SendNewLogMessage(error,Logging.LogMessageType.Error);
         }
 		
-        /// <summary>
-        /// method serves repainting of Parameter window tables
-        /// </summary>
         private async void RePaintParameterTablesAsync()
         {
             bool _rePaint = _panel.ParamGuiSettings.IsRePaintParameterTables;
@@ -230,7 +227,7 @@ namespace OsEngine.Entity
                 {
                     if (_panel?.ParamGuiSettings == null)
                     {
-                        ParemetrsUi_Closed(null, null);
+                        StrategyParametersUi_Closed(null, null);
                         Close();
                         return;
                     }
@@ -454,7 +451,8 @@ namespace OsEngine.Entity
 
     public class ParamTabPainter
     {
-        public ParamTabPainter(List<IIStrategyParameter> parameters, string tabName, System.Windows.Controls.TabControl tabControl, ParamGuiSettings paramGUIsettings)
+        public ParamTabPainter(List<IIStrategyParameter> parameters, 
+            string tabName, System.Windows.Controls.TabControl tabControl, ParamGuiSettings parametersGuiSettings)
         {
             TabItem item = new TabItem();
             item.Header = tabName;
@@ -464,9 +462,8 @@ namespace OsEngine.Entity
 
             tabControl.Items.Add(item);
             _parameters = parameters;
-            _tabControl = tabControl;
 
-            _paramGUIsettings = paramGUIsettings;
+            _parametersGuiSettings = parametersGuiSettings;
 			
             CreateTable();
             PaintTable();
@@ -516,11 +513,9 @@ namespace OsEngine.Entity
 
         private WindowsFormsHost _host;
 
-        private System.Windows.Controls.TabControl _tabControl;
-
         private DataGridView _grid;
 		
-        private ParamGuiSettings _paramGUIsettings;				
+        private ParamGuiSettings _parametersGuiSettings;				
 
         private void CreateTable()
         {
@@ -782,7 +777,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (_paramGUIsettings.ParameterDesigns.Count != 0)
+                if (_parametersGuiSettings.ParameterDesigns.Count != 0)
                 {
                     string paramName = _grid.Rows[e.RowIndex].Cells[0].Value?.ToString();
 
@@ -793,9 +788,9 @@ namespace OsEngine.Entity
 
                     string key = paramName + ParamDesignType.BorderUnder.ToString();
 
-                    if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
+                    if (_parametersGuiSettings.ParameterDesigns.ContainsKey(key))
                     {
-                        int thickness = _paramGUIsettings.ParameterDesigns[key].Thickness;
+                        int thickness = _parametersGuiSettings.ParameterDesigns[key].Thickness;
                         int editThickness;
 
                         if (thickness < 1)
@@ -811,7 +806,7 @@ namespace OsEngine.Entity
                             editThickness = thickness;
                         }
 
-                        using (System.Drawing.Pen pen = new System.Drawing.Pen(_paramGUIsettings.ParameterDesigns[key].Color, editThickness))
+                        using (System.Drawing.Pen pen = new System.Drawing.Pen(_parametersGuiSettings.ParameterDesigns[key].Color, editThickness))
                         {
                             int y = e.RowBounds.Bottom - 1;
                             e.Graphics.DrawLine(pen, e.RowBounds.Left, y, e.RowBounds.Right, y);
@@ -832,7 +827,7 @@ namespace OsEngine.Entity
         {   
             try
             {
-                if (_paramGUIsettings.ParameterDesigns.Count != 0 && e.Value != null)
+                if (_parametersGuiSettings.ParameterDesigns.Count != 0 && e.Value != null)
                 {
                     string paramName = _grid.Rows[e.RowIndex].Cells[0].Value?.ToString();
 
@@ -843,9 +838,9 @@ namespace OsEngine.Entity
 
                     string key = paramName + ParamDesignType.ForeColor.ToString();
 
-                    if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
+                    if (_parametersGuiSettings.ParameterDesigns.ContainsKey(key))
                     {
-                        e.CellStyle.ForeColor = _paramGUIsettings.ParameterDesigns[key].Color;
+                        e.CellStyle.ForeColor = _parametersGuiSettings.ParameterDesigns[key].Color;
                     }
                 }
             }
@@ -862,7 +857,7 @@ namespace OsEngine.Entity
         {
             try
             {
-                if (_paramGUIsettings.ParameterDesigns.Count != 0)
+                if (_parametersGuiSettings.ParameterDesigns.Count != 0)
                 {
                     if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && _grid.Rows[e.RowIndex].Cells[e.ColumnIndex].Selected)
                     {
@@ -875,9 +870,9 @@ namespace OsEngine.Entity
 
                         string key = paramName + ParamDesignType.SelectionColor.ToString();
 
-                        if (_paramGUIsettings.ParameterDesigns.ContainsKey(key))
+                        if (_parametersGuiSettings.ParameterDesigns.ContainsKey(key))
                         {
-                            e.CellStyle.SelectionForeColor = _paramGUIsettings.ParameterDesigns[key].Color;
+                            e.CellStyle.SelectionForeColor = _parametersGuiSettings.ParameterDesigns[key].Color;
 
                             e.PaintBackground(e.CellBounds, true);
                             e.PaintContent(e.CellBounds);

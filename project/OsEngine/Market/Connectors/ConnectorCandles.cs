@@ -156,6 +156,11 @@ namespace OsEngine.Market.Connectors
         /// </summary>
         public void Delete()
         {
+            if (_ui != null)
+            {
+                _ui.Close();
+            }
+
             _needToStopThread = true;
 
             if (StartProgram != StartProgram.IsOsOptimizer)
@@ -181,8 +186,8 @@ namespace OsEngine.Market.Connectors
             {
                 _mySeries.Stop();
                 _mySeries.Clear();
-                _mySeries.CandleUpdateEvent -= MySeries_СandleUpdeteEvent;
-                _mySeries.CandleFinishedEvent -= MySeries_СandleFinishedEvent;
+                _mySeries.CandleUpdateEvent -= MySeries_CandleUpdateEvent;
+                _mySeries.CandleFinishedEvent -= MySeries_CandleFinishedEvent;
 
                 if (_myServer != null)
                 {
@@ -224,17 +229,40 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                ConnectorCandlesUi ui = new ConnectorCandlesUi(this);
-                ui.IsCanChangeSaveTradesInCandles(canChangeSettingsSaveCandlesIn);
-                ui.LogMessageEvent += SendNewLogMessage;
-                ui.ShowDialog();
-                ui.LogMessageEvent -= SendNewLogMessage;
+                if(_ui == null)
+                {
+                    _ui = new ConnectorCandlesUi(this);
+                    _ui.IsCanChangeSaveTradesInCandles(canChangeSettingsSaveCandlesIn);
+                    _ui.LogMessageEvent += SendNewLogMessage;
+                    _ui.Closed += _ui_Closed;
+                    _ui.Show();
+                }
+                else
+                {
+                    _ui.Activate();
+                }
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private void _ui_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _ui.LogMessageEvent -= SendNewLogMessage;
+                _ui.Closed -= _ui_Closed;
+                _ui = null;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private ConnectorCandlesUi _ui;
 
         #endregion
 
@@ -634,8 +662,8 @@ namespace OsEngine.Market.Connectors
                 {
                     _mySeries.Stop();
                     _mySeries.Clear();
-                    _mySeries.CandleUpdateEvent -= MySeries_СandleUpdeteEvent;
-                    _mySeries.CandleFinishedEvent -= MySeries_СandleFinishedEvent;
+                    _mySeries.CandleUpdateEvent -= MySeries_CandleUpdateEvent;
+                    _mySeries.CandleFinishedEvent -= MySeries_CandleFinishedEvent;
 
                     if (_myServer != null)
                     {
@@ -685,8 +713,8 @@ namespace OsEngine.Market.Connectors
             {
                 _mySeries.Stop();
                 _mySeries.Clear();
-                _mySeries.CandleUpdateEvent -= MySeries_СandleUpdeteEvent;
-                _mySeries.CandleFinishedEvent -= MySeries_СandleFinishedEvent;
+                _mySeries.CandleUpdateEvent -= MySeries_CandleUpdateEvent;
+                _mySeries.CandleFinishedEvent -= MySeries_CandleFinishedEvent;
 
                 if (_myServer != null)
                 {
@@ -918,8 +946,8 @@ namespace OsEngine.Market.Connectors
                             }
                         }
 
-                        _mySeries.CandleUpdateEvent += MySeries_СandleUpdeteEvent;
-                        _mySeries.CandleFinishedEvent += MySeries_СandleFinishedEvent;
+                        _mySeries.CandleUpdateEvent += MySeries_CandleUpdateEvent;
+                        _mySeries.CandleFinishedEvent += MySeries_CandleFinishedEvent;
                         _taskIsDead = true;
                     }
 
@@ -1025,7 +1053,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// the candle has just ended
         /// </summary>
-        private void MySeries_СandleFinishedEvent(CandleSeries candleSeries)
+        private void MySeries_CandleFinishedEvent(CandleSeries candleSeries)
         {
             try
             {
@@ -1065,7 +1093,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// the candle updated
         /// </summary>
-        private void MySeries_СandleUpdeteEvent(CandleSeries candleSeries)
+        private void MySeries_CandleUpdateEvent(CandleSeries candleSeries)
         {
             try
             {

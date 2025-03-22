@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.Entity.ParemetrsUi"
+﻿<Window x:Class="OsEngine.Entity.StrategyParametersUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Parameters" Height="450" MinHeight="200" MinWidth="530" Width="626" Topmost="False" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterOwner"  Icon="/Images/OsLogo.ico">

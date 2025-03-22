@@ -1617,7 +1617,7 @@ namespace OsEngine.Market.Servers.AstsBridge
     public enum AstsDislocation
     {
         /// <summary>
-        /// colocation, server on the exhange
+        /// colocation, server on the exchange
         /// colocation, сервер биржи
         /// </summary>
         Colo,

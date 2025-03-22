@@ -1357,8 +1357,8 @@
     <Compile Include="OsTrader\Panels\Tab\BotTabIndexUi.xaml.cs">
       <DependentUpon>BotTabIndexUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Entity\StrategyParemetrsUi.xaml.cs">
-      <DependentUpon>StrategyParemetrsUi.xaml</DependentUpon>
+    <Compile Include="Entity\StrategyParametersUi.xaml.cs">
+      <DependentUpon>StrategyParametersUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="OsTrader\Panels\Tab\BotTabCluster.cs" />
     <Compile Include="OsTrader\RiskManager\RiskManagerUi.xaml.cs">
@@ -1932,7 +1932,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Entity\StrategyParemetrsUi.xaml">
+    <Page Include="Entity\StrategyParametersUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

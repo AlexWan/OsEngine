@@ -950,7 +950,7 @@ position => position.State != PositionStateType.OpeningFail
 
             if (_parametersUi == null)
             {
-                _parametersUi = new ParemetrsUi(_parameters, ParamGuiSettings, this);
+                _parametersUi = new StrategyParametersUi(_parameters, ParamGuiSettings, this);
                 _parametersUi.Show();
                 _parametersUi.Closing += _parametersUi_Closing;
             }
@@ -969,7 +969,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// parameters window
         /// </summary>
-        private ParemetrsUi _parametersUi;
+        private StrategyParametersUi _parametersUi;
 
         /// <summary>
         /// close the options window
@@ -990,12 +990,12 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// create a Decimal type parameter
         /// </summary>
-        /// <param name="name">param name </param>
+        /// <param name="name">parameter name </param>
         /// <param name="value">default value </param>
         /// <param name="start">first value </param>
         /// <param name="stop">last value </param>
         /// <param name="step">value step </param>
-        /// <param name="tabName">name of the tab in the param window </param>
+        /// <param name="tabName">name of the tab in the parameter window </param>
         public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step, string tabControlName = null)
         {
             StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step, tabControlName);
@@ -1009,9 +1009,9 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary>
-        /// create a TimeOfDay type paramete
+        /// create a TimeOfDay type parameter
         /// </summary>
-        /// <param name="name">param name </param>
+        /// <param name="name">parameter name </param>
         /// <param name="value">default value </param>
         /// <param name="start">first value </param>
         /// <param name="stop">last value </param>
@@ -1032,7 +1032,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// create int parameter
         /// </summary>
-        /// <param name="name">param name </param>
+        /// <param name="name">parameter name </param>
         /// <param name="value">default value </param>
         /// <param name="start">first value </param>
         /// <param name="stop">last value </param>
@@ -1052,7 +1052,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// create string parameter
         /// </summary>
-        /// <param name="name">param name </param>
+        /// <param name="name">parameter name </param>
         /// <param name="value">default value </param>
         /// <param name="collection">values </param>
         public StrategyParameterString CreateParameter(string name, string value, string[] collection, string tabControlName = null)
@@ -1110,7 +1110,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// create string parameter 
         /// </summary>
-        /// <param name="name">param name </param>
+        /// <param name="name">parameter name </param>
         /// <param name="value">default value </param>
         public StrategyParameterString CreateParameter(string name, string value, string tabControlName = null)
         {
@@ -1127,7 +1127,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// create bool type parameter 
         /// </summary>
-        /// <param name="name">param name </param>
+        /// <param name="name">parameter name </param>
         /// <param name="value">default value </param>
         public StrategyParameterBool CreateParameter(string name, bool value, string tabControlName = null)
         {

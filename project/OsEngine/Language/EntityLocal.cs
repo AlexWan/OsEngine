@@ -97,7 +97,7 @@ namespace OsEngine.Language
 
         public string PositionColumn7 => OsLocalization.ConvertToLocString(
             "Eng:State_" +
-            "Ru:Cостояние_");
+            "Ru:Состояние_");
 
         public string PositionColumn8 => OsLocalization.ConvertToLocString(
             "Eng:Vol_" +
@@ -173,7 +173,7 @@ namespace OsEngine.Language
 
         public string OrderColumn7 => OsLocalization.ConvertToLocString(
             "Eng:State_" +
-            "Ru:Cтатус_");
+            "Ru:Статус_");
 
         public string OrderColumn8 => OsLocalization.ConvertToLocString(
             "Eng:Price_" +
@@ -385,7 +385,7 @@ namespace OsEngine.Language
 
         public string ColumnPortfolio7 => OsLocalization.ConvertToLocString(
             "Eng:Incoming volume_" +
-            "Ru:Обьём входящий_");
+            "Ru:Объём входящий_");
 
         public string ColumnPortfolio8 => OsLocalization.ConvertToLocString(
             "Eng:Volume now_" +

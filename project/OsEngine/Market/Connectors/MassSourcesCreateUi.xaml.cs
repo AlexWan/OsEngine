@@ -48,7 +48,7 @@ namespace OsEngine.Market.Connectors
                 List<IServer> servers = ServerMaster.GetServers();
 
                 if (servers == null)
-                {// if connection server to exhange hasn't been created yet / если сервер для подключения к бирже ещё не создан
+                {// if connection server to exchange hasn't been created yet / если сервер для подключения к бирже ещё не создан
                     Close();
                     return;
                 }
@@ -104,13 +104,12 @@ namespace OsEngine.Market.Connectors
             List<IServer> servers = ServerMaster.GetServers();
 
             if (servers == null)
-            {// if connection server to exhange hasn't been created yet / если сервер для подключения к бирже ещё не создан
+            {// if connection server to exchange hasn't been created yet / если сервер для подключения к бирже ещё не создан
                 Close();
                 return;
             }
 
             // upload settings to controls
-            // загружаем настройки в контролы
             for (int i = 0; i < servers.Count; i++)
             {
                 ComboBoxTypeServer.Items.Add(servers[i].ServerType);

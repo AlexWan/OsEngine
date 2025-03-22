@@ -101,6 +101,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         public void Delete()
         {
+            if (_ui != null)
+            {
+                _ui.Close();
+            }
+
             _chartMaster.Delete();
             _chartMaster = null;
 
@@ -121,6 +126,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (TabDeletedEvent != null)
             {
                 TabDeletedEvent();
+            }
+
+            if(UiSecuritiesSelection != null)
+            {
+                UiSecuritiesSelection.Close();
             }
         }
 
@@ -188,15 +198,37 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            BotTabIndexUi ui = new BotTabIndexUi(this);
-            ui.ShowDialog();
-
-            if (Tabs.Count == 0)
+            if(_ui == null)
             {
-                _chartMaster.Clear();
-                //_chartMaster.SetNewSecurity("Index on: " + _userFormula, Tabs[0].TimeFrameBuilder, null, Tabs[0].ServerType);
+                _ui = new BotTabIndexUi(this);
+                _ui.Closed += _ui_Closed;
+                _ui.Show();
+            }
+            else
+            {
+                _ui.Activate();
             }
         }
+
+        private void _ui_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                if (Tabs.Count == 0)
+                {
+                    _chartMaster.Clear();
+                }
+
+                _ui.Closed -= _ui_Closed;
+                _ui = null;
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private BotTabIndexUi _ui;
 
         /// <summary>
         /// show connector GUI
@@ -215,54 +247,85 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// add new security to the list
         /// </summary>
-        public void ShowNewSecurityDialog()
+        public bool ShowNewSecurityDialog()
         {
-            MassSourcesCreator creator = GetCurrentCreator();
-
-            MassSourcesCreateUi ui = new MassSourcesCreateUi(creator);
-            ui.LogMessageEvent += SendNewLogMessage;
-            ui.ShowDialog();
-
-            ui.LogMessageEvent -= SendNewLogMessage;
-            if (ui.IsAccepted == false)
+            if(UiSecuritiesSelection == null)
             {
-                return;
+                _creator = GetCurrentCreator();
+                UiSecuritiesSelection = new MassSourcesCreateUi(_creator);
+                UiSecuritiesSelection.LogMessageEvent += SendNewLogMessage;
+                UiSecuritiesSelection.Closed += _uiSecuritiesSelection_Closed;
+                UiSecuritiesSelection.Show();
+                return true;
+            }
+            else
+            {
+                UiSecuritiesSelection.Activate();
             }
 
-            // 1 удаляем источники с другим ТФ, от того что сейчас выбрал юзер
-
-            bool isDeleteTab = false;
-
-            for (int i = 0; i < Tabs.Count; i++)
-            {
-                if (Tabs[i].TimeFrame != creator.TimeFrame)
-                {
-                    Tabs[i].Delete();
-                    Tabs.RemoveAt(i);
-                    isDeleteTab = true;
-                }
-            }
-
-            if (isDeleteTab == true)
-            {
-                Save();
-            }
-
-            // 2 создаём источники которые выбрал пользователь
-            creator = ui.SourcesCreator;
-            if (creator.SecuritiesNames != null &&
-                creator.SecuritiesNames.Count != 0)
-            {
-                for (int i = 0; i < creator.SecuritiesNames.Count; i++)
-                {
-                    TryRunSecurity(creator.SecuritiesNames[i], creator);
-                }
-
-                Save();
-            }
-
-            ui.SourcesCreator = null;
+            return false;
         }
+
+        private void _uiSecuritiesSelection_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                UiSecuritiesSelection.LogMessageEvent -= SendNewLogMessage;
+                UiSecuritiesSelection.Closed -= _uiSecuritiesSelection_Closed;
+
+                if (UiSecuritiesSelection.IsAccepted == false)
+                {
+                    UiSecuritiesSelection = null;
+                    return;
+                }
+
+                // 1 удаляем источники с другим ТФ, от того что сейчас выбрал юзер
+
+                bool isDeleteTab = false;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    if (Tabs[i].TimeFrame != _creator.TimeFrame)
+                    {
+                        Tabs[i].Delete();
+                        Tabs.RemoveAt(i);
+                        isDeleteTab = true;
+                    }
+                }
+
+                if (isDeleteTab == true)
+                {
+                    Save();
+                }
+
+                // 2 создаём источники которые выбрал пользователь
+
+                _creator = UiSecuritiesSelection.SourcesCreator;
+
+                if (_creator.SecuritiesNames != null &&
+                    _creator.SecuritiesNames.Count != 0)
+                {
+                    for (int i = 0; i < _creator.SecuritiesNames.Count; i++)
+                    {
+                        TryRunSecurity(_creator.SecuritiesNames[i], _creator);
+                    }
+
+                    Save();
+                }
+
+                UiSecuritiesSelection.SourcesCreator = null;
+            }
+            catch (Exception ex) 
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+
+            UiSecuritiesSelection = null;
+        }
+
+        public MassSourcesCreateUi UiSecuritiesSelection;
+
+        private MassSourcesCreator _creator;
 
         /// <summary>
         /// request a class that stores a list of sources to be deployed for the index

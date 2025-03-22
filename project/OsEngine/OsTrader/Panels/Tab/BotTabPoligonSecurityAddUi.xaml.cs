@@ -50,7 +50,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 List<IServer> servers = ServerMaster.GetServers();
 
                 if (servers == null)
-                {// if connection server to exhange hasn't been created yet / если сервер для подключения к бирже ещё не создан
+                {// if connection server to exchange hasn't been created yet / если сервер для подключения к бирже ещё не создан
                     Close();
                     return;
                 }

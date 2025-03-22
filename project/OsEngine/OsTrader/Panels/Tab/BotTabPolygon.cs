@@ -1428,7 +1428,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     List<IServer> servers = ServerMaster.GetServers();
 
                     if (servers == null)
-                    {// if connection server to exhange hasn't been created yet
+                    {// if connection server to exchange hasn't been created yet
                         return;
                     }
 

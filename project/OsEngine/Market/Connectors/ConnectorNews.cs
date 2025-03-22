@@ -137,6 +137,11 @@ namespace OsEngine.Market.Connectors
                 NewsArray.Clear();
                 NewsArray = null;
             }
+
+            if(_ui != null)
+            {
+                _ui.Close();
+            }
         }
 
         /// <summary>
@@ -153,16 +158,40 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                ConnectorNewsUi ui = new ConnectorNewsUi(this);
-                ui.LogMessageEvent += SendNewLogMessage;
-                ui.ShowDialog();
-                ui.LogMessageEvent -= SendNewLogMessage;
+                if(_ui == null)
+                {
+                    _ui = new ConnectorNewsUi(this);
+                    _ui.LogMessageEvent += SendNewLogMessage;
+                    _ui.Closed += _ui_Closed;
+                    _ui.Show();
+                }
+                else
+                {
+                    _ui.Activate();
+                }
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private void _ui_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _ui.Closed -= _ui_Closed;
+                _ui.LogMessageEvent -= SendNewLogMessage;
+                _ui = null;
+            }
+            catch 
+            { 
+              // ignore
+            }
+
+        }
+
+        private ConnectorNewsUi _ui;
 
         #endregion
 

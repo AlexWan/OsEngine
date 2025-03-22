@@ -71,6 +71,7 @@ namespace OsEngine.Alerts
 
         static void _ui_Closed(object sender, EventArgs e)
         {
+            _ui.Closed -= _ui_Closed;
             _ui = null;
         }
 

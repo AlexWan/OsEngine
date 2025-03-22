@@ -139,6 +139,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             _windowIsClosed = true;
 
+            if (_uiNewSecurities != null)
+            {
+                _uiNewSecurities.Close();
+            }
+
             ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
             ComboBoxDayOfWeekToRebuildIndex.SelectionChanged -= ComboBoxDayOfWeekToRebuildIndex_SelectionChanged;
             ComboBoxHourInDayToRebuildIndex.SelectionChanged -= ComboBoxHourInDayToRebuildIndex_SelectionChanged;
@@ -400,7 +405,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             HostSecurity1.Child = _sourcesGrid;
         }
 
-        void Grid1CellValueChangeClick(object sender, DataGridViewCellEventArgs e)
+        private void Grid1CellValueChangeClick(object sender, DataGridViewCellEventArgs e)
         {
             try
             {
@@ -563,9 +568,25 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ButtonAddSecurity_Click(object sender, RoutedEventArgs e)
         {
-            _spread.ShowNewSecurityDialog();
-            ReloadSecurityTable();
-            IndexOrSourcesChanged = true;
+            if(_spread.ShowNewSecurityDialog())
+            {
+                _uiNewSecurities = _spread.UiSecuritiesSelection;
+                _uiNewSecurities.Closed += UiSecuritiesSelection_Closed;
+            }
+        }
+
+        private Market.Connectors.MassSourcesCreateUi _uiNewSecurities;
+
+        private void UiSecuritiesSelection_Closed(object sender, EventArgs e)
+        {
+            if(_windowIsClosed == false)
+            {
+                ReloadSecurityTable();
+                IndexOrSourcesChanged = true;
+            }
+
+            _uiNewSecurities.Closed -= UiSecuritiesSelection_Closed;
+            _uiNewSecurities = null;
         }
 
         private void RepeatButtonDeleteSecurity_Click(object sender, RoutedEventArgs e)

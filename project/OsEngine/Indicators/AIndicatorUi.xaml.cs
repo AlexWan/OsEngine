@@ -48,6 +48,8 @@ namespace OsEngine.Indicators
         {
             try
             {
+                Closed -= AIndicatorUi_Closed;
+
                 _gridParam.DataError -= _gridParam_DataError;
                 HostParameters.Child = null;
                 DataGridFactory.ClearLinks(_gridParam);
