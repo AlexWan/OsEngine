@@ -59,7 +59,7 @@ namespace OsEngine.Market.Servers.MOEX
            }
         }
 
-        #region NotUsedChleny
+        #region Not used
 
         public void Dispose()
         {
@@ -560,25 +560,25 @@ namespace OsEngine.Market.Servers.MOEX
                 if (minutesInTf >= 1 &&
                     minutesInTf < 10)
                 {
-                    List<Candle> sourseCandle = GetAllCandles(security, startTime, 1, endTime);
-                    candles = ConcateCandles(sourseCandle, 1, minutesInTf);
+                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 1, endTime);
+                    candles = ConcateCandles(sourceCandle, 1, minutesInTf);
                 }
                 else if (minutesInTf == 15 ||
                          minutesInTf == 45)
                 {
-                    List<Candle> sourseCandle = GetAllCandles(security, startTime, 1, endTime);
-                    candles = ConcateCandles(sourseCandle, 1, minutesInTf);
+                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 1, endTime);
+                    candles = ConcateCandles(sourceCandle, 1, minutesInTf);
                 }
                 else if (minutesInTf >= 10 &&
                          minutesInTf < 60)
                 {
-                    List<Candle> sourseCandle = GetAllCandles(security, startTime, 10, endTime);
-                    candles = ConcateCandles(sourseCandle, 10, minutesInTf);
+                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 10, endTime);
+                    candles = ConcateCandles(sourceCandle, 10, minutesInTf);
                 }
                 else if (minutesInTf >= 60)
                 {
-                    List<Candle> sourseCandle = GetAllCandles(security, startTime, 60, endTime);
-                    candles = ConcateCandles(sourseCandle, 60, minutesInTf);
+                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 60, endTime);
+                    candles = ConcateCandles(sourceCandle, 60, minutesInTf);
                 }
 
                 return candles;

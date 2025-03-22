@@ -1120,6 +1120,12 @@ namespace OsEngine.Market.Servers.QuikLua
                     trade.Time = new DateTime(allTrade.Datetime.year, allTrade.Datetime.month, allTrade.Datetime.day,
                         allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
                     trade.MicroSeconds = allTrade.Datetime.mcs;
+
+                    if(allTrade.OpenInterest != 0)
+                    {
+                        trade.OpenInterest = Convert.ToInt32(allTrade.OpenInterest);
+                    }
+
                     if (NewTradesEvent != null)
                     {
                         NewTradesEvent(trade);
