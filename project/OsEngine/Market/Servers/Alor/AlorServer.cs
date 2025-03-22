@@ -852,8 +852,20 @@ namespace OsEngine.Market.Servers.Alor
         {
             List<Candle> result = new List<Candle>();
 
+            if(candles == null 
+                || candles.history == null 
+                || candles.history.Count == 0)
+            {
+                return result;
+            }
+
             for(int i = 0;i < candles.history.Count;i++)
             {
+                if(candles.history[i] == null)
+                {
+                    continue;
+                }
+
                 AlorCandle curCandle = candles.history[i];
 
                 Candle newCandle = new Candle();
