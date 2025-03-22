@@ -1,6 +1,6 @@
 ﻿/*
  * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
- *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
 using System;
@@ -11,13 +11,11 @@ namespace OsEngine.Entity
 {
     /// <summary>
     /// Candle
-    /// Свеча
     /// </summary>
     public class Candle
     {
         /// <summary>
-        /// candle start time
-        /// время начала свечи
+        /// Candle start time
         /// </summary>
         public DateTime TimeStart
         {
@@ -30,44 +28,75 @@ namespace OsEngine.Entity
         private DateTime _timeStart;
 
         /// <summary>
-        ///  opening price
-        /// цена открытия
+        /// Opening price
         /// </summary>
         public decimal Open;
 
         /// <summary>
-        /// maximum price for the period
-        /// максимальная цена за период
+        /// Maximum price for the period
         /// </summary>
         public decimal High;
 
         /// <summary>
-        /// closing price
-        /// цена закрытия
+        /// Closing price
         /// </summary>
         public decimal Close;
 
         /// <summary>
-        /// minimum price for the period
-        /// минимальная цена за период
+        /// Minimum price for the period
         /// </summary>
         public decimal Low;
 
         /// <summary>
-        /// volume
-        /// объём
+        /// Volume
         /// </summary>
         public decimal Volume;
 
         /// <summary>
-        /// candles completion status
-        /// статус завершённости свечи
+        /// Open interest
+        /// </summary>
+        public decimal OpenInterest;
+
+        /// <summary>
+        /// Certain point on the candle
+        /// </summary>
+        /// <param name="type"> "Close","High","Low","Open","Median","Typical"</param>
+        public decimal GetPoint(string type)
+        {
+            char first = type[0];
+            if (first == 'C')
+            {
+                return Close;
+            }
+            else if (first == 'H')
+            {
+                return High;
+            }
+            else if (first == 'L')
+            {
+                return Low;
+            }
+            else if (first == 'O')
+            {
+                return Open;
+            }
+            else if (first == 'M')
+            {
+                return (High + Low) / 2;
+            }
+            else //if (type == Entity.CandlePointType.Typical)
+            {
+                return (High + Low + Close) / 3;
+            }
+        }
+
+        /// <summary>
+        /// Candles completion status
         /// </summary>
         public CandleState State;
 
         /// <summary>
-        /// the trades that make up this candle
-        /// трейды составляющие эту свечу
+        /// The trades that make up this candle
         /// </summary>
         public List<Trade> Trades
         {
@@ -81,8 +110,7 @@ namespace OsEngine.Entity
         private List<Trade> _trades = new List<Trade>();
 
         /// <summary>
-        /// if this growing candle
-        /// растущая ли эта свеча
+        /// If this growing candle
         /// </summary>
         public bool IsUp
         {
@@ -97,8 +125,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// if that candle is falling
-        /// падающая ли эта свеча
+        /// If that candle is falling
         /// </summary>
         public bool IsDown
         {
@@ -113,8 +140,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// if type of that candle is doji (indecision in the market, Close = Open)
-        /// если тип этой свечи доджи (нерешительность на рынке, Close = Open)
+        /// If type of that candle is doji (indecision in the market, Close = Open)
         /// </summary>
         public bool IsDoji
         {
@@ -129,8 +155,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// shadow top
-        /// тень сверху
+        /// Shadow top
         /// </summary>
         public decimal ShadowTop
         {
@@ -148,8 +173,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// shadow bottom
-        /// тень снизу
+        /// Shadow bottom
         /// </summary>
         public decimal ShadowBottom
         {
@@ -167,8 +191,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle body with shadows
-        /// тело свечи с учетом теней
+        /// Candle body with shadows
         /// </summary>
         public decimal ShadowBody
         {
@@ -179,8 +202,7 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// candle body without shadows
-        /// тело свечи без учета теней
+        /// Candle body without shadows
         /// </summary>
         public decimal Body
         {
@@ -198,25 +220,64 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// to load the status of the candlestick from the line
-        /// загрузить состояние свечи из строки
+        /// Candle body (%)
         /// </summary>
-        /// <param name="In">status line/строка состояния</param>
+        public decimal BodyPercent
+        {
+            get
+            {
+                if (Close <= 0m || Open <= 0m)
+                {
+                    return 0m;
+                }
+                if (IsUp)
+                {
+                    return (Close - Open) / Open * 100m;
+                }
+                else
+                {
+                    return (Open - Close) / Open * 100m;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Candle center
+        /// </summary>
+        public decimal Center
+        {
+            get
+            {
+                return (High - Low) / 2m + Low;
+            }
+        }
+
+        /// <summary>
+        /// Candle volatility (regarding center, %)
+        /// </summary>
+        public decimal Volatility
+        {
+            get
+            {
+                if (Center == 0m)
+                {
+                    return 0m;
+                }
+                return (High - Center) / Center * 100m;
+            }
+        }
+
+        /// <summary>
+        /// To load the status of the candlestick from the line
+        /// </summary>
+        /// <param name="In">status line</param>
         public void SetCandleFromString(string In)
         {
             //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1
-            //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>
+            //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>,<OPEN INTEREST>
             string[] sIn = In.Split(',');
 
-            int year = Convert.ToInt32(sIn[0].Substring(0, 4));
-            int month = Convert.ToInt32(sIn[0].Substring(4, 2));
-            int day = Convert.ToInt32(sIn[0].Substring(6, 2));
-
-            int hour = Convert.ToInt32(sIn[1].Substring(0, 2));
-            int minute = Convert.ToInt32(sIn[1].Substring(2, 2));
-            int second = Convert.ToInt32(sIn[1].Substring(4, 2));
-
-            TimeStart = new DateTime(year, month, day, hour, minute, second);
+            TimeStart = DateTimeParseHelper.ParseFromTwoStrings(sIn[0], sIn[1]);
 
             Open = sIn[2].ToDecimal();
             High = sIn[3].ToDecimal();
@@ -231,16 +292,27 @@ namespace OsEngine.Entity
             {
                 Volume = 1;
             }
+
+            if (sIn.Length > 7)
+            {
+                try
+                {
+                    OpenInterest = sIn[7].ToDecimal();
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
         }
 
         /// <summary>
-        /// take a line of signatures
-        /// взять строку с подписями
+        /// Take a line of signatures
         /// </summary>
         public string ToolTip
         {
             //Date - 20131001 Time - 100000 
-            // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000
+            // Open - 97.8000000 High - 97.9900000 Low - 97.7500000 Close - 97.9000000 Body(%) - 0.97
             get
             {
 
@@ -313,6 +385,11 @@ namespace OsEngine.Entity
                 result += " C: ";
                 result += Close.ToStringWithNoEndZero();
 
+                result += "  \r\n";
+
+                result += " Body(%): ";
+                result += (Math.Floor(BodyPercent * 100m) / 100m).ToStringWithNoEndZero();
+
                 return result;
             }
         }
@@ -326,7 +403,6 @@ namespace OsEngine.Entity
                 if (_closeWhenGotLastString == Close)
                 {
                     // If we've taken candles before, we're not counting on that line.
-                    // если мы уже брали свечи раньше, не рассчитываем заного строку
                     return _stringToSave;
                 }
 
@@ -334,8 +410,8 @@ namespace OsEngine.Entity
 
                 _stringToSave = "";
 
-                //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1
-                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>
+                //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1,0.97
+                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>,<OPEN INTEREST>
 
                 string result = "";
                 result += TimeStart.ToString("yyyyMMdd,HHmmss") + ",";
@@ -344,7 +420,8 @@ namespace OsEngine.Entity
                 result += High.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Low.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Close.ToString(CultureInfo.InvariantCulture) + ",";
-                result += Volume.ToString(CultureInfo.InvariantCulture);
+                result += Volume.ToString(CultureInfo.InvariantCulture) + ",";
+                result += OpenInterest.ToString(CultureInfo.InvariantCulture);
 
                 _stringToSave = result;
 
@@ -355,26 +432,22 @@ namespace OsEngine.Entity
     }
 
     /// <summary>
-    /// candle formation status
-    /// состояние формирования свечи
+    /// Candle formation status
     /// </summary>
     public enum CandleState
     {
         /// <summary>
-        /// completed
-        /// завершено
+        /// Completed
         /// </summary>
         Finished,
 
         /// <summary>
-        /// started
-        /// начато
+        /// Started
         /// </summary>
         Started,
 
         /// <summary>
-        /// indefinitely
-        /// неизвестно
+        /// Indefinitely
         /// </summary>
         None
     }

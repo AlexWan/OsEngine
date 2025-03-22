@@ -53,6 +53,11 @@ namespace OsEngine.Entity
         public decimal Volume;
 
         /// <summary>
+        /// Open interest
+        /// </summary>
+        public decimal OpenInterest;
+
+        /// <summary>
         /// Certain point on the candle
         /// </summary>
         /// <param name="type"> "Close","High","Low","Open","Median","Typical"</param>
@@ -269,7 +274,7 @@ namespace OsEngine.Entity
         public void SetCandleFromString(string In)
         {
             //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1
-            //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>
+            //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>,<OPEN INTEREST>
             string[] sIn = In.Split(',');
 
             TimeStart = DateTimeParseHelper.ParseFromTwoStrings(sIn[0], sIn[1]);
@@ -286,6 +291,18 @@ namespace OsEngine.Entity
             catch (Exception)
             {
                 Volume = 1;
+            }
+
+            if(sIn.Length > 7)
+            {
+                try
+                {
+                    OpenInterest = sIn[7].ToDecimal();
+                }
+                catch
+                {
+                   // ignore
+                }
             }
         }
 
@@ -394,7 +411,7 @@ namespace OsEngine.Entity
                 _stringToSave = "";
 
                 //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1,0.97
-                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>,<BODY%>
+                //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>,<OPEN INTEREST>
 
                 string result = "";
                 result += TimeStart.ToString("yyyyMMdd,HHmmss") + ",";
@@ -404,7 +421,7 @@ namespace OsEngine.Entity
                 result += Low.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Close.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Volume.ToString(CultureInfo.InvariantCulture) + ",";
-                result += BodyPercent.ToString(CultureInfo.InvariantCulture);
+                result += OpenInterest.ToString(CultureInfo.InvariantCulture);
 
                 _stringToSave = result;
 

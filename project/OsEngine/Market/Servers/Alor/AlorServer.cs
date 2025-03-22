@@ -1636,7 +1636,12 @@ namespace OsEngine.Market.Servers.Alor
             trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseMessage.timestamp);
             trade.Id = baseMessage.id;
 
-            if(baseMessage.side == "sell")
+            if(string.IsNullOrEmpty(baseMessage.oi) == false)
+            {
+                trade.OpenInterest = baseMessage.oi.ToDecimal();
+            }
+
+            if (baseMessage.side == "sell")
             {
                 trade.Side = Side.Sell;
             }

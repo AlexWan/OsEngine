@@ -439,6 +439,11 @@ namespace OsEngine.Entity
                     {
                         CandlesAll[CandlesAll.Count - 1].Trades.Add(trade);
                     }
+
+                    if(trade.OpenInterest != 0)
+                    {
+                        CandlesAll[CandlesAll.Count - 1].OpenInterest = trade.OpenInterest;
+                    }
                 }
                 else
                 { // при любым другом виде свечек
@@ -448,6 +453,11 @@ namespace OsEngine.Entity
                     if (TimeFrameBuilder.SaveTradesInCandles)
                     {
                         CandlesAll[CandlesAll.Count - 1].Trades.Add(trade);
+                    }
+
+                    if (trade.OpenInterest != 0)
+                    {
+                        CandlesAll[CandlesAll.Count - 1].OpenInterest = trade.OpenInterest;
                     }
                 }
             }

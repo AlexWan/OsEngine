@@ -100,4 +100,31 @@ namespace OsEngine.Entity
             }
         }
     }
+
+    public static class DateTimeParseHelper
+    {
+        /// <summary>
+        /// Converts date-time from two strings, a date string and a time string.
+        /// </summary>
+        /// <param name="dateString">Date string in the format "YYYYMMDD".</param>
+        /// <param name="timeString">Time string in the format  "HHmmSS".</param>
+        public static DateTime ParseFromTwoStrings(string dateString, string timeString)
+        {
+            ParseDateOrTimeString(dateString, out int year, out int month, out int day);
+            ParseDateOrTimeString(timeString, out int hour, out int minute, out int second);
+            return new DateTime(year, month, day, hour, minute, second);
+        }
+
+        /// <summary>
+        /// Converts a date or time string to the output variables year-month-day
+        /// (if a date string) or hour-minute-second (if a time string).
+        /// </summary>
+        public static void ParseDateOrTimeString(string dateOrTimeString, out int yearHour, out int monthMinute, out int daySecond)
+        {
+            int dateOrTimeInt = Convert.ToInt32(dateOrTimeString);
+            yearHour = dateOrTimeInt / 10000;
+            monthMinute = dateOrTimeInt / 100 % 100;
+            daySecond = dateOrTimeInt % 100;
+        }
+    }
 }

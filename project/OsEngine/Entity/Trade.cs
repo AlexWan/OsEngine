@@ -65,6 +65,11 @@ namespace OsEngine.Entity
         public Side Side;
 
         /// <summary>
+        /// Open interest
+        /// </summary>
+        public decimal OpenInterest;
+
+        /// <summary>
         /// Tester only. Timeframe of the candlestick that generated the trade
         /// </summary>
         public TimeFrame TimeFrameInTester;
