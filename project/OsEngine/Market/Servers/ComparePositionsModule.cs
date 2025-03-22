@@ -527,8 +527,18 @@ namespace OsEngine.Market.Servers
 
             List<Position> openPositions = new List<Position>();
 
+            if(bots == null)
+            {
+                return openPositions;
+            }
+
             for (int i = 0; i < bots.Count; i++)
             {
+                if (bots[i] == null)
+                {
+                    continue;
+                }
+
                 List<Position> curPositions = bots[i].OpenPositions;
 
                 if (curPositions == null)
@@ -538,6 +548,11 @@ namespace OsEngine.Market.Servers
 
                 for (int j = 0; j < curPositions.Count; j++)
                 {
+                    if (curPositions[j] == null)
+                    {
+                        continue;
+                    }
+
                     string pName = curPositions[j].PortfolioName;
 
                     if (pName != null
