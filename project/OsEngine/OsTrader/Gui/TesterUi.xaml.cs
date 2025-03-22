@@ -241,7 +241,7 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonDeleteBot_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.DeleteActiv();
+            _strategyKeeper.DeleteActive();
         }
 
         private void buttonStrategManualSettings_Click(object sender, RoutedEventArgs e)

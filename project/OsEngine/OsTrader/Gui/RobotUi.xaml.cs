@@ -193,7 +193,7 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                _strategyKeeper.DeleteActiv();
+                _strategyKeeper.DeleteActive();
             }
             catch (Exception ex)
             {

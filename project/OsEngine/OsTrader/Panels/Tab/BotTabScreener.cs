@@ -1300,7 +1300,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     if (Tabs[i] != null)
                     {
-                        _positionViewer.SetJournal(Tabs[i].GetJournal());
+                        Journal.Journal journal = Tabs[i].GetJournal();
+
+                        _positionViewer.RemoveJournal(journal);
+                        _positionViewer.SetJournal(journal);
                     }
                 }
             }
