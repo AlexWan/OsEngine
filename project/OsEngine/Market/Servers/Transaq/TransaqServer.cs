@@ -1423,6 +1423,11 @@ namespace OsEngine.Market.Servers.Transaq
                     osCandle.Volume = candles.Candle[i].Volume.ToDecimal();
                     osCandle.TimeStart = DateTime.Parse(candles.Candle[i].Date);
 
+                    if(string.IsNullOrEmpty(candles.Candle[i].Oi) == false)
+                    {
+                        osCandle.OpenInterest = candles.Candle[i].Oi.ToDecimal();
+                    }
+                    
                     osCandles.Add(osCandle);
                 }
 
@@ -1458,11 +1463,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                 for (int i = index; i < oldCandles.Count; i++)
                 {
-                    if (i == 497)
-                    {
-
-                    }
-
                     if (oldCandles[i].TimeStart.Hour == 10 &&
                         oldCandles[i].TimeStart.Minute == 0 &&
                         oldCandles[i].TimeStart.Second == 0)
@@ -1475,6 +1475,7 @@ namespace OsEngine.Market.Servers.Transaq
                         newCandles[newCandles.Count - 1].State = CandleState.None;
                         newCandles[newCandles.Count - 1].Open = oldCandles[i].Open;
                         newCandles[newCandles.Count - 1].TimeStart = oldCandles[i].TimeStart;
+                        newCandles[newCandles.Count - 1].OpenInterest = oldCandles[i].OpenInterest;
                         newCandles[newCandles.Count - 1].Low = Decimal.MaxValue;
                     }
 
@@ -1492,9 +1493,8 @@ namespace OsEngine.Market.Servers.Transaq
                         : newCandles[newCandles.Count - 1].Low;
 
                     newCandles[newCandles.Count - 1].Close = oldCandles[i].Close;
-
                     newCandles[newCandles.Count - 1].Volume += oldCandles[i].Volume;
-
+                    newCandles[newCandles.Count - 1].OpenInterest = oldCandles[i].OpenInterest;
                 }
 
                 return newCandles;
@@ -1517,11 +1517,6 @@ namespace OsEngine.Market.Servers.Transaq
 
             for (int i = index; i < oldCandles.Count; i++)
             {
-                if (i == 497)
-                {
-
-                }
-
                 counter++;
 
                 if (counter == 1)
@@ -1529,8 +1524,10 @@ namespace OsEngine.Market.Servers.Transaq
                     newCandle = new Candle();
                     newCandle.Open = oldCandles[i].Open;
                     newCandle.TimeStart = oldCandles[i].TimeStart;
+                    newCandle.OpenInterest = oldCandles[i].OpenInterest;
 
-                    if (needTf <= 60 && newCandle.TimeStart.Minute % needTf != 0)  //AVP, если свечка пришла в некратное ТФ время, например, был пропуск свечи, то ТФ правим на кратное. на MOEX  в пропущенные на клиринге свечках, на 10 минутках давало сбой - сдвиг свечек на 5 минут.
+                    if (needTf <= 60 
+                        && newCandle.TimeStart.Minute % needTf != 0)  //AVP, если свечка пришла в некратное ТФ время, например, был пропуск свечи, то ТФ правим на кратное. на MOEX  в пропущенные на клиринге свечках, на 10 минутках давало сбой - сдвиг свечек на 5 минут.
                     {
                         newCandle.TimeStart = newCandle.TimeStart.AddMinutes((newCandle.TimeStart.Minute % needTf) * -1);
                     }
@@ -1546,6 +1543,7 @@ namespace OsEngine.Market.Servers.Transaq
                     : newCandle.Low;
 
                 newCandle.Volume += oldCandles[i].Volume;
+                newCandle.OpenInterest = oldCandles[i].OpenInterest;
 
                 if (counter == count || (needTf <= 60 && i < oldCandles.Count - 2 && oldCandles[i + 1].TimeStart.Minute % needTf == 0))    // AVP добавил проверку "или", что следующая свечка в мелком ТФ, должна войти в следующую свечу более крупного ТФ
                 {
@@ -2834,6 +2832,11 @@ namespace OsEngine.Market.Servers.Transaq
                 trade.Volume = t.Quantity.ToDecimal();
                 trade.Time = DateTime.Parse(t.Time);
 
+                if(string.IsNullOrEmpty(t.Openinterest) == false)
+                {
+                    trade.OpenInterest = t.Openinterest.ToDecimal();
+                }
+               
                 NewTradesEvent?.Invoke(trade);
             }
         }

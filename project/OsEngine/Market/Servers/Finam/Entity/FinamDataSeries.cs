@@ -25,7 +25,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
         /// </summary>
         private TimeSpan _timeFrameSpan;
 
-
         /// <summary>
         /// prefix for the server address
         /// префикс для адреса сервера
@@ -126,18 +125,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
         public List<Trade> Trades { get; set; }
 
         /// <summary>
-        /// whether need to update the series automatically
-        /// нужно ли обновлять серию автоматически
-        /// </summary>
-      // public bool NeedToUpdate;
-
-        /// <summary>
-        /// set had once loaded
-        /// сет уже один раз подгружался
-        /// </summary>
-      //  public bool LoadedOnce;
-
-        /// <summary>
         /// update data
         /// обновить данные
         /// </summary>
@@ -189,7 +176,6 @@ namespace OsEngine.Market.Servers.Finam.Entity
             }
 
         }
-
 
         /// <summary>
         /// update trades
