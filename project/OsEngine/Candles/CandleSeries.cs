@@ -512,6 +512,7 @@ namespace OsEngine.Entity
                 if (_lastTradeTime == DateTime.MinValue)
                 {
                     newTrades = trades;
+                    _lastTradeTime = trades[trades.Count - 1].Time;
                 }
                 else
                 {

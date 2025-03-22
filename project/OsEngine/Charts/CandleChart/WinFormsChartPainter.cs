@@ -1802,7 +1802,10 @@ namespace OsEngine.Charts.CandleChart
                 {
                     TimeAxisXPoint firstChartTP = _timePoints.Find(tp => tp.PositionXPoint > 0);
 
-                    if (_myCandles != null && _myCandles.Count > 1 && firstChartTP != null &&
+                    if (_myCandles != null 
+                        && _myCandles.Count > 1 
+                        && firstChartTP != null 
+                        &&
                         (firstChartTP.PositionXPoint > _myCandles.Count - 1
                          || firstChartTP.PositionTime < _myCandles[firstChartTP.PositionXPoint].TimeStart
                          || (_myCandles.Count - 1 > firstChartTP.PositionXPoint &&
@@ -1829,6 +1832,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             continue;
                         }
+
                         int xIndexPoint = GetTimeIndex(timePoint, trades[indTrades].Price);
                         if (xIndexPoint == 0)
                         {
