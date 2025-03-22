@@ -269,7 +269,7 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                _strategyKeeper.BotShowParametrsDialog();
+                _strategyKeeper.BotShowParametersDialog();
             }
             catch (Exception ex)
             {

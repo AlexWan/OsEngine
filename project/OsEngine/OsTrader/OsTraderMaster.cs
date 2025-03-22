@@ -648,9 +648,9 @@ namespace OsEngine.OsTrader
             try
             {
                 StopBotsWhoTradeSecurity(secName, server);
-                CanselOrdersWhithSecurity(secName, server);
-                DeleteOpenPositionsWhithSecurity(secName, server);
-                ClosePositionOnBoardWhithFakePoses(secName, server, fullName);
+                CancelOrdersWithSecurity(secName, server);
+                DeleteOpenPositionsWithSecurity(secName, server);
+                ClosePositionOnBoardWithFakePoses(secName, server, fullName);
             }
             catch (Exception error)
             {
@@ -667,7 +667,7 @@ namespace OsEngine.OsTrader
             {
                 BotPanel bot = PanelsArray[i];
 
-                List<BotTabSimple> botTabSimples = GetTabsSimpleWhithMySecurity(secName, server, bot);
+                List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
                 if (botTabSimples != null &&
                     botTabSimples.Count > 0)
@@ -677,7 +677,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-        private void CanselOrdersWhithSecurity(string secName, Market.Servers.IServer server)
+        private void CancelOrdersWithSecurity(string secName, Market.Servers.IServer server)
         {
 
             List<BotTabSimple> tabsWithMySecInAllBots = new List<BotTabSimple>();
@@ -686,7 +686,7 @@ namespace OsEngine.OsTrader
             {
                 BotPanel bot = PanelsArray[i];
 
-                List<BotTabSimple> botTabSimples = GetTabsSimpleWhithMySecurity(secName, server, bot);
+                List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
                 if(botTabSimples != null &&
                     botTabSimples.Count > 0)
@@ -730,7 +730,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-        private void DeleteOpenPositionsWhithSecurity(string secName, Market.Servers.IServer server)
+        private void DeleteOpenPositionsWithSecurity(string secName, Market.Servers.IServer server)
         {
             List<BotTabSimple> tabsWithMySecInAllBots = new List<BotTabSimple>();
 
@@ -738,7 +738,7 @@ namespace OsEngine.OsTrader
             {
                 BotPanel bot = PanelsArray[i];
 
-                List<BotTabSimple> botTabSimples = GetTabsSimpleWhithMySecurity(secName, server, bot);
+                List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
                 if (botTabSimples != null &&
                     botTabSimples.Count > 0)
@@ -768,7 +768,7 @@ namespace OsEngine.OsTrader
             }
         }
 
-        private void ClosePositionOnBoardWhithFakePoses(string secName, Market.Servers.IServer server, string fullName)
+        private void ClosePositionOnBoardWithFakePoses(string secName, Market.Servers.IServer server, string fullName)
         {
             PositionOnBoard myPosOnBoards = null;
 
@@ -843,7 +843,7 @@ namespace OsEngine.OsTrader
             return newOrder;
         }
 
-        private List<BotTabSimple> GetTabsSimpleWhithMySecurity(string secName, Market.Servers.IServer server, BotPanel bot)
+        private List<BotTabSimple> GetTabsSimpleWithMySecurity(string secName, Market.Servers.IServer server, BotPanel bot)
         {
             List<BotTabSimple> botTabSimples = new List<BotTabSimple>();
 
@@ -890,7 +890,7 @@ namespace OsEngine.OsTrader
             {
                 BotPanel bot = PanelsArray[i];
 
-                List<BotTabSimple> botTabSimples = GetTabsSimpleWhithMySecurity(secName, server, bot);
+                List<BotTabSimple> botTabSimples = GetTabsSimpleWithMySecurity(secName, server, bot);
 
                 if (botTabSimples != null &&
                     botTabSimples.Count > 0)
@@ -1718,7 +1718,7 @@ namespace OsEngine.OsTrader
         /// <summary>
         /// Show the settings window for the robot
         /// </summary>
-        public void BotShowParametrsDialog()
+        public void BotShowParametersDialog()
         {
             try
             {
@@ -1727,7 +1727,7 @@ namespace OsEngine.OsTrader
                     MessageBox.Show(OsLocalization.Trader.Label10);
                     return;
                 }
-                _activePanel.ShowParametrDialog();
+                _activePanel.ShowParameterDialog();
             }
             catch (Exception error)
             {
@@ -1743,7 +1743,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (IsActiv())
+                if (IsActive())
                 {
                     if (_activePanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
@@ -1766,7 +1766,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (IsActiv())
+                if (IsActive())
                 {
                     if (_activePanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
@@ -1790,7 +1790,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (IsActiv())
+                if (IsActive())
                 {
                     if (_activePanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
@@ -1814,7 +1814,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (IsActiv())
+                if (IsActive())
                 {
                     if (_activePanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
@@ -1836,7 +1836,7 @@ namespace OsEngine.OsTrader
         {
             try
             {
-                if (IsActiv())
+                if (IsActive())
                 {
                     if (_activePanel.ActiveTab.GetType().Name == "BotTabSimple")
                     {
@@ -1854,7 +1854,7 @@ namespace OsEngine.OsTrader
         /// <summary>
         /// Is there an actin bot now
         /// </summary>
-        private bool IsActiv()
+        private bool IsActive()
         {
             if (_activePanel == null)
             {

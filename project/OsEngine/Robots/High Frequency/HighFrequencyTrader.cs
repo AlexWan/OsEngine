@@ -69,7 +69,7 @@ namespace OsEngine.Robots.High_Frequency
         public StrategyParameterDecimal Volume;
 
         /// <summary>
-        /// levels to marketDepth analize
+        /// levels to marketDepth analyze
         /// глубина анализа стакана
         /// </summary>
         public StrategyParameterInt MaxLevelsInMarketDepth;

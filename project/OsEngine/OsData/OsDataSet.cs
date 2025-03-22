@@ -1818,7 +1818,7 @@ namespace OsEngine.OsData
 
         #endregion
 
-        #region Candle whith time frame less than minute
+        #region Candle with time frame less than minute
 
         private void ProcessCandlesLessMinute(IServer server, SettingsToLoadSecurity param)
         {

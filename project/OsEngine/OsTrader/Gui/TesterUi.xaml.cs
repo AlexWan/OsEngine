@@ -276,7 +276,7 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonStrategParametr_Click(object sender, RoutedEventArgs e)
         {
-            _strategyKeeper.BotShowParametrsDialog();
+            _strategyKeeper.BotShowParametersDialog();
         }
 
         private void ButtonMore_Click(object sender, RoutedEventArgs e)

@@ -171,7 +171,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _md = md;
         }
 
-        Side _whaitSide;
+        Side _waitSide;
 
         private void SendFakeVolumeZero(Security mySec, decimal price)
         {
@@ -180,16 +180,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             decimal volume = 0;
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
-            _whaitSide = Side.Sell;
+            _waitSide = Side.Sell;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет сервер
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 8. No reject order from server FakeVolumeZero");
                     return;
@@ -216,16 +216,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             decimal volume = -1;
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
-            _whaitSide = Side.Sell;
+            _waitSide = Side.Sell;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет сервер
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 9. No reject order from server FakeVolumeLessZero");
                     return;
@@ -252,16 +252,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             decimal volume = VolumeMin; 
 
             Order newOrder = CreateOrder(mySec,price,volume, Side.Buy);
-            _whaitSide = Side.Buy;
+            _waitSide = Side.Buy;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет сервер
             while(true)
             {
-                if(timeEndWhait < DateTime.Now)
+                if(timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 10. No reject order from server FakeVolumeSmall");
                     return;
@@ -288,16 +288,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             decimal volume = VolumeMax;
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
-            _whaitSide = Side.Buy;
+            _waitSide = Side.Buy;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет сервер
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 10. No reject order from server FakeVolumeBig");
                     return;
@@ -324,16 +324,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             decimal volume = VolumeMin;
 
             Order newOrder = CreateOrder(mySec, 0, volume, Side.Buy);
-            _whaitSide = Side.Buy;
+            _waitSide = Side.Buy;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет сервер
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 11. No reject order from server FakeZeroPrice");
                     return;
@@ -360,16 +360,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             decimal volume = VolumeMin;
 
             Order newOrder = CreateOrder(mySec, -1, volume, Side.Sell);
-            _whaitSide = Side.Sell;
+            _waitSide = Side.Sell;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет сервер
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 12. No reject order from server FakeLessZeroPrice");
                     return;
@@ -427,7 +427,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if(order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 13. Order whith state NONE");
+                this.SetNewError("Error 13. Order with state NONE");
                 return;
             }
 
@@ -479,9 +479,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             12.TimeCancel – время сервера когда ордер получил статус Cancel
             */
 
-            if(order.Side != _whaitSide)
+            if(order.Side != _waitSide)
             {
-                this.SetNewError("Error 14. Whait side note equal. Whait: " + _whaitSide 
+                this.SetNewError("Error 14. Wait side note equal. Wait: " + _waitSide 
                     + " Side in order: " + order.Side);
                 return false;
             }

@@ -154,11 +154,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 3 ждём когда состояние портфеля изменится
 
-            DateTime endWhaitTime = DateTime.Now.AddSeconds(15);
+            DateTime endWaitTime = DateTime.Now.AddSeconds(15);
 
             while (true)
             {
-                if (endWhaitTime < DateTime.Now)
+                if (endWaitTime < DateTime.Now)
                 {
                     SetNewError("Error 8. Portfolio not change");
                     return false;
@@ -193,11 +193,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 5 ждём когда состояние портфеля изменится
 
-            endWhaitTime = DateTime.Now.AddSeconds(15);
+            endWaitTime = DateTime.Now.AddSeconds(15);
 
             while (true)
             {
-                if (endWhaitTime < DateTime.Now)
+                if (endWaitTime < DateTime.Now)
                 {
                     SetNewError("Error 10. Portfolio not change");
                     return false;
@@ -239,11 +239,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 3 ждём когда состояние портфеля изменится
 
-            DateTime endWhaitTime = DateTime.Now.AddSeconds(15);
+            DateTime endWaitTime = DateTime.Now.AddSeconds(15);
 
             while (true)
             {
-                if (endWhaitTime < DateTime.Now)
+                if (endWaitTime < DateTime.Now)
                 {
                     SetNewError("Error 11. Portfolio not change");
                     return false;
@@ -278,11 +278,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // 5 ждём когда состояние портфеля изменится
 
-            endWhaitTime = DateTime.Now.AddSeconds(15);
+            endWaitTime = DateTime.Now.AddSeconds(15);
 
             while (true)
             {
-                if (endWhaitTime < DateTime.Now)
+                if (endWaitTime < DateTime.Now)
                 {
                     SetNewError("Error 13. Portfolio not change");
                     return false;
@@ -361,16 +361,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             price = Math.Round(price + price * 0.01m, mySec.Decimals); // Проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Buy);
-            _whaitSide = Side.Buy;
+            _waitSide = Side.Buy;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Active order
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 16. No Active order from server BuyLimit");
                     return;
@@ -398,12 +398,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            timeEndWhait = DateTime.Now.AddMinutes(2);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Done order
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 18. No Done order from server BuyLimit");
                     return;
@@ -426,12 +426,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            timeEndWhait = DateTime.Now.AddMinutes(2);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет придёт MyTrade
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 20. No MyTrade BuyLimit");
                     return;
@@ -458,16 +458,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             price = Math.Round(price - price * 0.01m, mySec.Decimals); // Проскальзывание 1%
 
             Order newOrder = CreateOrder(mySec, price, volume, Side.Sell);
-            _whaitSide = Side.Sell;
+            _waitSide = Side.Sell;
 
             Server.ExecuteOrder(newOrder);
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Active order
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 21. No reject order from server SellLimit");
                     return;
@@ -495,12 +495,12 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
             }
 
-            timeEndWhait = DateTime.Now.AddMinutes(2);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             // нужно дождаться когда будет Done order
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 23. No reject order from server SellLimit");
                     return;
@@ -525,11 +525,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             // нужно дождаться когда будет придёт MyTrade
 
-            timeEndWhait = DateTime.Now.AddMinutes(2);
+            timeEndWait = DateTime.Now.AddMinutes(2);
 
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 25. No MyTrade SellLimit");
                     return;
@@ -632,7 +632,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         List<Order> _ordersPatrial = new List<Order>();
         List<Order> _ordersPending = new List<Order>();
 
-        Side _whaitSide;
+        Side _waitSide;
 
         private void ClearOrders()
         {
@@ -649,7 +649,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 29. Order whith state NONE");
+                this.SetNewError("Error 29. Order with state NONE");
                 return;
             }
 
@@ -701,9 +701,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             12.TimeCancel – время сервера когда ордер получил статус Cancel
             */
 
-            if (order.Side != _whaitSide)
+            if (order.Side != _waitSide)
             {
-                this.SetNewError("Error 30. Whait side note equal. Whait: " + _whaitSide
+                this.SetNewError("Error 30. Wait side note equal. Wait: " + _waitSide
                     + " Side in order: " + order.Side);
                 return false;
             }
@@ -848,9 +848,9 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             12.2.9.Side – сторона ордера
             */
 
-            if (myTrade.Side != _whaitSide)
+            if (myTrade.Side != _waitSide)
             {
-                this.SetNewError("Error 48. MyTrade. Whait side note equal. Whait: " + _whaitSide
+                this.SetNewError("Error 48. MyTrade. Wait side note equal. Wait: " + _waitSide
                   + " Side in order: " + myTrade.Side);
                 return false;
             }

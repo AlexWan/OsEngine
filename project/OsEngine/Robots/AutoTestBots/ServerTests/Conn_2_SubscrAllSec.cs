@@ -93,7 +93,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if (endWaitTime < DateTime.Now)
                 {
                     this.SetNewError(
-                      "Error 4. Whait time is over! 10 minutes");
+                      "Error 4. Wait time is over! 10 minutes");
                     break;
                 }
 

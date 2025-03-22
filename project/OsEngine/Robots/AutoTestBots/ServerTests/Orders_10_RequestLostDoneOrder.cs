@@ -133,7 +133,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             Server.TestValue_CanSendOrdersUp = true;
 
-            DateTime timeEndWhait = DateTime.Now.AddMinutes(2);
+            DateTime timeEndWait = DateTime.Now.AddMinutes(2);
 
             Order order = null;
 
@@ -141,7 +141,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             while (true)
             {
-                if (timeEndWhait < DateTime.Now)
+                if (timeEndWait < DateTime.Now)
                 {
                     this.SetNewError("Error 8. No Done order from server BuyLimit");
                     TestEnded();
@@ -252,7 +252,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (order.State == OrderStateType.None)
             {
-                this.SetNewError("Error 10. Order whith state NONE");
+                this.SetNewError("Error 10. Order with state NONE");
                 return;
             }
 
@@ -312,7 +312,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.TypeOrder != OrderPriceType.Limit)
             {
-                this.SetNewError("Error 11. Order Type is note Liimt. Real type: " + order.TypeOrder);
+                this.SetNewError("Error 11. Order Type is note Limit. Real type: " + order.TypeOrder);
                 return false;
             }
 

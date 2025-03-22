@@ -269,7 +269,7 @@ namespace OsEngine.OsTrader.Gui
                 else if (coluIndex == 8 &&
        rowIndex < botsCount)
                 { // вызываем параметры
-                    bot.ShowParametrDialog();
+                    bot.ShowParameterDialog();
                 }
                 else if (coluIndex == 9 &&
         rowIndex < botsCount)
@@ -406,7 +406,7 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                _lastSelectedBot.ShowParametrDialog();
+                _lastSelectedBot.ShowParameterDialog();
             }
             catch (Exception ex)
             {

@@ -45,23 +45,23 @@ namespace OsEngine.Candles.Series
 
         public void UpdateChangeCandle()
         {
-            if (СandleUpdateEvent != null)
+            if (CandleUpdateEvent != null)
             {
-                СandleUpdateEvent(CandlesAll);
+                CandleUpdateEvent(CandlesAll);
             }
         }
 
         public void UpdateFinishCandle()
         {
-            if (СandleFinishedEvent != null)
+            if (CandleFinishedEvent != null)
             {
-                СandleFinishedEvent(CandlesAll);
+                CandleFinishedEvent(CandlesAll);
             }
         }
 
-        public event Action<List<Candle>> СandleUpdateEvent;
+        public event Action<List<Candle>> CandleUpdateEvent;
 
-        public event Action<List<Candle>> СandleFinishedEvent;
+        public event Action<List<Candle>> CandleFinishedEvent;
 
         #endregion
 

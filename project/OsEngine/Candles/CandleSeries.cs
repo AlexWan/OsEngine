@@ -27,8 +27,8 @@ namespace OsEngine.Entity
         {
             TimeFrameBuilder = timeFrameBuilder;
             timeFrameBuilder.CandleSeriesRealization.Security = security;
-            timeFrameBuilder.СandleUpdateEvent += TimeFrameBuilder_СandleUpdateEvent;
-            timeFrameBuilder.СandleFinishedEvent += TimeFrameBuilder_СandleFinishedEvent;
+            timeFrameBuilder.CandleUpdateEvent += TimeFrameBuilder_CandleUpdateEvent;
+            timeFrameBuilder.CandleFinishedEvent += TimeFrameBuilder_CandleFinishedEvent;
             Security = security;
             _startProgram = startProgram;
 
@@ -402,7 +402,7 @@ namespace OsEngine.Entity
                 return;
             }
 
-            // обновилось неизвесное кол-во тиков
+            // обновилось неизвестное кол-во тиков
             for (int i = 0; i < newTrades.Count; i++)
             {
                 Trade trade = newTrades[i];
@@ -655,33 +655,33 @@ namespace OsEngine.Entity
             {
                 return;
             }
-            if (СandleUpdeteEvent != null)
+            if (CandleUpdateEvent != null)
             {
-                СandleUpdeteEvent(this);
+                CandleUpdateEvent(this);
             }
         }
 
         private void UpdateFinishCandle()
         {
-            if (СandleFinishedEvent != null)
+            if (CandleFinishedEvent != null)
             {
-                СandleFinishedEvent(this);
+                CandleFinishedEvent(this);
             }
         }
 
-        private void TimeFrameBuilder_СandleUpdateEvent(List<Candle> candles)
+        private void TimeFrameBuilder_CandleUpdateEvent(List<Candle> candles)
         {
             UpdateChangeCandle();
         }
 
-        private void TimeFrameBuilder_СandleFinishedEvent(List<Candle> candles)
+        private void TimeFrameBuilder_CandleFinishedEvent(List<Candle> candles)
         {
             UpdateFinishCandle();
         }
 
-        public event Action<CandleSeries> СandleUpdeteEvent;
+        public event Action<CandleSeries> CandleUpdateEvent;
 
-        public event Action<CandleSeries> СandleFinishedEvent;
+        public event Action<CandleSeries> CandleFinishedEvent;
 
         #endregion
 

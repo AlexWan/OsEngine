@@ -11,11 +11,8 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.BitMax;
-using OsEngine.Market.Servers.BitMex;
 using OsEngine.Market.Servers.Kraken;
-using OsEngine.Market.Servers.QuikLua;
 using OsEngine.Market.Servers.Tester;
-using OsEngine.Market.Servers.Transaq;
 using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.InteractiveBrokers;
@@ -34,7 +31,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// constructor
         /// </summary>
-        /// <param name="server">the server from which the candlestick data will go/сервер из которго будут идти данные для создания свечек</param>
+        /// <param name="server">the server from which the candlestick data will go/сервер из которого будут идти данные для создания свечек</param>
         /// <param name="startProgram">the program that created the class object/программа которая создала объект класса</param>
         public CandleManager(IServer server, StartProgram startProgram)
         {
@@ -92,8 +89,8 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
                 {
-                    _activeSeriesBasedOnTrades[i].СandleUpdeteEvent -= series_СandleUpdeteEvent;
-                    _activeSeriesBasedOnTrades[i].СandleFinishedEvent -= series_СandleFinishedEvent;
+                    _activeSeriesBasedOnTrades[i].CandleUpdateEvent -= series_CandleUpdateEvent;
+                    _activeSeriesBasedOnTrades[i].CandleFinishedEvent -= series_CandleFinishedEvent;
                     _activeSeriesBasedOnTrades[i].Clear();
                     _activeSeriesBasedOnTrades[i].Stop();
                 }
@@ -109,8 +106,8 @@ namespace OsEngine.Entity
             {
                 for (int i = 0; _activeSeriesBasedOnMd != null && i < _activeSeriesBasedOnMd.Count; i++)
                 {
-                    _activeSeriesBasedOnMd[i].СandleUpdeteEvent -= series_СandleUpdeteEvent;
-                    _activeSeriesBasedOnMd[i].СandleFinishedEvent -= series_СandleFinishedEvent;
+                    _activeSeriesBasedOnMd[i].CandleUpdateEvent -= series_CandleUpdateEvent;
+                    _activeSeriesBasedOnMd[i].CandleFinishedEvent -= series_CandleFinishedEvent;
                     _activeSeriesBasedOnMd[i].Clear();
                     _activeSeriesBasedOnMd[i].Stop();
                 }
@@ -423,11 +420,11 @@ namespace OsEngine.Entity
                     _server.ServerType != ServerType.Optimizer &&
                     _server.ServerType != ServerType.Miner)
                 {
-                    series.СandleUpdeteEvent += series_СandleUpdeteEvent;
+                    series.CandleUpdateEvent += series_CandleUpdateEvent;
                 }
 
                 series.TypeTesterData = _typeTesterData;
-                series.СandleFinishedEvent += series_СandleFinishedEvent;
+                series.CandleFinishedEvent += series_CandleFinishedEvent;
 
                 if (_activeSeriesBasedOnTrades == null)
                 {
@@ -475,8 +472,8 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                series.СandleUpdeteEvent -= series_СandleUpdeteEvent;
-                series.СandleFinishedEvent -= series_СandleFinishedEvent;
+                series.CandleUpdateEvent -= series_CandleUpdateEvent;
+                series.CandleFinishedEvent -= series_CandleFinishedEvent;
 
                 for (int i = 0; _activeSeriesBasedOnTrades != null && i < _activeSeriesBasedOnTrades.Count; i++)
                 {
@@ -756,7 +753,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// candles were updated in one of the series. Inbound event
         /// </summary>
-        void series_СandleUpdeteEvent(CandleSeries series)
+        void series_CandleUpdateEvent(CandleSeries series)
         {
             if (_isDisposed)
             {
@@ -769,7 +766,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void series_СandleFinishedEvent(CandleSeries series)
+        void series_CandleFinishedEvent(CandleSeries series)
         {
             if (_isDisposed)
             {

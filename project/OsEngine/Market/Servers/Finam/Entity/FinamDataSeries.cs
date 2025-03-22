@@ -371,7 +371,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
                 return null;
             }
 
-            DateTime timeWhaiting = DateTime.Now;
+            DateTime timeWaiting = DateTime.Now;
 
             while (true)
             {
@@ -381,7 +381,7 @@ namespace OsEngine.Market.Servers.Finam.Entity
                     break;
                 }
 
-                if (timeWhaiting.AddMinutes(10) < DateTime.Now)
+                if (timeWaiting.AddMinutes(10) < DateTime.Now)
                 {
                     // пытаемся дважды запросить данные рекурсией
                     // если не выходит, возвращаем null

@@ -538,7 +538,7 @@ namespace OsEngine.Market.Servers.BitMex
                 }
                 else
                 {
-                    return СandlesBuilder(security, (int)timeSpan.TotalMinutes, startTime, endTime);
+                    return CandlesBuilder(security, (int)timeSpan.TotalMinutes, startTime, endTime);
                 }
             }
             catch (Exception exception)
@@ -663,7 +663,7 @@ namespace OsEngine.Market.Servers.BitMex
             return 300;
         }
 
-        private List<Candle> СandlesBuilder(string security, int tf, DateTime startTime, DateTime endTime)
+        private List<Candle> CandlesBuilder(string security, int tf, DateTime startTime, DateTime endTime)
         {
             List<Candle> oldCandles;
             int a;

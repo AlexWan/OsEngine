@@ -603,7 +603,7 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                _panel.ShowParametrDialog();
+                _panel.ShowParameterDialog();
             }
             catch (Exception ex)
             {
