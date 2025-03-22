@@ -633,12 +633,14 @@ namespace OsEngine.Journal.Internal
             _needToSave = true;
         }
 
-        public void SetNewTrade(MyTrade trade)
+        public bool SetNewTrade(MyTrade trade)
         {
             if (_deals == null)
             {
-                return;
+                return false;
             }
+
+            bool isMyTrade = false;
 
             for (int i = _deals.Count - 1; i > -1; i--)
             {
@@ -678,6 +680,8 @@ namespace OsEngine.Journal.Internal
 
                 if (isOpenOrder || isCloseOrder)
                 {
+                    isMyTrade = true;
+
                     PositionStateType positionState = position.State;
 
                     decimal lastPosVolume = position.OpenVolume;
@@ -709,7 +713,14 @@ namespace OsEngine.Journal.Internal
                     break;
                 }
             }
-            _needToSave = true;
+
+            if(isMyTrade)
+            {
+                _needToSave = true;
+                return true;
+            }
+
+            return false;
         }
 
         public void SetBidAsk(decimal bid, decimal ask)

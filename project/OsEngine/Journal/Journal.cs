@@ -530,20 +530,21 @@ namespace OsEngine.Journal
             }
         }
 
-        public void SetNewMyTrade(MyTrade trade)
+        public bool SetNewMyTrade(MyTrade trade)
         {
             try
             {
                 if (_positionController == null)
                 {
-                    return;
+                    return false;
                 }
-                _positionController.SetNewTrade(trade);
+                return _positionController.SetNewTrade(trade);
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void SetNewBidAsk(decimal bid, decimal ask)

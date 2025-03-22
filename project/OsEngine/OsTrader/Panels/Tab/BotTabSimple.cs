@@ -6173,11 +6173,23 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return;
             }
-            _journal.SetNewMyTrade(trade);
-
-            if (MyTradeEvent != null)
+            if(_journal.SetNewMyTrade(trade))
             {
-                MyTradeEvent(trade);
+                if (MyTradeEvent != null)
+                {
+                    MyTradeEvent(trade);
+                }
+
+                if (StartProgram == StartProgram.IsTester
+                    || StartProgram == StartProgram.IsOsOptimizer)
+                {
+                    List<Candle> candles = CandlesAll;
+
+                    if (candles != null && candles.Count > 0)
+                    {
+                        trade.NumberCandleInTester = candles.Count-1;
+                    }
+                }
             }
         }
 

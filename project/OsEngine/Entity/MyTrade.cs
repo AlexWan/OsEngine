@@ -127,7 +127,11 @@ namespace OsEngine.Entity
                 return _toolTip;
             }
         }
-
         private string _toolTip;
+
+        /// <summary>
+        /// Service info to tester. Number candle
+        /// </summary>
+        public int NumberCandleInTester;
     }
 }

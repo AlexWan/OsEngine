@@ -1821,29 +1821,49 @@ namespace OsEngine.Charts.CandleChart
 
                     for (int indTrades = 0; indTrades < trades.Count; indTrades++)
                     {
-                        if (trades[indTrades] == null)
+                        MyTrade curTrade = trades[indTrades];
+
+                        if (curTrade == null)
                         {
                             continue;
                         }
 
-                        DateTime timePoint = trades[indTrades].Time;
+                        DateTime timePoint = curTrade.Time;
 
                         if (timePoint == DateTime.MinValue)
                         {
                             continue;
                         }
 
-                        int xIndexPoint = GetTimeIndex(timePoint, trades[indTrades].Price);
+                        int xIndexPoint = 0;
+
+                        if(_startProgram == StartProgram.IsTester
+                            || _startProgram == StartProgram.IsOsOptimizer)
+                        {
+                            xIndexPoint = curTrade.NumberCandleInTester;
+
+                            if(xIndexPoint > _myCandles.Count)
+                            {
+                                curTrade.NumberCandleInTester = 0;
+                                xIndexPoint = 0;
+                            }
+                        }
+
+                        if(xIndexPoint == 0)
+                        {
+                            xIndexPoint = GetTimeIndex(timePoint, curTrade.Price);
+                        }
+
                         if (xIndexPoint == 0)
                         {
                             continue;
                         }
 
-                        buySellSeries.Points.AddXY(xIndexPoint, trades[indTrades].Price);
+                        buySellSeries.Points.AddXY(xIndexPoint, curTrade.Price);
 
                         if (_startProgram == StartProgram.IsOsTrader)
                         {
-                            buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = trades[indTrades].ToolTip;
+                            buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = curTrade.ToolTip;
                         }
 
                         if (_colorKeeper.PointType == PointType.TriAngle)
@@ -1856,7 +1876,7 @@ namespace OsEngine.Charts.CandleChart
                             {
                                 openViewSize = _chart.ChartAreas[0].AxisX.ScaleView.Size;
                             }
-                            if (trades[indTrades].Side == Side.Buy)
+                            if (curTrade.Side == Side.Buy)
                             {
                                 if (_colorKeeper.PointsSize == ChartPositionTradeSize.Size4)
                                 {
@@ -1904,10 +1924,10 @@ namespace OsEngine.Charts.CandleChart
                             }
                         }
 
-                        if (trades[indTrades].Side == Side.Buy)
+                        if (curTrade.Side == Side.Buy)
                         {
                             if (deals[i].CloseOrders != null
-                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == trades[indTrades].NumberOrderParent).Count > 0)
+                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
                             {
                                 buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.BlueViolet;
                             }
@@ -1919,7 +1939,7 @@ namespace OsEngine.Charts.CandleChart
                         else
                         {
                             if (deals[i].CloseOrders != null
-                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == trades[indTrades].NumberOrderParent).Count > 0)
+                                && deals[i].CloseOrders.FindAll(x => x.NumberMarket == curTrade.NumberOrderParent).Count > 0)
                             {
                                 buySellSeries.Points[buySellSeries.Points.Count - 1].Color = Color.Yellow;
                             }
