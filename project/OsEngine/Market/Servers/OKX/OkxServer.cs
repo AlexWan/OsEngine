@@ -13,6 +13,7 @@ using OsEngine.Market.Servers.Entity;
 using WebSocketSharp;
 using System.Net.Http;
 using OsEngine.Language;
+using RestSharp;
 
 namespace OsEngine.Market.Servers.OKX
 {
@@ -27,7 +28,7 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
-            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated"});
+            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
         }
     }
@@ -121,9 +122,11 @@ namespace OsEngine.Market.Servers.OKX
                 SetPositionMode();
                 FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                 FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                CreateWebSocketConnection();
+                CreatePublicWebSocketConnect();
+                CreatePrivateWebSocketConnect();
+                CheckSocketsActivate();
             }
-            catch(Exception exception) 
+            catch (Exception exception)
             {
                 SendLogMessage($"/api/v5/public/time - Server is not available or there is no internet. \n" +
                     exception.Message +
@@ -144,10 +147,15 @@ namespace OsEngine.Market.Servers.OKX
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
-                        
+
             FIFOListWebSocketPublicMessage = null;
             FIFOListWebSocketPrivateMessage = null;
 
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -176,7 +184,7 @@ namespace OsEngine.Market.Servers.OKX
         private string _webSocketUrlPublic = "wss://ws.okx.com:8443/ws/v5/public";
 
         private string _webSocketUrlPrivate = "wss://ws.okx.com:8443/ws/v5/private";
-       
+
         private bool _hedgeMode;
 
         private string _marginMode;
@@ -215,66 +223,41 @@ namespace OsEngine.Market.Servers.OKX
                     SendLogMessage("service is unavailable", LogMessageType.Error);
                     return;
                 }
+
                 SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
             }
         }
 
         private SecurityResponse GetFuturesSecurities()
         {
-
-            HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SWAP").Result;
-
-            string json = response.Content.ReadAsStringAsync().Result;
-
-            if (response.StatusCode != HttpStatusCode.OK)
+            try
             {
-                SendLogMessage($"GetFuturesSecurities - {json}", LogMessageType.Error);
+                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SWAP").Result;
+
+                string json = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage($"GetFuturesSecurities - {json}", LogMessageType.Error);
+                }
+
+                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+
+                return securityResponse;
             }
-
-            SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
-
-            return securityResponse;
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
-
 
         private List<string> GetOptionBaseSecurities()
         {
-
-            //get list of possible options
-            HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/underlying?instType=OPTION").Result;
-
-
-            string json = response.Content.ReadAsStringAsync().Result;
-
-            if (response.StatusCode != HttpStatusCode.OK)
+            try
             {
-                SendLogMessage($"GetOptionSecurities - {json}", LogMessageType.Error);
-            }
-
-            SecurityUnderlyingResponse baseSecuritiesResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityUnderlyingResponse());
-
-            if (baseSecuritiesResponse == null ||
-                baseSecuritiesResponse.data == null ||
-                baseSecuritiesResponse.data.Count == 0)
-            {
-                SendLogMessage($"GetOptionSecurities - Empty underlying", LogMessageType.Error);
-                return null;
-            }
-
-            var baseSecurities = baseSecuritiesResponse.data[0];
-
-            return baseSecurities;
-        }
-
-        private SecurityResponse GetOptionSecurities(List<string> baseSecurities)
-        {
-            SecurityResponse ret = null;
-
-            for (int k = 0; k < baseSecurities.Count; k++)
-            {
-                string baseSecurity = baseSecurities[k];
-
-                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=OPTION&uly="+ baseSecurity).Result;
+                //get list of possible options
+                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/underlying?instType=OPTION").Result;
 
                 string json = response.Content.ReadAsStringAsync().Result;
 
@@ -283,34 +266,88 @@ namespace OsEngine.Market.Servers.OKX
                     SendLogMessage($"GetOptionSecurities - {json}", LogMessageType.Error);
                 }
 
-                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+                SecurityUnderlyingResponse baseSecuritiesResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityUnderlyingResponse());
 
-                if (ret == null)
+                if (baseSecuritiesResponse == null ||
+                    baseSecuritiesResponse.data == null ||
+                    baseSecuritiesResponse.data.Count == 0)
                 {
-                    ret = securityResponse;
+                    SendLogMessage($"GetOptionSecurities - Empty underlying", LogMessageType.Error);
+                    return null;
                 }
-                else
-                {
-                    ret.data.AddRange(securityResponse.data);
-                }
+
+                var baseSecurities = baseSecuritiesResponse.data[0];
+
+                return baseSecurities;
             }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                return null;
+            }
+        }
 
-            return ret;
+        private SecurityResponse GetOptionSecurities(List<string> baseSecurities)
+        {
+            try
+            {
+                SecurityResponse ret = null;
+
+                for (int k = 0; k < baseSecurities.Count; k++)
+                {
+                    string baseSecurity = baseSecurities[k];
+
+                    HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=OPTION&uly=" + baseSecurity).Result;
+
+                    string json = response.Content.ReadAsStringAsync().Result;
+
+                    if (response.StatusCode != HttpStatusCode.OK)
+                    {
+                        SendLogMessage($"GetOptionSecurities - {json}", LogMessageType.Error);
+                    }
+
+                    SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+
+                    if (ret == null)
+                    {
+                        ret = securityResponse;
+                    }
+                    else
+                    {
+                        ret.data.AddRange(securityResponse.data);
+                    }
+                }
+
+                return ret;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         private SecurityResponse GetSpotSecurities()
         {
-            HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SPOT").Result;
-            string json = response.Content.ReadAsStringAsync().Result;
-
-            if (response.StatusCode != HttpStatusCode.OK)
+            try
             {
-                SendLogMessage($"GetSpotSecurities - {json}", LogMessageType.Error);
+                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SPOT").Result;
+                string json = response.Content.ReadAsStringAsync().Result;
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage($"GetSpotSecurities - {json}", LogMessageType.Error);
+                }
+
+                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+
+                return securityResponse;
             }
-
-            SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
-
-            return securityResponse;
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         private List<Security> _securities = new List<Security>();
@@ -352,6 +389,7 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     security.NameClass = "SPOT_" + item.quoteCcy;
                 }
+
                 if (securityType == SecurityType.Futures)
                 {
                     if (item.instId.Contains("-USD-"))
@@ -363,12 +401,13 @@ namespace OsEngine.Market.Servers.OKX
                         security.NameClass = "SWAP_" + item.settleCcy;
                     }
                 }
-                if (securityType == SecurityType.Option) 
+
+                if (securityType == SecurityType.Option)
                 {
                     if (item.quoteCcy == "")
                     {
                         security.NameClass = "OPTION_USD";
-                    } 
+                    }
                     else
                     {
                         security.NameClass = "OPTION_" + item.quoteCcy;
@@ -376,13 +415,10 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 security.Exchange = ServerType.OKX.ToString();
-
                 security.NameId = item.instId;
                 security.SecurityType = securityType;
-
                 security.PriceStep = item.tickSz.ToDecimal();
                 security.PriceStepCost = security.PriceStep;
-
 
                 if (security.PriceStep < 1)
                 {
@@ -413,7 +449,7 @@ namespace OsEngine.Market.Servers.OKX
         public List<Portfolio> Portfolios;
 
         private bool _portfolioIsStarted = true;
-       
+
         public void GetPortfolios()
         {
         }
@@ -428,7 +464,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-           return GetLastCandleHistoryRecursive(security, timeFrameBuilder, candleCount, 1);
+            return GetLastCandleHistoryRecursive(security, timeFrameBuilder, candleCount, 1);
         }
 
         public List<Candle> GetLastCandleHistoryRecursive(
@@ -478,7 +514,7 @@ namespace OsEngine.Market.Servers.OKX
 
             }
 
-            if(countOfCalls < 5)
+            if (countOfCalls < 5)
             {
                 countOfCalls++;
                 return GetLastCandleHistoryRecursive(security, timeFrameBuilder, candleCount, countOfCalls);
@@ -489,45 +525,53 @@ namespace OsEngine.Market.Servers.OKX
 
         private CandlesResponse GetResponseCandles(string nameSec, TimeSpan tf)
         {
-
-            int NumberCandlesToLoad = GetCountCandlesToLoad();
-
-            string bar = GetStringBar(tf);
-
-            CandlesResponse candlesResponse = new CandlesResponse();
-            candlesResponse.data = new List<List<string>>();
-
-            do
+            try
             {
-                int limit = NumberCandlesToLoad;
-                if (NumberCandlesToLoad > 100)
+                int NumberCandlesToLoad = GetCountCandlesToLoad();
+
+                string bar = GetStringBar(tf);
+
+                CandlesResponse candlesResponse = new CandlesResponse();
+                candlesResponse.data = new List<List<string>>();
+
+                do
                 {
-                    limit = 100;
-                }
+                    int limit = NumberCandlesToLoad;
 
-                string after = String.Empty;
+                    if (NumberCandlesToLoad > 100)
+                    {
+                        limit = 100;
+                    }
 
-                if (candlesResponse.data.Count != 0)
-                {
-                    after = $"&after={candlesResponse.data[candlesResponse.data.Count - 1][0]}";
-                }
+                    string after = String.Empty;
 
-                string url = _baseUrl + $"/api/v5/market/history-candles?instId={nameSec}&bar={bar}&limit={limit}" + after;
+                    if (candlesResponse.data.Count != 0)
+                    {
+                        after = $"&after={candlesResponse.data[candlesResponse.data.Count - 1][0]}";
+                    }
 
-                HttpResponseMessage Response = _httpClient.GetAsync(url).Result;
-                string json = Response.Content.ReadAsStringAsync().Result;
-                candlesResponse.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponse()).data);
+                    string url = _baseUrl + $"/api/v5/market/history-candles?instId={nameSec}&bar={bar}&limit={limit}" + after;
 
-                if (Response.StatusCode != HttpStatusCode.OK)
-                {
-                    SendLogMessage($"GetResponseCandles - {json}", LogMessageType.Error);
-                }
+                    HttpResponseMessage Response = _httpClient.GetAsync(url).Result;
+                    string json = Response.Content.ReadAsStringAsync().Result;
+                    candlesResponse.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponse()).data);
 
-                NumberCandlesToLoad -= limit;
+                    if (Response.StatusCode != HttpStatusCode.OK)
+                    {
+                        SendLogMessage($"GetResponseCandles - {json}", LogMessageType.Error);
+                    }
 
-            } while (NumberCandlesToLoad > 0);
+                    NumberCandlesToLoad -= limit;
 
-            return candlesResponse;
+                } while (NumberCandlesToLoad > 0);
+
+                return candlesResponse;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
 
         private int GetCountCandlesToLoad()
@@ -573,26 +617,30 @@ namespace OsEngine.Market.Servers.OKX
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            if(timeFrameBuilder.TimeFrame == TimeFrame.Min1
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
+            if (timeFrameBuilder.TimeFrame == TimeFrame.Min1
                 || timeFrameBuilder.TimeFrame == TimeFrame.Min2
                 || timeFrameBuilder.TimeFrame == TimeFrame.Min10)
             {
                 return null;
             }
 
-            if(actualTime > endTime)
+            if (actualTime > endTime)
             {
                 return null;
             }
 
-            if(startTime > endTime)
+            if (startTime > endTime)
             {
                 return null;
             }
 
-            if (endTime > DateTime.Now)
+            if (endTime > DateTime.UtcNow)
             {
-                endTime = DateTime.Now;
+                endTime = DateTime.UtcNow;
             }
 
             int CountCandlesNeedToLoad = GetCountCandlesFromTimeInterval(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
@@ -653,43 +701,64 @@ namespace OsEngine.Market.Servers.OKX
 
         private CandlesResponse GetResponseDataCandles(string nameSec, TimeSpan tf, int NumberCandlesToLoad, long DataEnd)
         {
-            string bar = GetStringBar(tf);
+            _rateGateCandles.WaitToProceed();
 
-            CandlesResponse candlesResponse = new CandlesResponse();
-            candlesResponse.data = new List<List<string>>();
-
-            do
+            try
             {
-                int limit = NumberCandlesToLoad;
-                if (NumberCandlesToLoad > 100)
+                string bar = GetStringBar(tf);
+
+                CandlesResponse candlesResponse = new CandlesResponse();
+                candlesResponse.data = new List<List<string>>();
+
+                //Thread.Sleep(1000);
+
+                do
                 {
-                    limit = 100;
-                }
+                    _rateGateCandles.WaitToProceed();
 
-                string after = $"&after={Convert.ToString(DataEnd)}";
+                    int limit = NumberCandlesToLoad;
+                    if (NumberCandlesToLoad > 100)
+                    {
+                        limit = 100;
+                    }
 
-                if (candlesResponse.data.Count != 0)
-                {
-                    after = $"&after={candlesResponse.data[candlesResponse.data.Count - 1][0]}";
-                }
+                    string after = $"&after={Convert.ToString(DataEnd)}";
 
+                    if (candlesResponse.data.Count != 0)
+                    {
+                        after = $"&after={candlesResponse.data[candlesResponse.data.Count - 1][0]}";
+                    }
 
-                string url = _baseUrl + $"/api/v5/market/history-candles?instId={nameSec}&bar={bar}&limit={limit}" + after;
+                    string url = _baseUrl + $"/api/v5/market/history-candles?instId={nameSec}&bar={bar}&limit={limit}" + after;
 
-                HttpResponseMessage Response = _httpClient.GetAsync(url).Result;
-                string json = Response.Content.ReadAsStringAsync().Result;
-                candlesResponse.data.AddRange(JsonConvert.DeserializeAnonymousType(json, new CandlesResponse()).data);
+                    RestClient client = new RestClient(url);
+                    RestRequest request = new RestRequest(Method.GET);
+                    IRestResponse Response = client.Execute(request);
 
-                if (Response.StatusCode != HttpStatusCode.OK)
-                {
-                    SendLogMessage($"GetResponseDataCandles - {json}", LogMessageType.Error);
-                }
+                    //HttpResponseMessage Response = _httpClient.GetAsync(url).Result;
+                    //string json = Response.Content.ReadAsStringAsync().Result;
 
-                NumberCandlesToLoad -= limit;
+                    if (Response.StatusCode == HttpStatusCode.OK)
+                    {
+                        candlesResponse.data.AddRange(JsonConvert.DeserializeAnonymousType(Response.Content, new CandlesResponse()).data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetResponseDataCandles - {Response.Content}", LogMessageType.Error);
+                    }
 
-            } while (NumberCandlesToLoad > 0);
+                    NumberCandlesToLoad -= limit;
 
-            return candlesResponse;
+                } while (NumberCandlesToLoad > 0);
+
+                return candlesResponse;
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+
+            return null;
         }
 
         private string GetStringBar(TimeSpan tf)
@@ -726,41 +795,59 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 6 WebSocket creation
 
-        private WebSocket _webSocketPublic;
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
 
         private WebSocket _webSocketPrivate;
 
-        private bool _publicSocketOpen = false;
-
-        private bool _privateSocketOpen = false;
-               
-        private void CreateWebSocketConnection()
+        private void CreatePublicWebSocketConnect()
         {
             try
             {
-                _publicSocketOpen = false;
-                _privateSocketOpen = false;
-
-                if (_webSocketPublic != null)
+                if (FIFOListWebSocketPublicMessage == null)
                 {
-                    return;
+                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                 }
 
-                _webSocketPublic = new WebSocket(_webSocketUrlPublic);
-                _webSocketPublic.SslConfiguration.EnabledSslProtocols
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private WebSocket CreateNewPublicSocket()
+        {
+            try
+            {
+                WebSocket webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
+                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Ssl3
                     | System.Security.Authentication.SslProtocols.Tls11
                     | System.Security.Authentication.SslProtocols.None
                     | System.Security.Authentication.SslProtocols.Tls12
                     | System.Security.Authentication.SslProtocols.Tls13
                     | System.Security.Authentication.SslProtocols.Tls;
-                _webSocketPublic.EmitOnPing = true;
-                _webSocketPublic.OnOpen += WebSocketPublic_Opened;
-                _webSocketPublic.OnClose += WebSocketPublic_Closed;
-                _webSocketPublic.OnMessage += WebSocketPublic_MessageReceived;
-                _webSocketPublic.OnError += WebSocketPublic_Error;
-                _webSocketPublic.Connect();
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += WebSocketPublic_Opened;
+                webSocketPublicNew.OnClose += WebSocketPublic_Closed;
+                webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
+                webSocketPublicNew.OnError += WebSocketPublic_Error;
+                webSocketPublicNew.Connect();
 
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void CreatePrivateWebSocketConnect()
+        {
+            try
+            {
                 if (_webSocketPrivate != null)
                 {
                     return;
@@ -793,18 +880,29 @@ namespace OsEngine.Market.Servers.OKX
             {
                 try
                 {
-                    _webSocketPublic.OnOpen -= WebSocketPublic_Opened;
-                    _webSocketPublic.OnClose -= WebSocketPublic_Closed;
-                    _webSocketPublic.OnMessage -= WebSocketPublic_MessageReceived;
-                    _webSocketPublic.OnError -= WebSocketPublic_Error;
-                    _webSocketPublic.CloseAsync();
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= WebSocketPublic_Opened;
+                        webSocketPublic.OnClose -= WebSocketPublic_Closed;
+                        webSocketPublic.OnMessage -= WebSocketPublic_MessageReceived;
+                        webSocketPublic.OnError -= WebSocketPublic_Error;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+                        webSocketPublic = null;
+                    }
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocketPublic = null;
+                _webSocketPublic.Clear();
+
             }
 
             if (_webSocketPrivate != null)
@@ -830,27 +928,50 @@ namespace OsEngine.Market.Servers.OKX
 
         private void CheckSocketsActivate()
         {
-            lock (_socketActivateLocker)
+            try
             {
-                if (_publicSocketOpen
-                    && _privateSocketOpen
-                    && ServerStatus == ServerConnectStatus.Disconnect)
+                lock (_socketActivateLocker)
                 {
-                    ServerStatus = ServerConnectStatus.Connect;
-
-                    if (ConnectEvent != null)
+                    if (_webSocketPrivate == null
+                       || _webSocketPrivate?.ReadyState != WebSocketState.Open)
                     {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (_webSocketPublic.Count == 0)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    WebSocket webSocketPublic = _webSocketPublic[0];
+
+                    if (webSocketPublic == null
+                        || webSocketPublic?.ReadyState != WebSocketState.Open)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Connect;
                         ConnectEvent();
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
         }
 
         private void CreateAuthMessageWebSockets()
-        { 
+        {
             try
             {
-                _webSocketPrivate.Send(Encryptor.MakeAuthRequest(_publicKey, _secretKey, _password));                         
+                _webSocketPrivate.Send(Encryptor.MakeAuthRequest(_publicKey, _secretKey, _password));
             }
             catch (Exception ex)
             {
@@ -884,7 +1005,7 @@ namespace OsEngine.Market.Servers.OKX
             string url = $"{_baseUrl}{"/api/v5/account/set-position-mode"}";
             string bodyStr = JsonConvert.SerializeObject(requestParams);
             HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr));
-           
+
             HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
             string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -895,7 +1016,7 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage($"PushPositionMode - {message.data[0].sMsg}", LogMessageType.Error);
             }
 
-            return contentStr;           
+            return contentStr;
         }
 
         #endregion
@@ -909,7 +1030,6 @@ namespace OsEngine.Market.Servers.OKX
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     SendLogMessage("OKX WebSocket Public connection open", LogMessageType.System);
-                    _publicSocketOpen = true;
                     CheckSocketsActivate();
                 }
             }
@@ -986,9 +1106,8 @@ namespace OsEngine.Market.Servers.OKX
         private void WebSocketPrivate_Opened(object sender, EventArgs e)
         {
             try
-            {                
+            {
                 SendLogMessage("OKX WebSocket Private connection open", LogMessageType.System);
-                _privateSocketOpen = true;
                 CheckSocketsActivate();
                 CreateAuthMessageWebSockets();
             }
@@ -1050,7 +1169,7 @@ namespace OsEngine.Market.Servers.OKX
             {
                 string exception = e.Exception.ToString();
 
-                if(exception.Contains("0x80004005") 
+                if (exception.Contains("0x80004005")
                     || exception.Contains("no address was supplied"))
                 {
                     return;
@@ -1059,7 +1178,7 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage(exception, LogMessageType.Error);
             }
         }
-     
+
         #endregion
 
         #region 8 WebSocket check alive
@@ -1079,26 +1198,24 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         continue;
                     }
-                                       
-                    if (_webSocketPublic != null &&
-                    (_webSocketPublic.ReadyState == WebSocketState.Open)
-                    )
+
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        if (_timeToSendPingPublic.AddSeconds(25) < DateTime.Now)
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            _webSocketPublic.Send("ping");
-                            _timeToSendPingPublic = DateTime.Now;
+                            if (_timeToSendPingPublic.AddSeconds(25) < DateTime.Now)
+                            {
+                                webSocketPublic.Send("ping");
+                                _timeToSendPingPublic = DateTime.Now;
+                            }
+                        }
+                        else
+                        {
+                            Disconnect();
                         }
                     }
-                    else
-                    {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
-                    }
-                   
+
                     if (_webSocketPrivate != null &&
                     (_webSocketPrivate.ReadyState == WebSocketState.Open)
                     )
@@ -1109,15 +1226,10 @@ namespace OsEngine.Market.Servers.OKX
                             _timeToSendPingPrivate = DateTime.Now;
                         }
                     }
-
                     else
                     {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
-                    }                   
+                        Disconnect();
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -1166,8 +1278,44 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                SubscribeTrades(security);
-                SubscribeDepths(security);
+                if (_webSocketPublic.Count == 0)
+                {
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                if (webSocketPublic.ReadyState == WebSocketState.Open
+                    && _subscribedSecurities.Count != 0
+                    && _subscribedSecurities.Count % 50 == 0)
+                {
+                    // creating a new socket
+                    WebSocket newSocket = CreateNewPublicSocket();
+
+                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                    while (newSocket.ReadyState != WebSocketState.Open)
+                    {
+                        Thread.Sleep(1000);
+
+                        if (timeEnd < DateTime.Now)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (newSocket.ReadyState == WebSocketState.Open)
+                    {
+                        _webSocketPublic.Add(newSocket);
+                        webSocketPublic = newSocket;
+                    }
+                }
+
+                if (webSocketPublic != null)
+                {
+                    SubscribeTrades(security, webSocketPublic);
+                    SubscribeDepths(security, webSocketPublic);
+
+                }
 
                 if (_useOptions && security.SecurityType == SecurityType.Option)
                 {
@@ -1175,17 +1323,17 @@ namespace OsEngine.Market.Servers.OKX
 
                     _rateGateSubscribe.WaitToProceed();
 
-                    SubscribeOpenInterest(security.Name);
-                    SubscribeMarkPrice(security.Name);
+                    SubscribeOpenInterest(security.Name, webSocketPublic);
+                    SubscribeMarkPrice(security.Name, webSocketPublic);
 
                     securityName = securityName.Substring(0, 7);
 
                     string key = securityName + "-OPTION";
                     if (!_subscribedSecurities.ContainsKey(key))
                     {
-                        SubscribeOptionSummary(securityName);
+                        SubscribeOptionSummary(securityName, webSocketPublic);
                         //for underlying price
-                        SubscribeMarkPrice(securityName + "-SWAP");
+                        SubscribeMarkPrice(securityName + "-SWAP", webSocketPublic);
 
                         _subscribedSecurities.Add(key, false);
                     }
@@ -1201,8 +1349,8 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public void SubscribeTrades(Security security)
-        {           
+        public void SubscribeTrades(Security security, WebSocket webSocketPublic)
+        {
             RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
             requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
             requestTrade.args[0].channel = "trades";
@@ -1210,35 +1358,33 @@ namespace OsEngine.Market.Servers.OKX
 
             string json = JsonConvert.SerializeObject(requestTrade);
 
-            _webSocketPublic.Send(json);                      
+            webSocketPublic.Send(json);
         }
 
-        public void SubscribeDepths(Security security)
+        public void SubscribeDepths(Security security, WebSocket webSocketPublic)
         {
             RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
             requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
             requestTrade.args[0].channel = "books5";
             requestTrade.args[0].instId = security.Name;
 
+            // webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
             string json = JsonConvert.SerializeObject(requestTrade);
-
-            _webSocketPublic.Send(json);           
+            webSocketPublic.Send(json);
         }
 
-        public void SubscribeOptionSummary(string securityName)
+        public void SubscribeOptionSummary(string securityName, WebSocket webSocketPublic)
         {
             RequestSubscribe<SubscribeArgsOption> requestTrade = new RequestSubscribe<SubscribeArgsOption>();
             requestTrade.args = new List<SubscribeArgsOption>() { new SubscribeArgsOption() };
             requestTrade.args[0].channel = "opt-summary";
             requestTrade.args[0].instFamily = securityName; //"BTC-USD"
-            
 
             string json = JsonConvert.SerializeObject(requestTrade);
-
-            _webSocketPublic.Send(json);
+            webSocketPublic.Send(json);
         }
 
-        public void SubscribeOpenInterest(string name)
+        public void SubscribeOpenInterest(string name, WebSocket webSocketPublic)
         {
             RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
             requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
@@ -1247,10 +1393,10 @@ namespace OsEngine.Market.Servers.OKX
 
             string json = JsonConvert.SerializeObject(requestTrade);
 
-            _webSocketPublic.Send(json);
+            webSocketPublic.Send(json);
         }
 
-        public void SubscribeMarkPrice(string name)
+        public void SubscribeMarkPrice(string name, WebSocket webSocketPublic)
         {
             RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
             requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
@@ -1258,8 +1404,7 @@ namespace OsEngine.Market.Servers.OKX
             requestTrade.args[0].instId = name; //"LTC-USD-SWAP"
 
             string json = JsonConvert.SerializeObject(requestTrade);
-
-            _webSocketPublic.Send(json);
+            webSocketPublic.Send(json);
         }
 
         private void SubscribePrivate()
@@ -1283,51 +1428,63 @@ namespace OsEngine.Market.Servers.OKX
 
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic != null
-                && _webSocketPublic.ReadyState == WebSocketState.Open)
+            try
             {
-                try
+                for (int i = 0; i < _webSocketPublic.Count; i++)
                 {
-                    if (_subscribedSecurities != null)
-                    {
-                        foreach (var item in _subscribedSecurities)
-                        {
-                            string name = item.Key;
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
+                    WebSocket webSocketPublic = _webSocketPublic[i];
 
-                            if (item.Value)
+                    try
+                    {
+                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        {
+                            if (_subscribedSecurities != null)
                             {
-                                //option
-                                _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
-                                _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
+                                foreach (var item in _subscribedSecurities)
+                                {
+                                    string name = item.Key;
+                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
+                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
+
+                                    if (item.Value)
+                                    {
+                                        //option
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
+                                    }
+                                }
+                            }
+
+                            if (_baseOptionSerurities != null)
+                            {
+                                foreach (string name in _baseOptionSerurities)
+                                {
+                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
+                                    webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
+                                }
                             }
                         }
                     }
-
-                    if (_baseOptionSerurities != null)
+                    catch (Exception ex)
                     {
-                        foreach (string name in _baseOptionSerurities)
-                        {
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"opt-summary\",\"instFamily\": \"{name}\"}}]}}");
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}-SWAP\"}}]}}");
-                        }
+                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                     }
                 }
-                catch
-                {
-                    // ignore
-                }
+            }
+            catch
+            {
+                // ignore
             }
 
-            if (_webSocketPrivate != null 
+
+            if (_webSocketPrivate != null
                 && _webSocketPrivate.ReadyState == WebSocketState.Open)
             {
                 try
                 {
                     _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"account\"}}]}}");
                     _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"positions\",\"instType\": \"ANY\"}}]}}");
-                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");                                       
+                    _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"orders\",\"instType\": \"ANY\"}}]}}");
                 }
                 catch
                 {
@@ -1379,7 +1536,7 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         continue;
                     }
-                                        
+
                     ResponseWsMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<object>());
 
                     if (action.@event != null && action.@event.Contains("subscribe"))
@@ -1390,39 +1547,42 @@ namespace OsEngine.Market.Servers.OKX
                     else if (action.arg != null)
                     {
                         if (action.arg.channel.Equals("books5"))
-                        {                            
+                        {
                             UpdateMarketDepth(message);
                             continue;
                         }
+
                         if (action.arg.channel.Equals("trades"))
-                        {                            
+                        {
                             UpdateTrades(message);
                             continue;
                         }
+
                         if (action.arg.channel.Equals("opt-summary"))
                         {
                             UpdateOptionSummary(message);
                             continue;
                         }
+
                         if (action.arg.channel.Equals("open-interest"))
                         {
                             UpdateOpenInterest(message);
                             continue;
                         }
+
                         if (action.arg.channel.Equals("mark-price"))
                         {
                             UpdateMarkPrice(message);
                             continue;
                         }
-                    }  
+                    }
                     else
                     {
                         if (action.@event != null && action.@event.Equals("error"))
                         {
-                            SendLogMessage("[WS Public] Got error msg: "+action.msg, LogMessageType.Error);
+                            SendLogMessage("[WS Public] Got error msg: " + action.msg, LogMessageType.Error);
                         }
-                        
-                    }                  
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -1460,7 +1620,7 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         continue;
                     }
-                                        
+
                     ResponseWsMessageAction<object> action = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<object>());
 
                     if (action.arg != null)
@@ -1480,8 +1640,7 @@ namespace OsEngine.Market.Servers.OKX
                             UpdateOrder(message);
                             continue;
                         }
-
-                    }                   
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -1711,14 +1870,9 @@ namespace OsEngine.Market.Servers.OKX
 
                 marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.data[0].ts));
 
-                if (marketDepth.Time < _lastTimeMd)
+                if (marketDepth.Time <= _lastTimeMd)
                 {
-                    marketDepth.Time = _lastTimeMd;
-                }
-                else if (marketDepth.Time == _lastTimeMd)
-                {
-                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-                    marketDepth.Time = _lastTimeMd;
+                    marketDepth.Time = _lastTimeMd.AddTicks(1);
                 }
 
                 _lastTimeMd = marketDepth.Time;
@@ -1793,7 +1947,7 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         newOrder = OrderUpdate(OrderResponse.data[i]);
                     }
-                                        
+
                     if (newOrder == null)
                     {
                         continue;
@@ -1843,7 +1997,7 @@ namespace OsEngine.Market.Servers.OKX
             }
 
             int.TryParse(item.clOrdId, out newOrder.NumberUser);
-                 
+
             newOrder.NumberMarket = item.ordId.ToString();
             newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
             newOrder.Volume = item.sz.ToDecimal();
@@ -1903,7 +2057,6 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-
                 ResponseWsMessageAction<List<ResponseWsGreeks>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseWsGreeks>>());
 
                 if (response.data == null || response.data.Count == 0)
@@ -1961,7 +2114,7 @@ namespace OsEngine.Market.Servers.OKX
             public string OpenInterest;
         }
 
-        private ConcurrentDictionary<string, AdditionalOptionData> _additionalOptionData = 
+        private ConcurrentDictionary<string, AdditionalOptionData> _additionalOptionData =
             new ConcurrentDictionary<string, AdditionalOptionData>();
 
         private ConcurrentDictionary<string, string> _underlyingPrice =
@@ -1971,7 +2124,6 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-
                 ResponseWsMessageAction<List<ResponseWsOpenInterest>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseWsOpenInterest>>());
 
                 if (response.data == null || response.data.Count == 0)
@@ -2002,7 +2154,6 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-
                 ResponseWsMessageAction<List<ResponseWsMarkPrice>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseWsMarkPrice>>());
 
                 if (response.data == null || response.data.Count == 0)
@@ -2010,12 +2161,12 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-
                 for (int i = 0; i < response.data.Count; i++)
                 {
                     ResponseWsMarkPrice data = response.data[i];
 
-                    if (data == null) {
+                    if (data == null)
+                    {
                         continue;
                     }
 
@@ -2028,7 +2179,6 @@ namespace OsEngine.Market.Servers.OKX
                     }
                     else
                     {
-
                         if (!_additionalOptionData.ContainsKey(data.instId))
                         {
                             _additionalOptionData.TryAdd(data.instId, new AdditionalOptionData());
@@ -2060,8 +2210,12 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 11 Trade
 
+        private RateGate _rateGateOrder = new RateGate(3, TimeSpan.FromMilliseconds(100));
+
         public void SendOrder(Order order)
-        {           
+        {
+            _rateGateOrder.WaitToProceed();
+
             if (order.SecurityNameCode.Contains("SWAP"))
             {
                 SendOrderSwap(order);
@@ -2069,7 +2223,7 @@ namespace OsEngine.Market.Servers.OKX
             else
             {
                 SendOrderSpot(order);
-            }                              
+            }
         }
 
         private void SendOrderSpot(Order order)
@@ -2123,7 +2277,11 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         posSide = order.Side == Side.Buy ? "short" : "long";
                     }
-                }                
+                }
+                else
+                {
+                    //posSide = order.Side == Side.Buy ? "long" : "short";
+                }
 
                 Dictionary<string, dynamic> orderRequest = new Dictionary<string, dynamic>();
 
@@ -2171,6 +2329,8 @@ namespace OsEngine.Market.Servers.OKX
 
         public void CancelOrder(Order order)
         {
+            _rateGateOrder.WaitToProceed();
+
             try
             {
                 Dictionary<string, dynamic> orderRequest = new Dictionary<string, dynamic>();
@@ -2223,14 +2383,14 @@ namespace OsEngine.Market.Servers.OKX
         {
             List<Order> orders = GetActiveOrders();
 
-            if(orders == null)
+            if (orders == null)
             {
                 return;
             }
 
-            for(int i = 0;i < orders.Count;i++)
+            for (int i = 0; i < orders.Count; i++)
             {
-                if(MyOrderEvent != null)
+                if (MyOrderEvent != null)
                 {
                     MyOrderEvent(orders[i]);
                 }
@@ -2239,37 +2399,50 @@ namespace OsEngine.Market.Servers.OKX
 
         public void GetOrderStatus(Order order)
         {
-            string url;
+            _rateGateOrder.WaitToProceed();
 
-            if(string.IsNullOrEmpty(order.NumberMarket))
+            try
             {
-                url =
-                    $"{_baseUrl}/api/v5/trade/order"
-                    + $"?clOrdId={order.NumberUser}&"
-                    + $"instId={order.SecurityNameCode}";
-            }
-            else
-            {
-                url =
-                    $"{_baseUrl}/api/v5/trade/order"
-                    + $"?ordId={order.NumberMarket}&"
-                    + $"clOrdId={order.NumberUser}&"
-                    + $"instId={order.SecurityNameCode}";
-            }
+                string url;
 
-            HttpResponseMessage res = GetPrivateRequest(url);
-            string contentStr = res.Content.ReadAsStringAsync().Result;
+                if (string.IsNullOrEmpty(order.NumberMarket))
+                {
+                    url =
+                        $"{_baseUrl}/api/v5/trade/order"
+                        + $"?clOrdId={order.NumberUser}&"
+                        + $"instId={order.SecurityNameCode}";
+                }
+                else
+                {
+                    url =
+                        $"{_baseUrl}/api/v5/trade/order"
+                        + $"?ordId={order.NumberMarket}&"
+                        + $"clOrdId={order.NumberUser}&"
+                        + $"instId={order.SecurityNameCode}";
+                }
 
-            if (res.StatusCode != HttpStatusCode.OK)
-            {
-                SendLogMessage($"GetOrderStatus - {contentStr}", LogMessageType.Error);
-                return;
+
+                HttpResponseMessage res = GetPrivateRequest(url);
+                string contentStr = res.Content.ReadAsStringAsync().Result;
+
+                if (res.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage($"GetOrderStatus - {contentStr}", LogMessageType.Error);
+                    return;
+                }
+
+                UpdateOrder(contentStr);
             }
-            UpdateOrder(contentStr);
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetOrderStatus - {ex.Message}", LogMessageType.Error);
+            }
         }
 
         private List<Order> GetActiveOrders()
         {
+            _rateGateOrder.WaitToProceed();
+
             try
             {
                 string url = $"{_baseUrl}/api/v5/trade/orders-pending";
@@ -2303,6 +2476,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     orders.Add(newOrder);
                 }
+
                 return orders;
             }
             catch (Exception ex)
@@ -2312,13 +2486,12 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private RateGate _rateGateGenerateToTrade = new RateGate(1, TimeSpan.FromMilliseconds(300));
+        private RateGate _rateGateGenerateToTrade = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         private List<MyTrade> GenerateTradesToOrder(Order order, int CountOfCalls)
         {
             try
             {
-
                 _rateGateGenerateToTrade.WaitToProceed();
 
                 List<MyTrade> myTrades = new List<MyTrade>();
@@ -2383,10 +2556,9 @@ namespace OsEngine.Market.Servers.OKX
                     myTrade.Volume = item.fillSz.ToDecimal();
                 }
                 else
-                {// комиссия есть
-
+                {// there is a commission
                     if (item.instId.StartsWith(item.feeCcy))
-                    { // комиссия взята в торгуемой валюте, а не в валюте биржи
+                    { // the commission is taken in the traded currency, not in the exchange currency
                         myTrade.Volume = item.fillSz.ToDecimal() + item.fee.ToDecimal();
                     }
                     else
@@ -2423,8 +2595,8 @@ namespace OsEngine.Market.Servers.OKX
 
         public HttpResponseMessage GetPrivateRequest(string url)
         {
-            HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null)); 
-            return _client.GetAsync(url).Result;            
+            HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null));
+            return _client.GetAsync(url).Result;
         }
 
         #endregion
