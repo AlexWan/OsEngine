@@ -1895,6 +1895,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 requestRest.AddHeader("Timestamp", timeStamp);
                 requestRest.AddHeader("KEY", _publicKey);
                 requestRest.AddHeader("SIGN", sign);
+                requestRest.AddHeader("X-Gate-Channel-Id", "osa");
 
                 if (data != null)
                 {
