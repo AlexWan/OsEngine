@@ -419,6 +419,15 @@ namespace OsEngine.OsTrader.Panels
                         return false;
                     }
                 }
+
+                for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
+                {
+                    if (TabsScreener[i].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+
                 for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
                 {
                     if (TabsIndex[i].IsConnected == false)

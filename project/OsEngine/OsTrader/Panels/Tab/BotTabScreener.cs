@@ -655,6 +655,34 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Whether the connector is connected to download data
+        /// </summary>
+        public bool IsConnected
+        {
+            get
+            {
+                if (Tabs == null ||
+                    Tabs.Count == 0)
+                {
+                    return false;
+                }
+
+                List<BotTabSimple> tabs = Tabs;
+
+                for (int i2 = 0; i2 < tabs.Count; i2++)
+                {
+                    if (tabs[i2] == null
+                        || tabs[i2].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
         #endregion
 
         #region Working with tabs

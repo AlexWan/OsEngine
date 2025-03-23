@@ -1152,9 +1152,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         private string Concate(string valOne, string valTwo, string sign)
         {
             if (string.IsNullOrWhiteSpace(valOne) == false
-                && valOne.Length == 2
                 && string.IsNullOrWhiteSpace(valTwo) == true
-                && string.IsNullOrWhiteSpace(sign) == true)
+                && string.IsNullOrWhiteSpace(sign) == true
+                && (valOne.Length == 2 || valOne.Length == 3)
+                && valOne[0] == 'A')
             {// выбран один инструмент в качестве индекса
                 ValueSave exitVal = _valuesToFormula.Find(val => val.Name == valOne);
 
