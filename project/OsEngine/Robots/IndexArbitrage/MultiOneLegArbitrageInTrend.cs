@@ -25,7 +25,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             TabCreate(BotTabType.Screener);
             _screener = TabsScreener[0];
-            _screener.CreateCandleIndicator(1, "VolatilityAverage", null, "Prime");
+            _screener.CreateCandleIndicator(1, "VolatilityAverage", null, "Area2");
             _screener.CandleFinishedEvent += _screener_CandleFinishedEvent;
 
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });

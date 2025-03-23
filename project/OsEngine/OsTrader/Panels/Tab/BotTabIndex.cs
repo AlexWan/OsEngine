@@ -1151,6 +1151,51 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="sign">sign</param>
         private string Concate(string valOne, string valTwo, string sign)
         {
+            if (string.IsNullOrWhiteSpace(valOne) == false
+                && valOne.Length == 2
+                && string.IsNullOrWhiteSpace(valTwo) == true
+                && string.IsNullOrWhiteSpace(sign) == true)
+            {// выбран один инструмент в качестве индекса
+                ValueSave exitVal = _valuesToFormula.Find(val => val.Name == valOne);
+
+                if (exitVal == null)
+                {
+                    exitVal = new ValueSave();
+                    exitVal.Name = valOne;
+                    exitVal.ValueCandles = new List<Candle>();
+                    _valuesToFormula.Add(exitVal);
+                }
+
+                if (valOne[0] == 'A')
+                {
+                    int iOne = Convert.ToInt32(valOne.Split('A')[1]);
+
+                    if (iOne >= Tabs.Count)
+                    {
+                        return "";
+                    }
+
+                    List<Candle> candlesOne = Tabs[iOne].Candles(true);
+
+                    if (candlesOne != null
+                        && candlesOne.Count > CalculationDepth)
+                    {
+                        candlesOne = candlesOne.GetRange(candlesOne.Count - CalculationDepth, CalculationDepth);
+                    }
+
+                    TryAddTradeSecurity(Tabs[iOne].Security);
+
+                    if (PercentNormalization)
+                    {
+                        candlesOne = Normalization(candlesOne, valOne);
+                    }
+
+                    exitVal.ValueCandles = candlesOne;
+                }
+
+                return valOne;
+            }
+
             if (string.IsNullOrWhiteSpace(valOne))
             {
                 return valTwo;
@@ -1247,7 +1292,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     candlesOne = Normalization(candlesOne, valOne);
                 }
-
             }
             if (candlesOne == null)
             {
