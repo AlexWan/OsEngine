@@ -62,6 +62,11 @@ namespace OsEngine.Market.Servers
         {
             string spec = series.Specification;
 
+            if(string.IsNullOrEmpty(spec))
+            {
+                return;
+            }
+
             for (int i = 0; i < _series.Count; i++)
             {
                 if(_series[i] == null)

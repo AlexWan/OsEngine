@@ -238,6 +238,11 @@ namespace OsEngine.Entity
                     return _lastSpecification;
                 }
 
+                if(CandleSeriesRealization == null)
+                {
+                    return null;
+                }
+
                 _needToRebuildSpecification = false;
 
                 StringBuilder result = new StringBuilder();
