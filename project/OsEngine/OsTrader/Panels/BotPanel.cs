@@ -205,7 +205,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// show the chart window with deals
         /// </summary>
-        public void ShowChartDialog()
+        public BotPanelChartUi ShowChartDialog()
         {
             if (_chartUi == null)
             {
@@ -217,6 +217,8 @@ namespace OsEngine.OsTrader.Panels
             {
                 _chartUi.Activate();
             }
+
+            return _chartUi;
         }
 
         public BotPanelChartUi _chartUi;

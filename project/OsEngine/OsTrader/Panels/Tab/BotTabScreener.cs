@@ -118,11 +118,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         BotTabScreener curScreener = _screeners[i];
 
-                        if (curScreener.ServerType == ServerType.Optimizer)
-                        {
-                            continue;
-                        }
-
                         if (curScreener._host != null)
                         {
                             for (int i2 = 0; curScreener.Tabs != null &&
@@ -133,8 +128,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                             }
                         }
 
-                        _screeners[i].TryLoadTabs();
-                        _screeners[i].TryReLoadTabs();
+                        if(curScreener.ServerType != ServerType.Optimizer)
+                        {
+                            _screeners[i].TryLoadTabs();
+                            _screeners[i].TryReLoadTabs();
+                        }
                     }
                 }
                 catch (Exception ex)

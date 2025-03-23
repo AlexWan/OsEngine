@@ -2888,7 +2888,19 @@ namespace OsEngine.OsOptimizer
 
             BotPanel bot = _master.TestBot(fazeReport, fazeReport.Reports[e.RowIndex]);
 
-            bot.ShowChartDialog();
+            BotPanelChartUi ui = bot.ShowChartDialog();
+
+            ui.Closed += (sender, e) =>
+            {
+                try
+                {
+                    bot.Delete();
+                }
+                catch (Exception error)
+                {
+                    _master.SendLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            };
         }
 
         private void ShowParametersDialog(DataGridViewCellMouseEventArgs e)

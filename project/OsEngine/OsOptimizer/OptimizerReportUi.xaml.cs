@@ -138,7 +138,19 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
-            bot.ShowChartDialog();
+            BotPanelChartUi ui = bot.ShowChartDialog();
+
+            ui.Closed += (sender, e) =>
+            {
+                try
+                {
+                    bot.Delete();
+                }
+                catch(Exception error)
+                {
+                    _master.SendLogMessage(error.ToString(),LogMessageType.Error);
+                }
+            };
         }
 
         private void ShowParametersDialog(DataGridViewCellMouseEventArgs e)
