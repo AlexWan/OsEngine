@@ -1163,12 +1163,6 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                if (_bestBid == bestBid
-                    && _bestAsk == bestAsk)
-                {
-                    return;
-                }
-
                 _bestBid = bestBid;
                 _bestAsk = bestAsk;
 
@@ -1229,13 +1223,21 @@ namespace OsEngine.Market.Connectors
                     bestAsk = glass.Asks[0].Price;
                 }
 
-
                 if (EmulatorIsOn)
                 {
                     if (_emulator != null)
                     {
                         _emulator.ProcessBidAsc(bestAsk, bestBid);
                     }
+                }
+
+                if(bestAsk != 0)
+                {
+                    _bestAsk = bestAsk;
+                }
+                if(bestBid != 0)
+                {
+                    _bestBid = bestBid;
                 }
             }
             catch (Exception error)

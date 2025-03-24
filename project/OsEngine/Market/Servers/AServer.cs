@@ -1997,6 +1997,11 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
+                if(myDepth.SecurityNameCode == "LQDT")
+                {
+
+                }
+
                 TrySendMarketDepthEvent(myDepth);
                 TrySendBidAsk(myDepth);
 
