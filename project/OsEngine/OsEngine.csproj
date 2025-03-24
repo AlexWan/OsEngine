@@ -466,6 +466,8 @@
     <Compile Include="Market\Connectors\ConnectorNewsUi.xaml.cs">
       <DependentUpon>ConnectorNewsUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscribe.cs" />
+    <Compile Include="Market\Servers\Alor\Json\SocketMessageBase.cs" />
     <Compile Include="Market\Servers\Atp\AtpServer.cs" />
     <Compile Include="Market\Servers\Atp\AtpServerPermission.cs" />
     <Compile Include="Market\Servers\Atp\SecuritiesAtpUi.xaml.cs">
@@ -603,8 +605,6 @@
     <Compile Include="Market\Servers\Alor\Json\MyTradeAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\OrderAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\PositionOnBoardAlor.cs" />
-    <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscribe.cs" />
-    <Compile Include="Market\Servers\Alor\Json\SocketBaseMessage.cs" />
     <Compile Include="Market\Servers\Alor\Json\TokenResponse.cs" />
     <Compile Include="Market\Servers\Alor\Json\QuotesAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\TradesHistoryAlor.cs" />

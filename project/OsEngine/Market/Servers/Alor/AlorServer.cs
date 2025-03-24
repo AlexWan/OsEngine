@@ -69,8 +69,8 @@ namespace OsEngine.Market.Servers.Alor
             {
                 _securities.Clear();
                 _myPortfolios.Clear();
-                _subscribledSecurities.Clear();
-                _lastGetLiveTimeToketTime = DateTime.MinValue;
+                _subscribedSecurities.Clear();
+                _lastGetLiveTimeTokenTime = DateTime.MinValue;
 
                 SendLogMessage("Start Alor Connection", LogMessageType.System);
 
@@ -124,7 +124,7 @@ namespace OsEngine.Market.Servers.Alor
                     continue;
                 }
 
-                if (_lastGetLiveTimeToketTime.AddMinutes(20) < DateTime.Now)
+                if (_lastGetLiveTimeTokenTime.AddMinutes(20) < DateTime.Now)
                 {
                     if (GetCurSessionToken() == false)
                     {
@@ -138,7 +138,7 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        DateTime _lastGetLiveTimeToketTime = DateTime.MinValue;
+        DateTime _lastGetLiveTimeTokenTime = DateTime.MinValue;
 
         private bool GetCurSessionToken()
         {
@@ -154,7 +154,7 @@ namespace OsEngine.Market.Servers.Alor
                     string content = response.Content;
                     TokenResponse newLiveToken = JsonConvert.DeserializeAnonymousType(content, new TokenResponse());
 
-                    _lastGetLiveTimeToketTime = DateTime.Now;
+                    _lastGetLiveTimeTokenTime = DateTime.Now;
                     _apiTokenReal = newLiveToken.AccessToken;
                     return true;
                 }
@@ -175,7 +175,7 @@ namespace OsEngine.Market.Servers.Alor
         {
             _securities.Clear();
             _myPortfolios.Clear();
-            _lastGetLiveTimeToketTime = DateTime.MinValue;
+            _lastGetLiveTimeTokenTime = DateTime.MinValue;
 
             DeleteWebSocketConnection();
 
@@ -631,17 +631,17 @@ namespace OsEngine.Market.Servers.Alor
             ActivatePortfolioSocket();
         }
 
-        private void GetCurrentPortfolio(string portfoliId, string namePrefix)
+        private void GetCurrentPortfolio(string portfolioId, string namePrefix)
         {
             try
             {
                 string exchange = "MOEX";
-                if (portfoliId.StartsWith("E"))
+                if (portfolioId.StartsWith("E"))
                 {
                     exchange = "UNITED";
                 }
 
-                string endPoint = $"/md/v2/clients/{exchange}/{portfoliId}/summary?format=Simple";
+                string endPoint = $"/md/v2/clients/{exchange}/{portfolioId}/summary?format=Simple";
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
                 requestRest.AddHeader("accept", "application/json");
@@ -655,7 +655,7 @@ namespace OsEngine.Market.Servers.Alor
                     string content = response.Content;
                     AlorPortfolioRest portfolio = JsonConvert.DeserializeAnonymousType(content, new AlorPortfolioRest());
 
-                    ConvertToPortfolio(portfolio, portfoliId, namePrefix);
+                    ConvertToPortfolio(portfolio, portfolioId, namePrefix);
                 }
                 else
                 {
@@ -1241,7 +1241,7 @@ namespace OsEngine.Market.Servers.Alor
 
             // portfolio subscription
 
-            RequestSocketSubscribePoftfolio subObjPortf = new RequestSocketSubscribePoftfolio();
+            RequestSocketSubscribePortfolio subObjPortf = new RequestSocketSubscribePortfolio();
             subObjPortf.guid = GetGuid();
             subObjPortf.token = _apiTokenReal;
             subObjPortf.portfolio = portfolioName;
@@ -1254,7 +1254,7 @@ namespace OsEngine.Market.Servers.Alor
             string messagePortfolioSub = JsonConvert.SerializeObject(subObjPortf);
 
             AlorSocketSubscription portfSub = new AlorSocketSubscription();
-            portfSub.SubType = AlorSubType.Porfolio;
+            portfSub.SubType = AlorSubType.Portfolio;
             portfSub.ServiceInfo = portfolioName;
             portfSub.Guid = subObjPortf.guid;
 
@@ -1489,25 +1489,25 @@ namespace OsEngine.Market.Servers.Alor
 
         #region 9 WebSocket Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGateSubscribe = new RateGate(1, TimeSpan.FromMilliseconds(50));
 
-        List<Security> _subscribledSecurities = new List<Security>();
+        List<Security> _subscribedSecurities = new List<Security>();
 
         public void Subscrible(Security security)
         {
             try
             {
-                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    if (_subscribledSecurities[i].Name == security.Name)
+                    if (_subscribedSecurities[i].Name == security.Name)
                     {
                         return;
                     }
                 }
 
-                _rateGateSubscrible.WaitToProceed();
+                _rateGateSubscribe.WaitToProceed();
 
-                _subscribledSecurities.Add(security);
+                _subscribedSecurities.Add(security);
 
                 // trades subscription
 
@@ -1791,7 +1791,7 @@ namespace OsEngine.Market.Servers.Alor
                             continue;
                         }
 
-                        if (_subscriptionsPortfolio[i].SubType == AlorSubType.Porfolio)
+                        if (_subscriptionsPortfolio[i].SubType == AlorSubType.Portfolio)
                         {
                             UpDateMyPortfolio(baseMessage.data.ToString(), _subscriptionsPortfolio[i].ServiceInfo);
                             break;
@@ -2992,7 +2992,7 @@ namespace OsEngine.Market.Servers.Alor
     {
         Trades,
         MarketDepth,
-        Porfolio,
+        Portfolio,
         Positions,
         Orders,
         MyTrades

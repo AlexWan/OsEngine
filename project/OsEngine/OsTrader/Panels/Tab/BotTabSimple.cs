@@ -6173,21 +6173,48 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 return;
             }
-            if(_journal.SetNewMyTrade(trade))
+            if (_journal.SetNewMyTrade(trade) == false)
             {
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
+                return;
+            }
 
-                if (StartProgram == StartProgram.IsTester
-                    || StartProgram == StartProgram.IsOsOptimizer)
-                {
-                    List<Candle> candles = CandlesAll;
+            if (MyTradeEvent != null)
+            {
+                MyTradeEvent(trade);
+            }
 
-                    if (candles != null && candles.Count > 0)
+            if (StartProgram == StartProgram.IsTester
+                || StartProgram == StartProgram.IsOsOptimizer)
+            { // назначаем трейду номер свечи в тестере и оптимизаторе
+                List<Candle> candles = CandlesAll;
+
+                if (candles != null && candles.Count > 0)
+                {
+                    if(Connector.MyServer.ServerType == ServerType.Tester)
                     {
-                        trade.NumberCandleInTester = candles.Count-1;
+                        TesterServer server = (TesterServer)Connector.MyServer;
+
+                        if(server.TypeTesterData == TesterDataType.Candle)
+                        {
+                            trade.NumberCandleInTester = candles.Count;
+                        }
+                        else
+                        {
+                            trade.NumberCandleInTester = candles.Count - 1;
+                        }
+                    }
+                    if (Connector.MyServer.ServerType == ServerType.Optimizer)
+                    {
+                        OptimizerServer server = (OptimizerServer)Connector.MyServer;
+
+                        if (server.TypeTesterData == TesterDataType.Candle)
+                        {
+                            trade.NumberCandleInTester = candles.Count;
+                        }
+                        else
+                        {
+                            trade.NumberCandleInTester = candles.Count - 1;
+                        }
                     }
                 }
             }
