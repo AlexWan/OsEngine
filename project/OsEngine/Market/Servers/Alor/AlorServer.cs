@@ -635,7 +635,13 @@ namespace OsEngine.Market.Servers.Alor
         {
             try
             {
-                string endPoint = $"/md/v2/clients/MOEX/{portfoliId}/summary?format=Simple";
+                string exchange = "MOEX";
+                if (portfoliId.StartsWith("E"))
+                {
+                    exchange = "UNITED";
+                }
+
+                string endPoint = $"/md/v2/clients/{exchange}/{portfoliId}/summary?format=Simple";
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
                 requestRest.AddHeader("accept", "application/json");
@@ -1188,10 +1194,15 @@ namespace OsEngine.Market.Servers.Alor
         {
             // myTrades subscription
 
-            RequestSocketSubscribleMyTrades subObjTrades = new RequestSocketSubscribleMyTrades();
+            RequestSocketSubscribeMyTrades subObjTrades = new RequestSocketSubscribeMyTrades();
             subObjTrades.guid = GetGuid();
             subObjTrades.token = _apiTokenReal;
             subObjTrades.portfolio = portfolioName;
+
+            if (portfolioName.StartsWith("E"))
+            {
+                subObjTrades.exchange = "UNITED";
+            }
 
             string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
 
@@ -1206,10 +1217,15 @@ namespace OsEngine.Market.Servers.Alor
 
             // orders subscription
 
-            RequestSocketSubscribleOrders subObjOrders = new RequestSocketSubscribleOrders();
+            RequestSocketSubscribeOrders subObjOrders = new RequestSocketSubscribeOrders();
             subObjOrders.guid = GetGuid();
             subObjOrders.token = _apiTokenReal;
             subObjOrders.portfolio = portfolioName;
+
+            if (portfolioName.StartsWith("E"))
+            {
+                subObjOrders.exchange = "UNITED";
+            }
 
             string messageOrderSub = JsonConvert.SerializeObject(subObjOrders);
 
@@ -1225,10 +1241,15 @@ namespace OsEngine.Market.Servers.Alor
 
             // portfolio subscription
 
-            RequestSocketSubscriblePoftfolio subObjPortf = new RequestSocketSubscriblePoftfolio();
+            RequestSocketSubscribePoftfolio subObjPortf = new RequestSocketSubscribePoftfolio();
             subObjPortf.guid = GetGuid();
             subObjPortf.token = _apiTokenReal;
             subObjPortf.portfolio = portfolioName;
+
+            if (portfolioName.StartsWith("E"))
+            {
+                subObjPortf.exchange = "UNITED";
+            }
 
             string messagePortfolioSub = JsonConvert.SerializeObject(subObjPortf);
 
@@ -1244,10 +1265,15 @@ namespace OsEngine.Market.Servers.Alor
 
             // positions subscription
 
-            RequestSocketSubscriblePositions subObjPositions = new RequestSocketSubscriblePositions();
+            RequestSocketSubscribePositions subObjPositions = new RequestSocketSubscribePositions();
             subObjPositions.guid = GetGuid();
             subObjPositions.token = _apiTokenReal;
             subObjPositions.portfolio = portfolioName;
+
+            if (portfolioName.StartsWith("E"))
+            {
+                subObjPositions.exchange = "UNITED";
+            }
 
             string messagePositionsSub = JsonConvert.SerializeObject(subObjPositions);
 
@@ -1487,10 +1513,11 @@ namespace OsEngine.Market.Servers.Alor
 
                 //curl - X GET "https://apidev.alor.ru/md/v2/Securities/MOEX/LKOH/alltrades?format=Simple&from=1593430060&to=1593430560&fromId=7796897024&toId=7796897280&take=10" - H "accept: application/json"
 
-                RequestSocketSubscribleTrades subObjTrades = new RequestSocketSubscribleTrades();
+                RequestSocketSubscribeTrades subObjTrades = new RequestSocketSubscribeTrades();
                 subObjTrades.code = security.Name;
                 subObjTrades.guid = GetGuid();
                 subObjTrades.token = _apiTokenReal;
+
                 string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
 
                 AlorSocketSubscription tradeSub = new AlorSocketSubscription();
@@ -1503,7 +1530,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 // market depth subscription
 
-                RequestSocketSubscribleMarketDepth subObjMarketDepth = new RequestSocketSubscribleMarketDepth();
+                RequestSocketSubscribeMarketDepth subObjMarketDepth = new RequestSocketSubscribeMarketDepth();
                 subObjMarketDepth.code = security.Name;
                 subObjMarketDepth.guid = GetGuid();
                 subObjMarketDepth.token = _apiTokenReal;
@@ -1584,8 +1611,8 @@ namespace OsEngine.Market.Servers.Alor
                         continue;
                     }
 
-                    SoketMessageBase baseMessage = 
-                        JsonConvert.DeserializeAnonymousType(message, new SoketMessageBase());
+                    SocketMessageBase baseMessage = 
+                        JsonConvert.DeserializeAnonymousType(message, new SocketMessageBase());
 
                     if(baseMessage == null 
                         || string.IsNullOrEmpty(baseMessage.guid))
@@ -1748,8 +1775,8 @@ namespace OsEngine.Market.Servers.Alor
                         continue;
                     }
 
-                    SoketMessageBase baseMessage =
-                        JsonConvert.DeserializeAnonymousType(message, new SoketMessageBase());
+                    SocketMessageBase baseMessage =
+                        JsonConvert.DeserializeAnonymousType(message, new SocketMessageBase());
 
                     if (baseMessage == null
                         || string.IsNullOrEmpty(baseMessage.guid))
@@ -2465,8 +2492,9 @@ namespace OsEngine.Market.Servers.Alor
 
                 string portfolio = order.PortfolioNumber.Split('_')[0];
 
+                string exchange = "MOEX";
                 string endPoint 
-                    = $"/commandapi/warptrans/TRADE/v2/client/orders/{order.NumberMarket}?portfolio={portfolio}&exchange=MOEX&stop=false&jsonResponse=true&format=Simple";
+                    = $"/commandapi/warptrans/TRADE/v2/client/orders/{order.NumberMarket}?portfolio={portfolio}&exchange={exchange}&stop=false&jsonResponse=true&format=Simple";
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.DELETE);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
@@ -2698,7 +2726,13 @@ namespace OsEngine.Market.Servers.Alor
 
             try
             {
-                string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/orders?format=Simple";
+                string exchange = "MOEX";
+                if (portfolio.StartsWith("E"))
+                {
+                    exchange = "UNITED";
+                }
+
+                string endPoint = $"/md/v2/clients/{exchange}/" + portfolio + "/orders?format=Simple";
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
@@ -2927,7 +2961,8 @@ namespace OsEngine.Market.Servers.Alor
     public enum AlorAvailableExchanges
     {
         MOEX,
-        SPBX
+        SPBX,
+        UNITED
     }
 
     public class AlorSocketSubscription

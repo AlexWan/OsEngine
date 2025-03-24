@@ -603,8 +603,8 @@
     <Compile Include="Market\Servers\Alor\Json\MyTradeAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\OrderAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\PositionOnBoardAlor.cs" />
-    <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscrible.cs" />
-    <Compile Include="Market\Servers\Alor\Json\SoketBaseMessage.cs" />
+    <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscribe.cs" />
+    <Compile Include="Market\Servers\Alor\Json\SocketBaseMessage.cs" />
     <Compile Include="Market\Servers\Alor\Json\TokenResponse.cs" />
     <Compile Include="Market\Servers\Alor\Json\QuotesAlor.cs" />
     <Compile Include="Market\Servers\Alor\Json\TradesHistoryAlor.cs" />
