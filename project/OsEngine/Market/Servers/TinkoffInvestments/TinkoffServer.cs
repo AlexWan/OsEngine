@@ -1549,7 +1549,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                 OrderBookInstrument orderBookInstrument = new OrderBookInstrument();
                 orderBookInstrument.InstrumentId = security.NameId;
                 orderBookInstrument.Depth = 10;
-                orderBookInstrument.OrderBookType = OrderBookType.Unspecified;
+                orderBookInstrument.OrderBookType = _filterOutDealerTrades ? OrderBookType.Exchange : OrderBookType.All;
 
                 SubscribeOrderBookRequest subscribeOrderBookRequest = new SubscribeOrderBookRequest { SubscriptionAction = SubscriptionAction.Subscribe, Instruments = { orderBookInstrument } };
                 marketDataRequestOrderBooks.SubscribeOrderBookRequest = subscribeOrderBookRequest;
@@ -1732,15 +1732,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                         continue;
                     }
 
-
                     bool usePollingForMarketData = !_useStreamForMarketData;
-                    bool isWeekend = DateTime.Now.DayOfWeek == DayOfWeek.Sunday || DateTime.Now.DayOfWeek == DayOfWeek.Saturday;
-
-                    // по выходным маркетдата с внебиржевого рынока не транслируется (сделок нет, а "дилерский" стакан только для некоторых инструментов) и тогда включаем опрос и стакан L1 принудительно
-                    if (!_filterOutNonMarketData && isWeekend && _lastMarketDataTime.AddMilliseconds(1000) < DateTime.UtcNow)
-                    {
-                        usePollingForMarketData = true;
-                    }
 
                     if (usePollingForMarketData)
                     {
