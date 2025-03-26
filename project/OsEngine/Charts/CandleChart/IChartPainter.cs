@@ -182,7 +182,7 @@ namespace OsEngine.Charts.CandleChart
         /// прорисовать горизонтальную линию через весь чарт
         /// </summary>
         /// <param name="lineElement">line/линия</param>
-        void PaintHorisiontalLineOnArea(LineHorisontal lineElement);
+        void PaintHorizontalLineOnArea(LineHorisontal lineElement);
 
         /// <summary>
         /// draw a point on chart

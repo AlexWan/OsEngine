@@ -2651,7 +2651,7 @@ namespace OsEngine.Charts.CandleChart
                 }
                 if (element.TypeName() == "LineHorisontal")
                 {
-                    PaintHorisiontalLineOnArea((LineHorisontal)element);
+                    PaintHorizontalLineOnArea((LineHorisontal)element);
                 }
                 if (element.TypeName() == "Circle")
                 {
@@ -2902,7 +2902,7 @@ namespace OsEngine.Charts.CandleChart
         /// прорисовать горизонтальную линию через весь чарт
         /// </summary>
         /// <param name="lineElement">line/линия</param>
-        public void PaintHorisiontalLineOnArea(LineHorisontal lineElement)
+        public void PaintHorizontalLineOnArea(LineHorisontal lineElement)
         {
             if (lineElement.Value == 0)
             {
@@ -2918,7 +2918,7 @@ namespace OsEngine.Charts.CandleChart
             }
             if (_chart.InvokeRequired)
             {
-                _chart.Invoke(new Action<LineHorisontal>(PaintHorisiontalLineOnArea), lineElement);
+                _chart.Invoke(new Action<LineHorisontal>(PaintHorizontalLineOnArea), lineElement);
                 return;
             }
 
@@ -6264,17 +6264,14 @@ namespace OsEngine.Charts.CandleChart
             decimal minPriceStep = decimal.MaxValue;
             int countFive = 0;
 
-            CultureInfo culture = new CultureInfo("ru-RU");
-
-            for (int i = 0; i < candles.Count && i < 20; i++)
+            for (int i = 0; i < candles.Count && i < 50; i++)
             {
                 Candle candleN = candles[i];
 
-
-                decimal open = (decimal)Convert.ToDouble(candleN.Open);
-                decimal high = (decimal)Convert.ToDouble(candleN.High);
-                decimal low = (decimal)Convert.ToDouble(candleN.Low);
-                decimal close = (decimal)Convert.ToDouble(candleN.Close);
+                decimal open = candleN.Open;
+                decimal high = candleN.High;
+                decimal low = candleN.Low;
+                decimal close = candleN.Close;
 
                 if (open == 0 &&
                     high == 0 &&
@@ -6284,37 +6281,47 @@ namespace OsEngine.Charts.CandleChart
                     continue;
                 }
 
-                if (open.ToString(culture).Split(',').Length > 1 ||
-                    high.ToString(culture).Split(',').Length > 1 ||
-                    low.ToString(culture).Split(',').Length > 1 ||
-                    close.ToString(culture).Split(',').Length > 1)
+                string openS = open.ToStringWithNoEndZero();
+                string highS = high.ToStringWithNoEndZero();
+                string lowS = low.ToStringWithNoEndZero();
+                string closeS = close.ToStringWithNoEndZero();
+
+                openS = openS.Replace(".", ",");
+                highS = highS.Replace(".", ",");
+                lowS = lowS.Replace(".", ",");
+                closeS = closeS.Replace(".", ",");
+
+                if (openS.Split(',').Length > 1 ||
+                    highS.Split(',').Length > 1 ||
+                    lowS.Split(',').Length > 1 ||
+                    closeS.Split(',').Length > 1)
                 {
                     // if there's a physical part
                     // если имеет место вещественная часть
                     int length = 1;
 
-                    if (open.ToString(culture).Split(',').Length > 1 &&
-                        open.ToString(culture).Split(',')[1].Length > length)
+                    if (openS.Split(',').Length > 1 &&
+                        openS.Split(',')[1].Length > length)
                     {
-                        length = open.ToString(culture).Split(',')[1].Length;
+                        length = openS.Split(',')[1].Length;
                     }
 
-                    if (high.ToString(culture).Split(',').Length > 1 &&
-                        high.ToString(culture).Split(',')[1].Length > length)
+                    if (highS.Split(',').Length > 1 &&
+                        highS.Split(',')[1].Length > length)
                     {
-                        length = high.ToString(culture).Split(',')[1].Length;
+                        length = highS.Split(',')[1].Length;
                     }
 
-                    if (low.ToString(culture).Split(',').Length > 1 &&
-                        low.ToString(culture).Split(',')[1].Length > length)
+                    if (lowS.Split(',').Length > 1 &&
+                        lowS.Split(',')[1].Length > length)
                     {
-                        length = low.ToString(culture).Split(',')[1].Length;
+                        length = lowS.Split(',')[1].Length;
                     }
 
-                    if (close.ToString(culture).Split(',').Length > 1 &&
-                        close.ToString(culture).Split(',')[1].Length > length)
+                    if (closeS.Split(',').Length > 1 &&
+                        closeS.Split(',')[1].Length > length)
                     {
-                        length = close.ToString(culture).Split(',')[1].Length;
+                        length = closeS.Split(',')[1].Length;
                     }
 
                     if (length == 1 && minPriceStep > 0.1m)
@@ -6361,6 +6368,10 @@ namespace OsEngine.Charts.CandleChart
                     {
                         minPriceStep = 0.00000000001m;
                     }
+                    if (length == 12 && minPriceStep > 0.000000000001m)
+                    {
+                        minPriceStep = 0.000000000001m;
+                    }
                 }
                 else
                 {
@@ -6370,7 +6381,7 @@ namespace OsEngine.Charts.CandleChart
 
                     try
                     {
-                        for (int i3 = open.ToString(culture).Length - 1; open.ToString(culture)[i3] == '0'; i3--)
+                        for (int i3 = openS.Length - 1; openS[i3] == '0'; i3--)
                         {
                             length = length * 10;
                         }
@@ -6382,7 +6393,7 @@ namespace OsEngine.Charts.CandleChart
 
                     int lengthLow = 1;
 
-                    for (int i3 = low.ToString(culture).Length - 1; low.ToString(culture)[i3] == '0'; i3--)
+                    for (int i3 = lowS.Length - 1; lowS[i3] == '0'; i3--)
                     {
                         lengthLow = lengthLow * 10;
 
@@ -6394,7 +6405,7 @@ namespace OsEngine.Charts.CandleChart
 
                     int lengthHigh = 1;
 
-                    for (int i3 = high.ToString(culture).Length - 1; high.ToString(culture)[i3] == '0'; i3--)
+                    for (int i3 = highS.Length - 1; highS[i3] == '0'; i3--)
                     {
                         lengthHigh = lengthHigh * 10;
 
@@ -6406,7 +6417,7 @@ namespace OsEngine.Charts.CandleChart
 
                     int lengthClose = 1;
 
-                    for (int i3 = close.ToString(culture).Length - 1; close.ToString(culture)[i3] == '0'; i3--)
+                    for (int i3 = closeS.Length - 1; closeS[i3] == '0'; i3--)
                     {
                         lengthClose = lengthClose * 10;
 
@@ -6429,7 +6440,6 @@ namespace OsEngine.Charts.CandleChart
                 }
             }
 
-
             if (minPriceStep == 1 &&
                 countFive == 20)
             {
@@ -6442,13 +6452,7 @@ namespace OsEngine.Charts.CandleChart
 
             try
             {
-                string[] valueMin2 =
-                    minPriceStep.ToString(new CultureInfo("ru-RU")).Split(',');
-
-                if (valueMin2.Length > 1 && valueMin2[1].Length > countZnak)
-                {
-                    countZnak = valueMin2[1].Length;
-                }
+                countZnak = minPriceStep.ToStringWithNoEndZero().DecimalsCount();
             }
             catch (Exception)
             {
@@ -6933,7 +6937,9 @@ namespace OsEngine.Charts.CandleChart
                 int firstX = 0; //first displayed candle/ первая отображаемая свеча
                 int lastX = candleSeries.Points.Count; //last displayed candle/ последняя отображаемая свеча
 
-                if (_chart.ChartAreas[0].AxisX.ScrollBar.IsVisible)
+                if (_chart.ChartAreas[0].AxisX.ScrollBar != null
+                    && double.IsNaN(candleArea.AxisX.ScaleView.Position) == false
+                    && double.IsNaN(candleArea.AxisX.ScaleView.Size) == false)
                 {
                     // If a range has already been selected, assign first and last one based on this range
                     // если уже выбран какой-то диапазон, назначаем первую и последнюю исходя из этого диапазона
