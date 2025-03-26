@@ -235,8 +235,13 @@ namespace OsEngine.OsTrader
                 _hostOpenPoses = openPositionHost;
                 _hostClosePoses = closePositionHost;
 
-                if(_hostOpenPoses == null ||
+                if(_hostOpenPoses == null &&
                     _hostClosePoses == null)
+                {
+                    return;
+                }
+
+                if(_hostOpenPoses == null)
                 {
                     return;
                 }
@@ -248,32 +253,38 @@ namespace OsEngine.OsTrader
                     return;
                 }
 
-                if(_gridOpenPoses == null)
+                if(_hostOpenPoses != null)
                 {
-                    _gridOpenPoses = CreateNewTable();
-                    _gridOpenPoses.Click += _gridAllPositions_Click;
-                    _gridOpenPoses.DoubleClick += _gridOpenPoses_DoubleClick;
+                    if (_gridOpenPoses == null)
+                    {
+                        _gridOpenPoses = CreateNewTable();
+                        _gridOpenPoses.Click += _gridAllPositions_Click;
+                        _gridOpenPoses.DoubleClick += _gridOpenPoses_DoubleClick;
+                    }
+
+                    if (openPositionHost != null)
+                    {
+                        _hostOpenPoses = openPositionHost;
+                        _hostOpenPoses.Child = _gridOpenPoses;
+                        _hostOpenPoses.Child.Show();
+                    }
                 }
 
-                if (openPositionHost != null)
+                if(_hostClosePoses != null)
                 {
-                    _hostOpenPoses = openPositionHost;
-                    _hostOpenPoses.Child = _gridOpenPoses;
-                    _hostOpenPoses.Child.Show();
-                }
+                    if (_gridClosePoses == null)
+                    {
+                        _gridClosePoses = CreateNewTable();
+                        _gridClosePoses.Click += _gridClosePoses_Click;
+                        _gridClosePoses.DoubleClick += _gridClosePoses_DoubleClick;
+                    }
 
-                if (_gridClosePoses == null)
-                {
-                    _gridClosePoses = CreateNewTable();
-                    _gridClosePoses.Click += _gridClosePoses_Click;
-                    _gridClosePoses.DoubleClick += _gridClosePoses_DoubleClick;
-                }
-
-                if (closePositionHost != null)
-                {
-                    _hostClosePoses = closePositionHost;
-                    _hostClosePoses.Child = _gridClosePoses;
-                    _hostClosePoses.Child.Show();
+                    if (closePositionHost != null)
+                    {
+                        _hostClosePoses = closePositionHost;
+                        _hostClosePoses.Child = _gridClosePoses;
+                        _hostClosePoses.Child.Show();
+                    }
                 }
             }
             catch (Exception error)
