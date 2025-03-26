@@ -10,6 +10,7 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using System.Xml;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
@@ -1110,7 +1111,7 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
         #region 5 Data
 
         // https://russianinvestments.github.io/investAPI/limits/
-        private RateGate _rateGateMarketData = new RateGate(300, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateMarketData = new RateGate(600, TimeSpan.FromMinutes(1));
         
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
@@ -1208,25 +1209,33 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
             _rateGateMarketData.WaitToProceed();
             
             GetCandlesResponse candlesResp = null;
-            try
+            int retries = 3; // try to get 'em this many times
+
+            while (candlesResp == null && retries-- > 0)
             {
-                GetCandlesRequest getCandlesRequest = new GetCandlesRequest();
-                getCandlesRequest.InstrumentId = security.NameId;
-                getCandlesRequest.From = from;
-                getCandlesRequest.To = to;
-                getCandlesRequest.Interval = requestedCandleInterval;
-                getCandlesRequest.CandleSourceType = _filterOutNonMarketData ? GetCandlesRequest.Types.CandleSource.Exchange : GetCandlesRequest.Types.CandleSource.IncludeWeekend;
-                
-                candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
-            }
-            catch (RpcException ex)
-            {
-                string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error getting candles. Info: {message}", LogMessageType.Error);
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
+                try
+                {
+                    GetCandlesRequest getCandlesRequest = new GetCandlesRequest();
+                    getCandlesRequest.InstrumentId = security.NameId;
+                    getCandlesRequest.From = from;
+                    getCandlesRequest.To = to;
+                    getCandlesRequest.Interval = requestedCandleInterval;
+                    getCandlesRequest.CandleSourceType = _filterOutNonMarketData
+                        ? GetCandlesRequest.Types.CandleSource.Exchange
+                        : GetCandlesRequest.Types.CandleSource.IncludeWeekend;
+
+                    candlesResp = _marketDataServiceClient.GetCandles(getCandlesRequest, _gRpcMetadata);
+                }
+                catch (RpcException ex)
+                {
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.Error);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(),
+                        LogMessageType.Error);
+                }
             }
 
             List<Candle> candles = ConvertToOsEngineCandles(candlesResp, security);
