@@ -1683,6 +1683,7 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     newTab = new BotTabPair(nameTab, StartProgram);
                     _tabsPair.Add((BotTabPair)newTab);
+                    ((BotTabPair)newTab).UserSelectActionEvent += UserSetPositionAction;
                 }
                 else if (tabType == BotTabType.Polygon)
                 {
@@ -1698,6 +1699,7 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     newTab = new BotTabScreener(nameTab, StartProgram);
                     _tabsScreener.Add((BotTabScreener)newTab);
+
                     ((BotTabScreener)newTab).UserSelectActionEvent += UserSetPositionAction;
 
                      ((BotTabScreener)newTab).NewTabCreateEvent += (tab) =>
@@ -1860,7 +1862,7 @@ position => position.State != PositionStateType.OpeningFail
                 }
                 else if (ActiveTab.TabType == BotTabType.Pair)
                 {
-                    ((BotTabPair)ActiveTab).StartPaint(_hostChart);
+                    ((BotTabPair)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
                 }
                 else if (ActiveTab.TabType == BotTabType.Polygon)
                 {
@@ -2017,6 +2019,10 @@ position => position.State != PositionStateType.OpeningFail
                     for (int i = 0; i < _tabsScreener.Count; i++)
                     {
                         _tabsScreener[i].CloseAllPositionAtMarket();
+                    }
+                    for (int i = 0; i < _tabsPair.Count; i++)
+                    {
+                        _tabsPair[i].CloseAllPositionAtMarket();
                     }
 
                     return;

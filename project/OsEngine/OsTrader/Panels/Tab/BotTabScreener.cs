@@ -621,6 +621,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (_positionViewer != null)
             {
+                _positionViewer.UserSelectActionEvent -= _globalController_UserSelectActionEvent;
+                _positionViewer.UserClickOnPositionShowBotInTableEvent -= _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
                 _positionViewer.Delete();
             }
 

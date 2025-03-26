@@ -14,6 +14,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Threading;
 using OsEngine.Market;
+using OsEngine.Alerts;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -202,7 +203,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _host = null;
                 }
 
-                if(TabDeletedEvent != null)
+                if (_positionViewer != null)
+                {
+                    _positionViewer.UserSelectActionEvent -= _globalController_UserSelectActionEvent;
+                    _positionViewer.UserClickOnPositionShowBotInTableEvent -= _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+                    _positionViewer.Delete();
+                }
+
+                if (TabDeletedEvent != null)
                 {
                     TabDeletedEvent();
                 }
@@ -235,47 +243,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
             }
-        }
-
-        /// <summary>
-        /// Check all pairs for this position with a certain number. Service function
-        /// </summary>
-        public BotTabSimple GetTabWithThisPosition(int positionNum)
-        {
-            try
-            {
-                BotTabSimple tabWithPosition = null;
-
-                for (int i = 0; i < Pairs.Count; i++)
-                {
-                    List<Position> posOnThisTab = Pairs[i].Tab1.PositionsAll;
-
-                    for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
-                    {
-                        if (posOnThisTab[i2].Number == positionNum)
-                        {
-                            return Pairs[i].Tab1;
-                        }
-                    }
-
-                    posOnThisTab = Pairs[i].Tab2.PositionsAll;
-
-                    for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
-                    {
-                        if (posOnThisTab[i2].Number == positionNum)
-                        {
-                            return Pairs[i].Tab2;
-                        }
-                    }
-                }
-
-                return tabWithPosition;
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
-            return null;
         }
 
         /// <summary>
@@ -559,6 +526,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
+            SetJournalsInPosViewer();
         }
 
         /// <summary>
@@ -681,6 +649,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
+
+            SetJournalsInPosViewer();
         }
 
         /// <summary>
@@ -938,6 +908,103 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
+        #region External position management
+
+        /// <summary>
+        /// Close all market positions
+        /// </summary>
+        public void CloseAllPositionAtMarket()
+        {
+            try
+            {
+                if (Pairs == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < Pairs.Count; i++)
+                {
+                    Pairs[i].ClosePositions();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// Check all pairs for this position with a certain number. Service function
+        /// </summary>
+        public BotTabSimple GetTabWithThisPosition(int positionNum)
+        {
+            try
+            {
+                BotTabSimple tabWithPosition = null;
+
+                for (int i = 0; i < Pairs.Count; i++)
+                {
+                    List<Position> posOnThisTab = Pairs[i].Tab1.PositionsAll;
+
+                    for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
+                    {
+                        if (posOnThisTab[i2].Number == positionNum)
+                        {
+                            return Pairs[i].Tab1;
+                        }
+                    }
+
+                    posOnThisTab = Pairs[i].Tab2.PositionsAll;
+
+                    for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
+                    {
+                        if (posOnThisTab[i2].Number == positionNum)
+                        {
+                            return Pairs[i].Tab2;
+                        }
+                    }
+                }
+
+                return tabWithPosition;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// All pairs positions
+        /// </summary>
+        public List<Position> PositionsOpenAll
+        {
+            get
+            {
+                List<Position> positions = new List<Position>();
+
+                for (int i = 0; i < Pairs.Count; i++)
+                {
+                    List<Position> curPoses = Pairs[i].Tab1.PositionsOpenAll;
+
+                    if (Pairs[i].Tab2.PositionsOpenAll != null
+                        && Pairs[i].Tab2.PositionsOpenAll.Count > 0)
+                    {
+                        curPoses.AddRange(Pairs[i].Tab2.PositionsOpenAll);
+                    }
+
+                    if (curPoses.Count != 0)
+                    {
+                        positions.AddRange(curPoses);
+                    }
+                }
+
+                return positions;
+            }
+        }
+
+        #endregion
+
         #region Outgoing events
 
         /// <summary>
@@ -1098,6 +1165,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private bool _isDeleted;
 
+        private GlobalPositionViewer _positionViewer;
+
         /// <summary>
         /// The area where the table of pairs is drawn
         /// </summary>
@@ -1106,7 +1175,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Start drawing the table of pairs
         /// </summary>
-        public void StartPaint(WindowsFormsHost host)
+        public void StartPaint(WindowsFormsHost host,
+            WindowsFormsHost hostOpenDeals,
+            WindowsFormsHost hostCloseDeals)
         {
             try
             {
@@ -1126,6 +1197,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     painterThread = new Thread(PainterThread);
                     painterThread.Start();
                 }
+
+                if (_positionViewer == null)
+                {
+                    _positionViewer = new GlobalPositionViewer(StartProgram);
+                    _positionViewer.LogMessageEvent += SendNewLogMessage;
+                    _positionViewer.UserSelectActionEvent += _globalController_UserSelectActionEvent;
+                    _positionViewer.UserClickOnPositionShowBotInTableEvent += _globalPositionViewer_UserClickOnPositionShowBotInTableEvent;
+                }
+
+                SetJournalsInPosViewer();
+                _positionViewer.StartPaint(hostOpenDeals, hostCloseDeals);
             }
             catch (Exception error)
             {
@@ -1141,6 +1223,71 @@ namespace OsEngine.OsTrader.Panels.Tab
             if(_host != null)
             {
                 _host.Child = null;
+            }
+
+            if (_positionViewer != null)
+            {
+                _positionViewer.StopPaint();
+            }
+        }
+
+        private void SetJournalsInPosViewer()
+        {
+            if (StartProgram == StartProgram.IsOsOptimizer)
+            {
+                return;
+            }
+
+            if (_positionViewer == null)
+            {
+                return;
+            }
+
+            try
+            {
+                for (int i = 0; i < Pairs.Count; i++)
+                {
+                    PairToTrade curPair = Pairs[i];
+
+                    if (curPair.Tab1 != null)
+                    {
+                        Journal.Journal journal = curPair.Tab1.GetJournal();
+
+                        _positionViewer.RemoveJournal(journal);
+                        _positionViewer.SetJournal(journal);
+                    }
+                    if (curPair.Tab2 != null)
+                    {
+                        Journal.Journal journal = curPair.Tab2.GetJournal();
+
+                        _positionViewer.RemoveJournal(journal);
+                        _positionViewer.SetJournal(journal);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public event Action<Position, SignalType> UserSelectActionEvent;
+
+        public event Action<string> UserClickOnPositionShowBotInTableEvent;
+
+        private void _globalController_UserSelectActionEvent(Position pos, SignalType signal)
+        {
+            if (UserSelectActionEvent != null)
+            {
+                UserSelectActionEvent(pos, signal);
+            }
+        }
+
+        private void _globalPositionViewer_UserClickOnPositionShowBotInTableEvent(string botTabName)
+        {
+            if (UserClickOnPositionShowBotInTableEvent != null)
+            {
+                UserClickOnPositionShowBotInTableEvent(botTabName);
             }
         }
 
