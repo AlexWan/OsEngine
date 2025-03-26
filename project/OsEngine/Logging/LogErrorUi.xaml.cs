@@ -16,6 +16,7 @@ namespace OsEngine.Logging
     {
         public LogErrorUi(DataGridView gridErrorLog)
         {
+            Title = Title + " " + OsEngine.PrimeSettings.PrimeSettingsMaster.LabelInHeaderBotStation;
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             HostLog.Child = gridErrorLog;

@@ -420,6 +420,11 @@ namespace OsEngine.OsOptimizer
 
                 BotToTest = BotFactory.GetStrategyForName(_strategyName, botName, StartProgram.IsTester, _isScript);
 
+                if(BotToTest == null)
+                {
+                    return;
+                }
+
                 List<IIBotTab> sources = BotToTest.GetTabs();
 
                 for (int i = 0; i < sources.Count; i++)

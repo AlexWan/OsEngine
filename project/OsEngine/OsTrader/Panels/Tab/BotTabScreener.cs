@@ -1059,8 +1059,18 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private bool TabIsAlive(List<ActivatedSecurity> securities, TimeFrame frame, BotTabSimple tab)
         {
-            ActivatedSecurity sec = securities.Find(s => s.SecurityName == tab.Connector.SecurityName);
-
+            ActivatedSecurity sec = null;
+            
+            for(int i = 0;i < securities.Count;i++)
+            {
+                if (securities[i].SecurityName == tab.Connector.SecurityName 
+                    && securities[i].SecurityClass == tab.Connector.SecurityClass)
+                {
+                    sec = securities[i];
+                    break;
+                }
+            }
+            
             if (sec == null)
             {
                 return false;
