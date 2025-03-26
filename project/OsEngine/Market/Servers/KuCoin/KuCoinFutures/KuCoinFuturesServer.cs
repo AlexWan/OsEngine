@@ -75,7 +75,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 try
                 {
                     _webSocketPublicMessages = new ConcurrentQueue<string>();
-                    _webSocketPrivateMessages = new ConcurrentQueue<string>();               
+                    _webSocketPrivateMessages = new ConcurrentQueue<string>();
                     CreateWebSocketConnection();
                     CheckActivationSockets();
                 }
@@ -134,7 +134,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic == null 
+            if (_webSocketPublic == null
                 || _webSocketPrivate == null)
             {
                 return;
@@ -148,7 +148,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 _webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // marketDepth
                 _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{securityName}\"}}"); // change of positions
             }
-            
+
             _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
             _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
         }
@@ -247,7 +247,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     newSecurity.PriceStep = item.tickSize.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.Lot = item.lotSize.ToDecimal();
-                    
+
                     newSecurity.Decimals = item.tickSize.DecimalsCount();
                     newSecurity.DecimalsVolume = item.lotSize.DecimalsCount();
 
@@ -323,7 +323,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             CreateQueryPositions(true);
             GetUSDTMasterPortfolio(true);
         }
-        
+
         public event Action<List<Portfolio>> PortfolioEvent;
 
         #endregion
@@ -339,8 +339,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            DateTime timeStart = DateTime.UtcNow - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.Minutes * candleCount);
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
             DateTime timeEnd = DateTime.UtcNow;
+            DateTime timeStart = timeEnd.AddMinutes(-tfTotalMinutes * candleCount);
 
             return GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
         }
@@ -353,17 +354,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             List<Candle> candles = new List<Candle>();
 
-            DateTime fromTime = timeEnd - TimeSpan.FromMinutes(tf.TotalMinutes*CountToLoad);
-            
+            DateTime fromTime = timeEnd - TimeSpan.FromMinutes(tf.TotalMinutes * CountToLoad);
+
             const int KuCoinFuturesDataLimit = 200; // KuCoin limitation: For each query, the system would return at most 200 pieces of data. To obtain more data, please page the data by time.
             do
             {
                 int limit = needToLoadCandles;
 
-                if (needToLoadCandles > KuCoinFuturesDataLimit) 
+                if (needToLoadCandles > KuCoinFuturesDataLimit)
                 {
                     limit = KuCoinFuturesDataLimit;
-                    
+
                 }
                 else
                 {
@@ -395,11 +396,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 {
                     timeEnd = candles[0].TimeStart;
                 }
-                
+
                 needToLoadCandles -= limit;
             } while (needToLoadCandles > 0);
 
-            
+
             return candles;
         }
 
@@ -414,7 +415,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             return GetCandleHistory(security.NameFull, timeFrameBuilder.TimeFrameTimeSpan, true, countNeedToLoad, endTime);
         }
-        
+
         private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
         {
             if (tf.Hours != 0)
@@ -460,7 +461,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             // 1. get websocket address
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/bullet-private", "POST", null, String.Empty);
 
-            if(responseMessage.IsSuccessStatusCode == false)
+            if (responseMessage.IsSuccessStatusCode == false)
             {
                 SendLogMessage("KuCoin keys are wrong. Message from server: " + responseMessage.Content.ReadAsStringAsync().Result, LogMessageType.Error);
                 return;
@@ -929,7 +930,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 return;
             }
-            
+
             Trade trade = new Trade();
             trade.SecurityNameCode = responseTrade.data.symbol;
             trade.Price = responseTrade.data.price.ToDecimal();
@@ -937,7 +938,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data.ts) / 1000000); // from nanoseconds to ms))
             trade.Volume = responseTrade.data.size.ToDecimal();
 
-            if(responseTrade.data.side == "sell")
+            if (responseTrade.data.side == "sell")
             {
                 trade.Side = Side.Sell;
             }
@@ -1006,18 +1007,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 myTrade.Price = responseT.price.ToDecimal();
                 myTrade.SecurityNameCode = responseT.symbol;
                 myTrade.Side = responseT.side.Equals("buy") ? Side.Buy : Side.Sell;
-                
-                string comissionSecName = responseT.feeCurrency;
+                myTrade.Volume = responseT.size.ToDecimal();
 
-                if (myTrade.SecurityNameCode.StartsWith(comissionSecName))
-                {
-                    myTrade.Volume = responseT.size.ToDecimal() + responseT.fee.ToDecimal();
-                }
-                else
-                {
-                    myTrade.Volume = responseT.size.ToDecimal();
-                }
-                
                 MyTradeEvent(myTrade);
             }
         }
@@ -1051,7 +1042,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             pos.PortfolioName = "KuCoinFutures";
             pos.SecurityNameCode = data.symbol;
             pos.ValueCurrent = data.currentQty.ToDecimal();
-            
+
             portfolio.SetNewPosition(pos);
             PortfolioEvent(Portfolios);
         }
@@ -1064,14 +1055,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 return;
             }
-            
+
             ResponseWebSocketOrder item = Order.data;
 
             OrderStateType stateType = GetOrderState(item.status, item.type);
 
             if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Active)
             {
-               return;
+                return;
             }
 
             Order newOrder = new Order();
@@ -1082,7 +1073,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 try
                 {
-                        newOrder.NumberUser = Convert.ToInt32(item.clientOid);
+                    newOrder.NumberUser = Convert.ToInt32(item.clientOid);
                 }
                 catch
                 {
@@ -1108,7 +1099,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 // as soon as an order is executed or partially executed, a trigger is sent to request my trade by the name of the security
                 CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket);
             }
-            
+
             MyOrderEvent(newOrder);
         }
 
@@ -1132,7 +1123,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     else //(orderTypeResponse == "filled")
                         stateType = OrderStateType.Done;
                     break;
-                    
+
                 default:
                     stateType = OrderStateType.None;
                     break;
@@ -1575,7 +1566,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             _subscribedSecurities.Add(security.Name);
 
-             _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}"); // transactions
+            _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}"); // transactions
 
             _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/level2Depth5:{security.Name}\"}}"); // MarketDepth 5+5 https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-5-best-ask-bid-orders
 
@@ -1656,7 +1647,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     if (stateResponse.code == "200000")
                     {
                         UpdatePositionsREST(json, IsUpdateValueBegin);
-                    } else
+                    }
+                    else
                     {
                         SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
@@ -1719,7 +1711,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 {
                     sizeUSDT = positionOnBoard[i].ValueCurrent;
                 }
-                else if (positionOnBoard[i].SecurityNameCode.Contains("USDTM"))
+                else if (positionOnBoard[i].SecurityNameCode.Contains("USDTM")
+                    || positionOnBoard[i].SecurityNameCode.Contains("USDCM")
+                    || positionOnBoard[i].SecurityNameCode.Contains("USDM"))
                 {
                     //positionInUSDT += GetPriceSecurity(positionOnBoard[i].SecurityNameCode)  * positionOnBoard[i].ValueCurrent;
                 }
@@ -1789,7 +1783,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             Thread.Sleep(2000);
             _rateGateGetMyTradeState.WaitToProceed();
-            
+
             HttpResponseMessage responseMessage = CreatePrivateQuery(
                 "/api/v1/fills",
                 "GET",
@@ -1890,7 +1884,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             if (method.Equals("POST"))
             {
                 return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
-            } 
+            }
             else if (method.Equals("DELETE"))
             {
                 HttpRequestMessage request = new HttpRequestMessage

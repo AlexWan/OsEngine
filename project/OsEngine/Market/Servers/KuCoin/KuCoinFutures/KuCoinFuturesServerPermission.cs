@@ -171,7 +171,16 @@
         {
             get
             {
-                return new string[] { "USDT", "USDC" };
+                return new string[]
+                {
+                    "USDT",
+                    "XBT",
+                    "ETH",
+                    "SOL",
+                    "DOT",
+                    "XRP",
+                    "USDC"
+                };
             }
         }
 
