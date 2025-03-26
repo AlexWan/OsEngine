@@ -420,7 +420,7 @@ namespace OsEngine.Journal
                     {
                         bool needShowTickState = !(_botsJournals.Count > 1);
 
-                        PaintStatTable(allSortPoses, _longPositions, _shortPositions, needShowTickState);
+                        PaintStatTable(allSortPoses, longPositions, shortPositions, needShowTickState);
                     }
                     else if (TabControlPrime.SelectedIndex == 2)
                     {
@@ -471,6 +471,7 @@ namespace OsEngine.Journal
                     return;
                 }
                 RePaint();
+                _volumeControlUpdated = false;
             }
             catch( Exception error)
             {
@@ -3083,21 +3084,6 @@ namespace OsEngine.Journal
                         ComboBoxChartType.SelectedItem = profitType;
                     }
 
-                    double valueFromOnSlider = reader.ReadLine().ToDouble();
-                    double valueToOnSlider = reader.ReadLine().ToDouble();
-
-                    if (valueFromOnSlider > SliderFrom.Minimum &&
-                        valueFromOnSlider < SliderFrom.Maximum)
-                    {
-                        SliderFrom.Value = valueFromOnSlider;
-                    }
-
-                    if (valueToOnSlider > SliderTo.Minimum &&
-                        valueToOnSlider < SliderTo.Maximum)
-                    {
-                        SliderTo.Value = valueToOnSlider;
-                    }
-
                     reader.Close();
                 }
             }
@@ -3124,9 +3110,6 @@ namespace OsEngine.Journal
                 {
                     writer.WriteLine(_leftPanelIsHide);
                     writer.WriteLine(ComboBoxChartType.SelectedItem.ToString());
-
-                    writer.WriteLine(SliderFrom.Value.ToString());
-                    writer.WriteLine(SliderTo.Value.ToString());
 
                     writer.Close();
                 }
@@ -3951,7 +3934,7 @@ namespace OsEngine.Journal
                     }
                 }
 
-                if(_selectedSecurities.Count > 0)
+                if (_selectedSecurities.Count > 0)
                 {
                     for (int i = 0; i < positionsAll.Count; i++)
                     {
@@ -3978,7 +3961,15 @@ namespace OsEngine.Journal
                     }
                 }
 
-                if(positionsAll.Count > 1)
+                int lastPositionsCount = 0;
+
+                if(_allPositions != null 
+                    && _allPositions.Count != 0)
+                {
+                    lastPositionsCount = _allPositions.Count;
+                }
+
+                if (positionsAll.Count > 1)
                 {
                     positionsAll = positionsAll.OrderBy(x => x.TimeClose).ToList();
                 }
@@ -3993,26 +3984,78 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                if (IsSlide == false)
+                DateTime endTime = DateTime.MinValue;
+
+                DateTime startTime = DateTime.MaxValue;
+
+                for (int i = 0; i < _allPositions.Count; i++)
                 {
-                    _startTime = _allPositions[0].TimeOpen;
-                    _endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
+                    Position curPos = _allPositions[i];
+
+                    DateTime openTime = curPos.TimeOpen;
+                    DateTime closeTime = curPos.TimeClose;
+                    DateTime createTime = curPos.TimeCreate;
+
+                    if (openTime > endTime)
+                    {
+                        endTime = openTime;
+                    }
+                    if (closeTime > endTime)
+                    {
+                        endTime = closeTime;
+                    }
+                    if (createTime > endTime)
+                    {
+                        endTime = createTime;
+                    }
+
+                    if (openTime < startTime)
+                    {
+                        startTime = openTime;
+                    }
+                    if (endTime < startTime)
+                    {
+                        startTime = openTime;
+                    }
+                    if (createTime < startTime)
+                    {
+                        startTime = createTime;
+                    }
+                }
+
+                _minTime = _startTime;
+                _maxTime = _endTime;
+
+                if (IsSlide == false)
+                { // слайдер времени выключен. Просто обновляем
+                    _startTime = startTime.AddDays(-1);
+                    _endTime = endTime.AddDays(1);
                     _minTime = _startTime;
                     _maxTime = _endTime;
+                    CreateSlidersShowPositions();
                 }
                 else if (IsSlide == true
-                    && (_startTime == DateTime.MinValue
-                    || _endTime == DateTime.MinValue))
+                  && (_startTime == DateTime.MinValue
+                      || _endTime == DateTime.MinValue))
                 {
-                    _startTime = _allPositions[0].TimeOpen;
-                    _endTime = _allPositions[_allPositions.Count - 1].TimeOpen;
+                    _startTime = startTime.AddDays(-1);
+                    _endTime = endTime.AddDays(1);
                     _minTime = _startTime;
                     _maxTime = _endTime;
+                    CreateSlidersShowPositions();
+                }
+                else if(lastPositionsCount != _allPositions.Count)
+                {
+                    _startTime = startTime.AddDays(-1);
+                    _endTime = endTime.AddDays(1);
+                    _minTime = _startTime;
+                    _maxTime = _endTime;
+                    CreateSlidersShowPositions();
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -4106,6 +4149,12 @@ namespace OsEngine.Journal
         {
             try
             {
+                if (TextBoxFrom.Dispatcher.CheckAccess() == false)
+                {
+                    TextBoxFrom.Dispatcher.Invoke(new Action(CreateSlidersShowPositions));
+                    return;
+                }
+
                 SliderFrom.ValueChanged -= SliderFrom_ValueChanged;
                 SliderTo.ValueChanged -= SliderTo_ValueChanged;
 
@@ -4262,6 +4311,7 @@ namespace OsEngine.Journal
                 SelectOpenPosesPages();
                 SelectCLosePosesPages();
                 RePaint();
+                _volumeControlUpdated = false;
             }
             catch (Exception error)
             {
