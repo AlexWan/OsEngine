@@ -955,7 +955,7 @@ namespace OsEngine.Logging
             DataGridViewColumn column = new DataGridViewColumn();
             column.CellTemplate = cell0;
             column.HeaderText = OsLocalization.Logging.Column3;
-            column.ReadOnly = true;
+            column.ReadOnly = false;
             column.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridErrorLog.Columns.Add(column);
         }

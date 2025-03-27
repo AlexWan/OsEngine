@@ -1288,6 +1288,7 @@
     <Compile Include="Robots\PositionsMicromanagement\UnsafeAveragePosition.cs" />
     <Compile Include="Robots\PositionsMicromanagement\UnsafeLimitsClosingSample.cs" />
     <Compile Include="Robots\Screeners\BollingerMomentumScreener.cs" />
+    <Compile Include="Robots\Screeners\LinearRegressionFastScreener.cs" />
     <Compile Include="Robots\Screeners\PlateDetectorScreener.cs" />
     <Compile Include="Robots\Screeners\PumpDetectorScreener.cs" />
     <Compile Include="Robots\Screeners\PinBarScreener.cs" />
