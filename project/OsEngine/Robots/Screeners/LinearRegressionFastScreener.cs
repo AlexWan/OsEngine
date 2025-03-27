@@ -130,10 +130,6 @@ namespace OsEngine.Robots.Screeners
 
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
-            // 1 Если поза есть, то по трейлинг стопу закрываем
-
-            // 2 Позы нет. Открывать лонг, если последние N свечей мы были над скользящей средней
-
             if (Regime.ValueString == "Off")
             {
                 return;
@@ -163,7 +159,7 @@ namespace OsEngine.Robots.Screeners
                 }
 
                 if(AdxFilterIsOn.ValueBool == true)
-                {
+                {// Adx filter
                     Aindicator adx = (Aindicator)tab.Indicators[0];
 
                     decimal adxLast = adx.DataSeries[0].Last;
@@ -175,7 +171,7 @@ namespace OsEngine.Robots.Screeners
 
                     if (adxLast < MinAdxValue.ValueDecimal
                         || adxLast > MaxAdxValue.ValueDecimal)
-                    {// Adx filter
+                    {
                         return;
                     }
                 }
@@ -183,7 +179,7 @@ namespace OsEngine.Robots.Screeners
                 decimal candleClose = candles[candles.Count - 1].Close;
 
                 if (SmaFilterIsOn.ValueBool == true)
-                {
+                {// Sma filter
                     Aindicator sma = (Aindicator)tab.Indicators[2];
 
                     decimal lastSma = sma.DataSeries[0].Last;
@@ -219,7 +215,6 @@ namespace OsEngine.Robots.Screeners
 
                 Aindicator lrIndicator = (Aindicator)tab.Indicators[1];
 
-                //decimal pcUp = priceChannel.DataSeries[0].Last;
                 decimal lrDown = lrIndicator.DataSeries[2].Last;
 
                 if (lrDown == 0)
