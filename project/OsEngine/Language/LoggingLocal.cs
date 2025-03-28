@@ -158,5 +158,9 @@ namespace OsEngine.Language
         public string Label28 => OsLocalization.ConvertToLocString(
             "Eng:Show file_" +
             "Ru:К файлу_");
+
+        public string Label29 => OsLocalization.ConvertToLocString(
+            "Eng:Show error log window_" +
+            "Ru:Открыть окно экстренного лога_");
     }
 }
