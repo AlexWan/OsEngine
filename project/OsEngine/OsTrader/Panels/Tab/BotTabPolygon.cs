@@ -1411,7 +1411,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     ui.ShowDialog();
 
-                    if (ui.UserAcceptActioin)
+                    if (ui.UserAcceptAction)
                     {
                         DeleteSequence(tabNum);
                     }

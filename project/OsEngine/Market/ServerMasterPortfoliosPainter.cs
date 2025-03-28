@@ -741,7 +741,7 @@ namespace OsEngine.Market
 
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }

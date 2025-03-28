@@ -189,7 +189,7 @@ namespace OsEngine.OsMiner
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Miner.Message8);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 return;
             }

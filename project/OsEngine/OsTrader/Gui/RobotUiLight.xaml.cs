@@ -92,7 +92,7 @@ namespace OsEngine.OsTrader.Gui
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label48);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 e.Cancel = true;
                 return;

@@ -69,7 +69,7 @@ namespace OsEngine.OsTrader.Gui.BlockInterface
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label428);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 return;
             }

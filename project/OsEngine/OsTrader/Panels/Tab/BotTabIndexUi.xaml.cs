@@ -440,7 +440,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         acceptDialog.ShowDialog();
 
-                        if (acceptDialog.UserAcceptActioin)
+                        if (acceptDialog.UserAcceptAction)
                         {
                             _spread.DeleteSecurityTab(e.RowIndex);
                             _spread.SecuritiesInIndex.Clear();
@@ -624,7 +624,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label370);
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }

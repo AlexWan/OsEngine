@@ -271,7 +271,7 @@ namespace OsEngine.OsTrader
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label215);
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }
@@ -294,7 +294,7 @@ namespace OsEngine.OsTrader
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label216);
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }

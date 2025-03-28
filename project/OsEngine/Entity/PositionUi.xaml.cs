@@ -855,7 +855,7 @@ namespace OsEngine.Entity
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Entity.MessageAcceptDeleteAction);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 return false;
             }
@@ -868,7 +868,7 @@ namespace OsEngine.Entity
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Entity.MessageAcceptSaveAction);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 return false;
             }

@@ -482,7 +482,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ui.ShowDialog();
 
-                if(ui.UserAcceptActioin == false)
+                if(ui.UserAcceptAction == false)
                 {
                     return;
                 }
@@ -499,7 +499,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }

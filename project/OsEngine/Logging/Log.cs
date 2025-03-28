@@ -315,9 +315,9 @@ namespace OsEngine.Logging
                 _botPanels[i].LogMessageEvent -= ProcessMessage;
             }
 
-            for (int i = 0; i < _optimizerDataStoreges.Count; i++)
+            for (int i = 0; i < _optimizerDataStorages.Count; i++)
             {
-                _optimizerDataStoreges[i].LogMessageEvent -= ProcessMessage;
+                _optimizerDataStorages[i].LogMessageEvent -= ProcessMessage;
             }
 
             for (int i = 0; i < _osMinerMasters.Count; i++)
@@ -349,7 +349,7 @@ namespace OsEngine.Logging
             _osConverterMasters.Clear();
             _osTraderMasters.Clear();
             _botPanels.Clear();
-            _optimizerDataStoreges.Clear();
+            _optimizerDataStorages.Clear();
             _osMinerMasters.Clear();
             _osDataMasters.Clear();
             _optimizers.Clear();
@@ -360,7 +360,7 @@ namespace OsEngine.Logging
             _osConverterMasters = null;
             _osTraderMasters = null;
             _botPanels = null;
-            _optimizerDataStoreges = null;
+            _optimizerDataStorages = null;
             _osMinerMasters = null;
             _osDataMasters = null;
             _optimizers = null;
@@ -451,7 +451,7 @@ namespace OsEngine.Logging
         List<OsConverterMaster> _osConverterMasters = new List<OsConverterMaster>();
         List<OsTraderMaster> _osTraderMasters = new List<OsTraderMaster>();
         List<BotPanel> _botPanels = new List<BotPanel>();
-        List<OptimizerDataStorage> _optimizerDataStoreges = new List<OptimizerDataStorage>();
+        List<OptimizerDataStorage> _optimizerDataStorages = new List<OptimizerDataStorage>();
         List<OsMinerMaster> _osMinerMasters = new List<OsMinerMaster>();
         List<OsDataMasterPainter> _osDataMasters = new List<OsDataMasterPainter>();
         List<OptimizerMaster> _optimizers = new List<OptimizerMaster>();
@@ -520,7 +520,7 @@ namespace OsEngine.Logging
         public void Listen(OptimizerDataStorage storage)
         {
             storage.LogMessageEvent += ProcessMessage;
-            _optimizerDataStoreges.Add(storage);
+            _optimizerDataStorages.Add(storage);
         }
 
         /// <summary>
@@ -1022,6 +1022,25 @@ namespace OsEngine.Logging
             if (PrimeSettingsMaster.ErrorLogBeepIsActive)
             {
                 SystemSounds.Beep.Play();
+            }
+        }
+
+        public static void ClearErrorLog()
+        {
+            try
+            {
+                if (!MainWindow.GetDispatcher.CheckAccess())
+                {
+                    MainWindow.GetDispatcher.Invoke(new Action(ClearErrorLog));
+                    return;
+                }
+
+                _gridErrorLog.Rows.Clear();
+                _errorLogShutDown = false;
+            }
+            catch
+            {
+                // ignore
             }
         }
 

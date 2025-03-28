@@ -1354,7 +1354,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin)
+                if (ui.UserAcceptAction)
                 {
                     for (int i = 0; i < positions.Count; i++)
                     {

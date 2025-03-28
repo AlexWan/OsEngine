@@ -841,7 +841,7 @@ namespace OsEngine.Robots
 
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 return;
             }

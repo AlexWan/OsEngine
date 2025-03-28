@@ -4,8 +4,9 @@
         Title="Emergency log" Height="350" Width="770" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico" Topmost="False">
     <Grid Margin="0,0,0,0">
 
-        <Rectangle Margin="5,5,5,5"/>
-        <WindowsFormsHost Name="HostLog" Margin="10,10,10,9"/>
+        <Rectangle Margin="3,3,3,3"/>
+        <WindowsFormsHost Name="HostLog" Margin="5,5,5,35"/>
+        <Button Name="ButtonClear" Content="Clear" HorizontalAlignment="Right" Margin="0,0,10,5" VerticalAlignment="Bottom" Width="307" Click="ButtonClear_Click"/>
 
     </Grid>
 </Window>

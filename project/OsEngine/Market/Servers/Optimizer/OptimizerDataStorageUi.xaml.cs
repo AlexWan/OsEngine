@@ -691,7 +691,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                         ui.ShowDialog();
 
-                        if (ui.UserAcceptActioin == false)
+                        if (ui.UserAcceptAction == false)
                         {
                             return;
                         }
@@ -925,7 +925,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                         ui.ShowDialog();
 
-                        if (ui.UserAcceptActioin == false)
+                        if (ui.UserAcceptAction == false)
                         {
                             return;
                         }

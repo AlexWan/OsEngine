@@ -1923,7 +1923,7 @@ namespace OsEngine.Journal.Internal
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }
@@ -1970,7 +1970,7 @@ namespace OsEngine.Journal.Internal
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message5);
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }
@@ -2085,7 +2085,7 @@ namespace OsEngine.Journal.Internal
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Journal.Message3);
                 ui.ShowDialog();
 
-                if (ui.UserAcceptActioin == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }

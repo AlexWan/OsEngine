@@ -1168,7 +1168,7 @@ namespace OsEngine.Market.Servers.Tester
 
                         ui.ShowDialog();
 
-                        if (ui.UserAcceptActioin == false)
+                        if (ui.UserAcceptAction == false)
                         {
                             return;
                         }
@@ -1402,7 +1402,7 @@ namespace OsEngine.Market.Servers.Tester
 
                         ui.ShowDialog();
 
-                        if (ui.UserAcceptActioin == false)
+                        if (ui.UserAcceptAction == false)
                         {
                             return;
                         }

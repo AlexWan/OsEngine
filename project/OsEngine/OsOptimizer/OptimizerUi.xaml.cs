@@ -202,7 +202,7 @@ namespace OsEngine.OsOptimizer
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 e.Cancel = true;
             }
@@ -593,7 +593,7 @@ namespace OsEngine.OsOptimizer
 
                 ui.ShowDialog();
 
-                if (!ui.UserAcceptActioin)
+                if (!ui.UserAcceptAction)
                 {
                     return;
                 }
@@ -609,7 +609,7 @@ namespace OsEngine.OsOptimizer
 
                 ui.ShowDialog();
 
-                if (!ui.UserAcceptActioin)
+                if (!ui.UserAcceptAction)
                 {
                     return;
                 }
@@ -627,7 +627,7 @@ namespace OsEngine.OsOptimizer
 
                 ui.ShowDialog();
 
-                if (!ui.UserAcceptActioin)
+                if (!ui.UserAcceptAction)
                 {
                     return;
                 }
@@ -645,7 +645,7 @@ namespace OsEngine.OsOptimizer
 
                 ui.ShowDialog();
 
-                if (!ui.UserAcceptActioin)
+                if (!ui.UserAcceptAction)
                 {
                     return;
                 }

@@ -531,7 +531,7 @@ namespace OsEngine.Market
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label67);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 return;
             }
@@ -593,7 +593,7 @@ namespace OsEngine.Market
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label68);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 return;
             }

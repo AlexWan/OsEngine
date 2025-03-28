@@ -246,7 +246,7 @@ namespace OsEngine.OsData
                     AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label58);
                     ui.ShowDialog();
 
-                    if (ui.UserAcceptActioin == false)
+                    if (ui.UserAcceptAction == false)
                     {
                         return;
                     }

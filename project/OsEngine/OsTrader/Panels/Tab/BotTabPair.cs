@@ -1771,7 +1771,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     ui.ShowDialog();
 
-                    if (ui.UserAcceptActioin)
+                    if (ui.UserAcceptAction)
                     {
                         DeletePair(tabNum);
                     }

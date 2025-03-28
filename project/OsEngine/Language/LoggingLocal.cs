@@ -47,6 +47,10 @@ namespace OsEngine.Language
             "Eng:Configure Telegram_" +
             "Ru:Настроить Телеграм_");
 
+        public string ButtonClearExtraLog => OsLocalization.ConvertToLocString(
+           "Eng:Clean up_" +
+           "Ru:Очистить _");
+
         public string Label1 => OsLocalization.ConvertToLocString(
             "Eng:On_" +
             "Ru:Включен_");
@@ -162,5 +166,9 @@ namespace OsEngine.Language
         public string Label29 => OsLocalization.ConvertToLocString(
             "Eng:Show error log window_" +
             "Ru:Открыть окно экстренного лога_");
+
+        public string Label30 => OsLocalization.ConvertToLocString(
+            "Eng:All messages will be cleared from memory. Are you sure?_" +
+            "Ru:Все сообщения будут очищены из памяти. Вы уверены?_");
     }
 }

@@ -49,7 +49,7 @@ namespace OsEngine.OsData
             AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Data.Label27);
             ui.ShowDialog();
 
-            if (ui.UserAcceptActioin == false)
+            if (ui.UserAcceptAction == false)
             {
                 e.Cancel = true;
             }

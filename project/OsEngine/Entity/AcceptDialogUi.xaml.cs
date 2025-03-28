@@ -4,16 +4,12 @@ using OsEngine.Language;
 
 namespace OsEngine.Entity
 {
-    /// <summary>
-    /// Interaction logic for AcceptDialogUi.xaml
-    /// </summary>
     public partial class AcceptDialogUi
     {
-
         /// <summary>
         /// The user has approved the action to be taken
         /// </summary>
-        public bool UserAcceptActioin;
+        public bool UserAcceptAction;
 
         /// <summary>
         /// window designer
@@ -36,13 +32,13 @@ namespace OsEngine.Entity
 
         private void ButtonCancel_Click(object sender, RoutedEventArgs e)
         {
-            UserAcceptActioin = false;
+            UserAcceptAction = false;
             Close();
         }
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            UserAcceptActioin = true;
+            UserAcceptAction = true;
             Close();
         }
     }
