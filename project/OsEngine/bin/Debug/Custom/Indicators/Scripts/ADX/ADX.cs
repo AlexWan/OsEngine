@@ -1,4 +1,4 @@
-ï»¿using OsEngine.Entity;
+using OsEngine.Entity;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -90,19 +90,19 @@ namespace OsEngine.Indicators
                 _adX = null;
             }
             // 1 counting new directional movements
-            // 1 Ñ€Ð°ÑÑÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÐ¼ Ð½Ð¾Ð²Ñ‹Ðµ Ð½Ð°Ð¿Ñ€Ð°Ð²Ð»ÐµÐ½Ð½Ñ‹Ðµ Ð´Ð²Ð¸Ð¶ÐµÐ½Ð¸Ñ
+            // 1 ðàññ÷èòûâàåì íîâûå íàïðàâëåííûå äâèæåíèÿ
             DmjReload(candles, index);
 
             _dmjPlusAverage = MovingAverageWild(_dmjPlus, _dmjPlusAverage, _length.ValueInt, index);
             _dmjMinusAverage = MovingAverageWild(_dmjMinus, _dmjMinusAverage, _length.ValueInt, index);
             // 2 calculate true range
-            // 2 Ñ€Ð°ÑÑÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÐ¼ Ð¸ÑÑ‚Ð¸Ð½Ð½Ñ‹Ð¹ Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½
+            // 2 ðàññ÷èòûâàåì èñòèííûé äèàïàçîí
 
             TrueRangeReload(candles, index);
 
             _trueRangeAverage = MovingAverageWild(_trueRange, _trueRangeAverage, _length.ValueInt, index);
             // 3 smoothing movement through true range 
-            // 3 ÑÐ³Ð»Ð°Ð¶Ð¸Ð²Ð°ÐµÐ¼ Ð´Ð²Ð¸Ð¶ÐµÐ½Ð¸Ðµ Ñ‡ÐµÑ€ÐµÐ· Ð¸ÑÑ‚Ð¸Ð½Ð½Ñ‹Ð¹ Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½ 
+            // 3 ñãëàæèâàåì äâèæåíèå ÷åðåç èñòèííûé äèàïàçîí 
 
             SdijReload(index);
 
@@ -110,20 +110,20 @@ namespace OsEngine.Indicators
             //_mdiMinus = MovingAverageWild(_sDIjMinus, _mdiMinus, Length, index);
 
             // 5 making an array DX
-            // 5 Ð´ÐµÐ»Ð°ÐµÐ¼ Ð¼Ð°ÑÑÐ¸Ð² DX
+            // 5 äåëàåì ìàññèâ DX
 
             DxReload(index);
 
             if (_length.ValueInt == 0 || _length.ValueInt > _dX.Count)
             {
                 // if it's not possible to calculate
-                // ÐµÑÐ»Ð¸ Ñ€Ð°ÑÑÑ‡Ñ‘Ñ‚ Ð½Ðµ Ð²Ð¾Ð·Ð¼Ð¾Ð¶ÐµÐ½
+                // åñëè ðàññ÷¸ò íå âîçìîæåí
                 return 0;
             }
             else
             {
                 // calculating
-                // Ñ€Ð°ÑÑÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÐ¼
+                // ðàññ÷èòûâàåì
                 _adX = MovingAverageWild(_dX, _adX, _length.ValueInt, index);
                 return Math.Round(_adX[_adX.Count - 1], 4);
             }
@@ -140,7 +140,7 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            if (index > _dmjMinus.Count - 1)
+            while (index > _dmjMinus.Count - 1)
             {
                 _dmjMinus.Add(0);
                 _dmjPlus.Add(0);
@@ -165,10 +165,10 @@ namespace OsEngine.Indicators
 
         private void TrueRangeReload(List<Candle> candles, int index)
         {
-            // True range is the largest of following three values:/Ð˜ÑÑ‚Ð¸Ð½Ð½Ñ‹Ð¹ Ð´Ð¸Ð°Ð¿Ð°Ð·Ð¾Ð½ (True Range) ÐµÑÑ‚ÑŒ Ð½Ð°Ð¸Ð±Ð¾Ð»ÑŒÑˆÐ°Ñ Ð¸Ð· ÑÐ»ÐµÐ´ÑƒÑŽÑ‰Ð¸Ñ… Ñ‚Ñ€ÐµÑ… Ð²ÐµÐ»Ð¸Ñ‡Ð¸Ð½:
-            // difference between current maximum and minimum;/Ñ€Ð°Ð·Ð½Ð¾ÑÑ‚ÑŒ Ð¼ÐµÐ¶Ð´Ñƒ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¼Ð¸ Ð¼Ð°ÐºÑÐ¸Ð¼ÑƒÐ¼Ð¾Ð¼ Ð¸ Ð¼Ð¸Ð½Ð¸Ð¼ÑƒÐ¼Ð¾Ð¼;
-            // difference between previous closing price an current maximum/Ñ€Ð°Ð·Ð½Ð¾ÑÑ‚ÑŒ Ð¼ÐµÐ¶Ð´Ñƒ Ð¿Ñ€ÐµÐ´Ñ‹Ð´ÑƒÑ‰ÐµÐ¹ Ñ†ÐµÐ½Ð¾Ð¹ Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð¸Ñ Ð¸ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¼ Ð¼Ð°ÐºÑÐ¸Ð¼ÑƒÐ¼Ð¾Ð¼;
-            // difference between previous closing price and current minimum./Ñ€Ð°Ð·Ð½Ð¾ÑÑ‚ÑŒ Ð¼ÐµÐ¶Ð´Ñƒ Ð¿Ñ€ÐµÐ´Ñ‹Ð´ÑƒÑ‰ÐµÐ¹ Ñ†ÐµÐ½Ð¾Ð¹ Ð·Ð°ÐºÑ€Ñ‹Ñ‚Ð¸Ñ Ð¸ Ñ‚ÐµÐºÑƒÑ‰Ð¸Ð¼ Ð¼Ð¸Ð½Ð¸Ð¼ÑƒÐ¼Ð¾Ð¼.
+            // True range is the largest of following three values:/Èñòèííûé äèàïàçîí (True Range) åñòü íàèáîëüøàÿ èç ñëåäóþùèõ òðåõ âåëè÷èí:
+            // difference between current maximum and minimum;/ðàçíîñòü ìåæäó òåêóùèìè ìàêñèìóìîì è ìèíèìóìîì;
+            // difference between previous closing price an current maximum/ðàçíîñòü ìåæäó ïðåäûäóùåé öåíîé çàêðûòèÿ è òåêóùèì ìàêñèìóìîì;
+            // difference between previous closing price and current minimum./ðàçíîñòü ìåæäó ïðåäûäóùåé öåíîé çàêðûòèÿ è òåêóùèì ìèíèìóìîì.
 
             if (index == 0)
             {
@@ -177,7 +177,7 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            if (index > _trueRange.Count - 1)
+            while (index > _trueRange.Count - 1)
             {
                 _trueRange.Add(0);
             }
@@ -191,8 +191,8 @@ namespace OsEngine.Indicators
 
         private void SdijReload(int index)
         {
-            //if/ÐµÑÐ»Ð¸ TRj Ð½Ðµ = 0, so/Ñ‚Ð¾ +SDIj = +DMj / TRj; -SDIj = -DMj / TRj,
-            // if/ÐµÑÐ»Ð¸ TRj = 0, so/Ñ‚Ð¾ +SDIj = 0, â€” SDIj = 0.
+            //if/åñëè TRj íå = 0, so/òî +SDIj = +DMj / TRj; -SDIj = -DMj / TRj,
+            // if/åñëè TRj = 0, so/òî +SDIj = 0, — SDIj = 0.
 
             if (index == 0)
             {
@@ -209,13 +209,9 @@ namespace OsEngine.Indicators
                 _sDIjPlus.Add(0);
             }
 
-            decimal trueRange = _trueRange[index];
-            decimal dmjiPlus = _dmjPlus[index];
-            decimal dmjiMinus = _dmjMinus[index];
-
-            trueRange = _trueRangeAverage[index];
-            dmjiPlus = _dmjPlusAverage[index];
-            dmjiMinus = _dmjMinusAverage[index];
+            decimal trueRange = _trueRangeAverage[index];
+            decimal dmjiPlus = _dmjPlusAverage[index];
+            decimal dmjiMinus = _dmjMinusAverage[index];
 
             if (trueRange == 0)
             {
@@ -246,7 +242,7 @@ namespace OsEngine.Indicators
             else if (length == valuesSeries.Count)
             {
                 // it's first value. Calculate as MA
-                // ÑÑ‚Ð¾ Ð¿ÐµÑ€Ð²Ð¾Ðµ Ð·Ð½Ð°Ñ‡ÐµÐ½Ð¸Ðµ. Ð Ð°ÑÑÑ‡Ð¸Ñ‚Ñ‹Ð²Ð°ÐµÐ¼ ÐºÐ°Ðº Ð¿Ñ€Ð¾ÑÑ‚ÑƒÑŽ Ð¼Ð°ÑˆÐºÑƒ
+                // ýòî ïåðâîå çíà÷åíèå. Ðàññ÷èòûâàåì êàê ïðîñòóþ ìàøêó
 
                 decimal lastMoving = 0;
 
@@ -265,18 +261,14 @@ namespace OsEngine.Indicators
             }
             else
             {
-                decimal lastValueMoving;
                 decimal lastValueSeries = valuesSeries[valuesSeries.Count - 1];
 
-                if (index > moving.Count - 1)
+                while (index > moving.Count - 1)
                 {
-                    lastValueMoving = moving[moving.Count - 1];
                     moving.Add(0);
                 }
-                else
-                {
-                    lastValueMoving = moving[moving.Count - 2];
-                }
+
+                decimal lastValueMoving = moving[moving.Count - 2];
 
                 moving[moving.Count - 1] = (lastValueMoving * (_length.ValueInt - 1) + lastValueSeries) / _length.ValueInt;
             }

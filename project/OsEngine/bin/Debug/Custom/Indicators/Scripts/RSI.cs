@@ -28,9 +28,14 @@ namespace OsEngine.Indicators
 
             int startIndex = 1;
 
-            if (index > 150)
+            if (index > _length.ValueInt)
             {
-                startIndex = index - 150;
+                startIndex = index - _length.ValueInt - 20;
+
+                if (startIndex - 1 < 0)
+                {
+                    startIndex = index - _length.ValueInt + 1;
+                }
             }
 
             List<decimal> priceChangeHigh = new List<decimal>();
@@ -41,23 +46,35 @@ namespace OsEngine.Indicators
 
             for (int i = startIndex, valueInd = 0; i <= index && i < candles.Count; i++, valueInd++)
             {
-                if (candles[i].Close - candles[i - 1].Close > 0)
+                try
                 {
-                    priceChangeHigh.Add(candles[i].Close - candles[i - 1].Close);
-                    priceChangeLow.Add(0);
+                    if (candles[i].Close - candles[i - 1].Close > 0)
+                    {
+                        priceChangeHigh.Add(candles[i].Close - candles[i - 1].Close);
+                        priceChangeLow.Add(0);
+                    }
+                    else
+                    {
+                        priceChangeLow.Add(candles[i - 1].Close - candles[i].Close);
+                        priceChangeHigh.Add(0);
+                    }
                 }
-                else
+                catch
                 {
-                    priceChangeLow.Add(candles[i - 1].Close - candles[i].Close);
-                    priceChangeHigh.Add(0);
+
                 }
 
                 MovingAverageHard(priceChangeHigh, priceChangeHighAverage, _length.ValueInt, valueInd);
                 MovingAverageHard(priceChangeLow, priceChangeLowAverage, _length.ValueInt, valueInd);
             }
 
+            if (priceChangeHighAverage.Count == 0)
+            {
+                return;
+            }
+
             decimal averageHigh = priceChangeHighAverage[priceChangeHighAverage.Count - 1];
-            decimal averageLow = priceChangeLowAverage[priceChangeHighAverage.Count - 1];
+            decimal averageLow = priceChangeLowAverage[priceChangeLowAverage.Count - 1];
 
             decimal rsi;
 
