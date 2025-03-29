@@ -18,7 +18,7 @@ service StopOrdersService { /* Сервис для работы со стоп-з
   //Выставить стоп-заявку.
   rpc PostStopOrder(PostStopOrderRequest) returns (PostStopOrderResponse);
 
-  //Получить список активных стоп-заявок по счёту.
+  //Получить список активных стоп-заявок по счету.
   rpc GetStopOrders(GetStopOrdersRequest) returns (GetStopOrdersResponse);
 
   //Отменить стоп-заявку.
@@ -32,12 +32,12 @@ message PostStopOrderRequest {
   optional Quotation price = 3; //Цена за 1 инструмент биржевой заявки, которая будет выставлена при срабатывании по достижению `stop_price`. Чтобы получить стоимость лота, нужно умножить на лотность инструмента.
   optional Quotation stop_price = 4; //Стоп-цена заявки за 1 инструмент. При достижении стоп-цены происходит активация стоп-заявки, в результате чего выставляется биржевая заявка. Чтобы получить стоимость лота, нужно умножить на лотность инструмента.
   StopOrderDirection direction = 5 [(google.api.field_behavior) = REQUIRED]; //Направление операции.
-  string account_id = 6 [(google.api.field_behavior) = REQUIRED]; //Номер счёта.
+  string account_id = 6 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
   StopOrderExpirationType expiration_type = 7 [(google.api.field_behavior) = REQUIRED]; //Тип экспирации заявки.
   StopOrderType stop_order_type = 8 [(google.api.field_behavior) = REQUIRED]; //Тип заявки.
   optional google.protobuf.Timestamp expire_date = 9; //Дата и время окончания действия стоп-заявки по UTC. Для `ExpirationType = GoodTillDate` заполнение обязательно, для `GoodTillCancel` игнорируется.
   string instrument_id = 10 [(google.api.field_behavior) = REQUIRED]; //Идентификатор инструмента. Принимает значение `figi` или `instrument_uid`.
-  ExchangeOrderType exchange_order_type = 11; //Тип дочерней биржевой заявки для тейкпрофита.
+  ExchangeOrderType exchange_order_type = 11; //Тип дочерней биржевой заявки.
   TakeProfitType take_profit_type = 12; //Подтип стоп-заявки — `TakeProfit`.
   TrailingData trailing_data = 13; //Массив с параметрами трейлинг-стопа.
   PriceType price_type = 14; //Тип цены.
@@ -59,7 +59,7 @@ message PostStopOrderResponse {
 
 //Запрос получения списка активных стоп-заявок.
 message GetStopOrdersRequest {
-  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Идентификатор счёта клиента.
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Идентификатор счета клиента.
   StopOrderStatusOption status = 2; //Статус заявок.
   google.protobuf.Timestamp from = 3; //Левая граница.
   google.protobuf.Timestamp to = 4; //Правая граница.
@@ -67,12 +67,12 @@ message GetStopOrdersRequest {
 
 //Список активных стоп-заявок.
 message GetStopOrdersResponse {
-  repeated StopOrder stop_orders = 1; //Массив стоп-заявок по счёту.
+  repeated StopOrder stop_orders = 1; //Массив стоп-заявок по счету.
 }
 
 //Запрос отмены выставленной стоп-заявки.
 message CancelStopOrderRequest {
-  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Идентификатор счёта клиента.
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Идентификатор счета клиента.
   string stop_order_id = 2 [(google.api.field_behavior) = REQUIRED]; //Уникальный идентификатор стоп-заявки.
 }
 
@@ -139,8 +139,8 @@ enum StopOrderStatusOption {
     STOP_ORDER_STATUS_ALL = 1; //Все заявки.
     STOP_ORDER_STATUS_ACTIVE = 2; //Активные заявки.
     STOP_ORDER_STATUS_EXECUTED = 3; //Исполненные заявки.
-    STOP_ORDER_STATUS_CANCELED = 4; //Отменённые заявки.
-    STOP_ORDER_STATUS_EXPIRED = 5; //Истёкшие заявки.
+    STOP_ORDER_STATUS_CANCELED = 4; //Отмененные заявки.
+    STOP_ORDER_STATUS_EXPIRED = 5; //Истекшие заявки.
 }
 
 //Тип выставляемой заявки.

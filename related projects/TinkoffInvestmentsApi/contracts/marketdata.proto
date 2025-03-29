@@ -13,7 +13,7 @@ import "google/protobuf/timestamp.proto";
 import "common.proto";
 import "google/api/field_behavior.proto";
 
-service MarketDataService {//Сервис для получения биржевой информации:</br> 1. Свечи.</br> 2. Стаканы.</br> 3. Торговые статусы.</br> 4. Лента сделок.
+service MarketDataService {//Сервис для получения биржевой информации:<br/> 1. Свечи.<br/> 2. Стаканы.<br/> 3. Торговые статусы.<br/> 4. Лента сделок.
 
   //Запросить исторические свечи по инструменту.
   rpc GetCandles(GetCandlesRequest) returns (GetCandlesResponse);
@@ -48,7 +48,7 @@ service MarketDataStreamService {
   rpc MarketDataServerSideStream(MarketDataServerSideStreamRequest) returns (stream MarketDataResponse);
 }
 
-//Запрос подписки или отписки на определённые биржевые данные.
+//Запрос подписки или отписки на определенные биржевые данные.
 message MarketDataRequest {
   oneof payload {
     SubscribeCandlesRequest subscribe_candles_request = 1; //Запрос подписки на свечи.
@@ -98,25 +98,25 @@ message SubscribeCandlesRequest {
 
 //Тип операции со списком подписок.
 enum SubscriptionAction {
-  SUBSCRIPTION_ACTION_UNSPECIFIED = 0; //Статус подписки не определён.
+  SUBSCRIPTION_ACTION_UNSPECIFIED = 0; //Статус подписки не определен.
   SUBSCRIPTION_ACTION_SUBSCRIBE = 1; //Подписаться.
   SUBSCRIPTION_ACTION_UNSUBSCRIBE = 2; //Отписаться.
 }
 
 //Интервал свечи.
 enum SubscriptionInterval {
-  SUBSCRIPTION_INTERVAL_UNSPECIFIED = 0; //Интервал свечи не определён.
+  SUBSCRIPTION_INTERVAL_UNSPECIFIED = 0; //Интервал свечи не определен.
   SUBSCRIPTION_INTERVAL_ONE_MINUTE = 1; //Минутные свечи.
   SUBSCRIPTION_INTERVAL_FIVE_MINUTES = 2; //Пятиминутные свечи.
   SUBSCRIPTION_INTERVAL_FIFTEEN_MINUTES = 3; //Пятнадцатиминутные свечи.
   SUBSCRIPTION_INTERVAL_ONE_HOUR = 4; //Часовые свечи.
   SUBSCRIPTION_INTERVAL_ONE_DAY = 5; //Дневные свечи.
   SUBSCRIPTION_INTERVAL_2_MIN = 6; //Двухминутные свечи.
-  SUBSCRIPTION_INTERVAL_3_MIN = 7; //Трёхминутные свечи.
+  SUBSCRIPTION_INTERVAL_3_MIN = 7; //Трехминутные свечи.
   SUBSCRIPTION_INTERVAL_10_MIN = 8; //Десятиминутные свечи.
   SUBSCRIPTION_INTERVAL_30_MIN = 9; //Тридцатиминутные свечи.
   SUBSCRIPTION_INTERVAL_2_HOUR = 10; //Двухчасовые свечи.
-  SUBSCRIPTION_INTERVAL_4_HOUR = 11; //Четырёхчасовые свечи.
+  SUBSCRIPTION_INTERVAL_4_HOUR = 11; //Четырехчасовые свечи.
   SUBSCRIPTION_INTERVAL_WEEK = 12; //Недельные свечи.
   SUBSCRIPTION_INTERVAL_MONTH = 13; //Месячные свечи.
 }
@@ -124,13 +124,13 @@ enum SubscriptionInterval {
 //Запрос изменения статус подписки на свечи.
 message CandleInstrument {
   string figi = 1 [deprecated = true]; // Deprecated FIGI-идентификатор инструмента. Используйте `instrument_id`.
-  SubscriptionInterval interval = 2; //Интервал свечей. Двухчасовые и четырёхчасовые свечи в стриме отсчитываются с 0:00 по UTC.
+  SubscriptionInterval interval = 2; //Интервал свечей. Двухчасовые и четырехчасовые свечи в стриме отсчитываются с 0:00 по UTC.
   string instrument_id = 3; //Идентификатор инструмента. Принимает значение `figi` или `instrument_uid`.
 }
 
 //Результат изменения статус подписки на свечи.
 message SubscribeCandlesResponse {
-  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](https://russianinvestments.github.io/investAPI/grpc#tracking-id).
+  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](./grpc#tracking-id).
   repeated CandleSubscription candles_subscriptions = 2; //Массив статусов подписки на свечи.
 }
 
@@ -148,17 +148,17 @@ message CandleSubscription {
 
 //Результат подписки.
 enum SubscriptionStatus {
-  SUBSCRIPTION_STATUS_UNSPECIFIED = 0; //Статус подписки не определён.
+  SUBSCRIPTION_STATUS_UNSPECIFIED = 0; //Статус подписки не определен.
   SUBSCRIPTION_STATUS_SUCCESS = 1; //Успешно.
   SUBSCRIPTION_STATUS_INSTRUMENT_NOT_FOUND = 2; //Инструмент не найден.
-  SUBSCRIPTION_STATUS_SUBSCRIPTION_ACTION_IS_INVALID = 3; //Некорректный статус подписки. [Список возможных значений](https://russianinvestments.github.io/investAPI/marketdata#subscriptionaction).
+  SUBSCRIPTION_STATUS_SUBSCRIPTION_ACTION_IS_INVALID = 3; //Некорректный статус подписки. [Список возможных значений](./marketdata#subscriptionaction).
   SUBSCRIPTION_STATUS_DEPTH_IS_INVALID = 4; //Некорректная глубина стакана. Доступные значения — 1, 10, 20, 30, 40, 50.
-  SUBSCRIPTION_STATUS_INTERVAL_IS_INVALID = 5; //Некорректный интервал свечей. [Список возможных значений](https://russianinvestments.github.io/investAPI/marketdata#subscriptioninterval).
-  SUBSCRIPTION_STATUS_LIMIT_IS_EXCEEDED = 6; //Превышен лимит на общее количество подписок в рамках стрима. [Лимитная политика](https://russianinvestments.github.io/investAPI/limits/).
+  SUBSCRIPTION_STATUS_INTERVAL_IS_INVALID = 5; //Некорректный интервал свечей. [Список возможных значений](./marketdata#subscriptioninterval).
+  SUBSCRIPTION_STATUS_LIMIT_IS_EXCEEDED = 6; //Превышен лимит на общее количество подписок в рамках стрима. [Лимитная политика](./limits/).
   SUBSCRIPTION_STATUS_INTERNAL_ERROR = 7; //Внутренняя ошибка сервиса.
   SUBSCRIPTION_STATUS_TOO_MANY_REQUESTS = 8; //Превышен лимит на количество запросов на подписки в течение установленного отрезка времени.
   SUBSCRIPTION_STATUS_SUBSCRIPTION_NOT_FOUND = 9; // Активная подписка не найдена. Ошибка может возникнуть только при отписке от несуществующей подписки.
-  SUBSCRIPTION_STATUS_SOURCE_IS_INVALID = 10; //Указан некорректный источник
+  SUBSCRIPTION_STATUS_SOURCE_IS_INVALID = 10; //Указан некорректный источник.
 }
 
 //Запрос на изменение статуса подписки на стаканы.
@@ -172,12 +172,12 @@ message OrderBookInstrument {
   string figi = 1 [deprecated = true]; //Deprecated FIGI-идентификатор инструмента. Используйте `instrument_id`.
   int32 depth = 2; //Глубина стакана.
   string instrument_id = 3; //Идентификатор инструмента. Принимает значение `figi` или `instrument_uid`.
-  OrderBookType order_book_type = 4; //Тип стакана. По умолчанию ORDERBOOK_TYPE_ALL - стакан биржевой и дилера.
+  OrderBookType order_book_type = 4; //Тип стакана. Значение по умолчанию — `ORDERBOOK_TYPE_ALL`, стакан биржевой и дилера.
 }
 
 //Результат изменения статуса подписки на стаканы.
 message SubscribeOrderBookResponse {
-  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](https://russianinvestments.github.io/investAPI/grpc#tracking-id).
+  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](./grpc#tracking-id).
   repeated OrderBookSubscription order_book_subscriptions = 2; //Массив статусов подписки на стаканы.
 }
 
@@ -204,7 +204,7 @@ enum TradeSourceType {
 message SubscribeTradesRequest {
   SubscriptionAction subscription_action = 1; //Изменение статуса подписки.
   repeated TradeInstrument instruments = 2; //Массив инструментов для подписки на поток обезличенных сделок.
-  TradeSourceType trade_source = 3; //Тип источника сделок. По умолчанию TRADE_SOURCE_ALL - все сделки.
+  TradeSourceType trade_source = 3; //Тип источника сделок. Значение по умолчанию — `TRADE_SOURCE_ALL`, все сделки.
 }
 
 //Запрос подписки на поток обезличенных сделок.
@@ -215,7 +215,7 @@ message TradeInstrument {
 
 //Результат изменения статуса подписки на поток обезличенных сделок.
 message SubscribeTradesResponse {
-  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](https://russianinvestments.github.io/investAPI/grpc#tracking-id).
+  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](./grpc#tracking-id).
   repeated TradeSubscription trade_subscriptions = 2; //Массив статусов подписки на поток сделок.
   TradeSourceType trade_source = 3; //Тип источника сделок.
 }
@@ -243,7 +243,7 @@ message InfoInstrument {
 
 //Результат изменения статуса подписки на торговый статус.
 message SubscribeInfoResponse {
-  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](https://russianinvestments.github.io/investAPI/grpc#tracking-id).
+  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](./grpc#tracking-id).
   repeated InfoSubscription info_subscriptions = 2; //Массив статусов подписки на торговый статус.
 }
 
@@ -270,7 +270,7 @@ message LastPriceInstrument {
 
 //Результат изменения статуса подписки на цену последней сделки.
 message SubscribeLastPriceResponse {
-  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](https://russianinvestments.github.io/investAPI/grpc#tracking-id).
+  string tracking_id = 1; //Уникальный идентификатор запроса. [Подробнее](./grpc#tracking-id).
   repeated LastPriceSubscription last_price_subscriptions = 2; //Массив статусов подписки на цену последней сделки.
 }
 
@@ -287,15 +287,15 @@ message LastPriceSubscription {
 message Candle {
   string figi = 1; //FIGI-идентификатор инструмента.
   SubscriptionInterval interval = 2; //Интервал свечи.
-  Quotation open = 3; //Цена открытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation high = 4; //Максимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation low = 5; //Минимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation close = 6; //Цена закрытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  int64 volume = 7; //Объём сделок в лотах.
+  Quotation open = 3; //Цена открытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation high = 4; //Максимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation low = 5; //Минимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation close = 6; //Цена закрытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  int64 volume = 7; //Объем сделок в лотах.
   google.protobuf.Timestamp time = 8; //Время начала интервала свечи по UTC.
   google.protobuf.Timestamp last_trade_ts = 9; //Время последней сделки, вошедшей в свечу по UTC.
   string instrument_uid = 10; //UID инструмента.
-  CandleSource candle_source_type = 19; //Источник свечей
+  CandleSource candle_source_type = 19; //Источник свечей.
 }
 
 //Пакет стаканов в рамках стрима.
@@ -306,15 +306,15 @@ message OrderBook {
   repeated Order bids = 4; //Массив предложений.
   repeated Order asks = 5; //Массив спроса.
   google.protobuf.Timestamp time = 6; //Время формирования стакана в часовом поясе UTC по времени биржи.
-  Quotation limit_up = 7; //Верхний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation limit_down = 8; //Нижний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
+  Quotation limit_up = 7; //Верхний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation limit_down = 8; //Нижний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
   string instrument_uid = 9; //UID инструмента.
   OrderBookType order_book_type = 10; //Тип стакана.
 }
 
 //Массив предложений/спроса.
 message Order {
-  Quotation price = 1; //Цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
+  Quotation price = 1; //Цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
   int64 quantity = 2; //Количество в лотах.
 }
 
@@ -322,7 +322,7 @@ message Order {
 message Trade {
   string figi = 1; //FIGI-идентификатор инструмента.
   TradeDirection direction = 2; //Направление сделки.
-  Quotation price = 3; //Цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
+  Quotation price = 3; //Цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
   int64 quantity = 4; //Количество лотов.
   google.protobuf.Timestamp time = 5; //Время сделки в часовом поясе UTC по времени биржи.
   string instrument_uid = 6; //UID инструмента.
@@ -363,26 +363,26 @@ message GetCandlesRequest {
   }
 }
 
-//Интервал свечей.
+//Интервал свечей. Максимальное значение интервала приведено ориентировочно, может отличаться в большую сторону в зависимости от параметров запроса.
 enum CandleInterval {
-  CANDLE_INTERVAL_UNSPECIFIED = 0; //Интервал не определён.
-  CANDLE_INTERVAL_1_MIN = 1; //От 1 минуты до 1 дня.
-  CANDLE_INTERVAL_5_MIN = 2; //От 5 минут до 1 дня.
-  CANDLE_INTERVAL_15_MIN = 3; //От 15 минут до 1 дня.
-  CANDLE_INTERVAL_HOUR = 4; //От 1 часа до 1 недели.
-  CANDLE_INTERVAL_DAY = 5; //От 1 дня до 1 года.
-  CANDLE_INTERVAL_2_MIN = 6; //От 2 минут до 1 дня.
-  CANDLE_INTERVAL_3_MIN = 7; //От 3 минут до 1 дня.
-  CANDLE_INTERVAL_10_MIN = 8; //От 10 минут до 1 дня.
-  CANDLE_INTERVAL_30_MIN = 9; //От 30 минут до 2 дней.
-  CANDLE_INTERVAL_2_HOUR = 10; //От 2 часов до 1 месяца.
-  CANDLE_INTERVAL_4_HOUR = 11; //От 4 часов до 1 месяца.
-  CANDLE_INTERVAL_WEEK = 12; //От 1 недели до 2 лет.
-  CANDLE_INTERVAL_MONTH = 13; //От 1 месяца до 10 лет.
+  CANDLE_INTERVAL_UNSPECIFIED = 0; //Интервал не определен.
+  CANDLE_INTERVAL_1_MIN = 1; //От 1 минуты до 1 дня. Максимальное значение `limit` — 2400.
+  CANDLE_INTERVAL_5_MIN = 2; //От 5 минут до недели. Максимальное значение `limit` — 2400.
+  CANDLE_INTERVAL_15_MIN = 3; //От 15 минут до 3 недель. Максимальное значение `limit` — 2400.
+  CANDLE_INTERVAL_HOUR = 4; //От 1 часа до 3 месяцев. Максимальное значение `limit` — 2400.
+  CANDLE_INTERVAL_DAY = 5; //От 1 дня до 6 лет. Максимальное значение `limit` — 2400.
+  CANDLE_INTERVAL_2_MIN = 6; //От 2 минут до 1 дня. Максимальное значение `limit` — 1200.
+  CANDLE_INTERVAL_3_MIN = 7; //От 3 минут до 1 дня. Максимальное значение `limit` — 750.
+  CANDLE_INTERVAL_10_MIN = 8; //От 10 минут до недели. Максимальное значение `limit` — 1200.
+  CANDLE_INTERVAL_30_MIN = 9; //От 30 минут до 3 недель. Максимальное значение `limit` — 1200.
+  CANDLE_INTERVAL_2_HOUR = 10; //От 2 часов до 3 месяцев. Максимальное значение `limit` — 2400.
+  CANDLE_INTERVAL_4_HOUR = 11; //От 4 часов до 3 месяцев. Максимальное значение `limit` — 700.
+  CANDLE_INTERVAL_WEEK = 12; //От 1 недели до 5 лет. Максимальное значение `limit` — 300.
+  CANDLE_INTERVAL_MONTH = 13; //От 1 месяца до 10 лет. Максимальное значение `limit` — 120.
 }
 
 enum CandleSource {
-  CANDLE_SOURCE_UNSPECIFIED = 0; //Источник свечей не определён.
+  CANDLE_SOURCE_UNSPECIFIED = 0; //Источник свечей не определен.
   CANDLE_SOURCE_EXCHANGE = 1;  //Биржевые свечи.
   CANDLE_SOURCE_DEALER_WEEKEND = 2;  //Свечи  дилера в результате торговли по выходным.
 }
@@ -394,14 +394,14 @@ message GetCandlesResponse {
 
 //Информация о свече.
 message HistoricCandle {
-  Quotation open = 1; //Цена открытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation high = 2; //Максимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation low = 3; //Минимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation close = 4; //Цена закрытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  int64 volume = 5; //Объём торгов в лотах.
+  Quotation open = 1; //Цена открытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation high = 2; //Максимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation low = 3; //Минимальная цена за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation close = 4; //Цена закрытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  int64 volume = 5; //Объем торгов в лотах.
   google.protobuf.Timestamp time = 6; //Время свечи в часовом поясе UTC.
-  bool is_complete = 7; //Признак завершённости свечи. **false** — свеча за текущие интервал ещё сформирована не полностью.
-  CandleSource candle_source_type = 9;  //Тип источника свечи
+  bool is_complete = 7; //Признак завершенности свечи. **false** — свеча за текущие интервал еще сформирована не полностью.
+  CandleSource candle_source = 9;  //Тип источника свечи
 }
 
 //Запрос получения цен последних сделок.
@@ -409,6 +409,7 @@ message GetLastPricesRequest {
   repeated string figi = 1 [deprecated = true]; //Deprecated FIGI-идентификатор инструмента. Используйте `instrument_id`.
   repeated string instrument_id = 2; //Массив идентификаторов инструмента. Принимает значения `figi` или `instrument_uid`.
   LastPriceType last_price_type = 3; //Тип запрашиваемой последней цены.
+  optional InstrumentStatus instrument_status = 9; //Статус запрашиваемых инструментов. [Возможные значения](#instrumentstatus).
 }
 
 //Список цен последних сделок.
@@ -419,7 +420,7 @@ message GetLastPricesResponse {
 //Информация о цене последней сделки.
 message LastPrice {
   string figi = 1; //FIGI инструмента.
-  Quotation price = 2; //Цена последней сделки за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
+  Quotation price = 2; //Цена последней сделки за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
   google.protobuf.Timestamp time = 3; //Время получения последней цены в часовом поясе UTC по времени биржи.
   string instrument_uid = 11; //UID инструмента.
   LastPriceType last_price_type = 12; //Тип последней цены.
@@ -438,10 +439,10 @@ message GetOrderBookResponse {
   int32 depth = 2; //Глубина стакана.
   repeated Order bids = 3; //Множество пар значений на покупку.
   repeated Order asks = 4; //Множество пар значений на продажу.
-  Quotation last_price = 5; //Цена последней сделки за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation close_price = 6; //Цена закрытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation limit_up = 7; //Верхний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
-  Quotation limit_down = 8; //Нижний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](https://russianinvestments.github.io/investAPI/faq_marketdata/#_15).
+  Quotation last_price = 5; //Цена последней сделки за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation close_price = 6; //Цена закрытия за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation limit_up = 7; //Верхний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
+  Quotation limit_down = 8; //Нижний лимит цены за 1 инструмент. Чтобы получить стоимость лота, нужно умножить на лотность инструмента. [Подробнее про перевод цен в валюту](./faq_marketdata/#_15).
   google.protobuf.Timestamp last_price_ts = 21; //Время получения цены последней сделки.
   google.protobuf.Timestamp close_price_ts = 22; //Время получения цены закрытия.
   google.protobuf.Timestamp orderbook_ts = 23; //Время формирования стакана на бирже.
@@ -483,7 +484,7 @@ message GetLastTradesRequest {
   google.protobuf.Timestamp from = 2 [(google.api.field_behavior) = REQUIRED]; //Начало запрашиваемого периода по UTC.
   google.protobuf.Timestamp to = 3 [(google.api.field_behavior) = REQUIRED]; //Окончание запрашиваемого периода по UTC.
   optional string instrument_id = 4; //Идентификатор инструмента. Принимает значение `figi` или `instrument_uid`.
-  TradeSourceType trade_source = 5; //Тип источника сделок. По умолчанию TRADE_SOURCE_ALL - все сделки.
+  TradeSourceType trade_source = 5; //Тип источника сделок. Значение по умолчанию — `TRADE_SOURCE_ALL`, все сделки.
 }
 
 //Обезличенных сделок за последний час.
@@ -497,6 +498,7 @@ message GetMySubscriptions {}
 //Запрос цен закрытия торговой сессии по инструментам.
 message GetClosePricesRequest {
   repeated InstrumentClosePriceRequest instruments = 1 [(google.api.field_behavior) = REQUIRED]; //Массив по инструментам.
+  optional InstrumentStatus instrument_status = 9; //Статус запрашиваемых инструментов. [Возможные значения](#instrumentstatus).
 }
 
 //Запрос цен закрытия торговой сессии по инструменту.
@@ -524,7 +526,7 @@ message GetTechAnalysisRequest {
   google.protobuf.Timestamp from = 3 [(google.api.field_behavior) = REQUIRED]; //Начало запрашиваемого периода по UTC.
   google.protobuf.Timestamp to = 4 [(google.api.field_behavior) = REQUIRED]; //Окончание запрашиваемого периода по UTC.
   IndicatorInterval interval = 5 [(google.api.field_behavior) = REQUIRED]; //Интервал, за который рассчитывается индикатор.
-  TypeOfPrice type_of_price = 6 [(google.api.field_behavior) = REQUIRED]; //Тип цены, который используется при расчёте индикатора.
+  TypeOfPrice type_of_price = 6 [(google.api.field_behavior) = REQUIRED]; //Тип цены, который используется при расчете индикатора.
   int32 length = 7; //Торговый период, за который рассчитывается индикатор.
   Deviation deviation = 8; //Параметры отклонения.
   Smoothing smoothing = 9; //Параметры сглаживания.
@@ -541,7 +543,7 @@ message GetTechAnalysisRequest {
 
   //Интервал свечи.
   enum IndicatorInterval {
-    INDICATOR_INTERVAL_UNSPECIFIED = 0; //Интервал не определён.
+    INDICATOR_INTERVAL_UNSPECIFIED = 0; //Интервал не определен.
     INDICATOR_INTERVAL_ONE_MINUTE = 1; //1 минута.
     INDICATOR_INTERVAL_FIVE_MINUTES = 2; //5 минут.
     INDICATOR_INTERVAL_FIFTEEN_MINUTES = 3; //15 минут.
@@ -567,7 +569,7 @@ message GetTechAnalysisRequest {
   }
 
   enum IndicatorType {
-    INDICATOR_TYPE_UNSPECIFIED = 0; //Не определён.
+    INDICATOR_TYPE_UNSPECIFIED = 0; //Не определен.
     INDICATOR_TYPE_BB = 1; //Bollinger Bands — линия Боллинжера.
     INDICATOR_TYPE_EMA = 2; //Exponential Moving Average — EMA, экспоненциальная скользящая средняя.
     INDICATOR_TYPE_RSI = 3; //Relative Strength Index — индекс относительной силы.
@@ -590,7 +592,7 @@ message GetTechAnalysisResponse {
 }
 
 enum OrderBookType {
-  ORDERBOOK_TYPE_UNSPECIFIED = 0; //Не определён.
+  ORDERBOOK_TYPE_UNSPECIFIED = 0; //Не определен.
   ORDERBOOK_TYPE_EXCHANGE = 1; //Биржевой стакан.
   ORDERBOOK_TYPE_DEALER = 2; //Стакан дилера.
   ORDERBOOK_TYPE_ALL = 3; //Стакан биржевой и дилера.

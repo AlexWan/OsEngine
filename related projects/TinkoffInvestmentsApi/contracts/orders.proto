@@ -14,15 +14,16 @@ import "google/protobuf/timestamp.proto";
 import "google/api/field_behavior.proto";
 
 service OrdersStreamService {
-  //Stream сделок пользователя
+  //Stream сделок пользователя.
   rpc TradesStream(TradesStreamRequest) returns (stream TradesStreamResponse);
-  //Stream поручений пользователя. Перед работой прочитайте [статью](https://russianinvestments.github.io/investAPI/orders_state_stream/).
+  //Stream поручений пользователя.
+  //Перед работой прочитайте [статью](/invest/services/orders/orders_state_stream).
   rpc OrderStateStream(OrderStateStreamRequest) returns (stream OrderStateStreamResponse);
 }
 
-service OrdersService {/* Сервис предназначен для работы с торговыми поручениями:</br> **1**.
-                        выставление;</br> **2**. отмена;</br> **3**. получение статуса;</br> **4**.
-                        расчёт полной стоимости;</br> **5**. получение списка заявок.*/
+service OrdersService {/* Сервис предназначен для работы с торговыми поручениями:<br/> **1**.
+                        выставление;<br/> **2**. отмена;<br/> **3**. получение статуса;<br/> **4**.
+                        расчет полной стоимости;<br/> **5**. получение списка заявок.*/
   //Метод выставления заявки.
   rpc PostOrder(PostOrderRequest) returns (PostOrderResponse);
 
@@ -35,23 +36,23 @@ service OrdersService {/* Сервис предназначен для рабо�
   //Метод получения статуса торгового поручения.
   rpc GetOrderState(GetOrderStateRequest) returns (OrderState);
 
-  //Метод получения списка активных заявок по счёту.
+  //Метод получения списка активных заявок по счету.
   rpc GetOrders(GetOrdersRequest) returns (GetOrdersResponse);
 
   //Метод изменения выставленной заявки.
   rpc ReplaceOrder(ReplaceOrderRequest) returns (PostOrderResponse);
 
-  //расчет количества доступных для покупки/продажи лотов
+  //Расчет количества доступных для покупки/продажи лотов.
   rpc GetMaxLots(GetMaxLotsRequest) returns (GetMaxLotsResponse);
 
-  //Метод получения предварительной стоимости для лимитной заявки
+  //Метод получения предварительной стоимости для лимитной заявки.
   rpc GetOrderPrice(GetOrderPriceRequest) returns (GetOrderPriceResponse);
 }
 
 //Запрос установки соединения.
 message TradesStreamRequest {
   repeated string accounts = 1; //Идентификаторы счетов.
-  optional int32 ping_delay_ms = 15; //Задержка пинг сообщений milliseconds 5000-180000, default 120000
+  optional int32 ping_delay_ms = 15; //Задержка (пинг) сообщений: 5000–180 000 миллисекунд. Значение по умолчанию — 120 000.
 }
 
 //Информация о торговых поручениях.
@@ -70,7 +71,7 @@ message OrderTrades {
   OrderDirection direction = 3; //Направление сделки.
   string figi = 4; //Figi-идентификатор инструмента.
   repeated OrderTrade trades = 5; //Массив сделок.
-  string account_id = 6; //Идентификатор счёта.
+  string account_id = 6; //Идентификатор счета.
   string instrument_uid = 7; //UID идентификатор инструмента.
 }
 
@@ -88,7 +89,7 @@ message PostOrderRequest {
   int64 quantity = 2 [(google.api.field_behavior) = REQUIRED]; //Количество лотов.
   optional Quotation price = 3; //Цена за 1 инструмент. Для получения стоимости лота требуется умножить на лотность инструмента. Игнорируется для рыночных поручений.
   OrderDirection direction = 4 [(google.api.field_behavior) = REQUIRED]; //Направление операции.
-  string account_id = 5 [(google.api.field_behavior) = REQUIRED]; //Номер счёта.
+  string account_id = 5 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
   OrderType order_type = 6 [(google.api.field_behavior) = REQUIRED]; //Тип заявки.
   string order_id = 7 [(google.api.field_behavior) = REQUIRED]; //Идентификатор запроса выставления поручения для целей идемпотентности в формате UID. Максимальная длина 36 символов.
   string instrument_id = 8; //Идентификатор инструмента, принимает значения Figi или Instrument_uid.
@@ -96,7 +97,7 @@ message PostOrderRequest {
   PriceType price_type = 10; //Тип цены.
 }
 
-//Прочитайте  про ключ идемпотентности [здесь](https://russianinvestments.github.io/investAPI/head-orders/)
+//Прочитайте  про ключ идемпотентности [здесь](./head-orders/)
 
 //Информация о выставлении поручения.
 message PostOrderResponse {
@@ -110,7 +111,7 @@ message PostOrderResponse {
   MoneyValue total_order_amount = 7; //Итоговая стоимость заявки, включающая все комиссии.
   MoneyValue initial_commission = 8; //Начальная комиссия. Комиссия рассчитанная при выставлении заявки.
   MoneyValue executed_commission = 9; //Фактическая комиссия по итогам исполнения заявки.
-  MoneyValue aci_value = 10; //Значение НКД (накопленного купонного дохода) на дату. Подробнее: [НКД при выставлении торговых поручений](https://russianinvestments.github.io/investAPI/head-orders#coupon)
+  MoneyValue aci_value = 10; //Значение НКД (накопленного купонного дохода) на дату. Подробнее: [НКД при выставлении торговых поручений](./head-orders#coupon)
 
   string figi = 11; // Figi-идентификатор инструмента.
   OrderDirection direction = 12; //Направление сделки.
@@ -129,7 +130,7 @@ message PostOrderAsyncRequest {
   int64 quantity = 2 [(google.api.field_behavior) = REQUIRED]; //Количество лотов.
   optional Quotation price = 3; //Цена за 1 инструмент. Для получения стоимости лота требуется умножить на лотность инструмента. Игнорируется для рыночных поручений.
   OrderDirection direction = 4 [(google.api.field_behavior) = REQUIRED]; //Направление операции.
-  string account_id = 5 [(google.api.field_behavior) = REQUIRED]; //Номер счёта.
+  string account_id = 5 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
   OrderType order_type = 6 [(google.api.field_behavior) = REQUIRED]; //Тип заявки.
   string order_id = 7 [(google.api.field_behavior) = REQUIRED]; //Идентификатор запроса выставления поручения для целей идемпотентности в формате UID. Максимальная длина 36 символов.
   optional TimeInForceType time_in_force = 8; //Алгоритм исполнения поручения, применяется только к лимитной заявке.
@@ -145,7 +146,7 @@ message PostOrderAsyncResponse {
 
 //Запрос отмены торгового поручения.
 message CancelOrderRequest {
-  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счёта.
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
   string order_id = 2 [(google.api.field_behavior) = REQUIRED]; //Идентификатор заявки.
   optional OrderIdType order_id_type = 3; //Тип идентификатора заявки.
 }
@@ -158,7 +159,7 @@ message CancelOrderResponse {
 
 //Запрос получения статуса торгового поручения.
 message GetOrderStateRequest {
-  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счёта.
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
   string order_id = 2 [(google.api.field_behavior) = REQUIRED]; //Идентификатор заявки.
   PriceType price_type = 3; //Тип цены.
   optional OrderIdType order_id_type = 4; //Тип идентификатора заявки.
@@ -166,7 +167,7 @@ message GetOrderStateRequest {
 
 //Запрос получения списка активных торговых поручений.
 message GetOrdersRequest {
-  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счёта.
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета.
 }
 
 //Список активных торговых поручений.
@@ -279,12 +280,12 @@ message GetOrderPriceResponse {
 //Запрос установки стрим-соединения торговых поручений
 message OrderStateStreamRequest {
   repeated string accounts = 1; //Идентификаторы счетов.
-  optional int32 ping_delay_ms = 15; //Задержка пинг сообщений milliseconds 5000-180000, default 120000
+  optional int32 ping_delay_millis = 15; //Задержка (пинг) сообщений:  1000-120 000 миллисекунд. Значение по умолчанию — 120 000.
 }
 
 //Информация по подпискам
 message SubscriptionResponse {
-  string tracking_id = 1; //Уникальный идентификатор запроса, подробнее: [tracking_id](https://russianinvestments.github.io/investAPI/grpc#tracking-id).
+  string tracking_id = 1; //Уникальный идентификатор запроса, подробнее: [tracking_id](./grpc#tracking-id).
   ResultSubscriptionStatus status = 2; //Статус подписки.
   string stream_id = 4; //Идентификатор открытого соединения
   repeated string accounts = 5; //Идентификаторы счетов.
@@ -301,33 +302,33 @@ message OrderStateStreamResponse {
 
   //Заявка
   message OrderState {
-    string order_id = 1; //Биржевой идентификатор заявки
+    string order_id = 1; //Биржевой идентификатор заявки.
     optional string order_request_id = 2; //Идентификатор ключа идемпотентности, переданный клиентом, в формате UID. Максимальная длина 36 символов.
-    string client_code = 3; //Код клиента на бирже
-    google.protobuf.Timestamp created_at = 4; //Дата создания заявки
-    OrderExecutionReportStatus execution_report_status = 5; //Статус заявки
-    optional StatusCauseInfo status_info = 6; //Дополнительная информация по статусу
-    string ticker = 7; //Тикер инструмента
-    string class_code = 8; //Класс-код (секция торгов)
-    int32 lot_size = 9; //Лотность инструмента заявки
-    OrderDirection direction = 10; //Направление заявки
-    TimeInForceType time_in_force = 11; //Алгоритм исполнения поручения
-    OrderType order_type = 12; //Тип заявки
-    string account_id = 13; //Номер счета
-    MoneyValue initial_order_price = 22; //Начальная цена заявки
-    MoneyValue order_price = 23; //Цена выставления заявки
-    optional MoneyValue amount = 24; //Предрассчитанная стоимость полной заявки
-    MoneyValue executed_order_price = 25; //Исполненная средняя цена одного инструмента в заявке
-    string currency = 26; //Валюта исполнения
-    int64 lots_requested = 27; //Запрошено лотов
-    int64 lots_executed = 28; //Исполнено лотов
-    int64 lots_left = 29; //Число неисполненных лотов по заявке
-    int64 lots_cancelled = 30; //Отмененные лоты
-    optional MarkerType marker = 31; //Спецсимвол
-    repeated OrderTrade trades = 33; //	Список сделок
-    google.protobuf.Timestamp completion_time = 35; //Время исполнения заявки
-    string exchange = 36; //Код биржи
-    string instrument_uid = 41; //UID идентификатор инструмента
+    string client_code = 3; //Код клиента на бирже.
+    google.protobuf.Timestamp created_at = 4; //Дата создания заявки.
+    OrderExecutionReportStatus execution_report_status = 5; //Статус заявки.
+    optional StatusCauseInfo status_info = 6; //Дополнительная информация по статусу.
+    string ticker = 7; //Тикер инструмента.
+    string class_code = 8; //Класс-код (секция торгов).
+    int32 lot_size = 9; //Лотность инструмента заявки.
+    OrderDirection direction = 10; //Направление заявки.
+    TimeInForceType time_in_force = 11; //Алгоритм исполнения поручения.
+    OrderType order_type = 12; //Тип заявки.
+    string account_id = 13; //Номер счета.
+    MoneyValue initial_order_price = 22; //Начальная цена заявки.
+    MoneyValue order_price = 23; //Цена выставления заявки.
+    optional MoneyValue amount = 24; //Предрассчитанная стоимость полной заявки.
+    MoneyValue executed_order_price = 25; //Исполненная цена заявки.
+    string currency = 26; //Валюта исполнения.
+    int64 lots_requested = 27; //Запрошено лотов.
+    int64 lots_executed = 28; //Исполнено лотов.
+    int64 lots_left = 29; //Число неисполненных лотов по заявке.
+    int64 lots_cancelled = 30; //Отмененные лоты.
+    optional MarkerType marker = 31; //Спецсимвол.
+    repeated OrderTrade trades = 33; //	Список сделок.
+    google.protobuf.Timestamp completion_time = 35; //Время исполнения заявки.
+    string exchange = 36; //Код биржи.
+    string instrument_uid = 41; //UID идентификатор инструмента.
   }
 
   //Маркер
