@@ -3045,10 +3045,12 @@ namespace OsEngine.OsOptimizer
 
             for (int i = 0; _chartSeriesResult.ChartAreas != null && i < _chartSeriesResult.ChartAreas.Count; i++)
             {
+                _chartSeriesResult.ChartAreas[i].CursorX.IsUserSelectionEnabled = false;
+                _chartSeriesResult.ChartAreas[i].CursorX.IsUserEnabled = true;
+                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Color.FromArgb(255, 83, 0);
                 _chartSeriesResult.ChartAreas[i].BackColor = Color.FromArgb(21, 26, 30);
                 _chartSeriesResult.ChartAreas[i].BorderColor = Color.FromArgb(17, 18, 23);
                 _chartSeriesResult.ChartAreas[i].CursorY.LineColor = Color.FromArgb(149, 159, 176);
-                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Color.FromArgb(149, 159, 176);
 
                 foreach (var axe in _chartSeriesResult.ChartAreas[i].Axes)
                 {

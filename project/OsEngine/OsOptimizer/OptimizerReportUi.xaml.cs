@@ -845,9 +845,11 @@ namespace OsEngine.OsOptimizer
             for (int i = 0; _chartSeriesResult.ChartAreas != null && i < _chartSeriesResult.ChartAreas.Count; i++)
             {
                 _chartSeriesResult.ChartAreas[i].BackColor = Color.FromArgb(21, 26, 30);
+                _chartSeriesResult.ChartAreas[i].CursorX.IsUserSelectionEnabled = false;
+                _chartSeriesResult.ChartAreas[i].CursorX.IsUserEnabled = true;
+                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Color.FromArgb(255, 83, 0);
                 _chartSeriesResult.ChartAreas[i].BorderColor = Color.FromArgb(17, 18, 23);
                 _chartSeriesResult.ChartAreas[i].CursorY.LineColor = Color.FromArgb(149, 159, 176);
-                _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Color.FromArgb(149, 159, 176);
 
                 foreach (var axe in _chartSeriesResult.ChartAreas[i].Axes)
                 {
@@ -905,7 +907,7 @@ namespace OsEngine.OsOptimizer
                 LabelSeriesResultChart.Content
                  = OsLocalization.Optimizer.Label67 + " "
                  + (num + 1) + " " + fazeReport.Faze.TypeFaze + ". "
-                 + OsLocalization.Optimizer.Label39 + ": " + _sortBotsType;
+                 + OsLocalization.Optimizer.Label70 + ": " + _sortBotsType;
 
 
                 List<ChartOptimizationResultValue> values = new List<ChartOptimizationResultValue>();
@@ -969,6 +971,8 @@ namespace OsEngine.OsOptimizer
 
                 values = values.OrderBy(x => x.BotNum).ToList();
 
+                _lastValues = values;
+
                 decimal max = decimal.MinValue;
                 decimal min = decimal.MaxValue;
 
@@ -1017,6 +1021,8 @@ namespace OsEngine.OsOptimizer
                 _master.SendLogMessage(ex.ToString(),LogMessageType.Error);
             }
         }
+
+        List<ChartOptimizationResultValue> _lastValues;
 
         private void SetColorInOptimizationResultValues(List<ChartOptimizationResultValue> resultValues)
         {

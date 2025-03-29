@@ -458,5 +458,9 @@ namespace OsEngine.Language
         public string Label69 => OsLocalization.ConvertToLocString(
            "Eng:Value_" +
            "Ru:Значение_");
+
+        public string Label70 => OsLocalization.ConvertToLocString(
+           "Eng:Value_" +
+           "Ru:Значение_");
     }
 }
