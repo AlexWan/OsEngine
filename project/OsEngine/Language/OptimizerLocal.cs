@@ -446,5 +446,17 @@ namespace OsEngine.Language
         public string Label66 => OsLocalization.ConvertToLocString(
            "Eng:Timeframe_" +
            "Ru:Таймфрейм_");
+
+        public string Label67 => OsLocalization.ConvertToLocString(
+           "Eng:Series result._" +
+           "Ru:Результаты серии._");
+
+        public string Label68 => OsLocalization.ConvertToLocString(
+           "Eng:Bot_" +
+           "Ru:Робот_");
+
+        public string Label69 => OsLocalization.ConvertToLocString(
+           "Eng:Value_" +
+           "Ru:Значение_");
     }
 }

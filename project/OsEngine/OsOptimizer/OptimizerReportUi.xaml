@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsOptimizer"
         mc:Ignorable="d"
-         Title="Optimizer Report" MinWidth="900" MinHeight="600" Height="700"  Width="1100" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+         Title="Optimizer Report" MinWidth="1000" MinHeight="600" Height="700"  Width="1100" Style="{StaticResource WindowStyleCanResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid/>
         <Grid Grid.Row="1">
@@ -16,10 +16,12 @@
                         <TabControl  Name="TabControlResults" Margin="0,0,0,0">
                             <TabItem Name="TabControlResultsSeries"  Header="Series and Results">
                                 <Grid >
-                                    <WindowsFormsHost x:Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="92" Margin="0,34,8,0" VerticalAlignment="Top"/>
-                                    <Label x:Name="LabelOptimSeries" Content="Optimization series" HorizontalAlignment="Left"   Margin="0,6,0,0" VerticalAlignment="Top" Height="22"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,154,8,0"/>
-                                    <Label x:Name="LabelTableResults" Content="Result table" HorizontalAlignment="Left" Margin="0,126,0,0" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="220" Margin="0,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="523"/>
+                                    <Label x:Name="LabelOptimSeries" Content="Optimization series" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,269,5,0"/>
+                                    <Label x:Name="LabelTableResults" Content="Result table" HorizontalAlignment="Left" Margin="0,246,0,0" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost x:Name="WindowsFormsHostResultsChart"  Foreground="Black" Height="220" Margin="527,22,5,0" VerticalAlignment="Top"/>
+                                    <Label x:Name="LabelSeriesResultChart" Content="Series results chart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Margin="527,0,0,0"/>
                                 </Grid>
                             </TabItem>
                             <TabItem Name="TabControlResultsOutOfSampleResults" Header="Out of sample statistic">

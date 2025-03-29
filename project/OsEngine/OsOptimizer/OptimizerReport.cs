@@ -141,6 +141,16 @@ namespace OsEngine.OsOptimizer
 
         public string BotName;
 
+        public int BotNum
+        {
+            get
+            {
+                string num = BotName.Replace(" OpT OutOfSample", "").Replace(" OpT InSample", "");
+                return Convert.ToInt32(num);
+            }
+
+        }
+
         public List<string> StrategyParameters = new List<string>();
 
         public string GetParametersToDataTable()

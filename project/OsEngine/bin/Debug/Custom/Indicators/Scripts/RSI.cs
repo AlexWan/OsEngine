@@ -46,22 +46,15 @@ namespace OsEngine.Indicators
 
             for (int i = startIndex, valueInd = 0; i <= index && i < candles.Count; i++, valueInd++)
             {
-                try
+                if (candles[i].Close - candles[i - 1].Close > 0)
                 {
-                    if (candles[i].Close - candles[i - 1].Close > 0)
-                    {
-                        priceChangeHigh.Add(candles[i].Close - candles[i - 1].Close);
-                        priceChangeLow.Add(0);
-                    }
-                    else
-                    {
-                        priceChangeLow.Add(candles[i - 1].Close - candles[i].Close);
-                        priceChangeHigh.Add(0);
-                    }
+                    priceChangeHigh.Add(candles[i].Close - candles[i - 1].Close);
+                    priceChangeLow.Add(0);
                 }
-                catch
+                else
                 {
-
+                    priceChangeLow.Add(candles[i - 1].Close - candles[i].Close);
+                    priceChangeHigh.Add(0);
                 }
 
                 MovingAverageHard(priceChangeHigh, priceChangeHighAverage, _length.ValueInt, valueInd);
