@@ -1959,6 +1959,8 @@ namespace OsEngine.Market.Servers.TinkoffInvestments
                             portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountShares);
                             portf.ValueCurrent += GetValue(portfolioResponse.Portfolio.TotalAmountSp);
                         }
+
+                        portf.UnrealizedPnl = GetValue(portfolioResponse.Portfolio.DailyYield);
                         
                         if (PortfolioEvent != null)
                         {
