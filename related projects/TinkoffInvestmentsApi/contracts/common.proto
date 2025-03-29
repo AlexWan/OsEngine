@@ -26,7 +26,14 @@ enum InstrumentType {
   INSTRUMENT_TYPE_COMMODITY = 10; //Товар.
 }
 
-//Денежная сумма в определённой валюте.
+//Статус запрашиваемых инструментов.
+enum InstrumentStatus {
+  INSTRUMENT_STATUS_UNSPECIFIED = 0; //Значение не определено.
+  INSTRUMENT_STATUS_BASE = 1; //По умолчанию — базовый список инструментов, которыми можно торговать через T-Invest API. Сейчас списки доступных бумаг в API и других интерфейсах совпадают — кроме внебиржевых бумаг, но в будущем списки могут различаться.
+  INSTRUMENT_STATUS_ALL = 2; //Список всех инструментов.
+}
+
+//Денежная сумма в определенной валюте.
 message MoneyValue {
 
   // Строковый ISO-код валюты.
@@ -51,7 +58,7 @@ message Quotation {
 
 //Режим торгов инструмента
 enum SecurityTradingStatus {
-  SECURITY_TRADING_STATUS_UNSPECIFIED = 0; //Торговый статус не определён.
+  SECURITY_TRADING_STATUS_UNSPECIFIED = 0; //Торговый статус не определен.
   SECURITY_TRADING_STATUS_NOT_AVAILABLE_FOR_TRADING = 1; //Недоступен для торгов.
   SECURITY_TRADING_STATUS_OPENING_PERIOD = 2; //Период открытия торгов.
   SECURITY_TRADING_STATUS_CLOSING_PERIOD = 3; //Период закрытия торгов.
@@ -71,25 +78,25 @@ enum SecurityTradingStatus {
 }
 
 message PingRequest {
-  optional google.protobuf.Timestamp time = 1; //Время формирования запроса
+  optional google.protobuf.Timestamp time = 1; //Время формирования запроса.
 }
 
 message PingDelaySettings {
-  optional int32 ping_delay_ms = 15; //Задержка пинг сообщений milliseconds 5000-180000, default 120000
+  optional int32 ping_delay_ms = 15; //Задержка (пинг) сообщений:  5000–180 000 миллисекунд. Значение по умолчанию — 120 000.
 }
 
 //Проверка активности стрима.
 message Ping {
   google.protobuf.Timestamp time = 1; //Время проверки.
   string stream_id = 2; //Идентификатор соединения.
-  optional google.protobuf.Timestamp ping_request_time = 4; //Время формирования запроса
+  optional google.protobuf.Timestamp ping_request_time = 4; //Время формирования запроса.
 }
 
 //Тип цены.
 enum PriceType {
   PRICE_TYPE_UNSPECIFIED = 0; //Значение не определено.
   PRICE_TYPE_POINT = 1; //Цена в пунктах (только для фьючерсов и облигаций).
-  PRICE_TYPE_CURRENCY = 2; //Цена в валюте расчётов по инструменту.
+  PRICE_TYPE_CURRENCY = 2; //Цена в валюте расчетов по инструменту.
 }
 
 message Page {

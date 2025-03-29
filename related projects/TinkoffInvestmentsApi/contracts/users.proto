@@ -13,8 +13,8 @@ import "google/protobuf/timestamp.proto";
 import "google/api/field_behavior.proto";
 import "common.proto";
 
-service UsersService { /*С помощью сервиса можно получить: </br> 1.
-                       список счетов пользователя; </br> 2. маржинальные показатели по счёту.*/
+service UsersService { /*С помощью сервиса можно получить: <br/> 1.
+                       список счетов пользователя; <br/> 2. маржинальные показатели по счёту.*/
 
   //Получить счета пользователя.
   rpc GetAccounts (GetAccountsRequest) returns (GetAccountsResponse);
@@ -93,13 +93,13 @@ message GetMarginAttributesRequest {
 //Маржинальные показатели по счёту.
 message GetMarginAttributesResponse {
 
-  // Ликвидная стоимость портфеля. [Подробнее про ликвидный портфель](https://help.tbank.ru/margin-trade/short/liquid-portfolio/).
+  // Ликвидная стоимость портфеля. [Подробнее про ликвидный портфель](https://www.tbank.ru/invest/help/brokerage/account/margin/about/#q4).
   MoneyValue liquid_portfolio = 1;
 
-  // Начальная маржа — начальное обеспечение для совершения новой сделки. [Подробнее про начальную и минимальную маржу](https://help.tbank.ru/margin-trade/short/initial-and-maintenance-margin/).
+  // Начальная маржа — начальное обеспечение для совершения новой сделки. [Подробнее про начальную и минимальную маржу](https://www.tbank.ru/invest/help/brokerage/account/margin/about/#q6).
   MoneyValue starting_margin = 2;
 
-  // Минимальная маржа — это минимальное обеспечение для поддержания позиции, которую вы уже открыли. [Подробнее про начальную и минимальную маржу](https://help.tbank.ru/margin-trade/short/initial-and-maintenance-margin/).
+  // Минимальная маржа — это минимальное обеспечение для поддержания позиции, которую вы уже открыли. [Подробнее про начальную и минимальную маржу](https://www.tbank.ru/invest/help/brokerage/account/margin/about/#q6).
   MoneyValue minimal_margin = 3;
 
   // Уровень достаточности средств. Соотношение стоимости ликвидного портфеля к начальной марже.
@@ -143,8 +143,10 @@ message GetInfoRequest {
 message GetInfoResponse {
   bool prem_status = 1; //Признак премиум клиента.
   bool qual_status = 2; //Признак квалифицированного инвестора.
-  repeated string qualified_for_work_with = 3; //Набор требующих тестирования инструментов и возможностей, с которыми может работать пользователь. [Подробнее](https://russianinvestments.github.io/investAPI/faq_users/).
+  repeated string qualified_for_work_with = 3; //Набор требующих тестирования инструментов и возможностей, с которыми может работать пользователь. [Подробнее](/invest/services/accounts/faq_users).
   string tariff = 4; //Наименование тарифа пользователя.
+  string user_id = 9; //Идентификатор пользователя.
+  string risk_level_code = 12; // Категория риска.
 }
 
 //Уровень доступа к счёту.

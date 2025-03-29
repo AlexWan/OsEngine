@@ -17,13 +17,13 @@ import "google/api/field_behavior.proto";
 
 service SandboxService { // Методы для работы с песочницей T-Invest API
 
-  //Зарегистрировать счёт.
+  //Зарегистрировать счет.
   rpc OpenSandboxAccount(OpenSandboxAccountRequest) returns (OpenSandboxAccountResponse);
 
   //Получить счета.
   rpc GetSandboxAccounts(GetAccountsRequest) returns (GetAccountsResponse);
 
-  //Закрыть счёт.
+  //Закрыть счет.
   rpc CloseSandboxAccount(CloseSandboxAccountRequest) returns (CloseSandboxAccountResponse);
 
   //Выставить торговое поручение.
@@ -32,64 +32,64 @@ service SandboxService { // Методы для работы с песочниц
   //Изменить выставленную заявку.
   rpc ReplaceSandboxOrder(ReplaceOrderRequest) returns (PostOrderResponse);
 
-  //Получить список активных заявок по счёту.
+  //Получить список активных заявок по счету.
   rpc GetSandboxOrders(GetOrdersRequest) returns (GetOrdersResponse);
 
   //Отменить торговое поручение.
   rpc CancelSandboxOrder(CancelOrderRequest) returns (CancelOrderResponse);
 
-  //Поулчить статус заявки в песочнице. Заявки хранятся в таблице 7 дней.
+  //Получить статус заявки в песочнице. Заявки хранятся в таблице 7 дней.
   rpc GetSandboxOrderState(GetOrderStateRequest) returns (OrderState);
 
-  //Получить позиции по виртуальному счёту.
+  //Получить позиции по виртуальному счету.
   rpc GetSandboxPositions(PositionsRequest) returns (PositionsResponse);
 
-  //Получить операции по номеру счёта.
+  //Получить операции по номеру счета.
   rpc GetSandboxOperations(OperationsRequest) returns (OperationsResponse);
 
-  //Получить операции по номеру счёта с пагинацией.
+  //Получить операции по номеру счета с пагинацией.
   rpc GetSandboxOperationsByCursor(GetOperationsByCursorRequest) returns (GetOperationsByCursorResponse);
 
   //Получить портфель.
   rpc GetSandboxPortfolio(PortfolioRequest) returns (PortfolioResponse);
 
-  //Пополнить счёт.
+  //Пополнить счет.
   rpc SandboxPayIn(SandboxPayInRequest) returns (SandboxPayInResponse);
 
   //Получить доступный остаток для вывода средств.
   rpc GetSandboxWithdrawLimits(WithdrawLimitsRequest) returns (WithdrawLimitsResponse);
 
-  //Расчёт количества доступных для покупки/продажи лотов в песочнице.
+  //Расчет количества доступных для покупки/продажи лотов в песочнице.
   rpc GetSandboxMaxLots(GetMaxLotsRequest) returns (GetMaxLotsResponse);
 }
 
-//Запрос открытия счёта в песочнице.
+//Запрос открытия счета в песочнице.
 message OpenSandboxAccountRequest {
-  optional string name = 1; // Название счёта
+  optional string name = 1; // Название счета
 }
 
-//Номер открытого счёта в песочнице.
+//Номер открытого счета в песочнице.
 message OpenSandboxAccountResponse {
-  string account_id = 1; //Номер счёта
+  string account_id = 1; //Номер счета
 }
 
-//Запрос закрытия счёта в песочнице.
+//Запрос закрытия счета в песочнице.
 message CloseSandboxAccountRequest {
-  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счёта
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета
 }
 
-//Результат закрытия счёта в песочнице.
+//Результат закрытия счета в песочнице.
 message CloseSandboxAccountResponse {
   //пустой ответ
 }
 
-//Запрос пополнения счёта в песочнице.
+//Запрос пополнения счета в песочнице.
 message SandboxPayInRequest {
-  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счёта
-  MoneyValue amount = 2 [(google.api.field_behavior) = REQUIRED]; //Сумма пополнения счёта в рублях
+  string account_id = 1 [(google.api.field_behavior) = REQUIRED]; //Номер счета
+  MoneyValue amount = 2 [(google.api.field_behavior) = REQUIRED]; //Сумма пополнения счета в рублях
 }
 
-//Результат пополнения счёта, текущий баланс.
+//Результат пополнения счета, текущий баланс.
 message SandboxPayInResponse {
-  MoneyValue balance = 1; //Текущий баланс счёта
+  MoneyValue balance = 1; //Текущий баланс счета
 }
