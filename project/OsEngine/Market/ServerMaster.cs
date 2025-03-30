@@ -73,6 +73,7 @@ using OsEngine.Market.Servers.CoinEx.Spot;
 using OsEngine.Market.Servers.CoinEx.Futures;
 using OsEngine.Market.Servers.RSSNews;
 using OsEngine.Market.Servers.SmartLabNews;
+using OsEngine.Market.Servers.AE;
 
 
 namespace OsEngine.Market
@@ -233,6 +234,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.RSSNews);
                 serverTypes.Add(ServerType.SmartLabNews);
+                serverTypes.Add(ServerType.AExchange);
 
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
@@ -429,6 +431,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.AExchange)
+                {
+                    newServer = new AExchangeServer();
+                }
                 if (type == ServerType.SmartLabNews)
                 {
                     newServer = new SmartLabNewsServer();
@@ -1309,6 +1315,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new SmartLabNewsServerPermission();
                 }
+                else if (type == ServerType.AExchange)
+                {
+                    serverPermission = new AExchangeServerPermission();
+                }
 
 
                 if (serverPermission != null)
@@ -1806,7 +1816,12 @@ namespace OsEngine.Market
         /// Reading news from smart-lab.ru
         /// Чтение новостей с сайта smart-lab.ru
         /// </summary>
-        SmartLabNews
+        SmartLabNews,
 
+        /// <summary>
+        /// Options exchange Alternative Exchange ae.exchange
+        /// Опционная биржа Alternative Exchange ae.exchange
+        /// </summary>
+        AExchange
     }
 }

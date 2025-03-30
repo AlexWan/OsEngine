@@ -466,6 +466,11 @@
     <Compile Include="Market\Connectors\ConnectorNewsUi.xaml.cs">
       <DependentUpon>ConnectorNewsUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\AExchange\AExchangeServer.cs" />
+    <Compile Include="Market\Servers\AExchange\AExchangeServerPermission.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\InstrumentDefinition.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\LoginMessage.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\WebSocketMessageBase.cs" />
     <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscribe.cs" />
     <Compile Include="Market\Servers\Alor\Json\SocketMessageBase.cs" />
     <Compile Include="Market\Servers\Atp\AtpServer.cs" />
