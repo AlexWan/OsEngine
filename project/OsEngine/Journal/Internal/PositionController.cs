@@ -106,7 +106,8 @@ namespace OsEngine.Journal.Internal
 
         private void Load()
         {
-            if (_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer
+                || _startProgram == StartProgram.IsTester)
             {
                 return;
             }
@@ -191,13 +192,15 @@ namespace OsEngine.Journal.Internal
         {
             try
             {
-                if (_startProgram == StartProgram.IsOsOptimizer)
+                if (_startProgram == StartProgram.IsOsOptimizer 
+                    || _startProgram == StartProgram.IsTester)
                 {
                     return;
                 }
 
                 _needToSave = false;
                 string dealControllerPath = @"Engine\" + _name + @"DealController.txt";
+
                 if (File.Exists(dealControllerPath))
                 {
                     try
@@ -343,7 +346,8 @@ namespace OsEngine.Journal.Internal
             }
 
             if (_startProgram == StartProgram.IsOsOptimizer
-                || _startProgram == StartProgram.IsOsMiner)
+                || _startProgram == StartProgram.IsOsMiner
+                || _startProgram == StartProgram.IsTester)
             {
                 return;
             }

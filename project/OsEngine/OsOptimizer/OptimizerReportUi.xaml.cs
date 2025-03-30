@@ -907,7 +907,7 @@ namespace OsEngine.OsOptimizer
                 LabelSeriesResultChart.Content
                  = OsLocalization.Optimizer.Label67 + " "
                  + (num + 1) + " " + fazeReport.Faze.TypeFaze + ". "
-                 + OsLocalization.Optimizer.Label70 + ": " + _sortBotsType;
+                 + OsLocalization.Optimizer.Label69 + ": " + _sortBotsType;
 
 
                 List<ChartOptimizationResultValue> values = new List<ChartOptimizationResultValue>();
