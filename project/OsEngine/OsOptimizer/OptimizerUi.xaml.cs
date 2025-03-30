@@ -532,7 +532,9 @@ namespace OsEngine.OsOptimizer
                     return;
                 }
 
-                for (int i = statuses.Count - 1, i2 = 0; i > -1 && i2 < _progressBars.Count; i2++, i--)
+                for (int i = statuses.Count-1, i2 = _progressBars.Count-1; 
+                    i >= 0 && i2 >= 0; 
+                    i2--, i--)
                 {
                     ProgressBarStatus status = statuses[i];
 
@@ -541,18 +543,13 @@ namespace OsEngine.OsOptimizer
                         return;
                     }
 
-                    if (status.IsFinalized)
+                    if(_progressBars[i2].Maximum != status.MaxValue)
                     {
-                        continue;
+                        _progressBars[i2].Maximum = status.MaxValue;
                     }
-
-                    _progressBars[i2].Maximum = status.MaxValue;
-                    _progressBars[i2].Value = status.CurrentValue;
-
-                    if (status.MaxValue != 0 &&
-                        status.MaxValue == status.CurrentValue)
+                    if(_progressBars[i2].Value != status.CurrentValue)
                     {
-                        status.IsFinalized = true;
+                        _progressBars[i2].Value = status.CurrentValue;
                     }
                 }
             }
@@ -644,6 +641,16 @@ namespace OsEngine.OsOptimizer
             {
                 ButtonGo.Content = OsLocalization.Optimizer.Label32;
                 StopUserActivity();
+
+                ProgressBarPrime.Value = 0;
+
+                if(_progressBars != null && _progressBars.Count > 0)
+                {
+                    for (int i2 = 0; i2 < _progressBars.Count; i2++)
+                    {
+                        _progressBars[i2].Value = 0;
+                    }
+                }
             }
             else if (ButtonGo.Content.ToString() == OsLocalization.Optimizer.Label32)
             {

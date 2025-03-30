@@ -50,6 +50,7 @@ namespace OsEngine.OsOptimizer
             _needToStop = false;
             _servers = new List<OptimizerServer>();
             _countAllServersMax = 0;
+            _countAllServersEndTest = 0;
             _serverNum = 1;
             _testBotsTime.Clear();
 
@@ -1158,6 +1159,8 @@ namespace OsEngine.OsOptimizer
 
         private int _countAllServersMax;
 
+        private int _countAllServersEndTest;
+
         private object _serverRemoveLocker = new object();
 
         private List<TimeSpan> _testBotsTime = new List<TimeSpan>();
@@ -1165,8 +1168,8 @@ namespace OsEngine.OsOptimizer
         private void server_TestingEndEvent(int serverNum, TimeSpan testTime)
         {
             TestingProgressChangeEvent?.Invoke(100, 100, serverNum);
-
-            PrimeProgressChangeEvent?.Invoke(serverNum, _countAllServersMax);
+            _countAllServersEndTest++;
+            PrimeProgressChangeEvent?.Invoke(_countAllServersEndTest, _countAllServersMax);
 
             BotPanel bot = null;
             OptimizerServer server = null;
