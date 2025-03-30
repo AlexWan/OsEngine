@@ -441,6 +441,13 @@ namespace OsEngine.OsData
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column0);
 
+            DataGridViewColumn column1 = new DataGridViewColumn();
+            column1.CellTemplate = cell0;
+            column1.HeaderText = OsLocalization.Data.Label2;
+            column1.ReadOnly = true;
+            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _grid.Columns.Add(column1);
+
             HostSecurities.Child = _grid;
         }
 
@@ -452,8 +459,13 @@ namespace OsEngine.OsData
             for (int i = 0;names != null &&  i < names.Count; i++)
             {
                 DataGridViewRow row = new DataGridViewRow();
+
                 row.Cells.Add(new DataGridViewTextBoxCell());
                 row.Cells[0].Value = names[i].SecName;
+
+                row.Cells.Add(new DataGridViewTextBoxCell());
+                row.Cells[1].Value = names[i].SecNameFull;
+
                 _grid.Rows.Insert(0, row);
             }
         }

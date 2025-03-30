@@ -25,7 +25,7 @@
         <CheckBox x:Name="CheckBoxTf2HourIsOn" Content="2 hour" HorizontalAlignment="Left" Margin="258,75,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTfTickIsOn" Content="trades"  HorizontalAlignment="Left" Margin="258,138,0,0" VerticalAlignment="Top" />
         <CheckBox x:Name="CheckBoxTfMarketDepthIsOn" Content="market depth"  HorizontalAlignment="Left" Margin="258,159,0,0" VerticalAlignment="Top" />
-        <WindowsFormsHost x:Name="HostSecurities" Margin="358,46,10,0" Height="187" VerticalAlignment="Top"/>
+        <WindowsFormsHost x:Name="HostSecurities" Margin="358,46,7,0" Height="190" VerticalAlignment="Top"/>
         <Label Name="Label16" Content="Securities" HorizontalAlignment="Left" Margin="358,16,0,0" VerticalAlignment="Top" />
         <Rectangle Margin="5,244,5,10"/>
         <DatePicker Name="DatePickerTimeStart" HorizontalAlignment="Left" Margin="98,253,0,0" VerticalAlignment="Top" Width="133"/>

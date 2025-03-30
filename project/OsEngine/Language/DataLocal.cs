@@ -25,7 +25,7 @@ namespace OsEngine.Language
             "Ru:Класс_");
 
         public string Label2 => OsLocalization.ConvertToLocString(
-            "Eng:Id_" +
+            "Eng:Name code_" +
             "Ru:Код бумаги_");
 
         public string Label3 => OsLocalization.ConvertToLocString(
