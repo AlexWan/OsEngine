@@ -24,6 +24,7 @@ using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
 using OsEngine.Language;
+using System.Diagnostics;
 
 namespace OsEngine.Charts.CandleChart
 {
@@ -1780,11 +1781,22 @@ namespace OsEngine.Charts.CandleChart
                     buySellSeries.MarkerSize = 9;
                 }
 
-                if (_colorKeeper.PointType == PointType.Cross)
+                if(_colorKeeper.PointType == PointType.Auto)
+                {
+                    if(MainWindow.DebuggerIsWork)
+                    {
+                        buySellSeries.MarkerStyle = MarkerStyle.Cross;
+                    }
+                    else
+                    {
+                        buySellSeries.MarkerStyle = MarkerStyle.Triangle;
+                    }
+                }
+                else if (_colorKeeper.PointType == PointType.Cross)
                 {
                     buySellSeries.MarkerStyle = MarkerStyle.Cross;
                 }
-                if (_colorKeeper.PointType == PointType.Circle)
+                else if (_colorKeeper.PointType == PointType.Circle)
                 {
                     buySellSeries.MarkerStyle = MarkerStyle.Circle;
                 }
@@ -1866,7 +1878,7 @@ namespace OsEngine.Charts.CandleChart
                             buySellSeries.Points[buySellSeries.Points.Count - 1].ToolTip = curTrade.ToolTip;
                         }
 
-                        if (_colorKeeper.PointType == PointType.TriAngle)
+                        if (buySellSeries.MarkerStyle == MarkerStyle.Triangle)
                         {
                             // drawing pictures
                             // прорисовываем картинки

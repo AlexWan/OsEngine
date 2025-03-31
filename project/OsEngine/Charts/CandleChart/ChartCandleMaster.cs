@@ -711,6 +711,7 @@ namespace OsEngine.Charts.CandleChart
 
                 new MenuItem(OsLocalization.Charts.ChartMenuItem5,
                     new MenuItem[]{
+                        new MenuItem(OsLocalization.Charts.ChartMenuItem15),
                         new MenuItem(OsLocalization.Charts.ChartMenuItem6),
                         new MenuItem(OsLocalization.Charts.ChartMenuItem7),
                         new MenuItem(OsLocalization.Charts.ChartMenuItem8),
@@ -721,10 +722,11 @@ namespace OsEngine.Charts.CandleChart
                 items[items.Count - 1].MenuItems[0].MenuItems[0].Click += ChartBlackColor_Click;
                 items[items.Count - 1].MenuItems[0].MenuItems[1].Click += ChartWhiteColor_Click;
 
-                items[items.Count - 1].MenuItems[1].MenuItems[0].Click += ChartCrossToPosition_Click;
-                items[items.Count - 1].MenuItems[1].MenuItems[1].Click += ChartRombToPosition_Click;
-                items[items.Count - 1].MenuItems[1].MenuItems[2].Click += ChartCircleToPosition_Click;
-                items[items.Count - 1].MenuItems[1].MenuItems[3].Click += ChartTriangleToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[0].Click += ChartAutoToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[1].Click += ChartCrossToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[2].Click += ChartRombToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[3].Click += ChartCircleToPosition_Click;
+                items[items.Count - 1].MenuItems[1].MenuItems[4].Click += ChartTriangleToPosition_Click;
 
                 items.Add(new MenuItem(OsLocalization.Charts.ChartMenuItem10));
                 items[items.Count - 1].Click += ChartHideIndicators_Click;
@@ -750,6 +752,16 @@ namespace OsEngine.Charts.CandleChart
                 SendErrorMessage(error);
             }
             return null;
+        }
+
+        /// <summary>
+        /// user has selected the crosshair in context menu to draw trades on chart
+        /// Пользователь выбрал в контекстном меню перекрестие для прорисовки сделок на чарте
+        /// </summary>
+        private void ChartAutoToPosition_Click(object sender, EventArgs e)
+        {
+            ChartCandle.SetPointType(PointType.Auto);
+            ChartCandle.ProcessPositions(_myPosition);
         }
 
         /// <summary>

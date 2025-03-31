@@ -173,6 +173,10 @@ namespace OsEngine.Language
             "Eng:Create indicator_" +
             "Ru:Добавить индикатор_");
 
+        public string ChartMenuItem15 => OsLocalization.ConvertToLocString(
+           "Eng:Auto_" +
+           "Ru:Авто_");
+
         public string Label1 => OsLocalization.ConvertToLocString(
             "Eng: Settings _" +
             "Ru: Настройки _");

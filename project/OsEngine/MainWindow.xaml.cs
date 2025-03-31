@@ -46,6 +46,8 @@ namespace OsEngine
             get { return _window.Dispatcher; }
         }
 
+        public static bool DebuggerIsWork;
+
         /// <summary>
         ///  is application running
         /// работает ли приложение или закрывается
@@ -101,6 +103,11 @@ namespace OsEngine
             {
                 MessageBox.Show(OsLocalization.MainWindow.Message3);
                 Close();
+            }
+
+            if(Debugger.IsAttached)
+            {
+                DebuggerIsWork = true;
             }
 
             AlertMessageManager.TextBoxFromStaThread = new TextBox();

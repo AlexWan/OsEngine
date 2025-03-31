@@ -277,6 +277,11 @@ namespace OsEngine.Charts.ColorKeeper
         Cross,
 
         /// <summary>
+        /// в дебаггере перекрестие, без него картинка треугольника
+        /// </summary>
+        Auto,
+
+        /// <summary>
         /// круг
         /// </summary>
         Circle,
@@ -290,6 +295,7 @@ namespace OsEngine.Charts.ColorKeeper
         /// ромб
         /// </summary>
         Romb
+
     }
 
     /// <summary>
