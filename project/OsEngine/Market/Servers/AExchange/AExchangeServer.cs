@@ -22,7 +22,9 @@ using WebSocketSharp;
 using System.Text;
 using System.Threading.Tasks;
 using OptionType = OsEngine.Entity.OptionType;
+using Order = OsEngine.Entity.Order;
 using System.Data;
+using Position = OsEngine.Entity.Position;
 
 namespace OsEngine.Market.Servers.AE
 {
@@ -327,6 +329,67 @@ namespace OsEngine.Market.Servers.AE
 
                 SendLogMessage($"Total instruments: {_securities.Count}", LogMessageType.System);
         }
+
+        private void UpdateAccounts(string message)
+        {
+                // Cast to the derived class to access Instruments
+                WebSocketAccountsMessage accountsMessage = JsonConvert.DeserializeObject<WebSocketAccountsMessage>(message, _jsonSettings);
+                List<Account> accounts = accountsMessage.Accounts;
+
+                List<Order> orders = new List<Order>();
+
+                foreach (var account in accounts)
+                {
+                    Portfolio newPortfolio = new Portfolio();
+
+                    newPortfolio.Number = account.AccountNumber;
+                    newPortfolio.ValueBlocked = account.GuaranteeMargin;
+
+                    foreach (var position in account.Positions)
+                    {
+                        PositionOnBoard newPosition = new PositionOnBoard();
+                        newPosition.SecurityNameCode = position.Ticker;
+                        newPosition.ValueCurrent = position.Shares;
+
+                        newPortfolio.SetNewPosition(newPosition);
+                    }
+
+                    foreach (var order in account.Orders)
+                    {
+                        Order newOrder = new Order();
+
+                        newOrder.PortfolioNumber = newPortfolio.Number;
+                        newOrder.NumberMarket = order.OrderId.ToString();
+                        newOrder.SecurityNameCode = order.Ticker;
+                        newOrder.TimeCallBack = order.Placed;
+                        newOrder.Price = order.Price;
+                        newOrder.Volume = order.Shares;
+                        newOrder.VolumeExecute = order.Shares - order.SharesRemaining;
+                        if (order.Comment != null)
+                        {
+                            newOrder.Comment = order.Comment;
+                        }
+
+                        if (order.ExternalId != null)
+                        {
+                            newOrder.NumberUser = int.Parse(order.ExternalId);
+                        }
+
+                        orders.Add(newOrder);
+                    }
+
+                    _myPortfolios.Add(newPortfolio);
+                }
+
+                PortfolioEvent!(_myPortfolios);
+
+                // send all orders
+                foreach (var order in orders)
+                {
+                    MyOrderEvent!(order);
+                }
+        }
+
 
         //private void UpdateSecuritiesFromServer(List<AESecurity> stocks)
         //{
@@ -1646,6 +1709,9 @@ namespace OsEngine.Market.Servers.AE
                     if (baseMessage.Type == "Instruments")
                     {
                         UpdateInstruments(message);
+                    } else if (baseMessage.Type == "Accounts")
+                    {
+                        UpdateAccounts(message);
                     }
                     else
                     {
