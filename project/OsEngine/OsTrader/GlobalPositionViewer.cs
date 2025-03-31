@@ -583,20 +583,30 @@ namespace OsEngine.OsTrader
                     List<Position> openPositions = new List<Position>();
                     List<Position> closePositions = new List<Position>();
 
-                    for (int i = 0; _journals != null && i < _journals.Count; i++)
+                    try
                     {
-                        if (_journals[i].OpenPositions != null
-                            && _journals[i].OpenPositions.Count != 0)
+                        for (int i = 0; _journals != null && i < _journals.Count; i++)
                         {
-                            openPositions.AddRange(_journals[i].OpenPositions);
-                        }
-                        if (_journals[i].CloseAllPositions != null)
-                        {
-                            for (int i2 = _journals[i].CloseAllPositions.Count - 1; i2 > -1 && i2 > _journals[i].CloseAllPositions.Count - 30; i2--)
+                            Journal.Journal journal = _journals[i];
+                            if (journal.OpenPositions != null
+                                && journal.OpenPositions.Count != 0)
                             {
-                                closePositions.Add(_journals[i].CloseAllPositions[i2]);
+                                openPositions.AddRange(journal.OpenPositions);
+                            }
+                            if (journal.CloseAllPositions != null)
+                            {
+                                for (int i2 = journal.CloseAllPositions.Count - 1;
+                                    i2 > -1 && i2 > journal.CloseAllPositions.Count - 30;
+                                    i2--)
+                                {
+                                    closePositions.Add(journal.CloseAllPositions[i2]);
+                                }
                             }
                         }
+                    }
+                    catch
+                    {
+                        continue;
                     }
 
                     for (int i = 0; i < closePositions.Count; i++)
