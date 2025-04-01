@@ -451,7 +451,7 @@ namespace OsEngine.Market.Servers.Bybit
                         security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.minOrderQty);
                         security.Name = oneSec.symbol + (category == Category.linear ? ".P" : "");
                         security.NameFull = oneSec.symbol;
-                        security.NameId = oneSec.symbol;
+                        security.NameId = oneSec.symbol + (category == Category.linear ? "_P" : ""); ;
 
                         if (category == Category.linear)
                         {
