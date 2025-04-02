@@ -1560,9 +1560,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (!Connector.EmulatorIsOn)
+                if(StartProgram == StartProgram.IsOsTrader)
                 {
-                    price = price + Security.PriceStep * 40;
+                    if (!Connector.EmulatorIsOn)
+                    {
+                        price = price + Security.PriceStep * 40;
+                    }
                 }
 
                 OrderPriceType type = OrderPriceType.Market;
@@ -2244,7 +2247,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                price = price + price * 0.01m;
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    if (!Connector.EmulatorIsOn)
+                    {
+                        price = price + Security.PriceStep * 40;
+                    }
+                }
 
                 if (Security != null && Security.PriceStep < 1 && Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                 {
@@ -2447,9 +2456,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if (!Connector.EmulatorIsOn)
+                if(StartProgram == StartProgram.IsOsTrader)
                 {
-                    price = price - Security.PriceStep * 40;
+                    if (!Connector.EmulatorIsOn)
+                    {
+                        price = price - Security.PriceStep * 40;
+                    }
                 }
 
                 OrderPriceType type = OrderPriceType.Market;
@@ -3148,7 +3160,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                price = price - price * 0.01m;
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    if (!Connector.EmulatorIsOn)
+                    {
+                        price = price - Security.PriceStep * 40;
+                    }
+                }
 
                 if (Security != null && Security.PriceStep < 1 && Convert.ToDouble(Security.PriceStep).ToString(new CultureInfo("ru-RU")).Split(',').Length != 1)
                 {
@@ -3495,26 +3513,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     SetNewLogMessage(OsLocalization.Trader.Label290, LogMessageType.System);
                     return;
                 }
-
-                if (position.Direction == Side.Buy)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
-                    if (!Connector.EmulatorIsOn)
+                    if (position.Direction == Side.Buy)
                     {
-                        price = _connector.BestBid - Security.PriceStep * 40;
+                        if (!Connector.EmulatorIsOn)
+                        {
+                            price = _connector.BestBid - Security.PriceStep * 40;
+                        }
                     }
-                    else
+                    else //if (position.Direction == Side.Sell)
                     {
-                        price = _connector.BestBid;
+                        if (!Connector.EmulatorIsOn)
+                        {
+                            price = price + Security.PriceStep * 40;
+                        }
                     }
                 }
-                else
-                {
-                    if (!Connector.EmulatorIsOn)
-                    {
-                        price = price + Security.PriceStep * 40;
-                    }
-                }
-
                 if (_connector.MarketOrdersIsSupport)
                 {
                     if (position.OpenVolume <= volume)

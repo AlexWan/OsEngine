@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.OsOptimizer.OptEntity"
         mc:Ignorable="d"
-       Title="Params" Style="{StaticResource WindowStyleCanResize}" Height="273.7" Width="994.481" ResizeMode="NoResize" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
+       Title="Params" Style="{StaticResource WindowStyleCanResize}" Height="273.7" Width="994.481" ResizeMode="CanResize" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5" />
         <WindowsFormsHost Name="HostParams1" Margin="5,5,0,5" HorizontalAlignment="Left" Width="496"/>

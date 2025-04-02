@@ -255,6 +255,12 @@ namespace OsEngine.Market.Servers.Finam
 
                 }
 
+                //'Индекс МосБиржи голубых фишек',
+                //'Индекс МосБиржи инноваций',
+                //'Индекс МосБиржи широкого рынка',
+                //'Индекс МосБиржи, вечер. сессия',
+                // Индекс РТС'
+
                 if (Convert.ToInt32(arrayMarkets[i]) == 200)
                 {
                     finamSecurity.Market = "МосБиржа топ";
@@ -305,7 +311,39 @@ namespace OsEngine.Market.Servers.Finam
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 6)
                 {
-                    finamSecurity.Market = "Мировые индексы";
+                    if (finamSecurity.Name == "Индекс МосБиржи голубых фишек")
+                    {// готово
+                        finamSecurity.Code = "RI." + finamSecurity.Code;
+                        finamSecurity.Market = "Индексы Россия";
+                        finamSecurity.MarketId = "91";
+                        finamSecurity.Id = "420446";
+                    }
+                    else if (finamSecurity.Name == "Индекс МосБиржи широкого рынка")
+                    {// готово
+                        finamSecurity.Code = "RI." + finamSecurity.Code;
+                        finamSecurity.Market = "Индексы Россия";
+                        finamSecurity.MarketId = "91";
+                        finamSecurity.Id = "420453";
+                    }
+                    else if (finamSecurity.Name == "Индекс МосБиржи, вечер. сессия")
+                    {// готово
+                        finamSecurity.Code = "RI." + finamSecurity.Code;
+                        finamSecurity.Market = "Индексы Россия";
+                        finamSecurity.MarketId = "14"; 
+                        finamSecurity.Id = "1900253";
+                    }
+                    else if (finamSecurity.Name == "Индекс МосБиржи")
+                    {// готово
+                        finamSecurity.Code = "RI." + finamSecurity.Code;
+                        finamSecurity.Market = "Индексы Россия";
+                        finamSecurity.MarketId = "91";
+                        finamSecurity.Id = "420450";
+                    }
+                    else
+                    {
+                        finamSecurity.Market = "Индексы мировые";
+                    }
+                   
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 24)
                 {
@@ -403,9 +441,12 @@ namespace OsEngine.Market.Servers.Finam
 
                 bool isInArray = false;
 
+
                 for (int j = 0; j < _finamSecurities.Count; j++)
                 {
                     FinamSecurity secInArray = _finamSecurities[j];
+
+                    
 
                     if (secInArray.Id == finamSecurity.Id
                         && secInArray.Market == finamSecurity.Market)
@@ -435,6 +476,11 @@ namespace OsEngine.Market.Servers.Finam
                 if (_finamSecurities[i].Name == "")
                 {
                     continue;
+                }
+
+                if (_finamSecurities[i].Name == "Индекс МосБиржи голубых фишек")
+                {
+
                 }
 
                 Security sec = new Security();
