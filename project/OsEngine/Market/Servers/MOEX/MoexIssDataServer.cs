@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
 using System.Windows;
@@ -22,8 +20,10 @@ namespace OsEngine.Market.Servers.MOEX
         }
     }
 
-    public class MoexDataServerRealization:IServerRealization
+    public class MoexDataServerRealization : IServerRealization
     {
+        #region 1 Constructor, Status, Connection
+
         public MoexDataServerRealization()
         {
             ServerStatus = ServerConnectStatus.Disconnect;
@@ -45,96 +45,38 @@ namespace OsEngine.Market.Servers.MOEX
 
         public void Connect()
         {
-           string result = GetRequest("http://iss.moex.com/iss/engines/");
+            string result = GetRequest("http://iss.moex.com/iss/engines/");
 
-           if (result == null)
-           {
-               ServerStatus = ServerConnectStatus.Disconnect;
-           }
-           else
-           {
-               GetSecurities();
-               ServerStatus = ServerConnectStatus.Connect;
-               ConnectEvent?.Invoke();
-           }
+            if (result == null)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+            }
+            else
+            {
+                ServerStatus = ServerConnectStatus.Connect;
+                ConnectEvent?.Invoke();
+            }
         }
-
-        #region Not used
 
         public void Dispose()
         {
-
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
         }
 
-        public void GetPortfolios()
-        {
-            Portfolio portfolio = new Portfolio();
-            portfolio.ValueCurrent = 1;
-            portfolio.Number = "Moex fake portfolio";
-
-            PortfolioEvent?.Invoke(new List<Portfolio>() {portfolio});
-        }
-
-        public void SendOrder(Order order)
-        {
-
-        }
-
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-
-        }
-
-        public void CancelOrder(Order order)
-        {
-
-        }
-
-        public void CancelAllOrders()
-        {
-
-        }
-
-        public void GetAllActivOrders()
-        {
-
-        }
-
-        public void GetOrderStatus(Order order)
-        {
-
-        }
-
-        public void Subscrible(Security security)
-        {
-
-        }
-
-        public void GetOrdersState(List<Order> orders)
-        {
-
-        }
-
-        public event Action<Order> MyOrderEvent;
-        public event Action<MyTrade> MyTradeEvent;
-        public event Action<List<Portfolio>> PortfolioEvent;
-        public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
 
         #endregion
 
-        #region Securities
+        #region 2 Securities
 
         public void GetSecurities()
         {
-            List<Security> securities = new List<Security>();// TryToLoadSecurities();
-
-            /*  if (securities != null)
-              {
-                  SecurityEvent?.Invoke(securities);
-                  SendLogMessage("Securities downloaded. Count: " + securities.Count, LogMessageType.System);
-                  return;
-              }*/
+            List<Security> securities = new List<Security>();
 
             SendLogMessage("Securities downloading...", LogMessageType.System);
 
@@ -151,8 +93,6 @@ namespace OsEngine.Market.Servers.MOEX
             SecurityEvent?.Invoke(securities);
 
             SendLogMessage("Securities downloaded. Count: " + securities.Count, LogMessageType.System);
-
-            //SaveSecurities(securities);
         }
 
         private List<Security> CreateFuturesSection(List<Security> securities)
@@ -190,26 +130,6 @@ namespace OsEngine.Market.Servers.MOEX
 
                 names.Add(name);
             }
-
-            /* List<Security> futConcate = new List<Security>();
-
-             string[] id = allFutures[0].NameId.Split('#');
-
-             for (int i = 0; i < names.Count; i++)
-             {
-                 string idEnding = names[i] + "#" + id[1] + "#" + id[2] + "#" + id[3];
-                 Security newSecurity = new Security();
-                 newSecurity.Name = names[i];
-                 newSecurity.NameId = idEnding;
-                 newSecurity.NameClass = "Фьючерсы склеенные#RFUD";
-                 newSecurity.NameFull = names[i];
-
-                 futConcate.Add(newSecurity);
-             }
-
-             securities.AddRange(futConcate);*/
-
-            // фьючерсы за последние годы
 
             for (int i = 0; i < names.Count; i++)
             {
@@ -295,66 +215,6 @@ namespace OsEngine.Market.Servers.MOEX
             sec.Add(four);
 
             return sec;
-
-            /*
-             f (code == "RFUD")
-                      {
-                          fullName = "Истёкшие фьючерсы#RFUD";
-              
-              newSec.Name = data.ToArray()[0].ToString();
-              newSec.NameId = newSec.Name + "#" + classes[i];
-              newSec.NameClass = classes[i].Split('#')[3] + "#" + classes[i].Split('#')[2];
-              newSec.NameFull = data.ToArray()[2].ToString();*/
-
-        }
-
-        private List<Security> TryToLoadSecurities()
-        {
-            if (Directory.Exists("Data\\Moex") == false)
-            {
-                Directory.CreateDirectory("Data\\Moex");
-            }
-
-            if (File.Exists("Data\\Moex\\Securities.txt") == false)
-            {
-                return null;
-            }
-
-            List<Security> securities = new List<Security>();
-            StreamReader reader = new StreamReader("Data\\Moex\\Securities.txt");
-
-            while (reader.EndOfStream == false)
-            {
-                string[] str = reader.ReadLine().Split('$');
-                Security newSecurity = new Security();
-                newSecurity.Name = str[0];
-                newSecurity.NameId = str[1];
-                newSecurity.NameClass = str[2];
-                newSecurity.NameFull = str[3];
-
-
-                securities.Add(newSecurity);
-            }
-
-            reader.Close();
-
-            return securities;
-        }
-
-        private void SaveSecurities(List<Security> securities)
-        {
-            StreamWriter writer = new StreamWriter("Data\\Moex\\Securities.txt");
-
-            for (int i = 0; i < securities.Count; i++)
-            {
-                string saveStr = securities[i].Name + "$";
-                saveStr += securities[i].NameId + "$";
-                saveStr += securities[i].NameClass + "$";
-                saveStr += securities[i].NameFull + "$";
-                writer.WriteLine(saveStr);
-            }
-
-            writer.Close();
         }
 
         private List<string> GetEngines()
@@ -365,11 +225,14 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<string> result = new List<string>();
 
-            var jProperties = JToken.Parse(request).SelectToken("engines").SelectToken("data");
+            JObject json = JObject.Parse(request);
 
-            foreach (var data in jProperties)
+            JArray dataArray = (JArray)json["engines"]["data"];
+
+            for (int i = 0; i < dataArray.Count; i++)
             {
-                string str = data.ToArray()[1].ToString();
+                JArray innerArray = (JArray)dataArray[i];
+                string str = innerArray[1].ToString();
 
                 if (str == "state" ||
                     str == "interventions" ||
@@ -409,11 +272,14 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
-                var jProperties = JToken.Parse(responses[i]).SelectToken("markets").SelectToken("data");
+                JObject json = JObject.Parse(responses[i]);
 
-                foreach (var data in jProperties)
+                JArray dataArray = (JArray)json["markets"]["data"];
+
+                for (int j = 0; j < dataArray.Count; j++)
                 {
-                    string str = engines[i] + "#" + data.ToArray()[1].ToString();
+                    JArray innerArray = (JArray)dataArray[j];
+                    string str = engines[i] + "#" + innerArray[1].ToString();
                     result.Add(str);
                 }
             }
@@ -430,6 +296,7 @@ namespace OsEngine.Market.Servers.MOEX
             for (int i = 0; i < markets.Count; i++)
             {
                 // запрос классов бумаг по площадке и типу торгов http://iss.moex.com/iss/engines/stock/markets/shares/boards.json
+
                 string str = "http://iss.moex.com/iss/engines/";
                 str += markets[i].Split('#')[0];
                 str += "/markets/";
@@ -451,17 +318,21 @@ namespace OsEngine.Market.Servers.MOEX
 
             for (int i = 0; i < responses.Count; i++)
             {
-                var jProperties = JToken.Parse(responses[i]).SelectToken("boards").SelectToken("data");
+                JObject json = JObject.Parse(responses[i]);
 
-                foreach (var data in jProperties)
+                JArray dataArray = (JArray)json["boards"]["data"];
+
+                for (int j = 0; j < dataArray.Count; j++)
                 {
-                    string code = data.ToArray()[2].ToString();
+                    JArray innerArray = (JArray)dataArray[j];
+
+                    string code = innerArray[2].ToString();
 
                     if (code != "TQBR" && // акции
-                        code != "RFUD" && // фьючерсы торгующиеся
-                        code != "RTSI" &&// индексы RTS
-                        code != "CETS" // валютная секция
-                        )
+                       code != "RFUD" && // фьючерсы торгующиеся
+                       code != "RTSI" &&// индексы RTS
+                       code != "CETS" // валютная секция
+                       )
                     {
                         continue;
                     }
@@ -485,9 +356,7 @@ namespace OsEngine.Market.Servers.MOEX
                         fullName = "Валютная секция";
                     }
 
-                    string str = markets[i] + "#" + data.ToArray()[2] + "#" + fullName;
-
-                    // _classes.Add(data.ToArray()[2].ToString() + "#" + data.ToArray()[3].ToString());
+                    string str = markets[i] + "#" + innerArray[2].ToString() + "#" + fullName;
 
                     result.Add(str);
                 }
@@ -521,68 +390,68 @@ namespace OsEngine.Market.Servers.MOEX
                 responses.Add(response);
             }
 
-
             List<Security> result = new List<Security>();
 
             for (int i = 0; i < responses.Count; i++)
             {
-                var jProperties = JToken.Parse(responses[i]).SelectToken("securities").SelectToken("data");
+                JObject json = JObject.Parse(responses[i]);
 
-                foreach (var data in jProperties)
+                JArray dataArray = (JArray)json["securities"]["data"];
+
+                for (int j = 0; j < dataArray.Count; j++)
                 {
+                    JArray innerArray = (JArray)dataArray[j];
+
                     Security newSec = new Security();
-                    newSec.Name = data.ToArray()[0].ToString();
+                    newSec.Name = innerArray[0].ToString();
                     newSec.NameId = newSec.Name + "#" + classes[i];
                     newSec.NameClass = classes[i].Split('#')[3] + "#" + classes[i].Split('#')[2];
-                    newSec.NameFull = data.ToArray()[2].ToString();
+                    newSec.NameFull = innerArray[2].ToString();
 
                     result.Add(newSec);
                 }
             }
 
             return result;
-
         }
+
+        public event Action<List<Security>> SecurityEvent;
 
         #endregion
 
-        #region Candles
+        #region 3 Data
 
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
             DateTime actualTime)
         {
-            lock (locker)
+            List<Candle> candles = new List<Candle>();
+
+            int minutesInTf = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
+
+            if (minutesInTf >= 1 &&
+                minutesInTf < 10)
             {
-                List<Candle> candles = new List<Candle>();
-
-                int minutesInTf = Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-
-                if (minutesInTf >= 1 &&
-                    minutesInTf < 10)
-                {
-                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 1, endTime);
-                    candles = ConcateCandles(sourceCandle, 1, minutesInTf);
-                }
-                else if (minutesInTf == 15 ||
-                         minutesInTf == 45)
-                {
-                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 1, endTime);
-                    candles = ConcateCandles(sourceCandle, 1, minutesInTf);
-                }
-                else if (minutesInTf >= 10 &&
-                         minutesInTf < 60)
-                {
-                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 10, endTime);
-                    candles = ConcateCandles(sourceCandle, 10, minutesInTf);
-                }
-                else if (minutesInTf >= 60)
-                {
-                    List<Candle> sourceCandle = GetAllCandles(security, startTime, 60, endTime);
-                    candles = ConcateCandles(sourceCandle, 60, minutesInTf);
-                }
-
-                return candles;
+                List<Candle> sourseCandle = GetAllCandles(security, startTime, 1, endTime);
+                candles = ConcateCandles(sourseCandle, 1, minutesInTf);
             }
+            else if (minutesInTf == 15 ||
+                     minutesInTf == 45)
+            {
+                List<Candle> sourseCandle = GetAllCandles(security, startTime, 1, endTime);
+                candles = ConcateCandles(sourseCandle, 1, minutesInTf);
+            }
+            else if (minutesInTf >= 10 &&
+                     minutesInTf < 60)
+            {
+                List<Candle> sourseCandle = GetAllCandles(security, startTime, 10, endTime);
+                candles = ConcateCandles(sourseCandle, 10, minutesInTf);
+            }
+            else if (minutesInTf >= 60)
+            {
+                List<Candle> sourseCandle = GetAllCandles(security, startTime, 60, endTime);
+                candles = ConcateCandles(sourseCandle, 60, minutesInTf);
+            }
+            return candles;
         }
 
         private List<Candle> ConcateCandles(List<Candle> candlesOld, int startTf, int endTf)
@@ -632,7 +501,6 @@ namespace OsEngine.Market.Servers.MOEX
                     }
                 }
 
-
                 newCandle.Open = candlesOld[i].Open;
                 newCandle.High = candlesOld[i].High;
                 newCandle.Low = candlesOld[i].Low;
@@ -681,7 +549,6 @@ namespace OsEngine.Market.Servers.MOEX
                     {
                         i++;
                     }
-
                 }
 
                 candlesNew.Add(newCandle);
@@ -757,20 +624,21 @@ namespace OsEngine.Market.Servers.MOEX
 
             List<Candle> result = new List<Candle>();
 
+            JObject json = JObject.Parse(response);
 
-            var jProperties = JToken.Parse(response).SelectToken("candles").SelectToken("data");
+            JArray dataArray = (JArray)json["candles"]["data"];
 
-            //int i = 0;
-
-            foreach (var data in jProperties)
+            for (int j = 0; j < dataArray.Count; j++)
             {
+                JArray innerArray = (JArray)dataArray[j];
+
                 Candle candle = new Candle();
-                candle.Open = data.ToArray()[0].ToString().ToDecimal();
-                candle.Close = data.ToArray()[1].ToString().ToDecimal();
-                candle.High = data.ToArray()[2].ToString().ToDecimal();
-                candle.Low = data.ToArray()[3].ToString().ToDecimal();
-                candle.Volume = data.ToArray()[5].ToString().ToDecimal();
-                candle.TimeStart = Convert.ToDateTime(data.ToArray()[6].ToString());
+                candle.Open = innerArray[0].ToString().ToDecimal();
+                candle.Close = innerArray[1].ToString().ToDecimal();
+                candle.High = innerArray[2].ToString().ToDecimal();
+                candle.Low = innerArray[3].ToString().ToDecimal();
+                candle.Volume = innerArray[5].ToString().ToDecimal();
+                candle.TimeStart = Convert.ToDateTime(innerArray[6].ToString());
 
                 result.Add(candle);
             }
@@ -786,12 +654,7 @@ namespace OsEngine.Market.Servers.MOEX
 
         #endregion
 
-        private object locker = new object();
-
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null;
-        }
+        #region 4 Queries
 
         private string GetRequest(string url)
         {
@@ -812,17 +675,10 @@ namespace OsEngine.Market.Servers.MOEX
             }
         }
 
-        public event Action<List<Security>> SecurityEvent;
-       
-        public event Action<Trade> NewTradesEvent;
-        public event Action ConnectEvent;
-        public event Action DisconnectEvent;
-        public event Action<string, LogMessageType> LogMessageEvent;
+        #endregion
 
-        /// <summary>
-        /// add a new log message
-        /// добавить в лог новое сообщение
-        /// </summary>
+        #region 5 Log
+
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -835,6 +691,61 @@ namespace OsEngine.Market.Servers.MOEX
             }
         }
 
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
+
+        #region 6 Unused methods
+
+        public void GetPortfolios()
+        {
+            Portfolio portfolio = new Portfolio();
+            portfolio.ValueCurrent = 1;
+            portfolio.Number = "MoexISS fake portfolio";
+
+            PortfolioEvent?.Invoke(new List<Portfolio>() { portfolio });
+        }
+
+        public void SendOrder(Order order)
+        {
+
+        }
+
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
+        public void CancelOrder(Order order)
+        {
+
+        }
+
+        public void CancelAllOrders()
+        {
+
+        }
+
+        public void GetAllActivOrders()
+        {
+
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+
+        }
+
+        public void Subscrible(Security security)
+        {
+
+        }
+
+        public void GetOrdersState(List<Order> orders)
+        {
+
+        }
+
         public void CancelAllOrdersToSecurity(Security security)
         {
 
@@ -843,6 +754,11 @@ namespace OsEngine.Market.Servers.MOEX
         public void ResearchTradesToOrders(List<Order> orders)
         {
 
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
         }
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
@@ -856,5 +772,13 @@ namespace OsEngine.Market.Servers.MOEX
         }
 
         public event Action<News> NewsEvent;
+        public event Action<Order> MyOrderEvent;
+        public event Action<MyTrade> MyTradeEvent;
+        public event Action<List<Portfolio>> PortfolioEvent;
+        public event Action<MarketDepth> MarketDepthEvent;
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<Trade> NewTradesEvent;
+
+        #endregion
     }
 }
