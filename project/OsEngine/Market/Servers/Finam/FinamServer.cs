@@ -122,6 +122,35 @@ namespace OsEngine.Market.Servers.Finam
 
         private List<FinamSecurity> _finamSecurities;
 
+        private Dictionary<string, string> _rusIndexNames = new Dictionary<string, string>()
+         {
+             {"420450", "Индекс МосБиржи"},
+             {"420453", "Индекс МосБиржи широкого рынка"},
+             {"420446", "Индекс МосБиржи голубых фишек"},
+             {"420451", "Индекс МосБиржи 10"},
+             {"420486", "Индекс МосБиржи инноваций"},
+             {"420445", "Индекс РТС"},
+             {"420470", "Индекс РТС металлов и добычи"},
+             {"420471", "Индекс РТС нефти и газа"},
+             {"420466", "Индекс РТС потреб. сектора"},
+             {"420472", "Индекс РТС телекоммуникаций"},
+             {"420473", "Индекс РТС транспорта"},
+             {"420468", "Индекс РТС финансов"},
+             {"420465", "Индекс РТС химии и нефтехимии"},
+             {"420474", "Индекс РТС широкого рынка"},
+             {"420467", "Индекс РТС электроэнергетики"},
+             {"420478", "Индекс гос обл RGBI"},
+             {"420479", "Индекс гос обл RGBI TR"},
+             {"420457", "Индекс металлов и добычи"},
+             {"420458", "Индекс нефти и газа"},
+             {"420454", "Индекс потребит сектора"},
+             {"420461", "Индекс телекоммуникаций"},
+             {"420475", "Индекс транспорта"},
+             {"420456", "Индекс финансов"},
+             {"420455", "Индекс химии и нефтехимии"},
+             {"420459", "Индекс электроэнергетики"}
+         };
+
         public void GetSecurities()
         {
             SendLogMessage("Downloading the list of securities...", LogMessageType.System);
@@ -214,10 +243,18 @@ namespace OsEngine.Market.Servers.Finam
 
             string[] arrayEmitentUrls = arraySets[8].Split('{')[1].Split('}')[0].Split(',');
 
+            string[] unavailableSecurities = arraySets[9].Split(':');
+
+            HashSet<string> unavailableSecHashSet = new HashSet<string>(unavailableSecurities);
+
             _finamSecurities = new List<FinamSecurity>();
 
             for (int i = 0; i < arrayIds.Length; i++)
             {
+                if (unavailableSecHashSet.Contains(arrayIds[i]))
+                {
+                    continue;
+                }
                 string url = arrayEmitentUrls[i].Split(':')[1];
 
                 if (url.Contains("-smal")
@@ -254,12 +291,6 @@ namespace OsEngine.Market.Servers.Finam
                     }
 
                 }
-
-                //'Индекс МосБиржи голубых фишек',
-                //'Индекс МосБиржи инноваций',
-                //'Индекс МосБиржи широкого рынка',
-                //'Индекс МосБиржи, вечер. сессия',
-                // Индекс РТС'
 
                 if (Convert.ToInt32(arrayMarkets[i]) == 200)
                 {
@@ -311,39 +342,17 @@ namespace OsEngine.Market.Servers.Finam
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 6)
                 {
-                    if (finamSecurity.Name == "Индекс МосБиржи голубых фишек")
-                    {// готово
+                    if (finamSecurity.Name == "Индекс МосБиржи, вечер. сессия")
+                    {
                         finamSecurity.Code = "RI." + finamSecurity.Code;
                         finamSecurity.Market = "Индексы Россия";
-                        finamSecurity.MarketId = "91";
-                        finamSecurity.Id = "420446";
-                    }
-                    else if (finamSecurity.Name == "Индекс МосБиржи широкого рынка")
-                    {// готово
-                        finamSecurity.Code = "RI." + finamSecurity.Code;
-                        finamSecurity.Market = "Индексы Россия";
-                        finamSecurity.MarketId = "91";
-                        finamSecurity.Id = "420453";
-                    }
-                    else if (finamSecurity.Name == "Индекс МосБиржи, вечер. сессия")
-                    {// готово
-                        finamSecurity.Code = "RI." + finamSecurity.Code;
-                        finamSecurity.Market = "Индексы Россия";
-                        finamSecurity.MarketId = "14"; 
+                        finamSecurity.MarketId = "14";
                         finamSecurity.Id = "1900253";
-                    }
-                    else if (finamSecurity.Name == "Индекс МосБиржи")
-                    {// готово
-                        finamSecurity.Code = "RI." + finamSecurity.Code;
-                        finamSecurity.Market = "Индексы Россия";
-                        finamSecurity.MarketId = "91";
-                        finamSecurity.Id = "420450";
                     }
                     else
                     {
                         finamSecurity.Market = "Индексы мировые";
                     }
-                   
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 24)
                 {
@@ -379,7 +388,15 @@ namespace OsEngine.Market.Servers.Finam
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 91)
                 {
-                    finamSecurity.Market = "Российские индексы";
+                    if (_rusIndexNames.TryGetValue(finamSecurity.Id, out string fullName))
+                    {
+                        finamSecurity.Name = fullName;
+                        finamSecurity.Market = "Индексы Россия";
+                    }
+                    else
+                    {
+                        finamSecurity.Market = "Российские индексы";
+                    }
                 }
                 else if (Convert.ToInt32(arrayMarkets[i]) == 3)
                 {
@@ -446,8 +463,6 @@ namespace OsEngine.Market.Servers.Finam
                 {
                     FinamSecurity secInArray = _finamSecurities[j];
 
-                    
-
                     if (secInArray.Id == finamSecurity.Id
                         && secInArray.Market == finamSecurity.Market)
                     {
@@ -476,11 +491,6 @@ namespace OsEngine.Market.Servers.Finam
                 if (_finamSecurities[i].Name == "")
                 {
                     continue;
-                }
-
-                if (_finamSecurities[i].Name == "Индекс МосБиржи голубых фишек")
-                {
-
                 }
 
                 Security sec = new Security();
@@ -559,7 +569,7 @@ namespace OsEngine.Market.Servers.Finam
             // 1. Идём на сайт Финам: https://www.finam.ru/profile/moex-akcii/sberbank/export/old/
             // 2. Заходим в источники страницы, через инструменты разработчика
             // 3. В кэше находим файл icharts.js
-            // 4. Копируем содержимое этого файла в текстовик FinamSecurities.txt, который рядом с exe файлом OsEngine
+            // 4. Копируем содержимое этого файла в текстовик FinamSecurities.txt, который рядом с exe файлом OsEngine до строки, которая начинается с НЕТ НА СЕРВЕРЕ
 
             string result = "";
 
