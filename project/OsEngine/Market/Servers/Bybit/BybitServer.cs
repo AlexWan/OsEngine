@@ -328,7 +328,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string mainWsPrivateUrl = "wss://stream.bybit.com/v5/private";
 
-        private string testWsPrivateUrl = "wss://stream.bybit.com/v5/private";
+        private string testWsPrivateUrl = "wss://stream-demo.bybit.com/v5/private";
 
         private string wsPublicUrl(Category category = Category.spot)
         {
