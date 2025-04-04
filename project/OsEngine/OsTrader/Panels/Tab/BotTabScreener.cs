@@ -1139,11 +1139,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return false;
             }
 
-            if (TimeFrame == TimeFrame.Sec1)
-            {
-                return false;
-            }
-
             if (ServerType == ServerType.None)
             {
                 return false;
