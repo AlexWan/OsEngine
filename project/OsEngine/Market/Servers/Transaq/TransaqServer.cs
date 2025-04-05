@@ -1351,7 +1351,8 @@ namespace OsEngine.Market.Servers.Transaq
                     if ((timeFrameBuilder.TimeFrame == TimeFrame.Min1 && needPeriodId == "1") ||
                         (timeFrameBuilder.TimeFrame == TimeFrame.Min5 && needPeriodId == "2") ||
                         (timeFrameBuilder.TimeFrame == TimeFrame.Min15 && needPeriodId == "3") ||
-                        (timeFrameBuilder.TimeFrame == TimeFrame.Hour1 && needPeriodId == "4"))
+                        (timeFrameBuilder.TimeFrame == TimeFrame.Hour1 && needPeriodId == "4") ||
+                        (timeFrameBuilder.TimeFrame == TimeFrame.Day && needPeriodId == "5"))
                     {
                         newCandle = donorCandles;
                     }
@@ -1612,18 +1613,18 @@ namespace OsEngine.Market.Servers.Transaq
                     newTf = 120;
                     oldTf = 60;
                     return "4";
-                case TimeFrame.Day:
-                    newTf = 1440;
-                    oldTf = 60;
-                    return "4";
                 case TimeFrame.Hour4:
                     newTf = 240;
                     oldTf = 60;
                     return "4";
+                case TimeFrame.Day:
+                    newTf = 1440;
+                    oldTf = 1440;
+                    return "5";
                 default:
                     newTf = 0;
                     oldTf = 0;
-                    return "5";
+                    return "6";
             }
         }
 

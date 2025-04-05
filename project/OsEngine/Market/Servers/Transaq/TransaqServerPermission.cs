@@ -163,7 +163,7 @@ namespace OsEngine.Market.Servers.Transaq
         TimeFrameHour1IsOn = true,
         TimeFrameHour2IsOn = true,
         TimeFrameHour4IsOn = true,
-        TimeFrameDayIsOn = false
+        TimeFrameDayIsOn = true
     };
         public bool ManuallyClosePositionOnBoard_IsOn
         {
