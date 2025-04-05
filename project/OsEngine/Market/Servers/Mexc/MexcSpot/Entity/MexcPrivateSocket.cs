@@ -28,7 +28,7 @@ namespace OsEngine.Market.Servers.Mexc.Json
     public class MexcSocketBalance
     {
         public string a { get; set; }
-        public long c { get; set; } //change time
+        public string c { get; set; } //change time
         public string f { get; set; }  //free balance
         public string fd { get; set; }  //free changed amount
         public string l { get; set; }  //frozen amount
@@ -38,20 +38,20 @@ namespace OsEngine.Market.Servers.Mexc.Json
 
     public class MexcSocketOrder
     {
-        public decimal A { get; set; }
-        public ulong O { get; set; }
-        public int S { get; set; }
-        public decimal V { get; set; }
-        public decimal a { get; set; }
+        public string A { get; set; }
+        public string O { get; set; }
+        public string S { get; set; }
+        public string V { get; set; }
+        public string a { get; set; }
         public string c { get; set; }
         public string i { get; set; }
-        public int m { get; set; }
-        public int o { get; set; }
-        public decimal p { get; set; }
-        public int s { get; set; }
-        public decimal v { get; set; }
-        public decimal ap { get; set; }
-        public decimal cv { get; set; }
-        public decimal ca { get; set; }
+        public string m { get; set; }
+        public string o { get; set; }
+        public string p { get; set; }
+        public string s { get; set; }
+        public string v { get; set; }
+        public string ap { get; set; }
+        public string cv { get; set; }
+        public string ca { get; set; }
     }
 }

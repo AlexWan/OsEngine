@@ -13,25 +13,24 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string symbol { get; set; }
         public string id { get; set; }
         public string orderId { get; set; }
-        public int orderListId { get; set; }
+        public string orderListId { get; set; }
         public string price { get; set; }
         public string qty { get; set; }
         public string quoteQty { get; set; }
         public string commission { get; set; }
         public string commissionAsset { get; set; }
-        public long time { get; set; }
-        public bool isBuyer { get; set; }
-        public bool isMaker { get; set; }
-        public bool isBestMatch { get; set; }
-        public bool isSelfTrade { get; set; }
-        public object clientOrderId { get; set; }
+        public string time { get; set; }
+        public string isBuyer { get; set; }
+        public string isMaker { get; set; }
+        public string isBestMatch { get; set; }
+        public string isSelfTrade { get; set; }
+        public string clientOrderId { get; set; }
     }
 
     public class MexcTrades : List<MexcTrade>
     {
 
     }
-
 
     public class MexcOrder
     {
@@ -81,8 +80,8 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string filledSize { get; set; }
         public string notional { get; set; }
         public string filledNotional { get; set; }
-        public long createTime { get; set; }
-        public long updateTime { get; set; }
+        public string createTime { get; set; }
+        public string updateTime { get; set; }
     }
 
     public class MexcRestOrders : List<MexcRestOrder>
@@ -92,22 +91,22 @@ namespace OsEngine.Market.Servers.Mexc.Json
 
     public class MexcRestOrdersBaseMessage
     {
-        public int code;
+        public string code;
         public string trace;
         public string message;
-        public object data;
+        public string data;
     }
 
     public class MexcNewOrderResponse
     {
         public string symbol { get; set; }
         public string orderId { get; set; }
-        public int orderListId { get; set; }
+        public string orderListId { get; set; }
         public string price { get; set; }
         public string origQty { get; set; }
         public string type { get; set; }
         public string side { get; set; }
-        public long transactTime { get; set; }
+        public string transactTime { get; set; }
     }
 
     public class MexcOrderResponse
@@ -126,9 +125,9 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string side { get; set; }
         public string stopPrice { get; set; }
         public string icebergQty { get; set; }
-        public ulong time { get; set; }
-        public object updateTime { get; set; }
-        public bool isWorking { get; set; }
+        public string time { get; set; }
+        public string updateTime { get; set; }
+        public string isWorking { get; set; }
         public string origQuoteOrderQty { get; set; }
 
     }
@@ -140,7 +139,7 @@ namespace OsEngine.Market.Servers.Mexc.Json
 
     public class MexcDefaultSymbols
     {
-        public int code { get; set; }
+        public string code { get; set; }
         public List<string> data { get; set; }
         public string msg { get; set; }
     }
