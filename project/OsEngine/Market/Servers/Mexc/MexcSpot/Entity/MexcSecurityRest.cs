@@ -12,34 +12,34 @@ namespace OsEngine.Market.Servers.Mexc.Json
         public string symbol { get; set; }
         public string status { get; set; }
         public string baseAsset { get; set; }
-        public int baseAssetPrecision { get; set; }
+        public string baseAssetPrecision { get; set; }
         public string quoteAsset { get; set; }
-        public int quotePrecision { get; set; }
-        public int quoteAssetPrecision { get; set; }
-        public int baseCommissionPrecision { get; set; }
-        public int quoteCommissionPrecision { get; set; }
+        public string quotePrecision { get; set; }
+        public string quoteAssetPrecision { get; set; }
+        public string baseCommissionPrecision { get; set; }
+        public string quoteCommissionPrecision { get; set; }
         public List<string> orderTypes { get; set; }
-        public bool isSpotTradingAllowed { get; set; }
-        public bool isMarginTradingAllowed { get; set; }
+        public string isSpotTradingAllowed { get; set; }
+        public string isMarginTradingAllowed { get; set; }
         public string quoteAmountPrecision { get; set; }
         public string baseSizePrecision { get; set; }
         public List<string> permissions { get; set; }
-        public List<object> filters { get; set; }
+        public List<string> filters { get; set; }
         public string maxQuoteAmount { get; set; }
         public string makerCommission { get; set; }
         public string takerCommission { get; set; }
         public string quoteAmountPrecisionMarket { get; set; }
         public string maxQuoteAmountMarket { get; set; }
         public string fullName { get; set; }
-        public int tradeSideType { get; set; }
+        public string tradeSideType { get; set; }
     }
 
     public class MexcSecurityList
     {
         public string timezone { get; set; }
-        public long serverTime { get; set; }
-        public List<object> rateLimits { get; set; }
-        public List<object> exchangeFilters { get; set; }
+        public string serverTime { get; set; }
+        public List<string> rateLimits { get; set; }
+        public List<string> exchangeFilters { get; set; }
         public List<MexcSecurity> symbols { get; set; }
     }
 

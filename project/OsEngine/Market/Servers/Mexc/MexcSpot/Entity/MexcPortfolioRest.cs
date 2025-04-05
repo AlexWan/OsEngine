@@ -7,7 +7,6 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.Mexc.Json
 {
-
     public class MexcBalance
     {
         public string asset { get; set; }
@@ -17,13 +16,12 @@ namespace OsEngine.Market.Servers.Mexc.Json
 
     public class MexcPortfolioRest
     {
-        public bool canTrade { get; set; }
-        public bool canWithdraw { get; set; }
-        public bool canDeposit { get; set; }
-        public object updateTime { get; set; }
+        public string canTrade { get; set; }
+        public string canWithdraw { get; set; }
+        public string canDeposit { get; set; }
+        public string updateTime { get; set; }
         public string accountType { get; set; }
         public List<MexcBalance> balances { get; set; }
         public List<string> permissions { get; set; }
     }
-
 }

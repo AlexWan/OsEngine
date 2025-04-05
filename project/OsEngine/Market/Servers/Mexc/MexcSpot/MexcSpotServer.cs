@@ -198,9 +198,6 @@ namespace OsEngine.Market.Servers.Mexc
                 HttpResponseMessage response = Query(HttpMethod.Get, endPoint);
 
                 string content = response.Content.ReadAsStringAsync().Result;
-
-                //SendLogMessage("symbols: " + content, LogMessageType.Connect);
-
                 MexcSecurityList securities = JsonConvert.DeserializeAnonymousType(content, new MexcSecurityList());
 
                 UpdateSecuritiesFromServer(securities);
@@ -225,7 +222,12 @@ namespace OsEngine.Market.Servers.Mexc
                 {
                     MexcSecurity sec = securities.symbols[i];
 
-                    if (!sec.isSpotTradingAllowed)
+                    if (sec.isSpotTradingAllowed == "false")
+                    {
+                        continue;
+                    }
+
+                    if (sec.status != "1")
                     {
                         continue;
                     }
@@ -238,7 +240,7 @@ namespace OsEngine.Market.Servers.Mexc
                     security.SecurityType = SecurityType.CurrencyPair;
                     security.Exchange = ServerType.MexcSpot.ToString();
                     security.Lot = 1;
-                    security.PriceStep = GetPriceStep(sec.baseAssetPrecision);
+                    security.PriceStep = GetPriceStep(Convert.ToInt32(sec.quoteAssetPrecision));
                     security.PriceStepCost = security.PriceStep;
 
                     if (security.PriceStep < 1)
@@ -251,14 +253,7 @@ namespace OsEngine.Market.Servers.Mexc
                         security.Decimals = 0;
                     }
 
-                    if (sec.status == "1")
-                    {
-                        security.State = SecurityStateType.Activ;
-                    }
-                    else
-                    {
-                        security.State = SecurityStateType.Close;
-                    }
+                    security.DecimalsVolume = Convert.ToInt32(sec.baseAssetPrecision);
 
                     _securities.Add(security);
                 }
@@ -275,7 +270,9 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 return 1;
             }
+
             string priceStep = "0,";
+
             for (int i = 0; i < ScalePrice - 1; i++)
             {
                 priceStep += "0";
@@ -372,7 +369,6 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 _myPortfolios.Add(portfolio);
             }
-
 
             if (PortfolioEvent != null)
             {
@@ -1347,7 +1343,7 @@ namespace OsEngine.Market.Servers.Mexc
 
             if (deals == null || deals.deals == null || deals.deals.Count == 0 || string.IsNullOrEmpty(baseMessage.s))
             {
-                SendLogMessage("Wrong 'Trade' message:" + baseMessage.ToString(), LogMessageType.Error);
+                SendLogMessage("Wrong 'Trade' message:" + baseMessage, LogMessageType.Error);
                 return;
             }
 
@@ -1358,10 +1354,10 @@ namespace OsEngine.Market.Servers.Mexc
                 Trade trade = new Trade();
                 trade.SecurityNameCode = baseMessage.s;
                 trade.Price = deal.p.ToDecimal();
-                trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(deal.t.ToString());
-                trade.Id = deal.t.ToString() + deal.S + baseMessage.s;
+                trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(deal.t);
+                trade.Id = deal.t + deal.S + baseMessage.s;
 
-                if (deal.S == 1)
+                if (deal.S == "1")
                 {
                     trade.Side = Side.Buy;
                 }
@@ -1383,7 +1379,7 @@ namespace OsEngine.Market.Servers.Mexc
 
             if (baseDepth == null)
             {
-                SendLogMessage("Wrong 'MarketDepth' message:" + baseMessage.ToString(), LogMessageType.Error);
+                SendLogMessage("Wrong 'MarketDepth' message:" + baseMessage, LogMessageType.Error);
                 return;
             }
 
@@ -1532,19 +1528,19 @@ namespace OsEngine.Market.Servers.Mexc
             order.SecurityNameCode = baseMessage.s;
             order.Side = Side.Buy;
 
-            if (baseOrder.S == 2)
+            if (baseOrder.S == "2")
             {
                 order.Side = Side.Sell;
             }
 
             order.PortfolioNumber = this._portfolioName;
-            order.Volume = baseOrder.v;
-            order.VolumeExecute = order.Volume - baseOrder.V;
-            order.Price = baseOrder.p;
+            order.Volume = baseOrder.v.ToDecimal();
+            order.VolumeExecute = order.Volume - baseOrder.V.ToDecimal();
+            order.Price = baseOrder.p.ToDecimal();
 
             //LIMIT_ORDER(1),POST_ONLY(2),IMMEDIATE_OR_CANCEL(3),
             //FILL_OR_KILL(4),MARKET_ORDER(5); STOP_LIMIT(100)
-            if (baseOrder.o == 1)
+            if (baseOrder.o == "1")
             {
                 order.TypeOrder = OrderPriceType.Limit;
             }
@@ -1553,26 +1549,26 @@ namespace OsEngine.Market.Servers.Mexc
                 order.TypeOrder = OrderPriceType.Market;
             }
 
-            order.TimeCreate = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.O.ToString());
+            order.TimeCreate = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.O);
             order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseMessage.t.ToString());
             order.ServerType = ServerType.MexcSpot;
 
             //status 1:New order 2:Filled 3:Partially filled 4:Order canceled
             //5:Order filled partially, and then the rest of the order is canceled
 
-            if (baseOrder.s == 1)
+            if (baseOrder.s == "1")
             {
                 order.State = OrderStateType.Active;
             }
-            else if (baseOrder.s == 2)
+            else if (baseOrder.s == "2")
             {
                 order.State = OrderStateType.Done;
             }
-            else if (baseOrder.s == 3)
+            else if (baseOrder.s == "3")
             {
                 order.State = OrderStateType.Partial;
             }
-            else if (baseOrder.s == 4 || baseOrder.s == 5)
+            else if (baseOrder.s == "4" || baseOrder.s == "5")
             {
                 if (order.VolumeExecute > 0)
                 {
@@ -2024,15 +2020,15 @@ namespace OsEngine.Market.Servers.Mexc
                 return null;
             }
 
-            order.NumberMarket = baseOrder.orderId.ToString();
+            order.NumberMarket = baseOrder.orderId;
 
             if (baseOrder.updateTime != null)
             {
-                order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.updateTime.ToString());
+                order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.updateTime);
             }
             else
             {
-                order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.time.ToString());
+                order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.time);
             }
 
             if (baseOrder.side == "BUY")
@@ -2125,8 +2121,9 @@ namespace OsEngine.Market.Servers.Mexc
             trade.NumberOrderParent = baseTrade.orderId;
             trade.NumberTrade = baseTrade.id;
             trade.SecurityNameCode = baseTrade.symbol;
-            trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseTrade.time.ToString());
-            if (baseTrade.isBuyer)
+            trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseTrade.time);
+
+            if (baseTrade.isBuyer == "true")
             {
                 trade.Side = Side.Buy;
             }
@@ -2134,6 +2131,7 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 trade.Side = Side.Sell;
             }
+
             trade.Price = baseTrade.price.ToDecimal();
             trade.Volume = baseTrade.qty.ToDecimal();
 

@@ -23,9 +23,9 @@ namespace OsEngine.Market.Servers.Mexc.Json
 
     public class MexcDeal
     {
-        public int S { get; set; }
+        public string S { get; set; }
         public string p { get; set; }
-        public long t { get; set; }
+        public string t { get; set; }
         public string v { get; set; }
     }
 
