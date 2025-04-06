@@ -448,6 +448,31 @@ namespace OsEngine.Market.Servers.AE
             PortfolioEvent!(new List<Portfolio>{newPortfolio});
         }
 
+        private void UpdatePosition(string message)
+        {
+            WebSocketPositionUpdateMessage posMsg =
+                JsonConvert.DeserializeObject<WebSocketPositionUpdateMessage>(message, _jsonSettings);
+
+            Portfolio portf = null;
+
+            for (int i = 0; i < _myPortfolios.Count; i++)
+            {
+                if (_myPortfolios[i].Number == posMsg.AccountNumber)
+                {
+                    portf = _myPortfolios[i];
+                    break;
+                }
+            }
+
+            PositionOnBoard newPosition = new PositionOnBoard();
+            newPosition.SecurityNameCode = posMsg.Ticker;
+            newPosition.ValueCurrent = posMsg.Shares;
+
+            portf!.SetNewPosition(newPosition);
+
+            PortfolioEvent!(_myPortfolios);
+        }
+
         private void UpdateAccounts(string message)
         {
             // Cast to the derived class to access Instruments
@@ -1794,6 +1819,9 @@ namespace OsEngine.Market.Servers.AE
                     } else if (baseMessage.Type.StartsWith("AccountState"))
                     {
                         UpdateAccountState(message);
+                    } else if (baseMessage.Type.StartsWith("PositionUpdate"))
+                    {
+                        UpdatePosition(message);
                     } else if (baseMessage.Type == "Error")
                     {
                         WebSocketErrorMessage errorMessage = JsonConvert.DeserializeObject<WebSocketErrorMessage>(message, _jsonSettings);
