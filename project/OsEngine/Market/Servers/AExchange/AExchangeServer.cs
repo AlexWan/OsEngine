@@ -436,6 +436,18 @@ namespace OsEngine.Market.Servers.AE
 
         }
 
+        private void UpdateAccountState(string message)
+        {
+            WebSocketAccountStateMessage account=
+                JsonConvert.DeserializeObject<WebSocketAccountStateMessage>(message, _jsonSettings);
+
+            Portfolio newPortfolio = new Portfolio();
+            newPortfolio.Number = account.AccountNumber;
+            newPortfolio.ValueBlocked = account.GuaranteeMargin ?? 0; // это неправильно, так как не учитывает цену всех позиций?
+
+            PortfolioEvent!(new List<Portfolio>{newPortfolio});
+        }
+
         private void UpdateAccounts(string message)
         {
             // Cast to the derived class to access Instruments
@@ -449,7 +461,7 @@ namespace OsEngine.Market.Servers.AE
                 Portfolio newPortfolio = new Portfolio();
 
                 newPortfolio.Number = account.AccountNumber;
-                newPortfolio.ValueBlocked = account.GuaranteeMargin;
+                newPortfolio.ValueBlocked = account.GuaranteeMargin;// это неправильно, так как не учитывает цену всех позиций?
 
                 foreach (var position in account.Positions)
                 {
@@ -1779,6 +1791,9 @@ namespace OsEngine.Market.Servers.AE
                     } else if (baseMessage.Type.StartsWith("Order"))
                     {
                         UpdateOrder(baseMessage.Type, message);
+                    } else if (baseMessage.Type.StartsWith("AccountState"))
+                    {
+                        UpdateAccountState(message);
                     } else if (baseMessage.Type == "Error")
                     {
                         WebSocketErrorMessage errorMessage = JsonConvert.DeserializeObject<WebSocketErrorMessage>(message, _jsonSettings);

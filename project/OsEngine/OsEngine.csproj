@@ -468,6 +468,8 @@
     </Compile>
     <Compile Include="Market\Servers\AExchange\AExchangeServer.cs" />
     <Compile Include="Market\Servers\AExchange\AExchangeServerPermission.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\PositionUpdate.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\AccountState.cs" />
     <Compile Include="Market\Servers\AExchange\Json\Accounts.cs" />
     <Compile Include="Market\Servers\AExchange\Json\InstrumentDefinition.cs" />
     <Compile Include="Market\Servers\AExchange\Json\Error.cs" />
