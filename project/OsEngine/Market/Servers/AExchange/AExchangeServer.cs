@@ -1702,12 +1702,7 @@ namespace OsEngine.Market.Servers.AE
 
 
                     WebSocketMessageBase baseMessage = 
-                        JsonConvert.DeserializeObject<WebSocketMessageBase>(message, new JsonSerializerSettings
-                        {
-                            ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                            NullValueHandling = NullValueHandling.Ignore,
-                            Formatting = Formatting.Indented
-                        });
+                        JsonConvert.DeserializeObject<WebSocketMessageBase>(message, _jsonSettings);
 
                     if (baseMessage == null)
                     {
@@ -1723,7 +1718,13 @@ namespace OsEngine.Market.Servers.AE
                     } else if (baseMessage.Type == "Q")
                     {
                         UpdateQuote(message);
+                    } else if (baseMessage.Type == "Error")
+                    {
+                        WebSocketErrorMessage errorMessage = JsonConvert.DeserializeObject<WebSocketErrorMessage>(message, _jsonSettings);
+
+                        SendLogMessage($"Msg: {errorMessage.Message}, code: {errorMessage.Code}", LogMessageType.Error);
                     }
+
                     else
                     {
                         SendLogMessage(message, LogMessageType.System);
@@ -1855,125 +1856,6 @@ namespace OsEngine.Market.Servers.AE
         public event Action<Trade> NewTradesEvent;
 
         public event Action<MarketDepth> MarketDepthEvent;
-
-        //private void PortfolioMessageReader()
-        //{
-        //    Thread.Sleep(1000);
-
-        //    while (true)
-        //    {
-        //        try
-        //        {
-        //            if (WebSocketPortfolioMessage.IsEmpty)
-        //            {
-        //                Thread.Sleep(1);
-        //                continue;
-        //            }
-
-        //            string message;
-
-        //            WebSocketPortfolioMessage.TryDequeue(out message);
-
-        //            if (message == null)
-        //            {
-        //                continue;
-        //            }
-
-        //            if (message.Equals("pong"))
-        //            {
-        //                continue;
-        //            }
-
-        //            //SocketMessageBase baseMessage =
-        //            //    JsonConvert.DeserializeAnonymousType(message, new SocketMessageBase());
-
-        //            //if (baseMessage == null
-        //            //    || string.IsNullOrEmpty(baseMessage.guid))
-        //            //{
-        //            //    continue;
-        //            //}
-
-        //            //for (int i = 0; i < _subscriptionsPortfolio.Count; i++)
-        //            //{
-        //            //    if (_subscriptionsPortfolio[i].Guid != baseMessage.guid)
-        //            //    {
-        //            //        continue;
-        //            //    }
-
-        //            //    if (_subscriptionsPortfolio[i].SubType == AESubType.Portfolio)
-        //            //    {
-        //            //        UpDateMyPortfolio(baseMessage.data.ToString(), _subscriptionsPortfolio[i].ServiceInfo);
-        //            //        break;
-        //            //    }
-        //            //    else if (_subscriptionsPortfolio[i].SubType == AESubType.Positions)
-        //            //    {
-        //            //        UpDatePositionOnBoard(baseMessage.data.ToString(), _subscriptionsPortfolio[i].ServiceInfo);
-        //            //        break;
-        //            //    }
-        //            //    else if (_subscriptionsPortfolio[i].SubType == AESubType.MyTrades)
-        //            //    {
-        //            //        UpDateMyTrade(baseMessage.data.ToString());
-        //            //        break;
-        //            //    }
-        //            //    else if (_subscriptionsPortfolio[i].SubType == AESubType.Orders)
-        //            //    {
-        //            //        UpDateMyOrder(baseMessage.data.ToString(), _subscriptionsPortfolio[i].ServiceInfo);
-        //            //        break;
-        //            //    }
-        //            //}
-        //        }
-        //        catch (Exception exception)
-        //        {
-        //            SendLogMessage(exception.ToString(), LogMessageType.Error);
-        //            Thread.Sleep(5000);
-        //        }
-        //    }
-        //}
-
-        private List<MyTrade> _spreadMyTrades = new List<MyTrade>();
-
-        private void UpDateMyTrade(string data)
-        {
-            //MyTradeAE baseMessage =
-            //JsonConvert.DeserializeAnonymousType(data, new MyTradeAE());
-
-            //MyTrade trade = new MyTrade();
-
-            //trade.SecurityNameCode = baseMessage.symbol;
-            //trade.Price = baseMessage.price.ToDecimal();
-            //trade.Volume = baseMessage.qty.ToDecimal();
-            //trade.NumberOrderParent = baseMessage.orderno;
-            //trade.NumberTrade = baseMessage.id;
-            //trade.Time = ConvertToDateTimeFromTimeAEData(baseMessage.date);
-           
-            //if(baseMessage.side == "buy")
-            //{
-            //    trade.Side = Side.Buy;
-            //}
-            //else
-            //{
-            //    trade.Side = Side.Sell;
-            //}
-
-            //if (MyTradeEvent != null)
-            //{
-            //    MyTradeEvent(trade);
-            //}
-
-            //if (_spreadOrders.Count > 0)
-            //{
-            //    _spreadMyTrades.Add(trade);
-
-            //    for (int i = 0; i < _spreadOrders.Count; i++)
-            //    {
-            //        if(TryGenerateFakeMyTradeToOrderBySpread(_spreadOrders[i]))
-            //        {
-            //            _spreadOrders.RemoveAt(i);
-            //            break;
-            //        }
-            //    }
-            //}
-        }
 
         private void UpDatePositionOnBoard(string data, string portfolioName)
         {
