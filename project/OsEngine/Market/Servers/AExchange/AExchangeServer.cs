@@ -286,6 +286,7 @@ namespace OsEngine.Market.Servers.AE
         {
             WebSocketQuoteMessage q = JsonConvert.DeserializeObject<WebSocketQuoteMessage>(message, _jsonSettings);
 
+            Security sec = _securities.Find((s) => s.NameId == q.Ticker);
             if (q.LastPrice != null) // quote is trade
             {
                 Trade newTrade = new Trade();
@@ -321,7 +322,17 @@ namespace OsEngine.Market.Servers.AE
                     MarketDepthEvent!(newMarketDepth);
                 }
 
-                //q.Volatility ???
+                if (q.Volatility != null)
+                {
+                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                    data.MarkIV = q.Volatility.ToString();
+                    data.SecurityName = q.Ticker;
+                    data.TimeCreate = q.Timestamp.ToString();
+                    data.UnderlyingAsset = sec.UnderlyingAsset;
+
+                    AdditionalMarketDataEvent(data);
+                }
 
                 NewTradesEvent!(newTrade);
             }
