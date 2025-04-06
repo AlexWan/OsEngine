@@ -448,6 +448,20 @@ namespace OsEngine.Market.Servers.AE
             PortfolioEvent!(new List<Portfolio>{newPortfolio});
         }
 
+        private void UpdateMyTrade(string message)
+        {
+            WebSocketTradeMessage trade = JsonConvert.DeserializeObject<WebSocketTradeMessage>(message, _jsonSettings);
+            MyTrade newTrade = new MyTrade();
+            newTrade.SecurityNameCode = trade.Ticker;
+            newTrade.NumberTrade = trade.TradeId.ToString();
+            newTrade.NumberOrderParent = trade.OrderId.ToString();
+            newTrade.Volume = trade.Shares;
+            newTrade.Price = trade.Price;
+            newTrade.Time = trade.Moment;
+
+            MyTradeEvent!(newTrade);
+        }
+
         private void UpdatePosition(string message)
         {
             WebSocketPositionUpdateMessage posMsg =
@@ -1816,12 +1830,15 @@ namespace OsEngine.Market.Servers.AE
                     } else if (baseMessage.Type.StartsWith("Order"))
                     {
                         UpdateOrder(baseMessage.Type, message);
-                    } else if (baseMessage.Type.StartsWith("AccountState"))
+                    } else if (baseMessage.Type == "AccountState")
                     {
                         UpdateAccountState(message);
-                    } else if (baseMessage.Type.StartsWith("PositionUpdate"))
+                    } else if (baseMessage.Type == "PositionUpdate")
                     {
                         UpdatePosition(message);
+                    } else if (baseMessage.Type == "Trade")
+                    {
+                        UpdateMyTrade(message);
                     } else if (baseMessage.Type == "Error")
                     {
                         WebSocketErrorMessage errorMessage = JsonConvert.DeserializeObject<WebSocketErrorMessage>(message, _jsonSettings);
@@ -2069,68 +2086,7 @@ namespace OsEngine.Market.Servers.AE
             //}
         }
 
-        private bool TryGenerateFakeMyTradeToOrderBySpread(Order order)
-        {
-            MyTrade tradeFirst = null;
-
-            MyTrade tradeSecond = null;
-
-            for(int i = 0;i < _spreadMyTrades.Count;i++)
-            {
-                if (_spreadMyTrades[i].NumberOrderParent == order.NumberMarket)
-                {
-                    if(tradeFirst == null)
-                    {
-                        tradeFirst = _spreadMyTrades[i];
-                    }
-                    else if(tradeSecond == null)
-                    {
-                        tradeSecond = _spreadMyTrades[i];
-                        break;
-                    }
-                }
-            }
-
-            if(tradeFirst != null && 
-                tradeSecond != null)
-            {
-                if(order.SecurityNameCode.StartsWith(tradeFirst.SecurityNameCode) == false)
-                {
-                    MyTrade third = tradeFirst;
-                    tradeFirst = tradeSecond;
-                    tradeSecond = third;
-                }
-
-                MyTrade trade = new MyTrade();
-                trade.SecurityNameCode = order.SecurityNameCode;
-                trade.Price = tradeSecond.Price - tradeFirst.Price;
-                trade.Volume = order.Volume;
-                trade.NumberOrderParent = order.NumberMarket;
-                trade.NumberTrade = order.NumberMarket + "fakeSpreadTrade";
-                trade.Time = order.TimeCallBack;
-                trade.Side = order.Side;
-
-                if (MyTradeEvent != null)
-                {
-                    MyTradeEvent(trade);
-                }
-
-                for (int i = 0; i < _spreadMyTrades.Count; i++)
-                {
-                    if (_spreadMyTrades[i].NumberOrderParent == order.NumberMarket)
-                    {
-                        _spreadMyTrades.RemoveAt(i);
-                        i--;
-                    }
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        //private Order ConvertToOsEngineOrder(OrderAE baseMessage, string portfolioName)
+                //private Order ConvertToOsEngineOrder(OrderAE baseMessage, string portfolioName)
         //{
         //    Order order = new Order();
 
