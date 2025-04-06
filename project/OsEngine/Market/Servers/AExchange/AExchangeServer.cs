@@ -184,6 +184,7 @@ namespace OsEngine.Market.Servers.AE
         private string _pathToKeyFile;
         private string _keyFilePassphrase;
         private string _username;
+        private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
 
         #endregion
 
@@ -331,6 +332,63 @@ namespace OsEngine.Market.Servers.AE
             SecurityEvent!(_securities);
 
             SendLogMessage($"Total instruments: {_securities.Count}", LogMessageType.System);
+        }
+
+        private void UpdateOrder(string type, string message)
+        {
+            Order order = new Order();
+
+            string externalId = "";
+            
+            if (type == "OrderPending")
+            {
+                order.State = OrderStateType.Pending;
+
+                OrderPendingMessage orderData = JsonConvert.DeserializeObject<OrderPendingMessage>(message, _jsonSettings);
+                externalId = orderData.ExternalId;
+                order.TimeCallBack = orderData.Moment;
+                order.NumberMarket = orderData.OrderId.ToString();
+            }
+            else if (type == "OrderRejected")
+            {
+                order.State = OrderStateType.Fail;
+
+                OrderRejectedMessage orderData = JsonConvert.DeserializeObject<OrderRejectedMessage>(message, _jsonSettings);
+                order.TimeCallBack = orderData.Moment;
+                order.NumberMarket = orderData.OrderId.ToString();
+
+                SendLogMessage($"Order rejected. #{orderData.OrderId}. Message: {orderData.Message}", LogMessageType.Error);
+            }
+            else if (type == "OrderCanceled")
+            {
+                order.State = OrderStateType.Cancel;
+
+                OrderCanceledMessage orderData = JsonConvert.DeserializeObject<OrderCanceledMessage>(message, _jsonSettings);
+                order.TimeCallBack = orderData.Moment;
+                order.NumberMarket = orderData.OrderId.ToString();
+            }
+            else if (type == "OrderFilled")
+            {
+                order.State = OrderStateType.Partial;
+
+                OrderFilledMessage orderData = JsonConvert.DeserializeObject<OrderFilledMessage>(message, _jsonSettings);
+                order.TimeCallBack = orderData.Moment;
+                order.NumberMarket = orderData.OrderId.ToString();
+
+                if (orderData.SharesRemaining == 0.0m)
+                {
+                    order.State = OrderStateType.Done;
+                }
+            }
+
+            if (!_orderNumbers.ContainsKey(externalId)) // this order was sent not via our terminal
+            {
+                return;
+            }
+
+            order.NumberUser = _orderNumbers[externalId];
+
+            MyOrderEvent!(order);
         }
 
         private void UpdateQuote(string message)
@@ -1718,13 +1776,15 @@ namespace OsEngine.Market.Servers.AE
                     } else if (baseMessage.Type == "Q")
                     {
                         UpdateQuote(message);
+                    } else if (baseMessage.Type.StartsWith("Order"))
+                    {
+                        UpdateOrder(baseMessage.Type, message);
                     } else if (baseMessage.Type == "Error")
                     {
                         WebSocketErrorMessage errorMessage = JsonConvert.DeserializeObject<WebSocketErrorMessage>(message, _jsonSettings);
 
                         SendLogMessage($"Msg: {errorMessage.Message}, code: {errorMessage.Code}", LogMessageType.Error);
                     }
-
                     else
                     {
                         SendLogMessage(message, LogMessageType.System);
