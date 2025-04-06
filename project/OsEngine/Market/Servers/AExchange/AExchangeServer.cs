@@ -100,7 +100,6 @@ namespace OsEngine.Market.Servers.AE
                 {
                     Id = Interlocked.Increment(ref _messageId),
                     Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                    Type = "Login",
                     Login = _username
                 });
             }
@@ -269,125 +268,174 @@ namespace OsEngine.Market.Servers.AE
 
         private void UpdateInstruments(string message)
         {
-                // Cast to the derived class to access Instruments
-                WebSocketInstrumentsMessage instrumentsMessage = JsonConvert.DeserializeObject<WebSocketInstrumentsMessage>(message, new JsonSerializerSettings
+            // Cast to the derived class to access Instruments
+            WebSocketInstrumentsMessage instrumentsMessage = JsonConvert.DeserializeObject<WebSocketInstrumentsMessage>(
+                message, new JsonSerializerSettings
                 {
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
                     NullValueHandling = NullValueHandling.Ignore,
                     Formatting = Formatting.Indented
                 });
-                List<InstrumentDefinition> instruments = instrumentsMessage.Instruments;
+            List<InstrumentDefinition> instruments = instrumentsMessage.Instruments;
 
-                foreach (InstrumentDefinition instrument in instruments)
+            foreach (InstrumentDefinition instrument in instruments)
+            {
+                Security newSecurity = new Security();
+
+                if (instrument.Type == InstrumentType.Equity)
                 {
-                    Security newSecurity = new Security();
-
-                    if (instrument.Type == InstrumentType.Equity)
-                    {
-                        newSecurity.SecurityType = SecurityType.Stock;
-                    }
-                    if (instrument.Type == InstrumentType.Futures)
-                    {
-                        newSecurity.SecurityType = SecurityType.Futures;
-                        newSecurity.UnderlyingAsset = instrument.Parent;
-                    }
-                    if (instrument.Type == InstrumentType.Option)
-                    {
-                        newSecurity.SecurityType = SecurityType.Option;
-                        newSecurity.UnderlyingAsset = instrument.Parent;
-                        newSecurity.OptionType = instrument.OType == Json.OptionType.Call
-                            ? OptionType.Call
-                            : OptionType.Put;
-                    }
-                    if (instrument.Type == InstrumentType.Index)
-                    {
-                        newSecurity.SecurityType = SecurityType.Index;
-                    }
-
-                    newSecurity.NameId = instrument.Ticker;
-                    newSecurity.Name = instrument.Ticker;
-                    newSecurity.NameClass = instrument.Type.ToString();
-                    newSecurity.NameFull = instrument.FullName;
-                    newSecurity.Exchange = "AE";
-                    newSecurity.PriceStep = instrument.PriceStep ?? 1;
-
-                    if (instrument.ExpDate != null)
-                    {
-                        newSecurity.Expiration = instrument.ExpDate ?? DateTime.MaxValue;
-                    }
-
-                    newSecurity.Strike = instrument.Strike ?? 0;
-                    newSecurity.PriceStepCost = instrument.PSPrice ?? 1;
-                    newSecurity.Lot = instrument.LotVol ?? 1;
-
-                    newSecurity.DecimalsVolume = 0;
-
-                    _securities.Add(newSecurity);
+                    newSecurity.SecurityType = SecurityType.Stock;
                 }
 
-                SecurityEvent!(_securities);
+                if (instrument.Type == InstrumentType.Futures)
+                {
+                    newSecurity.SecurityType = SecurityType.Futures;
+                    newSecurity.UnderlyingAsset = instrument.Parent;
+                }
 
-                SendLogMessage($"Total instruments: {_securities.Count}", LogMessageType.System);
+                if (instrument.Type == InstrumentType.Option)
+                {
+                    newSecurity.SecurityType = SecurityType.Option;
+                    newSecurity.UnderlyingAsset = instrument.Parent;
+                    newSecurity.OptionType = instrument.OType == Json.OptionType.Call
+                        ? OptionType.Call
+                        : OptionType.Put;
+                }
+
+                if (instrument.Type == InstrumentType.Index)
+                {
+                    newSecurity.SecurityType = SecurityType.Index;
+                }
+
+                newSecurity.NameId = instrument.Ticker;
+                newSecurity.Name = instrument.Ticker;
+                newSecurity.NameClass = instrument.Type.ToString();
+                newSecurity.NameFull = instrument.FullName;
+                newSecurity.Exchange = "AE";
+                newSecurity.PriceStep = instrument.PriceStep ?? 1;
+
+                if (instrument.ExpDate != null)
+                {
+                    newSecurity.Expiration = instrument.ExpDate ?? DateTime.MaxValue;
+                }
+
+                newSecurity.Strike = instrument.Strike ?? 0;
+                newSecurity.PriceStepCost = instrument.PSPrice ?? 1;
+                newSecurity.Lot = instrument.LotVol ?? 1;
+
+                newSecurity.DecimalsVolume = 0;
+
+                _securities.Add(newSecurity);
+            }
+
+            SecurityEvent!(_securities);
+
+            SendLogMessage($"Total instruments: {_securities.Count}", LogMessageType.System);
+        }
+
+        private void UpdateQuote(string message)
+        {
+            WebSocketQuoteMessage q = JsonConvert.DeserializeObject<WebSocketQuoteMessage>(message, _jsonSettings);
+
+            if (q.LastPrice != null) // quote is trade
+            {
+                Trade newTrade = new Trade();
+                newTrade.Volume = q.LastVolume ?? 0;
+                newTrade.Time = q.LastTradeTime ?? DateTime.UtcNow;
+                newTrade.Price = q.LastPrice ?? 0;
+                newTrade.Id = q.Id.ToString();
+                newTrade.SecurityNameCode = q.Ticker;
+
+                if (q.Ask != null)
+                {
+                    newTrade.Ask = q.Ask ?? 0;
+                    newTrade.AsksVolume = q.AskVolume ?? 0;
+                    newTrade.Bid = q.Bid ?? 0;
+                    newTrade.BidsVolume = q.BidVolume ?? 0;
+
+                    MarketDepth newMarketDepth = new MarketDepth();
+                    MarketDepthLevel askLevel = new MarketDepthLevel();
+                    askLevel.Ask = newTrade.AsksVolume;
+                    askLevel.Price = newTrade.Ask;
+
+                    MarketDepthLevel bidLevel = new MarketDepthLevel();
+                    bidLevel.Bid = newTrade.BidsVolume;
+                    bidLevel.Price = newTrade.Bid;
+
+                    newMarketDepth.Asks.Add(askLevel);
+                    newMarketDepth.Bids.Add(bidLevel);
+
+                    newMarketDepth.SecurityNameCode = q.Ticker;
+                    newMarketDepth.Time = newTrade.Time;
+
+                    MarketDepthEvent!(newMarketDepth);
+                }
+
+                //q.Volatility ???
+
+                NewTradesEvent!(newTrade);
+            }
+
         }
 
         private void UpdateAccounts(string message)
         {
-                // Cast to the derived class to access Instruments
-                WebSocketAccountsMessage accountsMessage = JsonConvert.DeserializeObject<WebSocketAccountsMessage>(message, _jsonSettings);
-                List<Account> accounts = accountsMessage.Accounts;
+            // Cast to the derived class to access Instruments
+            WebSocketAccountsMessage accountsMessage = JsonConvert.DeserializeObject<WebSocketAccountsMessage>(message, _jsonSettings);
+            List<Account> accounts = accountsMessage.Accounts;
 
-                List<Order> orders = new List<Order>();
+            List<Order> orders = new List<Order>();
 
-                foreach (var account in accounts)
+            foreach (var account in accounts)
+            {
+                Portfolio newPortfolio = new Portfolio();
+
+                newPortfolio.Number = account.AccountNumber;
+                newPortfolio.ValueBlocked = account.GuaranteeMargin;
+
+                foreach (var position in account.Positions)
                 {
-                    Portfolio newPortfolio = new Portfolio();
+                    PositionOnBoard newPosition = new PositionOnBoard();
+                    newPosition.SecurityNameCode = position.Ticker;
+                    newPosition.ValueCurrent = position.Shares;
 
-                    newPortfolio.Number = account.AccountNumber;
-                    newPortfolio.ValueBlocked = account.GuaranteeMargin;
-
-                    foreach (var position in account.Positions)
-                    {
-                        PositionOnBoard newPosition = new PositionOnBoard();
-                        newPosition.SecurityNameCode = position.Ticker;
-                        newPosition.ValueCurrent = position.Shares;
-
-                        newPortfolio.SetNewPosition(newPosition);
-                    }
-
-                    foreach (var order in account.Orders)
-                    {
-                        Order newOrder = new Order();
-
-                        newOrder.PortfolioNumber = newPortfolio.Number;
-                        newOrder.NumberMarket = order.OrderId.ToString();
-                        newOrder.SecurityNameCode = order.Ticker;
-                        newOrder.TimeCallBack = order.Placed;
-                        newOrder.Price = order.Price;
-                        newOrder.Volume = order.Shares;
-                        newOrder.VolumeExecute = order.Shares - order.SharesRemaining;
-                        if (order.Comment != null)
-                        {
-                            newOrder.Comment = order.Comment;
-                        }
-
-                        if (order.ExternalId != null)
-                        {
-                            newOrder.NumberUser = int.Parse(order.ExternalId);
-                        }
-
-                        orders.Add(newOrder);
-                    }
-
-                    _myPortfolios.Add(newPortfolio);
+                    newPortfolio.SetNewPosition(newPosition);
                 }
 
-                PortfolioEvent!(_myPortfolios);
-
-                // send all orders
-                foreach (var order in orders)
+                foreach (var order in account.Orders)
                 {
-                    MyOrderEvent!(order);
+                    Order newOrder = new Order();
+
+                    newOrder.PortfolioNumber = newPortfolio.Number;
+                    newOrder.NumberMarket = order.OrderId.ToString();
+                    newOrder.SecurityNameCode = order.Ticker;
+                    newOrder.TimeCallBack = order.Placed;
+                    newOrder.Price = order.Price;
+                    newOrder.Volume = order.Shares;
+                    newOrder.VolumeExecute = order.Shares - order.SharesRemaining;
+                    if (order.Comment != null)
+                    {
+                        newOrder.Comment = order.Comment;
+                    }
+
+                    if (order.ExternalId != null)
+                    {
+                        newOrder.NumberUser = int.Parse(order.ExternalId);
+                    }
+
+                    orders.Add(newOrder);
                 }
+
+                _myPortfolios.Add(newPortfolio);
+            }
+
+            PortfolioEvent!(_myPortfolios);
+
+            // send all orders
+            foreach (var order in orders)
+            {
+                MyOrderEvent!(order);
+            }
         }
 
 
@@ -1590,52 +1638,12 @@ namespace OsEngine.Market.Servers.AE
 
                 _subscribedSecurities.Add(security);
 
-                // trades subscription
-
-                //curl - X GET "https://apidev.AE.ru/md/v2/Securities/MOEX/LKOH/alltrades?format=Simple&from=1593430060&to=1593430560&fromId=7796897024&toId=7796897280&take=10" - H "accept: application/json"
-
-                //RequestSocketSubscribeTrades subObjTrades = new RequestSocketSubscribeTrades();
-                //subObjTrades.code = security.Name;
-                //subObjTrades.guid = GetGuid();
-                //subObjTrades.token = _apiTokenReal;
-
-                //string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
-
-                //AESocketSubscription tradeSub = new AESocketSubscription();
-                //tradeSub.SubType = AESubType.Trades;
-                //tradeSub.ServiceInfo = security.Name;
-                //tradeSub.Guid = subObjTrades.guid;
-                //_subscriptionsData.Add(tradeSub);
-
-                //_ws.Send(messageTradeSub);
-
-                //// market depth subscription
-
-                //RequestSocketSubscribeMarketDepth subObjMarketDepth = new RequestSocketSubscribeMarketDepth();
-                //subObjMarketDepth.code = security.Name;
-                //subObjMarketDepth.guid = GetGuid();
-                //subObjMarketDepth.token = _apiTokenReal;
-
-                //if (((ServerParameterBool)ServerParameters[18]).Value == false)
-                //{
-                //    subObjMarketDepth.depth = "1";
-                //}
-                //else
-                //{
-                //    subObjMarketDepth.depth = ((ServerParameterEnum)ServerParameters[10]).Value;
-
-                //}
-
-                //AESocketSubscription mdSub = new AESocketSubscription();
-                //mdSub.SubType = AESubType.MarketDepth;
-                //mdSub.ServiceInfo = security.Name;
-                //mdSub.Guid = subObjMarketDepth.guid;
-                //_subscriptionsData.Add(mdSub);
-
-                //string messageMdSub = JsonConvert.SerializeObject(subObjMarketDepth);
-
-                //_ws.Send(messageMdSub);
-
+                SendCommand(new WebSocketSubscribeOnQuoteMessage
+                {
+                    Id = Interlocked.Increment(ref _messageId),
+                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                    Tickers = new List<string>{security.NameId}
+                });
             }
             catch (Exception exception)
             {
@@ -1712,6 +1720,9 @@ namespace OsEngine.Market.Servers.AE
                     } else if (baseMessage.Type == "Accounts")
                     {
                         UpdateAccounts(message);
+                    } else if (baseMessage.Type == "Q")
+                    {
+                        UpdateQuote(message);
                     }
                     else
                     {

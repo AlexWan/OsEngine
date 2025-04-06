@@ -470,6 +470,8 @@
     <Compile Include="Market\Servers\AExchange\AExchangeServerPermission.cs" />
     <Compile Include="Market\Servers\AExchange\Json\Accounts.cs" />
     <Compile Include="Market\Servers\AExchange\Json\InstrumentDefinition.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\Quotes.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\SubscribeOnQuoteMessage.cs" />
     <Compile Include="Market\Servers\AExchange\Json\LoginMessage.cs" />
     <Compile Include="Market\Servers\AExchange\Json\WebSocketMessageBase.cs" />
     <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscribe.cs" />

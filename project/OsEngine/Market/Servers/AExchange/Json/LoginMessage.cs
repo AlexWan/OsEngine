@@ -7,5 +7,10 @@ namespace OsEngine.Market.Servers.AE.Json
     {
         [JsonProperty("login")]
         public string Login { get; set; }
+
+        public WebSocketLoginMessage()
+        {
+            Type = "Login";
+        }
     }
 }
