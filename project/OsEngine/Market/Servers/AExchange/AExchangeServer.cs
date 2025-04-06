@@ -98,8 +98,6 @@ namespace OsEngine.Market.Servers.AE
 
                 SendCommand(new WebSocketLoginMessage
                 {
-                    Id = Interlocked.Increment(ref _messageId),
-                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     Login = _username
                 });
             }
@@ -142,8 +140,6 @@ namespace OsEngine.Market.Servers.AE
             {
                 SendCommand(new WebSocketMessageBase
                 {
-                    Id = Interlocked.Increment(ref _messageId),
-                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     Type = "Logout",
                 });
             }
@@ -194,8 +190,6 @@ namespace OsEngine.Market.Servers.AE
         {
             SendCommand(new WebSocketMessageBase
             {
-                Id = Interlocked.Increment(ref _messageId),
-                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                 Type = "GetInstruments",
             });
 
@@ -847,83 +841,7 @@ namespace OsEngine.Market.Servers.AE
 
         public void GetPortfolios()
         {
-            //if(string.IsNullOrEmpty(_portfolioSpotId) == false)
-            //{
-            //    GetCurrentPortfolio(_portfolioSpotId, "SPOT");
-            //}
-
-            //if (string.IsNullOrEmpty(_portfolioFutId) == false)
-            //{
-            //    GetCurrentPortfolio(_portfolioFutId, "FORTS");
-            //}
-
-            //if (string.IsNullOrEmpty(_portfolioCurrencyId) == false)
-            //{
-            //    GetCurrentPortfolio(_portfolioCurrencyId, "CURR");
-            //}
-
-            //if (string.IsNullOrEmpty(_portfolioSpareId) == false)
-            //{
-            //    GetCurrentPortfolio(_portfolioSpareId, "SPARE");
-            //}
-
-            if(_myPortfolios.Count != 0)
-            {
-                if(PortfolioEvent != null)
-                {
-                    PortfolioEvent(_myPortfolios);
-                }
-            }
-
-            ActivatePortfolioSocket();
         }
-
-        private void GetCurrentPortfolio(string portfolioId, string namePrefix)
-        {
-            try
-            {
-                //string exchange = "MOEX";
-                //if (portfolioId.StartsWith("E"))
-                //{
-                //    exchange = "UNITED";
-                //}
-
-                //string endPoint = $"/md/v2/clients/{exchange}/{portfolioId}/summary?format=Simple";
-                //RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                //requestRest.AddHeader("accept", "application/json");
-
-                //RestClient client = new RestClient(_restApiHost);
-
-                //IRestResponse response = client.Execute(requestRest);
-
-                //if (response.StatusCode == HttpStatusCode.OK)
-                //{
-                //    string content = response.Content;
-                //    AEPortfolioRest portfolio = JsonConvert.DeserializeAnonymousType(content, new AEPortfolioRest());
-
-                //    ConvertToPortfolio(portfolio, portfolioId, namePrefix);
-                //}
-                //else
-                //{
-                //    SendLogMessage("Portfolio request error. Status: " 
-                //        + response.StatusCode + "  " + namePrefix, LogMessageType.Error);
-                //}
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Portfolio request error " + exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        //private void ConvertToPortfolio(AEPortfolioRest portfolio, string name, string prefix)
-        //{
-        //    Portfolio newPortfolio = new Portfolio();
-        //    newPortfolio.Number = name + "_" + prefix;
-        //    newPortfolio.ValueCurrent = portfolio.buyingPower.ToDecimal();
-        //    newPortfolio.UnrealizedPnl = portfolio.profit.ToDecimal();
-        //    _myPortfolios.Add(newPortfolio);
-        //}
 
         public event Action<List<Portfolio>> PortfolioEvent;
 
@@ -1264,6 +1182,9 @@ namespace OsEngine.Market.Servers.AE
 
         private void SendCommand(WebSocketMessageBase command)
         {
+            command.Id = Interlocked.Increment(ref _messageId);
+            command.Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
             string json = JsonConvert.SerializeObject(command, _jsonSettings);
             _ws.Send(json);
         }
@@ -1285,7 +1206,6 @@ namespace OsEngine.Market.Servers.AE
                 lock (_socketLocker)
                 {
                     WebSocketDataMessage = new ConcurrentQueue<string>();
-                    WebSocketPortfolioMessage = new ConcurrentQueue<string>();
 
                     var certificate = new X509Certificate2(_pathToKeyFile, _keyFilePassphrase, X509KeyStorageFlags.MachineKeySet);
 
@@ -1340,19 +1260,6 @@ namespace OsEngine.Market.Servers.AE
                         {
                             // ignore
                         }
-
-                        //try
-                        //{
-                        //    _webSocketPortfolio.OnOpen -= _webSocketPortfolio_Opened;
-                        //    _webSocketPortfolio.OnClose -= _webSocketPortfolio_Closed;
-                        //    _webSocketPortfolio.OnMessage -= _webSocketPortfolio_MessageReceived;
-                        //    _webSocketPortfolio.OnError -= _webSocketPortfolio_Error;
-                        //    _webSocketPortfolio.CloseAsync();
-                        //}
-                        //catch
-                        //{
-                        //    // ignore
-                        //}
                     }
                 }
             }
@@ -1363,13 +1270,10 @@ namespace OsEngine.Market.Servers.AE
             finally
             {
                 _ws = null;
-                _webSocketPortfolio = null;
             }
         }
 
         private bool _socketDataIsActive;
-
-        private bool _socketPortfolioIsActive;
 
         private string _activationLocker = "activationLocker";
 
@@ -1379,11 +1283,6 @@ namespace OsEngine.Market.Servers.AE
             {
                 return;
             }
-
-            //if (_socketPortfolioIsActive == false)
-            //{
-            //    return;
-            //}
 
             try
             {
@@ -1405,124 +1304,6 @@ namespace OsEngine.Market.Servers.AE
         }
 
         private WebSocket _ws;
-
-        private WebSocket _webSocketPortfolio;
-
-        private void ActivatePortfolioSocket()
-        {
-            //if (string.IsNullOrEmpty(_portfolioSpotId) == false)
-            //{
-            //    ActivateCurrentPortfolioListening(_portfolioSpotId);
-            //}
-            //if (string.IsNullOrEmpty(_portfolioFutId) == false)
-            //{
-            //    ActivateCurrentPortfolioListening(_portfolioFutId);
-            //}
-            //if (string.IsNullOrEmpty(_portfolioCurrencyId) == false)
-            //{
-            //    ActivateCurrentPortfolioListening(_portfolioCurrencyId);
-            //}
-            //if (string.IsNullOrEmpty(_portfolioSpareId) == false)
-            //{
-            //    ActivateCurrentPortfolioListening(_portfolioSpareId);
-            //}
-        }
-
-        private void ActivateCurrentPortfolioListening(string portfolioName)
-        {
-            //// myTrades subscription
-
-            //RequestSocketSubscribeMyTrades subObjTrades = new RequestSocketSubscribeMyTrades();
-            //subObjTrades.guid = GetGuid();
-            //subObjTrades.token = _apiTokenReal;
-            //subObjTrades.portfolio = portfolioName;
-
-            //if (portfolioName.StartsWith("E"))
-            //{
-            //    subObjTrades.exchange = "UNITED";
-            //}
-
-            //string messageTradeSub = JsonConvert.SerializeObject(subObjTrades);
-
-            //AESocketSubscription myTradesSub = new AESocketSubscription();
-            //myTradesSub.SubType = AESubType.MyTrades;
-            //myTradesSub.Guid = subObjTrades.guid;
-
-            //_subscriptionsPortfolio.Add(myTradesSub);
-            //_webSocketPortfolio.Send(messageTradeSub);
-
-            //Thread.Sleep(1000);
-
-            //// orders subscription
-
-            //RequestSocketSubscribeOrders subObjOrders = new RequestSocketSubscribeOrders();
-            //subObjOrders.guid = GetGuid();
-            //subObjOrders.token = _apiTokenReal;
-            //subObjOrders.portfolio = portfolioName;
-
-            //if (portfolioName.StartsWith("E"))
-            //{
-            //    subObjOrders.exchange = "UNITED";
-            //}
-
-            //string messageOrderSub = JsonConvert.SerializeObject(subObjOrders);
-
-            //AESocketSubscription ordersSub = new AESocketSubscription();
-            //ordersSub.SubType = AESubType.Orders;
-            //ordersSub.Guid = subObjOrders.guid;
-            //ordersSub.ServiceInfo = portfolioName;
-
-            //_subscriptionsPortfolio.Add(ordersSub);
-            //_webSocketPortfolio.Send(messageOrderSub);
-
-            //Thread.Sleep(1000);
-
-            //// portfolio subscription
-
-            //RequestSocketSubscribePortfolio subObjPortf = new RequestSocketSubscribePortfolio();
-            //subObjPortf.guid = GetGuid();
-            //subObjPortf.token = _apiTokenReal;
-            //subObjPortf.portfolio = portfolioName;
-
-            //if (portfolioName.StartsWith("E"))
-            //{
-            //    subObjPortf.exchange = "UNITED";
-            //}
-
-            //string messagePortfolioSub = JsonConvert.SerializeObject(subObjPortf);
-
-            //AESocketSubscription portfSub = new AESocketSubscription();
-            //portfSub.SubType = AESubType.Portfolio;
-            //portfSub.ServiceInfo = portfolioName;
-            //portfSub.Guid = subObjPortf.guid;
-
-            //_subscriptionsPortfolio.Add(portfSub);
-            //_webSocketPortfolio.Send(messagePortfolioSub);
-
-            //Thread.Sleep(1000);
-
-            //// positions subscription
-
-            //RequestSocketSubscribePositions subObjPositions = new RequestSocketSubscribePositions();
-            //subObjPositions.guid = GetGuid();
-            //subObjPositions.token = _apiTokenReal;
-            //subObjPositions.portfolio = portfolioName;
-
-            //if (portfolioName.StartsWith("E"))
-            //{
-            //    subObjPositions.exchange = "UNITED";
-            //}
-
-            //string messagePositionsSub = JsonConvert.SerializeObject(subObjPositions);
-
-            //AESocketSubscription positionsSub = new AESocketSubscription();
-            //positionsSub.SubType = AESubType.Positions;
-            //positionsSub.ServiceInfo = portfolioName;
-            //positionsSub.Guid = subObjPositions.guid;
-
-            //_subscriptionsPortfolio.Add(positionsSub);
-            //_webSocketPortfolio.Send(messagePositionsSub);
-        }
 
         #endregion
 
@@ -1610,88 +1391,6 @@ namespace OsEngine.Market.Servers.AE
             }
         }
 
-        private void _webSocketPortfolio_Opened(object sender, EventArgs e)
-        {
-            SendLogMessage("Socket Portfolio activated", LogMessageType.System);
-            _socketPortfolioIsActive = true;
-            CheckActivationSockets();
-        }
-
-        private void _webSocketPortfolio_Closed(object sender, EventArgs e)
-        {
-            try
-            {
-                SendLogMessage("Connection Closed by AE. WebSocket Portfolio Closed Event", LogMessageType.Error);
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void _webSocketPortfolio_Error(object sender, WebSocketSharp.ErrorEventArgs e)
-        {
-            try
-            {
-                var error = e;
-
-                if (error.Exception != null)
-                {
-                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage("Portfolio socket error" + ex.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private void _webSocketPortfolio_MessageReceived(object sender, MessageEventArgs e)
-        {
-            try
-            {
-                if (e == null)
-                {
-                    return;
-                }
-                if (string.IsNullOrEmpty(e.Data))
-                {
-                    return;
-                }
-                if (e.Data.Length == 4)
-                { // pong message
-                    return;
-                }
-
-                if (e.Data.StartsWith("{\"requestGuid"))
-                {
-                    return;
-                }
-
-                if (WebSocketPortfolioMessage == null)
-                {
-                    return;
-                }
-
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    return;
-                }
-
-                WebSocketPortfolioMessage.Enqueue(e.Data);
-            }
-            catch (Exception error)
-            {
-                SendLogMessage("Portfolio socket error. " + error.ToString(), LogMessageType.Error);
-            }
-        }
-
         #endregion
 
         #region 8 WebSocket check alive
@@ -1709,10 +1408,9 @@ namespace OsEngine.Market.Servers.AE
                         continue;
                     }
 
-                    if (_ws.Ping() == false &&
-                        _webSocketPortfolio.Ping() == false)
+                    if (_ws.Ping() == false)
                     {
-                        SendLogMessage("AE connector. WARNING. Sockets Ping Pong not work. No internet or the server AE is not available", LogMessageType.Error);
+                        SendLogMessage("AE connector. WARNING. Sockets Ping Pong does not work. No internet or the server AE is not available", LogMessageType.Error);
                     }
                 }
                 catch (Exception ex)
@@ -1749,8 +1447,6 @@ namespace OsEngine.Market.Servers.AE
 
                 SendCommand(new WebSocketSubscribeOnQuoteMessage
                 {
-                    Id = Interlocked.Increment(ref _messageId),
-                    Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
                     Tickers = new List<string>{security.NameId}
                 });
             }
@@ -2507,74 +2203,23 @@ namespace OsEngine.Market.Servers.AE
             //}
         }
 
-        List<string> _cancelOrderNums = new List<string>();
-
         public void CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            //curl -X DELETE "/commandapi/warptrans/TRADE/v2/client/orders/93713183?portfolio=D39004&exchange=MOEX&stop=false&format=Simple" -H "accept: application/json"
-
             try
             {
-                //int countTryRevokeOrder = 0;
-
-                //for(int i = 0; i< _cancelOrderNums.Count;i++)
-                //{
-                //    if (_cancelOrderNums[i].Equals(order.NumberMarket))
-                //    {
-                //        countTryRevokeOrder++;
-                //    }
-                //}
-
-                //if(countTryRevokeOrder >= 2)
-                //{
-                //    SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
-                //    return;
-                //}
-
-                //_cancelOrderNums.Add(order.NumberMarket);
-
-                //while(_cancelOrderNums.Count > 100)
-                //{
-                //    _cancelOrderNums.RemoveAt(0);
-                //}
-
-                //string portfolio = order.PortfolioNumber.Split('_')[0];
-
-                //string exchange = "MOEX";
-                //string endPoint 
-                //    = $"/commandapi/warptrans/TRADE/v2/client/orders/{order.NumberMarket}?portfolio={portfolio}&exchange={exchange}&stop=false&jsonResponse=true&format=Simple";
-
-                //RestRequest requestRest = new RestRequest(endPoint, Method.DELETE);
-                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                //requestRest.AddHeader("accept", "application/json");
-
-                //RestClient client = new RestClient(_restApiHost);
-
-                //IRestResponse response = client.Execute(requestRest);
-
-                //if (response.StatusCode == HttpStatusCode.OK)
-                //{
-                //    return;
-                //}
-                //else
-                //{
-                //    SendLogMessage("Order cancel request error. Status: "
-                //        + response.StatusCode + "  " + order.SecurityClassCode, LogMessageType.Error);
-
-                //    if (response.Content != null)
-                //    {
-                //        SendLogMessage("Fail reasons: "
-                //      + response.Content, LogMessageType.Error);
-                //    }
-                //}
+                SendCommand(new WebSocketCancelOrderMessage
+                {
+                    Account = order.PortfolioNumber,
+                    OrderId = int.Parse(order.NumberMarket),
+                    Ticker = order.SecurityNameCode
+                });
             }
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
-
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -2589,60 +2234,51 @@ namespace OsEngine.Market.Servers.AE
 
         public void CancelAllOrders()
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            _rateGateCancelOrder.WaitToProceed();
 
-            for (int i = 0; i < orders.Count;i++)
+            try
             {
-                Order order = orders[i];
-
-                if(order.State == OrderStateType.Active)
+                for (int i = 0; i < _myPortfolios.Count; i++)
                 {
-                    CancelOrder(order);
+                    SendCommand(new WebSocketCancelOrderMessage
+                    {
+                        Account = _myPortfolios[i].Number
+                    });
                 }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
         }
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            _rateGateCancelOrder.WaitToProceed();
 
-            for (int i = 0; i < orders.Count; i++)
+            try
             {
-                Order order = orders[i];
-
-                if (order.State == OrderStateType.Active
-                    && order.SecurityNameCode == security.Name)
+                for (int i = 0; i < _myPortfolios.Count; i++)
                 {
-                    CancelOrder(order);
+                    SendCommand(new WebSocketCancelOrderMessage
+                    {
+                        Account = _myPortfolios[i].Number,
+                        Ticker = security.NameId
+                    });
                 }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
         }
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOrdersFromExchange();
-
-            for(int i = 0; orders != null && i < orders.Count; i++)
+            SendCommand(new WebSocketMessageBase
             {
-                if(orders[i] == null)
-                {
-                    continue;
-                }
-
-                if (orders[i].State != OrderStateType.Active
-                    && orders[i].State != OrderStateType.Partial
-                    && orders[i].State != OrderStateType.Pending)
-                {
-                    continue;
-                }
-
-                orders[i].TimeCreate = orders[i].TimeCallBack;
-
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(orders[i]);
-                }
-            }
+                Type = "GetAccounts"
+            });
         }
 
         public void GetOrderStatus(Order order)
