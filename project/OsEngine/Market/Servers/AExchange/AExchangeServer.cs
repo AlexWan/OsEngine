@@ -392,11 +392,12 @@ namespace OsEngine.Market.Servers.AE
             if (q.LastPrice != null) // quote is trade
             {
                 Trade newTrade = new Trade();
-                newTrade.Volume = q.LastVolume ?? 0;
+                newTrade.Volume = Math.Abs(q.LastVolume ?? 0);
                 newTrade.Time = q.LastTradeTime ?? DateTime.UtcNow;
                 newTrade.Price = q.LastPrice ?? 0;
                 newTrade.Id = q.Id.ToString();
                 newTrade.SecurityNameCode = q.Ticker;
+                newTrade.Side = q.LastVolume > 0 ? Side.Buy : Side.Sell;
 
                 if (q.Ask != null)
                 {
@@ -449,9 +450,10 @@ namespace OsEngine.Market.Servers.AE
             newTrade.SecurityNameCode = trade.Ticker;
             newTrade.NumberTrade = trade.TradeId.ToString();
             newTrade.NumberOrderParent = trade.OrderId.ToString();
-            newTrade.Volume = trade.Shares;
+            newTrade.Volume = Math.Abs(trade.Shares);
             newTrade.Price = trade.Price;
             newTrade.Time = trade.Moment;
+            newTrade.Side = trade.Shares > 0 ? Side.Buy : Side.Sell;
 
             MyTradeEvent!(newTrade);
         }
@@ -1673,275 +1675,6 @@ namespace OsEngine.Market.Servers.AE
 
         public event Action<MarketDepth> MarketDepthEvent;
 
-        private void UpDatePositionOnBoard(string data, string portfolioName)
-        {
-            //PositionOnBoardAE baseMessage =
-            //           JsonConvert.DeserializeAnonymousType(data, new PositionOnBoardAE());
-
-            //Portfolio portf = null;
-
-            //for (int i = 0; i < _myPortfolios.Count; i++)
-            //{
-            //    string realPortfName = _myPortfolios[i].Number.Split('_')[0];
-            //    if (realPortfName == portfolioName)
-            //    {
-            //        portf = _myPortfolios[i];
-            //        break;
-            //    }
-            //}
-
-            //if (portf == null)
-            //{
-            //    return;
-            //}
-
-            //PositionOnBoard newPos = new PositionOnBoard();
-            //newPos.PortfolioName = portf.Number;
-            //newPos.ValueCurrent = baseMessage.qty.ToDecimal();
-            //newPos.SecurityNameCode = baseMessage.symbol;
-            //newPos.UnrealizedPnl = baseMessage.dailyUnrealisedPl.ToDecimal();
-
-            //portf.SetNewPosition(newPos);
-
-            //if (PortfolioEvent != null)
-            //{
-            //    PortfolioEvent(_myPortfolios);
-            //}
-        }
-
-        private void UpDateMyOrder(string data, string portfolioName)
-        {
-            //OrderAE baseMessage =
-            //JsonConvert.DeserializeAnonymousType(data, new OrderAE());
-
-            //Order order = ConvertToOsEngineOrder(baseMessage, portfolioName);
-
-            //if(order == null)
-            //{
-            //    return;
-            //}
-
-            //lock (_sendOrdersArrayLocker)
-            //{
-            //    for (int i = 0; i < _sendOrders.Count; i++)
-            //    {
-            //        if (_sendOrders[i] == null)
-            //        {
-            //            continue;
-            //        }
-
-            //        if (_sendOrders[i].NumberUser == order.NumberUser)
-            //        {
-            //            order.TypeOrder = _sendOrders[i].TypeOrder;
-            //            break;
-            //        }
-            //    }
-            //}
-
-            //if (MyOrderEvent != null)
-            //{
-            //    MyOrderEvent(order);
-            //}
-
-            //if(order.State == OrderStateType.Done)
-            //{
-            //    // Проверяем, является ли бумага спредом
-
-            //    for (int i = 0; i < _spreadOrders.Count; i++)
-            //    {
-            //        if (_spreadOrders[i].NumberUser == order.NumberUser 
-            //            && _spreadOrders[i].NumberMarket == "")
-            //        {
-            //            _spreadOrders[i].NumberMarket = order.NumberMarket;
-            //        }
-            //    }
-
-            //    for (int i = 0; i < _spreadOrders.Count; i++)
-            //    {
-            //        if (_spreadOrders[i].SecurityNameCode == order.SecurityNameCode)
-            //        {
-            //            if(TryGenerateFakeMyTradeToOrderBySpread(order))
-            //            {
-            //                _spreadOrders.RemoveAt(i);
-            //                break;
-            //            }
-            //        }
-            //    }
-            //}
-            //else if(order.State == OrderStateType.Cancel
-            //        || order.State == OrderStateType.Fail)
-            //{
-            //    for (int i = 0; i < _spreadOrders.Count; i++)
-            //    {
-            //        if (_spreadOrders[i].NumberUser == order.NumberUser)
-            //        {
-            //            _spreadOrders.RemoveAt(i);
-            //            break;
-            //        }
-            //    }
-            //}
-        }
-
-                //private Order ConvertToOsEngineOrder(OrderAE baseMessage, string portfolioName)
-        //{
-        //    Order order = new Order();
-
-        //    order.SecurityNameCode = baseMessage.symbol;
-
-        //    if(string.IsNullOrEmpty(baseMessage.filled) == false 
-        //        && baseMessage.filled != "0")
-        //    {
-        //        order.Volume = baseMessage.filled.ToDecimal();
-        //    }
-        //    else
-        //    {
-        //        order.Volume = baseMessage.qty.ToDecimal();
-        //    }
-
-        //    order.PortfolioNumber = portfolioName;
-            
-        //    if (baseMessage.type == "limit")
-        //    {
-        //        order.Price = baseMessage.price.ToDecimal();
-        //        order.TypeOrder = OrderPriceType.Limit;
-        //    }
-        //    else if (baseMessage.type == "market")
-        //    {
-        //        order.TypeOrder = OrderPriceType.Market;
-        //    }
-
-        //    try
-        //    {
-        //        order.NumberUser = Convert.ToInt32(baseMessage.comment);
-        //    }
-        //    catch
-        //    {
-        //        // ignore
-        //    }
-
-        //    order.NumberMarket = baseMessage.id;
-
-        //    order.TimeCallBack = ConvertToDateTimeFromTimeAEData(baseMessage.transTime);
-
-        //    if (baseMessage.side == "buy")
-        //    {
-        //        order.Side = Side.Buy;
-        //    }
-        //    else
-        //    {
-        //        order.Side = Side.Sell;
-        //    }
-
-        //    //working - На исполнении
-        //    //filled - Исполнена
-        //    //canceled - Отменена
-        //    //rejected - Отклонена
-
-        //    if (baseMessage.status == "working")
-        //    {
-        //        order.State = OrderStateType.Active;
-        //    }
-        //    else if (baseMessage.status == "filled")
-        //    {
-        //        order.State = OrderStateType.Done;
-        //    }
-        //    else if (baseMessage.status == "canceled")
-        //    {
-        //        lock (_changePriceOrdersArrayLocker)
-        //        {
-        //            DateTime now = DateTime.Now;
-        //            for (int i = 0; i < _changePriceOrders.Count; i++)
-        //            {
-        //                if (_changePriceOrders[i].TimeChangePriceOrder.AddSeconds(2) < now)
-        //                {
-        //                    _changePriceOrders.RemoveAt(i);
-        //                    i--;
-        //                    continue;
-        //                }
-
-        //                if (_changePriceOrders[i].MarketId == order.NumberMarket)
-        //                {
-        //                    return null;
-        //                }
-        //            }
-        //        }
-
-        //        if (string.IsNullOrEmpty(baseMessage.filledQtyUnits))
-        //        {
-        //            order.State = OrderStateType.Cancel;
-        //        }
-        //        else if (baseMessage.filledQtyUnits == "0")
-        //        {
-        //            order.State = OrderStateType.Cancel;
-        //        }
-        //        else
-        //        {
-        //            try
-        //            {
-        //                decimal volFilled = baseMessage.filledQtyUnits.ToDecimal();
-
-        //                if (volFilled > 0)
-        //                {
-        //                    order.State = OrderStateType.Done;
-        //                }
-        //                else
-        //                {
-        //                    order.State = OrderStateType.Cancel;
-        //                }
-        //            }
-        //            catch
-        //            {
-        //                order.State = OrderStateType.Cancel;
-        //            }
-        //        }
-        //    }
-        //    else if (baseMessage.status == "rejected")
-        //    {
-        //        order.State = OrderStateType.Fail;
-        //    }
-
-        //    return order;
-        //}
-
-        private void UpDateMyPortfolio(string data, string portfolioName)
-        {
-            //AEPortfolioSocket baseMessage =
-            //JsonConvert.DeserializeAnonymousType(data, new AEPortfolioSocket());
-
-            //Portfolio portf = null;
-
-            //for(int i = 0;i < _myPortfolios.Count;i++)
-            //{
-            //    string realPortfName = _myPortfolios[i].Number.Split('_')[0];
-            //    if (realPortfName == portfolioName)
-            //    {
-            //        portf = _myPortfolios[i];
-            //        break;
-            //    }
-            //}
-
-            //if(portf == null)
-            //{
-            //    return;
-            //}
-
-            //if(portf.ValueBegin == 0)
-            //{
-            //    portf.ValueBegin = baseMessage.portfolioLiquidationValue.ToDecimal();
-            //}
-
-            //portf.ValueCurrent = baseMessage.portfolioLiquidationValue.ToDecimal();
-            
-            //portf.ValueBlocked = baseMessage.portfolioLiquidationValue.ToDecimal() - baseMessage.buyingPower.ToDecimal();
-           
-            //portf.UnrealizedPnl = baseMessage.profit.ToDecimal();
-
-            //if (PortfolioEvent != null)
-            //{
-            //    PortfolioEvent(_myPortfolios);
-            //}
-        }
-
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
@@ -1951,18 +1684,7 @@ namespace OsEngine.Market.Servers.AE
         #region 11 Trade
 
         private RateGate _rateGateSendOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
-
         private RateGate _rateGateCancelOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
-
-        private RateGate _rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(350));
-
-        private List<AESecuritiesAndPortfolios> _securitiesAndPortfolios = new List<AESecuritiesAndPortfolios>();
-
-        private List<Order> _sendOrders = new List<Order>();
-
-        private string _sendOrdersArrayLocker = "AESendOrdersArrayLocker";
-
-        private List<Order> _spreadOrders = new List<Order>();
 
         public void SendOrder(Order order)
         {
@@ -1970,153 +1692,27 @@ namespace OsEngine.Market.Servers.AE
 
             try
             {
-                //if (order.SecurityClassCode == "Futures spread")
-                //{ // календарный спред
-                //  // сохраняем бумагу для дальнейшего использования
-                //    _spreadOrders.Add(order);
-                //}
+                // генерируем новый номер ордера и добавляем его в словарь
+                Guid newUid = Guid.NewGuid();
+                string orderId = newUid.ToString();
 
-                //if (order.TypeOrder == OrderPriceType.Market)
-                //{
-                //    lock (_sendOrdersArrayLocker)
-                //    {
-                //        _sendOrders.Add(order);
+                _orderNumbers.Add(orderId, order.NumberUser);
 
-                //        while (_sendOrders.Count > 100)
-                //        {
-                //            _sendOrders.RemoveAt(0);
-                //        }
-                //    }
-                //}
-
-                //string endPoint = "";
-
-                //if(order.TypeOrder == OrderPriceType.Limit)
-                //{
-                //    endPoint = "/commandapi/warptrans/TRADE/v2/client/orders/actions/limit";
-                //}
-                //else if (order.TypeOrder == OrderPriceType.Market)
-                //{
-                //    endPoint = "/commandapi/warptrans/TRADE/v2/client/orders/actions/market";
-                //}
-
-                //RestRequest requestRest = new RestRequest(endPoint, Method.POST);
-                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                //requestRest.AddHeader("X-REQID", order.NumberUser.ToString() + "|" + GetGuid());
-                //requestRest.AddHeader("accept", "application/json");
-
-                //if(order.TypeOrder == OrderPriceType.Market)
-                //{
-                //    MarketOrderAERequest body = GetMarketRequestObj(order);
-                //    requestRest.AddJsonBody(body);
-                //}
-                //else if(order.TypeOrder == OrderPriceType.Limit)
-                //{
-                //    LimitOrderAERequest body = GetLimitRequestObj(order);
-                //    requestRest.AddJsonBody(body);
-                //}
-
-                //RestClient client = new RestClient(_restApiHost);
-
-                //IRestResponse response = client.Execute(requestRest);
-
-                //if (response.StatusCode == HttpStatusCode.OK)
-                //{
-                //    bool isInArray = false;
-                //    for(int i = 0;i < _securitiesAndPortfolios.Count;i++)
-                //    {
-                //        if (_securitiesAndPortfolios[i].Security == order.SecurityNameCode)
-                //        {
-                //            isInArray = true;
-                //            break;
-                //        }
-                //    }
-                //    if(isInArray == false)
-                //    {
-                //        AESecuritiesAndPortfolios newValue = new AESecuritiesAndPortfolios();
-                //        newValue.Security = order.SecurityNameCode;
-                //        newValue.Portfolio = order.PortfolioNumber;
-                //        _securitiesAndPortfolios.Add(newValue);
-                //    }
-
-                //    return;
-                //}
-                //else
-                //{
-                //    SendLogMessage("Order Fail. Status: "
-                //        + response.StatusCode + "  " + order.SecurityNameCode , LogMessageType.Error);
-
-                //    if(response.Content != null)
-                //    {
-                //        SendLogMessage("Fail reasons: "
-                //      + response.Content, LogMessageType.Error);
-                //    }
-
-                //    order.State = OrderStateType.Fail;
-
-                //    if(MyOrderEvent != null)
-                //    {
-                //        MyOrderEvent(order);
-                //    }
-                //}
+                SendCommand(new WebSocketPlaceOrderMessage
+                {
+                    Account = order.PortfolioNumber,
+                    ExternalId = orderId,
+                    Ticker = order.SecurityNameCode,
+                    Price = order.Price,
+                    Shares = order.Side == Side.Buy ? order.Volume : -order.Volume,
+                    Comment = order.Comment
+                });
             }
             catch (Exception exception)
             {
                 SendLogMessage("Order send error " + exception.ToString(), LogMessageType.Error);
             }
         }
-
-        //private LimitOrderAERequest GetLimitRequestObj(Order order)
-        //{
-        //    LimitOrderAERequest requestObj = new LimitOrderAERequest();
-
-        //    if(order.Side == Side.Buy)
-        //    {
-        //        requestObj.side = "buy";
-        //    }
-        //    else
-        //    {
-        //        requestObj.side = "sell";
-
-        //    }
-        //    requestObj.type = "limit";
-        //    requestObj.quantity = Convert.ToInt32(order.Volume);
-        //    requestObj.price = order.Price;
-        //    requestObj.comment = order.NumberUser.ToString();
-        //    requestObj.instrument = new instrumentAE();
-        //    requestObj.instrument.symbol = order.SecurityNameCode;
-        //    requestObj.user = new User();
-        //    requestObj.user.portfolio = order.PortfolioNumber.Split('_')[0];
-
-        //    return requestObj;
-        //}
-
-        //private MarketOrderAERequest GetMarketRequestObj(Order order)
-        //{
-        //    MarketOrderAERequest requestObj = new MarketOrderAERequest();
-
-        //    if (order.Side == Side.Buy)
-        //    {
-        //        requestObj.side = "buy";
-        //    }
-        //    else
-        //    {
-        //        requestObj.side = "sell";
-        //    }
-        //    requestObj.type = "market";
-        //    requestObj.quantity = Convert.ToInt32(order.Volume);
-        //    requestObj.comment = order.NumberUser.ToString();
-        //    requestObj.instrument = new instrumentAE();
-        //    requestObj.instrument.symbol = order.SecurityNameCode;
-        //    requestObj.user = new User();
-        //    requestObj.user.portfolio = order.PortfolioNumber.Split('_')[0];
-
-        //    return requestObj;
-        //}
-
-        List<AEChangePriceOrder> _changePriceOrders = new List<AEChangePriceOrder>();
-
-        private string _changePriceOrdersArrayLocker = "cangePriceArrayLocker";
 
         /// <summary>
         /// Order price change
@@ -2125,82 +1721,6 @@ namespace OsEngine.Market.Servers.AE
         /// <param name="newPrice">New price</param>
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
-            //try
-            //{
-            //    _rateGateChangePriceOrder.WaitToProceed();
-
-            //    if (order.TypeOrder == OrderPriceType.Market)
-            //    {
-            //        SendLogMessage("Can`t change price to market order", LogMessageType.Error);
-            //        return;
-            //    }
-                
-            //    string endPoint = "/commandapi/warptrans/TRADE/v2/client/orders/actions/limit/";
-
-            //    endPoint += order.NumberMarket;
-
-            //    RestRequest requestRest = new RestRequest(endPoint, Method.PUT);
-            //    requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-            //    requestRest.AddHeader("X-REQID", order.NumberUser.ToString() + "|" + GetGuid()); ;
-            //    requestRest.AddHeader("accept", "application/json");
-
-            //    LimitOrderAERequest body = GetLimitRequestObj(order);
-            //    body.price = newPrice;
-
-            //    int qty = Convert.ToInt32(order.Volume - order.VolumeExecute);
-
-            //    if(qty <= 0 ||
-            //        order.State != OrderStateType.Active)
-            //    {
-            //        SendLogMessage("Can`t change price to order. It's not in Activ state", LogMessageType.Error);
-            //        return;
-            //    }
-
-            //    requestRest.AddJsonBody(body);
-                
-            //    RestClient client = new RestClient(_restApiHost);
-
-            //    AEChangePriceOrder AEChangePriceOrder = new AEChangePriceOrder();
-            //    AEChangePriceOrder.MarketId = order.NumberMarket;
-            //    AEChangePriceOrder.TimeChangePriceOrder = DateTime.Now;
-
-            //    lock(_changePriceOrdersArrayLocker)
-            //    {
-            //        _changePriceOrders.Add(AEChangePriceOrder);
-            //    }
-
-            //    IRestResponse response = client.Execute(requestRest);
-
-            //    if (response.StatusCode == HttpStatusCode.OK)
-            //    {
-            //        SendLogMessage("Order change price. New price: " + newPrice
-            //            + "  " + order.SecurityNameCode, LogMessageType.System);
-
-            //        order.Price = newPrice;
-            //        if (MyOrderEvent != null)
-            //        {
-            //            MyOrderEvent(order);
-            //        }
-
-            //        //return;
-            //    }
-            //    else
-            //    {
-            //        SendLogMessage("Change price order Fail. Status: "
-            //            + response.StatusCode + "  " + order.SecurityNameCode, LogMessageType.Error);
-
-            //        if (response.Content != null)
-            //        {
-            //            SendLogMessage("Fail reasons: "
-            //          + response.Content, LogMessageType.Error);
-            //        }
-            //    }
-
-            //}
-            //catch (Exception error)
-            //{
-            //    SendLogMessage(error.ToString(), LogMessageType.Error);
-            //}
         }
 
         public void CancelOrder(Order order)
@@ -2283,287 +1803,13 @@ namespace OsEngine.Market.Servers.AE
 
         public void GetOrderStatus(Order order)
         {
-            List<Order> orders = GetAllOrdersFromExchange();
-
-            if(orders == null ||
-                orders.Count == 0)
-            {
-                return;
-            }
-
-            Order orderOnMarket = null;
-
-            for(int i = 0;i < orders.Count;i++)
-            {
-                Order curOder = orders[i];
-
-                if (order.NumberUser != 0
-                    && curOder.NumberUser != 0
-                    && curOder.NumberUser == order.NumberUser)
-                {
-                    orderOnMarket = curOder;
-                    break;
-                }
-
-                if(string.IsNullOrEmpty(order.NumberMarket) == false 
-                    && order.NumberMarket == curOder.NumberMarket)
-                {
-                    orderOnMarket = curOder;
-                    break;
-                }
-            }
-
-            if(orderOnMarket == null)
-            {
-                return;
-            }
-
-            if (orderOnMarket != null && 
-                MyOrderEvent != null)
-            {
-                MyOrderEvent(orderOnMarket);
-            }
-
-            if(orderOnMarket.State == OrderStateType.Done 
-                || orderOnMarket.State == OrderStateType.Partial)
-            {
-                List<MyTrade> tradesBySecurity 
-                    = GetMyTradesBySecurity(order.SecurityNameCode, order.PortfolioNumber.Split('_')[0]);
-
-                if(tradesBySecurity == null)
-                {
-                    return;
-                }
-
-                List<MyTrade> tradesByMyOrder = new List<MyTrade>();
-
-                for(int i = 0;i < tradesBySecurity.Count;i++)
-                {
-                    if (tradesBySecurity[i].NumberOrderParent == orderOnMarket.NumberMarket)
-                    {
-                        tradesByMyOrder.Add(tradesBySecurity[i]);
-                    }
-                }
-
-                for(int i = 0;i < tradesByMyOrder.Count;i++)
-                {
-                    if(MyTradeEvent != null)
-                    {
-                        MyTradeEvent(tradesByMyOrder[i]);
-                    }
-                }
-            }
         }
 
         private List<Order> GetAllOrdersFromExchange()
         {
             List<Order> orders = new List<Order>();
 
-            //if (string.IsNullOrEmpty(_portfolioSpotId) == false)
-            //{
-            //    List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioSpotId);
-
-            //    if (newOrders != null &&
-            //        newOrders.Count > 0)
-            //    {
-            //        orders.AddRange(newOrders);
-            //    }
-            //}
-
-            //if (string.IsNullOrEmpty(_portfolioFutId) == false)
-            //{
-            //    List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioFutId);
-
-            //    if (newOrders != null &&
-            //        newOrders.Count > 0)
-            //    {
-            //        orders.AddRange(newOrders);
-            //    }
-            //}
-
-            //if (string.IsNullOrEmpty(_portfolioCurrencyId) == false)
-            //{
-            //    List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioCurrencyId);
-
-            //    if (newOrders != null &&
-            //        newOrders.Count > 0)
-            //    {
-            //        orders.AddRange(newOrders);
-            //    }
-            //}
-
-            //if (string.IsNullOrEmpty(_portfolioSpareId) == false)
-            //{
-            //    List<Order> newOrders = GetAllOrdersFromExchangeByPortfolio(_portfolioSpareId);
-
-            //    if (newOrders != null &&
-            //        newOrders.Count > 0)
-            //    {
-            //        orders.AddRange(newOrders);
-            //    }
-            //}
-
             return orders;
-        }
-
-        private List<Order> GetAllOrdersFromExchangeByPortfolio(string portfolio)
-        {
-            _rateGateSendOrder.WaitToProceed();
-
-            try
-            {
-                //string exchange = "MOEX";
-                //if (portfolio.StartsWith("E"))
-                //{
-                //    exchange = "UNITED";
-                //}
-
-                //string endPoint = $"/md/v2/clients/{exchange}/" + portfolio + "/orders?format=Simple";
-
-                //RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                //requestRest.AddHeader("accept", "application/json");
-
-                //RestClient client = new RestClient(_restApiHost);
-
-                //IRestResponse response = client.Execute(requestRest);
-
-
-                //if (response.StatusCode == HttpStatusCode.OK)
-                //{
-                //    string respString = response.Content;
-
-                //    if(respString == "[]")
-                //    {
-                //        return null;
-                //    }
-                //    else
-                //    {
-
-                //        List<OrderAE> orders = JsonConvert.DeserializeAnonymousType(respString, new List<OrderAE>());
-
-                //        List<Order> osEngineOrders = new List<Order>();
-
-                //        for(int i = 0;i < orders.Count;i++)
-                //        {
-                //            Order newOrd = ConvertToOsEngineOrder(orders[i], portfolio);
-
-                //            if(newOrd == null)
-                //            {
-                //                continue;
-                //            }
-
-                //            osEngineOrders.Add(newOrd);
-                //        }
-
-                //        return osEngineOrders;
-                        
-                //    }
-                //}
-                //else if(response.StatusCode == HttpStatusCode.NotFound)
-                //{
-                //    return null;
-                //}
-                //else
-                //{
-                //    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
-
-                //    if (response.Content != null)
-                //    {
-                //        SendLogMessage("Fail reasons: "
-                //      + response.Content, LogMessageType.Error);
-                //    }
-                //}
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
-            }
-
-            return null;
-        }
-
-        private List<MyTrade> GetMyTradesBySecurity(string security, string portfolio)
-        {
-            try
-            {
-                // /md/v2/Clients/MOEX/D39004/LKOH/trades?format=Simple
-
-                //string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/" + security + "/trades?format=Simple";
-
-                //RestRequest requestRest = new RestRequest(endPoint, Method.GET);
-                //requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
-                //requestRest.AddHeader("accept", "application/json");
-
-                //RestClient client = new RestClient(_restApiHost);
-
-                //IRestResponse response = client.Execute(requestRest);
-
-
-                //if (response.StatusCode == HttpStatusCode.OK)
-                //{
-                //    string respString = response.Content;
-
-                //    if (respString == "[]")
-                //    {
-                //        return null;
-                //    }
-                //    else
-                //    {
-                //        List<MyTradeAERest> allTradesJson 
-                //            = JsonConvert.DeserializeAnonymousType(respString, new List<MyTradeAERest>());
-
-                //        List<MyTrade> osEngineOrders = new List<MyTrade>();
-
-                //        for (int i = 0; i < allTradesJson.Count; i++)
-                //        {
-                //            MyTradeAERest tradeRest = allTradesJson[i];
-
-                //            MyTrade newTrade = new MyTrade();
-                //            newTrade.SecurityNameCode = security;
-                //            newTrade.NumberTrade = tradeRest.id;
-                //            newTrade.NumberOrderParent = tradeRest.orderno;
-                //            newTrade.Volume = tradeRest.qty.ToDecimal();
-                //            newTrade.Price = tradeRest.price.ToDecimal();
-                //            newTrade.Time =  ConvertToDateTimeFromTimeAEData(tradeRest.date);
-
-                //            if (tradeRest.side == "buy")
-                //            {
-                //                newTrade.Side = Side.Buy;
-                //            }
-                //            else
-                //            {
-                //                newTrade.Side = Side.Sell;
-                //            }
-
-                //            osEngineOrders.Add(newTrade);
-                //        }
-
-                //        return osEngineOrders;
-
-                //    }
-                //}
-                //else if (response.StatusCode == HttpStatusCode.NotFound)
-                //{
-                //    return null;
-                //}
-                //else
-                //{
-                //    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
-
-                //    if (response.Content != null)
-                //    {
-                //        SendLogMessage("Fail reasons: "
-                //      + response.Content, LogMessageType.Error);
-                //    }
-                //}
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
-            }
-
-            return null;
         }
 
         #endregion

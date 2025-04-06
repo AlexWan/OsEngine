@@ -468,6 +468,7 @@
     </Compile>
     <Compile Include="Market\Servers\AExchange\AExchangeServer.cs" />
     <Compile Include="Market\Servers\AExchange\AExchangeServerPermission.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\PlaceOrderMessage.cs" />
     <Compile Include="Market\Servers\AExchange\Json\CancelOrderMessage.cs" />
     <Compile Include="Market\Servers\AExchange\Json\Trade.cs" />
     <Compile Include="Market\Servers\AExchange\Json\PositionUpdate.cs" />
