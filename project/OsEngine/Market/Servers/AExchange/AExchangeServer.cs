@@ -329,11 +329,28 @@ namespace OsEngine.Market.Servers.AE
             WebSocketAccountStateMessage account=
                 JsonConvert.DeserializeObject<WebSocketAccountStateMessage>(message, _jsonSettings);
 
-            Portfolio newPortfolio = new Portfolio();
-            newPortfolio.Number = account.AccountNumber;
-            newPortfolio.ValueBlocked = account.GuaranteeMargin ?? 0; // это неправильно, так как не учитывает цену всех позиций?
+            Portfolio portf = null;
 
-            PortfolioEvent!(new List<Portfolio>{newPortfolio});
+            for (int i = 0; i < _myPortfolios.Count; i++)
+            {
+                if (_myPortfolios[i].Number == account.AccountNumber)
+                {
+                    portf = _myPortfolios[i];
+                    break;
+                }
+            }
+
+            if (portf == null)
+            {
+                portf = new Portfolio();
+                _myPortfolios.Add(portf);
+            }
+
+            portf.Number = account.AccountNumber;
+            portf.ValueCurrent = account.Money ?? 0;
+            portf.ValueBlocked = account.GuaranteeMargin ?? 0; 
+
+            PortfolioEvent!(_myPortfolios);
         }
 
         private void UpdateMyTrade(string message)
@@ -389,7 +406,8 @@ namespace OsEngine.Market.Servers.AE
                 Portfolio newPortfolio = new Portfolio();
 
                 newPortfolio.Number = account.AccountNumber;
-                newPortfolio.ValueBlocked = account.GuaranteeMargin;// это неправильно, так как не учитывает цену всех позиций?
+                newPortfolio.ValueCurrent = account.Money;
+                newPortfolio.ValueBlocked = account.GuaranteeMargin;
 
                 foreach (var position in account.Positions)
                 {
