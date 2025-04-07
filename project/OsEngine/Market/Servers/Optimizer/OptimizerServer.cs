@@ -339,8 +339,6 @@ namespace OsEngine.Market.Servers.Optimizer
                         LoadNextData();
                         CheckOrders();
                     }
-
-
                 }
                 catch (Exception error)
                 {
@@ -493,7 +491,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             for (int i = 0; _candleSeriesTesterActivate != null && i < _candleSeriesTesterActivate.Count; i++)
             {
-                if (TimeNow > _candleSeriesTesterActivate[i].TimeEnd.AddDays(1))
+                if (TimeNow > _candleSeriesTesterActivate[i].RealEndTime)
                 {
                     continue;
                 }
@@ -2035,10 +2033,13 @@ namespace OsEngine.Market.Servers.Optimizer
                 return;
             }
 
+            List<Trade> fullTradesArrayInServer = null;
+
             if (_allTrades == null)
             {
                 _allTrades = new List<Trade>[1];
                 _allTrades[0] = new List<Trade>(tradesNew);
+                fullTradesArrayInServer = tradesNew;
             }
             else
             {// sort trades by storages / сортируем сделки по хранилищам
@@ -2046,7 +2047,9 @@ namespace OsEngine.Market.Servers.Optimizer
                 for (int indTrade = 0; indTrade < tradesNew.Count; indTrade++)
                 {
                     Trade trade = tradesNew[indTrade];
+
                     bool isSave = false;
+
                     for (int i = 0; i < _allTrades.Length; i++)
                     {
                         if (_allTrades[i] != null && _allTrades[i].Count != 0 &&
@@ -2059,9 +2062,11 @@ namespace OsEngine.Market.Servers.Optimizer
                                 break;
                             }
                             _allTrades[i].Add(trade);
+                            fullTradesArrayInServer = _allTrades[i];
                             break;
                         }
                     }
+
                     if (isSave == false)
                     { // there is no storage for instrument / хранилища для инструмента нет
                         List<Trade>[] allTradesNew = new List<Trade>[_allTrades.Length + 1];
@@ -2072,6 +2077,7 @@ namespace OsEngine.Market.Servers.Optimizer
                         allTradesNew[allTradesNew.Length - 1] = new List<Trade>();
                         allTradesNew[allTradesNew.Length - 1].Add(trade);
                         _allTrades = allTradesNew;
+                        fullTradesArrayInServer = allTradesNew[allTradesNew.Length - 1];
                     }
                 }
             }
@@ -2085,16 +2091,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
             if (NewTradeEvent != null)
             {
-
-                foreach (var trades in _allTrades)
-                {
-                    if (tradesNew[0].SecurityNameCode == trades[0].SecurityNameCode
-                        && tradesNew[0].TimeFrameInTester == trades[0].TimeFrameInTester)
-                    {
-                        NewTradeEvent(trades);
-                        break;
-                    }
-                }
+                NewTradeEvent(fullTradesArrayInServer);
             }
 
             if (maxCount != 0 && TestingProgressChangeEvent != null && _lastTimeCountChange.AddMilliseconds(300) < DateTime.Now)

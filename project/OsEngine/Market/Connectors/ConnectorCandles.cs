@@ -1115,6 +1115,11 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if(order.SecurityNameCode != this.SecurityName)
+                {
+                    return;
+                }
+
                 if (OrderChangeEvent != null)
                 {
                     OrderChangeEvent(order);
@@ -1137,6 +1142,12 @@ namespace OsEngine.Market.Connectors
             {
                 return;
             }
+
+            if(trade.SecurityNameCode != this.SecurityName)
+            {
+                return;
+            }
+
             try
             {
                 if (MyTradeEvent != null)
@@ -1153,12 +1164,12 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// incoming best bid with ask
         /// </summary>
-        private void ConnectorBotNewBidAscIncomeEvent(decimal bestBid, decimal bestAsk, Security namePaper)
+        private void ConnectorBotNewBidAscIncomeEvent(decimal bestBid, decimal bestAsk, Security security)
         {
             try
             {
-                if (namePaper == null ||
-                    namePaper.Name != _securityName)
+                if (security == null ||
+                    security.Name != _securityName)
                 {
                     return;
                 }
@@ -1166,17 +1177,27 @@ namespace OsEngine.Market.Connectors
                 _bestBid = bestBid;
                 _bestAsk = bestAsk;
 
-                if (EmulatorIsOn || ServerType == ServerType.Finam)
+                if(StartProgram == StartProgram.IsOsTrader)
                 {
-                    if (_emulator != null)
+                    if (EmulatorIsOn || ServerType == ServerType.Finam)
                     {
-                        _emulator.ProcessBidAsc(_bestBid, _bestAsk);
+                        if (_emulator != null)
+                        {
+                            _emulator.ProcessBidAsc(_bestBid, _bestAsk);
+                        }
+                    }
+                    if (BestBidAskChangeEvent != null 
+                        && EventsIsOn == true)
+                    {
+                        BestBidAskChangeEvent(bestBid, bestAsk);
                     }
                 }
-
-                if (BestBidAskChangeEvent != null && EventsIsOn == true)
-                {
-                    BestBidAskChangeEvent(bestBid, bestAsk);
+                else
+                {// Tester or Optimizer
+                    if (BestBidAskChangeEvent != null)
+                    {
+                        BestBidAskChangeEvent(bestBid, bestAsk);
+                    }
                 }
             }
             catch (Exception error)
@@ -1253,16 +1274,18 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-
-                if (_securityName == null || tradesList == null || tradesList.Count == 0)
+                if (_securityName == null 
+                    || tradesList == null 
+                    || tradesList.Count == 0)
                 {
                     return;
                 }
                 else
                 {
-                    int count = tradesList.Count;
-                    if (tradesList[count - 1] == null ||
-                        tradesList[count - 1].SecurityNameCode != _securityName)
+                    int count = tradesList.Count-1;
+
+                    if (tradesList[count] == null ||
+                        tradesList[count].SecurityNameCode != _securityName)
                     {
                         return;
                     }
