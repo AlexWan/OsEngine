@@ -1115,9 +1115,12 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if(order.SecurityNameCode != this.SecurityName)
-                {
-                    return;
+                if (StartProgram != StartProgram.IsOsTrader)
+                {// tester or optimizer
+                    if (order.SecurityNameCode != this.SecurityName)
+                    {
+                        return;
+                    }
                 }
 
                 if (OrderChangeEvent != null)
@@ -1143,9 +1146,12 @@ namespace OsEngine.Market.Connectors
                 return;
             }
 
-            if(trade.SecurityNameCode != this.SecurityName)
-            {
-                return;
+            if(StartProgram != StartProgram.IsOsTrader)
+            {// tester or optimizer
+                if (trade.SecurityNameCode != this.SecurityName)
+                {
+                    return;
+                }
             }
 
             try
