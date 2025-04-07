@@ -56,52 +56,52 @@ namespace OsEngine.Market.Servers.AE
 
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf2MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf10MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf2HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTfDayCanLoad
@@ -115,7 +115,7 @@ namespace OsEngine.Market.Servers.AE
 
         public bool MarketOrdersIsSupport
         {
-            get { return true; }
+            get { return false; }
         }
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
@@ -125,7 +125,7 @@ namespace OsEngine.Market.Servers.AE
 
         public bool IsCanChangeOrderPrice
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool UseStandardCandlesStarter
@@ -154,9 +154,8 @@ namespace OsEngine.Market.Servers.AE
             {
                 string[] values = new string[]
                 {
-                    "RUB",
-                    "USD",
-                    "EUR"
+                    "USDT",
+                    "AEp"
                 };
 
                 return values;
@@ -170,7 +169,7 @@ namespace OsEngine.Market.Servers.AE
 
         public bool CanQueryOrderStatus
         {
-            get { return true; }
+            get { return false; }
         }
 
         public TimeFramePermission TradeTimeFramePermission
@@ -189,13 +188,13 @@ namespace OsEngine.Market.Servers.AE
         TimeFrameSec30IsOn = true,
         TimeFrameMin1IsOn = true,
         TimeFrameMin2IsOn = true,
-        TimeFrameMin3IsOn = false,
+        TimeFrameMin3IsOn = true,
         TimeFrameMin5IsOn = true,
         TimeFrameMin10IsOn = true,
         TimeFrameMin15IsOn = true,
         TimeFrameMin20IsOn = true,
         TimeFrameMin30IsOn = true,
-        TimeFrameMin45IsOn = false,
+        TimeFrameMin45IsOn = true,
         TimeFrameHour1IsOn = true,
         TimeFrameHour2IsOn = true,
         TimeFrameHour4IsOn = true,
