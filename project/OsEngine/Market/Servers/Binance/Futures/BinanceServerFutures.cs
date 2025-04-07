@@ -41,6 +41,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Futures Type", "USDT-M", new List<string> { "USDT-M", "COIN-M" });
             CreateParameterBoolean("HedgeMode", false);
+            CreateParameterBoolean("Demo Account", false);
         }
     }
 
@@ -110,6 +111,22 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _baseUrl = "https://dapi.binance.com";
                 wss_point = "wss://dstream.binance.com";
                 type_str_selector = "dapi";
+            }
+
+            if (((ServerParameterBool)ServerParameters[4]).Value == true)
+            {
+                if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
+                {
+                    _baseUrl = "https://testnet.binancefuture.com";
+                    wss_point = "wss://testnet.binancefuture.com/ws-fapi/v1";
+                    type_str_selector = "fapi";
+                }
+                else if (((ServerParameterEnum)ServerParameters[2]).Value == "COIN-M")
+                {
+                    _baseUrl = "https://testnet.binancefuture.com";
+                    wss_point = "wss://dstream.binancefuture.com";
+                    type_str_selector = "dapi";
+                }
             }
 
             ActivateSockets();
