@@ -14,9 +14,12 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
+using OsEngine.OsTrader;
+using OsEngine.OsTrader.Panels;
 using WebSocketSharp;
 using OptionType = OsEngine.Entity.OptionType;
 using Order = OsEngine.Entity.Order;
+using Position = OsEngine.Entity.Position;
 
 namespace OsEngine.Market.Servers.AE
 {
@@ -368,6 +371,74 @@ namespace OsEngine.Market.Servers.AE
             MyTradeEvent!(newTrade);
         }
 
+
+        private List<Position> GetPositionsInPortfolioByRobots(string portfolioName)
+        {
+            List<BotPanel> bots = OsTraderMaster.Master.PanelsArray;
+
+            List<Position> openPositions = new List<Position>();
+
+            if(bots == null)
+            {
+                return openPositions;
+            }
+
+            for (int i = 0; i < bots.Count; i++)
+            {
+                if (bots[i] == null)
+                {
+                    continue;
+                }
+
+                List<Position> curPositions = bots[i].OpenPositions;
+
+                if (curPositions == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < curPositions.Count; j++)
+                {
+                    if (curPositions[j] == null)
+                    {
+                        continue;
+                    }
+
+                    string pName = curPositions[j].PortfolioName;
+
+                    if (pName != null
+                        && pName == portfolioName)
+                    {
+                        openPositions.Add(curPositions[j]);
+                    }
+                }
+            }
+
+            return openPositions;
+        }
+
+        private decimal calculateUnrealizedPnL(Portfolio portf)
+        {
+            decimal pnl = 0;
+
+            if (portf == null)
+                return 0;
+
+            List<Position> positions = GetPositionsInPortfolioByRobots(portf.Number);
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                Security sec = _securities.Find((s) => s.NameId == positions[i].SecurityName);
+
+                if (sec  == null)
+                    continue;
+
+                pnl += positions[i].ProfitOperationPunkt * sec.PriceStepCost;
+            }
+
+            return pnl;
+        }
+
         private void UpdatePosition(string message)
         {
             WebSocketPositionUpdateMessage posMsg =
@@ -389,6 +460,7 @@ namespace OsEngine.Market.Servers.AE
             newPosition.ValueCurrent = posMsg.Shares;
 
             portf!.SetNewPosition(newPosition);
+            portf.UnrealizedPnl = calculateUnrealizedPnL(portf);
 
             PortfolioEvent!(_myPortfolios);
         }
@@ -408,6 +480,7 @@ namespace OsEngine.Market.Servers.AE
                 newPortfolio.Number = account.AccountNumber;
                 newPortfolio.ValueCurrent = account.Money;
                 newPortfolio.ValueBlocked = account.GuaranteeMargin;
+                newPortfolio.UnrealizedPnl = calculateUnrealizedPnL(newPortfolio);
 
                 foreach (var position in account.Positions)
                 {
