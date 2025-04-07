@@ -2660,6 +2660,7 @@ namespace OsEngine.OsOptimizer
         private void UpdateHeaders()
         {
 
+
             _gridResults.Columns[0].HeaderText = "Bot Name";
 
             if (_sortBotsType == SortBotsType.BotName)
@@ -2669,9 +2670,17 @@ namespace OsEngine.OsOptimizer
 
             _gridResults.Columns[2].HeaderText = "Pos Count";
 
+            Color cellColor = Color.Black;
+
+            for (int i = 0; i < _gridResults.Columns.Count; i++)
+            {
+                _gridResults.Columns[i].HeaderCell.Style.BackColor = _gridResults.Columns[i].HeaderCell.Style.SelectionBackColor;
+            }
+
             if (_sortBotsType == SortBotsType.PositionCount)
             {
                 _gridResults.Columns[2].HeaderText += " vvv";
+                _gridResults.Columns[2].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[3].HeaderText = "Total Profit";
@@ -2679,48 +2688,56 @@ namespace OsEngine.OsOptimizer
             if (_sortBotsType == SortBotsType.TotalProfit)
             {
                 _gridResults.Columns[3].HeaderText += " vvv";
+                _gridResults.Columns[3].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[4].HeaderText = "Max Drow Dawn";
             if (_sortBotsType == SortBotsType.MaxDrawDawn)
             {
                 _gridResults.Columns[4].HeaderText += " vvv";
+                _gridResults.Columns[4].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[5].HeaderText = "Average Profit";
             if (_sortBotsType == SortBotsType.AverageProfit)
             {
                 _gridResults.Columns[5].HeaderText += " vvv";
+                _gridResults.Columns[5].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[6].HeaderText = "Average Profit %";
             if (_sortBotsType == SortBotsType.AverageProfitPercent)
             {
                 _gridResults.Columns[6].HeaderText += " vvv";
+                _gridResults.Columns[6].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[7].HeaderText = "Profit Factor";
             if (_sortBotsType == SortBotsType.ProfitFactor)
             {
                 _gridResults.Columns[7].HeaderText += " vvv";
+                _gridResults.Columns[7].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[8].HeaderText = "Pay Off Ratio";
             if (_sortBotsType == SortBotsType.PayOffRatio)
             {
                 _gridResults.Columns[8].HeaderText += " vvv";
+                _gridResults.Columns[8].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[9].HeaderText = "Recovery";
             if (_sortBotsType == SortBotsType.Recovery)
             {
                 _gridResults.Columns[9].HeaderText += " vvv";
+                _gridResults.Columns[9].HeaderCell.Style.BackColor = cellColor;
             }
 
             _gridResults.Columns[10].HeaderText = "Sharpe Ratio";
             if (_sortBotsType == SortBotsType.SharpRatio)
             {
                 _gridResults.Columns[10].HeaderText += " vvv";
+                _gridResults.Columns[10].HeaderCell.Style.BackColor = cellColor;
             }
 
         }
@@ -2960,6 +2977,13 @@ namespace OsEngine.OsOptimizer
             }
             int columnSelect = _gridResults.SelectedCells[0].ColumnIndex;
 
+            int rowSelect = _gridResults.SelectedCells[0].RowIndex;
+
+            if (rowSelect != 0)
+            {
+                return;
+            }
+
             SortBotsType currentSelection = SortBotsType.BotName;
 
             if (columnSelect == 0)
@@ -3033,6 +3057,29 @@ namespace OsEngine.OsOptimizer
 
         private SortBotsType _sortBotsType;
 
+        private void PaintBotInTable(string botName)
+        {
+            for (int i2 = 0; i2 < _gridResults.Rows.Count; i2++)
+            {
+                DataGridViewRow row = _gridResults.Rows[i2];
+
+                if (row.Cells[0].Value.ToString() == botName)
+                {
+                    for (int i = 0; i < row.Cells.Count; i++)
+                    {
+                        row.Cells[i].Style.ForeColor = Color.FromArgb(255, 83, 0);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < row.Cells.Count; i++)
+                    {
+                        row.Cells[i].Style = _gridResults.DefaultCellStyle;
+                    }
+                }
+            }
+        }
+
         #endregion
 
         #region Series results chart
@@ -3055,6 +3102,7 @@ namespace OsEngine.OsOptimizer
                 _chartSeriesResult.ChartAreas[i].CursorX.IsUserSelectionEnabled = false;
                 _chartSeriesResult.ChartAreas[i].CursorX.IsUserEnabled = true;
                 _chartSeriesResult.ChartAreas[i].CursorX.LineColor = Color.FromArgb(255, 83, 0);
+                _chartSeriesResult.ChartAreas[i].CursorX.LineWidth = 2;
                 _chartSeriesResult.ChartAreas[i].BackColor = Color.FromArgb(21, 26, 30);
                 _chartSeriesResult.ChartAreas[i].BorderColor = Color.FromArgb(17, 18, 23);
                 _chartSeriesResult.ChartAreas[i].CursorY.LineColor = Color.FromArgb(149, 159, 176);
@@ -3073,6 +3121,56 @@ namespace OsEngine.OsOptimizer
             WindowsFormsHostResultsChart.Child = _chartSeriesResult;
 
             _chartSeriesResult.SuppressExceptions = true;
+            _chartSeriesResult.Click += _chartSeriesResult_Click;
+        }
+
+        private void _chartSeriesResult_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_chartSeriesResult.ChartAreas[0].CursorX.Position == Double.NaN)
+                {
+                    return;
+                }
+
+                int index = (int)_chartSeriesResult.ChartAreas[0].CursorX.Position;
+
+                index--;
+
+                for (int i = 0; i < _chartSeriesResult.Series[0].Points.Count; i++)
+                {
+                    if (index == i)
+                    {
+                        continue;
+                    }
+                    _chartSeriesResult.Series[0].Points[i].Label = null;
+                    _chartSeriesResult.Series[0].Points[i].LabelForeColor = Color.White;
+                }
+
+                if (index >= _chartSeriesResult.Series[0].Points.Count)
+                {
+                    return;
+                }
+
+                if (_chartSeriesResult.Series[0].Points[index].Label
+                    != _chartSeriesResult.Series[0].Points[index].ToolTip)
+                {
+                    _chartSeriesResult.Series[0].Points[index].Label
+                     = _chartSeriesResult.Series[0].Points[index].ToolTip;
+                    string botName = _chartSeriesResult.Series[0].Points[index].ToolTip.Split('\n')[0];
+                    PaintBotInTable(botName);
+                }
+                else
+                {
+                    _chartSeriesResult.ChartAreas[0].CursorX.Position = Double.NaN;
+                    _chartSeriesResult.Series[0].Points[index].Label = null;
+                    PaintBotInTable(" ");
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void PaintSeriesResultsChart()
@@ -3220,6 +3318,32 @@ namespace OsEngine.OsOptimizer
                 {
                     _chartSeriesResult.ChartAreas[0].AxisY.Maximum = Convert.ToDouble(max);
                     _chartSeriesResult.ChartAreas[0].AxisY.Minimum = Convert.ToDouble(min);
+                }
+
+                // label
+
+                if (_chartSeriesResult.ChartAreas[0].CursorX.Position != Double.NaN)
+                {
+                    for (int i = 0; i < _chartSeriesResult.Series[0].Points.Count; i++)
+                    {
+                        _chartSeriesResult.Series[0].Points[i].Label = null;
+                        _chartSeriesResult.Series[0].Points[i].LabelForeColor = Color.White;
+                    }
+
+                    int index = (int)_chartSeriesResult.ChartAreas[0].CursorX.Position;
+
+                    index--;
+
+                    if (index >= 0
+                        && index < _chartSeriesResult.Series[0].Points.Count)
+                    {
+                        _chartSeriesResult.Series[0].Points[index].Label
+                      = _chartSeriesResult.Series[0].Points[index].ToolTip;
+
+                        string botName =
+                            _chartSeriesResult.Series[0].Points[index].ToolTip.Split('\n')[0];
+                        PaintBotInTable(botName);
+                    }
                 }
             }
             catch(Exception ex)
