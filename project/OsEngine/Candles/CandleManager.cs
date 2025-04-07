@@ -651,7 +651,9 @@ namespace OsEngine.Entity
                     return;
                 }
 
-                if (_server.ServerType == ServerType.Tester &&
+                if ((_server.ServerType == ServerType.Tester 
+                    || _server.ServerType == ServerType.Optimizer)
+                    &&
                     TypeTesterData == TesterDataType.Candle)
                 {
                     return;

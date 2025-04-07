@@ -1505,7 +1505,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             string urlStrDepth = null;
 
-            if (((ServerParameterBool)ServerParameters[11]).Value == false)
+            if (((ServerParameterBool)ServerParameters[12]).Value == false)
             {
                 urlStrDepth = wss_point + "/stream?streams="
                              + security.Name.ToLower() + "@depth5"

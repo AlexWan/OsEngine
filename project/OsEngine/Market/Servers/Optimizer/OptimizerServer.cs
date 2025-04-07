@@ -407,6 +407,7 @@ namespace OsEngine.Market.Servers.Optimizer
             securityOpt.TimeFrameSpan = GetTimeFremeInSpan(timeFrame);
             securityOpt.TimeStart = timeStart;
             securityOpt.TimeEnd = timeEnd;
+            securityOpt.RealEndTime = timeEnd.AddDays(1);
             securityOpt.NewCandleEvent += TesterServer_NewCandleEvent;
             securityOpt.NewTradesEvent += TesterServer_NewTradesEvent;
             securityOpt.NeedToCheckOrders += TesterServer_NeedToCheckOrders;
@@ -2172,6 +2173,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public DateTime TimeEnd;
 
+        public DateTime RealEndTime;
+
         public SecurityTesterDataType DataType;
 
         public TimeSpan TimeFrameSpan;
@@ -2243,7 +2246,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private void CheckCandles(DateTime now)
         {
-            if (now > TimeEnd.AddDays(1) ||
+            if (now > RealEndTime ||
                 now < TimeStart)
             {
                 return;
@@ -2431,7 +2434,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private void CheckTrades(DateTime now)
         {
-            if (now > TimeEnd.AddDays(1) ||
+            if (now > RealEndTime ||
                 now < TimeStart)
             {
                 return;
@@ -2506,7 +2509,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
         private void CheckMarketDepth(DateTime now)
         {
-            if (now > TimeEnd.AddDays(1) ||
+            if (now > RealEndTime ||
                 now < TimeStart)
             {
                 return;

@@ -657,7 +657,6 @@ namespace OsEngine.Journal.Internal
                     for (int indexCloseOrd = 0; indexCloseOrd < position.CloseOrders.Count; indexCloseOrd++)
                     {
                         if (position.CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent
-                            //|| position.CloseOrders[indexCloseOrd].NumberUser.ToString() == trade.NumberOrderParent
                             )
                         {
                             isCloseOrder = true;

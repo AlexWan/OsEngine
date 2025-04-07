@@ -118,17 +118,18 @@ namespace OsEngine.Entity
                 result += ",";
                 result += Id;
             }
+            else
+            {
+                result += ",";
+            }
 
             if (Bid != 0 && Ask != 0 &&
                 BidsVolume != 0 && AsksVolume != 0)
             {
-                result += ",";
-
                 result += Bid.ToString(CultureInfo.InvariantCulture) + ",";
                 result += Ask.ToString(CultureInfo.InvariantCulture) + ",";
                 result += BidsVolume.ToString(CultureInfo.InvariantCulture) + ",";
                 result += AsksVolume.ToString(CultureInfo.InvariantCulture);
-                
             }
 
             return result;
