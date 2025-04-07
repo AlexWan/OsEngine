@@ -201,7 +201,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitStamp);
-                serverTypes.Add(ServerType.Bitfinex);
+                serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.KuCoinFutures);
@@ -321,7 +321,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.BitMex);
                 serverTypes.Add(ServerType.BitStamp);
-                serverTypes.Add(ServerType.Bitfinex);
+                serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.HTXFutures);
@@ -545,9 +545,9 @@ namespace OsEngine.Market
                 {
                     newServer = new LmaxServer();
                 }
-                if (type == ServerType.Bitfinex)
+                if (type == ServerType.BitfinexSpot)
                 {
-                    newServer = new BitfinexServer();
+                    newServer = new BitfinexSpotServer();
                 }
                 if (type == ServerType.Binance)
                 {
@@ -1185,9 +1185,9 @@ namespace OsEngine.Market
                 {
                     serverPermission = new BinanceFuturesServerPermission();
                 }
-                else if (type == ServerType.Bitfinex)
+                else if (type == ServerType.BitfinexSpot)
                 {
-                    serverPermission = new BitFinexServerPermission();
+                    serverPermission = new BitfinexSpotServerPermission();
                 }
                 else if (type == ServerType.Kraken)
                 {
@@ -1531,10 +1531,10 @@ namespace OsEngine.Market
         Lmax,
 
         /// <summary>
-        /// cryptocurrency exchange Bitfinex
-        /// биржа криптовалют Bitfinex
+        /// cryptocurrency exchange BitfinexSpot
+        /// биржа криптовалют BitfinexSpot
         /// </summary>
-        Bitfinex,
+        BitfinexSpot,
 
         /// <summary>
         /// cryptocurrency exchange Binance
