@@ -995,9 +995,45 @@ namespace OsEngine.Market.Servers
 
                         if (_marketDepthsToSend.TryDequeue(out depth))
                         {
-                            if (NewMarketDepthEvent != null)
+                            if (_marketDepthsToSend.Count < 1000)
                             {
-                                NewMarketDepthEvent(depth);
+                                if (NewMarketDepthEvent != null)
+                                {
+                                    NewMarketDepthEvent(depth);
+                                }
+                            }
+                            else
+                            {
+                                // Копится очередь. ЦП не справляется
+                                // Отсылаем на верх по последнему стакану для каждого инструмента
+                                // Промежуточные срезы - игнорируем
+
+                                List<MarketDepth> list = new List<MarketDepth>();
+
+                                list.Add(depth);
+
+                                while (_marketDepthsToSend.Count != 0)
+                                {
+                                    MarketDepth newDepth = null;
+
+                                    if (_marketDepthsToSend.TryDequeue(out newDepth))
+                                    {
+                                        if (list.Find(m => m.SecurityNameCode == newDepth.SecurityNameCode) == null)
+                                        {
+                                            list.Add(newDepth);
+                                        }
+                                    }
+                                }
+
+                                for (int i = 0; i < list.Count; i++)
+                                {
+                                    if (NewMarketDepthEvent != null)
+                                    {
+                                        NewMarketDepthEvent(list[i]);
+                                    }
+                                }
+
+                                SendLogMessage("CPU fails to handle queue parsing in AServer. Market depths are cleaned to actual ones.", LogMessageType.System);
                             }
                         }
                     }
