@@ -1018,7 +1018,18 @@ namespace OsEngine.Market.Servers
 
                                     if (_marketDepthsToSend.TryDequeue(out newDepth))
                                     {
-                                        if (list.Find(m => m.SecurityNameCode == newDepth.SecurityNameCode) == null)
+                                        bool isInArray = false;
+
+                                        for (int i = 0; i < list.Count; i++)
+                                        {
+                                            if (list[i].SecurityNameCode == newDepth.SecurityNameCode)
+                                            {
+                                                list[i] = newDepth;
+                                                isInArray = true;
+                                            }
+                                        }
+
+                                        if (isInArray == false)
                                         {
                                             list.Add(newDepth);
                                         }
