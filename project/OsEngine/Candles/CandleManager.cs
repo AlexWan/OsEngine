@@ -679,7 +679,8 @@ namespace OsEngine.Entity
                         i < _activeSeriesBasedOnTrades.Count; i++)
                     {
                         if (_activeSeriesBasedOnTrades[i] == null ||
-                            _activeSeriesBasedOnTrades[i].Security == null)
+                            _activeSeriesBasedOnTrades[i].Security == null ||
+                            _activeSeriesBasedOnTrades[i].TimeFrameBuilder.CandleSeriesRealization == null)
                         {
                             continue;
                         }

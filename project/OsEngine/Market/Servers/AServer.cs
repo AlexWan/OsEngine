@@ -887,7 +887,7 @@ namespace OsEngine.Market.Servers
 
                                 bool isInArray = false;
 
-                                for(int i = 0;i < _myTrades.Count;i++)
+                                for (int i = 0; i < _myTrades.Count; i++)
                                 {
                                     if (_myTrades[i].NumberTrade == myTrade.NumberTrade)
                                     {
@@ -896,12 +896,12 @@ namespace OsEngine.Market.Servers
                                     }
                                 }
 
-                                if(isInArray == false)
+                                if (isInArray == false)
                                 {
                                     _myTrades.Add(myTrade);
                                 }
-                                
-                                while(_myTrades.Count > 1000)
+
+                                while (_myTrades.Count > 1000)
                                 {
                                     _myTrades.RemoveAt(0);
                                 }
@@ -915,11 +915,42 @@ namespace OsEngine.Market.Servers
                         List<Trade> trades;
 
                         if (_tradesToSend.TryDequeue(out trades))
-                        {
-                            if (NewTradeEvent != null)
+                        {// разбираем всю очередь. Отправляем массивы для каждого инструмента один раз
+                            List<List<Trade>> list = new List<List<Trade>>();
+                            list.Add(trades);
+
+                            while (_tradesToSend.Count != 0)
                             {
-                                NewTradeEvent(trades);
+                                List<Trade> newTrades = null;
+
+                                if (_tradesToSend.TryDequeue(out newTrades))
+                                {
+                                    bool isInArray = false;
+
+                                    for (int i = 0; i < list.Count; i++)
+                                    {
+                                        if (list[i][0].SecurityNameCode == newTrades[0].SecurityNameCode)
+                                        {
+                                            list[i] = newTrades;
+                                            isInArray = true;
+                                        }
+                                    }
+
+                                    if (isInArray == false)
+                                    {
+                                        list.Add(newTrades);
+                                    }
+                                }
                             }
+
+                            for (int i = 0; i < list.Count; i++)
+                            {
+                                if (NewTradeEvent != null)
+                                {
+                                    NewTradeEvent(list[i]);
+                                }
+                            }
+
                             if (_needToRemoveTradesFromMemory.Value == true && _allTrades != null)
 
                             {
@@ -935,7 +966,6 @@ namespace OsEngine.Market.Servers
                                 }
                             }
                         }
-
                     }
 
                     else if (!_portfolioToSend.IsEmpty)
@@ -1043,8 +1073,6 @@ namespace OsEngine.Market.Servers
                                         NewMarketDepthEvent(list[i]);
                                     }
                                 }
-
-                                SendLogMessage("CPU fails to handle queue parsing in AServer. Market depths are cleaned to actual ones.", LogMessageType.System);
                             }
                         }
                     }
@@ -1101,8 +1129,6 @@ namespace OsEngine.Market.Servers
                                         NewBidAscIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
                                     }
                                 }
-
-                                SendLogMessage("CPU fails to handle queue parsing in AServer. BidAsk are cleaned to actual ones.", LogMessageType.System);
                             }
                         }
                     }
@@ -1125,7 +1151,7 @@ namespace OsEngine.Market.Servers
 
                         if (_additionalMarketDataToSend.TryDequeue(out data))
                         {
-                            ConvertableMarketData(data);                            
+                            ConvertableMarketData(data);
                         }
                     }
 
