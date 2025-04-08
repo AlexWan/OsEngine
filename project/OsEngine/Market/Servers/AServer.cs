@@ -1055,9 +1055,54 @@ namespace OsEngine.Market.Servers
 
                         if (_bidAskToSend.TryDequeue(out bidAsk))
                         {
-                            if (NewBidAscIncomeEvent != null)
+                            if (_bidAskToSend.Count < 1000)
                             {
-                                NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
+                                if (NewBidAscIncomeEvent != null)
+                                {
+                                    NewBidAscIncomeEvent(bidAsk.Bid, bidAsk.Ask, bidAsk.Security);
+                                }
+                            }
+                            else
+                            {   // Копится очередь. ЦП не справляется
+                                // Отсылаем на верх по последнему bid/Ask для каждого инструмента
+                                // Промежуточные срезы - игнорируем
+
+                                List<BidAskSender> list = new List<BidAskSender>();
+                                list.Add(bidAsk);
+
+                                while (_bidAskToSend.Count != 0)
+                                {
+                                    BidAskSender newBidAsk = null;
+
+                                    if (_bidAskToSend.TryDequeue(out newBidAsk))
+                                    {
+                                        bool isInArray = false;
+
+                                        for (int i = 0; i < list.Count; i++)
+                                        {
+                                            if (list[i].Security.Name == newBidAsk.Security.Name)
+                                            {
+                                                list[i] = newBidAsk;
+                                                isInArray = true;
+                                            }
+                                        }
+
+                                        if (isInArray == false)
+                                        {
+                                            list.Add(newBidAsk);
+                                        }
+                                    }
+                                }
+
+                                for (int i = 0; i < list.Count; i++)
+                                {
+                                    if (NewBidAscIncomeEvent != null)
+                                    {
+                                        NewBidAscIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
+                                    }
+                                }
+
+                                SendLogMessage("CPU fails to handle queue parsing in AServer. BidAsk are cleaned to actual ones.", LogMessageType.System);
                             }
                         }
                     }
