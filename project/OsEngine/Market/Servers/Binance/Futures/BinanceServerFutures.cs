@@ -519,8 +519,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         {
                             sizeUSDT = onePortf.marginBalance.ToDecimal();
                         }
-                        else if (onePortf.asset.Equals("BFUSD")
-                            || onePortf.asset.Equals("FDUSD"))
+                        else if (onePortf.asset.EndsWith("USD")
+                            || onePortf.asset.EndsWith("USDT"))
                         {
                             continue;
                         }
