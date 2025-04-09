@@ -48,6 +48,11 @@ namespace OsEngine.OsTrader
 
                 for(int i = 0;i < _journals.Count;i++)
                 {
+                    if (_journals[i] == null)
+                    {
+                        continue;
+                    }
+
                     if(_journals[i].Name == journal.Name)
                     {
                         return;
