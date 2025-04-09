@@ -746,7 +746,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                         security.PriceStep = securityData.Minstep.ToDecimal();
 
-                        if (security.PriceStep == 0)
+                        if (security.PriceStep == 0
+                            && security.SecurityType != SecurityType.Index)
                         {
                             continue;
                         }
@@ -779,7 +780,15 @@ namespace OsEngine.Market.Servers.Transaq
                             security.PriceStepCost = security.PriceStep;
                         }
 
-                        security.State = securityData.Active == "true" ? SecurityStateType.Activ : SecurityStateType.Close;
+                        if(securityData.Active == "true"
+                            || security.SecurityType == SecurityType.Index)
+                        {
+                            security.State = SecurityStateType.Activ;
+                        }
+                        else
+                        {
+                            security.State = SecurityStateType.Close;
+                        }
 
                         if (security.State != SecurityStateType.Activ)
                         {
