@@ -1110,8 +1110,8 @@ namespace OsEngine.Market.Servers.TInvest
         
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            DateTime timeStart = DateTime.UtcNow - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
-            DateTime timeEnd = DateTime.UtcNow;
+            DateTime timeStart = DateTime.UtcNow.AddHours(3) - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
+            DateTime timeEnd = DateTime.UtcNow.AddHours(3); // to MSK
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
         
@@ -1122,9 +1122,9 @@ namespace OsEngine.Market.Servers.TInvest
             DateTime actualTime)
         {
             // ensure all times are UTC
-            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
-            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
-            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+            startTime = DateTime.SpecifyKind(startTime.AddHours(-3), DateTimeKind.Utc); // MSK -> UTC
+            endTime = DateTime.SpecifyKind(endTime.AddHours(-3), DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime.AddHours(-3), DateTimeKind.Utc);
 
             if (startTime != actualTime)
             {
@@ -1250,14 +1250,14 @@ namespace OsEngine.Market.Servers.TInvest
             
             TradingSchedulesResponse thisDaySchedules = null;
 
-            if (_tradingSchedules.ContainsKey(DateTime.UtcNow.Date))
+            if (_tradingSchedules.ContainsKey(DateTime.UtcNow.AddHours(3).Date))
             {
-                thisDaySchedules = _tradingSchedules[DateTime.UtcNow.Date];
+                thisDaySchedules = _tradingSchedules[DateTime.UtcNow.AddHours(3).Date];
             }
             else
             {
-                Timestamp from = Timestamp.FromDateTime(DateTime.UtcNow.Date);
-                Timestamp to = Timestamp.FromDateTime(DateTime.UtcNow.Date.AddHours(23));
+                Timestamp from = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(3).Date);
+                Timestamp to = Timestamp.FromDateTime(DateTime.UtcNow.AddHours(3).Date.AddHours(23));
 
                 TradingSchedulesRequest tradingSchedulesRequest = new TradingSchedulesRequest();
                 tradingSchedulesRequest.From = from;

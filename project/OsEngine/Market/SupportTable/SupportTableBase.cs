@@ -42,7 +42,7 @@ namespace OsEngine.Market.SupportTable
             {
                 ServerType = ServerType.TInvest,
                 SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Moex\\Tinkoff.png",
+                LinqToLogo = "\\Images\\Connections\\Moex\\TInvest.png",
                 LingSiteUrl = "",
                 Discount = 0
             };
