@@ -39,29 +39,50 @@ namespace OsEngine.OsConverter
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
         {
-            decimal devider = 1;
-
-            if(ComboBoxTimeFrameInitial.SelectedItem.ToString() == TimeFrame.Min5.ToString())
+            try
             {
-                devider = 5;
+                decimal devider = 1;
+
+                if (ComboBoxTimeFrameInitial.SelectedItem.ToString() == TimeFrame.Min5.ToString())
+                {
+                    devider = 5;
+                }
+
+                List<Candle> candles = _candleConverter.ReadSourceFile();
+                List<Candle> mergedCandles = _candleConverter.Merge(candles,
+                    Convert.ToInt32(_candleConverter.ResultCandleTimeFrame / (double)devider));
+
+                _candleConverter.WriteExitFile(mergedCandles);
+                _candleConverter.SendNewLogMessage("The operation is complete", Logging.LogMessageType.System);
             }
-
-            List<Candle> candles = _candleConverter.ReadSourceFile();
-            List<Candle> mergedCandles = _candleConverter.Merge(candles, 
-                Convert.ToInt32(_candleConverter.ResultCandleTimeFrame / (double)devider));
-
-            _candleConverter.WriteExitFile(mergedCandles);
+            catch (Exception ex)
+            {
+                _candleConverter.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonSetSource_Click(object sender, RoutedEventArgs e)
         {
-            _candleConverter.SelectSourceFile();
-
+            try
+            {
+                _candleConverter.SelectSourceFile();
+            }
+            catch (Exception ex)
+            {
+                _candleConverter.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonSetExitFile_Click(object sender, RoutedEventArgs e)
         {
-            _candleConverter.CreateExitFile();
+            try
+            {
+                _candleConverter.CreateExitFile();
+            }
+            catch (Exception ex)
+            {
+                _candleConverter.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
         }
     }
 }

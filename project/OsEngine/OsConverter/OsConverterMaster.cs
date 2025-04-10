@@ -311,7 +311,7 @@ namespace OsEngine.OsConverter
         /// <summary>
         /// send new message to log/выслать новое сообщение в лог
         /// </summary>
-        void SendNewLogMessage(string message, LogMessageType type)
+        public void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {

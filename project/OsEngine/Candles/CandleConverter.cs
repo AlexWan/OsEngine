@@ -396,7 +396,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// send new message to log
         /// </summary>
-        void SendNewLogMessage(string message, LogMessageType type)
+        public void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
             {

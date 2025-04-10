@@ -3,8 +3,10 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using System.Threading;
 using System.Windows;
+using OsEngine.Entity;
 using OsEngine.Language;
 
 namespace OsEngine.OsConverter
@@ -39,17 +41,38 @@ namespace OsEngine.OsConverter
 
         private void ButtonSetSource_Click(object sender, RoutedEventArgs e)
         {
-            _master.SelectSourceFile();
+            try
+            {
+                _master.SelectSourceFile();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonSetExitFile_Click(object sender, RoutedEventArgs e)
         {
-            _master.CreateExitFile();
+            try
+            {
+                _master.CreateExitFile();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
         {
-            _master.StartConvert();
+            try
+            {
+                _master.StartConvert();
+            }
+            catch (Exception ex)
+            {
+                _master.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
     }
 }
