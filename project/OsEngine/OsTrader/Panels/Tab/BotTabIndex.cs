@@ -221,12 +221,19 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _ui.Closed -= _ui_Closed;
                 _ui = null;
+
+                if(DialogClosed != null)
+                {
+                    DialogClosed();
+                }
             }
             catch(Exception ex)
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
+
+        public event Action DialogClosed;
 
         private BotTabIndexUi _ui;
 

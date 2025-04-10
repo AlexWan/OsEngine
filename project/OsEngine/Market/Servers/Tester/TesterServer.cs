@@ -2745,6 +2745,8 @@ namespace OsEngine.Market.Servers.Tester
                 LoadMarketDepthFromFolder(_pathToFolder);
                 _dataIsReady = true;
             }
+
+            LoadSetSecuritiesTimeFrameSettings();
         }
 
         private void LoadSecurity(string path)
@@ -4127,6 +4129,115 @@ namespace OsEngine.Market.Servers.Tester
             }
         }
 
+        public void SaveSetSecuritiesTimeFrameSettings()
+        {
+            try
+            {
+                string fileName = @"Engine\TestServerSecuritiesTf"
+                    + _sourceDataType.ToString()
+                    + TypeTesterData.ToString();
+
+                if (_sourceDataType == TesterSourceDataType.Set)
+                {
+                    if (string.IsNullOrEmpty(_activeSet))
+                    {
+                        return;
+                    }
+                    fileName += _activeSet.RemoveExcessFromSecurityName();
+                }
+                else if (_sourceDataType == TesterSourceDataType.Folder)
+                {
+                    if (string.IsNullOrEmpty(_pathToFolder))
+                    {
+                        return;
+                    }
+                    fileName += _pathToFolder.RemoveExcessFromSecurityName();
+                }
+
+                fileName += ".txt";
+
+                using (StreamWriter writer = new StreamWriter(fileName, false))
+                {
+                    for (int i = 0; i < SecuritiesTester.Count; i++)
+                    {
+                        writer.WriteLine(SecuritiesTester[i].Security.Name + "#" + SecuritiesTester[i].TimeFrame);
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        private void LoadSetSecuritiesTimeFrameSettings()
+        {
+            string fileName = @"Engine\TestServerSecuritiesTf"
+                  + _sourceDataType.ToString()
+                  + TypeTesterData.ToString();
+
+            if (_sourceDataType == TesterSourceDataType.Set)
+            {
+                if (string.IsNullOrEmpty(_activeSet))
+                {
+                    return;
+                }
+                fileName += _activeSet.RemoveExcessFromSecurityName();
+            }
+            else if (_sourceDataType == TesterSourceDataType.Folder)
+            {
+                if (string.IsNullOrEmpty(_pathToFolder))
+                {
+                    return;
+                }
+                fileName += _pathToFolder.RemoveExcessFromSecurityName();
+            }
+
+            fileName += ".txt";
+
+            if (!File.Exists(fileName))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(fileName))
+                {
+                    for (int i = 0; i < SecuritiesTester.Count; i++)
+                    {
+                        if(reader.EndOfStream == true)
+                        {
+                            return;
+                        }
+
+                        string[] security = reader.ReadLine().Split('#');
+
+                        if (SecuritiesTester[i].Security.Name != security[0])
+                        {
+                            return;
+                        }
+
+                        TimeFrame frame;
+
+                        if(Enum.TryParse(security[1],out frame))
+                        {
+                            SecuritiesTester[i].TimeFrame = frame;
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+
+        }
+
         #endregion
 
         #region Candles
@@ -4335,7 +4446,100 @@ namespace OsEngine.Market.Servers.Tester
 
         public TimeSpan TimeFrameSpan;
 
-        public TimeFrame TimeFrame;
+        public TimeFrame TimeFrame
+        {
+            get { return _timeFrame; }
+            set
+            {
+                if(value == _timeFrame)
+                {
+                    return;
+                }
+                _timeFrame = value;
+
+                if (value == TimeFrame.Sec1)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 1);
+                }
+                else if (value == TimeFrame.Sec2)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 2);
+                }
+                else if (value == TimeFrame.Sec5)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 5);
+                }
+                else if (value == TimeFrame.Sec10)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 10);
+                }
+                else if (value == TimeFrame.Sec15)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 15);
+                }
+                else if (value == TimeFrame.Sec20)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 20);
+                }
+                else if (value == TimeFrame.Sec30)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 0, 30);
+                }
+                else if (value == TimeFrame.Min1)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 1, 0);
+                }
+                else if (value == TimeFrame.Min2)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 2, 0);
+                }
+                else if (value == TimeFrame.Min3)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 3, 0);
+                }
+                else if (value == TimeFrame.Min5)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 5, 0);
+                }
+                else if (value == TimeFrame.Min10)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 10, 0);
+                }
+                else if (value == TimeFrame.Min15)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 15, 0);
+                }
+                else if (value == TimeFrame.Min20)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 20, 0);
+                }
+                else if (value == TimeFrame.Min30)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 30, 0);
+                }
+                else if (value == TimeFrame.Min45)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 0, 45, 0);
+                }
+                else if (value == TimeFrame.Hour1)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 1, 0, 0);
+                }
+                else if (value == TimeFrame.Hour2)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 2, 0, 0);
+                }
+                else if (value == TimeFrame.Hour4)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 4, 0, 0);
+                }
+                else if (value == TimeFrame.Day)
+                {
+                    TimeFrameSpan = new TimeSpan(0, 24, 0, 0);
+                }
+            }
+        }
+        TimeFrame _timeFrame;
 
         // data upload management
 

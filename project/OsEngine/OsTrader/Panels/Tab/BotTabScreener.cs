@@ -1217,12 +1217,26 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _ui_Closed(object sender, EventArgs e)
         {
-            _ui.LogMessageEvent -= SendNewLogMessage;
-            _ui.Closed -= _ui_Closed;
-            _ui = null;
+            try
+            {
+                _ui.LogMessageEvent -= SendNewLogMessage;
+                _ui.Closed -= _ui_Closed;
+                _ui = null;
+
+                if (DialogClosed != null)
+                {
+                    DialogClosed();
+                }
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private BotTabScreenerUi _ui;
+
+        public event Action DialogClosed;
 
         /// <summary>
         /// Things to call individual windows by tool

@@ -396,6 +396,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 }
 
+                LoadSetSecuritiesTimeFrameSettings();
+
                 if (SecuritiesChangeEvent != null)
                 {
                     SecuritiesChangeEvent(Securities);
@@ -1348,6 +1350,115 @@ namespace OsEngine.Market.Servers.Optimizer
                     return lastTimeSpan;
                 }
             }
+        }
+
+        public void SaveSetSecuritiesTimeFrameSettings()
+        {
+            try
+            {
+                string fileName = @"Engine\OptimizerServerSecuritiesTf"
+                    + _sourceDataType.ToString()
+                    + TypeTesterData.ToString();
+
+                if (_sourceDataType == TesterSourceDataType.Set)
+                {
+                    if (string.IsNullOrEmpty(_activeSet))
+                    {
+                        return;
+                    }
+                    fileName += _activeSet.RemoveExcessFromSecurityName();
+                }
+                else if (_sourceDataType == TesterSourceDataType.Folder)
+                {
+                    if (string.IsNullOrEmpty(_pathToFolder))
+                    {
+                        return;
+                    }
+                    fileName += _pathToFolder.RemoveExcessFromSecurityName();
+                }
+
+                fileName += ".txt";
+
+                using (StreamWriter writer = new StreamWriter(fileName, false))
+                {
+                    for (int i = 0; i < SecuritiesTester.Count; i++)
+                    {
+                        writer.WriteLine(SecuritiesTester[i].Security.Name + "#" + SecuritiesTester[i].TimeFrame);
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        private void LoadSetSecuritiesTimeFrameSettings()
+        {
+            string fileName = @"Engine\OptimizerServerSecuritiesTf"
+                  + _sourceDataType.ToString()
+                  + TypeTesterData.ToString();
+
+            if (_sourceDataType == TesterSourceDataType.Set)
+            {
+                if (string.IsNullOrEmpty(_activeSet))
+                {
+                    return;
+                }
+                fileName += _activeSet.RemoveExcessFromSecurityName();
+            }
+            else if (_sourceDataType == TesterSourceDataType.Folder)
+            {
+                if (string.IsNullOrEmpty(_pathToFolder))
+                {
+                    return;
+                }
+                fileName += _pathToFolder.RemoveExcessFromSecurityName();
+            }
+
+            fileName += ".txt";
+
+            if (!File.Exists(fileName))
+            {
+                return;
+            }
+
+            try
+            {
+                using (StreamReader reader = new StreamReader(fileName))
+                {
+                    for (int i = 0; i < SecuritiesTester.Count; i++)
+                    {
+                        if (reader.EndOfStream == true)
+                        {
+                            return;
+                        }
+
+                        string[] security = reader.ReadLine().Split('#');
+
+                        if (SecuritiesTester[i].Security.Name != security[0])
+                        {
+                            return;
+                        }
+
+                        TimeFrame frame;
+
+                        if (Enum.TryParse(security[1], out frame))
+                        {
+                            SecuritiesTester[i].TimeFrame = frame;
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignored
+            }
+
         }
 
         #endregion

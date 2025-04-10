@@ -1655,6 +1655,7 @@ namespace OsEngine.Market.Servers.Tester
                     securities[i].TimeFrame = frame;
                 }
             }
+            _server.SaveSetSecuritiesTimeFrameSettings();
         }
 
         private void _myGridView_DoubleClick(object sender, EventArgs e)

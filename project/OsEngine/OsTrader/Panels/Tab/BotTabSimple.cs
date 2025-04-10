@@ -58,6 +58,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.LogMessageEvent += SetNewLogMessage;
                 _connector.ConnectorStartedReconnectEvent += _connector_ConnectorStartedReconnectEvent;
                 _connector.SecuritySubscribeEvent += _connector_SecuritySubscribeEvent;
+                _connector.DialogClosed += _connector_DialogClosed;
 
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
@@ -359,6 +360,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.Delete();
                     _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector.SecuritySubscribeEvent -= _connector_SecuritySubscribeEvent;
+                    _connector.DialogClosed -= _connector_DialogClosed;
 
                     _connector = null;
                 }
@@ -1294,6 +1296,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             _journal.CommissionType = _connector.CommissionType;
             _journal.CommissionValue = _connector.CommissionValue;
         }
+
+        private void _connector_DialogClosed()
+        {
+            if(DialogClosed != null)
+            {
+                DialogClosed();
+            }
+        }
+
+        public event Action DialogClosed;
 
         /// <summary>
         /// Show custom settings window

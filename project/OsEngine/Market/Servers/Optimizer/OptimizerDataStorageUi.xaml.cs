@@ -361,6 +361,8 @@ namespace OsEngine.Market.Servers.Optimizer
                         securities[i].TimeFrame = frame;
                     }
                 }
+
+                _server.SaveSetSecuritiesTimeFrameSettings();
             }
             catch (Exception ex)
             {

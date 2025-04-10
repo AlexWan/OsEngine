@@ -255,12 +255,19 @@ namespace OsEngine.Market.Connectors
                 _ui.LogMessageEvent -= SendNewLogMessage;
                 _ui.Closed -= _ui_Closed;
                 _ui = null;
+
+                if(DialogClosed != null)
+                {
+                    DialogClosed();
+                }
             }
             catch
             {
                 // ignore
             }
         }
+
+        public event Action DialogClosed;
 
         private ConnectorCandlesUi _ui;
 

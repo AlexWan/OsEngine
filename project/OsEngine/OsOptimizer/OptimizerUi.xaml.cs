@@ -26,6 +26,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Drawing;
+using OsEngine.Properties;
 
 namespace OsEngine.OsOptimizer
 {
@@ -933,6 +934,12 @@ namespace OsEngine.OsOptimizer
                 return;
             }
 
+            if (_gridSources.InvokeRequired)
+            {
+                _gridSources.Invoke(new Action(PaintTableSources));
+                return;
+            }
+
             // берём робота которого хотим оптимизировать
 
             string nameBot = _master.StrategyName;
@@ -1306,21 +1313,32 @@ namespace OsEngine.OsOptimizer
                 {
                     BotTabSimple simpleTab = (BotTabSimple)curTab;
                     simpleTab.ShowConnectorDialog();
+                    simpleTab.DialogClosed += () =>
+                    {
+                        PaintTableSources();
+                    };
                 }
                 else if (curTab.TabType == BotTabType.Index)
                 {
                     BotTabIndex simpleTab = (BotTabIndex)curTab;
                     simpleTab.ShowDialog();
+                    simpleTab.DialogClosed += () =>
+                    {
+                        PaintTableSources();
+                    };
                 }
                 else if (curTab.TabType == BotTabType.Screener)
                 {
                     BotTabScreener screenerTab = (BotTabScreener)curTab;
                     screenerTab.ShowDialog();
-                    screenerTab.TryLoadTabs();
-                    screenerTab.TryReLoadTabs();
-                }
 
-                PaintTableSources();
+                    screenerTab.DialogClosed += () =>
+                    {
+                        screenerTab.TryLoadTabs();
+                        screenerTab.TryReLoadTabs();
+                        PaintTableSources();
+                    };
+                }
             }
             catch (Exception ex)
             {
