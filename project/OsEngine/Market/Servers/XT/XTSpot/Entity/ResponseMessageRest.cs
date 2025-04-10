@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Newtonsoft.Json;
+
 
 namespace OsEngine.Market.Servers.XT.XTSpot.Entity
 {
@@ -7,7 +7,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
     {
         public string rc { get; set; } // Response code
         public string mc { get; set; } // Message code
-        [JsonIgnore] public List<string> ma { get; set; }
+       // public List<string> ma { get; set; }
         public T result { get; set; }
     }
 
@@ -51,13 +51,13 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
 
     public class ResponseCandle
     {
-        [JsonProperty("t")] public string OpenTime { get; set; } //1662601014832, open time in ms
-        [JsonProperty("o")] public string Open { get; set; } //"30000", open price
-        [JsonProperty("c")] public string Close { get; set; } //"32000", close price
-        [JsonProperty("h")] public string High { get; set; } //"35000", highest price
-        [JsonProperty("l")] public string Low { get; set; } //"25000", lowest price
-        [JsonProperty("q")] public string Quantity { get; set; } //"512", transaction quantity
-        [JsonProperty("v")] public string Volume { get; set; } //"15360000", transaction volume
+        public string t { get; set; } //1662601014832, open time in ms
+        public string o { get; set; } //"30000", open price
+        public string c { get; set; } //"32000", close price
+        public string h { get; set; } //"35000", highest price
+        public string l { get; set; } //"25000", lowest price
+        public string q { get; set; } //"512", transaction quantity
+        public string v { get; set; } //"15360000", transaction volume
     }
 
     public class ResponsePlaceOrder
@@ -77,6 +77,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
 
     public class ResponseAssets
     {
+        public string totalUsdtAmount { get; set; }
+        public string totalBtcAmount { get; set; }
         public List<ResponseAsset> assets { get; set; } //List of assets
     }
 
