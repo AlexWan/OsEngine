@@ -225,47 +225,53 @@ namespace OsEngine.OsConverter
             _worker.Start();
         }
 
-
         private void WorkerSpaceStreaming()
         {
-            using (StreamReader reader = new StreamReader(_sourceFile))
-            using (StreamWriter writer = new StreamWriter(_exitFile, false))
+            try
             {
-                SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
-                SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
-
-                List<Trade> trades = new List<Trade>();
-                DateTime currentDay = DateTime.MinValue;
-
-                while (!reader.EndOfStream)
+                using (StreamReader reader = new StreamReader(_sourceFile))
+                using (StreamWriter writer = new StreamWriter(_exitFile, false))
                 {
-                    Trade trade = new Trade();
-                    trade.SetTradeFromString(reader.ReadLine());
+                    SendNewLogMessage(OsLocalization.Converter.Message4, LogMessageType.System);
+                    SendNewLogMessage(OsLocalization.Converter.Message5, LogMessageType.System);
 
-                    if (currentDay == DateTime.MinValue)
+                    List<Trade> trades = new List<Trade>();
+                    DateTime currentDay = DateTime.MinValue;
+
+                    while (!reader.EndOfStream)
                     {
-                        currentDay = trade.Time.Date;
+                        Trade trade = new Trade();
+                        trade.SetTradeFromString(reader.ReadLine());
+
+                        if (currentDay == DateTime.MinValue)
+                        {
+                            currentDay = trade.Time.Date;
+                        }
+
+                        if (trade.Time.Date != currentDay || reader.EndOfStream)
+                        {
+                            ProcessTradesAndWriteCandles(trades, writer);
+                            trades = new List<Trade>(); // Clear trades for the next day
+                            currentDay = trade.Time.Date;
+                        }
+
+                        trades.Add(trade);
                     }
 
-                    if (trade.Time.Date != currentDay || reader.EndOfStream)
+                    // Process any remaining trades
+                    if (trades.Count > 0)
                     {
                         ProcessTradesAndWriteCandles(trades, writer);
-                        trades = new List<Trade>(); // Clear trades for the next day
-                        currentDay = trade.Time.Date;
                     }
 
-                    trades.Add(trade);
+                    SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
+
+                    MessageBox.Show("Conversion completed!", "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-
-                // Process any remaining trades
-                if (trades.Count > 0)
-                {
-                    ProcessTradesAndWriteCandles(trades, writer);
-                }
-
-                SendNewLogMessage(OsLocalization.Converter.Message9, LogMessageType.System);
-
-                MessageBox.Show("Conversion completed!", "Notification", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

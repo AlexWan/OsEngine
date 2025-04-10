@@ -600,6 +600,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (CheckBoxSaveTradeArrayInCandle.Dispatcher.CheckAccess() == false)
+                {
+                    CheckBoxSaveTradeArrayInCandle.Dispatcher.Invoke(
+                        new Action(LoadSecurityOnBox));
+                    return;
+                }
+
+
                 List<IServer> serversAll = ServerMaster.GetServers();
 
                 IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);

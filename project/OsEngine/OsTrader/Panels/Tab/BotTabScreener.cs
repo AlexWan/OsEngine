@@ -1603,7 +1603,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             nRow.Cells[0].Value = num;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[1].Value = this.SecuritiesClass;
+            nRow.Cells[1].Value = tab.Connector.SecurityClass;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[2].Value = tab.Connector.SecurityName;
