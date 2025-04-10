@@ -38,15 +38,15 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(transaq);
 
-            SupportConnection tinkoff = new SupportConnection()
+            SupportConnection tinvest = new SupportConnection()
             {
-                ServerType = ServerType.TinkoffInvestments,
+                ServerType = ServerType.TInvest,
                 SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Moex\\Tinkoff.png",
+                LinqToLogo = "\\Images\\Connections\\Moex\\TInvest.png",
                 LingSiteUrl = "",
                 Discount = 0
             };
-            supportList.Add(tinkoff);
+            supportList.Add(tinvest);
 
             SupportConnection quikLua = new SupportConnection()
             {

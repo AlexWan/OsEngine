@@ -35,7 +35,7 @@ using OsEngine.Market.Servers.ZB;
 using OsEngine.Market.Servers.Hitbtc;
 using OsEngine.Market.Servers.MFD;
 using OsEngine.Market.Servers.MOEX;
-using OsEngine.Market.Servers.TinkoffInvestments;
+using OsEngine.Market.Servers.TInvest;
 using MessageBox = System.Windows.MessageBox;
 using OsEngine.Market.Servers.Bybit;
 using OsEngine.Market.Servers.OKX;
@@ -180,7 +180,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.QuikLua);
                 serverTypes.Add(ServerType.Plaza);
                 serverTypes.Add(ServerType.Transaq);
-                serverTypes.Add(ServerType.TinkoffInvestments);
+                serverTypes.Add(ServerType.TInvest);
                 serverTypes.Add(ServerType.Finam);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
@@ -305,7 +305,7 @@ namespace OsEngine.Market
             {
                 List<ServerType> serverTypes = new List<ServerType>();
 
-                serverTypes.Add(ServerType.TinkoffInvestments);
+                serverTypes.Add(ServerType.TInvest);
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.Deribit);
                 serverTypes.Add(ServerType.KuCoinSpot);
@@ -505,9 +505,9 @@ namespace OsEngine.Market
                 {
                     newServer = new MoexDataServer();
                 }
-                if (type == ServerType.TinkoffInvestments)
+                if (type == ServerType.TInvest)
                 {
-                    newServer = new TinkoffInvestmentsServer();
+                    newServer = new TInvestServer();
                 }
                 if (type == ServerType.Hitbtc)
                 {
@@ -1205,9 +1205,9 @@ namespace OsEngine.Market
                 {
                     serverPermission = new FinamServerPermission();
                 }
-                else if (type == ServerType.TinkoffInvestments)
+                else if (type == ServerType.TInvest)
                 {
-                    serverPermission = new TinkoffInvestmentsServerPermission();
+                    serverPermission = new TInvestServerPermission();
                 }
                 else if (type == ServerType.GateIoFutures)
                 {
@@ -1483,10 +1483,10 @@ namespace OsEngine.Market
         None,
 
         /// <summary>
-        /// connection to Russian broker Tinkoff Investments
-        /// подключение к Тинькофф Инвестициям (версия 3 коннектора)
+        /// connection to Russian broker T-Invest
+        /// подключение к Т-Инвестициям (версия 3 коннектора)
         /// </summary>
-        TinkoffInvestments,
+        TInvest,
 
         /// <summary>
         /// cryptocurrency exchange Hitbtc
