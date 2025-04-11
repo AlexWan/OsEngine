@@ -177,7 +177,17 @@ namespace OsEngine.Market.Servers.Transaq
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "RUB",
+                    "USD",
+                    "EUR"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect
