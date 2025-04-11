@@ -1075,6 +1075,18 @@ namespace OsEngine.Market.Servers.Transaq
                 portfolio.Number = client;
             }
 
+            // остатки по портфелю в валюте портфеля
+
+            XmlNode currencyPortfolio = root.SelectSingleNode("portfolio_currency");
+            XmlNode balance = currencyPortfolio.SelectSingleNode("cover");
+            string cr = currencyPortfolio.Attributes[0].Value;
+
+            PositionOnBoard posCur = new PositionOnBoard();
+            posCur.SecurityNameCode = cr;
+            posCur.PortfolioName = portfolio.Number;
+            posCur.ValueCurrent = balance.InnerText.ToDecimal();
+            portfolio.SetNewPosition(posCur);
+
             for (int i = 0; i < allSecurity.Count; i++)
             {
                 XmlNode node = (XmlNode)allSecurity[i];
