@@ -692,6 +692,14 @@ namespace OsEngine.Indicators
             }
         }
 
+        public void RePaint()
+        {
+            if(NeedToReloadEvent != null)
+            {
+                NeedToReloadEvent(this);
+            }
+        }
+
         public event Action<IIndicator> NeedToReloadEvent;
 
         #endregion

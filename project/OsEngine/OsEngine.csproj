@@ -454,6 +454,7 @@
     <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
       <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Indicators\EmptyIndicator.cs" />
     <Compile Include="Indicators\IndicatorDataSeries.cs" />
     <Compile Include="Indicators\Samples\Sample1Blank.cs" />
     <Compile Include="Indicators\Samples\Sample2IndicatorParameters.cs" />
@@ -1300,6 +1301,7 @@
     <Compile Include="Robots\TechSamples\CandlesLoggingSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
     <Compile Include="Robots\TechSamples\CustomChartInParamWindowSample.cs" />
+    <Compile Include="Robots\TechSamples\CustomDataInIndicatorSample.cs" />
     <Compile Include="Robots\TechSamples\CustomParamsUseBotSample.cs" />
     <Compile Include="Robots\TechSamples\StopByTradeFeedSample.cs" />
     <Compile Include="Robots\TechSamples\VisualSettingsParametersExample.cs" />

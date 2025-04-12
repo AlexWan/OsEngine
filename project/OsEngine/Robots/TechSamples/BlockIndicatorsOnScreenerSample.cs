@@ -66,7 +66,6 @@ namespace OsEngine.Robots.TechSamples
                atr.IsOn = _atrIsOn.ValueBool;
                atr.Reload();
            }
-
         }
 
         public override string GetNameStrategyType()

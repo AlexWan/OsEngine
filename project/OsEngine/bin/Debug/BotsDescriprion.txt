@@ -4,13 +4,15 @@ BbPowerTrade&Trend strategy based on two indicators BullsPower and BearsPowerBul
 BollingerRevers&Trend Strategy Based on Breaking Bollinger Lines Buy: 1. The price is more than BollingerUpLine. Sell: 1. Price below BollingerDownLine.Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*&
 BollingerTrailing&Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands Buy: 1. The price is more than BollingerUpLine. Sell: 1. Price below BollingerDownLine.Exit: 1. Trailing-Stop through Bollinger Bands&Include&&Simple 1*&Bollinger*&
 BollingerTrendVolatilityStagesFilter&&Include&&Simple 1*&Bollinger*VolatilityStagesAW*&
-BlockIndicatorsSample&Example showing the blocking of indicators for calculation&Include&&Simple 1*&Bollinger*Sma*PriceChannel*&
+BlockIndicatorsOnScreenerSample&Example showing the blocking of indicators for calculation on BotTabScreener source&Include&&Screener 1*&Bollinger*Sma*ATR*&
+BlockIndicatorsSample&Example showing the blocking of indicators for calculation&Include&&Simple 1*&Bollinger*Sma*ATR*&
 BollingerMomentumScreener&&Include&&Screener 1*&Bollinger*Momentum*&
 ClusterEngine&blank strategy for manual trading&Include&&Cluster 1*&&
 CciTrade&Counter Trend Strategy Based on CCI Indicator. Max - 3 poses Buy: 1. CCI is less than DownLine. Sell: 1. CCI more UpLine. Exit: on the return signal.&Include&&Simple 1*&CCI*&
 CandlesLoggingSample&An example of a robot for programmers, where you can see how logging works&Include&&Simple 1*&&
 ChangePriceBotExtStopMarket&&Include&&Simple 1*&&
 CustomChartInParamWindowSample&Sample “Chart in the parameters window” for osengine. It shows: • Dynamic graph: The graph updates in real time as new data becomes available. • User interaction: The user can change the scale of the graph and get values ​​at specific points. • Customizable parameters: Ability to select the spread calculation method and the maximum number of points on the chart.&Include&&Simple 2*&&
+CustomDataInIndicatorSample&An example of drawing a series of indicator data calculated in the robot.&Include&&Simple 1*&EmptyIndicator*&
 CustomParamsUseBotSample&&Include&&Simple 1*&Sma*Sma*ATR*&
 CustomTableInParamWindowSample&Sample “Custom Table In The Param Window” for osengine. It shows: • Dynamic table: The table is updated in real time as new data arrives. • User Interaction: The user can change data in the table and get values ​​in specific cells. • Customizable parameters: Ability to turn the robot on and off and also set a trailing stop for exit.&Include&&Screener 1*&&
 CustomCandlesImpulseTrader&Trading robot for adaptive by volatility candle series. if he sees a movement to one side in a short period of time, it enters the position&Include&&Simple 1*&&
