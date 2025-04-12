@@ -1300,6 +1300,7 @@
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
     <Compile Include="Robots\TechSamples\CustomChartInParamWindowSample.cs" />
     <Compile Include="Robots\TechSamples\CustomParamsUseBotSample.cs" />
+    <Compile Include="Robots\TechSamples\StopByTradeFeedSample.cs" />
     <Compile Include="Robots\TechSamples\VisualSettingsParametersExample.cs" />
     <Compile Include="Robots\OnScriptIndicators\FundBalanceDivergenceBot.cs" />
     <Compile Include="Robots\OnScriptIndicators\MacdRevers.cs" />

@@ -30,6 +30,7 @@ Fisher&Fisher based on multithreading Entering a position - we are waiting for a
 GridSample&Logic of the first Buy: if there are N candles falling down, we place the first order according to the close of the last candle. Next: buy if the price is greater than entryUpPrice or less than entryDownPrice. Exit: by stop&Include&&Simple 1*&&
 HighFrequencyTrader&robot analyzing the density of the market depth&Include&&Simple 1*&&
 IndexArbitrageClassic&Classic trading with two index&Include&&Index 2*Screener 2*&&
+LinearRegressionFastScreener&&Include&&Screener 1*&ADX*LinearRegressionChannelFast_Indicator*Sma*&
 Lesson1HelloWorld&&Include&&&&
 Lesson2Bot1&&Include&&&&
 Lesson2Bot2&&Include&&&&
@@ -86,6 +87,7 @@ RsiContrtrend&Robot based on RSI indicator and moving average, trading by counte
 ScreenerEngine&blank strategy for manual trading&Include&&Screener 1*&&
 SmaStochastic&Trend strategy based on 2 indicators Sma and RSI. if lastClose > lastSma + Step and secondLastRsi <= Downline and firstLastRsi >= Downline - Enter Long. if lastClose < lastSma - Step and secondLastRsi >= Upline and firstLastRsi <= Upline - Enter Short. Exit Long: lastClose < lastSma - Step. Exit Short: lastClose > lastSma + Step.&Include&&Simple 1*&MovingAverage*StochasticOscillator*&
 StrategyBillWilliams&&Include&&Simple 1*&Alligator*Fractal*AwesomeOscillator*&
+StopByTradeFeedSample&An example of a robot that pulls up the stop for a position based on changes in the deals feed. IMPORTANT! Tests of this robot should be conducted on the deals feed.&Include&&Simple 1*&PriceChannel*&
 SmaScreener&If there is a position, exit by trailing stop. If there is no position. Open long if the last N candles we were above the moving average&Include&&Screener 1*&Sma*&
 SmaTrendSample&Trend robot SmaTrendSample Buy: lastCandlePrice > smaValue and lastCandlePrice > upChannel.Sell: lastCandlePrice < smaValue and lastCandlePrice < downChannel.Exit: By TralingStop&Include&&Simple 1*&Sma*Envelops*&
 StrategyBollinger&The Countertrend robot Buy: 1. Price below BollingerDownLine. Sell: 1. The price is more than BollingerUpLine. Exit: 1. At the intersection of Sma with the price&Include&&Simple 1*&Bollinger*MovingAverage*&
@@ -103,6 +105,7 @@ TestBotOption&&Include&&&&
 TestBotTradesInCandlesTest&Do not enable - a robot for testing the synchronism of the array of trades in the candle and the candles themselves&Include&&Screener 1*&Sma*&
 UnsafeAveragePosition&Example of using a non-safe method of position averaging by several limit orders simultaneously.&Include&&Simple 1*&Envelops*&
 UnsafeLimitsClosingSample&Example of using a non-safe method of closing positions with multiple limit orders at the same time&Include&&Simple 1*&Envelops*&
+VisualSettingsParametersExample&This is an example of working with settings for visual design of Parameters window&Include&&Simple 1*&&
 VolatilityAdaptiveCandlesTrader&Trading robot for adaptive candles by volatility&Include&&Simple 1*&&
 WilliamsRangeTrade&Counter Trend Strategy Based on Willams% R Indicator Buy: 1. Williams Range is smaller than DownLine. sell: 1. Williams Range is larger than UpLine. exit: 1. On the return signal&Include&&Simple 1*&WilliamsRange*&
 WServerTester&&Include&&&&
@@ -303,5 +306,4 @@ StrategyZigZagWithMACDAndCCI&The trend robot on Strategy ZigZag With MACD And CC
 SystemTomaDemark&The trend robot on Strategy System Toma Demark. Buy: Fast Ema above slow Ema and Momentum line above Momentum (e.g. above 100); Sell: Fast Ema below slow Ema and Momentum line below Momentum Cell (e.g. below 100); Exit from buy: trailing stop in % of the loy of the candle on which you entered. Exit from sell: trailing stop in % of the high of the candle on which you entered.&Script&&Simple 1*&Ema*Ema*Momentum*&
 TelegramSample&Robot is an example of sending notifications to Telegram. Telegram receives notifications about opening of a deal, closing of a deal and loss of connection to server. Its trading strategy is based on breakdown of PriceChannel - we buy at breakdown of upper border of channel, close position at breakdown of lower one. Robot is for demonstration, not for real trading - be careful. Be careful in Tester and Optimazer - it can often send notifications.&Script&&Simple 1*&PriceChannel*&
 TraderStohAndCCI&The trend robot on Stochastic And CCI. Buy: 1. The CCI line is in the range between levels 100 and -100, and is directed upwards. 2. Stochastic crosses level 20 from bottom to top. Sell: 1. The CCI line is in the range between levels 100 and -100, and is directed downwards. 2. Stochastic crosses the level 80 from top to bottom. Buy exit: trailing stop in % of the line of the candle on which you entered. Sell ​​exit: trailing stop in % of the high of the candle where you entered.&Script&&Simple 1*&CCI*Stochastic*&
-VisualSettingsParametersExample&This is an example of working with settings for visual design of Parameters window&Include&&Simple 1*&&
 VwmaWithAShift&The trend robot on intersection of two Vwma with a shift Buy: Fast Vwma is higher than slow Vwma. Sell: Fast Vwma is lower than slow Vwma. Exit: stop and profit in % of the entry price.&Script&&Simple 1*&VWMA*OffsetVwma*&

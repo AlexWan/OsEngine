@@ -30,15 +30,12 @@ namespace OsEngine.Robots.Trend
             _priceCh = new PriceChannel(name + "Prime", false);
             _priceCh = (PriceChannel)_tab.CreateCandleIndicator(_priceCh, "Prime");
 
-
-
             _priceCh.Save();
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
             Slippage = 0;
             VolumeFix = 1;
-
 
             Load();
 
