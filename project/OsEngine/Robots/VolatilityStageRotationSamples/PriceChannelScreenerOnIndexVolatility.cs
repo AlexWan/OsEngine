@@ -12,7 +12,6 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
-using System.Reflection;
 using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.Robots.VolatilityStageRotationSamples

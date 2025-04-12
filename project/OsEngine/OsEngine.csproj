@@ -1295,6 +1295,7 @@
     <Compile Include="Robots\Screeners\PinBarVolatilityScreener.cs" />
     <Compile Include="Robots\Screeners\PriceChannelAdaptiveRsiScreener.cs" />
     <Compile Include="Robots\TechSamples\AllSourcesInOneSample.cs" />
+    <Compile Include="Robots\TechSamples\BlockIndicatorsOnScreenerSample.cs" />
     <Compile Include="Robots\TechSamples\BlockIndicatorsSample.cs" />
     <Compile Include="Robots\TechSamples\CandlesLoggingSample.cs" />
     <Compile Include="Robots\TechSamples\ChangePriceBotExtStopMarket.cs" />
