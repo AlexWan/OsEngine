@@ -18,6 +18,24 @@ namespace OsEngine.Robots.TechSamples
     [Bot("StopByTradeFeedSample")]
     public class StopByTradeFeedSample : BotPanel
     {
+        private BotTabSimple _tab;
+
+        private Aindicator _pc;
+
+        public StrategyParameterString Regime;
+
+        public StrategyParameterInt IndLength;
+
+        public StrategyParameterDecimal TrailStopPercent;
+
+        public StrategyParameterInt Slippage;
+
+        public StrategyParameterString VolumeType;
+
+        public StrategyParameterDecimal Volume;
+
+        public StrategyParameterString TradeAssetInPortfolio;
+
         public StopByTradeFeedSample(string name, StartProgram startProgram)
       : base(name, startProgram)
         {
@@ -36,13 +54,12 @@ namespace OsEngine.Robots.TechSamples
 
             _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
             _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
-
             _pc.ParametersDigit[0].Value = IndLength.ValueInt;
             _pc.ParametersDigit[1].Value = IndLength.ValueInt;
-
             _pc.Save();
 
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
+            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
             _tab.NewTickEvent += _tab_NewTickEvent;
 
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
@@ -72,78 +89,54 @@ namespace OsEngine.Robots.TechSamples
 
         }
 
-        private BotTabSimple _tab;
-
-        private Aindicator _pc;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt IndLength;
-
-        public StrategyParameterDecimal TrailStopPercent;
-
-        public StrategyParameterInt Slippage;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        private void Strateg_CandleFinishedEvent(List<Candle> candles)
+        private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             if (Regime.ValueString == "Off")
             {
                 return;
             }
 
-            if (_pc.DataSeries[0].Values == null || _pc.DataSeries[1].Values == null)
+            if (_pc.DataSeries[0].Values == null 
+                || _pc.DataSeries[1].Values == null)
             {
                 return;
             }
 
-            if (_pc.DataSeries[0].Values.Count < _pc.ParametersDigit[0].Value + 2 || _pc.DataSeries[1].Values.Count < _pc.ParametersDigit[1].Value + 2)
+            if (_pc.DataSeries[0].Values.Count < _pc.ParametersDigit[0].Value + 2 
+                || _pc.DataSeries[1].Values.Count < _pc.ParametersDigit[1].Value + 2)
             {
                 return;
             }
-
-            List<Position> openPositions = _tab.PositionsOpenAll;
 
             if (Regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
-            if (openPositions == null 
-                || openPositions.Count == 0)
-            {
-                LogicOpenPosition(candles, openPositions);
-            }
-        }
-
-        private void LogicOpenPosition(List<Candle> candles, List<Position> position)
-        {
-            decimal _lastPrice = candles[candles.Count - 1].Close;
-            decimal _lastPcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 2];
-            decimal _lastPcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
-            if (openPositions == null || openPositions.Count == 0)
-            {
+
+            if (openPositions == null
+                || openPositions.Count == 0)
+            {// no positions
+                decimal lastPrice = candles[candles.Count - 1].Close;
+                decimal lastPcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 2];
+                decimal lastPcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 2];
+
                 // long
                 if (Regime.ValueString != "OnlyShort")
                 {
-                    if (_lastPrice > _lastPcUp)
+                    if (lastPrice > lastPcUp)
                     {
-                        _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+                        _tab.BuyAtLimit(GetVolume(_tab), lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
 
                 // Short
                 if (Regime.ValueString != "OnlyLong")
                 {
-                    if (_lastPrice < _lastPcDown)
+                    if (lastPrice < lastPcDown)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+                        _tab.SellAtLimit(GetVolume(_tab), lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
             }
@@ -157,11 +150,6 @@ namespace OsEngine.Robots.TechSamples
             }
 
             List<Position> openPositions = _tab.PositionsOpenAll;
-
-            if (Regime.ValueString == "OnlyClosePosition")
-            {
-                return;
-            }
 
             if (openPositions == null
                 || openPositions.Count == 0)
