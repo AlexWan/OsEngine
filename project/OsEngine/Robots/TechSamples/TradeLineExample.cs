@@ -1,20 +1,17 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System.Net;
-using System.Threading.Tasks;
-using OsEngine.Logging;
-using OsEngine.Market.Servers;
-using OsEngine.Market;
 using OsEngine.Charts.CandleChart.Elements;
 using System.Windows.Forms.DataVisualization.Charting;
-using System.Windows.Forms;
 using Line = OsEngine.Charts.CandleChart.Elements.Line;
 
 namespace OsEngine.Robots.TechSamples
@@ -30,34 +27,19 @@ namespace OsEngine.Robots.TechSamples
         public StrategyParameterInt CandlesForPcLevel;
         public StrategyParameterDecimal GoodDif;
 
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
-
         private StrategyParameterDecimal ProfitPercent;
         private StrategyParameterDecimal StopPercent;
-
-        private StrategyParameterCheckBox RegimeTAlerts;
-        private StrategyParameterString BotToken;
-        private StrategyParameterString TelegramId;
 
         // Indicator setting 
         public StrategyParameterInt PeriodPC;
         private StrategyParameterInt LengthZig;
 
         // Indicator
-        Aindicator _PC;
         Aindicator _ZZ;
-
 
         private bool _signalBuy;
         private bool _signalBuyClose;
 
-
-        ////////////////////////////////////////////////
-        //MAIN BASE
-        ////////////////////////////////////////////////
-        ///
-        /// 
         public TradeLineExample(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -67,16 +49,12 @@ namespace OsEngine.Robots.TechSamples
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" },
                 "Base");
 
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 9, 15, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 23, 40, 0, 0, "Base");
-
             ProfitPercent = CreateParameter("Profit percent", 1, 0.5m, 5, 0.1m);
             StopPercent = CreateParameter("Stop percent", 0.3m, 0.2m, 2, 0.1m);
 
             // Setting indicator 
 
             LengthZig = CreateParameter("Period Zig", 16, 1, 20, 1, "Indicators");
-
 
             // Create indicator ZigZag
             _ZZ = IndicatorsFactory.CreateIndicatorByName("ZigZag", name + "ZigZag", false);

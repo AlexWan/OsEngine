@@ -1,4 +1,8 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
@@ -7,12 +11,22 @@ using OsEngine.OsTrader.Panels.Attributes;
 
 namespace OsEngine.Robots.TechSamples
 {
-    // пример показывающий блокировку индикаторов для расчёта
-    // пригодиться при оптимизации роботов, в которых нужны не все индикаторы
+    // example showing blocking of indicators for calculating
+    // useful when optimizing robots that do not need all created indicators 
 
     [Bot("BlockIndicatorsSample")]
     public class BlockIndicatorsSample : BotPanel
     {
+        private BotTabSimple _tab;
+
+        private Aindicator _bollinger;
+        private Aindicator _sma;
+        private Aindicator _atr;
+
+        private StrategyParameterBool _bollingerIsOn;
+        private StrategyParameterBool _smaIsOn;
+        private StrategyParameterBool _atrIsOn;
+
         public BlockIndicatorsSample(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -24,14 +38,14 @@ namespace OsEngine.Robots.TechSamples
             _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "sma", false);
             _sma = (Aindicator)_tab.CreateCandleIndicator(_sma, "Prime");
 
-            _priceChannel = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "Pc", false);
-            _priceChannel = (Aindicator)_tab.CreateCandleIndicator(_priceChannel, "Prime");
+            _atr = IndicatorsFactory.CreateIndicatorByName("ATR", name + "atr", false);
+            _atr = (Aindicator)_tab.CreateCandleIndicator(_atr, "AtrArea");
 
-            _bollingerIsOn = CreateParameter("вкл расчёт Bollinger", true);
+            _bollingerIsOn = CreateParameter("Bollinger is ON", true);
 
-            _smaIsOn = CreateParameter("вкл расчёт Sma", true);
+            _smaIsOn = CreateParameter("Sma is ON", true);
 
-            _priceChannelIsOn = CreateParameter("вкл расчёт PriceChannel", true);
+            _atrIsOn = CreateParameter("Atr is ON", true);
 
             StopOrActivateIndicators();
 
@@ -61,24 +75,13 @@ namespace OsEngine.Robots.TechSamples
                 _sma.Reload();
             }
 
-            if (_priceChannelIsOn.ValueBool
-                != _priceChannel.IsOn)
+            if (_atrIsOn.ValueBool
+                != _atr.IsOn)
             {
-                _priceChannel.IsOn = _priceChannelIsOn.ValueBool;
-                _priceChannel.Reload();
+                _atr.IsOn = _atrIsOn.ValueBool;
+                _atr.Reload();
             }
         }
-
-        private BotTabSimple _tab;
-
-        private Aindicator _bollinger;
-        StrategyParameterBool _bollingerIsOn;
-
-        private Aindicator _sma;
-        StrategyParameterBool _smaIsOn;
-
-        private Aindicator _priceChannel;
-        StrategyParameterBool _priceChannelIsOn;
 
         public override string GetNameStrategyType()
         {

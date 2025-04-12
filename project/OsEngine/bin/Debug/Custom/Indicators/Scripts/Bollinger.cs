@@ -47,6 +47,11 @@ namespace OsEngine.Indicators
 
             decimal valueSma = _sma.DataSeries[0].Values[index];
 
+            if (valueSma == 0)
+            {
+                return;
+            }
+
             _seriesCenter.Values[index] = _sma.DataSeries[0].Values[index];
 
             decimal[] valueDev = new decimal[_length.ValueInt];
