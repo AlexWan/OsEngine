@@ -19,6 +19,7 @@ using OsEngine.Candles;
 using OsEngine.Candles.Factory;
 using OsEngine.Candles.Series;
 using OsEngine.Market.Servers.Optimizer;
+using System.Drawing;
 
 namespace OsEngine.Market.Connectors
 {
@@ -87,6 +88,7 @@ namespace OsEngine.Market.Connectors
                 Closed += MassSourcesCreateUi_Closed;
 
                 ActivateCandlesTypesControls();
+                TryUpdateTimeFramePermissions();
             }
             catch (Exception error)
             {
@@ -481,6 +483,7 @@ namespace OsEngine.Market.Connectors
         private void ComboBoxClass_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             LoadSecurityOnBox();
+            TryUpdateTimeFramePermissions();
         }
 
         private void LoadPortfolioOnBox()
@@ -874,6 +877,166 @@ namespace OsEngine.Market.Connectors
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
                     _gridSecurities.Rows[i].Cells[6].Value = isCheck;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TryUpdateTimeFramePermissions()
+        {
+            try
+            {
+                if (_candlesRealizationGrid == null)
+                {
+                    return;
+                }
+
+                if (SourcesCreator.StartProgram != StartProgram.IsOsOptimizer
+                     && SourcesCreator.StartProgram != StartProgram.IsTester)
+                {
+                    return;
+                }
+
+                if (CheckBoxSaveTradeArrayInCandle.Dispatcher.CheckAccess() == false)
+                {
+                    CheckBoxSaveTradeArrayInCandle.Dispatcher.Invoke(
+                        new Action(TryUpdateTimeFramePermissions));
+                    return;
+                }
+
+                for (int i = 0; i < _candlesRealizationGrid.Rows.Count; i++)
+                {
+                    DataGridViewRow row = _candlesRealizationGrid.Rows[i];
+
+                    TimeFrame currentTf;
+
+                    if (Enum.TryParse(row.Cells[1].Value.ToString(), out currentTf) == false)
+                    {
+                        continue;
+                    }
+
+                    DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)row.Cells[1];
+                    CheckCurrentTfInSecuritiesForTesterOrOptimizer(cell);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CheckCurrentTfInSecuritiesForTesterOrOptimizer(DataGridViewComboBoxCell box)
+        {
+            try
+            {
+                if (SourcesCreator.StartProgram != StartProgram.IsOsOptimizer
+                && SourcesCreator.StartProgram != StartProgram.IsTester)
+                {
+                    return;
+                }
+
+                if (_gridSecurities.Rows.Count == 0)
+                {
+                    return;
+                }
+
+                if (box.Value == null)
+                {
+                    return;
+                }
+
+                // 1 берём текущий выбранный ТФ
+
+                TimeFrame currentTf;
+
+                if (Enum.TryParse(box.Value.ToString(), out currentTf) == false)
+                {
+                    return;
+                }
+
+                // 2 берём все доступные данные из сервера
+
+                TesterServer serverTester = null;
+                OptimizerServer serverOpt = null;
+
+                IServer serverI = ServerMaster.GetServers()[0];
+
+                if (serverI.ServerType == ServerType.Tester)
+                {
+                    serverTester = (TesterServer)serverI;
+
+                    if (serverTester.TypeTesterData != TesterDataType.Candle)
+                    {
+                        return;
+                    }
+                }
+                else if (serverI.ServerType == ServerType.Optimizer)
+                {
+                    serverOpt = (OptimizerServer)serverI;
+
+                    if (serverOpt.TypeTesterData != TesterDataType.Candle)
+                    {
+                        return;
+                    }
+                }
+
+                List<SecurityTester> securities = null;
+
+                if (serverTester != null)
+                {
+                    securities = serverTester.SecuritiesTester;
+                }
+                else if (serverOpt != null)
+                {
+                    securities = serverOpt.SecuritiesTester;
+                }
+
+                // 3 бежим по таблице бумаг и запрещаем те по которым нет этого таймфрейма
+
+                for (int i = 0; i < _gridSecurities.Rows.Count; i++)
+                {
+                    string currentSecurity = _gridSecurities.Rows[i].Cells[3].Value.ToString();
+
+                    bool haveThisTf = false;
+
+                    for (int i2 = 0; i2 < securities.Count; i2++)
+                    {
+                        if (securities[i2].Security.Name == currentSecurity
+                            && securities[i2].TimeFrame == currentTf)
+                        {
+                            haveThisTf = true;
+                            break;
+                        }
+                    }
+
+                    if (haveThisTf == true)
+                    {
+                        _gridSecurities.Rows[i].Cells[6].ReadOnly = false;
+
+                        _gridSecurities.Rows[i].Cells[6].Style.BackColor
+                            = _gridSecurities.Columns[0].DefaultCellStyle.BackColor;
+
+                        _gridSecurities.Rows[i].Cells[6].Style.SelectionBackColor
+                             = _gridSecurities.Columns[0].DefaultCellStyle.SelectionBackColor;
+
+                    }
+                    else if (haveThisTf == false)
+                    {
+                        _gridSecurities.Rows[i].Cells[6].ReadOnly = true;
+                        _gridSecurities.Rows[i].Cells[6].Style.BackColor = Color.DarkGray;
+                        _gridSecurities.Rows[i].Cells[6].Style.SelectionBackColor = Color.DarkGray;
+
+                        DataGridViewCheckBoxCell cellIsOn = (DataGridViewCheckBoxCell)_gridSecurities.Rows[i].Cells[6];
+
+                        if (cellIsOn.Value != null
+                            && cellIsOn.Value.ToString() == "True")
+                        {
+                            cellIsOn.Value = false;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -1423,14 +1586,32 @@ namespace OsEngine.Market.Connectors
                         return;
                     }
 
-                    string name = securities[0].Security.Name;
+                    List<string> timeFramesArray = new List<string>();
 
                     for (int i = 0; i < securities.Count; i++)
                     {
-                        if (name == securities[i].Security.Name)
+                        TimeFrame curTf = securities[i].TimeFrame;
+
+                        bool isInArray = false;
+
+                        for (int i2 = 0; i2 < timeFramesArray.Count; i2++)
                         {
-                            box.Items.Add(securities[i].TimeFrame.ToString());
+                            if (timeFramesArray[i2] == curTf.ToString())
+                            {
+                                isInArray = true;
+                                break;
+                            }
                         }
+
+                        if (isInArray == false)
+                        {
+                            timeFramesArray.Add(curTf.ToString());
+                        }
+                    }
+
+                    for (int i = 0; i < timeFramesArray.Count; i++)
+                    {
+                        box.Items.Add(timeFramesArray[i]);
                     }
 
                     ComboBoxCandleCreateMethodType.SelectedItem = CandleCreateMethodType.Simple;
@@ -1612,6 +1793,13 @@ namespace OsEngine.Market.Connectors
                 else if (param.Type == CandlesParameterType.StringCollection)
                 {
                     ((CandlesParameterString)param).ValueString = value;
+
+                    if (param.SysName == "TimeFrame")
+                    {
+                        DataGridViewComboBoxCell cell = (DataGridViewComboBoxCell)_candlesRealizationGrid.Rows[row].Cells[1];
+
+                        CheckCurrentTfInSecuritiesForTesterOrOptimizer(cell);
+                    }
                 }
             }
             catch (Exception ex)
