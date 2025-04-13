@@ -13,7 +13,7 @@ namespace OsEngine.Indicators
         {
             if (state == IndicatorState.Configure)
             {
-                _series = CreateSeries("Series", Color.DarkGreen, IndicatorChartPaintType.Point, true);
+                _series = CreateSeries("Series", Color.DarkGreen, IndicatorChartPaintType.Line, true);
                 _series.CanReBuildHistoricalValues = true;
             }
         }

@@ -611,6 +611,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             _webSocket.OnMessage += WebSocket_DataReceived;
             _webSocket.OnError += WebSocket_Error;
             _webSocket.OnClose += WebSocket_Closed;
+            
 
             _webSocket.Connect();
         }
