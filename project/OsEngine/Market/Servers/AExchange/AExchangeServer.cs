@@ -12,6 +12,7 @@ using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using OsEngine.OsTrader;
@@ -20,6 +21,7 @@ using WebSocketSharp;
 using OptionType = OsEngine.Entity.OptionType;
 using Order = OsEngine.Entity.Order;
 using Position = OsEngine.Entity.Position;
+using System.Net;
 
 namespace OsEngine.Market.Servers.AE
 {
@@ -85,11 +87,6 @@ namespace OsEngine.Market.Servers.AE
                 }
 
                 CreateWebSocketConnection();
-
-                SendCommand(new WebSocketLoginMessage
-                {
-                    Login = _username
-                });
             }
             catch (Exception ex)
             {
@@ -105,19 +102,13 @@ namespace OsEngine.Market.Servers.AE
                 {
                     Type = "Logout",
                 });
-            }
 
-            _securities.Clear();
-            _myPortfolios.Clear();
+                SendLogMessage("Logout sent to AE", LogMessageType.System);
 
-            DeleteWebSocketConnection();
+                _securities.Clear();
+                _myPortfolios.Clear();
 
-            SendLogMessage("Connection Closed by AE. WebSocket Data Closed Event", LogMessageType.System);
-
-            if (ServerStatus != ServerConnectStatus.Disconnect)
-            {
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                DeleteWebSocketConnection();
             }
         }
 
@@ -607,7 +598,10 @@ namespace OsEngine.Market.Servers.AE
 
             string json = JsonConvert.SerializeObject(command, _jsonSettings);
 
-            _ws.Send(json);
+            lock (_socketLocker)
+            {
+                _ws.Send(json);
+            }
         }
 
         private void CreateWebSocketConnection()
@@ -620,29 +614,31 @@ namespace OsEngine.Market.Servers.AE
                 }
 
                 _socketDataIsActive = false;
+                _messageId = 0;
 
                 lock (_socketLocker)
                 {
-                    WebSocketDataMessage = new ConcurrentQueue<string>();
+                    _dataMessageQueue = new ConcurrentQueue<string>();
 
-                    var certificate = new X509Certificate2(_pathToKeyFile, _keyFilePassphrase, X509KeyStorageFlags.MachineKeySet);
+                    if (_certificate == null)
+                    {
+                        _certificate = new X509Certificate2(_pathToKeyFile, _keyFilePassphrase,
+                            X509KeyStorageFlags.MachineKeySet);
+                    }
 
                     _ws = new WebSocket($"wss://{_apiHost}:{_apiPort}/clientapi/v1");
                     _ws.SslConfiguration.ClientCertificateSelectionCallback =
                         (sender, targethost, localCertificates, remoteCertificate, acceptableIssuers) =>
                         {
-                            return certificate;
+                            return _certificate;
                         };
 
                     _ws.SslConfiguration.ClientCertificates = new X509CertificateCollection();
                     // Add client certificate
-                    _ws.SslConfiguration.ClientCertificates.Add(certificate);
+                    _ws.SslConfiguration.ClientCertificates.Add(_certificate);
 
                     // Set SSL/TLS protocol (adjust as needed)
-                    _ws.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
-
-                    // Optional: Bypass server certificate validation (for testing only)
-                    _ws.SslConfiguration.ServerCertificateValidationCallback = (sender, cert, chain, errors) => true;
+                    _ws.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | SslProtocols.Tls13;
 
                     _ws.EmitOnPing = true;
                     _ws.OnOpen += WebSocketData_Opened;
@@ -666,28 +662,15 @@ namespace OsEngine.Market.Servers.AE
                 {
                     if (_ws != null)
                     {
-                        try
-                        {
-                            _ws.OnOpen -= WebSocketData_Opened;
-                            _ws.OnClose -= WebSocketData_Closed;
-                            _ws.OnMessage -= WebSocketData_MessageReceived;
-                            _ws.OnError -= WebSocketData_Error;
-                            _ws.CloseAsync();
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
+                        _ws.Close();
                     }
                 }
             }
             catch
             {
-
             }
             finally
             {
-                _ws = null;
             }
         }
 
@@ -718,10 +701,10 @@ namespace OsEngine.Market.Servers.AE
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
         }
 
         private WebSocket _ws;
+        private X509Certificate2 _certificate; 
 
         #endregion
 
@@ -729,8 +712,15 @@ namespace OsEngine.Market.Servers.AE
 
         private void WebSocketData_Opened(object sender, EventArgs e)
         {
-            SendLogMessage("Socket Data activated", LogMessageType.System);
+            SendLogMessage("Socket activated", LogMessageType.System);
             _socketDataIsActive = true;
+            
+            SendCommand(new WebSocketLoginMessage
+            {
+                Login = _username
+            });
+            SendLogMessage("Login sent to AE", LogMessageType.System);
+
             CheckActivationSockets();
         }
 
@@ -738,7 +728,19 @@ namespace OsEngine.Market.Servers.AE
         {
             try
             {
-                SendLogMessage("Connection Closed by AE. WebSocket Data Closed Event", LogMessageType.Error);
+                SendLogMessage("Connection to AE closed", LogMessageType.System);
+
+                lock (_socketLocker)
+                {
+                    _ws.OnOpen -= WebSocketData_Opened;
+                    _ws.OnClose -= WebSocketData_Closed;
+                    _ws.OnMessage -= WebSocketData_MessageReceived;
+                    _ws.OnError -= WebSocketData_Error;
+                    _ws.SslConfiguration.ClientCertificates = null;
+                    _ws.SslConfiguration.ClientCertificateSelectionCallback = null;
+
+                    _ws = null;
+                }
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
@@ -752,12 +754,10 @@ namespace OsEngine.Market.Servers.AE
             }
         }
 
-        private void WebSocketData_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketData_Error(object sender, WebSocketSharp.ErrorEventArgs error)
         {
             try
             {
-                var error = e;
-
                 if (error.Exception != null)
                 {
                     SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
@@ -765,7 +765,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception ex)
             {
-                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error: " + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -777,21 +777,18 @@ namespace OsEngine.Market.Servers.AE
                 {
                     return;
                 }
+
                 if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
+
                 if (e.Data.Length == 4)
                 { // pong message
                     return;
                 }
 
-                if (e.Data.StartsWith("{\"requestGuid"))
-                {
-                    return;
-                }
-
-                if (WebSocketDataMessage == null)
+                if (_dataMessageQueue == null)
                 {
                     return;
                 }
@@ -801,11 +798,11 @@ namespace OsEngine.Market.Servers.AE
                     return;
                 }
 
-                WebSocketDataMessage.Enqueue(e.Data);
+                _dataMessageQueue.Enqueue(e.Data);
             }
             catch (Exception error)
             {
-                SendLogMessage("Trade socket error. " + error.ToString(), LogMessageType.Error);
+                SendLogMessage("AE websocket error. " + error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -857,7 +854,7 @@ namespace OsEngine.Market.Servers.AE
 
         #region 9 WebSocket parsing the messages
 
-        private ConcurrentQueue<string> WebSocketDataMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> _dataMessageQueue = new ConcurrentQueue<string>();
 
         private void DataMessageReader()
         {
@@ -867,7 +864,7 @@ namespace OsEngine.Market.Servers.AE
             {
                 try
                 {
-                    if (WebSocketDataMessage.IsEmpty)
+                    if (_dataMessageQueue.IsEmpty)
                     {
                         Thread.Sleep(1);
                         continue;
@@ -875,7 +872,7 @@ namespace OsEngine.Market.Servers.AE
 
                     string message;
 
-                    WebSocketDataMessage.TryDequeue(out message);
+                    _dataMessageQueue.TryDequeue(out message);
                     
                     if (message == null)
                     {
@@ -886,7 +883,6 @@ namespace OsEngine.Market.Servers.AE
                     {
                         continue;
                     }
-
 
                     WebSocketMessageBase baseMessage = 
                         JsonConvert.DeserializeObject<WebSocketMessageBase>(message, _jsonSettings);
