@@ -138,9 +138,9 @@ namespace OsEngine.Market.Servers.AE
         #region 2 Properties
 
         private readonly string _apiHost = "213.219.228.50"; // prod
-        //private readonly int _apiPort = 21300; // prod
-        private readonly int _apiPort = 21513; // game  
- 
+        private readonly int _apiPort = 21300; // prod
+        // private readonly int _apiPort = 21513; // game  
+
         private string _pathToKeyFile;
         private string _keyFilePassphrase;
         private string _username;
