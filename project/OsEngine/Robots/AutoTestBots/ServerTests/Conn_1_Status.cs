@@ -25,7 +25,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 if(i != 0 && _lastStatus == myServer.ServerStatus)
                 {
                     this.SetNewError(
-                        "Error 1. ServerStatus don`t change after 10 seconds before it`s start or stop. Iteration: " + i);
+                        "Error 1. ServerStatus had not changed 10 seconds after it was started/stopped. Iteration: " + i);
                     TestEnded();
                     return;
                 }
@@ -52,7 +52,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if(logType == Logging.LogMessageType.Error)
             {
-                this.SetNewError("Error 2. Server have ERROR in log " + message);
+                this.SetNewError("Error 2. Server has ERROR in log " + message);
                 return;
             }
         }
@@ -69,7 +69,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (Server.ServerRealization.ServerStatus != ServerConnectStatus.Disconnect)
             {
-                this.SetNewError("Error 3. ServerRealization send Disconnect status. But it self not in Disconnect status ");
+                this.SetNewError("Error 3. ServerRealization sent Disconnect status. But it didn't have Disconnect status ");
                 return;
             }
 
@@ -95,7 +95,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         {
             if (Server.ServerRealization.ServerStatus != ServerConnectStatus.Connect)
             {
-                this.SetNewError("Error 5. ServerRealization send Connect status. But it self not in Connect status ");
+                this.SetNewError("Error 5. ServerRealization sent Connect status. But it didn't have Connect status ");
                 return;
             }
 
