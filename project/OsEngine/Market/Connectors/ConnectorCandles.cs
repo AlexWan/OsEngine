@@ -446,6 +446,7 @@ namespace OsEngine.Market.Connectors
             {
                 if (ServerType == ServerType.Lmax ||
                     ServerType == ServerType.Tester ||
+                     ServerType == ServerType.Optimizer ||
                     ServerType == ServerType.BitMex)
                 {
                     return true;
