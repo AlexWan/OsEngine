@@ -30,7 +30,7 @@ namespace OsEngine.Market.Servers.AE
             AExchangeServerRealization realization = new AExchangeServerRealization();
             ServerRealization = realization;
 
-            CreateParameterPath("Path to pem key file"); //
+            CreateParameterPath("Path to pfx key file"); //
             CreateParameterPassword("Key file passphrase", ""); //
             CreateParameterString("User name", ""); //
         }
@@ -137,8 +137,10 @@ namespace OsEngine.Market.Servers.AE
 
         #region 2 Properties
 
-        private readonly string _apiHost = "213.219.228.50";
-        private readonly int _apiPort = 21300;
+        private readonly string _apiHost = "213.219.228.50"; // prod
+        //private readonly int _apiPort = 21300; // prod
+        private readonly int _apiPort = 21513; // game  
+ 
         private string _pathToKeyFile;
         private string _keyFilePassphrase;
         private string _username;
@@ -202,9 +204,10 @@ namespace OsEngine.Market.Servers.AE
                 newSecurity.NameId = instrument.Ticker;
                 newSecurity.Name = instrument.Ticker;
                 newSecurity.NameClass = instrument.Type.ToString();
-                newSecurity.NameFull = instrument.FullName;
+                newSecurity.NameFull = instrument.FullName.IsNullOrEmpty() ? instrument.Ticker : instrument.FullName;
                 newSecurity.Exchange = "AE";
                 newSecurity.PriceStep = instrument.PriceStep ?? 1;
+                newSecurity.State = SecurityStateType.Activ;
 
                 if (instrument.ExpDate != null)
                 {
