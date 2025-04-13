@@ -909,7 +909,6 @@ namespace OsEngine.Market.Servers.Tester
                         order.Price = lastCandle.Open;
                     }
 
-
                     if (CheckOrdersInCandleTest(order, lastCandle))
                     {
                         i--;
@@ -953,11 +952,14 @@ namespace OsEngine.Market.Servers.Tester
             if (order.IsStopOrProfit)
             {
                 int slippage = 0;
+
                 if (_slippageToStopOrder > 0)
                 {
                     slippage = _slippageToStopOrder;
                 }
+
                 decimal realPrice = order.Price;
+
                 if (order.Side == Side.Buy)
                 {
                     if (minPrice > realPrice)
@@ -1175,8 +1177,8 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     slippage = _slippageToStopOrder;
                 }
-                decimal realPrice = order.Price;
 
+                decimal realPrice = order.Price;
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
@@ -1356,8 +1358,8 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     slippage = _slippageToStopOrder;
                 }
-                decimal realPrice = order.Price;
 
+                decimal realPrice = order.Price;
                 ExecuteOnBoardOrder(order, realPrice, time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
@@ -1443,7 +1445,9 @@ namespace OsEngine.Market.Servers.Tester
                     {
                         slippage = _slippageToSimpleOrder;
                     }
+
                     ExecuteOnBoardOrder(order, realPrice, time, slippage);
+
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
                         if (OrdersActive[i].NumberUser == order.NumberUser)
@@ -1499,6 +1503,7 @@ namespace OsEngine.Market.Servers.Tester
                     }
 
                     ExecuteOnBoardOrder(order, realPrice, time, slippage);
+
                     for (int i = 0; i < OrdersActive.Count; i++)
                     {
                         if (OrdersActive[i].NumberUser == order.NumberUser)
