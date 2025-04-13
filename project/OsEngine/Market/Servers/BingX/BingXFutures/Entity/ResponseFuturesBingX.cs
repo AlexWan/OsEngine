@@ -86,6 +86,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
         public string availableMargin { get; set; } // available margin
         public string usedMargin { get; set; } // used margin
         public string freezedMargin { get; set; } // frozen margin
+        public string shortUid { get; set; } // short uid
     }
 
     public class OrderDetails
@@ -180,9 +181,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
         public List<FillOrder> fill_orders { get; set; }
     }
 
-    public class Balance
+    public class PositionMode
     {
-        public BalanceInfoBingXFutures balance { get; set; }
+        public string dualSidePosition { get; set; }
     }
 
 
