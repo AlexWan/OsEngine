@@ -285,11 +285,14 @@ namespace OsEngine.Market.Servers.AE
             MyOrderEvent!(order);
         }
 
+        DateTime _lastMDTime = DateTime.MinValue;
+
         private void UpdateQuote(string message)
         {
             WebSocketQuoteMessage q = JsonConvert.DeserializeObject<WebSocketQuoteMessage>(message, _jsonSettings);
 
             Security sec = _securities.Find((s) => s.NameId == q.Ticker);
+
             if (q.LastPrice != null) // quote is trade
             {
                 Trade newTrade = new Trade();
@@ -320,7 +323,14 @@ namespace OsEngine.Market.Servers.AE
                     newMarketDepth.Bids.Add(bidLevel);
 
                     newMarketDepth.SecurityNameCode = q.Ticker;
-                    newMarketDepth.Time = newTrade.Time;
+                    newMarketDepth.Time = DateTime.UtcNow;
+
+                    if (newMarketDepth.Time == _lastMDTime)
+                    {
+                        newMarketDepth.Time = newMarketDepth.Time.AddTicks(1);
+                    }
+
+                    _lastMDTime = newMarketDepth.Time;
 
                     MarketDepthEvent!(newMarketDepth);
                 }
