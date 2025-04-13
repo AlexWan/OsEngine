@@ -232,7 +232,7 @@ namespace OsEngine.Market.Servers.AE
                 OrderPendingMessage orderData = JsonConvert.DeserializeObject<OrderPendingMessage>(message, _jsonSettings);
                 externalId = orderData.ExternalId;
                 order.TimeCallBack = orderData.Moment;
-                order.NumberMarket = orderData.OrderId.ToString();
+                order.NumberMarket = orderData.OrderId;
             }
             else if (type == "OrderRejected")
             {
@@ -240,7 +240,7 @@ namespace OsEngine.Market.Servers.AE
 
                 OrderRejectedMessage orderData = JsonConvert.DeserializeObject<OrderRejectedMessage>(message, _jsonSettings);
                 order.TimeCallBack = orderData.Moment;
-                order.NumberMarket = orderData.OrderId.ToString();
+                order.NumberMarket = orderData.OrderId;
 
                 SendLogMessage($"Order rejected. #{orderData.OrderId}. Message: {orderData.Message}", LogMessageType.Error);
             }
@@ -250,7 +250,7 @@ namespace OsEngine.Market.Servers.AE
 
                 OrderCanceledMessage orderData = JsonConvert.DeserializeObject<OrderCanceledMessage>(message, _jsonSettings);
                 order.TimeCallBack = orderData.Moment;
-                order.NumberMarket = orderData.OrderId.ToString();
+                order.NumberMarket = orderData.OrderId;
             }
             else if (type == "OrderFilled")
             {
@@ -258,7 +258,7 @@ namespace OsEngine.Market.Servers.AE
 
                 OrderFilledMessage orderData = JsonConvert.DeserializeObject<OrderFilledMessage>(message, _jsonSettings);
                 order.TimeCallBack = orderData.Moment;
-                order.NumberMarket = orderData.OrderId.ToString();
+                order.NumberMarket = orderData.OrderId;
 
                 if (orderData.SharesRemaining == 0.0m)
                 {
@@ -376,8 +376,8 @@ namespace OsEngine.Market.Servers.AE
             WebSocketTradeMessage trade = JsonConvert.DeserializeObject<WebSocketTradeMessage>(message, _jsonSettings);
             MyTrade newTrade = new MyTrade();
             newTrade.SecurityNameCode = trade.Ticker;
-            newTrade.NumberTrade = trade.TradeId.ToString();
-            newTrade.NumberOrderParent = trade.OrderId.ToString();
+            newTrade.NumberTrade = trade.TradeId;
+            newTrade.NumberOrderParent = trade.OrderId;
             newTrade.Volume = Math.Abs(trade.Shares);
             newTrade.Price = trade.Price;
             newTrade.Time = trade.Moment;
@@ -993,7 +993,7 @@ namespace OsEngine.Market.Servers.AE
                 SendCommand(new WebSocketCancelOrderMessage
                 {
                     Account = order.PortfolioNumber,
-                    OrderId = int.Parse(order.NumberMarket),
+                    OrderId = order.NumberMarket,
                     Ticker = order.SecurityNameCode
                 });
             }

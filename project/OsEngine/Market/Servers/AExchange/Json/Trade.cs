@@ -12,10 +12,10 @@ namespace OsEngine.Market.Servers.AE.Json
         public DateTime Moment { get; set; }
 
         [JsonProperty("order_id")]
-        public int OrderId { get; set; }
+        public string OrderId { get; set; }
 
         [JsonProperty("trade_id")]
-        public int TradeId { get; set; }
+        public string TradeId { get; set; }
 
         [JsonProperty("account")]
         public string AccountNumber { get; set; }

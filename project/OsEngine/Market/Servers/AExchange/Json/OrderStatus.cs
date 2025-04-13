@@ -14,7 +14,7 @@ namespace OsEngine.Market.Servers.AE.Json
         public string ExternalId { get; set; }
 
         [JsonProperty("order_id")]
-        public int OrderId { get; set; }
+        public string OrderId { get; set; }
     }
 
     public class OrderRejectedMessage : WebSocketMessageBase
@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.AE.Json
         public DateTime Moment { get; set; }
 
         [JsonProperty("order_id", NullValueHandling = NullValueHandling.Ignore)]
-        public int? OrderId { get; set; }
+        public string? OrderId { get; set; }
 
         [JsonProperty("msg")]
         public string Message { get; set; }
@@ -40,7 +40,7 @@ namespace OsEngine.Market.Servers.AE.Json
         public DateTime Moment { get; set; }
 
         [JsonProperty("order_id")]
-        public int OrderId { get; set; }
+        public string OrderId { get; set; }
 
         [JsonProperty("ext_id", NullValueHandling = NullValueHandling.Ignore)]
         public string ExternalId { get; set; }
@@ -53,7 +53,7 @@ namespace OsEngine.Market.Servers.AE.Json
         public DateTime Moment { get; set; }
 
         [JsonProperty("order_id")]
-        public int OrderId { get; set; }
+        public string OrderId { get; set; }
 
         [JsonProperty("ext_id", NullValueHandling = NullValueHandling.Ignore)]
         public string ExternalId { get; set; }

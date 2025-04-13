@@ -8,7 +8,7 @@ namespace OsEngine.Market.Servers.AE.Json
         public string Account { get; set; }
 
         [JsonProperty("order_id", NullValueHandling = NullValueHandling.Ignore)]
-        public int? OrderId { get; set; }
+        public string? OrderId { get; set; }
 
         [JsonProperty("ticker", NullValueHandling = NullValueHandling.Ignore)]
         public string Ticker { get; set; }
