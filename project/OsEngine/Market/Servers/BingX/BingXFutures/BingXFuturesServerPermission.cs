@@ -103,7 +103,6 @@
             get { return false; }
         }
 
-
         #endregion
 
         #region Trade permission
@@ -195,6 +194,7 @@
                 string[] values = new string[]
                 {
                     "USDT",
+                    "USDC"
                 };
 
                 return values;
