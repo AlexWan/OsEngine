@@ -842,7 +842,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
-                    _gridSecurities.Rows[i].Cells[6].Value = isCheck;
+                    if(_gridSecurities.Rows[i].Cells[6].ReadOnly == false)
+                    {
+                        _gridSecurities.Rows[i].Cells[6].Value = isCheck;
+                    }
                 }
             }
             catch (Exception ex)
@@ -870,6 +873,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             try
             {
                 if(_candlesRealizationGrid == null)
+                {
+                    return;
+                }
+
+                if (_screener.StartProgram != StartProgram.IsOsOptimizer
+                     && _screener.StartProgram != StartProgram.IsTester)
                 {
                     return;
                 }
