@@ -126,8 +126,9 @@ namespace OsEngine.Market.Servers
                 _ordersHub = new AServerOrdersHub(this);
                 _ordersHub.LogMessageEvent += SendLogMessage;
                 _ordersHub.GetAllActivOrdersOnReconnectEvent += _ordersHub_GetAllActivOrdersOnReconnectEvent;
-                _ordersHub.ActivStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
+                _ordersHub.ActiveStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
                 _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
+                _ordersHub.LostMyTradesEvent += _ordersHub_LostMyTradesEvent;
 
                 ComparePositionsModule = new ComparePositionsModule(this);
                 ComparePositionsModule.LogMessageEvent += SendLogMessage;
@@ -878,12 +879,15 @@ namespace OsEngine.Market.Servers
 
                         if (_myTradesToSend.TryDequeue(out myTrade))
                         {
-                            if (TestValue_CanSendOrdersUp)
+                            if (TestValue_CanSendOrdersUp 
+                                && TestValue_CanSendMyTradesUp)
                             {
                                 if (NewMyTradeEvent != null)
                                 {
                                     NewMyTradeEvent(myTrade);
                                 }
+
+                                _ordersHub.SetMyTradeFromApi(myTrade);
 
                                 bool isInArray = false;
 
@@ -1177,6 +1181,8 @@ namespace OsEngine.Market.Servers
         private ConcurrentQueue<Order> _ordersToSend = new ConcurrentQueue<Order>();
 
         public bool TestValue_CanSendOrdersUp = true;
+
+        public bool TestValue_CanSendMyTradesUp = true;
 
         /// <summary>
         /// queue of ticks
@@ -2977,6 +2983,18 @@ namespace OsEngine.Market.Servers
         private void _ordersHub_LostOrderEvent(Order order)
         {
             string message = "ORDER LOST!!! Five times we've requested his status. There's no answer! \n";
+
+            message += "Security: " + order.SecurityNameCode + "\n";
+            message += "Class: " + order.SecurityClassCode + "\n";
+            message += "NumberUser: " + order.NumberUser + "\n";
+            message += "NumberMarket: " + order.NumberMarket + "\n";
+
+            SendLogMessage(message, LogMessageType.Error);
+        }
+
+        private void _ordersHub_LostMyTradesEvent(Order order)
+        {
+            string message = "ORDER MYTRADES LOST!!! Five times we've requested his status. There's no answer! \n";
 
             message += "Security: " + order.SecurityNameCode + "\n";
             message += "Class: " + order.SecurityClassCode + "\n";

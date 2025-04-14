@@ -57,7 +57,7 @@ namespace OsEngine.Market.Servers
 
         bool _canQueryOrderStatus;
 
-        bool _fullLogIsOn = false;
+        bool _fullLogIsOn = true;
 
         #endregion
 
@@ -98,9 +98,28 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        public void SetMyTradeFromApi(MyTrade myTrade)
+        {
+            if (_canQueryOrderStatus == false)
+            {
+                return;
+            }
+
+            _myTradesFromApiQueue.Enqueue(myTrade);
+
+            if (_fullLogIsOn)
+            {
+                SendLogMessage("New my Trade in Api. Number: " + myTrade.NumberTrade
+                    + " Order number: " + myTrade.NumberOrderParent
+                    , LogMessageType.System);
+            }
+        }
+
         ConcurrentQueue<Order> _ordersFromOsEngineQueue = new ConcurrentQueue<Order>();
 
         ConcurrentQueue<Order> _orderFromApiQueue = new ConcurrentQueue<Order>();
+
+        ConcurrentQueue<MyTrade> _myTradesFromApiQueue = new ConcurrentQueue<MyTrade>();
 
         #endregion
 
@@ -136,15 +155,16 @@ namespace OsEngine.Market.Servers
                     if (_canQueryOrderStatus)
                     {
                         ManageOrders();
+                        ManageMyTrades();
                     }
                    
-                    // 3 проверка статусов ордеров
+                    // 3 проверка статусов ордеров и трейдов к ним
 
                     if(_canQueryOrderStatus)
                     {
                         CheckOrdersStatus();
+                        CheckMyTradesStatus();
                     }
-
                 }
                 catch (Exception e)
                 {
@@ -310,6 +330,7 @@ namespace OsEngine.Market.Servers
                 {
                    // 2 перегружаем ордера которые пришли из АПИ в хранилище ордеров которые сгенерировал OsEngine
                     TrySetOrderInHub(newOrder);
+                    TrySetOrderInOrdersWithVolume(newOrder);
                 }
             }
 
@@ -321,8 +342,6 @@ namespace OsEngine.Market.Servers
         private void TrySetOrderInHub(Order orderFromApi)
         {
             // удаляем всё что исполнилось или отменено или ошибочно
-
-            bool isInArray = false;
 
             for (int i = 0;i < _ordersActiv.Count;i++)
             {
@@ -625,7 +644,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
 
                 return;
@@ -647,10 +666,8 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
-
-
                 return;
             }
         }
@@ -672,7 +689,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
 
                 return;
@@ -694,7 +711,7 @@ namespace OsEngine.Market.Servers
                 }
 
                 order.CountTriesToGetOrderStatus++;
-                ActivStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
 
                 return;
@@ -711,15 +728,228 @@ namespace OsEngine.Market.Servers
                         , LogMessageType.System);
                 }
 
-                ActivStateOrderCheckStatusEvent(order.Order);
+                ActiveStateOrderCheckStatusEvent(order.Order);
                 order.LastTryGetStatusTime = DateTime.Now;
                 return;
             }
         }
 
-        public event Action<Order> ActivStateOrderCheckStatusEvent;
+        public event Action<Order> ActiveStateOrderCheckStatusEvent;
 
         public event Action<Order> LostOrderEvent;
+
+        public event Action<Order> LostMyTradesEvent;
+
+        #endregion
+
+        #region Query MyTrades to orders status
+
+        private List<OrderToWatch> _ordersWithVolume = new List<OrderToWatch>();
+
+        private List<MyTrade> _myTrades = new List<MyTrade>();
+
+        private void TrySetOrderInOrdersWithVolume(Order orderFromApi)
+        {
+            if(orderFromApi == null)
+            {
+                return;
+            }
+
+            if(orderFromApi.State != OrderStateType.Partial
+                && orderFromApi.State != OrderStateType.Done)
+            {
+                return;
+            }
+
+            bool isInArray = false;
+
+            for (int i = 0; i < _ordersWithVolume.Count; i++)
+            {
+                if (_ordersWithVolume[i].Order.NumberMarket == orderFromApi.NumberMarket)
+                {
+                    isInArray = true;
+                    _ordersWithVolume[i].Order = orderFromApi;
+                }
+            }
+
+            if(isInArray == false)
+            {
+                OrderToWatch newOrder = new OrderToWatch();
+                newOrder.Order = orderFromApi;
+
+                _ordersWithVolume.Add(newOrder);
+
+                if (_fullLogIsOn)
+                {
+                    SendLogMessage("New order have volume.: "
+                        + " NumMarket: " + orderFromApi.NumberMarket
+                        + " Status: " + orderFromApi.State
+                        + " Volume: " + orderFromApi.VolumeExecute
+                        , LogMessageType.System);
+                }
+            }
+        }
+
+        private void ManageMyTrades()
+        {
+            while (_myTradesFromApiQueue.Count > 0)
+            {
+                MyTrade newMyTrade = null;
+
+                if (_myTradesFromApiQueue.TryDequeue(out newMyTrade))
+                {
+                    bool isInArray = false;
+
+                    for (int i = 0; i < _myTrades.Count; i++)
+                    {
+                        if (_myTrades[i].NumberTrade == newMyTrade.NumberTrade)
+                        {
+                            isInArray = true;
+                        }
+                    }
+
+                    if(isInArray == false)
+                    {
+                        if (_fullLogIsOn)
+                        {
+                            SendLogMessage("New MyTrade"
+                                + " NumMarket: " + newMyTrade.NumberTrade
+                                + " NumOrder: " + newMyTrade.NumberOrderParent
+                                , LogMessageType.System);
+                        }
+
+                        _myTrades.Add(newMyTrade);
+                    }
+                    
+                    if(_myTrades.Count > 500)
+                    {
+                        _myTrades.RemoveAt(0);
+                    }
+                }
+            }
+        }
+
+        private void CheckMyTradesStatus()
+        {
+            for(int i = 0;i < _ordersWithVolume.Count;i++)
+            {
+                OrderToWatch order = _ordersWithVolume[i];
+
+                if (order.IsFinallyLost)
+                {
+                    continue;
+                }
+
+                if (order.CountTriesToGetOrderStatus >= 5)
+                {
+                    order.IsFinallyLost = true;
+
+                    if (LostMyTradesEvent != null)
+                    {
+                        LostMyTradesEvent(order.Order);
+                    }
+                }
+
+                if (order.LastTryGetStatusTime == DateTime.MinValue)
+                {
+                    order.LastTryGetStatusTime = DateTime.Now;
+                }
+
+                decimal volumeInMyTrades 
+                    = GetVolumeToTradeNumInMyTradesArray(order.Order.NumberMarket);
+
+                if((order.Order.State == OrderStateType.Partial
+                    || order.Order.State == OrderStateType.Done)
+                    && volumeInMyTrades == 0 
+                    && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
+                { // проблема 1. Ордер частично исполнен по статусу, но трейдов нет вообще
+
+                    if (_fullLogIsOn)
+                    {
+                        SendLogMessage("Error. No MyTrades by order." 
+                            + " Order NumMarket: " + order.Order.NumberMarket
+                            + " Status: " + order.Order.State
+                            + " Try: " + order.CountTriesToGetOrderStatus
+                            , LogMessageType.System);
+                    }
+
+                    order.CountTriesToGetOrderStatus++;
+                    ActiveStateOrderCheckStatusEvent(order.Order);
+                    order.LastTryGetStatusTime = DateTime.Now;
+
+                }
+                else if(order.Order.State == OrderStateType.Done
+                    && volumeInMyTrades < order.Order.VolumeExecute
+                    && order.LastTryGetStatusTime.AddSeconds(5 * order.CountTriesToGetOrderStatus) < DateTime.Now)
+                {// проблема 2. Объёмов меньше чем заявлено в исполненном ордере
+
+                    if (_fullLogIsOn)
+                    {
+                        SendLogMessage("Error in MyTrades volume to order." 
+                            + " Order NumMarket: " + order.Order.NumberMarket
+                            + " Status: " + order.Order.State
+                            + " Try: " + order.CountTriesToGetOrderStatus
+                            + " VolumeInMyTrades: " + volumeInMyTrades
+                            , LogMessageType.System);
+                    }
+
+                    order.CountTriesToGetOrderStatus++;
+                    ActiveStateOrderCheckStatusEvent(order.Order);
+                    order.LastTryGetStatusTime = DateTime.Now;
+                }
+                else if((order.Order.State == OrderStateType.Cancel
+                    || order.Order.State == OrderStateType.Done)
+                    && volumeInMyTrades != 0
+                    && volumeInMyTrades == order.Order.VolumeExecute)
+                {
+                    if (_fullLogIsOn)
+                    {
+                        SendLogMessage("Success. MyTrades volume to order."
+                            + " Order NumMarket: " + order.Order.NumberMarket
+                            + " Status: " + order.Order.State
+                            + " Try: " + order.CountTriesToGetOrderStatus
+                            + " VolumeInMyTrades: " + volumeInMyTrades
+                            + " VolumeInOrder: " + order.Order.VolumeExecute
+                            , LogMessageType.System);
+                    }
+
+                    RemoveTradesByOrder(order.Order.NumberMarket);
+                    _ordersWithVolume.RemoveAt(i);
+                    return;
+                }
+            }
+        }
+
+        private decimal GetVolumeToTradeNumInMyTradesArray(string orderNum)
+        {
+            decimal result = 0;
+
+            for(int i = 0;i < _myTrades.Count;i++)
+            {
+                MyTrade trade = _myTrades[i];
+
+                if(trade.NumberOrderParent == orderNum)
+                {
+                    result += trade.Volume;
+                }
+            }
+
+            return result;
+        }
+
+        private void RemoveTradesByOrder(string orderNum)
+        {
+            for (int i = 0; i < _myTrades.Count; i++)
+            {
+                MyTrade trade = _myTrades[i];
+
+                if (trade.NumberOrderParent == orderNum)
+                {
+                    _myTrades.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
 
         #endregion
 

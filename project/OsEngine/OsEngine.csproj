@@ -1208,6 +1208,7 @@
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_4_Stress_Candles.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Data_5_Stress_Trades.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_10_RequestLostDoneOrder.cs" />
+    <Compile Include="Robots\AutoTestBots\ServerTests\Orders_11_RequestLostMyTrades.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_1_FakeOrders.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_2_LimitsExecute.cs" />
     <Compile Include="Robots\AutoTestBots\ServerTests\Orders_3_MarketOrders.cs" />
