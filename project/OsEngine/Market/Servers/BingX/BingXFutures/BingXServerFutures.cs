@@ -464,7 +464,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        private RateGate _portfolioRateGate = new RateGate(1, TimeSpan.FromMilliseconds(250)); 
+        private RateGate _portfolioRateGate = new RateGate(1, TimeSpan.FromMilliseconds(500)); 
 
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
