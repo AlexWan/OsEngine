@@ -3028,14 +3028,15 @@ namespace OsEngine.Market.Servers
 
         private void _ordersHub_LostMyTradesEvent(Order order)
         {
-            string message = "ORDER MYTRADES LOST!!! Five times we've requested his status. There's no answer! \n";
+            string message = "MYTRADES LOST!!! Five times we've requested his status. There's no answer! \n";
 
             message += "Security: " + order.SecurityNameCode + "\n";
             message += "Class: " + order.SecurityClassCode + "\n";
             message += "NumberUser: " + order.NumberUser + "\n";
             message += "NumberMarket: " + order.NumberMarket + "\n";
+            message += "If you are trading on the cryptocurrency spot market, ignore message. That's because MyTrades doesn't have the same volume after commission deduction.";
 
-            SendLogMessage(message, LogMessageType.Error);
+            SendLogMessage(message, LogMessageType.System);
         }
 
         private void _ordersHub_ActivStateOrderCheckStatusEvent(Order order)

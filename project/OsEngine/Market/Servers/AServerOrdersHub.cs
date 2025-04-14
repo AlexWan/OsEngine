@@ -738,8 +738,6 @@ namespace OsEngine.Market.Servers
 
         public event Action<Order> LostOrderEvent;
 
-        public event Action<Order> LostMyTradesEvent;
-
         #endregion
 
         #region Query MyTrades to execute orders
@@ -950,6 +948,8 @@ namespace OsEngine.Market.Servers
                 }
             }
         }
+
+        public event Action<Order> LostMyTradesEvent;
 
         #endregion
 
