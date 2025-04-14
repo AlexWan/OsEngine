@@ -1961,13 +1961,39 @@ namespace OsEngine.Market.Servers.OKX
                     if (newOrder.State == OrderStateType.Partial ||
                         newOrder.State == OrderStateType.Done)
                     {
-                        Thread.Sleep(500);
-                        List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
+                        ResponseWsOrders item = OrderResponse.data[i];
 
-                        for (int i2 = 0; tradesInOrder != null && i2 < tradesInOrder.Count; i2++)
+                        MyTrade myTrade = new MyTrade();
+
+                        myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.cTime));
+                        myTrade.NumberOrderParent = item.ordId.ToString();
+                        myTrade.NumberTrade = item.tradeId.ToString();
+
+                        if (string.IsNullOrEmpty(item.fee))
                         {
-                            MyTradeEvent(tradesInOrder[i2]);
+                            myTrade.Volume = item.fillSz.ToDecimal();
                         }
+                        else
+                        {// there is a commission
+                            if (item.instId.StartsWith(item.feeCcy))
+                            { // the commission is taken in the traded currency, not in the exchange currency
+                                myTrade.Volume = item.fillSz.ToDecimal() + item.fee.ToDecimal();
+                            }
+                            else
+                            {
+                                myTrade.Volume = item.fillSz.ToDecimal();
+                            }
+                        }
+
+                        if (!item.fillPx.Equals(String.Empty))
+                        {
+                            myTrade.Price = item.fillPx.ToDecimal();
+                        }
+
+                        myTrade.SecurityNameCode = item.instId;
+                        myTrade.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
+
+                        MyTradeEvent(myTrade);
                     }
                 }
             }
@@ -2425,13 +2451,53 @@ namespace OsEngine.Market.Servers.OKX
                 HttpResponseMessage res = GetPrivateRequest(url);
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
-                if (res.StatusCode != HttpStatusCode.OK)
+                if (res.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseWsMessageAction<List<ResponseWsOrders>> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseWsMessageAction<List<ResponseWsOrders>>());
+
+                    if (OrderResponse.data == null || OrderResponse.data.Count == 0)
+                    {
+                        return;
+                    }
+
+                    for (int i = 0; i < OrderResponse.data.Count; i++)
+                    {
+                        Order newOrder = null;
+
+                        if ((OrderResponse.data[i].ordType.Equals("limit") ||
+                        OrderResponse.data[i].ordType.Equals("market")))
+                        {
+                            newOrder = OrderUpdate(OrderResponse.data[i]);
+                        }
+
+                        if (newOrder == null)
+                        {
+                            continue;
+                        }
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(newOrder);
+                        }
+
+                        if (newOrder.State == OrderStateType.Partial ||
+                            newOrder.State == OrderStateType.Done)
+                        {
+                            Thread.Sleep(500);
+                            List<MyTrade> tradesInOrder = GenerateTradesToOrder(newOrder, 1);
+
+                            for (int i2 = 0; tradesInOrder != null && i2 < tradesInOrder.Count; i2++)
+                            {
+                                MyTradeEvent(tradesInOrder[i2]);
+                            }
+                        }
+                    }
+                }
+                else
                 {
                     SendLogMessage($"GetOrderStatus - {contentStr}", LogMessageType.Error);
                     return;
                 }
-
-                UpdateOrder(contentStr);
             }
             catch (Exception ex)
             {
