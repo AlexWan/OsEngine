@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace OsEngine.Market.Servers.Binance.Futures
 {
     public class BinanceFuturesServerPermission : IServerPermission
@@ -211,6 +206,16 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public bool IsNewsServer
         {
             get { return false; }
+        }
+
+        public bool IsUseCheckDataFeedLogic
+        {
+            get { return false; }
+        }
+
+        public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
+        {
+            get { return null; }
         }
 
         #endregion

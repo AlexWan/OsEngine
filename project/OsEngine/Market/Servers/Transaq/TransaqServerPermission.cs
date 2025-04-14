@@ -209,6 +209,16 @@ namespace OsEngine.Market.Servers.Transaq
             get { return true; }
         }
 
+        public bool IsUseCheckDataFeedLogic
+        {
+            get { return false; }
+        }
+
+        public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-
+﻿
 namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 {
     public class MoexFixFastTwimeFuturesServerPermission : IServerPermission
@@ -189,7 +186,16 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             get { return false; }
         }
 
+        public bool IsUseCheckDataFeedLogic
+        {
+            get { return false; }
+        }
+
+        public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }
-

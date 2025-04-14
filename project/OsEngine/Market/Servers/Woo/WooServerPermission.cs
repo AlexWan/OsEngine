@@ -197,6 +197,16 @@
             get { return false; }
         }
 
+        public bool IsUseCheckDataFeedLogic
+        {
+            get { return false; }
+        }
+
+        public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

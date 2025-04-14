@@ -742,7 +742,7 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
-        #region Query MyTrades to orders status
+        #region Query MyTrades to execute orders
 
         private List<OrderToWatch> _ordersWithVolume = new List<OrderToWatch>();
 

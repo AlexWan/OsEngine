@@ -203,6 +203,16 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             get { return false; }
         }
 
+        public bool IsUseCheckDataFeedLogic
+        {
+            get { return false; }
+        }
+
+        public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
+        {
+            get { return null; }
+        }
+
         #endregion
     }
 }

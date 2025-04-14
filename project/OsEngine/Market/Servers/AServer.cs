@@ -721,6 +721,7 @@ namespace OsEngine.Market.Servers
                     {
                         SendLogMessage(OsLocalization.Market.Message8, LogMessageType.System);
                         ServerRealization.Dispose();
+                        _subscribeSecurities.Clear();
 
                         if (Portfolios != null &&
                             Portfolios.Count != 0)
@@ -1737,6 +1738,8 @@ namespace OsEngine.Market.Servers
 
                     _candleStorage.SetSeriesToSave(series);
 
+                    SetSecurityInSubscribed(securityName, securityClass);
+
                     return series;
                 }
             }
@@ -1869,6 +1872,37 @@ namespace OsEngine.Market.Servers
         /// new candles event
         /// </summary>
         public event Action<CandleSeries> NewCandleIncomeEvent;
+
+        #endregion
+
+        #region Checking data streams subscribed to
+
+        private List<SubscribeSecurity> _subscribeSecurities = new List<SubscribeSecurity>();
+
+        private void SetSecurityInSubscribed(string securityName, string securityClass)
+        {
+            for (int i = 0; i < _subscribeSecurities.Count; i++)
+            {
+                if (_subscribeSecurities[i].Name == securityName
+                    && _subscribeSecurities[i].Class == securityClass)
+                {
+                    return;
+                }
+            }
+
+            SubscribeSecurity newSubscribeSecurity = new SubscribeSecurity();
+
+            newSubscribeSecurity.Name = securityName;
+            newSubscribeSecurity.Class = securityClass;
+
+            _subscribeSecurities.Add(newSubscribeSecurity);
+        }
+
+        private void CheckDataFlowThread()
+        {
+
+
+        }
 
         #endregion
 
@@ -3250,6 +3284,16 @@ namespace OsEngine.Market.Servers
         public int NumberOfCalls;
 
         public int NumberOfErrors;
+    }
 
+    public class SubscribeSecurity
+    {
+        public string Name;
+
+        public string Class;
+
+        public DateTime LastTimeTrade;
+
+        public DateTime LastTimeMarketDepth;
     }
 }

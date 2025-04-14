@@ -78,6 +78,10 @@ namespace OsEngine.Market.Servers
 
         bool IsNewsServer { get; }
 
+        bool IsUseCheckDataFeedLogic { get; }
+
+        string[] CheckDataFeedLogic_ExceptionSecuritiesClass { get; }
+
         #endregion
     }
 

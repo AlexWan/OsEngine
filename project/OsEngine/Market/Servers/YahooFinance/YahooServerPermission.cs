@@ -175,5 +175,15 @@ namespace OsEngine.Market.Servers.YahooFinance
         {
             get { return false; }
         }
+
+        public bool IsUseCheckDataFeedLogic
+        {
+            get { return false; }
+        }
+
+        public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
+        {
+            get { return null; }
+        }
     }
 }
