@@ -57,7 +57,7 @@ namespace OsEngine.Market.Servers
 
         bool _canQueryOrderStatus;
 
-        bool _fullLogIsOn = true;
+        bool _fullLogIsOn = false;
 
         #endregion
 
