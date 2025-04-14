@@ -398,12 +398,18 @@ namespace OsEngine.Market.Servers.Bybit
         #region 3 Securities
 
         public event Action<List<Security>> SecurityEvent;
+        private List<Security> _securities;
 
         public void GetSecurities()
         {
             try
             {
-                List<Security> securities = new List<Security>();
+                if (_securities == null)
+                {
+                    _securities = new List<Security>();
+                }
+
+                //List<Security> securities = new List<Security>();
                 Dictionary<string, object> parametrs = new Dictionary<string, object>();
                 parametrs.Add("limit", "1000");
                 parametrs.Add("category", Category.spot);
@@ -414,7 +420,7 @@ namespace OsEngine.Market.Servers.Bybit
                 if (sec != null)
                 {
                     symbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(sec.ToString());
-                    ConvertSecuritis(symbols, securities, Category.spot);
+                    ConvertSecuritis(symbols, Category.spot);
                 }
 
                 parametrs["category"] = Category.linear;
@@ -424,10 +430,10 @@ namespace OsEngine.Market.Servers.Bybit
                 if (sec != null)
                 {
                     symbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(sec.ToString());
-                    ConvertSecuritis(symbols, securities, Category.linear);
+                    ConvertSecuritis(symbols, Category.linear);
                 }
 
-                SecurityEvent?.Invoke(securities);
+                SecurityEvent?.Invoke(_securities);
             }
             catch (Exception ex)
             {
@@ -435,7 +441,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private void ConvertSecuritis(ResponseRestMessage<ArraySymbols> symbols, List<Security> securities, Category category)
+        private void ConvertSecuritis(ResponseRestMessage<ArraySymbols> symbols, Category category)
         {
             try
             {
@@ -489,7 +495,7 @@ namespace OsEngine.Market.Servers.Bybit
                         security.Exchange = "ByBit";
                         security.Lot = 1;
 
-                        securities.Add(security);
+                        _securities.Add(security);
                     }
                 }
             }
@@ -719,7 +725,7 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         decimal.TryParse(item2.SelectToken("walletBalance").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBegin);
                     }
-                       
+
                     decimal.TryParse(item2.SelectToken("equity").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueCurrent);
                     decimal.TryParse(item2.SelectToken("locked").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.ValueBlocked);
                     decimal.TryParse(item2.SelectToken("unrealisedPnl").Value<string>(), System.Globalization.NumberStyles.Number, CultureInfo.InvariantCulture, out positions.UnrealizedPnl);
@@ -804,7 +810,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 pos.PortfolioName = potrolioNumber;
 
-                if (_hedgeMode 
+                if (_hedgeMode
                     && posJson.symbol.Contains("USDT"))
                 {
                     if (posJson.side == "Buy")
@@ -1831,7 +1837,7 @@ namespace OsEngine.Market.Servers.Bybit
                     if (responseMyTrades.data[i].category == Category.spot.ToString() && myTrade.Side == Side.Buy && !string.IsNullOrWhiteSpace(responseMyTrades.data[i].execFee))   // комиссия на споте при покупке берется с купленой монеты
                     {
                         myTrade.Volume = responseMyTrades.data[i].execQty.ToDecimal() - responseMyTrades.data[i].execFee.ToDecimal();
-                        int decimalVolum = GetDecimalsVolume(responseMyTrades.data[i].execQty);
+                        int decimalVolum = GetVolumeDecimals(myTrade.SecurityNameCode);
                         if (decimalVolum > 0)
                         {
                             myTrade.Volume = Math.Floor(myTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
@@ -1849,6 +1855,19 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+        }
+
+        private int GetVolumeDecimals(string security)
+        {
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (security == _securities[i].Name)
+                {
+                    return _securities[i].DecimalsVolume;
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateOrder(string message)
