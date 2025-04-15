@@ -219,6 +219,11 @@ namespace OsEngine.Market.Servers.Transaq
             get { return null; }
         }
 
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }

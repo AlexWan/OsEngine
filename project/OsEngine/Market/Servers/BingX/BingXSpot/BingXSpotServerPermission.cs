@@ -224,6 +224,11 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
             get { return null; }
         }
 
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }

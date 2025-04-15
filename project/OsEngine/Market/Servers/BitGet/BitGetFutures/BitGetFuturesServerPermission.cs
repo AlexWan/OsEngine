@@ -240,5 +240,10 @@
         {
             get { return null; }
         }
+
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get { return 10; }
+        }
     }
 }

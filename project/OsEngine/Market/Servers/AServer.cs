@@ -14,6 +14,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.ZB;
 
 namespace OsEngine.Market.Servers
 {
@@ -120,6 +121,13 @@ namespace OsEngine.Market.Servers
 
                 Task task3 = new Task(MyTradesBeepThread);
                 task3.Start();
+
+                if(ServerPermission != null
+                    && ServerPermission.IsUseCheckDataFeedLogic)
+                {
+                    Task task4 = new Task(CheckDataFlowThread);
+                    task4.Start();
+                }
 
                 _serverIsCreated = true;
 
@@ -657,6 +665,23 @@ namespace OsEngine.Market.Servers
         /// server type
         /// </summary>
         public ServerType ServerType { get { return ServerRealization.ServerType; } }
+
+        /// <summary>
+        /// server realization permissions
+        /// </summary>
+        public IServerPermission ServerPermission
+        {
+            get
+            {
+                if (this.ServerType == ServerType.None)
+                {
+                    return null;
+                }
+
+                return ServerMaster.GetServerPermission(this.ServerType);
+
+            }
+        }
 
         /// <summary>
         /// alert message from client that connection is established
@@ -1900,6 +1925,14 @@ namespace OsEngine.Market.Servers
 
         private void CheckDataFlowThread()
         {
+
+
+
+
+
+
+
+
 
 
         }

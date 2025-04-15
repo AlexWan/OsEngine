@@ -82,6 +82,8 @@ namespace OsEngine.Market.Servers
 
         string[] CheckDataFeedLogic_ExceptionSecuritiesClass { get; }
 
+        int CheckDataFeedLogic_NoDataMinutesToDisconnect { get; }
+
         #endregion
     }
 

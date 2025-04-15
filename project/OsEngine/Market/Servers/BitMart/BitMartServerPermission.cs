@@ -206,5 +206,10 @@ namespace OsEngine.Market.Servers.BitMart
         {
             get { return null; }
         }
+
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get { return 10; }
+        }
     }
 }

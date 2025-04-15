@@ -200,6 +200,14 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             get { return null; }
         }
 
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get
+            {
+                return 10;
+            }
+        }
+
         #endregion
     }
 }

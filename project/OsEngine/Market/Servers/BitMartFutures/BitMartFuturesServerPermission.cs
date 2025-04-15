@@ -227,5 +227,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
             get { return null; }
         }
 
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get { return 10; }
+        }
     }
 }

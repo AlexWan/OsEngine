@@ -223,6 +223,11 @@ namespace OsEngine.Market.Servers.TInvest
             get { return null; }
         }
 
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }

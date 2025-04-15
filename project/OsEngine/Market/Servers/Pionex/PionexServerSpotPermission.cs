@@ -201,6 +201,11 @@ namespace OsEngine.Market.Servers.Pionex
             get { return null; }
         }
 
+        public int CheckDataFeedLogic_NoDataMinutesToDisconnect
+        {
+            get { return 10; }
+        }
+
         #endregion
     }
 }
