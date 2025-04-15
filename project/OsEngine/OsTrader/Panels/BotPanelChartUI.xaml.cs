@@ -70,6 +70,8 @@ namespace OsEngine.OsTrader.Panels
                 Title = panel.GetType().Name + " / " + panel.NameStrategyUniq;
             }
 
+            _startTitle = Title;
+
             TabControlBotsName.Items[0] = panel.NameStrategyUniq;
             ButtonShowInformPanel.Visibility = Visibility.Hidden;
 
@@ -91,6 +93,9 @@ namespace OsEngine.OsTrader.Panels
             rectToMove.MouseEnter += RectToMove_MouseEnter;
             rectToMove.MouseLeave += RectToMove_MouseLeave;
             rectToMove.MouseDown += RectToMove_MouseDown;
+
+            TabControlBotTab.SelectionChanged += TabControlBotTab_SelectionChanged;
+            TabControlBotTab_SelectionChanged(null, null);
         }
 
         private BotPanel _panel;
@@ -106,6 +111,8 @@ namespace OsEngine.OsTrader.Panels
                 rectToMove.MouseDown -= RectToMove_MouseDown;
 
                 LocationChanged -= RobotUi_LocationChanged;
+
+                TabControlBotTab.SelectionChanged -= TabControlBotTab_SelectionChanged;
 
                 if (_panel != null)
                 {
@@ -168,6 +175,8 @@ namespace OsEngine.OsTrader.Panels
         }
 
         #endregion
+
+
 
         #region Stop-Limits
 
@@ -316,6 +325,38 @@ namespace OsEngine.OsTrader.Panels
             WindowCoordinate.X = Convert.ToDecimal(Left);
             WindowCoordinate.Y = Convert.ToDecimal(Top);
         }
+
+        #endregion
+
+        #region Title managment
+
+        private void TabControlBotTab_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                IIBotTab currentTab = _panel.ActiveTab;
+
+                if(currentTab == null)
+                {
+                    return;
+                }
+
+                if (currentTab.EventsIsOn == false)
+                {
+                    Title = _startTitle + " / " + OsLocalization.Trader.Label435;
+                }
+                else
+                {
+                    Title = _startTitle;
+                }
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error); 
+            }
+        }
+
+        private string _startTitle;
 
         #endregion
 

@@ -1638,5 +1638,9 @@ namespace OsEngine.Language
         public string Label434 => OsLocalization.ConvertToLocString(
          "Eng:News_" +
          "Ru:Новости_");
+
+        public string Label435 => OsLocalization.ConvertToLocString(
+         "Eng:SOURCE IS OFF. NO CANDLES. NO MARKET DEPTHS. NONE._" +
+         "Ru:ИСТОЧНИК ВЫКЛЮЧЕН. НЕТ СВЕЧЕЙ. НЕТ СТАКАНОВ. НИЧЕГО НЕТ_");
     }
 }
