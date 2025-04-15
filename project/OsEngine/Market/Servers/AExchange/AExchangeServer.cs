@@ -63,7 +63,7 @@ namespace OsEngine.Market.Servers.AE
               
                 if (string.IsNullOrEmpty(_pathToKeyFile))
                 {
-                    SendLogMessage("Connection terminated. You must specify path to pem file containing certificate. You can get it on the AE website",
+                    SendLogMessage("Connection terminated. You must specify path to pfx file containing certificate. You can get pem certificate on the AE website and convert it to pfx format",
                         LogMessageType.Error);
                     return;
                 }
@@ -72,7 +72,7 @@ namespace OsEngine.Market.Servers.AE
 
                 if (string.IsNullOrEmpty(_keyFilePassphrase))
                 {
-                    SendLogMessage("Connection terminated. You must specify passphrase to pem file containing certificate. You can get it on the AE website",
+                    SendLogMessage("Connection terminated. You must specify passphrase to pfx file containing certificate. You can get it on the AE website",
                         LogMessageType.Error);
                     return;
                 }
