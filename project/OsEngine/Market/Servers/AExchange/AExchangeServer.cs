@@ -333,7 +333,7 @@ namespace OsEngine.Market.Servers.AE
                     data.MarkIV = q.Volatility.ToString();
                     data.SecurityName = q.Ticker;
                     data.TimeCreate = q.Timestamp.ToString();
-                    data.UnderlyingAsset = sec.UnderlyingAsset;
+                    data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
 
                     AdditionalMarketDataEvent(data);
                 }
@@ -742,11 +742,15 @@ namespace OsEngine.Market.Servers.AE
         {
             SendLogMessage("Socket activated", LogMessageType.System);
             _socketDataIsActive = true;
+
+            if (_securities.Count == 0)
+                GetSecurities();
             
             SendCommand(new WebSocketLoginMessage
             {
                 Login = _username
             });
+
             SendLogMessage("Login sent to AE", LogMessageType.System);
 
             CheckActivationSockets();
@@ -756,8 +760,9 @@ namespace OsEngine.Market.Servers.AE
         {
             var sslProtocolHack = (System.Security.Authentication.SslProtocols)(SslProtocolsHack.Tls12 | SslProtocolsHack.Tls11 | SslProtocolsHack.Tls);
             //TlsHandshakeFailure
-            if (e.Code == 1015 && _ws.SslConfiguration.EnabledSslProtocols != sslProtocolHack)
+            if (e.Code == 1015) // && _ws.SslConfiguration.EnabledSslProtocols != sslProtocolHack)
             {
+                SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
                 _ws.SslConfiguration.EnabledSslProtocols = sslProtocolHack;
                 _ws.Connect();
                 return;
@@ -765,7 +770,7 @@ namespace OsEngine.Market.Servers.AE
 
             try
             {
-                SendLogMessage("Connection to AE closed", LogMessageType.System);
+                SendLogMessage($"Connection to AE closed. Close code = {e.Code} with reason = {e.Reason}", LogMessageType.System);
 
                 lock (_socketLocker)
                 {
