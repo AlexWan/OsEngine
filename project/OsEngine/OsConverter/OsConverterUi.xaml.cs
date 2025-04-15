@@ -4,16 +4,11 @@
 */
 
 using System;
-using System.Threading;
 using System.Windows;
-using OsEngine.Entity;
 using OsEngine.Language;
 
 namespace OsEngine.OsConverter
 {
-    /// <summary>
-    /// Interaction Logic for OsConverterUi.xaml/Логика взаимодействия для OsConverterUi.xaml
-    /// </summary>
     public partial class OsConverterUi
     {
         public OsConverterUi()
