@@ -14,7 +14,6 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.ZB;
 
 namespace OsEngine.Market.Servers
 {
@@ -125,6 +124,7 @@ namespace OsEngine.Market.Servers
                 if(ServerPermission != null
                     && ServerPermission.IsUseCheckDataFeedLogic)
                 {
+                    _checkDataFlowIsOn = true;
                     Task task4 = new Task(CheckDataFlowThread);
                     task4.Start();
                 }
@@ -683,6 +683,8 @@ namespace OsEngine.Market.Servers
             }
         }
 
+        private bool _checkDataFlowIsOn;
+
         /// <summary>
         /// alert message from client that connection is established
         /// </summary>
@@ -703,6 +705,11 @@ namespace OsEngine.Market.Servers
             }
             SendLogMessage(OsLocalization.Market.Message12, LogMessageType.System);
             ServerStatus = ServerConnectStatus.Disconnect;
+
+            if(_serverRealization.ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                _serverRealization.ServerStatus = ServerConnectStatus.Disconnect;
+            }
 
             if (NeedToReconnectEvent != null)
             {
@@ -975,6 +982,14 @@ namespace OsEngine.Market.Servers
 
                             for (int i = 0; i < list.Count; i++)
                             {
+                                if(_checkDataFlowIsOn)
+                                {
+                                    SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                    tradeTime.SecurityName = list[i][0].SecurityNameCode;
+                                    tradeTime.LastTimeTrade = DateTime.Now;
+                                    _securitiesFeedFlow.Enqueue(tradeTime);
+                                }
+
                                 if (NewTradeEvent != null)
                                 {
                                     NewTradeEvent(list[i]);
@@ -1061,6 +1076,14 @@ namespace OsEngine.Market.Servers
                                 {
                                     NewMarketDepthEvent(depth);
                                 }
+
+                                if (_checkDataFlowIsOn)
+                                {
+                                    SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                    tradeTime.SecurityName = depth.SecurityNameCode;
+                                    tradeTime.LastTimeMarketDepth = DateTime.Now;
+                                    _securitiesFeedFlow.Enqueue(tradeTime);
+                                }
                             }
                             else
                             {
@@ -1098,6 +1121,14 @@ namespace OsEngine.Market.Servers
 
                                 for (int i = 0; i < list.Count; i++)
                                 {
+                                    if (_checkDataFlowIsOn)
+                                    {
+                                        SecurityFlowTime tradeTime = new SecurityFlowTime();
+                                        tradeTime.SecurityName = list[i].SecurityNameCode;
+                                        tradeTime.LastTimeMarketDepth = DateTime.Now;
+                                        _securitiesFeedFlow.Enqueue(tradeTime);
+                                    }
+
                                     if (NewMarketDepthEvent != null)
                                     {
                                         NewMarketDepthEvent(list[i]);
@@ -1902,39 +1933,173 @@ namespace OsEngine.Market.Servers
 
         #region Checking data streams subscribed to
 
-        private List<SubscribeSecurity> _subscribeSecurities = new List<SubscribeSecurity>();
+        private List<SecurityFlowTime> _subscribeSecurities = new List<SecurityFlowTime>();
+
+        private ConcurrentQueue<SecurityFlowTime> _securitiesFeedFlow = new ConcurrentQueue<SecurityFlowTime>();
 
         private void SetSecurityInSubscribed(string securityName, string securityClass)
         {
+            if(_checkDataFlowIsOn == false)
+            {
+                return;
+            }
+
+            string[] ignoreClasses = ServerPermission.CheckDataFeedLogic_ExceptionSecuritiesClass;
+
+            if (ignoreClasses != null)
+            {
+                for (int i = 0; i < ignoreClasses.Length; i++)
+                {
+                    if (ignoreClasses[i].Equals(securityClass))
+                    {
+                        return;
+                    }
+                }
+            }
+
             for (int i = 0; i < _subscribeSecurities.Count; i++)
             {
-                if (_subscribeSecurities[i].Name == securityName
-                    && _subscribeSecurities[i].Class == securityClass)
+                if (_subscribeSecurities[i].SecurityName == securityName
+                    && _subscribeSecurities[i].SecurityClass == securityClass)
                 {
                     return;
                 }
             }
 
-            SubscribeSecurity newSubscribeSecurity = new SubscribeSecurity();
+            SecurityFlowTime newSubscribeSecurity = new SecurityFlowTime();
 
-            newSubscribeSecurity.Name = securityName;
-            newSubscribeSecurity.Class = securityClass;
+            newSubscribeSecurity.SecurityName = securityName;
+            newSubscribeSecurity.SecurityClass = securityClass;
 
             _subscribeSecurities.Add(newSubscribeSecurity);
         }
 
         private void CheckDataFlowThread()
         {
+            while(true)
+            {
+                try
+                {
+                    Thread.Sleep(3000);
 
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
 
+                    if (this.ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        continue;
+                    }
 
+                    // 1 разбираем очередь с обновлением данных с сервера
 
+                    while (_securitiesFeedFlow.Count > 0)
+                    {
+                        SecurityFlowTime securityFlowTime = null;
 
+                        if (_securitiesFeedFlow.TryDequeue(out securityFlowTime))
+                        {
+                            if (securityFlowTime.LastTimeMarketDepth != DateTime.MinValue)
+                            {// пришло обновление стакана
 
+                                for (int i = 0; i < _subscribeSecurities.Count; i++)
+                                {
+                                    if (_subscribeSecurities[i].SecurityName == securityFlowTime.SecurityName)
+                                    {
+                                        if (securityFlowTime.LastTimeMarketDepth > _subscribeSecurities[i].LastTimeMarketDepth)
+                                        {
+                                            _subscribeSecurities[i].LastTimeMarketDepth = securityFlowTime.LastTimeMarketDepth;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            else if (securityFlowTime.LastTimeTrade != DateTime.MinValue)
+                            {// пришло обновление в ленте сделок
 
+                                for (int i = 0; i < _subscribeSecurities.Count; i++)
+                                {
+                                    if (_subscribeSecurities[i].SecurityName == securityFlowTime.SecurityName)
+                                    {
+                                        if (securityFlowTime.LastTimeTrade > _subscribeSecurities[i].LastTimeTrade)
+                                        {
+                                            _subscribeSecurities[i].LastTimeTrade = securityFlowTime.LastTimeTrade;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
 
+                    // 2 смотрим, есть ли отставание по какой-то бумаге
 
+                    SecurityFlowTime maxDataDelayMarketDepth = null;
+                    SecurityFlowTime maxDataDelayTrade = null;
 
+                    for (int i = 0; i < _subscribeSecurities.Count; i++)
+                    {
+                        if (_subscribeSecurities[i].LastTimeTrade != DateTime.MinValue)
+                        {
+                            if (maxDataDelayTrade == null ||
+                                maxDataDelayTrade.LastTimeTrade > _subscribeSecurities[i].LastTimeTrade)
+                            {
+                                maxDataDelayTrade = _subscribeSecurities[i];
+                            }
+                        }
+
+                        if (_subscribeSecurities[i].LastTimeMarketDepth != DateTime.MinValue)
+                        {
+                            if (maxDataDelayMarketDepth == null ||
+                                maxDataDelayMarketDepth.LastTimeMarketDepth > _subscribeSecurities[i].LastTimeMarketDepth)
+                            {
+                                maxDataDelayMarketDepth = _subscribeSecurities[i];
+                            }
+                        }
+                    }
+
+                    // 3 смотрим, не пора ли перезапускать коннектор
+
+                    bool needToReconnect = false;
+
+                    if (maxDataDelayMarketDepth != null 
+                        && maxDataDelayMarketDepth.LastTimeMarketDepth.AddMinutes(ServerPermission.CheckDataFeedLogic_NoDataMinutesToDisconnect)
+                        < DateTime.Now)
+                    { // перезагружаем т.к. нет стаканов уже N минут
+                        string messageToLog = "ERROR data feed. No MarketDepth. CheckDataFlowThread in Aserver. \n";
+                        messageToLog += "Connector: " + this.ServerType + "\n";
+                        messageToLog += "Security: " + maxDataDelayMarketDepth.SecurityName + "\n";
+                        messageToLog += "No data time: " + (DateTime.Now - maxDataDelayMarketDepth.LastTimeMarketDepth).ToString() + "\n";
+                        messageToLog += "Reconnect activated";
+                        SendLogMessage(messageToLog, LogMessageType.Error);
+                        needToReconnect = true;
+                    }
+                    if (maxDataDelayTrade != null 
+                        && maxDataDelayTrade.LastTimeTrade.AddMinutes(ServerPermission.CheckDataFeedLogic_NoDataMinutesToDisconnect*3)
+                        < DateTime.Now)
+                    { // перезагружаем т.к. нет трейдов уже N минут
+
+                        string messageToLog = "ERROR data feed. No Trades. CheckDataFlowThread in Aserver. \n";
+                        messageToLog += "Connector: " + this.ServerType + "\n";
+                        messageToLog += "Security: " + maxDataDelayTrade.SecurityName + "\n";
+                        messageToLog += "No data time: " + (DateTime.Now - maxDataDelayTrade.LastTimeTrade).ToString() + "\n";
+                        messageToLog += "Reconnect activated";
+                        SendLogMessage(messageToLog, LogMessageType.Error);
+                        needToReconnect = true;
+                    }
+
+                    if (needToReconnect)
+                    {
+                        _serverRealization_Disconnected();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(),LogMessageType.Error);
+                    Thread.Sleep(15000);
+                }
+            }
         }
 
         #endregion
@@ -3320,14 +3485,15 @@ namespace OsEngine.Market.Servers
         public int NumberOfErrors;
     }
 
-    public class SubscribeSecurity
+    public class SecurityFlowTime
     {
-        public string Name;
+        public string SecurityName;
 
-        public string Class;
+        public string SecurityClass;
 
         public DateTime LastTimeTrade;
 
         public DateTime LastTimeMarketDepth;
     }
+
 }

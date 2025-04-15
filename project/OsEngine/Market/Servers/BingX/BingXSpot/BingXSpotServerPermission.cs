@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OsEngine.Market.Servers.BingX.BingXSpot
+﻿namespace OsEngine.Market.Servers.BingX.BingXSpot
 {
     public class BingXSpotServerPermission : IServerPermission
     {
@@ -216,7 +210,7 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
 
         public bool IsUseCheckDataFeedLogic
         {
-            get { return false; }
+            get { return true; }
         }
 
         public string[] CheckDataFeedLogic_ExceptionSecuritiesClass
