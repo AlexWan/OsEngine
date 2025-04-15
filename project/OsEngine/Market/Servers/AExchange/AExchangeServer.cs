@@ -604,6 +604,13 @@ namespace OsEngine.Market.Servers.AE
             }
         }
 
+        private enum SslProtocolsHack
+        {
+            Tls = 192,
+            Tls11 = 768,
+            Tls12 = 3072
+        }
+
         private void CreateWebSocketConnection()
         {
             try
@@ -623,7 +630,7 @@ namespace OsEngine.Market.Servers.AE
                     if (_certificate == null)
                     {
                         _certificate = new X509Certificate2(_pathToKeyFile, _keyFilePassphrase,
-                            X509KeyStorageFlags.MachineKeySet);
+                            X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
                     }
 
                     _ws = new WebSocket($"wss://{_apiHost}:{_apiPort}/clientapi/v1");
@@ -633,19 +640,40 @@ namespace OsEngine.Market.Servers.AE
                             return _certificate;
                         };
 
-                    _ws.SslConfiguration.ClientCertificates = new X509CertificateCollection();
+                    _ws.SslConfiguration.ClientCertificates = new X509CertificateCollection{_certificate};
                     // Add client certificate
-                    _ws.SslConfiguration.ClientCertificates.Add(_certificate);
+                    //_ws.SslConfiguration.ClientCertificates.Add(_certificate);
 
                     // Set SSL/TLS protocol (adjust as needed)
-                    _ws.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 | SslProtocols.Tls13;
+                    _ws.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
+                    _ws.SslConfiguration.CheckCertificateRevocation = false;
 
                     _ws.EmitOnPing = true;
                     _ws.OnOpen += WebSocketData_Opened;
                     _ws.OnClose += WebSocketData_Closed;
                     _ws.OnMessage += WebSocketData_MessageReceived;
                     _ws.OnError += WebSocketData_Error;
-                    _ws.Connect();
+
+                    //_ws.OnClose += (sender, e) =>
+                    //{
+                    //    var sslProtocolHack = (System.Security.Authentication.SslProtocols)(SslProtocolsHack.Tls12 | SslProtocolsHack.Tls11 | SslProtocolsHack.Tls);
+                    //    //TlsHandshakeFailure
+                    //    if (e.Code == 1015 && _ws.SslConfiguration.EnabledSslProtocols != sslProtocolHack)
+                    //    {
+                    //        ws.SslConfiguration.EnabledSslProtocols = sslProtocolHack;
+                    //        ws.Connect();
+                    //    }
+                    //};
+
+
+                    try
+                    {
+                        _ws.Connect();
+                    }
+                    catch (WebSocketException ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception exception)
@@ -724,8 +752,17 @@ namespace OsEngine.Market.Servers.AE
             CheckActivationSockets();
         }
 
-        private void WebSocketData_Closed(object sender, EventArgs e)
+        private void WebSocketData_Closed(object sender, CloseEventArgs e)
         {
+            var sslProtocolHack = (System.Security.Authentication.SslProtocols)(SslProtocolsHack.Tls12 | SslProtocolsHack.Tls11 | SslProtocolsHack.Tls);
+            //TlsHandshakeFailure
+            if (e.Code == 1015 && _ws.SslConfiguration.EnabledSslProtocols != sslProtocolHack)
+            {
+                _ws.SslConfiguration.EnabledSslProtocols = sslProtocolHack;
+                _ws.Connect();
+                return;
+            }
+
             try
             {
                 SendLogMessage("Connection to AE closed", LogMessageType.System);
