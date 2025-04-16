@@ -1020,6 +1020,15 @@ namespace OsEngine.Market.Servers.AE
                 _orderNumbers.Add(orderId, order.NumberUser);
                 _sentOrders.Add(orderId, order);
 
+                if (order.Volume <= 0)
+                {
+                    order.State = OrderStateType.Fail; // wtf?
+                    
+                    MyOrderEvent!(order);
+                    SendLogMessage($"Order sending error: volume must be positive number. Volume: {order.Volume}", LogMessageType.Error);
+                    return;
+                }
+
                 SendCommand(new WebSocketPlaceOrderMessage
                 {
                     Account = order.PortfolioNumber,
@@ -1032,7 +1041,7 @@ namespace OsEngine.Market.Servers.AE
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order send error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Order sending error " + exception.ToString(), LogMessageType.Error);
             }
         }
 
