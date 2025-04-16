@@ -122,7 +122,7 @@ namespace OsEngine.Market.Servers
                 task3.Start();
 
                 if(ServerPermission != null
-                    && ServerPermission.IsUseCheckDataFeedLogic)
+                    && ServerPermission.IsSupports_CheckDataFeedLogic)
                 {
                     _checkDataFlowIsOn = true;
                     Task task4 = new Task(CheckDataFlowThread);
@@ -133,8 +133,8 @@ namespace OsEngine.Market.Servers
 
                 _ordersHub = new AServerOrdersHub(this);
                 _ordersHub.LogMessageEvent += SendLogMessage;
-                _ordersHub.GetAllActivOrdersOnReconnectEvent += _ordersHub_GetAllActivOrdersOnReconnectEvent;
-                _ordersHub.ActiveStateOrderCheckStatusEvent += _ordersHub_ActivStateOrderCheckStatusEvent;
+                _ordersHub.GetAllActiveOrdersOnReconnectEvent += _ordersHub_GetAllActiveOrdersOnReconnectEvent;
+                _ordersHub.ActiveStateOrderCheckStatusEvent += _ordersHub_ActiveStateOrderCheckStatusEvent;
                 _ordersHub.LostOrderEvent += _ordersHub_LostOrderEvent;
                 _ordersHub.LostMyTradesEvent += _ordersHub_LostMyTradesEvent;
 
@@ -3195,7 +3195,7 @@ namespace OsEngine.Market.Servers
 
         AServerOrdersHub _ordersHub;
 
-        private void _ordersHub_GetAllActivOrdersOnReconnectEvent()
+        private void _ordersHub_GetAllActiveOrdersOnReconnectEvent()
         {
             try
             {
@@ -3237,7 +3237,7 @@ namespace OsEngine.Market.Servers
             SendLogMessage(message, LogMessageType.System);
         }
 
-        private void _ordersHub_ActivStateOrderCheckStatusEvent(Order order)
+        private void _ordersHub_ActiveStateOrderCheckStatusEvent(Order order)
         {
             try
             {

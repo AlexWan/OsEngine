@@ -1,4 +1,8 @@
-﻿
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 namespace OsEngine.Market.Servers.SmartLabNews
 {
     class SmartLabNewsServerPermission : IServerPermission
@@ -195,7 +199,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
             get { return true; }
         }
 
-        public bool IsUseCheckDataFeedLogic
+        public bool IsSupports_CheckDataFeedLogic
         {
             get { return false; }
         }
@@ -208,6 +212,16 @@ namespace OsEngine.Market.Servers.SmartLabNews
         public int CheckDataFeedLogic_NoDataMinutesToDisconnect
         {
             get { return 10; }
+        }
+
+        public bool IsSupports_MultipleInstances
+        {
+            get { return false; }
+        }
+
+        public bool IsSupports_ProxyFor_MultipleInstances
+        {
+            get { return false; }
         }
 
         #endregion

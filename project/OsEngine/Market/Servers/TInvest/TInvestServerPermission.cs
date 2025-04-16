@@ -213,7 +213,7 @@ namespace OsEngine.Market.Servers.TInvest
             get { return false; }
         }
 
-        public bool IsUseCheckDataFeedLogic
+        public bool IsSupports_CheckDataFeedLogic
         {
             get { return false; }
         }
@@ -226,6 +226,16 @@ namespace OsEngine.Market.Servers.TInvest
         public int CheckDataFeedLogic_NoDataMinutesToDisconnect
         {
             get { return 10; }
+        }
+
+        public bool IsSupports_MultipleInstances
+        {
+            get { return false; }
+        }
+
+        public bool IsSupports_ProxyFor_MultipleInstances
+        {
+            get { return false; }
         }
 
         #endregion

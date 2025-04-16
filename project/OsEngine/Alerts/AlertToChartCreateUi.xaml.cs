@@ -680,9 +680,9 @@ namespace OsEngine.Alerts
 
             decimal valueTwoClick;
 
-            decimal devider = Convert.ToDecimal(Slider.Value - 100);
+            decimal divider = Convert.ToDecimal(Slider.Value - 100);
 
-            valueTwoClick = _candleTwoValue + _candleTwoValue * Convert.ToDecimal(devider / 1000);
+            valueTwoClick = _candleTwoValue + _candleTwoValue * Convert.ToDecimal(divider / 1000);
             // 1 if points are pressed on one straight line
             // 1 если нажаты точки на одной прямой
             if (valueTwoClick == valueOneClick)
@@ -807,69 +807,69 @@ namespace OsEngine.Alerts
             decimal l0423value2;
 
             decimal sliderValue = Convert.ToDecimal(Slider.Value);
-            decimal devider;
+            decimal divider;
 
             if (Slider.Value > 100)
             {
-                devider = (sliderValue - 100) / 1000; // 100 / 1000 = 0,1
+                divider = (sliderValue - 100) / 1000; // 100 / 1000 = 0,1
 
-                l023value1 = onePoint + devider * onePoint * 0.23m;
-                l023value2 = twoPoint + devider * twoPoint * 0.23m;
+                l023value1 = onePoint + divider * onePoint * 0.23m;
+                l023value2 = twoPoint + divider * twoPoint * 0.23m;
 
-                l038value1 = onePoint + devider * onePoint * 0.38m;
-                l038value2 = twoPoint + devider * twoPoint * 0.38m;
+                l038value1 = onePoint + divider * onePoint * 0.38m;
+                l038value2 = twoPoint + divider * twoPoint * 0.38m;
 
-                l050value1 = onePoint + devider * onePoint * 0.50m;
-                l050value2 = twoPoint + devider * twoPoint * 0.50m;
+                l050value1 = onePoint + divider * onePoint * 0.50m;
+                l050value2 = twoPoint + divider * twoPoint * 0.50m;
 
-                l061value1 = onePoint + devider * onePoint * 0.61m;
-                l061value2 = twoPoint + devider * twoPoint * 0.61m;
+                l061value1 = onePoint + divider * onePoint * 0.61m;
+                l061value2 = twoPoint + divider * twoPoint * 0.61m;
 
-                l076value1 = onePoint + devider * onePoint * 0.76m;
-                l076value2 = twoPoint + devider * twoPoint * 0.76m;
+                l076value1 = onePoint + divider * onePoint * 0.76m;
+                l076value2 = twoPoint + divider * twoPoint * 0.76m;
 
-                l0100value1 = onePoint + devider * onePoint * 1m;
-                l0100value2 = twoPoint + devider * twoPoint * 1m;
+                l0100value1 = onePoint + divider * onePoint * 1m;
+                l0100value2 = twoPoint + divider * twoPoint * 1m;
 
-                l0161value1 = onePoint + devider * onePoint * 1.61m;
-                l0161value2 = twoPoint + devider * twoPoint * 1.61m;
+                l0161value1 = onePoint + divider * onePoint * 1.61m;
+                l0161value2 = twoPoint + divider * twoPoint * 1.61m;
 
-                l0261value1 = onePoint + devider * onePoint * 2.61m;
-                l0261value2 = twoPoint + devider * twoPoint * 2.61m;
+                l0261value1 = onePoint + divider * onePoint * 2.61m;
+                l0261value2 = twoPoint + divider * twoPoint * 2.61m;
 
-                l0423value1 = onePoint + devider * onePoint * 4.23m;
-                l0423value2 = twoPoint + devider * twoPoint * 4.423m;
+                l0423value1 = onePoint + divider * onePoint * 4.23m;
+                l0423value2 = twoPoint + divider * twoPoint * 4.423m;
             }
             else
             {
-                devider = (100 - sliderValue) / 1000; // 100 / 1000 = 0,1
+                divider = (100 - sliderValue) / 1000; // 100 / 1000 = 0,1
 
-                l023value1 = onePoint - devider * onePoint * 0.23m;
-                l023value2 = twoPoint - devider * twoPoint * 0.23m;
+                l023value1 = onePoint - divider * onePoint * 0.23m;
+                l023value2 = twoPoint - divider * twoPoint * 0.23m;
 
-                l038value1 = onePoint - devider * onePoint * 0.38m;
-                l038value2 = twoPoint - devider * twoPoint * 0.38m;
+                l038value1 = onePoint - divider * onePoint * 0.38m;
+                l038value2 = twoPoint - divider * twoPoint * 0.38m;
 
-                l050value1 = onePoint - devider * onePoint * 0.50m;
-                l050value2 = twoPoint - devider * twoPoint * 0.50m;
+                l050value1 = onePoint - divider * onePoint * 0.50m;
+                l050value2 = twoPoint - divider * twoPoint * 0.50m;
 
-                l061value1 = onePoint - devider * onePoint * 0.61m;
-                l061value2 = twoPoint - devider * twoPoint * 0.61m;
+                l061value1 = onePoint - divider * onePoint * 0.61m;
+                l061value2 = twoPoint - divider * twoPoint * 0.61m;
 
-                l076value1 = onePoint - devider * onePoint * 0.76m;
-                l076value2 = twoPoint - devider * twoPoint * 0.76m;
+                l076value1 = onePoint - divider * onePoint * 0.76m;
+                l076value2 = twoPoint - divider * twoPoint * 0.76m;
 
-                l0100value1 = onePoint - devider * onePoint * 1m;
-                l0100value2 = twoPoint - devider * twoPoint * 1m;
+                l0100value1 = onePoint - divider * onePoint * 1m;
+                l0100value2 = twoPoint - divider * twoPoint * 1m;
 
-                l0161value1 = onePoint - devider * onePoint * 1.61m;
-                l0161value2 = twoPoint - devider * twoPoint * 1.61m;
+                l0161value1 = onePoint - divider * onePoint * 1.61m;
+                l0161value2 = twoPoint - divider * twoPoint * 1.61m;
 
-                l0261value1 = onePoint - devider * onePoint * 2.61m;
-                l0261value2 = twoPoint - devider * twoPoint * 2.61m;
+                l0261value1 = onePoint - divider * onePoint * 2.61m;
+                l0261value2 = twoPoint - divider * twoPoint * 2.61m;
 
-                l0423value1 = onePoint - devider * onePoint * 4.23m;
-                l0423value2 = twoPoint - devider * twoPoint * 4.23m;
+                l0423value1 = onePoint - divider * onePoint * 4.23m;
+                l0423value2 = twoPoint - divider * twoPoint * 4.23m;
             }
 
             // 2 alerts

@@ -196,9 +196,9 @@ namespace OsEngine.Market.Servers
             {
                 _checkOrdersAfterLastConnect = true;
 
-                if (GetAllActivOrdersOnReconnectEvent != null)
+                if (GetAllActiveOrdersOnReconnectEvent != null)
                 {
-                    GetAllActivOrdersOnReconnectEvent();
+                    GetAllActiveOrdersOnReconnectEvent();
 
                     if (_fullLogIsOn)
                     {
@@ -214,7 +214,7 @@ namespace OsEngine.Market.Servers
 
         private bool _checkOrdersAfterLastConnect = false;
 
-        public event Action GetAllActivOrdersOnReconnectEvent;
+        public event Action GetAllActiveOrdersOnReconnectEvent;
 
         #endregion
 

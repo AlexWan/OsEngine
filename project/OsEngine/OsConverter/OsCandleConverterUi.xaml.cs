@@ -43,16 +43,16 @@ namespace OsEngine.OsConverter
         {
             try
             {
-                decimal devider = 1;
+                decimal divider = 1;
 
                 if (ComboBoxTimeFrameInitial.SelectedItem.ToString() == TimeFrame.Min5.ToString())
                 {
-                    devider = 5;
+                    divider = 5;
                 }
 
                 List<Candle> candles = _candleConverter.ReadSourceFile();
                 List<Candle> mergedCandles = _candleConverter.Merge(candles,
-                    Convert.ToInt32(_candleConverter.ResultCandleTimeFrame / (double)devider));
+                    Convert.ToInt32(_candleConverter.ResultCandleTimeFrame / (double)divider));
 
                 _candleConverter.WriteExitFile(mergedCandles);
                 _candleConverter.SendNewLogMessage("The operation is complete", Logging.LogMessageType.System);

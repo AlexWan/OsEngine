@@ -78,11 +78,15 @@ namespace OsEngine.Market.Servers
 
         bool IsNewsServer { get; }
 
-        bool IsUseCheckDataFeedLogic { get; }
+        bool IsSupports_CheckDataFeedLogic { get; }
 
         string[] CheckDataFeedLogic_ExceptionSecuritiesClass { get; }
 
         int CheckDataFeedLogic_NoDataMinutesToDisconnect { get; }
+
+        bool IsSupports_MultipleInstances { get; }
+
+        bool IsSupports_ProxyFor_MultipleInstances { get; }
 
         #endregion
     }

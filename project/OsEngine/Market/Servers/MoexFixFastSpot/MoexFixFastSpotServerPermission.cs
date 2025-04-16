@@ -212,7 +212,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             get { return false; }
         }
 
-        public bool IsUseCheckDataFeedLogic
+        public bool IsSupports_CheckDataFeedLogic
         {
             get { return false; }
         }
@@ -228,6 +228,16 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             {
                 return 10;
             }
+        }
+
+        public bool IsSupports_MultipleInstances
+        {
+            get { return false; }
+        }
+
+        public bool IsSupports_ProxyFor_MultipleInstances
+        {
+            get { return false; }
         }
 
         #endregion

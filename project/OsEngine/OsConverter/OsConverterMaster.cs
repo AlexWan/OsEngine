@@ -130,7 +130,7 @@ namespace OsEngine.OsConverter
 
             myDialog.ShowDialog();
 
-            if (myDialog.FileName != "") // if anything is selected/если хоть что-то выбрано
+            if (myDialog.FileName != "") // if anything is selected
             {
                 _sourceFile = myDialog.FileName;
                 Save();
@@ -150,7 +150,7 @@ namespace OsEngine.OsConverter
 
             myDialog.ShowDialog();
 
-            if (myDialog.FileName != "") //  if anything is selected/если хоть что-то выбрано
+            if (myDialog.FileName != "") //  if anything is selected
             {
                 if (!myDialog.FileName.Contains(".txt"))
                 {
