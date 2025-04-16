@@ -225,6 +225,7 @@ namespace OsEngine.Market.Servers.AE
             Order order = new Order();
 
             string externalId = "";
+            decimal sharesRemaining = 0.0m;
             
             if (type == "OrderPending")
             {
@@ -262,6 +263,7 @@ namespace OsEngine.Market.Servers.AE
                 externalId = orderData.ExternalId;
                 order.TimeCallBack = orderData.Moment;
                 order.NumberMarket = orderData.OrderId;
+                sharesRemaining = orderData.SharesRemaining;
 
                 if (orderData.SharesRemaining == 0.0m)
                 {
@@ -276,12 +278,18 @@ namespace OsEngine.Market.Servers.AE
 
             Order origOrder = _sentOrders[externalId];
             order.NumberUser = origOrder.NumberUser;
-            order.Price = origOrder.Price;
             order.Side = origOrder.Side;
             order.PortfolioNumber = origOrder.PortfolioNumber;
             order.SecurityNameCode = origOrder.SecurityNameCode;
             order.SecurityClassCode = origOrder.SecurityClassCode;
             order.TypeOrder = origOrder.TypeOrder;
+            order.Price = origOrder.Price;
+            order.Volume = origOrder.Volume;
+
+            if (order.State == OrderStateType.Partial)
+            {
+                order.VolumeExecute = order.Volume - sharesRemaining;
+            }
 
             MyOrderEvent!(order);
         }
