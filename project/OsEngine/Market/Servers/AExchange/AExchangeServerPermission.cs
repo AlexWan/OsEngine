@@ -140,7 +140,7 @@ namespace OsEngine.Market.Servers.AE
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return true; }
+            get { return false; }
         }
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
