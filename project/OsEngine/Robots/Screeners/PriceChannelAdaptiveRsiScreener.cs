@@ -35,14 +35,18 @@ namespace OsEngine.Robots.Screeners
             PcAdxLength = CreateParameter("Pc adx length", 10, 5, 300, 1);
             PcRatio = CreateParameter("Pc ratio", 80, 5, 300, 1);
 
+            SmaFilterIsOn = CreateParameter("Sma filter is on", true);
+
+            SmaFilterLen = CreateParameter("Sma filter Len", 150, 100, 300, 10);
+
             _screenerTab.CreateCandleIndicator(1,
-                "RSI", 
-                new List<string>() { RsiLength.ValueInt.ToString()}, 
+                "RSI",
+                new List<string>() { RsiLength.ValueInt.ToString() },
                 "Second");
 
             _screenerTab.CreateCandleIndicator(2,
-                "PriceChannelAdaptive", 
-                new List<string>() { PcAdxLength.ValueInt.ToString(), PcRatio.ValueInt.ToString() }, 
+                "PriceChannelAdaptive",
+                new List<string>() { PcAdxLength.ValueInt.ToString(), PcRatio.ValueInt.ToString() },
                 "Prime");
 
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
@@ -50,7 +54,7 @@ namespace OsEngine.Robots.Screeners
 
         private void SmaScreener_ParametrsChangeByUser()
         {
-            _screenerTab._indicators[0].Parameters = new List<string>() { RsiLength.ValueInt.ToString()};
+            _screenerTab._indicators[0].Parameters = new List<string>() { RsiLength.ValueInt.ToString() };
             _screenerTab._indicators[1].Parameters = new List<string>() { PcAdxLength.ValueInt.ToString(), PcRatio.ValueInt.ToString() };
 
             _screenerTab.UpdateIndicatorsParameters();
@@ -85,6 +89,10 @@ namespace OsEngine.Robots.Screeners
         public StrategyParameterInt PcAdxLength;
 
         public StrategyParameterInt PcRatio;
+
+        public StrategyParameterBool SmaFilterIsOn;
+
+        public StrategyParameterInt SmaFilterLen;
 
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
@@ -123,18 +131,30 @@ namespace OsEngine.Robots.Screeners
 
                 Aindicator priceChannel = (Aindicator)tab.Indicators[1];
 
-                decimal pcUp = priceChannel.DataSeries[0].Values[priceChannel.DataSeries[0].Values.Count-2];
+                decimal pcUp = priceChannel.DataSeries[0].Values[priceChannel.DataSeries[0].Values.Count - 2];
                 //decimal pcDown = priceChannel.DataSeries[1].Values[priceChannel.DataSeries[1].Values.Count-2];
 
-                if (pcUp == 0 )
+                if (pcUp == 0)
                 {
                     return;
                 }
 
                 decimal candleClose = candles[candles.Count - 1].Close;
 
-                if(candleClose > pcUp)
+                if (candleClose > pcUp)
                 {
+
+                    if (SmaFilterIsOn.ValueBool == true)
+                    {
+                        decimal smaValue = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 1);
+                        decimal smaPrev = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 2);
+
+                        if (smaValue < smaPrev)
+                        {
+                            return;
+                        }
+                    }
+
                     tab.BuyAtMarket(GetVolume(tab));
                 }
             }
@@ -159,6 +179,33 @@ namespace OsEngine.Robots.Screeners
 
                 tab.CloseAtTrailingStopMarket(pos, pcDown);
             }
+        }
+
+        private decimal Sma(List<Candle> candles, int len, int index)
+        {
+            if (candles.Count == 0
+                || index >= candles.Count
+                || index <= 0)
+            {
+                return 0;
+            }
+
+            decimal summ = 0;
+
+            int countPoints = 0;
+
+            for (int i = index; i >= 0 && i > index - len; i--)
+            {
+                countPoints++;
+                summ += candles[i].Close;
+            }
+
+            if (countPoints == 0)
+            {
+                return 0;
+            }
+
+            return summ / countPoints;
         }
 
         private decimal GetVolume(BotTabSimple tab)
