@@ -136,6 +136,7 @@ namespace OsEngine.Market.Servers.AE
         private string _keyFilePassphrase;
         private string _username;
         private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
+        private Dictionary<string, Order> _sentOrders = new Dictionary<string, Order>();
 
         #endregion
 
@@ -274,7 +275,12 @@ namespace OsEngine.Market.Servers.AE
                 return;
             }
 
-            order.NumberUser = _orderNumbers[externalId];
+            Order origOrder = _sentOrders[externalId];
+            order.NumberUser = origOrder.NumberUser;
+            order.Price = origOrder.Price;
+            order.Side = origOrder.Side;
+            order.PortfolioNumber = origOrder.PortfolioNumber;
+            order.SecurityNameCode = origOrder.SecurityNameCode;
 
             MyOrderEvent!(order);
         }
@@ -1003,6 +1009,7 @@ namespace OsEngine.Market.Servers.AE
                 string orderId = newUid.ToString();
 
                 _orderNumbers.Add(orderId, order.NumberUser);
+                _sentOrders.Add(orderId, order);
 
                 SendCommand(new WebSocketPlaceOrderMessage
                 {
