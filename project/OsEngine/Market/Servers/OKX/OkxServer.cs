@@ -371,7 +371,7 @@ namespace OsEngine.Market.Servers.OKX
                     securityType = SecurityType.Option;
                 }
 
-                security.Lot = item.minSz.ToDecimal();
+                security.Lot = item.lotSz.ToDecimal();
 
                 string volStep = item.minSz.Replace(',', '.');
 
@@ -400,6 +400,8 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         security.NameClass = "SWAP_" + item.settleCcy;
                     }
+
+                    security.Lot = item.ctVal.ToDecimal();
                 }
 
                 if (securityType == SecurityType.Option)
@@ -412,6 +414,8 @@ namespace OsEngine.Market.Servers.OKX
                     {
                         security.NameClass = "OPTION_" + item.quoteCcy;
                     }
+
+                    security.Lot = item.ctVal.ToDecimal();
                 }
 
                 security.Exchange = ServerType.OKX.ToString();
