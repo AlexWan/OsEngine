@@ -129,8 +129,8 @@ namespace OsEngine.Market.Servers.AE
         #region 2 Properties
 
         private readonly string _apiHost = "213.219.228.50"; // prod
-        private readonly int _apiPort = 21300; // prod
-        // private readonly int _apiPort = 21513; // game  
+        //private readonly int _apiPort = 21300; // prod
+         private readonly int _apiPort = 21513; // game  
 
         private string _pathToKeyFile;
         private string _keyFilePassphrase;
@@ -239,8 +239,9 @@ namespace OsEngine.Market.Servers.AE
                 order.State = OrderStateType.Fail;
 
                 OrderRejectedMessage orderData = JsonConvert.DeserializeObject<OrderRejectedMessage>(message, _jsonSettings);
-                order.TimeCallBack = orderData.Moment;
-                order.NumberMarket = orderData.OrderId;
+                externalId = orderData.ExternalId;
+                order.TimeCallBack = orderData.Timestamp;
+                order.NumberMarket = orderData.OrderId ?? "";
 
                 SendLogMessage($"Order rejected. #{orderData.OrderId}. Message: {orderData.Message}", LogMessageType.Error);
             }
@@ -249,6 +250,7 @@ namespace OsEngine.Market.Servers.AE
                 order.State = OrderStateType.Cancel;
 
                 OrderCanceledMessage orderData = JsonConvert.DeserializeObject<OrderCanceledMessage>(message, _jsonSettings);
+                externalId = orderData.ExternalId;
                 order.TimeCallBack = orderData.Moment;
                 order.NumberMarket = orderData.OrderId;
             }
@@ -257,6 +259,7 @@ namespace OsEngine.Market.Servers.AE
                 order.State = OrderStateType.Partial;
 
                 OrderFilledMessage orderData = JsonConvert.DeserializeObject<OrderFilledMessage>(message, _jsonSettings);
+                externalId = orderData.ExternalId;
                 order.TimeCallBack = orderData.Moment;
                 order.NumberMarket = orderData.OrderId;
 
@@ -594,7 +597,7 @@ namespace OsEngine.Market.Servers.AE
         private void SendCommand(WebSocketMessageBase command)
         {
             command.Id = Interlocked.Increment(ref _messageId);
-            command.Timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            command.Timestamp = DateTime.UtcNow;
 
             string json = JsonConvert.SerializeObject(command, _jsonSettings);
 
@@ -1111,66 +1114,6 @@ namespace OsEngine.Market.Servers.AE
         #endregion
 
         #region 12 Helpers
-
-        public long ConvertToUnixTimestamp(DateTime date)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = date.ToUniversalTime() - origin;
-            return Convert.ToInt64(diff.TotalSeconds);
-        }
-
-        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            DateTime result = origin.AddSeconds(seconds.ToDouble()).ToLocalTime();
-
-            return result;
-        }
-
-        private DateTime ConvertToDateTimeFromUnixFromMilliseconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            DateTime result = origin.AddMilliseconds(seconds.ToDouble());
-
-            return result.ToLocalTime();
-        }
-
-        private DateTime ConvertToDateTimeFromTimeAEData(string AETime)
-        {
-            //"time": "2018-08-07T08:40:03.445Z",
-
-            string date = AETime.Split('T')[0];
-
-            int year = Convert.ToInt32(date.Substring(0,4));
-            int month = Convert.ToInt32(date.Substring(5, 2));
-            int day = Convert.ToInt32(date.Substring(8, 2));
-
-            string time = AETime.Split('T')[1];
-
-            int hour = Convert.ToInt32(time.Substring(0, 2));
-
-            if (AETime.EndsWith("+00:00"))
-            {
-                hour += 3;
-            }
-
-            if (AETime.EndsWith("+01:00"))
-            {
-                hour += 2;
-            }
-
-            if (AETime.EndsWith("+02:00"))
-            {
-                hour += 1;
-            }
-            int minute = Convert.ToInt32(time.Substring(3, 2));
-            int second = Convert.ToInt32(time.Substring(6, 2));
-            int ms = Convert.ToInt32(time.Substring(10, 3));
-
-            DateTime dateTime = new DateTime(year, month, day, hour, minute, second, ms);
-
-            return dateTime;
-        }
 
         #endregion
 
