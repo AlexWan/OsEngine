@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using System;
 
 namespace OsEngine.Market.Servers.AE.Json
 {
@@ -8,7 +9,7 @@ namespace OsEngine.Market.Servers.AE.Json
         public string Account { get; set; }
 
         [JsonProperty("order_id", NullValueHandling = NullValueHandling.Ignore)]
-        public string? OrderId { get; set; }
+        public long OrderId { get; set; }
 
         [JsonProperty("ticker", NullValueHandling = NullValueHandling.Ignore)]
         public string Ticker { get; set; }

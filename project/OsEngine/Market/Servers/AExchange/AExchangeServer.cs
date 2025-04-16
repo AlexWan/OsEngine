@@ -229,7 +229,7 @@ namespace OsEngine.Market.Servers.AE
             
             if (type == "OrderPending")
             {
-                order.State = OrderStateType.Pending;
+                order.State = OrderStateType.Active;
 
                 OrderPendingMessage orderData = JsonConvert.DeserializeObject<OrderPendingMessage>(message, _jsonSettings);
                 externalId = orderData.ExternalId;
@@ -400,6 +400,9 @@ namespace OsEngine.Market.Servers.AE
             newTrade.Price = trade.Price;
             newTrade.Time = trade.Moment;
             newTrade.Side = trade.Shares > 0 ? Side.Buy : Side.Sell;
+
+            if (trade.TradeType != TradeType.Regular)
+                return;
 
             MyTradeEvent!(newTrade);
         }
@@ -1063,7 +1066,7 @@ namespace OsEngine.Market.Servers.AE
                 SendCommand(new WebSocketCancelOrderMessage
                 {
                     Account = order.PortfolioNumber,
-                    OrderId = order.NumberMarket,
+                    OrderId = long.Parse(order.NumberMarket),
                     Ticker = order.SecurityNameCode
                 });
             }
