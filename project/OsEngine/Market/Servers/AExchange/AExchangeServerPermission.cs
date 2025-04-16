@@ -164,7 +164,7 @@ namespace OsEngine.Market.Servers.AE
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return true; }
+            get { return false; } // not yet
         }
 
         public bool CanQueryOrderStatus

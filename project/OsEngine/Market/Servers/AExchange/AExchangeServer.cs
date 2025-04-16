@@ -514,6 +514,7 @@ namespace OsEngine.Market.Servers.AE
                 Portfolio newPortfolio = new Portfolio();
 
                 newPortfolio.Number = account.AccountNumber;
+                newPortfolio.ValueBegin = 1;
                 newPortfolio.ValueCurrent = account.Money;
                 newPortfolio.ValueBlocked = account.GuaranteeMargin;
                 newPortfolio.UnrealizedPnl = calculateUnrealizedPnL(newPortfolio);
@@ -527,29 +528,29 @@ namespace OsEngine.Market.Servers.AE
                     newPortfolio.SetNewPosition(newPosition);
                 }
 
-                foreach (var order in account.Orders)
-                {
-                    Order newOrder = new Order();
+                //foreach (var order in account.Orders)
+                //{
+                //    Order newOrder = new Order();
 
-                    newOrder.PortfolioNumber = newPortfolio.Number;
-                    newOrder.NumberMarket = order.OrderId.ToString();
-                    newOrder.SecurityNameCode = order.Ticker;
-                    newOrder.TimeCallBack = order.Placed;
-                    newOrder.Price = order.Price;
-                    newOrder.Volume = order.Shares;
-                    newOrder.VolumeExecute = order.Shares - order.SharesRemaining;
-                    if (order.Comment != null)
-                    {
-                        newOrder.Comment = order.Comment;
-                    }
+                //    newOrder.PortfolioNumber = newPortfolio.Number;
+                //    newOrder.NumberMarket = order.OrderId.ToString();
+                //    newOrder.SecurityNameCode = order.Ticker;
+                //    newOrder.TimeCallBack = order.Placed;
+                //    newOrder.Price = order.Price;
+                //    newOrder.Volume = order.Shares;
+                //    newOrder.VolumeExecute = order.Shares - order.SharesRemaining;
+                //    if (order.Comment != null)
+                //    {
+                //        newOrder.Comment = order.Comment;
+                //    }
 
-                    if (order.ExternalId != null)
-                    {
-                        newOrder.NumberUser = int.Parse(order.ExternalId);
-                    }
+                //    if (order.ExternalId != null)
+                //    {
+                //        newOrder.NumberUser = int.Parse(order.ExternalId);
+                //    }
 
-                    orders.Add(newOrder);
-                }
+                //    orders.Add(newOrder);
+                //}
 
                 _myPortfolios.Add(newPortfolio);
             }
@@ -557,10 +558,10 @@ namespace OsEngine.Market.Servers.AE
             PortfolioEvent!(_myPortfolios);
 
             // send all orders
-            foreach (var order in orders)
-            {
-                MyOrderEvent!(order);
-            }
+            //foreach (var order in orders)
+            //{
+            //    MyOrderEvent!(order);
+            //}
         }
 
         public event Action<List<Security>> SecurityEvent;
