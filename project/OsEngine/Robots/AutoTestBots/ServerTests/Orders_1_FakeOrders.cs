@@ -481,7 +481,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if(order.Side != _waitSide)
             {
-                this.SetNewError("Error 14. Wait side note equal. Wait: " + _waitSide 
+                this.SetNewError("Error 14. Unexpected order side. Expected: " + _waitSide 
                     + " Side in order: " + order.Side);
                 return false;
             }

@@ -241,7 +241,6 @@ namespace OsEngine.Market.Servers.AE
 
                 OrderRejectedMessage orderData = JsonConvert.DeserializeObject<OrderRejectedMessage>(message, _jsonSettings);
                 externalId = orderData.ExternalId;
-                order.TimeCallBack = orderData.Timestamp;
                 order.NumberMarket = orderData.OrderId ?? "";
 
                 SendLogMessage($"Order rejected. #{orderData.OrderId}. Message: {orderData.Message}", LogMessageType.Error);
@@ -281,6 +280,8 @@ namespace OsEngine.Market.Servers.AE
             order.Side = origOrder.Side;
             order.PortfolioNumber = origOrder.PortfolioNumber;
             order.SecurityNameCode = origOrder.SecurityNameCode;
+            order.SecurityClassCode = origOrder.SecurityClassCode;
+            order.TypeOrder = origOrder.TypeOrder;
 
             MyOrderEvent!(order);
         }
