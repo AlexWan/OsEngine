@@ -443,13 +443,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (order.TimeCallBack.AddDays(-1) > now)
             {
-                this.SetNewError("Error 22. Order. TimeCallBack is to big. Time: " + order.TimeCallBack.ToString());
+                this.SetNewError("Error 22. Order. TimeCallBack is too big. Time: " + order.TimeCallBack.ToString());
                 return false;
             }
 
             if (order.TimeCallBack.AddDays(1) < now)
             {
-                this.SetNewError("Error 23. Order. TimeCallBack is to small. Time: " + order.TimeCallBack.ToString());
+                this.SetNewError("Error 23. Order. TimeCallBack is too small. Time: " + order.TimeCallBack.ToString());
                 return false;
             }
 
@@ -462,13 +462,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 if (order.TimeDone.AddDays(-1) > now)
                 {
-                    this.SetNewError("Error 25. Order. TimeDone is to big. Time: " + order.TimeDone.ToString());
+                    this.SetNewError("Error 25. Order. TimeDone is too big. Time: " + order.TimeDone.ToString());
                     return false;
                 }
 
                 if (order.TimeDone.AddDays(1) < now)
                 {
-                    this.SetNewError("Error 26. Order. TimeDone is to small. Time: " + order.TimeDone.ToString());
+                    this.SetNewError("Error 26. Order. TimeDone is too small. Time: " + order.TimeDone.ToString());
                     return false;
                 }
             }
@@ -482,13 +482,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 }
                 if (order.TimeCancel.AddDays(-1) > now)
                 {
-                    this.SetNewError("Error 28. Order. TimeCancel is to big. Time: " + order.TimeCancel.ToString());
+                    this.SetNewError("Error 28. Order. TimeCancel is too big. Time: " + order.TimeCancel.ToString());
                     return false;
                 }
 
                 if (order.TimeCancel.AddDays(1) < now)
                 {
-                    this.SetNewError("Error 29. Order. TimeCancel is to small. Time: " + order.TimeCancel.ToString());
+                    this.SetNewError("Error 29. Order. TimeCancel is too small. Time: " + order.TimeCancel.ToString());
                     return false;
                 }
             }
@@ -569,7 +569,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (myTrade.Side != _waitSide)
             {
-                this.SetNewError("Error 37. MyTrade. Wait side note equal. Wait: " + _waitSide
+                this.SetNewError("Error 37. MyTrade. Unexpected side. Expected: " + _waitSide
                   + " Side in order: " + myTrade.Side);
                 return false;
             }
@@ -614,13 +614,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if(myTrade.Time.AddDays(-1) > now)
             {
-                this.SetNewError("Error 44. MyTrade. Time is to big. Time: " + myTrade.Time.ToString());
+                this.SetNewError("Error 44. MyTrade. Time is too big. Time: " + myTrade.Time.ToString());
                 return false;
             }
 
             if (myTrade.Time.AddDays(1) < now)
             {
-                this.SetNewError("Error 45. MyTrade. Time is to small. Time: " + myTrade.Time.ToString());
+                this.SetNewError("Error 45. MyTrade. Time is too small. Time: " + myTrade.Time.ToString());
                 return false;
             }
 

@@ -579,7 +579,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
             if (portfolio.ValueBegin == 0)
             {
-                SetNewError("Error 27. Number portfolio is null");
+                SetNewError("Error 27. ValueBegin of portfolio is zero");
                 return;
             }
 
