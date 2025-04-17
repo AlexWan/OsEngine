@@ -26,7 +26,6 @@ using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using System.Windows.Forms.DataVisualization.Charting;
 using System.Drawing;
-using OsEngine.Properties;
 
 namespace OsEngine.OsOptimizer
 {
@@ -146,6 +145,7 @@ namespace OsEngine.OsOptimizer
             worker.Start();
 
             Label7.Content = OsLocalization.Optimizer.Label7;
+            LabelTimeToEnd.Content = "";
             Label8.Content = OsLocalization.Optimizer.Label8;
             ButtonGo.Content = OsLocalization.Optimizer.Label9;
             TabItemControl.Header = OsLocalization.Optimizer.Label10;
@@ -322,6 +322,7 @@ namespace OsEngine.OsOptimizer
                 }
 
                 Label7.Content = OsLocalization.Optimizer.Label7;
+                LabelTimeToEnd.Content = "";
 
                 PaintTableResults();
                 PaintSeriesResultsChart();
@@ -345,15 +346,14 @@ namespace OsEngine.OsOptimizer
         {
             try
             {
-                if (Label7.Dispatcher.CheckAccess() == false)
+                if (LabelTimeToEnd.Dispatcher.CheckAccess() == false)
                 {
-                    Label7.Dispatcher.Invoke(new Action<string>(SetTimeToEnd), timeToEnd);
+                    LabelTimeToEnd.Dispatcher.Invoke(new Action<string>(SetTimeToEnd), timeToEnd);
                     return;
                 }
 
-                Label7.Content =
-                    OsLocalization.Optimizer.Label7 + "  "
-                    + OsLocalization.Optimizer.Label63 + ": "
+                LabelTimeToEnd.Content =
+                    OsLocalization.Optimizer.Label63 + ": "
                     + timeToEnd.ToString();
 
             }
