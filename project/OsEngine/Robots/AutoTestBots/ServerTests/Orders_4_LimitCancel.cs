@@ -251,13 +251,13 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             {
                 if (timeEndWait < DateTime.Now)
                 {
-                    this.SetNewError("Error 10. No reject order from server CancelOrder");
+                    this.SetNewError("Error 10. No canceled order from server CancelOrder");
                     return;
                 }
 
                 if (_ordersCancel.Count != 0)
                 {
-                    this.SetNewServiceInfo("Cancel order income Check!");
+                    this.SetNewServiceInfo("Canceled order incoming: Check!");
                     break;
                 }
                 else

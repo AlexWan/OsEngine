@@ -467,6 +467,21 @@
     <Compile Include="Market\Connectors\ConnectorNewsUi.xaml.cs">
       <DependentUpon>ConnectorNewsUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Market\Servers\AExchange\AExchangeServer.cs" />
+    <Compile Include="Market\Servers\AExchange\AExchangeServerPermission.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\PlaceOrderMessage.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\CancelOrderMessage.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\Trade.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\PositionUpdate.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\AccountState.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\Accounts.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\InstrumentDefinition.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\Error.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\OrderStatus.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\Quotes.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\SubscribeOnQuoteMessage.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\LoginMessage.cs" />
+    <Compile Include="Market\Servers\AExchange\Json\WebSocketMessageBase.cs" />
     <Compile Include="Market\Servers\Alor\Json\RequestSocketSubscribe.cs" />
     <Compile Include="Market\Servers\Alor\Json\SocketMessageBase.cs" />
     <Compile Include="Market\Servers\Atp\AtpServer.cs" />
