@@ -102,7 +102,7 @@ namespace OsEngine.Market.Servers
                 _candleStorage.CandlesSaveCount = _needToSaveCandlesCountParam.Value;
                 _candleStorage.LogMessageEvent += SendLogMessage;
 
-                Log = new Log(_serverRealization.ServerType + "Server", StartProgram.IsOsTrader);
+                Log = new Log(this.ServerNameUnique + "Server", StartProgram.IsOsTrader);
                 Log.Listen(this);
 
                 _serverStatusNeed = ServerConnectStatus.Disconnect;
@@ -157,7 +157,19 @@ namespace OsEngine.Market.Servers
         {
             if (_ui == null)
             {
-                _ui = new AServerParameterUi(this);
+                List<AServer> allServersThisType = new List<AServer>();
+  
+                List<IServer> serversFromServerMaster = ServerMaster.GetServers();
+
+                for(int i = 0;i < serversFromServerMaster.Count;i++)
+                {
+                    if (serversFromServerMaster[i].ServerType == this.ServerType)
+                    {
+                        allServersThisType.Add((AServer)serversFromServerMaster[i]);
+                    }
+                }
+
+                _ui = new AServerParameterUi(allServersThisType);
                 _ui.Show();
                 _ui.Closing += _ui_Closing;
             }
@@ -239,6 +251,21 @@ namespace OsEngine.Market.Servers
         /// blocks the display of the default server settings in the settings window. 
         /// </summary>
         public bool NeedToHideParameters = false;
+
+        public bool CanDoMultipleConnections
+        {
+            get
+            {
+                IServerPermission permission = ServerPermission;
+
+                if (permission != null)
+                {
+                    return permission.IsSupports_MultipleInstances;
+                }
+
+                return false;
+            }
+        }
 
         /// <summary>
         /// server parameters
@@ -428,7 +455,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerType + @"Params.txt", false)
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + ServerNameUnique + @"Params.txt", false)
                     )
                 {
                     for (int i = 0; i < ServerParameters.Count; i++)
@@ -463,13 +490,13 @@ namespace OsEngine.Market.Servers
             }
 
 
-            if (!File.Exists(@"Engine\" + ServerType + @"Params.txt"))
+            if (!File.Exists(@"Engine\" + ServerNameUnique + @"Params.txt"))
             {
                 return param;
             }
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + ServerType + @"Params.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + ServerNameUnique + @"Params.txt"))
                 {
                     while (reader.EndOfStream == false)
                     {
@@ -665,6 +692,27 @@ namespace OsEngine.Market.Servers
         /// server type
         /// </summary>
         public ServerType ServerType { get { return ServerRealization.ServerType; } }
+
+        public int ServerNum;
+
+        public string ServerPrefix;
+
+        public string ServerNameUnique
+        {
+            get
+            {
+                string result = ServerType.ToString();
+
+                if(ServerNum == 0)
+                {
+                    return result;
+                }
+
+                result = result + "_" + ServerNum + "_" + ServerPrefix;
+
+                return result;
+            }
+        }
 
         /// <summary>
         /// server realization permissions
@@ -3315,6 +3363,11 @@ namespace OsEngine.Market.Servers
         /// </summary>
         private void SendLogMessage(string message, LogMessageType type)
         {
+            if(CanDoMultipleConnections)
+            {
+                message = this.ServerNameUnique + " " + message;
+            }
+            
             if (LogMessageEvent != null)
             {
                 LogMessageEvent(message, type);

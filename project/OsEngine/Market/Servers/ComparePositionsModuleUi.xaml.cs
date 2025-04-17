@@ -11,6 +11,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using System.Threading;
+using Grpc.Core;
 
 namespace OsEngine.Market.Servers
 {
@@ -33,7 +34,7 @@ namespace OsEngine.Market.Servers
             this.Closed += ComparePositionsModuleUi_Closed;
 
             LabelConnectionName.Content = OsLocalization.Market.Label136;
-            LabelConnectionName.Content += " " + _comparePositionsModule.Server.ServerType.ToString();
+            LabelConnectionName.Content += " " + _comparePositionsModule.Server.ServerNameUnique.ToString();
             Title = OsLocalization.Market.Label137;
             CheckBoxAutoLogMessageOnError.Content = OsLocalization.Market.Label138;
             LabelVerificationPeriod.Content = OsLocalization.Market.Label139;

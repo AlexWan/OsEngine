@@ -55,7 +55,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + Server.ServerType.ToString() + @"CompareModule.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + Server.ServerNameUnique + @"CompareModule.txt", false))
                 {
                     writer.WriteLine(_verificationPeriod);
 
@@ -75,13 +75,13 @@ namespace OsEngine.Market.Servers
 
         private void Load()
         {
-            if (!File.Exists(@"Engine\" + Server.ServerType.ToString() + @"CompareModule.txt"))
+            if (!File.Exists(@"Engine\" + Server.ServerNameUnique + @"CompareModule.txt"))
             {
                 return;
             }
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + Server.ServerType.ToString() + @"CompareModule.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + Server.ServerNameUnique + @"CompareModule.txt"))
                 {
                     Enum.TryParse(reader.ReadLine(), out _verificationPeriod);
 
@@ -192,7 +192,7 @@ namespace OsEngine.Market.Servers
                 return;
             }
 
-            string message = Server.ServerType + ". Error on compare securities in robot and portfolio \n";
+            string message = Server.ServerNameUnique + ". Error on compare securities in robot and portfolio \n";
             bool haveError = false;
 
             for(int i = 0;i <  portfolio.CompareSecurities.Count;i++)
@@ -574,7 +574,7 @@ namespace OsEngine.Market.Servers
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + Server.ServerType.ToString() + @"CompareModule_IgnoreSec.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + Server.ServerNameUnique + @"CompareModule_IgnoreSec.txt", false))
                 {
                     for (int i = 0; i < IgnoredSecurities.Count; i++)
                     {
@@ -592,14 +592,14 @@ namespace OsEngine.Market.Servers
 
         public void LoadIgnoredSecurities()
         {
-            if (!File.Exists(@"Engine\" + Server.ServerType.ToString() + @"CompareModule_IgnoreSec.txt"))
+            if (!File.Exists(@"Engine\" + Server.ServerNameUnique + @"CompareModule_IgnoreSec.txt"))
             {
                 return;
             }
 
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + Server.ServerType.ToString() + @"CompareModule_IgnoreSec.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\" + Server.ServerNameUnique + @"CompareModule_IgnoreSec.txt"))
                 {
                     while (reader.EndOfStream == false)
                     {

@@ -69,12 +69,12 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             if (needToLoadTicks)
             {
-                _tickStorage = new ServerTickStorage(this);
+              /*  _tickStorage = new ServerTickStorage(this);
                 _tickStorage.NeedToSave = NeedToSaveTicks;
                 _tickStorage.DaysToLoad = CountDaysTickNeedToSave;
                 _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
                 _tickStorage.LogMessageEvent += SendLogMessage;
-                _tickStorage.LoadTick();
+                _tickStorage.LoadTick();*/
             }
         }
 

@@ -409,7 +409,7 @@ namespace OsEngine.Market.Servers
                     Directory.CreateDirectory(dir);
                 }
 
-                dir += _server.ServerType + "_active_orders.db";
+                dir += _server.ServerNameUnique + "_active_orders.db";
 
                 using (LiteDatabase db = new LiteDatabase(dir))
                 {
@@ -473,7 +473,7 @@ namespace OsEngine.Market.Servers
                     Directory.CreateDirectory(dir);
                 }
 
-                dir += _server.ServerType + "_active_orders.db";
+                dir += _server.ServerNameUnique + "_active_orders.db";
 
                 using (LiteDatabase db = new LiteDatabase(dir))
                 {

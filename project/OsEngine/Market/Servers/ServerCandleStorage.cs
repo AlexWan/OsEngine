@@ -19,7 +19,7 @@ namespace OsEngine.Market.Servers
         /// constructor
         /// </summary>
         /// <param name="server"> server for saving candles </param>
-        public ServerCandleStorage(IServer server)
+        public ServerCandleStorage(AServer server)
         {
 
             if (!Directory.Exists(@"Data"))
@@ -27,7 +27,7 @@ namespace OsEngine.Market.Servers
                 Directory.CreateDirectory(@"Data");
             }
 
-            _pathName = @"Data" + @"\" + server.GetType().Name + @"Candles";
+            _pathName = @"Data" + @"\" + server.ServerNameUnique + @"Candles";
 
             Thread saver = new Thread(CandleSaverSpaceInOneFile);
             saver.CurrentCulture = new CultureInfo("RU-ru");
