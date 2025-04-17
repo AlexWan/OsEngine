@@ -276,6 +276,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     Security security = new Security();
 
+                    if (current.symbol.EndsWith("USDC"))
+                    {
+                        continue;
+                    }
+
                     security.Lot = 1;
                     security.MinTradeAmount = current.size.ToDecimal();
                     security.Name = current.symbol;
@@ -464,7 +469,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        private RateGate _portfolioRateGate = new RateGate(1, TimeSpan.FromMilliseconds(500)); 
+        private RateGate _portfolioRateGate = new RateGate(1, TimeSpan.FromMilliseconds(250));
 
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
@@ -473,13 +478,14 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                RestRequest request = new RestRequest("/openApi/swap/v3/user/balance", Method.GET);
+                RestRequest request = new RestRequest("/openApi/swap/v2/user/balance", Method.GET);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                string parameters = $"timestamp={timeStamp}";
+                string parameters = $"timestamp={timeStamp}&recvWindow=20000";
                 string sign = CalculateHmacSha256(parameters);
 
                 request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("recvWindow", 20000);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
@@ -487,51 +493,39 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseFuturesBingXMessage<List<BalanceInfoBingXFutures>> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<List<BalanceInfoBingXFutures>>>(json.Content);
+                    ResponseFuturesBingXMessage<Balance> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<Balance>>(json.Content);
 
                     if (response.code == "0")
                     {
                         Portfolio portfolio = Portfolios[0];
 
-                        decimal positionInUSDTValueBegin = 0;
-                        decimal positionInUSDTValueCurrent = 0;
-                        decimal positionInUSDTValueBlocked = 0;
-                        decimal positionPnL = 0;
+                        BalanceInfoBingXFutures asset = response.data.balance;
 
-                        for (int i = 0; i < response.data.Count; i++)
-                        {
-                            BalanceInfoBingXFutures asset = response.data[i];
-
-                            PositionOnBoard newPortf = new PositionOnBoard();
-                            newPortf.SecurityNameCode = asset.asset;
-
-                            if (IsUpdateValueBegin)
-                            {
-                                newPortf.ValueBegin = asset.balance.ToDecimal();
-                            }
-
-                            newPortf.ValueCurrent = asset.equity.ToDecimal();
-                            newPortf.ValueBlocked = asset.freezedMargin.ToDecimal() + asset.usedMargin.ToDecimal();
-                            newPortf.UnrealizedPnl = asset.unrealizedProfit.ToDecimal();
-                            newPortf.PortfolioName = "BingXFutures";
-                            portfolio.SetNewPosition(newPortf);
-
-                            positionInUSDTValueBegin += newPortf.ValueBegin;
-                            positionInUSDTValueCurrent += newPortf.ValueCurrent;
-                            positionInUSDTValueBlocked += newPortf.ValueBlocked;
-                            positionPnL += newPortf.UnrealizedPnl;
-                        }
+                        PositionOnBoard newPortf = new PositionOnBoard();
+                        newPortf.SecurityNameCode = asset.asset;
 
                         if (IsUpdateValueBegin)
                         {
-                            portfolio.ValueBegin = positionInUSDTValueBegin;
+                            newPortf.ValueBegin = asset.balance.ToDecimal();
                         }
 
-                        portfolio.ValueCurrent = positionInUSDTValueCurrent;
-                        portfolio.ValueBlocked = positionInUSDTValueBlocked;
-                        portfolio.UnrealizedPnl = positionPnL;
+                        newPortf.ValueCurrent = asset.equity.ToDecimal();
+                        newPortf.ValueBlocked = asset.freezedMargin.ToDecimal() + asset.usedMargin.ToDecimal();
+                        newPortf.UnrealizedPnl = asset.unrealizedProfit.ToDecimal();
+                        newPortf.PortfolioName = "BingXFutures";
+                        portfolio.SetNewPosition(newPortf);
 
-                        if (positionInUSDTValueCurrent == 0)
+
+                        if (IsUpdateValueBegin)
+                        {
+                            portfolio.ValueBegin = newPortf.ValueBegin;
+                        }
+
+                        portfolio.ValueCurrent = newPortf.ValueCurrent;
+                        portfolio.ValueBlocked = newPortf.ValueBlocked;
+                        portfolio.UnrealizedPnl = newPortf.UnrealizedPnl;
+
+                        if (newPortf.ValueCurrent == 0)
                         {
                             portfolio.ValueBegin = 1;
                             portfolio.ValueCurrent = 1;
