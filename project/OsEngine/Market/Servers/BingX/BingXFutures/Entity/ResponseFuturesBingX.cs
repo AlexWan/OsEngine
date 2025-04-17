@@ -186,5 +186,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
         public string dualSidePosition { get; set; }
     }
 
-
+    public class Balance
+    {
+        public BalanceInfoBingXFutures balance { get; set; }
+    }
 }

@@ -964,7 +964,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     if (_webSocket != null &&
                         _webSocket.ReadyState == WebSocketState.Open)
                     {
-                        if (_timeLastSendPing.AddSeconds(30) < DateTime.Now)
+                        if (_timeLastSendPing.AddSeconds(20) < DateTime.Now)
                         {
                             SendPing();
                             _timeLastSendPing = DateTime.Now;
