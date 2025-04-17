@@ -970,7 +970,6 @@ namespace OsEngine.Market.Servers.TInvest
                 SendLogMessage("Error getting positions in portfolio", LogMessageType.Error);
             }
 
-
             for (int i = 0; i < posData.Securities.Count; i++)
             {
                 PositionsSecurities pos = posData.Securities[i];
@@ -1551,7 +1550,6 @@ namespace OsEngine.Market.Servers.TInvest
                 else
                 {
                     // subscribe to trades and order books for everything else
-
                     TradeInstrument tradeInstrument = new TradeInstrument();
                     tradeInstrument.InstrumentId = security.NameId;
 
@@ -1565,7 +1563,6 @@ namespace OsEngine.Market.Servers.TInvest
                     };
                     marketDataRequest.SubscribeTradesRequest = subscribeTradesRequest;
                     _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
-
 
                     // only one type of marketdata allowed in request so we need to new up request object
                     marketDataRequest = new MarketDataRequest();
@@ -1583,7 +1580,6 @@ namespace OsEngine.Market.Servers.TInvest
 
                     _marketDataStream.RequestStream.WriteAsync(marketDataRequest).Wait();
                 }
-
             }
             catch (Exception exception)
             {
