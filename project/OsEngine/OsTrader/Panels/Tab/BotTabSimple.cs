@@ -4315,7 +4315,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
 
-                SetNewLogMessage(Security.Name + " short position modification", LogMessageType.Trade);
+                SetNewLogMessage(Security.Name + " short position modification \n"
+                    + "Order direction: " + Side.Sell.ToString() + "\n"
+                    + "Price: " + price.ToString() + "\n"
+                    + "Volume: " + volume.ToString() + "\n"
+                    + "Position num: " + position.Number.ToString()
+                    , LogMessageType.Trade);
 
                 if (position.OpenOrders[0].SecurityNameCode.EndsWith(" TestPaper"))
                 {
@@ -4439,8 +4444,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 newOrder.LifeTime = timeLife;
                 newOrder.SecurityNameCode = Security.Name;
                 newOrder.SecurityClassCode = Security.NameClass;
-
                 position.AddNewOpenOrder(newOrder);
+
+                SetNewLogMessage(Security.Name + " long position modification \n"
+                   + "Order direction: " + Side.Buy.ToString() + "\n"
+                   + "Price: " + price.ToString() + "\n"
+                   + "Volume: " + volume.ToString() + "\n"
+                   + "Position num: " + position.Number.ToString()
+                   , LogMessageType.Trade);
 
                 if (position.OpenOrders[0].SecurityNameCode.EndsWith(" TestPaper"))
                 {
