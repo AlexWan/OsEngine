@@ -370,7 +370,7 @@ namespace OsEngine.Market.Servers.TInvest
             if (_useOptions)
             {
                 // https://russianinvestments.github.io/investAPI/faq_instruments/ v1.23
-                // Сейчас торговля опционами через API недоступна. 
+                // No options still for T-Invest 
                 SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.Error);
 
                 //_rateGateInstruments.WaitToProceed();
