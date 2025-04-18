@@ -236,12 +236,12 @@ namespace OsEngine.Market
                             Portfolio pCurrent = _portfolios[i];
                             Portfolio pMin1 = _portfolios[i - 1];
 
-                            if (pCurrent.Number == null || pCurrent.Number.Length < 2)
+                            if (pCurrent == null || pCurrent.Number == null || pCurrent.Number.Length < 2)
                             {
                                 continue;
                             }
 
-                            if (pMin1.Number == null || pMin1.Number.Length < 2)
+                            if (pMin1 == null || pMin1.Number == null || pMin1.Number.Length < 2)
                             {
                                 continue;
                             }
