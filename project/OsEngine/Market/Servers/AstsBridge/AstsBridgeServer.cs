@@ -290,7 +290,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + " " + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
