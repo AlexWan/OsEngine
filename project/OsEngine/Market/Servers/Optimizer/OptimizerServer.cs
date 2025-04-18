@@ -49,7 +49,15 @@ namespace OsEngine.Market.Servers.Optimizer
             get { return ServerType.Optimizer; }
         }
 
-        public void ShowDialog()
+        public string ServerNameAndPrefix
+        {
+            get
+            {
+                return ServerType.ToString();
+            }
+        }
+
+        public void ShowDialog(int num = 0)
         {
 
         }
@@ -98,7 +106,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " " + OsLocalization.Market.Message7, LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -585,7 +593,7 @@ namespace OsEngine.Market.Servers.Optimizer
                 time = lastCandle.TimeStart;
             }
 
-            if (time <= order.TimeCallBack 
+            if (time <= order.TimeCallBack
                 && order.IsStopOrProfit != true)
             {
                 //CanselOnBoardOrder(order);

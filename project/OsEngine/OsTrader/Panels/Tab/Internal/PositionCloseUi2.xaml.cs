@@ -5,7 +5,6 @@ using OsEngine.Market;
 using System;
 using System.Windows;
 using System.Threading.Tasks;
-using System.Windows.Data;
 using System.Windows.Media;
 
 namespace OsEngine.OsTrader.Panels.Tab.Internal
@@ -221,7 +220,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             TextBoxFakeOpenTime.Text = timeStr;
         }
 
-        private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, ServerType arg5)
+        private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, string arg5)
         {
             RepaintMainLabels();
         }
@@ -249,7 +248,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             _marketDepthPainter = new MarketDepthPainter(Tab.TabName + "OpenPosGui");
             _marketDepthPainter.ProcessMarketDepth(Tab.MarketDepth);
-            _marketDepthPainter.StartPaint(WinFormsHostMarketDepth, null,null);
+            _marketDepthPainter.StartPaint(WinFormsHostMarketDepth, null, null);
             _marketDepthPainter.UserClickOnMDAndSelectPriceEvent += _marketDepthPainter_UserClickOnMDAndSelectPriceEvent;
         }
 
@@ -347,14 +346,14 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 }
             }
 
-            if(string.IsNullOrEmpty(TextBoxMarketVolumeToClose.Text))
+            if (string.IsNullOrEmpty(TextBoxMarketVolumeToClose.Text))
             {
                 Tab.SetNewLogMessage(OsLocalization.Trader.Label389, Logging.LogMessageType.Error);
                 return;
             }
 
             decimal volume = 0;
-            
+
             try
             {
                 volume = TextBoxMarketVolumeToClose.Text.ToDecimal();
@@ -362,7 +361,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             catch (Exception ex)
             {
                 Tab.SetNewLogMessage(
-                    OsLocalization.Trader.Label389 + "\n" + ex.ToString(), 
+                    OsLocalization.Trader.Label389 + "\n" + ex.ToString(),
                     Logging.LogMessageType.Error);
                 return;
             }
@@ -632,11 +631,11 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                for(int i = 0; Position.CloseOrders != null && i < Position.CloseOrders.Count;i++)
+                for (int i = 0; Position.CloseOrders != null && i < Position.CloseOrders.Count; i++)
                 {
                     Order order = Position.CloseOrders[i];
 
-                    if(order.State == OrderStateType.Active)
+                    if (order.State == OrderStateType.Active)
                     {
                         Tab.CloseOrder(order);
                     }
@@ -644,7 +643,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
             catch (Exception ex)
             {
-                Tab.SetNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+                Tab.SetNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
     }

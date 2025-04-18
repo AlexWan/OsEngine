@@ -21,8 +21,9 @@ namespace OsEngine.Market.Servers.Alor
 {
     public class AlorServer : AServer
     {
-        public AlorServer()
+        public AlorServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             AlorServerRealization realization = new AlorServerRealization();
             ServerRealization = realization;
 

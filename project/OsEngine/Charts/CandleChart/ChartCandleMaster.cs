@@ -348,7 +348,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             CreateIndicator(new AtrChannel(indicator[1], Convert.ToBoolean(indicator[3])), indicator[2]);
                         }
-                        else 
+                        else
                         {
                             NewLogMessage("Chart can`t load indicator with name: " + indicator[0], LogMessageType.Error);
                         }
@@ -1849,12 +1849,19 @@ namespace OsEngine.Charts.CandleChart
         /// <param name="timeFrameBuilder">an object that stores candles construction settings/объект хранящий в себе настройки построения свечей</param>
         /// <param name="portfolioName">portfolio/портфель</param>
         /// <param name="serverType">server type/тип сервера</param>
-        public void SetNewSecurity(string security, TimeFrameBuilder timeFrameBuilder, string portfolioName, ServerType serverType)
+        public void SetNewSecurity(string security, TimeFrameBuilder timeFrameBuilder, string portfolioName, string serverType)
         {
             if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
+
+            if (serverType == null)
+            {
+                return;
+            }
+
+            serverType = serverType.Replace("_", "-");
 
             if (_securityOnThisChart == security &&
                 _timeFrameSecurity == timeFrameBuilder.TimeFrame &&
@@ -1864,7 +1871,8 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
-            if(_serverType == ServerType.None)
+            if (string.IsNullOrEmpty(_serverType)
+                || _serverType == ServerType.None.ToString())
             {
                 _isFirstTimeSetSecurity = true;
             }
@@ -1908,7 +1916,7 @@ namespace OsEngine.Charts.CandleChart
 
         private TimeFrameBuilder _timeFrameBuilder;
 
-        private ServerType _serverType;
+        private string _serverType;
 
         /// <summary>
         /// security drawing on chart
@@ -1975,6 +1983,11 @@ namespace OsEngine.Charts.CandleChart
                 return;
             }
 
+            if (_timeFrameBuilder == null)
+            {
+                return;
+            }
+
             if (!_label.Dispatcher.CheckAccess())
             {
                 _label.Dispatcher.Invoke(PaintLabelOnSlavePanel);
@@ -1990,7 +2003,8 @@ namespace OsEngine.Charts.CandleChart
 
             _label.Content = _serverType;
 
-            if (_timeFrameBuilder.CandleCreateMethodType == "Simple")
+            if (_timeFrameBuilder != null
+                && _timeFrameBuilder.CandleCreateMethodType == "Simple")
             {
                 _label.Content += " / " + security + " / " + _timeFrameSecurity;
             }

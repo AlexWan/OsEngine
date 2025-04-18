@@ -71,9 +71,17 @@ namespace OsEngine.Market.Servers.Tester
             get { return ServerType.Tester; }
         }
 
+        public string ServerNameAndPrefix
+        {
+            get
+            {
+                return ServerType.ToString();
+            }
+        }
+
         private TesterServerUi _ui;
 
-        public void ShowDialog()
+        public void ShowDialog(int num = 0)
         {
             if (_ui == null)
             {
@@ -316,7 +324,7 @@ namespace OsEngine.Market.Servers.Tester
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " " + OsLocalization.Market.Message7, LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -2456,7 +2464,7 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            for(int i = 0;i < Securities.Count;i++)
+            for (int i = 0; i < Securities.Count; i++)
             {
                 if (Securities[i].Name == securityToSave.Name)
                 {
@@ -2464,9 +2472,9 @@ namespace OsEngine.Market.Servers.Tester
                 }
             }
 
-            for(int i = 0;i < SecuritiesTester.Count;i++)
+            for (int i = 0; i < SecuritiesTester.Count; i++)
             {
-                if(SecuritiesTester[i].Security.Name == securityToSave.Name)
+                if (SecuritiesTester[i].Security.Name == securityToSave.Name)
                 {
                     SecuritiesTester[i].Security.LoadFromString(securityToSave.GetSaveStr());
                 }
@@ -4213,7 +4221,7 @@ namespace OsEngine.Market.Servers.Tester
                 {
                     for (int i = 0; i < SecuritiesTester.Count; i++)
                     {
-                        if(reader.EndOfStream == true)
+                        if (reader.EndOfStream == true)
                         {
                             return;
                         }
@@ -4227,7 +4235,7 @@ namespace OsEngine.Market.Servers.Tester
 
                         TimeFrame frame;
 
-                        if(Enum.TryParse(security[1],out frame))
+                        if (Enum.TryParse(security[1], out frame))
                         {
                             SecuritiesTester[i].TimeFrame = frame;
                         }
@@ -4456,7 +4464,7 @@ namespace OsEngine.Market.Servers.Tester
             get { return _timeFrame; }
             set
             {
-                if(value == _timeFrame)
+                if (value == _timeFrame)
                 {
                     return;
                 }

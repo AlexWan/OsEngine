@@ -61,25 +61,38 @@ namespace OsEngine.Market.Connectors
                 // upload settings to controls
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    ComboBoxTypeServer.Items.Add(servers[i].ServerType);
+                    ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
                 }
 
                 if (servers.Count > 0
                     && servers[0].ServerType == ServerType.Optimizer)
                 {
                     _selectedServerType = ServerType.Optimizer;
+                    _selectedServerName = ServerType.Optimizer.ToString();
                     connectorBot.ServerType = ServerType.Optimizer;
+                    connectorBot.ServerFullName = _selectedServerName;
                 }
 
                 if (connectorBot.ServerType != ServerType.None)
                 {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
-                    _selectedServerType = connectorBot.ServerType;
+                    if (string.IsNullOrEmpty(connectorBot.ServerFullName) == false)
+                    {
+                        ComboBoxTypeServer.SelectedItem = connectorBot.ServerFullName;
+                        _selectedServerType = connectorBot.ServerType;
+                        _selectedServerName = connectorBot.ServerFullName;
+                    }
+                    else
+                    {
+                        ComboBoxTypeServer.SelectedItem = connectorBot.ServerType.ToString();
+                        _selectedServerType = connectorBot.ServerType;
+                        _selectedServerName = connectorBot.ServerType.ToString();
+                    }
                 }
                 else
                 {
-                    ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
+                    ComboBoxTypeServer.SelectedItem = servers[0].ServerNameAndPrefix;
                     _selectedServerType = servers[0].ServerType;
+                    _selectedServerName = servers[0].ServerNameAndPrefix;
                 }
 
                 if (connectorBot.StartProgram == StartProgram.IsTester)
@@ -92,6 +105,7 @@ namespace OsEngine.Market.Connectors
 
                     connectorBot.ServerType = ServerType.Tester;
                     _selectedServerType = ServerType.Tester;
+                    _selectedServerName = ServerType.Tester.ToString();
 
                     ComboBoxPortfolio.IsEnabled = false;
                     ComboBoxTypeServer.IsEnabled = false;
@@ -262,7 +276,8 @@ namespace OsEngine.Market.Connectors
 
                 _candlesRealizationGrid.EndEdit();
 
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
+                Enum.TryParse(ComboBoxTypeServer.Text.Split('_')[0], true, out _connectorBot.ServerType);
+                _connectorBot.ServerFullName = _selectedServerName;
 
                 _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
 
@@ -374,6 +389,22 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if (ComboBoxTypeServer.SelectedValue == null)
+                {
+                    return;
+                }
+
+                string serverName = ComboBoxTypeServer.SelectedValue.ToString();
+
+                ServerType serverType;
+                if (Enum.TryParse(serverName.Split('_')[0], out serverType) == false)
+                {
+                    return;
+                }
+
+                _selectedServerType = serverType;
+                _selectedServerName = serverName;
+
                 if (_selectedServerType == ServerType.None)
                 {
                     return;
@@ -387,12 +418,14 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server = serversAll.Find(server1 => server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server != null)
                 {
                     server.SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     server.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+                    server.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
+                    server.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
 
                 if (ComboBoxTypeServer.SelectedItem == null)
@@ -400,15 +433,6 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedServerType);
-
-                IServer server2 = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
-
-                if (server2 != null)
-                {
-                    server2.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
-                    server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
-                }
                 LoadPortfolioOnBox();
                 LoadClassOnBox();
                 LoadSecurityOnBox();
@@ -423,6 +447,8 @@ namespace OsEngine.Market.Connectors
         }
 
         private ServerType _selectedServerType;
+
+        private string _selectedServerName;
 
         #endregion
 
@@ -471,7 +497,7 @@ namespace OsEngine.Market.Connectors
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server = serversAll.Find(server1 => server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -570,7 +596,7 @@ namespace OsEngine.Market.Connectors
                 }
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server = serversAll.Find(server1 => server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -696,7 +722,7 @@ namespace OsEngine.Market.Connectors
 
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server = serversAll.Find(server1 => server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -1501,7 +1527,7 @@ namespace OsEngine.Market.Connectors
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer serverr = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer serverr = serversAll.Find(server1 => server1.ServerNameAndPrefix == _selectedServerName);
 
                 IServerPermission permission = ServerMaster.GetServerPermission(_selectedServerType);
 

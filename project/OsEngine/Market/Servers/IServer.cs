@@ -23,13 +23,19 @@ namespace OsEngine.Market.Servers
         /// взять тип сервера. 
         /// </summary>
         /// <returns></returns>
-        ServerType ServerType { get;}
+        ServerType ServerType { get; }
+
+        /// <summary>
+        /// full server name to user
+        /// полное название сервера для пользователя
+        /// </summary>
+        string ServerNameAndPrefix { get; }
 
         /// <summary>
         /// show settings
         /// показать настройки
         /// </summary>
-        void ShowDialog();
+        void ShowDialog(int num = 0);
 
         #endregion
 
@@ -95,7 +101,7 @@ namespace OsEngine.Market.Servers
         /// take all portfolios
         /// взять все портфели
         /// </summary>
-        List<Portfolio> Portfolios { get;}
+        List<Portfolio> Portfolios { get; }
 
         /// <summary>
         /// take portfolio by number
@@ -123,7 +129,7 @@ namespace OsEngine.Market.Servers
         /// take the security by the short name
         /// взять инструмент по короткому имени инструмента
         /// </summary>
-        Security GetSecurityForName(string securityName,string securityClass);
+        Security GetSecurityForName(string securityName, string securityClass);
 
         /// <summary>
         /// securities changed

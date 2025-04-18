@@ -107,7 +107,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Limit.ToString());
             ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Market.ToString());
 
-            if(_pair.Tab1.StartProgram == StartProgram.IsOsTrader)
+            if (_pair.Tab1.StartProgram == StartProgram.IsOsTrader)
             {
                 ComboBoxSec1Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
             }
@@ -123,12 +123,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 ComboBoxSec2Regime.Items.Add(PairTraderSecurityTradeRegime.Second.ToString());
             }
-            
+
             ComboBoxSec2Regime.SelectedItem = _pair.Sec2TradeRegime.ToString();
             ComboBoxSec2Regime.SelectionChanged += ComboBoxSec2Regime_SelectionChanged;
 
             UpdateCurPositionInTextBox();
-           
+
             TextBoxSec1Volume.Text = _pair.Sec1Volume.ToString();
             TextBoxSec1Slippage.Text = _pair.Sec1Slippage.ToString();
 
@@ -143,7 +143,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             _pair.Tab1.PositionNetVolumeChangeEvent += Tab_PositionNetVolumeChangeEvent;
             _pair.Tab2.PositionNetVolumeChangeEvent += Tab_PositionNetVolumeChangeEvent;
-            
+
 
             ButtonSec1Connection.Click += ButtonSec1Connection_Click;
             ButtonSec2Connection.Click += ButtonSec2Connection_Click;
@@ -188,7 +188,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pair.CorrelationChangeEvent += _pair_CorrelationChangeEvent;
             _pair.CointegrationChangeEvent += _pair_CointegrationChangeEvent;
 
-            if(_pair.Tab1.StartProgram == StartProgram.IsTester)
+            if (_pair.Tab1.StartProgram == StartProgram.IsTester)
             { // управление прорисовкой для тестера
 
                 TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
@@ -213,7 +213,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             UpdatePositionsOnChart();
 
-            if(_pair.ShowTradePanelOnChart == false)
+            if (_pair.ShowTradePanelOnChart == false)
             {
                 ButtonHideShowRightPanel_Click(null, null);
             }
@@ -295,11 +295,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _pair.Tab1.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
                     _pair.Tab1.CandleFinishedEvent -= Tab1_CandleUpdateEvent;
 
-                    if(_pair.Tab1.Connector != null)
+                    if (_pair.Tab1.Connector != null)
                     {
                         _pair.Tab1.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
                     }
-                   
+
                     _pair.Tab1.PositionNetVolumeChangeEvent -= Tab_PositionNetVolumeChangeEvent;
 
                     if (_pair.Tab1.StartProgram == StartProgram.IsTester)
@@ -313,7 +313,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if(_pair.Tab2 != null)
+                if (_pair.Tab2 != null)
                 {
                     _pair.Tab2.CandleUpdateEvent -= Tab2_CandleUpdateEvent;
                     _pair.Tab2.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
@@ -322,7 +322,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _pair.Tab2.PositionClosingSuccesEvent -= Tab_PositionOpeningSuccesEvent;
                     _pair.Tab2.CandleFinishedEvent -= Tab2_CandleUpdateEvent;
 
-                    if(_pair.Tab2.Connector != null)
+                    if (_pair.Tab2.Connector != null)
                     {
                         _pair.Tab2.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
                     }
@@ -367,7 +367,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 GreedChartPanel.Margin = new Thickness(0, 0, 15, 0);
             }
 
-            if(sender != null)
+            if (sender != null)
             {
                 _pair.ShowTradePanelOnChart = showTradePanel;
             }
@@ -476,13 +476,13 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void ButtonBuy2Sell1_Click(object sender, RoutedEventArgs e)
         {
-            if(_pair.HavePositions)
+            if (_pair.HavePositions)
             {
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label256);
 
                 ui.ShowDialog();
 
-                if(ui.UserAcceptAction == false)
+                if (ui.UserAcceptAction == false)
                 {
                     return;
                 }
@@ -594,7 +594,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pair.Save();
         }
 
-        private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, ServerType arg5)
+        private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, string arg5)
         {
             UpdateButtonSecConnectionContent();
         }
@@ -606,7 +606,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void UpdateButtonSecConnectionContent()
         {
-            if(ButtonSec1Connection.Dispatcher.CheckAccess() == false)
+            if (ButtonSec1Connection.Dispatcher.CheckAccess() == false)
             {
                 ButtonSec1Connection.Dispatcher.Invoke(UpdateButtonSecConnectionContent);
                 return;
@@ -624,7 +624,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 + _pair.Tab2.Connector.TimeFrame + ". "
                 + _pair.Tab2.Connector.ServerType + ".";
 
-            Title = OsLocalization.Trader.Label249 + "  " 
+            Title = OsLocalization.Trader.Label249 + "  "
                 + _pair.Tab1.Connector.SecurityName + " / " + _pair.Tab2.Connector.SecurityName;
         }
 
@@ -816,21 +816,21 @@ namespace OsEngine.OsTrader.Panels.Tab
             _chartSec1.StartPaint(null, HostSec1, null);
             _chartSec1.SetCandles(_pair.Tab1.CandlesAll);
 
-            for(int i = 0;i < _pair.Tab1.Indicators.Count;i++)
+            for (int i = 0; i < _pair.Tab1.Indicators.Count; i++)
             {
                 if (_chartSec1.IndicatorIsCreate(_pair.Tab1.Indicators[i].Name) == false)
                 {
                     _chartSec1.CreateIndicator(_pair.Tab1.Indicators[i], _pair.Tab1.Indicators[i].NameArea);
                 }
             }
-    
+
             _chartSec2 = new ChartCandleMaster(_pair.Name + "sec2", _pair.Tab2.StartProgram);
             _chartSec2.StartPaint(null, HostSec2, null);
             _chartSec2.SetCandles(_pair.Tab2.CandlesAll);
 
             for (int i = 0; i < _pair.Tab2.Indicators.Count; i++)
             {
-                if(_chartSec2.IndicatorIsCreate(_pair.Tab2.Indicators[i].Name) == false)
+                if (_chartSec2.IndicatorIsCreate(_pair.Tab2.Indicators[i].Name) == false)
                 {
                     _chartSec2.CreateIndicator(_pair.Tab2.Indicators[i], _pair.Tab2.Indicators[i].NameArea);
                 }
@@ -1107,7 +1107,5 @@ namespace OsEngine.OsTrader.Panels.Tab
                 System.Windows.MessageBox.Show(ex.ToString());
             }
         }
-
-
     }
 }

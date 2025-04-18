@@ -15,7 +15,6 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.OsMiner.Patterns;
 
 namespace OsEngine.Market.Servers.AstsBridge
 {
@@ -69,12 +68,12 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             if (needToLoadTicks)
             {
-              /*  _tickStorage = new ServerTickStorage(this);
-                _tickStorage.NeedToSave = NeedToSaveTicks;
-                _tickStorage.DaysToLoad = CountDaysTickNeedToSave;
-                _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
-                _tickStorage.LogMessageEvent += SendLogMessage;
-                _tickStorage.LoadTick();*/
+                /*  _tickStorage = new ServerTickStorage(this);
+                  _tickStorage.NeedToSave = NeedToSaveTicks;
+                  _tickStorage.DaysToLoad = CountDaysTickNeedToSave;
+                  _tickStorage.TickLoadedEvent += _tickStorage_TickLoadedEvent;
+                  _tickStorage.LogMessageEvent += SendLogMessage;
+                  _tickStorage.LoadTick();*/
             }
         }
 
@@ -87,11 +86,19 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// <returns></returns>
         public ServerType ServerType { get; set; }
 
+        public string ServerNameAndPrefix
+        {
+            get
+            {
+                return ServerType.ToString();
+            }
+        }
+
         /// <summary>
         /// show settings window
         /// показать окно настроект
         /// </summary>
-        public void ShowDialog()
+        public void ShowDialog(int num = 0)
         {
             if (_ui == null)
             {
@@ -103,7 +110,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 _ui.Activate();
             }
-            
+
         }
 
         /// <summary>
@@ -273,8 +280,8 @@ namespace OsEngine.Market.Servers.AstsBridge
 
         private ServerTickStorage _tickStorage;
 
-// server status
-// статус сервера
+        // server status
+        // статус сервера
 
         private ServerConnectStatus _serverConnectStatus;
 
@@ -290,7 +297,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 if (value != _serverConnectStatus)
                 {
                     _serverConnectStatus = value;
-                    SendLogMessage(_serverConnectStatus + " " + OsLocalization.Market.Message7, LogMessageType.Connect);
+                    SendLogMessage(_serverConnectStatus + OsLocalization.Market.Message7, LogMessageType.Connect);
                     if (ConnectStatusChangeEvent != null)
                     {
                         ConnectStatusChangeEvent(_serverConnectStatus.ToString());
@@ -305,8 +312,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<string> ConnectStatusChangeEvent;
 
-// connect / disconnect
-// подключение / отключение
+        // connect / disconnect
+        // подключение / отключение
 
         /// <summary>
         /// start SmartCom server
@@ -339,7 +346,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         private void Disconnected(string reason)
         {
             ServerStatus = ServerConnectStatus.Disconnect;
-            SendLogMessage( reason, LogMessageType.System);
+            SendLogMessage(reason, LogMessageType.System);
         }
 
         /// <summary>
@@ -351,8 +358,8 @@ namespace OsEngine.Market.Servers.AstsBridge
             ServerStatus = ServerConnectStatus.Connect;
         }
 
-// work of meain thread !!!!!!
-// работа основного потока !!!!!!
+        // work of meain thread !!!!!!
+        // работа основного потока !!!!!!
 
         /// <summary>
         /// main thread, it controls connection, getting portfloios and securities, sending data to up
@@ -425,7 +432,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
                         if (Portfolios == null || Securities == null)
                         {
-                          _getPortfoliosAndSecurities = false;
+                            _getPortfoliosAndSecurities = false;
                             Thread.Sleep(10000);
                             Disconnect();
                         }
@@ -442,7 +449,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                                 timeLastProcess = DateTime.Now;
                             }
                         }
-                        
+
 
                     }
                     catch (Exception error)
@@ -508,7 +515,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                 AstsServer.OrderUpdateEvent += UpdateOrder;
                 AstsServer.OrderFailedEvent += OrderFailedEvent;
                 AstsServer.LogMessageEvent += SendLogMessage;
-                AstsServer.SecurityMoexUpdateEvent +=LevelOneUpdateEvent;
+                AstsServer.SecurityMoexUpdateEvent += LevelOneUpdateEvent;
                 AstsServer.ClientCode = ClientCode;
             }
         }
@@ -532,18 +539,18 @@ namespace OsEngine.Market.Servers.AstsBridge
                 Directory.CreateDirectory(Application.StartupPath + "\\AstsBridge");
             }
 
-             settings.Append("HOST=" + ServerAdress + "\r\n");
-             settings.Append("PREFERREDHOST=" + ServerAdress + "\r\n");
-             settings.Append("SERVER=" + ServerName + "\r\n");
-             settings.Append("SERVICE=" + ServiseName + "\r\n");
-             settings.Append("USERID=" + UserLogin + "\r\n");
-             settings.Append("PASSWORD=" + UserPassword + "\r\n");
-             settings.Append("INTERFACE=" + "IFCBroker_26" + "\r\n");
-             settings.Append("COMPRESSION=" + "0" + "\r\n");
-             settings.Append("LOGFOLDER=" + Application.StartupPath + "\\AstsBridge"+ "\r\n");
-             settings.Append("LOGGING=" + "2,2" + "\r\n");
+            settings.Append("HOST=" + ServerAdress + "\r\n");
+            settings.Append("PREFERREDHOST=" + ServerAdress + "\r\n");
+            settings.Append("SERVER=" + ServerName + "\r\n");
+            settings.Append("SERVICE=" + ServiseName + "\r\n");
+            settings.Append("USERID=" + UserLogin + "\r\n");
+            settings.Append("PASSWORD=" + UserPassword + "\r\n");
+            settings.Append("INTERFACE=" + "IFCBroker_26" + "\r\n");
+            settings.Append("COMPRESSION=" + "0" + "\r\n");
+            settings.Append("LOGFOLDER=" + Application.StartupPath + "\\AstsBridge" + "\r\n");
+            settings.Append("LOGGING=" + "2,2" + "\r\n");
 
-             AstsServer.Connect(settings);
+            AstsServer.Connect(settings);
 
             LastStartServerTime = DateTime.Now;
             Thread.Sleep(10000);
@@ -567,7 +574,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         {
             if (_candleManager == null)
             {
-                _candleManager = new CandleManager(this,StartProgram.IsOsTrader);
+                _candleManager = new CandleManager(this, StartProgram.IsOsTrader);
                 _candleManager.CandleUpdateEvent += _candleManager_CandleUpdateEvent;
                 _candleManager.LogMessageEvent += SendLogMessage;
             }
@@ -623,8 +630,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public AstsBridgeWrapper AstsServer;
 
-// work of sending thread !!!!!
-// работа потока рассылки !!!!!
+        // work of sending thread !!!!!
+        // работа потока рассылки !!!!!
 
         /// <summary>
         /// queue of new orders
@@ -853,8 +860,8 @@ namespace OsEngine.Market.Servers.AstsBridge
             }
         }
 
-// server time
-// время сервера
+        // server time
+        // время сервера
 
         private DateTime _serverTime;
 
@@ -884,8 +891,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<DateTime> TimeServerChangeEvent;
 
-// portfolios
-// портфели
+        // portfolios
+        // портфели
 
         private List<Portfolio> _portfolios;
 
@@ -997,8 +1004,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<List<Portfolio>> PortfoliosChangeEvent;
 
-// securities 
-// бумаги
+        // securities 
+        // бумаги
 
         private List<Security> _securities;
 
@@ -1096,8 +1103,8 @@ namespace OsEngine.Market.Servers.AstsBridge
             ui.ShowDialog();
         }
 
-// data subscription
-// Подпись на данные
+        // data subscription
+        // Подпись на данные
 
         /// <summary>
         /// master of candle downloading
@@ -1229,7 +1236,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             return null;
         }
 
-        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime, 
+        public List<Trade> GetTickDataToSecurity(string securityName, string securityClass, DateTime startTime,
             DateTime endTime, DateTime actualTime, bool needToUpdete)
         {
             return null;
@@ -1247,8 +1254,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action NeedToReconnectEvent;
 
-// depth
-// стакан
+        // depth
+        // стакан
 
         /// <summary>
         /// incoming cut of depth
@@ -1268,7 +1275,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             {
                 Bid = myDepth.Asks[0].Price,
                 Ask = myDepth.Bids[0].Price,
-                Security = GetSecurityForName(myDepth.SecurityNameCode,"")
+                Security = GetSecurityForName(myDepth.SecurityNameCode, "")
             });
         }
 
@@ -1284,8 +1291,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<MarketDepth> NewMarketDepthEvent;
 
-// ticks
-// тики
+        // ticks
+        // тики
 
         /// <summary>
         /// all ticks
@@ -1327,7 +1334,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             _tradesTableToSend.Enqueue(newTrades);
 
-            for (int i = 0; i < newTrades.Count;i++)
+            for (int i = 0; i < newTrades.Count; i++)
             {
                 AddTrade(newTrades[i]);
             }
@@ -1347,7 +1354,7 @@ namespace OsEngine.Market.Servers.AstsBridge
                     if (_allTrades == null)
                     {
                         _allTrades = new List<Trade>[1];
-                        _allTrades[0] = new List<Trade> {trade};
+                        _allTrades[0] = new List<Trade> { trade };
                     }
                     else
                     {
@@ -1430,8 +1437,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<List<Trade>> AllTradesTableChangeEvent;
 
-// my trades
-// мои сделки
+        // my trades
+        // мои сделки
 
         private List<MyTrade> _myTrades;
 
@@ -1472,8 +1479,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<MyTrade> NewMyTradeEvent;
 
-// work with orders
-// работа с ордерами
+        // work with orders
+        // работа с ордерами
 
         /// <summary>
         /// execute order
@@ -1516,7 +1523,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public void CancelAllOrders()
         {
-            
+
         }
 
         /// <summary>
@@ -1577,8 +1584,8 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
-// log messages
-// обработка лога
+        // log messages
+        // обработка лога
 
         /// <summary>
         /// add a new log message

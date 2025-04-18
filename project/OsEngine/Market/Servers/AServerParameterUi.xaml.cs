@@ -9,10 +9,10 @@ using System.Drawing;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Forms;
-using Grpc.Core;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market.Servers.Entity;
+using System.Threading;
 
 namespace OsEngine.Market.Servers
 {
@@ -20,36 +20,54 @@ namespace OsEngine.Market.Servers
     {
         #region Service
 
-        public AServerParameterUi(List<AServer> servers)
+        public AServerParameterUi(List<AServer> servers, int numberServerToShow)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
-            _server = servers[0];
-            _serversArray = servers;
+            int numServerInArray = 0;
 
-            _server.Log.StartPaint(HostLog);
+            if (numberServerToShow != 0)
+            {
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i].ServerNum == numberServerToShow)
+                    {
+                        numServerInArray = i;
+                        break;
+                    }
+                }
+            }
+
+            _serversArray = servers;
+            _serverType = servers[numServerInArray].ServerType;
+
+            if (servers[numServerInArray].CanDoMultipleConnections == false)
+            {
+                _server = servers[numServerInArray];
+                _server.Log.StartPaint(HostLog);
+                LabelStatus.Content = _server.ServerStatus;
+                _server.ConnectStatusChangeEvent += Server_ConnectStatusChangeEvent;
+            }
 
             CreateGridServerParameters();
             PaintGridServerParameters();
-            LabelStatus.Content = _server.ServerStatus;
-            _server.ConnectStatusChangeEvent += Server_ConnectStatusChangeEvent;
 
-            Title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
             TabItemParameters.Header = OsLocalization.Market.TabItem3;
             TabItemLog.Header = OsLocalization.Market.TabItem4;
             Label21.Content = OsLocalization.Market.Label21;
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
             ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
+            LabelCurrentConnectionName.Content = OsLocalization.Market.Label164;
 
-            if (_server.NeedToHideParameters == true)
+            if (servers[numServerInArray].NeedToHideParameters == true)
             {
                 TabItemParameters.Visibility = Visibility.Hidden;
                 TabItemLog.IsSelected = true;
             }
-            
-            if (_server.CanDoMultipleConnections == false)
+
+            if (servers[numServerInArray].CanDoMultipleConnections == false)
             {
                 SetGuiNoMultipleConnect();
             }
@@ -57,7 +75,13 @@ namespace OsEngine.Market.Servers
             {
                 CreateGridConnectionsInstance();
                 PaintGridConnectionsInstance();
+                ChangeActiveServer(numServerInArray);
+
+                Thread worker = new Thread(UpdateStatusThread);
+                worker.Start();
             }
+
+            Title = OsLocalization.Market.TitleAServerParametrUi + _server.ServerType;
 
             this.Activate();
             this.Focus();
@@ -67,6 +91,7 @@ namespace OsEngine.Market.Servers
 
         private void AServerParameterUi_Closed(object sender, EventArgs e)
         {
+            _uiIsClosed = true;
             this.Closed -= AServerParameterUi_Closed;
 
             _server.Log.StopPaint();
@@ -75,13 +100,16 @@ namespace OsEngine.Market.Servers
 
             _serversArray = null;
 
-            _gridServerParameters.CellValueChanged -= _gridServerParameters_CellValueChanged;
-            _gridServerParameters.Click -= _gridServerParameters_Click;
-            _gridServerParameters.CellClick -= _gridServerParameters_CellClick;
-            _gridServerParameters.DataError -= _gridServerParameters_DataError;
-            _gridServerParameters.Rows.Clear();
-            DataGridFactory.ClearLinks(_gridServerParameters);
-            _gridServerParameters = null;
+            if (_gridServerParameters != null)
+            {
+                _gridServerParameters.CellValueChanged -= _gridServerParameters_CellValueChanged;
+                _gridServerParameters.Click -= _gridServerParameters_Click;
+                _gridServerParameters.CellClick -= _gridServerParameters_CellClick;
+                _gridServerParameters.DataError -= _gridServerParameters_DataError;
+                _gridServerParameters.Rows.Clear();
+                DataGridFactory.ClearLinks(_gridServerParameters);
+                _gridServerParameters = null;
+            }
 
             HostPreConfiguredConnections.Child = null;
             HostSettings.Child = null;
@@ -95,11 +123,30 @@ namespace OsEngine.Market.Servers
             GridPrime.RowDefinitions[0].Height = new GridLength(0);
         }
 
+        private ServerType _serverType;
+
+        private bool _uiIsClosed;
+
         #endregion
 
         #region Multiple connection grid
 
         private List<AServer> _serversArray;
+
+        private void UpdateServersCount()
+        {
+            _serversArray.Clear();
+
+            List<IServer> servers = ServerMaster.GetServers();
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerType == _serverType)
+                {
+                    _serversArray.Add((AServer)servers[i]);
+                }
+            }
+        }
 
         private DataGridView _gridConnections;
 
@@ -161,18 +208,201 @@ namespace OsEngine.Market.Servers
             column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridConnections.Columns.Add(column6);
 
-            DataGridViewColumn column7 = new DataGridViewColumn();
-            column7.CellTemplate = cell0;
-            //column7.HeaderText = @"Add new"; // Button "Add new"
-            column7.ReadOnly = false;
-            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _gridConnections.Columns.Add(column7);
-
             HostPreConfiguredConnections.Child = _gridConnections;
+
+            _gridConnections.CellClick += _gridConnections_CellClick;
+            _gridConnections.CellEndEdit += _gridConnections_CellEndEdit;
+        }
+
+        private void _gridConnections_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                for (int i = 1; i < _gridConnections.Rows.Count && i < _serversArray.Count; i++)
+                {
+                    if (_gridConnections.Rows[i].Cells[2].Value != null)
+                    {
+                        string value = _gridConnections.Rows[i].Cells[2].Value.ToString();
+
+                        value = value.RemoveExcessFromSecurityName();
+
+                        if (value != _gridConnections.Rows[i].Cells[2].Value.ToString())
+                        {
+                            _gridConnections.Rows[i].Cells[2].Value = value;
+                        }
+
+                        _serversArray[i].ServerPrefix = value;
+                    }
+                    else
+                    {
+                        _serversArray[i].ServerPrefix = "";
+                    }
+
+                    _gridConnections.Rows[i].Cells[0].Value = _serversArray[i].ServerNameAndPrefix;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _gridConnections_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if (row > -1 &&
+                    row < _gridConnections.Rows.Count - 1)
+                {
+                    if (row >= _serversArray.Count)
+                    {
+                        return;
+                    }
+                    ChangeActiveServer(row);
+                }
+
+                if (column == 6
+                    && row == _gridConnections.Rows.Count - 1)
+                {// Add new
+                    CreateNewConnector();
+                    UpdateServersCount();
+                    PaintGridConnectionsInstance();
+                    ChangeActiveServer(row);
+                    ServerMaster.TrySaveServerInstance(_serversArray);
+                }
+                else if (column == 6
+                    && row != 0)
+                {// Delete
+                    if (row >= _serversArray.Count)
+                    {
+                        return;
+                    }
+                    DeleteServer(row);
+                    UpdateServersCount();
+                    PaintGridConnectionsInstance();
+                    ChangeActiveServer(0);
+                    ServerMaster.TrySaveServerInstance(_serversArray);
+                }
+                else if (column == 5
+                    && row < _gridConnections.Rows.Count - 1)
+                {// Disconnect
+                    ChangeActiveServer(row);
+                    _server.StopServer();
+                }
+                else if (column == 4
+                    && row < _gridConnections.Rows.Count - 1)
+                {// Connect
+                    ChangeActiveServer(row);
+                    _server.StartServer();
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void DeleteServer(int rowIndex)
+        {
+            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label165);
+
+            ui.ShowDialog();
+
+            if (ui.UserAcceptAction == false)
+            {
+                return;
+            }
+
+            AServer server = _serversArray[rowIndex];
+            ServerMaster.DeleteServer(server.ServerType, server.ServerNum);
+        }
+
+        private void ChangeActiveServer(int number)
+        {
+            if (_server != null)
+            {
+                if (_server.ServerNum == _serversArray[number].ServerNum)
+                {
+                    return;
+                }
+                _server.Log.StopPaint();
+                _server.ConnectStatusChangeEvent -= Server_ConnectStatusChangeEvent;
+            }
+
+            _server = _serversArray[number];
+            PaintGridServerParameters();
+
+            string label = OsLocalization.Market.Label164 + ": " + _server.ServerNameAndPrefix;
+
+            label = label.Replace("_", "-");
+
+            LabelCurrentConnectionName.Content = label;
+
+            for (int i2 = 0; _gridConnections != null && i2 < _gridConnections.Rows.Count; i2++)
+            {
+                DataGridViewRow row = _gridConnections.Rows[i2];
+
+                if (i2 == number)
+                {
+                    for (int i = 0; i < row.Cells.Count; i++)
+                    {
+                        if (i == 3)
+                        {
+                            continue;
+                        }
+                        row.Cells[i].Style.ForeColor = Color.FromArgb(255, 83, 0);
+                        row.Cells[i].Style.SelectionForeColor = Color.FromArgb(255, 83, 0);
+                    }
+                }
+                else
+                {
+                    for (int i = 0; i < row.Cells.Count; i++)
+                    {
+                        if (i == 3)
+                        {
+                            continue;
+                        }
+                        row.Cells[i].Style = _gridConnections.DefaultCellStyle;
+                    }
+                }
+            }
+
+            _server.Log.StartPaint(HostLog);
+            LabelStatus.Content = _server.ServerStatus;
+            _server.ConnectStatusChangeEvent += Server_ConnectStatusChangeEvent;
+        }
+
+        private void CreateNewConnector()
+        {
+            // 1 server number
+
+            int number = -1;
+
+            for (int i = 0; i < _serversArray.Count; i++)
+            {
+                if (_serversArray[i].ServerNum > number)
+                {
+                    number = _serversArray[i].ServerNum;
+                }
+            }
+
+            number++;
+
+            // 2 create server
+
+            ServerType serverType = _server.ServerType;
+
+            ServerMaster.CreateServer(serverType, false, number);
+
         }
 
         private void PaintGridConnectionsInstance()
         {
+            _gridConnections.CellEndEdit -= _gridConnections_CellEndEdit;
+
             _gridConnections.Rows.Clear();
 
             for (int i = 0; i < _serversArray.Count; i++)
@@ -185,6 +415,8 @@ namespace OsEngine.Market.Servers
             }
 
             _gridConnections.Rows.Add(GetEndRowToGridConnections());
+
+            _gridConnections.CellEndEdit += _gridConnections_CellEndEdit;
         }
 
         private DataGridViewRow GetServerRow(AServer server)
@@ -196,38 +428,45 @@ namespace OsEngine.Market.Servers
             // Button "Connect"
             // Button "Disconnect"
             // Button "Delete"
-            // Button "Add new"
 
             DataGridViewRow nRow = new DataGridViewRow();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[0].Value = server.ServerNameUnique;            // Server name (Unique)
+            nRow.Cells[0].Value = server.ServerNameAndPrefix;         // Server name
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell()); 
+            nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[1].Value = server.ServerNum;                   // Server number
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[2].Value = server.ServerPrefix;                // Server prefix
 
+            if (server.ServerNum == 0)
+            {
+                nRow.Cells[2].ReadOnly = true;
+            }
+
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[3].Value = server.ServerStatus.ToString();     // Server state
 
             DataGridViewButtonCell button1 = new DataGridViewButtonCell();
-            button1.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             button1.Value = "Connect";                                // Button "Connect"
             nRow.Cells.Add(button1);
 
             DataGridViewButtonCell button2 = new DataGridViewButtonCell();
-            button2.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             button2.Value = "Disconnect";                             // Button "Disconnect"
             nRow.Cells.Add(button2);
 
-            DataGridViewButtonCell button3 = new DataGridViewButtonCell();
-            button3.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            button3.Value = "Delete";                                 // Button "Delete"
-            nRow.Cells.Add(button3);
-
-            nRow.Cells.Add(new DataGridViewTextBoxCell());            // Button "Add new"
+            if (server.ServerNum != 0)
+            {
+                DataGridViewButtonCell button3 = new DataGridViewButtonCell();
+                button3.Value = "Delete";                                 // Button "Delete"
+                nRow.Cells.Add(button3);
+            }
+            else
+            {
+                nRow.Cells.Add(new DataGridViewTextBoxCell());
+                nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
+            }
 
             return nRow;
         }
@@ -241,30 +480,106 @@ namespace OsEngine.Market.Servers
             // Button "Connect"
             // Button "Disconnect"
             // Button "Delete"
-            // Button "Add new"
 
             DataGridViewRow nRow = new DataGridViewRow();
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());// Server name (Unique)                      
+            nRow.Cells.Add(new DataGridViewTextBoxCell());// Server name                   
+            nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());  // Server number                
+            nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell()); // Server prefix         
+            nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell()); // Server state
+            nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell()); // Button "Connect"
+            nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell()); // Button "Disconnect"
-
-            nRow.Cells.Add(new DataGridViewTextBoxCell()); // Button "Delete"
+            nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
 
             DataGridViewButtonCell button1 = new DataGridViewButtonCell();
-            button1.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             button1.Value = "Add new";                             // Button "Add new"
             nRow.Cells.Add(button1);
 
             return nRow;
+        }
+
+        private void UpdateStatusThread()
+        {
+            while (true)
+            {
+                try
+                {
+                    Thread.Sleep(1000);
+
+                    if (_uiIsClosed)
+                    {
+                        return;
+                    }
+
+                    if (MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    TryRepaintConnectionStatus();
+                }
+                catch (Exception ex)
+                {
+                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private void TryRepaintConnectionStatus()
+        {
+            try
+            {
+                if (HostPreConfiguredConnections.Dispatcher.CheckAccess() == false)
+                {
+                    HostPreConfiguredConnections.Dispatcher.Invoke(new Action(TryRepaintConnectionStatus));
+                    return;
+                }
+
+                for (int i = 0; _serversArray != null && i < _serversArray.Count && i < _gridConnections.Rows.Count; i++)
+                {
+                    string curState = _serversArray[i].ServerStatus.ToString();
+
+                    string stateInTable = null;
+
+                    if (_gridConnections.Rows[i].Cells[3].Value != null)
+                    {
+                        stateInTable = _gridConnections.Rows[i].Cells[3].Value.ToString();
+                    }
+
+                    if (curState != stateInTable)
+                    {
+                        _gridConnections.Rows[i].Cells[3].Value = curState;
+                    }
+
+                    if (_serversArray[i].ServerStatus == ServerConnectStatus.Connect &&
+                        _gridConnections.Rows[i].Cells[3].Style.ForeColor != Color.Green)
+                    { // заливаем зелёным
+                        _gridConnections.Rows[i].Cells[3].Style.ForeColor = Color.Green;
+                        _gridConnections.Rows[i].Cells[3].Style.SelectionForeColor = Color.Green;
+                    }
+                    else if (_serversArray[i].ServerStatus == ServerConnectStatus.Disconnect
+                        && _gridConnections.Rows[i].Cells[3].Style.ForeColor != Color.Red)
+                    { // текст стандартный
+                        _gridConnections.Rows[i].Cells[3].Style.ForeColor = Color.Red;
+                        _gridConnections.Rows[i].Cells[3].Style.SelectionForeColor = Color.Red;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -300,7 +615,7 @@ namespace OsEngine.Market.Servers
 
         public void CreateGridServerParameters()
         {
-            _gridServerParameters = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect, 
+            _gridServerParameters = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
             _gridServerParameters.ScrollBars = ScrollBars.Vertical;
 
@@ -349,6 +664,12 @@ namespace OsEngine.Market.Servers
 
         public void PaintGridServerParameters()
         {
+            if (_gridServerParameters == null
+                || _server == null)
+            {
+                return;
+            }
+
             List<IServerParameter> param = _server.ServerParameters;
 
             _gridServerParameters.Rows.Clear();
@@ -392,7 +713,7 @@ namespace OsEngine.Market.Servers
 
         private void _gridServerParameters_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
-            ServerMaster.SendNewLogMessage(e.Exception.ToString(),Logging.LogMessageType.Error);
+            ServerMaster.SendNewLogMessage(e.Exception.ToString(), Logging.LogMessageType.Error);
         }
 
         private void _gridServerParameters_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -420,7 +741,7 @@ namespace OsEngine.Market.Servers
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(_server.ServerParameters[row].Comment);
                 ui.ShowDialog();
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
@@ -497,7 +818,7 @@ namespace OsEngine.Market.Servers
             nRow.Cells.Add(comboBox);
             nRow.Cells[1].Value = param.Name;
 
-            if(param.Comment != null)
+            if (param.Comment != null)
             {
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[2].Value = "";
@@ -563,7 +884,7 @@ namespace OsEngine.Market.Servers
             {
                 string value = "";
 
-                for(int i = 0; i< param.Value.Length; i++)
+                for (int i = 0; i < param.Value.Length; i++)
                 {
                     value += "*";
                 }

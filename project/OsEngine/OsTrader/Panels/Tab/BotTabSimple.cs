@@ -78,7 +78,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 _chartMaster = new ChartCandleMaster(TabName, StartProgram);
                 _chartMaster.LogMessageEvent += SetNewLogMessage;
-                _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerType);
+                _chartMaster.SetNewSecurity(_connector.SecurityName, _connector.TimeFrameBuilder, _connector.PortfolioName, _connector.ServerFullName);
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _chartMaster.IndicatorUpdateEvent += _chartMaster_IndicatorUpdateEvent;
                 _chartMaster.IndicatorManuallyCreateEvent += _chartMaster_IndicatorManuallyCreateEvent;
@@ -160,7 +160,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="timeFrameSpan">timeframe TimeSpan</param>
         /// <param name="portfolioName">porrtfolio name</param>
         /// <param name="serverType">server type</param>
-        void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, ServerType serverType)
+        void _connector_ConnectorStartedReconnectEvent(string securityName, TimeFrame timeFrame, TimeSpan timeFrameSpan, string portfolioName, string serverType)
         {
             _lastTradeTime = DateTime.MinValue;
             _lastTradeIndex = 0;
@@ -193,7 +193,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (Security != null
                     && Portfolio != null)
                 {
-                    _chartMaster?.SetNewSecurity(Security.Name, _connector.TimeFrameBuilder, Portfolio.Number, Connector.ServerType);
+                    _chartMaster?.SetNewSecurity(Security.Name, _connector.TimeFrameBuilder, Portfolio.Number, Connector.ServerFullName);
                 }
 
                 _chartMaster?.StartPaint(gridChart, hostChart, rectangleChart);
@@ -1299,7 +1299,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         private void _connector_DialogClosed()
         {
-            if(DialogClosed != null)
+            if (DialogClosed != null)
             {
                 DialogClosed();
             }
@@ -1572,7 +1572,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if(StartProgram == StartProgram.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     if (!Connector.EmulatorIsOn)
                     {
@@ -2468,7 +2468,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return null;
                 }
 
-                if(StartProgram == StartProgram.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     if (!Connector.EmulatorIsOn)
                     {
@@ -6228,11 +6228,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (candles != null && candles.Count > 0)
                 {
-                    if(Connector.MyServer.ServerType == ServerType.Tester)
+                    if (Connector.MyServer.ServerType == ServerType.Tester)
                     {
                         TesterServer server = (TesterServer)Connector.MyServer;
 
-                        if(server.TypeTesterData == TesterDataType.Candle)
+                        if (server.TypeTesterData == TesterDataType.Candle)
                         {
                             trade.NumberCandleInTester = candles.Count;
                         }

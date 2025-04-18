@@ -108,6 +108,15 @@ namespace OsEngine.Market.Connectors
                         _eventsIsOn = true;
                     }
 
+                    if (reader.EndOfStream == false)
+                    {
+                        ServerFullName = reader.ReadLine();
+                    }
+                    else
+                    {
+                        ServerFullName = ServerType.ToString();
+                    }
+
                     reader.Close();
                 }
             }
@@ -141,6 +150,7 @@ namespace OsEngine.Market.Connectors
                     writer.WriteLine(ServerType);
                     writer.WriteLine(SecurityClass);
                     writer.WriteLine(EventsIsOn);
+                    writer.WriteLine(ServerFullName);
 
                     writer.Close();
                 }
@@ -229,7 +239,7 @@ namespace OsEngine.Market.Connectors
                     return;
                 }
 
-                if(_ui == null)
+                if (_ui == null)
                 {
                     _ui = new ConnectorCandlesUi(this);
                     _ui.IsCanChangeSaveTradesInCandles(canChangeSettingsSaveCandlesIn);
@@ -256,7 +266,7 @@ namespace OsEngine.Market.Connectors
                 _ui.Closed -= _ui_Closed;
                 _ui = null;
 
-                if(DialogClosed != null)
+                if (DialogClosed != null)
                 {
                     DialogClosed();
                 }
@@ -297,6 +307,11 @@ namespace OsEngine.Market.Connectors
         /// connector's server type 
         /// </summary>
         public ServerType ServerType;
+
+        /// <summary>
+        /// connector`s server full name
+        /// </summary>
+        public string ServerFullName;
 
         /// <summary>
         /// unique server number. Service data for the optimizer
@@ -658,7 +673,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ConnectorStartedReconnectEvent != null)
                         {
-                            ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
+                            ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerFullName);
                         }
                         return;
                     }
@@ -684,7 +699,7 @@ namespace OsEngine.Market.Connectors
 
                 if (ConnectorStartedReconnectEvent != null)
                 {
-                    ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerType);
+                    ConnectorStartedReconnectEvent(SecurityName, TimeFrame, TimeFrameTimeSpan, PortfolioName, ServerFullName);
                 }
 
                 if (_taskIsDead == true)
@@ -837,11 +852,26 @@ namespace OsEngine.Market.Connectors
                                     _myServer = servers[i];
                                     break;
                                 }
+
                             }
                         }
                         else
                         {
-                            _myServer = servers.Find(server => server.ServerType == ServerType);
+                            for (int i = 0; i < servers.Count; i++)
+                            {
+                                if (servers[i].ServerType == ServerType
+                                    && servers[i].ServerNameAndPrefix == ServerFullName)
+                                {
+                                    _myServer = servers[i];
+                                    break;
+                                }
+                                else if (string.IsNullOrEmpty(ServerFullName) &&
+                                    servers[i].ServerType == ServerType)
+                                {
+                                    _myServer = servers[i];
+                                    break;
+                                }
+                            }
                         }
                     }
                     catch
@@ -1154,7 +1184,7 @@ namespace OsEngine.Market.Connectors
                 return;
             }
 
-            if(StartProgram != StartProgram.IsOsTrader)
+            if (StartProgram != StartProgram.IsOsTrader)
             {// tester or optimizer
                 if (trade.SecurityNameCode != this.SecurityName)
                 {
@@ -1191,7 +1221,7 @@ namespace OsEngine.Market.Connectors
                 _bestBid = bestBid;
                 _bestAsk = bestAsk;
 
-                if(StartProgram == StartProgram.IsOsTrader)
+                if (StartProgram == StartProgram.IsOsTrader)
                 {
                     if (EmulatorIsOn || ServerType == ServerType.Finam)
                     {
@@ -1200,7 +1230,7 @@ namespace OsEngine.Market.Connectors
                             _emulator.ProcessBidAsc(_bestBid, _bestAsk);
                         }
                     }
-                    if (BestBidAskChangeEvent != null 
+                    if (BestBidAskChangeEvent != null
                         && EventsIsOn == true)
                     {
                         BestBidAskChangeEvent(bestBid, bestAsk);
@@ -1266,11 +1296,11 @@ namespace OsEngine.Market.Connectors
                     }
                 }
 
-                if(bestAsk != 0)
+                if (bestAsk != 0)
                 {
                     _bestAsk = bestAsk;
                 }
-                if(bestBid != 0)
+                if (bestBid != 0)
                 {
                     _bestBid = bestBid;
                 }
@@ -1288,15 +1318,15 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (_securityName == null 
-                    || tradesList == null 
+                if (_securityName == null
+                    || tradesList == null
                     || tradesList.Count == 0)
                 {
                     return;
                 }
                 else
                 {
-                    int count = tradesList.Count-1;
+                    int count = tradesList.Count - 1;
 
                     if (tradesList[count] == null ||
                         tradesList[count].SecurityNameCode != _securityName)
@@ -1770,7 +1800,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// connector is starting to reconnect
         /// </summary>
-        public event Action<string, TimeFrame, TimeSpan, string, ServerType> ConnectorStartedReconnectEvent;
+        public event Action<string, TimeFrame, TimeSpan, string, string> ConnectorStartedReconnectEvent;
 
         /// <summary>
         /// security for connector defined

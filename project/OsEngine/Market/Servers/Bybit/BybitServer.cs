@@ -25,8 +25,9 @@ namespace OsEngine.Market.Servers.Bybit
 {
     public class BybitServer : AServer
     {
-        public BybitServer()
+        public BybitServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             BybitServerRealization realization = new BybitServerRealization();
             ServerRealization = realization;
 

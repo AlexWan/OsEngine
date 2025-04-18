@@ -103,7 +103,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             RepaintMainLabels();
         }
 
-        private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, ServerType arg5)
+        private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, string arg5)
         {
             RepaintMainLabels();
         }

@@ -19,18 +19,18 @@ namespace OsEngine.Market
 {
     public class ServerMasterSourcesPainter
     {
-        public ServerMasterSourcesPainter(WindowsFormsHost hostServers, 
-            WindowsFormsHost hostLog, 
-            System.Windows.Controls.CheckBox boxCreateServerАutomatically)
+        public ServerMasterSourcesPainter(WindowsFormsHost hostServers,
+            WindowsFormsHost hostLog,
+            System.Windows.Controls.CheckBox boxCreateServerAutomatic)
         {
-            _boxCreateServerАutomatically = boxCreateServerАutomatically;
-             
+            _boxCreateServerAutomatic = boxCreateServerAutomatic;
+
             _hostServers = hostServers;
 
             _hostLog = hostLog;
 
-            _boxCreateServerАutomatically.IsChecked = ServerMaster.NeedToConnectAuto;
-            _boxCreateServerАutomatically.Click += CheckBoxServerAutoOpen_Click;
+            _boxCreateServerAutomatic.IsChecked = ServerMaster.NeedToConnectAuto;
+            _boxCreateServerAutomatic.Click += CheckBoxServerAutoOpen_Click;
 
             ServerMaster.Log.StartPaint(_hostLog);
 
@@ -42,6 +42,7 @@ namespace OsEngine.Market
             }
 
             ServerMaster.ServerCreateEvent += ServerMasterOnServerCreateEvent;
+            ServerMaster.ServerDeleteEvent += ServerMaster_ServerDeleteEvent;
 
             LoadAttachedServers();
 
@@ -96,10 +97,10 @@ namespace OsEngine.Market
                     return;
                 }
 
-                if (_boxCreateServerАutomatically != null)
+                if (_boxCreateServerAutomatic != null)
                 {
-                    _boxCreateServerАutomatically.Click -= CheckBoxServerAutoOpen_Click;
-                    _boxCreateServerАutomatically = null;
+                    _boxCreateServerAutomatic.Click -= CheckBoxServerAutoOpen_Click;
+                    _boxCreateServerAutomatic = null;
                 }
 
                 if (_hostServers != null)
@@ -129,24 +130,16 @@ namespace OsEngine.Market
             }
         }
 
-        List<IServer> _servers;
+        private List<IServer> _servers;
 
-        System.Windows.Controls.CheckBox _boxCreateServerАutomatically;
+        private System.Windows.Controls.CheckBox _boxCreateServerAutomatic;
 
-        WindowsFormsHost _hostServers;
+        private WindowsFormsHost _hostServers;
 
-        WindowsFormsHost _hostLog;
+        private WindowsFormsHost _hostLog;
 
-        /// <summary>
-        /// source table
-        /// таблица источников
-        /// </summary>
         private DataGridView _gridSources;
 
-        /// <summary>
-        /// create source table
-        /// сохдать таблицу источников
-        /// </summary>
         private void CreateSourceGrid()
         {
             DataGridView newGrid = DataGridFactory.GetDataGridServers();
@@ -159,10 +152,6 @@ namespace OsEngine.Market
             _hostServers.VerticalAlignment = VerticalAlignment.Top;
         }
 
-        /// <summary>
-        /// redraw source table
-        /// перерисовать таблицу источников
-        /// </summary>
         private void RePaintSourceGrid()
         {
             try
@@ -192,7 +181,17 @@ namespace OsEngine.Market
                 {
                     DataGridViewRow row1 = new DataGridViewRow();
                     row1.Cells.Add(new DataGridViewTextBoxCell());
-                    row1.Cells[0].Value = servers[i].ServerType;
+
+                    if (servers[i].GetType().BaseType.Name == "AServer")
+                    {
+                        AServer serv = (AServer)servers[i];
+                        row1.Cells[0].Value = serv.ServerNameAndPrefix;
+                    }
+                    else
+                    {
+                        row1.Cells[0].Value = servers[i].ServerType;
+                    }
+
                     row1.Cells.Add(new DataGridViewTextBoxCell());
                     row1.Cells[1].Value = servers[i].ServerStatus;
 
@@ -278,17 +277,13 @@ namespace OsEngine.Market
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
-                ServerMaster.Log?.ProcessMessage(ex.ToString(),Logging.LogMessageType.Error);
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
-        /// <summary>
-        /// double click evet on the source table
-        /// событие двойного клика на таблицу источников
-        /// </summary>
-        void _gridSources_DoubleClick(object sender, EventArgs e)
+        private void _gridSources_DoubleClick(object sender, EventArgs e)
         {
             try
             {
@@ -298,7 +293,15 @@ namespace OsEngine.Market
                 }
 
                 ServerType type;
-                Enum.TryParse(_gridSources.SelectedRows[0].Cells[0].Value.ToString(), out type);
+
+                string serverNameFull = _gridSources.SelectedRows[0].Cells[0].Value.ToString();
+
+                if (serverNameFull.Split('_').Length == 3)
+                {
+                    serverNameFull = serverNameFull.Split('_')[0] + "_" + serverNameFull.Split('_')[1];
+                }
+
+                Enum.TryParse(serverNameFull.Split('_')[0], out type);
 
                 List<IServer> servers = ServerMaster.GetServers();
 
@@ -326,14 +329,31 @@ namespace OsEngine.Market
                     }
                 }
 
-                IServer myServer = servers.Find(serv => serv.ServerType == type);
+                List<IServer> myServers = servers.FindAll(serv => serv.ServerType == type);
 
-                if (myServer == null)
+                if (myServers == null
+                    || myServers.Count == 0)
                 {
                     return;
                 }
 
-                myServer.ShowDialog();
+                int myServerNum = 0;
+
+                for (int i = 0; i < myServers.Count; i++)
+                {
+                    if (myServers[i].GetType().BaseType.Name == "AServer")
+                    {
+                        AServer aServer = (AServer)myServers[i];
+
+                        if (aServer.ServerNameUnique == serverNameFull)
+                        {
+                            myServerNum = aServer.ServerNum;
+                            break;
+                        }
+                    }
+                }
+
+                myServers[0].ShowDialog(myServerNum);
             }
             catch (Exception ex)
             {
@@ -341,14 +361,33 @@ namespace OsEngine.Market
             }
         }
 
-        /// <summary>
-        /// change status event for server
-        /// событие измениня статуса сервера
-        /// </summary>
-        /// <param name="newState"></param>
-        void ServerStatusChangeEvent(string newState)
+        private void ServerStatusChangeEvent(string newState)
         {
             RePaintSourceGrid();
+        }
+
+        private void ServerMaster_ServerDeleteEvent()
+        {
+            try
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                for (int i = 0; i < servers.Count; i++)
+                {
+                    if (servers[i].ServerType == ServerType.Optimizer)
+                    {
+                        continue;
+                    }
+                    servers[i].ConnectStatusChangeEvent -= ServerStatusChangeEvent;
+                    servers[i].ConnectStatusChangeEvent += ServerStatusChangeEvent;
+                }
+
+                RePaintSourceGrid();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ServerMasterOnServerCreateEvent(IServer newServer)
@@ -383,69 +422,15 @@ namespace OsEngine.Market
         {
             try
             {
-                if (_boxCreateServerАutomatically.IsChecked.HasValue)
+                if (_boxCreateServerAutomatic.IsChecked.HasValue)
                 {
-                    ServerMaster.NeedToConnectAuto = _boxCreateServerАutomatically.IsChecked.Value;
+                    ServerMaster.NeedToConnectAuto = _boxCreateServerAutomatic.IsChecked.Value;
                 }
                 ServerMaster.Save();
             }
             catch (Exception ex)
             {
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        // Attaching servers on top
-
-        List<ServerType> _attachedServers = new List<ServerType>();
-
-        private void LoadAttachedServers()
-        {
-            if (!File.Exists(@"Engine\AttachedServers.txt"))
-            {
-                return;
-            }
-            try
-            {
-                using (StreamReader reader = new StreamReader(@"Engine\AttachedServers.txt"))
-                {
-                    while (reader.EndOfStream == false)
-                    {
-                        ServerType type = new ServerType();
-
-                        if (Enum.TryParse(reader.ReadLine(), true, out type))
-                        {
-                            _attachedServers.Add(type);
-                        }
-                    }
-
-                    reader.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
-            }
-        }
-
-        private void SaveAttachedServers()
-        {
-            try
-            {
-                using (StreamWriter writer = new StreamWriter(@"Engine\AttachedServers.txt", false)
-                    )
-                {
-                    for (int i = 0; i < _attachedServers.Count; i++)
-                    {
-                        writer.WriteLine(_attachedServers[i].ToString());
-                    }
-
-                    writer.Close();
-                }
-            }
-            catch (Exception)
-            {
-                // ignore
             }
         }
 
@@ -626,7 +611,7 @@ namespace OsEngine.Market
                     return;
                 }
 
-                
+
 
                 myServer.StartServer();
             }
@@ -634,7 +619,7 @@ namespace OsEngine.Market
             {
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-           
+
         }
 
         private void _gridSources_Disconnect_Click(object sender, EventArgs e)
@@ -702,5 +687,61 @@ namespace OsEngine.Market
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        #region Attaching servers on top
+
+        private List<ServerType> _attachedServers = new List<ServerType>();
+
+        private void LoadAttachedServers()
+        {
+            if (!File.Exists(@"Engine\AttachedServers.txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\AttachedServers.txt"))
+                {
+                    while (reader.EndOfStream == false)
+                    {
+                        ServerType type = new ServerType();
+
+                        if (Enum.TryParse(reader.ReadLine(), true, out type))
+                        {
+                            _attachedServers.Add(type);
+                        }
+                    }
+
+                    reader.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        private void SaveAttachedServers()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\AttachedServers.txt", false)
+                    )
+                {
+                    for (int i = 0; i < _attachedServers.Count; i++)
+                    {
+                        writer.WriteLine(_attachedServers[i].ToString());
+                    }
+
+                    writer.Close();
+                }
+            }
+            catch (Exception)
+            {
+                // ignore
+            }
+        }
+
+        #endregion
     }
 }
