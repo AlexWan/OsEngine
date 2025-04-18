@@ -124,14 +124,34 @@ namespace OsEngine.Entity
                 _isFirstTime = false;
                 Load();
 
+                _dayOfYear
+                    = (1000 - DateTime.Now.DayOfYear).ToString();
+
                 Task task = new Task(SaverSpace);
                 task.Start();
             }
 
+            string resInString = _dayOfYear + _numberOrderForRealTrading.ToString();
+
+            int result = 0;
+
+            try
+            {
+                result = Convert.ToInt32(resInString);
+            }
+            catch
+            {
+                // интежер кончился сбрасываем на ноль нумерацию
+                _numberOrderForRealTrading = 0;
+                resInString = _dayOfYear + _numberOrderForRealTrading.ToString();
+                result = Convert.ToInt32(resInString);
+            }
             _numberOrderForRealTrading++;
             _needToSave = true;
-            return _numberOrderForRealTrading;
+            return result;
         }
+
+        private static string _dayOfYear;
 
         private static int GetNumberOrderForTesting()
         {
