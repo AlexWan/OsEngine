@@ -1161,6 +1161,11 @@ namespace OsEngine.Market.Connectors
                     }
                 }
 
+                if (string.IsNullOrEmpty(order.ServerName))
+                {
+                    order.ServerName = this.ServerFullName;
+                }
+
                 if (OrderChangeEvent != null)
                 {
                     OrderChangeEvent(order);
@@ -1569,6 +1574,11 @@ namespace OsEngine.Market.Connectors
                 if (_myServer == null)
                 {
                     return;
+                }
+
+                if (string.IsNullOrEmpty(order.ServerName))
+                {
+                    order.ServerName = this.ServerFullName;
                 }
 
                 if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)

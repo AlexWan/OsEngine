@@ -768,8 +768,17 @@ positionOpener.LifeTimeType
         {
             DataGridView _gridPosition = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect, DataGridViewAutoSizeRowsMode.AllCells);
 
+            _gridPosition.ScrollBars = ScrollBars.Vertical;
+
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = _gridPosition.DefaultCellStyle;
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = OsLocalization.Entity.ColumnPortfolio0;
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridPosition.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;

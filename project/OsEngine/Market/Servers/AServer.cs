@@ -1535,6 +1535,16 @@ namespace OsEngine.Market.Servers
                         portf[i].ServerType = this.ServerType;
                     }
 
+                    if (string.IsNullOrEmpty(portf[i].ServerUniqueName))
+                    {
+                        portf[i].ServerUniqueName = this.ServerNameAndPrefix;
+                    }
+
+                    if(portf[i].ServerUniqueName != this.ServerNameAndPrefix)
+                    {
+                        portf[i].ServerUniqueName = this.ServerNameAndPrefix;
+                    }
+
                     Portfolio curPortfolio = _portfolios.Find(p => p.Number == portf[i].Number);
 
                     if (curPortfolio == null)
@@ -3036,6 +3046,11 @@ namespace OsEngine.Market.Servers
         {
             try
             {
+                if(string.IsNullOrEmpty(order.ServerName))
+                {
+                    order.ServerName = this.ServerNameAndPrefix;
+                }
+
                 if (UserSetOrderOnExecute != null)
                 {
                     UserSetOrderOnExecute(order);

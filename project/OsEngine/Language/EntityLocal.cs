@@ -359,6 +359,10 @@ namespace OsEngine.Language
             "Eng:Current value_" +
             "Ru:Текущее значение_");
 
+        public string ColumnPortfolio0 => OsLocalization.ConvertToLocString(
+            "Eng:Server_" +
+            "Ru:Сервер_");
+
         public string ColumnPortfolio1 => OsLocalization.ConvertToLocString(
             "Eng:Portfolio_" +
             "Ru:Портфель_");

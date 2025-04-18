@@ -241,6 +241,8 @@ namespace OsEngine.Entity
 
         public ServerType ServerType;
 
+        public string ServerName;
+
         public TimeFrame TimeFrameInTester;
 
         // deals with which the order was opened and calculation of the order execution price
@@ -433,6 +435,8 @@ namespace OsEngine.Entity
 
             result.Append(OrderTypeTime + "@");
 
+            result.Append(ServerName + "@");
+
             if (State == OrderStateType.Done && Volume == VolumeExecute &&
                 _trades != null && _trades.Count > 0)
             {
@@ -499,6 +503,11 @@ namespace OsEngine.Entity
             if(saveArray.Length > 21)
             {
                 Enum.TryParse(saveArray[20], true, out OrderTypeTime);
+            }
+
+            if (saveArray.Length > 22)
+            {
+                ServerName = saveArray[21];
             }
         }
     }

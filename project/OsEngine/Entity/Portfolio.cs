@@ -43,6 +43,11 @@ namespace OsEngine.Entity
         /// </summary>
         public ServerType ServerType;
 
+        /// <summary>
+        /// Connector unique name in multi-connection mode
+        /// </summary>
+        public string ServerUniqueName;
+
         // then goes the storage of open positions in the system by portfolio
 
         private List<PositionOnBoard> _positionOnBoard;

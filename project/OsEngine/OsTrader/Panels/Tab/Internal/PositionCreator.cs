@@ -28,7 +28,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newDeal.State = PositionStateType.Opening;
 
             newDeal.AddNewOpenOrder(CreateOrder(security, direction, priceOrder, volume, 
-                priceType, timeLife, startProgram,OrderPositionConditionType.Open, orderTypeTime));
+                priceType, timeLife, startProgram,OrderPositionConditionType.Open, orderTypeTime, portfolio.ServerUniqueName));
 
             newDeal.NameBot = botName;
             newDeal.Lots = security.Lot;
@@ -45,6 +45,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             }
 
             newDeal.OpenOrders[0].PortfolioNumber = portfolio.Number;
+            newDeal.OpenOrders[0].ServerName = portfolio.ServerUniqueName;
 
             return newDeal;
         }
@@ -55,7 +56,8 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         public Order CreateOrder(Security security,
             Side direction, decimal priceOrder, decimal volume, 
             OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram,
-                OrderPositionConditionType positionConditionType, OrderTypeTime orderTypeTime)
+                OrderPositionConditionType positionConditionType, OrderTypeTime orderTypeTime,
+                string serverName)
         {
             Order newOrder = new Order();
 
@@ -70,6 +72,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.SecurityNameCode = security.Name;
             newOrder.SecurityClassCode = security.NameClass;
             newOrder.OrderTypeTime = orderTypeTime;
+            newOrder.ServerName = serverName;
 
             return newOrder;
         }
@@ -78,7 +81,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         /// Create closing order
         /// </summary>
         public Order CreateCloseOrderForDeal(Security security, Position deal, decimal price, 
-            OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram, OrderTypeTime orderTypeTime)
+            OrderPriceType priceType, TimeSpan timeLife, StartProgram startProgram, OrderTypeTime orderTypeTime, string serverName)
         {
             Side direction;
 
@@ -110,6 +113,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
             newOrder.SecurityNameCode = security.Name;
             newOrder.SecurityClassCode = security.NameClass;
             newOrder.OrderTypeTime = orderTypeTime;
+            newOrder.ServerName = serverName;
 
             return newOrder;
         }

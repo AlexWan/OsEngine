@@ -294,6 +294,25 @@ namespace OsEngine.Entity
         public string NameBot;
 
         /// <summary>
+        /// unique server name in multi-connection mode
+        /// </summary>
+        public string ServerName
+        {
+            get
+            {
+                if(OpenOrders == null 
+                    || OpenOrders.Count == 0)
+                {
+                    return null;
+                }
+                else
+                {
+                    return OpenOrders[0].ServerName;
+                }
+            }
+        }
+
+        /// <summary>
         /// The amount of profit on the operation in percent
         /// </summary>
         public decimal ProfitOperationPersent;
@@ -871,7 +890,7 @@ namespace OsEngine.Entity
             result.Append("#" + StopIsMarket);
             result.Append("#" + ProfitIsMarket);
             result.Append("#" + SecurityName);
-            
+
             return result;
         }
 

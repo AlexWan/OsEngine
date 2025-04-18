@@ -284,7 +284,7 @@ namespace OsEngine.Market.Servers
         {
             List<ComparePositionsSecurity> result = new List<ComparePositionsSecurity>();
 
-            List<string> securities = GetSecuritiesWithPositions(portfolioName);
+            List<string> securities = GetSecuritiesWithPositions(portfolioName, Server.ServerNameAndPrefix);
 
             IServerPermission permission = ServerMaster.GetServerPermission(Server.ServerType);
 
@@ -357,6 +357,12 @@ namespace OsEngine.Market.Servers
                 for (int j = 0; j < curPositions.Count; j++)
                 {
                     string pName = curPositions[j].PortfolioName;
+
+                    if (string.IsNullOrEmpty(curPositions[j].ServerName) == false
+                        && curPositions[j].ServerName != Server.ServerNameAndPrefix)
+                    {
+                        continue;
+                    }
 
                     if (pName != null
                         && pName == portfolioName
@@ -456,13 +462,13 @@ namespace OsEngine.Market.Servers
             return newSecurity;
         }
 
-        private List<string> GetSecuritiesWithPositions(string portfolioName)
+        private List<string> GetSecuritiesWithPositions(string portfolioName, string serverName)
         {
             List<string> result = new List<string>();
 
             // 1 берём бумаги по которым есть позиции у роботов
 
-            List<Position> botsPositions = GetPositionsInPortfolioByRobots(portfolioName);
+            List<Position> botsPositions = GetPositionsInPortfolioByRobots(portfolioName, serverName);
 
             for(int i = 0;i < botsPositions.Count;i++)
             {
@@ -521,7 +527,7 @@ namespace OsEngine.Market.Servers
             return result;
         }
 
-        private List<Position> GetPositionsInPortfolioByRobots(string portfolioName)
+        private List<Position> GetPositionsInPortfolioByRobots(string portfolioName, string serverName)
         {
             List<BotPanel> bots = OsTraderMaster.Master.PanelsArray;
 
@@ -549,6 +555,12 @@ namespace OsEngine.Market.Servers
                 for (int j = 0; j < curPositions.Count; j++)
                 {
                     if (curPositions[j] == null)
+                    {
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(curPositions[j].ServerName) == false
+                        && curPositions[j].ServerName != serverName)
                     {
                         continue;
                     }

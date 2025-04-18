@@ -3472,7 +3472,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 Order closeOrder
                     = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
-                    OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1), StartProgram, ManualPositionSupport.OrderTypeTime);
+                    OrderPriceType.Limit, new TimeSpan(1, 1, 1, 1), 
+                    StartProgram, ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
 
                 closeOrder.SecurityNameCode = Security.Name;
                 closeOrder.SecurityClassCode = Security.NameClass;
@@ -4309,8 +4310,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                Order newOrder = _dealCreator.CreateOrder(Security, Side.Sell, price, volume, orderType,
-                    ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open, ManualPositionSupport.OrderTypeTime);
+                Order newOrder = 
+                    _dealCreator.CreateOrder(Security, Side.Sell, price, volume, 
+                    orderType, ManualPositionSupport.SecondToOpen, StartProgram, 
+                    OrderPositionConditionType.Open, ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
+
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 position.AddNewOpenOrder(newOrder);
@@ -4439,7 +4443,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Order newOrder = _dealCreator.CreateOrder(Security, Side.Buy, price, volume, orderType,
-                    ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open, ManualPositionSupport.OrderTypeTime);
+                    ManualPositionSupport.SecondToOpen, StartProgram, OrderPositionConditionType.Open,
+                    ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
                 newOrder.IsStopOrProfit = isStopOrProfit;
                 newOrder.LifeTime = timeLife;
                 newOrder.SecurityNameCode = Security.Name;
@@ -4526,7 +4531,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 position.State = PositionStateType.Closing;
 
                 Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
-                    priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime);
+                    priceType, lifeTime, StartProgram, 
+                    ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
 
                 closeOrder.SecurityNameCode = Security.Name;
                 closeOrder.SecurityClassCode = Security.NameClass;
@@ -4621,7 +4627,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 price = RoundPrice(price, Security, sideCloseOrder);
 
                 Order closeOrder = _dealCreator.CreateCloseOrderForDeal(Security, position, price,
-                    priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime);
+                    priceType, lifeTime, StartProgram, ManualPositionSupport.OrderTypeTime, _connector.ServerFullName);
 
                 if (closeOrder == null)
                 {

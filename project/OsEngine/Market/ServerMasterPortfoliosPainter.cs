@@ -12,6 +12,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
+using System.Linq;
 
 namespace OsEngine.Market
 {
@@ -199,7 +200,11 @@ namespace OsEngine.Market
                     for (int i = 0; i < _portfolios.Count; i++)
                     {
                         List<Portfolio> portfolios =
-                            _portfolios.FindAll(p => p != null && p.Number == _portfolios[i].Number);
+                            _portfolios.FindAll(p => 
+                            p != null 
+                            && p.Number == _portfolios[i].Number
+                            && p.ServerUniqueName == _portfolios[i].ServerUniqueName
+                            );
 
                         if (portfolios.Count > 1)
                         {
@@ -229,33 +234,7 @@ namespace OsEngine.Market
 
                 if(_portfolios.Count > 1)
                 {
-                    for (int j = 0; j < _portfolios.Count; j++)
-                    {
-                        for (int i = 1; i < _portfolios.Count; i++)
-                        {
-                            Portfolio pCurrent = _portfolios[i];
-                            Portfolio pMin1 = _portfolios[i - 1];
-
-                            if (pCurrent == null || pCurrent.Number == null || pCurrent.Number.Length < 2)
-                            {
-                                continue;
-                            }
-
-                            if (pMin1 == null || pMin1.Number == null || pMin1.Number.Length < 2)
-                            {
-                                continue;
-                            }
-
-                            if (pMin1.Number[0] > pCurrent.Number[0]
-                                ||
-                                (pMin1.Number[0] == pCurrent.Number[0]
-                                && pMin1.Number[1] > pCurrent.Number[1]))
-                            {
-                                _portfolios[i - 1] = pCurrent;
-                                _portfolios[i] = pMin1;
-                            }
-                        }
-                    } 
+                    _portfolios = _portfolios.OrderBy(x => x.ServerUniqueName).ToList();
                 }
 
                 // 3 Paint
@@ -281,9 +260,9 @@ namespace OsEngine.Market
                     {
                         PaintPortfolio(_portfolios[i]);
                     }
-                    catch (Exception)
+                    catch
                     {
-                        
+                        // ignore
                     }
                 }
 
@@ -342,20 +321,24 @@ namespace OsEngine.Market
                 }
 
                 DataGridViewRow secondRow = new DataGridViewRow();
-                secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[0].Value = portfolio.Number;
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[1].Value = portfolio.ValueBegin.ToStringWithNoEndZero().ToDecimal();
+                secondRow.Cells[secondRow.Cells.Count - 1].Value = portfolio.ServerUniqueName;
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[2].Value = portfolio.ValueCurrent.ToStringWithNoEndZero().ToDecimal();
+                secondRow.Cells[secondRow.Cells.Count - 1].Value = portfolio.Number;
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[3].Value = portfolio.ValueBlocked.ToStringWithNoEndZero().ToDecimal();
+                secondRow.Cells[secondRow.Cells.Count - 1].Value = portfolio.ValueBegin.ToStringWithNoEndZero().ToDecimal();
 
                 secondRow.Cells.Add(new DataGridViewTextBoxCell());
-                secondRow.Cells[4].Value = portfolio.UnrealizedPnl.ToStringWithNoEndZero().ToDecimal();
+                secondRow.Cells[secondRow.Cells.Count - 1].Value = portfolio.ValueCurrent.ToStringWithNoEndZero().ToDecimal();
+
+                secondRow.Cells.Add(new DataGridViewTextBoxCell());
+                secondRow.Cells[secondRow.Cells.Count - 1].Value = portfolio.ValueBlocked.ToStringWithNoEndZero().ToDecimal();
+
+                secondRow.Cells.Add(new DataGridViewTextBoxCell());
+                secondRow.Cells[secondRow.Cells.Count - 1].Value = portfolio.UnrealizedPnl.ToStringWithNoEndZero().ToDecimal();
 
                 if (portfolio.ServerType != ServerType.None)
                 {
@@ -410,21 +393,22 @@ namespace OsEngine.Market
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[5].Value = positionsOnBoard[i].SecurityNameCode;
+                        nRow.Cells[nRow.Cells.Count-1].Value = positionsOnBoard[i].SecurityNameCode;
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[6].Value = positionsOnBoard[i].ValueBegin.ToStringWithNoEndZero().ToDecimal();
+                        nRow.Cells[nRow.Cells.Count - 1].Value = positionsOnBoard[i].ValueBegin.ToStringWithNoEndZero().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[7].Value = positionsOnBoard[i].ValueCurrent.ToStringWithNoEndZero().ToDecimal();
+                        nRow.Cells[nRow.Cells.Count - 1].Value = positionsOnBoard[i].ValueCurrent.ToStringWithNoEndZero().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[8].Value = positionsOnBoard[i].ValueBlocked.ToStringWithNoEndZero().ToDecimal();
+                        nRow.Cells[nRow.Cells.Count - 1].Value = positionsOnBoard[i].ValueBlocked.ToStringWithNoEndZero().ToDecimal();
 
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
-                        nRow.Cells[9].Value = positionsOnBoard[i].UnrealizedPnl.ToStringWithNoEndZero().ToDecimal();
+                        nRow.Cells[nRow.Cells.Count - 1].Value = positionsOnBoard[i].UnrealizedPnl.ToStringWithNoEndZero().ToDecimal();
 
                         if (HaveClosePosButton(portfolio, positionsOnBoard[i]))
                         {
@@ -439,6 +423,7 @@ namespace OsEngine.Market
                     if (havePoses == false)
                     {
                         DataGridViewRow nRow = new DataGridViewRow();
+                        nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
                         nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -498,7 +483,11 @@ namespace OsEngine.Market
                         }
 
                         Portfolio portf = _portfolios.Find(
-                            portfolio => portfolio != null && portfolio.Number == portfolios[i].Number);
+                            portfolio => 
+                            portfolio != null 
+                            && portfolio.Number == portfolios[i].Number
+                            && portfolio.ServerUniqueName == portfolios[i].ServerUniqueName
+                            );
 
                         if (portf != null)
                         {
@@ -525,7 +514,7 @@ namespace OsEngine.Market
         /// </summary>
         private bool HaveClosePosButton(Portfolio portfolio, PositionOnBoard positionOnBoard)
         {
-            IServer myServer = GetServerByPortfolioName(portfolio.Number);
+            IServer myServer = GetServerByPortfolioName(portfolio.Number, portfolio.ServerUniqueName);
 
             if (myServer == null)
             {
@@ -602,7 +591,7 @@ namespace OsEngine.Market
         /// <summary>
         /// server by portfolio name
         /// </summary>
-        private IServer GetServerByPortfolioName(string portfolioName)
+        private IServer GetServerByPortfolioName(string portfolioName, string serverName)
         {
             List<IServer> servers = ServerMaster.GetServers();
 
@@ -617,6 +606,11 @@ namespace OsEngine.Market
                         continue;
                     }
                     if (servers[i].ServerType == ServerType.Optimizer)
+                    {
+                        continue;
+                    }
+
+                    if (servers[i].ServerNameAndPrefix != serverName)
                     {
                         continue;
                     }
@@ -656,12 +650,12 @@ namespace OsEngine.Market
                 int rowInd = e.RowIndex;
                 int colInd = e.ColumnIndex;
 
-                if (colInd != 10)
+                if (colInd != 11)
                 {
                     return;
                 }
 
-                if (_gridPortfolio.Rows[rowInd].Cells.Count < 9 ||
+                if (_gridPortfolio.Rows[rowInd].Cells.Count < 10 ||
                     _gridPortfolio.Rows[rowInd].Cells[colInd] == null ||
                     _gridPortfolio.Rows[rowInd].Cells[colInd].Value == null)
                 {
@@ -693,9 +687,11 @@ namespace OsEngine.Market
                 int rowInd = e.RowIndex;
                 int colInd = e.ColumnIndex;
 
-                string portfolioName = _gridPortfolio.Rows[rowInd].Cells[0].Value.ToString();
+                string portfolioName = _gridPortfolio.Rows[rowInd].Cells[1].Value.ToString();
 
-                IServer myServer = GetServerByPortfolioName(portfolioName);
+                string serverUniqueName = _gridPortfolio.Rows[rowInd].Cells[0].Value.ToString();
+
+                IServer myServer = GetServerByPortfolioName(portfolioName, serverUniqueName);
 
                 if (myServer == null)
                 {
@@ -728,14 +724,14 @@ namespace OsEngine.Market
                 int rowInd = e.RowIndex;
                 int colInd = e.ColumnIndex;
 
-                string secName = _gridPortfolio.Rows[rowInd].Cells[5].Value.ToString();
+                string secName = _gridPortfolio.Rows[rowInd].Cells[6].Value.ToString();
 
                 if (String.IsNullOrEmpty(secName))
                 {
                     return;
                 }
 
-                string secVol = _gridPortfolio.Rows[rowInd].Cells[7].Value.ToString();
+                string secVol = _gridPortfolio.Rows[rowInd].Cells[8].Value.ToString();
 
                 AcceptDialogUi ui = new AcceptDialogUi(secName + OsLocalization.Market.Label83);
 
@@ -747,27 +743,32 @@ namespace OsEngine.Market
                 }
 
                 string portfolioName = "";
+                string serverName = "";
 
                 for (int i = rowInd; i >= 0; i--)
                 {
-                    if (_gridPortfolio.Rows[i].Cells[0] == null)
+                    if (_gridPortfolio.Rows[i].Cells[1] == null
+                        || _gridPortfolio.Rows[i].Cells[0] == null)
                     {
                         continue;
                     }
-                    if (_gridPortfolio.Rows[i].Cells[0].Value == null)
+                    if (_gridPortfolio.Rows[i].Cells[1].Value == null
+                        || _gridPortfolio.Rows[i].Cells[0].Value == null)
                     {
                         continue;
                     }
-                    if (_gridPortfolio.Rows[i].Cells[0].Value.ToString() == "")
+                    if (_gridPortfolio.Rows[i].Cells[1].Value.ToString() == ""
+                        || _gridPortfolio.Rows[i].Cells[0].Value.ToString() == "")
                     {
                         continue;
                     }
 
-                    portfolioName = _gridPortfolio.Rows[i].Cells[0].Value.ToString();
+                    portfolioName = _gridPortfolio.Rows[i].Cells[1].Value.ToString();
+                    serverName = _gridPortfolio.Rows[i].Cells[0].Value.ToString();
                     break;
                 }
 
-                IServer myServer = GetServerByPortfolioName(portfolioName);
+                IServer myServer = GetServerByPortfolioName(portfolioName, serverName);
 
                 if (myServer == null)
                 {

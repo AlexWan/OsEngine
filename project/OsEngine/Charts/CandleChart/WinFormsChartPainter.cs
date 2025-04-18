@@ -2577,7 +2577,9 @@ namespace OsEngine.Charts.CandleChart
                 // going through stop order
                 // проходим СТОП ОРДЕРА
 
-                Series lineSeries = new Series("StopLimit_" + stopLimits[i].Number);
+                PositionOpenerToStopLimit curStop = stopLimits[i];
+
+                Series lineSeries = new Series("StopLimit_" + curStop.Number);
                 lineSeries.ChartType = SeriesChartType.StepLine;
                 lineSeries.YAxisType = AxisType.Secondary;
                 lineSeries.XAxisType = AxisType.Secondary;
@@ -2585,10 +2587,10 @@ namespace OsEngine.Charts.CandleChart
                 lineSeries.ShadowOffset = 1;
                 lineSeries.YValuesPerPoint = 1;
 
-                lineSeries.Points.AddXY(0, stopLimits[i].PriceRedLine);
-                lineSeries.Points.AddXY(_myCandles.Count + 500, stopLimits[i].PriceRedLine);
+                lineSeries.Points.AddXY(0, curStop.PriceRedLine);
+                lineSeries.Points.AddXY(_myCandles.Count + 500, curStop.PriceRedLine);
 
-                if (stopLimits[i].Side == Side.Buy)
+                if (curStop.Side == Side.Buy)
                 {
                     lineSeries.Color = Color.DarkCyan;
                 }
