@@ -19,8 +19,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 {
     public class BitGetServerSpot : AServer
     {
-        public BitGetServerSpot()
+        public BitGetServerSpot(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             BitGetServerSpotRealization realization = new BitGetServerSpotRealization();
             ServerRealization = realization;
 

@@ -19,9 +19,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 {
     public class BitGetServerFutures : AServer
     {
-        public BitGetServerFutures()
+        public BitGetServerFutures(int uniqueNumber)
         {
-
+            ServerNum = uniqueNumber;
             BitGetServerRealization realization = new BitGetServerRealization();
             ServerRealization = realization;
 

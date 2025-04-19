@@ -569,11 +569,11 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.BitGetFutures)
                 {
-                    newServer = new BitGetServerFutures();
+                    newServer = new BitGetServerFutures(uniqueNum);
                 }
                 if (type == ServerType.BitGetSpot)
                 {
-                    newServer = new BitGetServerSpot();
+                    newServer = new BitGetServerSpot(uniqueNum);
                 }
                 if (type == ServerType.Bitmax_AscendexFutures)
                 {
