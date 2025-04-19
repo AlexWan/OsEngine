@@ -122,6 +122,10 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Vendors\RestSharp.dll</HintPath>
     </Reference>
+     <Reference Include="Telegram.Td">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath Condition=" '$(Platform)' == 'AnyCPU' ">bin\$(Configuration)\Telegram.Td.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
@@ -176,6 +180,28 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="WindowsFormsIntegration" />
+  </ItemGroup>
+   <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <Content Include="bin\Debug\zlibd1.dll">
+      <Link>zlibd1.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <Content Include="bin\Release\zlib1.dll">
+      <Link>zlib1.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+   <ItemGroup Condition=" '$(Platform)' == 'AnyCPU' ">
+    <Content Include="bin\$(Configuration)\libcrypto-3-x64.dll">
+      <Link>libcrypto-3-x64.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="bin\$(Configuration)\libssl-3-x64.dll">
+      <Link>libssl-3-x64.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -981,6 +1007,14 @@
     <Compile Include="Market\Servers\Entity\TimeManager.cs" />
     <Compile Include="Market\Servers\SmartLabNews\SmartLabNewsServer.cs" />
     <Compile Include="Market\Servers\SmartLabNews\SmartLabNewsServerPermission.cs" />
+    <Compile Include="Market\Servers\TelegramNews\TelegramNewsServer.cs" />
+    <Compile Include="Market\Servers\TelegramNews\TelegramNewsServerPermission.cs" />
+    <Compile Include="Market\Servers\TelegramNews\TGAuthEntity\AuthTGCodeDialogUi.xaml.cs">
+      <DependentUpon>AuthTGCodeDialogUi.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Market\Servers\TelegramNews\TGAuthEntity\AuthTGPasswordDialogUi.xaml.cs">
+      <DependentUpon>AuthTGPasswordDialogUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Market\Servers\Tester\GoToUi.xaml.cs">
       <DependentUpon>GoToUi.xaml</DependentUpon>
     </Compile>
@@ -1714,6 +1748,14 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Market\Servers\Optimizer\OptimizerDataStorageUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\TelegramNews\TGAuthEntity\AuthTGCodeDialogUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Market\Servers\TelegramNews\TGAuthEntity\AuthTGPasswordDialogUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
