@@ -24,10 +24,10 @@
         <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,18.8,9.8" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <Label Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="9,113,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label Name="Label5" Content="Security" HorizontalAlignment="Left" Margin="9,257,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="LabelComissionType" Content="Comission type" HorizontalAlignment="Left"  Margin="40,189,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxComissionType" Margin="205,189,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="LabelComissionValue" Content="Comission value" HorizontalAlignment="Left" Margin="40,217,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxComissionValue" Margin="205,217,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left"  Margin="40,189,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxCommissionType" Margin="205,189,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label x:Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="40,217,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxCommissionValue" Margin="205,217,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <WindowsFormsHost Name="SecurityTable" HorizontalAlignment="Left" Margin="11,319,0,46" Width="418"/>
         <TextBox Name="TextBoxSearchSecurity" HorizontalAlignment="Left" Margin="309,291,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="120"/>
         <Button Name="ButtonRightInSearchResults" Content=">" HorizontalAlignment="Left" Margin="406,271,0,0" VerticalAlignment="Top" Width="23" Height="20"/>

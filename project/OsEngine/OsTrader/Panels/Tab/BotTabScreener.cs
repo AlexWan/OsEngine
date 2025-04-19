@@ -265,6 +265,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             if (startProgram == StartProgram.IsTester)
             {
                 ServerType = ServerType.Tester;
+                ServerName = ServerType.Tester.ToString();
+            }
+            else if (startProgram == StartProgram.IsOsOptimizer)
+            {
+                ServerType = ServerType.Optimizer;
+                ServerName = ServerType.Optimizer.ToString();
             }
         }
 
@@ -425,7 +431,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (ServerType != ServerType.None)  //AVP so that the server autostart function works
                 {
-                    ServerMaster.SetServerToAutoConnection(ServerType); //AVP
+                    ServerMaster.SetServerToAutoConnection(ServerType, ServerName); //AVP
                 }
             }
 
@@ -491,7 +497,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(PortfolioName);
                     writer.WriteLine(SecuritiesClass);
                     writer.WriteLine(TimeFrame);
-                    writer.WriteLine(ServerType);
+                    writer.WriteLine(ServerType + "&" + ServerName);
                     writer.WriteLine(_emulatorIsOn);
                     writer.WriteLine(CandleMarketDataType);
                     writer.WriteLine(CandleCreateMethodType);
@@ -537,7 +543,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                     SecuritiesClass = reader.ReadLine();
 
                     Enum.TryParse(reader.ReadLine(), out TimeFrame);
-                    Enum.TryParse(reader.ReadLine(), out ServerType);
+
+                    string server = reader.ReadLine();
+
+                    Enum.TryParse(server.Split('&')[0], out ServerType);
+
+                    if (server.Split('&').Length > 1)
+                    {
+                        ServerName = server.Split('&')[1];
+                    }
+                    else
+                    {
+                        ServerName = ServerType.ToString();
+                    }
 
                     _emulatorIsOn = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out CandleMarketDataType);
@@ -713,6 +731,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         public ServerType ServerType;
 
         /// <summary>
+        /// Server name in multi-connect regime
+        /// </summary>
+        public string ServerName;
+
+        /// <summary>
         /// Is the emulator enabled
         /// </summary>
         public bool EmulatorIsOn
@@ -784,7 +807,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Commission type for positions
         /// </summary>
-        public ComissionType CommissionType;
+        public CommissionType CommissionType;
 
         /// <summary>
         /// Commission amount
@@ -933,6 +956,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 haveNewSettings = true;
             }
 
+            if (tab.Connector.ServerFullName != ServerName)
+            {
+                tab.Connector.ServerFullName = ServerName;
+                haveNewSettings = true;
+            }
+
             if (tab.Connector.EmulatorIsOn != _emulatorIsOn)
             {
                 tab.Connector.EmulatorIsOn = _emulatorIsOn;
@@ -1040,6 +1069,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             newTab.TimeFrameBuilder.TimeFrame = frame;
             newTab.Connector.PortfolioName = PortfolioName;
             newTab.Connector.ServerType = ServerType;
+            newTab.Connector.ServerFullName = ServerName;
             newTab.Connector.EmulatorIsOn = _emulatorIsOn;
             newTab.Connector.CandleMarketDataType = CandleMarketDataType;
             newTab.Connector.CandleCreateMethodType = CandleCreateMethodType;
@@ -1061,6 +1091,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// </summary>
         private bool TabIsAlive(List<ActivatedSecurity> securities, TimeFrame frame, BotTabSimple tab)
         {
+            if(StartProgram == StartProgram.IsOsTrader)
+            {
+                if (tab.Connector.ServerFullName != ServerName)
+                {
+                    return false;
+                }
+            }
+
             ActivatedSecurity sec = null;
             
             for(int i = 0;i < securities.Count;i++)

@@ -60,7 +60,8 @@ namespace OsEngine.Market.Connectors
                 {
                     Enum.TryParse(reader.ReadLine(), true, out _serverType);
                     _eventsIsOn = Convert.ToBoolean(reader.ReadLine());
-                    _countNewsToSave = Convert.ToInt32(reader.ReadLine()); 
+                    _countNewsToSave = Convert.ToInt32(reader.ReadLine());
+                    _serverFullName = reader.ReadLine();
 
                     reader.Close();
                 }
@@ -92,6 +93,7 @@ namespace OsEngine.Market.Connectors
                     writer.WriteLine(_serverType);
                     writer.WriteLine(_eventsIsOn);
                     writer.WriteLine(_countNewsToSave);
+                    writer.WriteLine(_serverFullName);
 
                     writer.Close();
                 }
@@ -226,6 +228,29 @@ namespace OsEngine.Market.Connectors
             }
         }
         private ServerType _serverType;
+
+        public string ServerFullName
+        {
+            get
+            {
+                if(_serverFullName == null)
+                {
+                    _serverFullName = _serverType.ToString();
+                }
+
+                return _serverFullName;
+            }
+            set
+            {
+                if (_serverFullName == value)
+                {
+                    return;
+                }
+                _serverFullName = value;
+                Save();
+            }
+        }
+        private string _serverFullName;
 
         public bool EventsIsOn
         {
@@ -391,7 +416,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ServerType != ServerType.None)
                         {
-                            ServerMaster.SetServerToAutoConnection(ServerType);
+                            ServerMaster.SetServerToAutoConnection(ServerType, ServerFullName);
                         }
                         continue;
                     }
@@ -419,7 +444,9 @@ namespace OsEngine.Market.Connectors
                         }
                         else
                         {
-                            _myServer = servers.Find(server => server.ServerType == ServerType);
+                            _myServer = servers.Find(server => 
+                            server.ServerType == ServerType
+                            && server.ServerNameAndPrefix == ServerFullName);
                         }
                     }
                     catch
@@ -432,7 +459,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ServerType != ServerType.None)
                         {
-                            ServerMaster.SetServerToAutoConnection(ServerType);
+                            ServerMaster.SetServerToAutoConnection(ServerType, ServerFullName);
                         }
                         continue;
                     }

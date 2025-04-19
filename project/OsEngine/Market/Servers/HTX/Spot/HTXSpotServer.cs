@@ -1346,9 +1346,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
             myTrade.SecurityNameCode = item.symbol;
             myTrade.Side = item.orderSide.Equals("buy") ? Side.Buy : Side.Sell;
 
-            string comissionSecName = item.feeCurrency;
+            string commissionSecName = item.feeCurrency;
 
-            if (myTrade.SecurityNameCode.StartsWith(comissionSecName))
+            if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
             {
                 myTrade.Volume = item.tradeVolume.ToDecimal() - item.transactFee.ToDecimal();
             }

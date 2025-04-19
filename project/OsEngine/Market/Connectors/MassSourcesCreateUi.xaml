@@ -27,10 +27,10 @@
         <ComboBox x:Name ="ComboBoxCandleCreateMethodType" Margin="206,307,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <Label x:Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="10,59,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label x:Name="Label5" Content="Candles settings" HorizontalAlignment="Left" Margin="10,197,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="LabelComissionType" Content="Comission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxComissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="LabelComissionValue" Content="Comission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxComissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxCommissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label x:Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxCommissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <CheckBox x:Name="CheckBoxSaveTradeArrayInCandle" Content="Save trades array in Candle" HorizontalAlignment="Left" Margin="120,284,0,0" VerticalAlignment="Top"/>
         <Rectangle Margin="414,5,10,35" />
         <WindowsFormsHost Name="SecuritiesHost" Margin="419,82,15.2,40"/>

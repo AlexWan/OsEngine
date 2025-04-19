@@ -1038,7 +1038,7 @@ namespace OsEngine.OsMiner.Patterns
 
             for (int i = 0; i < PositionsInTrades.Count; i++)
             {
-                profit += PositionsInTrades[i].ProfitOperationPunkt;
+                profit += PositionsInTrades[i].ProfitOperationAbs;
             }
 
             if(PositionsInTrades.Count == 0)
@@ -1224,7 +1224,7 @@ namespace OsEngine.OsMiner.Patterns
 
                     for (int i = 0; i < PositionsInTrades.Count; i++)
                     {
-                        profit += PositionsInTrades[i].ProfitOperationPunkt;
+                        profit += PositionsInTrades[i].ProfitOperationAbs;
                     }
 
                     decimal mO = 0;

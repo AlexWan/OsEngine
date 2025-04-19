@@ -32,8 +32,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
     public class BinanceServerFutures : AServer
     {
-        public BinanceServerFutures()
+        public BinanceServerFutures(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
+            
             BinanceServerFuturesRealization realization = new BinanceServerFuturesRealization();
             ServerRealization = realization;
 

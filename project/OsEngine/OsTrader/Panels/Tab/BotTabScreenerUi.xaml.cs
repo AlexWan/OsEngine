@@ -57,7 +57,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // upload settings to controls
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    ComboBoxTypeServer.Items.Add(servers[i].ServerType);
+                    ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
                 }
 
                 if (servers.Count > 0
@@ -67,9 +67,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     connectorBot.ServerType = ServerType.Optimizer;
                     ComboBoxTypeServer.IsEnabled = false;
                     CheckBoxIsEmulator.IsEnabled = false;
-                    ComboBoxTypeServer.SelectedItem = ServerType.Optimizer;
+                    ComboBoxTypeServer.SelectedItem = ServerType.Optimizer.ToString();
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
                     ComboBoxPortfolio.IsEnabled = false;
+                    _selectedServerName = ServerType.Optimizer.ToString();
                 }
                 else if (servers.Count > 0
                      && servers[0].ServerType == ServerType.Tester)
@@ -78,20 +79,23 @@ namespace OsEngine.OsTrader.Panels.Tab
                     connectorBot.ServerType = ServerType.Tester;
                     ComboBoxTypeServer.IsEnabled = false;
                     CheckBoxIsEmulator.IsEnabled = false;
-                    ComboBoxTypeServer.SelectedItem = ServerType.Tester;
+                    ComboBoxTypeServer.SelectedItem = ServerType.Tester.ToString();
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
                     ComboBoxPortfolio.IsEnabled = false;
+                    _selectedServerName = ServerType.Tester.ToString();
                 }
 
                 if (connectorBot.ServerType != ServerType.None)
                 {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
+                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerType.ToString();
                     _selectedServerType = connectorBot.ServerType;
+                    _selectedServerName = connectorBot.ServerName;
                 }
                 else
                 {
-                    ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
+                    ComboBoxTypeServer.SelectedItem = servers[0].ServerType.ToString();
                     _selectedServerType = servers[0].ServerType;
+                    _selectedServerName = servers[0].ServerNameAndPrefix;
                 }
 
                 CreateGrid();
@@ -112,12 +116,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
                 ComboBoxCandleMarketDataType.SelectedItem = _screener.CandleMarketDataType;
 
-                ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _screener.CommissionType.ToString();
+                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+                ComboBoxCommissionType.SelectedItem = _screener.CommissionType.ToString();
 
-                TextBoxComissionValue.Text = _screener.CommissionValue.ToString();
+                TextBoxCommissionValue.Text = _screener.CommissionValue.ToString();
 
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _screener.SaveTradesInCandles;
                 CheckBoxSaveTradeArrayInCandle.Click += CheckBoxSaveTradeArrayInCandle_Click;
@@ -134,8 +138,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
+                LabelCommissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelCommissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
@@ -258,15 +262,17 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _screener.EmulatorIsOn = CheckBoxIsEmulator.IsChecked.Value;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out _screener.ServerType);
+                Enum.TryParse(ComboBoxTypeServer.Text.Split('_')[0], true, out _screener.ServerType);
+
+                _screener.ServerName = _selectedServerName;
 
                 CandleMarketDataType createType;
                 Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
                 _screener.CandleMarketDataType = createType;
 
-                ComissionType typeComission;
-                Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-                _screener.CommissionType = typeComission;
+                CommissionType typeCommission;
+                Enum.TryParse(ComboBoxCommissionType.Text, true, out typeCommission);
+                _screener.CommissionType = typeCommission;
 
                 if (ComboBoxClass.SelectedItem != null)
                 {
@@ -275,7 +281,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 try
                 {
-                    _screener.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
+                    _screener.CommissionValue = TextBoxCommissionValue.Text.ToDecimal();
                 }
                 catch
                 {
@@ -374,6 +380,22 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (ComboBoxTypeServer.SelectedValue == null)
+                {
+                    return;
+                }
+
+                string serverName = ComboBoxTypeServer.SelectedValue.ToString();
+
+                ServerType serverType;
+                if (Enum.TryParse(serverName.Split('_')[0], out serverType) == false)
+                {
+                    return;
+                }
+
+                _selectedServerType = serverType;
+                _selectedServerName = serverName;
+
                 if (_selectedServerType == ServerType.None)
                 {
                     return;
@@ -387,28 +409,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (ComboBoxTypeServer.SelectedItem == null)
-                {
-                    return;
-                }
-
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                    serversAll.Find(
+                        server1 =>
+                        server1.ServerType == _selectedServerType
+                        && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server != null)
                 {
                     server.SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     server.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+                    server.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
+                    server.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedServerType);
-
-                IServer server2 = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
-
-                if (server2 != null)
-                {
-                    server2.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
-                    server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
-                }
                 LoadPortfolioOnBox();
                 LoadClassOnBox();
                 LoadSecurityOnBox();
@@ -420,6 +434,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         private ServerType _selectedServerType;
+
+        private string _selectedServerName;
 
         #endregion
 
@@ -448,7 +464,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                  serversAll.Find(
+                  server1 =>
+                  server1.ServerType == _selectedServerType
+                  && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -613,7 +633,10 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                serversAll.Find(server1 =>
+                server1.ServerType == _selectedServerType
+                && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -1406,9 +1429,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
             curCreator.CandleMarketDataType = createType;
 
-            ComissionType typeComission;
-            Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-            curCreator.CommissionType = typeComission;
+            CommissionType typeCommission;
+            Enum.TryParse(ComboBoxCommissionType.Text, true, out typeCommission);
+            curCreator.CommissionType = typeCommission;
 
             if (ComboBoxClass.SelectedItem != null)
             {
@@ -1417,7 +1440,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
-                curCreator.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
+                curCreator.CommissionValue = TextBoxCommissionValue.Text.ToDecimal();
             }
             catch
             {
@@ -1490,9 +1513,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxTypeServer.Text = curCreator.ServerType.ToString();
                 ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
                 ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
-                ComboBoxComissionType.Text = curCreator.CommissionType.ToString();
+                ComboBoxCommissionType.Text = curCreator.CommissionType.ToString();
                 ComboBoxClass.SelectedItem = curCreator.SecuritiesClass.ToString();
-                TextBoxComissionValue.Text = curCreator.CommissionValue.ToString();
+                TextBoxCommissionValue.Text = curCreator.CommissionValue.ToString();
 
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {
@@ -1792,11 +1815,14 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer serverr = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                  serversAll.Find(server1 =>
+                  server1.ServerType == _selectedServerType
+                  && server1.ServerNameAndPrefix == _selectedServerName);
 
                 IServerPermission permission = ServerMaster.GetServerPermission(_selectedServerType);
 
-                if (serverr == null
+                if (server == null
                     || permission == null)
                 {
                     box.Items.Add(TimeFrame.Day.ToString());

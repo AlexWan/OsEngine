@@ -73,30 +73,33 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // загружаем настройки в контролы
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    ComboBoxTypeServer.Items.Add(servers[i].ServerType);
+                    ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
                 }
 
                 if (connectorBot.ServerType != ServerType.None)
                 {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
+                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerFullName;
                     _selectedServerType = connectorBot.ServerType;
+                    _selectedServerName = connectorBot.ServerFullName;
                 }
                 else
                 {
-                    ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
+                    ComboBoxTypeServer.SelectedItem = servers[0].ServerNameAndPrefix.ToString();
                     _selectedServerType = servers[0].ServerType;
+                    _selectedServerName = servers[0].ServerNameAndPrefix;
                 }
 
                 if (connectorBot.StartProgram == StartProgram.IsTester)
                 {
                     ComboBoxTypeServer.IsEnabled = false;
                     CheckBoxIsEmulator.IsEnabled = false;
-                    ComboBoxTypeServer.SelectedItem = ServerType.Tester;
+                    ComboBoxTypeServer.SelectedItem = ServerType.Tester.ToString();
                     ComboBoxPortfolio.Items.Add(ServerMaster.GetServers()[0].Portfolios[0].Number);
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
 
                     connectorBot.ServerType = ServerType.Tester;
                     _selectedServerType = ServerType.Tester;
+                    _selectedServerName = ServerType.Tester.ToString();
 
                     ComboBoxPortfolio.IsEnabled = false;
                     ComboBoxTypeServer.IsEnabled = false;
@@ -116,12 +119,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
 
-                ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _connectorBot.CommissionType.ToString();
+                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+                ComboBoxCommissionType.SelectedItem = _connectorBot.CommissionType.ToString();
 
-                TextBoxComissionValue.Text = _connectorBot.CommissionValue.ToString();
+                TextBoxCommissionValue.Text = _connectorBot.CommissionValue.ToString();
 
                 Title = OsLocalization.Market.TitleConnectorCandle;
                 Label1.Content = OsLocalization.Market.Label1;
@@ -131,8 +134,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label5.Content = OsLocalization.Market.Label7;
                 Label6.Content = OsLocalization.Market.Label6;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
+                LabelCommissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelCommissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
                 LabelOperation.Content = OsLocalization.Trader.Label343;
                 LabelBaseCurrency.Content = OsLocalization.Trader.Label317;
@@ -218,7 +221,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out _connectorBot.ServerType);
+                Enum.TryParse(ComboBoxTypeServer.Text.Split('_')[0], true, out _connectorBot.ServerType);
+
+                _connectorBot.ServerFullName = _selectedServerName;
 
                 _connectorBot.PortfolioName = ComboBoxPortfolio.Text;
 
@@ -245,25 +250,50 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (ComboBoxTypeServer.SelectedValue == null)
+                {
+                    return;
+                }
+
+                string serverName = ComboBoxTypeServer.SelectedValue.ToString();
+
+                ServerType serverType;
+
+                if (Enum.TryParse(serverName.Split('_')[0], out serverType) == false)
+                {
+                    return;
+                }
+
+                _selectedServerType = serverType;
+                _selectedServerName = serverName;
+
+                if (_selectedServerType == ServerType.None)
+                {
+                    return;
+                }
+
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                if (serversAll == null ||
+                    serversAll.Count == 0)
+                {
+                    return;
+                }
+
+                IServer server =
+                    serversAll.Find(
+                        server1 =>
+                        server1.ServerType == _selectedServerType
+                        && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server != null)
                 {
                     server.SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     server.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+                    server.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
+                    server.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedServerType);
-
-                IServer server2 = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
-
-                if (server2 != null)
-                {
-                    server2.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
-                    server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
-                }
                 LoadPortfolioOnBox();
                 LoadClassOnBox();
                 LoadSecurityOnBox();
@@ -277,6 +307,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         private ServerType _selectedServerType;
+
+        private string _selectedServerName;
 
         private void ComboBoxOperationType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
@@ -339,13 +371,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
+                    && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
                     return;
                 }
-
 
                 if (!ComboBoxClass.CheckAccess())
                 {
@@ -431,9 +465,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ComboBoxClass.Dispatcher.Invoke(LoadClassOnBox);
                     return;
                 }
+
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
+                    && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -489,12 +527,16 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
+                    && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
                     return;
                 }
+
                 // clear all
                 // стираем всё
 

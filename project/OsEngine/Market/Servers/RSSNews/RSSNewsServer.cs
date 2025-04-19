@@ -13,8 +13,10 @@ namespace OsEngine.Market.Servers.RSSNews
 {
     class RSSNewsServer : AServer
     {
-        public RSSNewsServer()
+        public RSSNewsServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
+
             RSSNewsServerRealization realization = new RSSNewsServerRealization();
             ServerRealization = realization;
 

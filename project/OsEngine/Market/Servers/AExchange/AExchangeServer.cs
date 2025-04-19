@@ -469,7 +469,7 @@ namespace OsEngine.Market.Servers.AE
                 if (sec  == null)
                     continue;
 
-                pnl += positions[i].ProfitOperationPunkt * sec.PriceStepCost;
+                pnl += positions[i].ProfitOperationAbs * sec.PriceStepCost;
             }
 
             return pnl;

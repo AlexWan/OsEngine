@@ -143,7 +143,7 @@ namespace OsEngine.Market.Connectors
         }
         private string _candleCreateMethodType;
 
-        public ComissionType CommissionType;
+        public CommissionType CommissionType;
 
         public decimal CommissionValue;
 

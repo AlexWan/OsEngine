@@ -70,8 +70,8 @@ namespace OsEngine.Market.Connectors
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
+                LabelCommissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelCommissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
@@ -126,7 +126,7 @@ namespace OsEngine.Market.Connectors
                 SourcesCreator.ServerType = ServerType.Tester;
                 SourcesCreator.ServerName = ServerType.Tester.ToString();
                 _selectedServerType = ServerType.Tester;
-                _selectedServerName = ServerType.Optimizer.ToString();
+                _selectedServerName = ServerType.Tester.ToString();
             }
             else if (servers.Count > 0
                 && servers[0].ServerType == ServerType.Optimizer)
@@ -142,7 +142,7 @@ namespace OsEngine.Market.Connectors
 
             if (SourcesCreator.ServerType != ServerType.None)
             {
-                ComboBoxTypeServer.SelectedItem = SourcesCreator.ServerName;
+                ComboBoxTypeServer.SelectedItem = SourcesCreator.ServerName.ToString();
                 _selectedServerType = SourcesCreator.ServerType;
                 _selectedServerName = SourcesCreator.ServerName;
             }
@@ -171,12 +171,12 @@ namespace OsEngine.Market.Connectors
             ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
             ComboBoxCandleMarketDataType.SelectedItem = SourcesCreator.CandleMarketDataType;
 
-            ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
-            ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
-            ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-            ComboBoxComissionType.SelectedItem = SourcesCreator.CommissionType.ToString();
+            ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+            ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+            ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+            ComboBoxCommissionType.SelectedItem = SourcesCreator.CommissionType.ToString();
 
-            TextBoxComissionValue.Text = SourcesCreator.CommissionValue.ToString();
+            TextBoxCommissionValue.Text = SourcesCreator.CommissionValue.ToString();
 
             CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles;
 
@@ -302,9 +302,9 @@ namespace OsEngine.Market.Connectors
             Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
             curCreator.CandleMarketDataType = createType;
 
-            ComissionType typeComission;
-            Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-            curCreator.CommissionType = typeComission;
+            CommissionType typeCommission;
+            Enum.TryParse(ComboBoxCommissionType.Text, true, out typeCommission);
+            curCreator.CommissionType = typeCommission;
 
             if (ComboBoxClass.SelectedItem != null)
             {
@@ -313,7 +313,7 @@ namespace OsEngine.Market.Connectors
 
             try
             {
-                curCreator.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
+                curCreator.CommissionValue = TextBoxCommissionValue.Text.ToDecimal();
             }
             catch
             {
@@ -505,13 +505,16 @@ namespace OsEngine.Market.Connectors
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                  serversAll.Find(
+                  server1 =>
+                  server1.ServerType == _selectedServerType
+                  && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
                     return;
                 }
-
 
                 if (!ComboBoxClass.CheckAccess())
                 {
@@ -1932,9 +1935,9 @@ namespace OsEngine.Market.Connectors
                 ComboBoxTypeServer.SelectedItem = curCreator.ServerName.ToString();
                 ComboBoxCandleMarketDataType.Text = curCreator.CandleMarketDataType.ToString();
                 ComboBoxCandleCreateMethodType.Text = curCreator.CandleCreateMethodType.ToString();
-                ComboBoxComissionType.Text = curCreator.CommissionType.ToString();
+                ComboBoxCommissionType.Text = curCreator.CommissionType.ToString();
                 ComboBoxClass.SelectedItem = curCreator.SecuritiesClass.ToString();
-                TextBoxComissionValue.Text = curCreator.CommissionValue.ToString();
+                TextBoxCommissionValue.Text = curCreator.CommissionValue.ToString();
 
                 for (int i = 0; i < _gridSecurities.Rows.Count; i++)
                 {

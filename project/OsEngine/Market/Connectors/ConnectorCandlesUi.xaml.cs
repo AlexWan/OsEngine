@@ -130,12 +130,12 @@ namespace OsEngine.Market.Connectors
                 ComboBoxCandleMarketDataType.SelectedItem = _connectorBot.CandleMarketDataType;
 
 
-                ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = _connectorBot.CommissionType.ToString();
+                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+                ComboBoxCommissionType.SelectedItem = _connectorBot.CommissionType.ToString();
 
-                TextBoxComissionValue.Text = _connectorBot.CommissionValue.ToString();
+                TextBoxCommissionValue.Text = _connectorBot.CommissionValue.ToString();
 
                 CheckBoxSaveTradeArrayInCandle.IsChecked = _connectorBot.SaveTradesInCandles;
                 CheckBoxSaveTradeArrayInCandle.Click += CheckBoxSaveTradeArrayInCandle_Click;
@@ -152,8 +152,8 @@ namespace OsEngine.Market.Connectors
                 Label8.Content = OsLocalization.Market.Label8;
                 Label9.Content = OsLocalization.Market.Label9;
                 ButtonAccept.Content = OsLocalization.Market.ButtonAccept;
-                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
+                LabelCommissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelCommissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSaveTradeArrayInCandle.Content = OsLocalization.Market.Label59;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
                 LabelCandleType.Content = OsLocalization.Market.Label65;
@@ -293,13 +293,13 @@ namespace OsEngine.Market.Connectors
                 Enum.TryParse(ComboBoxCandleMarketDataType.Text, true, out createType);
                 _connectorBot.CandleMarketDataType = createType;
 
-                ComissionType typeComission;
-                Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
-                _connectorBot.CommissionType = typeComission;
+                CommissionType typeCommission;
+                Enum.TryParse(ComboBoxCommissionType.Text, true, out typeCommission);
+                _connectorBot.CommissionType = typeCommission;
 
                 try
                 {
-                    _connectorBot.CommissionValue = TextBoxComissionValue.Text.ToDecimal();
+                    _connectorBot.CommissionValue = TextBoxCommissionValue.Text.ToDecimal();
                 }
                 catch
                 {

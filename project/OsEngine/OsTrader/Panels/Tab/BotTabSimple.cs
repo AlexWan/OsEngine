@@ -936,13 +936,13 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Commission type for positions
         /// </summary>
-        public ComissionType CommissionType
+        public CommissionType CommissionType
         {
             get
             {
                 if (_journal == null)
                 {
-                    return ComissionType.None;
+                    return CommissionType.None;
                 }
                 return _journal.CommissionType;
             }
@@ -5683,7 +5683,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             PositionClosingSuccesEvent(position);
                         }
 
-                        decimal profit = position.ProfitPortfolioPunkt;
+                        decimal profit = position.ProfitPortfolioAbs;
 
                         if (_connector.ServerType == ServerType.Tester)
                         {

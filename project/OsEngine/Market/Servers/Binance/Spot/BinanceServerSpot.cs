@@ -26,8 +26,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
 {
     public class BinanceServerSpot : AServer
     {
-        public BinanceServerSpot()
+        public BinanceServerSpot (int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             BinanceServerRealization realization = new BinanceServerRealization();
             ServerRealization = realization;
 
@@ -1766,10 +1767,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     if (order.N != null &&
                         string.IsNullOrEmpty(order.N.ToString()) == false)
                     {// the commission is taken in some coin
-                        string comissionSecName = order.N.ToString();
+                        string commissionSecName = order.N.ToString();
 
                         if (trade.SecurityNameCode.StartsWith("BNB")
-                            || trade.SecurityNameCode.StartsWith(comissionSecName))
+                            || trade.SecurityNameCode.StartsWith(commissionSecName))
                         {
                             trade.Volume = order.l.ToDecimal() - order.n.ToDecimal();
 

@@ -540,7 +540,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// commission type for positions
         /// </summary>
-        public ComissionType CommissionType;
+        public CommissionType CommissionType;
 
         /// <summary>
         /// commission rate
@@ -828,7 +828,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ServerType != ServerType.None)
                         {
-                            ServerMaster.SetServerToAutoConnection(ServerType);
+                            ServerMaster.SetServerToAutoConnection(ServerType,ServerFullName);
                         }
                         continue;
                     }
@@ -884,7 +884,7 @@ namespace OsEngine.Market.Connectors
                     {
                         if (ServerType != ServerType.None)
                         {
-                            ServerMaster.SetServerToAutoConnection(ServerType);
+                            ServerMaster.SetServerToAutoConnection(ServerType,ServerFullName);
                         }
                         continue;
                     }

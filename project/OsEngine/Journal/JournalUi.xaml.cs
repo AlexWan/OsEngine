@@ -940,11 +940,11 @@ namespace OsEngine.Journal
 
                     if (chartType == "Absolute")
                     {
-                        curProfit = positionsAll[i].ProfitPortfolioPunkt;
+                        curProfit = positionsAll[i].ProfitPortfolioAbs;
                     }
                     else if (chartType == "Percent 1 contract")
                     {
-                        curProfit = positionsAll[i].ProfitOperationPersent;
+                        curProfit = positionsAll[i].ProfitOperationPercent;
                     }
 
                     profitSum += curProfit;
@@ -1673,7 +1673,7 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
-                    currentProfit += positionsAll[i].ProfitPortfolioPunkt;
+                    currentProfit += positionsAll[i].ProfitPortfolioAbs;
 
                     if (lastMax < currentProfit)
                     {
@@ -1728,7 +1728,7 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
-                    thisSumm += positionsAll[i].ProfitPortfolioPunkt * (positionsAll[i].MultToJournal / 100);
+                    thisSumm += positionsAll[i].ProfitPortfolioAbs * (positionsAll[i].MultToJournal / 100);
 
                     if (thisSumm > thisPik)
                     {
@@ -1878,11 +1878,11 @@ namespace OsEngine.Journal
             {
                 DataGridViewRow nRow = new DataGridViewRow();
 
-                if (position.ProfitPortfolioPunkt > 0)
+                if (position.ProfitPortfolioAbs > 0)
                 {
                     nRow.DefaultCellStyle.ForeColor = Color.FromArgb(57, 157, 54);
                 }
-                else if (position.ProfitPortfolioPunkt <= 0)
+                else if (position.ProfitPortfolioAbs <= 0)
                 {
                     nRow.DefaultCellStyle.ForeColor = Color.FromArgb(254, 84, 0);
                 }
@@ -1947,7 +1947,7 @@ namespace OsEngine.Journal
                 nRow.Cells[11].Value = Math.Round(position.ClosePrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
+                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioAbs, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();

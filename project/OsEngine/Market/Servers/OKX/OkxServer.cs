@@ -19,8 +19,9 @@ namespace OsEngine.Market.Servers.OKX
 {
     public class OkxServer : AServer
     {
-        public OkxServer()
+        public OkxServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             OkxServerRealization realization = new OkxServerRealization();
             ServerRealization = realization;
 

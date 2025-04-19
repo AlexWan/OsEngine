@@ -398,7 +398,7 @@ namespace OsEngine.OsTrader
                 nRow.Cells[11].Value = Math.Round(closePrice, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
+                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioAbs, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();
@@ -507,7 +507,7 @@ namespace OsEngine.OsTrader
                 nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
             }
 
-            decimal profit = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice);
+            decimal profit = Math.Round(position.ProfitPortfolioAbs, decimalsPrice);
 
             if (nRow.Cells[12].Value == null
                 || nRow.Cells[12].Value.ToString() != profit.ToStringWithNoEndZero())

@@ -1168,9 +1168,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                     newTrade.NumberTrade = responseMyTrade.result[i].id;
                     newTrade.Side = responseMyTrade.result[i].side.Equals("sell") ? Side.Sell : Side.Buy;
 
-                    string comissionSecName = responseMyTrade.result[i].fee_currency;
+                    string commissionSecName = responseMyTrade.result[i].fee_currency;
 
-                    if (newTrade.SecurityNameCode.StartsWith(comissionSecName))
+                    if (newTrade.SecurityNameCode.StartsWith(commissionSecName))
                     {
                         newTrade.Volume = responseMyTrade.result[i].amount.ToDecimal() - responseMyTrade.result[i].fee.ToDecimal();
                         int decimalVolum = GetDecimalsVolume(security);
@@ -1752,9 +1752,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                             newTrade.NumberTrade = responseMyTrade[i].id;
                             newTrade.Side = responseMyTrade[i].side.Equals("sell") ? Side.Sell : Side.Buy;
 
-                            string comissionSecName = responseMyTrade[i].fee_currency;
+                            string commissionSecName = responseMyTrade[i].fee_currency;
 
-                            if (newTrade.SecurityNameCode.StartsWith(comissionSecName))
+                            if (newTrade.SecurityNameCode.StartsWith(commissionSecName))
                             {
                                 newTrade.Volume = responseMyTrade[i].amount.ToDecimal() - responseMyTrade[i].fee.ToDecimal();
                                 int decimalVolum = GetDecimalsVolume(security);

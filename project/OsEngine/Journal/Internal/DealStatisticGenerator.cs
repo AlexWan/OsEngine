@@ -115,7 +115,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
+                profit += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
             }
 
             return Round(profit);
@@ -204,7 +204,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                decimal curProfit = deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                decimal curProfit = deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
 
                 profit += curProfit;
 
@@ -239,7 +239,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
+                profit += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
             }
 
             return Math.Round(profit / deals.Length, 6);
@@ -255,7 +255,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                profit += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
+                profit += deals[i].ProfitPortfolioPercent * (deals[i].MultToJournal / 100);
             }
 
             return Math.Round(profit / deals.Length, 6);
@@ -272,7 +272,7 @@ namespace OsEngine.Journal.Internal
             foreach (Position deal in deals)
             {
                 // 1. Get the portfolio return percentage for the trade
-                decimal tradeReturnPercent = deal.ProfitPortfolioPersent;
+                decimal tradeReturnPercent = deal.ProfitPortfolioPercent;
 
                 // 2. Apply scaling from MultToJournal (e.g., 50% → 0.5)
                 decimal scaledReturn = tradeReturnPercent * (deal.MultToJournal / 100m)/100m;
@@ -342,7 +342,7 @@ namespace OsEngine.Journal.Internal
             List<decimal> portfolioReturns = new List<decimal>();
             foreach (Position deal in deals)
             {
-                decimal scaledReturn = (deal.ProfitPortfolioPersent * (deal.MultToJournal / 100m))/100m;
+                decimal scaledReturn = (deal.ProfitPortfolioPercent * (deal.MultToJournal / 100m))/100m;
                 portfolioReturns.Add(scaledReturn);
             }
 
@@ -381,7 +381,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPersent > 0)
+                if (deals[i].ProfitOperationPercent > 0)
                 {
                     profitDeal++;
                 }
@@ -409,9 +409,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPunkt > 0)
+                if (deals[i].ProfitOperationAbs > 0)
                 {
-                    profit += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    profit += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
             }
 
@@ -434,9 +434,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPersent > 0)
+                if (deals[i].ProfitOperationPercent > 0)
                 {
-                    profit += deals[i].ProfitOperationPersent * (deals[i].MultToJournal / 100);
+                    profit += deals[i].ProfitOperationPercent * (deals[i].MultToJournal / 100);
                 }
             }
             if (profit == 0)
@@ -458,9 +458,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitPortfolioPunkt > 0)
+                if (deals[i].ProfitPortfolioAbs > 0)
                 {
-                    profit += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
+                    profit += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
                 }
             }
 
@@ -483,9 +483,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitPortfolioPersent > 0)
+                if (deals[i].ProfitPortfolioPercent > 0)
                 {
-                    profit += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
+                    profit += deals[i].ProfitPortfolioPercent * (deals[i].MultToJournal / 100);
                 }
             }
             if (profit == 0)
@@ -509,7 +509,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPersent > 0)
+                if (deals[i].ProfitOperationPercent > 0)
                 {
                     nowSeries++;
 
@@ -537,7 +537,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPersent <= 0)
+                if (deals[i].ProfitOperationPercent <= 0)
                 {
                     lossDeal++;
                 }
@@ -565,9 +565,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPunkt <= 0)
+                if (deals[i].ProfitOperationAbs <= 0)
                 {
-                    loss += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    loss += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -583,9 +583,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPersent <= 0)
+                if (deals[i].ProfitOperationPercent <= 0)
                 {
-                    loss += deals[i].ProfitOperationPersent * (deals[i].MultToJournal / 100);
+                    loss += deals[i].ProfitOperationPercent * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -601,9 +601,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitPortfolioPunkt <= 0)
+                if (deals[i].ProfitPortfolioAbs <= 0)
                 {
-                    loss += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
+                    loss += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -626,9 +626,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitPortfolioPersent <= 0)
+                if (deals[i].ProfitPortfolioPercent <= 0)
                 {
-                    loss += deals[i].ProfitPortfolioPersent * (deals[i].MultToJournal / 100);
+                    loss += deals[i].ProfitPortfolioPercent * (deals[i].MultToJournal / 100);
                 }
             }
             if (loss == 0)
@@ -654,7 +654,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPersent <= 0)
+                if (deals[i].ProfitOperationPercent <= 0)
                 {
                     nowSeries++;
 
@@ -746,7 +746,7 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                thisSum += deals[i].ProfitPortfolioPunkt * (deals[i].MultToJournal / 100);
+                thisSum += deals[i].ProfitPortfolioAbs * (deals[i].MultToJournal / 100);
 
                 decimal thisDown;
 
@@ -826,13 +826,13 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPunkt < 0)
+                if (deals[i].ProfitOperationAbs < 0)
                 {
-                    commonLossPunkt = commonLossPunkt + deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    commonLossPunkt = commonLossPunkt + deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
                 else
                 {
-                    commonProfitPunkt = commonProfitPunkt + deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    commonProfitPunkt = commonProfitPunkt + deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
             }
 
@@ -851,14 +851,14 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPunkt > 0)
+                if (deals[i].ProfitOperationAbs > 0)
                 {
-                    allProfit += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    allProfit += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                     profitPos++;
                 }
                 else
                 {
-                    allLoss += deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    allLoss += deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                     lossPos++;
                 }
             }
@@ -885,9 +885,9 @@ namespace OsEngine.Journal.Internal
 
             for (int i = 0; i < deals.Length; i++)
             {
-                if (deals[i].ProfitOperationPunkt <= maxLossPunkt)   // ProfitOperationPercent
+                if (deals[i].ProfitOperationAbs <= maxLossPunkt)   // ProfitOperationPercent
                 {
-                    maxLossPunkt = deals[i].ProfitOperationPunkt * (deals[i].MultToJournal / 100);
+                    maxLossPunkt = deals[i].ProfitOperationAbs * (deals[i].MultToJournal / 100);
                 }
             }
             decimal profit = GetAllProfitInAbsolute(deals);

@@ -23,8 +23,9 @@ namespace OsEngine.Market.Servers.BinGxSpot
 {
     public class BingXServerSpot : AServer
     {
-        public BingXServerSpot()
+        public BingXServerSpot(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             BingXServerSpotRealization realization = new BingXServerSpotRealization();
             ServerRealization = realization;
 

@@ -22,8 +22,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 {
     public class BingXServerFutures : AServer
     {
-        public BingXServerFutures()
+        public BingXServerFutures(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             BingXServerFuturesRealization realization = new BingXServerFuturesRealization();
             ServerRealization = realization;
 

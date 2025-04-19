@@ -6,17 +6,11 @@
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Tester;
 using System;
 using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Input;
 using OsEngine.Language;
 using MessageBox = System.Windows.MessageBox;
-using System.Windows.Forms;
-using OsEngine.Candles;
-using OsEngine.Candles.Factory;
-using OsEngine.Candles.Series;
 
 namespace OsEngine.Market.Connectors
 {
@@ -54,27 +48,30 @@ namespace OsEngine.Market.Connectors
                 // загружаем настройки в контролы
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    ComboBoxTypeServer.Items.Add(servers[i].ServerType);
+                    ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
                 }
 
                 if (connectorBot.ServerType != ServerType.None)
                 {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerType;
+                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerFullName;
                     _selectedServerType = connectorBot.ServerType;
+                    _selectedServerName = connectorBot.ServerFullName;
                 }
                 else
                 {
-                    ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
+                    ComboBoxTypeServer.SelectedItem = servers[0].ServerNameAndPrefix;
                     _selectedServerType = servers[0].ServerType;
+                    _selectedServerName = servers[0].ServerNameAndPrefix;
                 }
 
                 if (connectorBot.StartProgram == StartProgram.IsTester)
                 {
                     ComboBoxTypeServer.IsEnabled = false;
-                    ComboBoxTypeServer.SelectedItem = ServerType.Tester;
+                    ComboBoxTypeServer.SelectedItem = ServerType.Tester.ToString();
                     connectorBot.ServerType = ServerType.Tester;
                     _selectedServerType = ServerType.Tester;
                     ComboBoxTypeServer.IsEnabled = false;
+                    _selectedServerName = ServerType.Tester.ToString();
                 }
 
                 ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
@@ -137,15 +134,10 @@ namespace OsEngine.Market.Connectors
                 {
                     return;
                 }
-                
 
-                ServerType serverType = ServerType.None;
 
-                if(Enum.TryParse(ComboBoxTypeServer.Text, true, out serverType))
-                {
-                    _connectorBot.ServerType = serverType;
-                }
-
+                _connectorBot.ServerType = _selectedServerType;
+                _connectorBot.ServerFullName = _selectedServerName;
                 _connectorBot.CountNewsToSave = countNewsToSave;
               
                 _connectorBot.Save();
@@ -163,25 +155,17 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
-                if (_selectedServerType == ServerType.None)
-                {
-                    return;
-                }
-
-                List<IServer> serversAll = ServerMaster.GetServers();
-
-                if (serversAll == null ||
-                    serversAll.Count == 0)
-                {
-                    return;
-                }
-
                 if (ComboBoxTypeServer.SelectedItem == null)
                 {
                     return;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedServerType);
+                _selectedServerName = ComboBoxTypeServer.SelectedItem.ToString();
+
+                Enum.TryParse(_selectedServerName.Split('_')[0], 
+                    true, out _selectedServerType);
+
+               
             }
             catch (Exception error)
             {
@@ -190,6 +174,8 @@ namespace OsEngine.Market.Connectors
         }
 
         private ServerType _selectedServerType;
+
+        private string _selectedServerName;
 
         #endregion
 

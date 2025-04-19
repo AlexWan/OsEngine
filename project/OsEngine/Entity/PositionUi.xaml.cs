@@ -153,7 +153,7 @@ namespace OsEngine.Entity
             nRow.Cells[11].Value = Math.Round(position.ClosePrice, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
+            nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioAbs, decimalsPrice).ToStringWithNoEndZero();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();

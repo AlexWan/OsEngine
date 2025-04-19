@@ -2260,9 +2260,9 @@ namespace OsEngine.Market.Servers.Bitfinex
                     volume = Math.Abs(volume);
                 }
 
-                string comissionSecName = tradeData[10].ToString();
+                string commissionSecName = tradeData[10].ToString();
 
-                if (myTrade.SecurityNameCode.StartsWith("t" + comissionSecName))
+                if (myTrade.SecurityNameCode.StartsWith("t" + commissionSecName))
                 {
                     myTrade.Volume = volume + tradeData[9].ToString().ToDecimal();
                 }
@@ -2829,9 +2829,9 @@ namespace OsEngine.Market.Servers.Bitfinex
                                     volume = Math.Abs(volume);
                                 }
 
-                                string comissionSecName = tradeData[10].ToString();
+                                string commissionSecName = tradeData[10].ToString();
 
-                                if (myTrade.SecurityNameCode.StartsWith("t" + comissionSecName))
+                                if (myTrade.SecurityNameCode.StartsWith("t" + commissionSecName))
                                 {
                                     myTrade.Volume = volume + tradeData[9].ToString().ToDecimal();
                                 }

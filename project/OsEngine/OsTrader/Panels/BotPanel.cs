@@ -820,7 +820,7 @@ position => position.State != PositionStateType.OpeningFail
                     }
 
                     allPoses += journals[i].AllPosition.Count;
-                    List<Position> winPositions = journals[i].AllPosition.FindAll(pos => pos.ProfitOperationPunkt > 0);
+                    List<Position> winPositions = journals[i].AllPosition.FindAll(pos => pos.ProfitOperationAbs > 0);
                     winPoses += (winPositions.Count);
                 }
                 return winPoses / allPoses;

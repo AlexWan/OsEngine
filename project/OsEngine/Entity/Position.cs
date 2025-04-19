@@ -315,12 +315,12 @@ namespace OsEngine.Entity
         /// <summary>
         /// The amount of profit on the operation in percent
         /// </summary>
-        public decimal ProfitOperationPersent;
+        public decimal ProfitOperationPercent;
 
         /// <summary>
         /// The amount of profit on the operation in absolute terms
         /// </summary>
-        public decimal ProfitOperationPunkt;
+        public decimal ProfitOperationAbs;
 
         /// <summary>
         /// Comment
@@ -693,13 +693,13 @@ namespace OsEngine.Entity
             {
                 if (Direction == Side.Buy)
                 {
-                    ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
-                    ProfitOperationPunkt = closePrice - entryPrice;
+                    ProfitOperationPercent = closePrice / entryPrice * 100 - 100;
+                    ProfitOperationAbs = closePrice - entryPrice;
                 }
                 else
                 {
-                    ProfitOperationPunkt = entryPrice - closePrice;
-                    ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
+                    ProfitOperationAbs = entryPrice - closePrice;
+                    ProfitOperationPercent = -(closePrice / entryPrice * 100 - 100);
                 }
             }
         }
@@ -773,13 +773,13 @@ namespace OsEngine.Entity
                 {
                     if (Direction == Side.Buy)
                     {
-                        ProfitOperationPersent = closePrice / entryPrice * 100 - 100;
-                        ProfitOperationPunkt = closePrice - entryPrice;
+                        ProfitOperationPercent = closePrice / entryPrice * 100 - 100;
+                        ProfitOperationAbs = closePrice - entryPrice;
                     }
                     else
                     {
-                        ProfitOperationPunkt = entryPrice - closePrice;
-                        ProfitOperationPersent = -(closePrice / entryPrice * 100 - 100);
+                        ProfitOperationAbs = entryPrice - closePrice;
+                        ProfitOperationPercent = -(closePrice / entryPrice * 100 - 100);
                     }
                 }
             }
@@ -815,13 +815,13 @@ namespace OsEngine.Entity
                 if (Direction == Side.Buy &&
                     ask != 0)
                 {
-                    ProfitOperationPersent = ask / entryPrice * 100 - 100;
-                    ProfitOperationPunkt = ask - entryPrice;
+                    ProfitOperationPercent = ask / entryPrice * 100 - 100;
+                    ProfitOperationAbs = ask - entryPrice;
                 }
                 else if(bid != 0)
                 {
-                    ProfitOperationPersent = -(bid / entryPrice * 100 - 100);
-                    ProfitOperationPunkt = entryPrice - bid;
+                    ProfitOperationPercent = -(bid / entryPrice * 100 - 100);
+                    ProfitOperationAbs = entryPrice - bid;
                 }
             }
         }
@@ -839,9 +839,9 @@ namespace OsEngine.Entity
 
             result.Append( NameBot + "#");
 
-            result.Append(ProfitOperationPersent.ToString(new CultureInfo("ru-RU")) + "#");
+            result.Append(ProfitOperationPercent.ToString(new CultureInfo("ru-RU")) + "#");
 
-            result.Append(ProfitOperationPunkt.ToString(new CultureInfo("ru-RU")) + "#");
+            result.Append(ProfitOperationAbs.ToString(new CultureInfo("ru-RU")) + "#");
 
             if (OpenOrders == null)
             {
@@ -876,8 +876,8 @@ namespace OsEngine.Entity
             result.Append(SignalTypeOpen + "#");
             result.Append(SignalTypeClose + "#");
 
-            result.Append(ComissionValue + "#");
-            result.Append(ComissionType);
+            result.Append(CommissionValue + "#");
+            result.Append(CommissionType);
 
             if (CloseOrders != null)
             {
@@ -905,9 +905,9 @@ namespace OsEngine.Entity
 
             NameBot = arraySave[2];
 
-            ProfitOperationPersent = arraySave[3].ToDecimal();
+            ProfitOperationPercent = arraySave[3].ToDecimal();
 
-            ProfitOperationPunkt = arraySave[4].ToDecimal();
+            ProfitOperationAbs = arraySave[4].ToDecimal();
 
             if(arraySave[5] == null)
             {
@@ -948,8 +948,8 @@ namespace OsEngine.Entity
             SignalTypeOpen = arraySave[18];
             SignalTypeClose = arraySave[19];
 
-            ComissionValue = arraySave[20].ToDecimal();
-            Enum.TryParse(arraySave[21], out ComissionType);
+            CommissionValue = arraySave[20].ToDecimal();
+            Enum.TryParse(arraySave[21], out CommissionType);
 
             for (int i = 0; i < 10; i++)
             {
@@ -1080,9 +1080,9 @@ namespace OsEngine.Entity
 
                 result += OsLocalization.Trader.Label102 + ": " + SecurityName + "\n";
 
-                if(ProfitPortfolioPunkt != 0)
+                if(ProfitPortfolioAbs != 0)
                 {
-                    decimal profit = Math.Round(ProfitPortfolioPunkt, 10);
+                    decimal profit = Math.Round(ProfitPortfolioAbs, 10);
 
                     result += OsLocalization.Trader.Label404 + ": " + profit.ToStringWithNoEndZero() + "\n";
                 }
@@ -1143,7 +1143,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// The amount of profit relative to the portfolio in percentage
         /// </summary>
-        public decimal ProfitPortfolioPersent
+        public decimal ProfitPortfolioPercent
         {
             get
             {
@@ -1152,25 +1152,25 @@ namespace OsEngine.Entity
                     return 0;
                 }
 
-                return ProfitPortfolioPunkt / PortfolioValueOnOpenPosition*100;
+                return ProfitPortfolioAbs / PortfolioValueOnOpenPosition*100;
             }
         }
 
         /// <summary>
         /// Commission type for the position
         /// </summary>
-        public ComissionType ComissionType;
+        public CommissionType CommissionType;
 
         /// <summary>
-        /// comission value
+        /// commission value
         /// </summary>
-        public decimal ComissionValue;
+        public decimal CommissionValue;
 
         /// <summary>
         /// the amount of profit relative to the portfolio in absolute terms
         /// taking into account the commission and the price step
         /// </summary>
-        public decimal ProfitPortfolioPunkt
+        public decimal ProfitPortfolioAbs
         {
             get
             {
@@ -1198,22 +1198,22 @@ namespace OsEngine.Entity
                     Lots = 1;
                 }
 
-                if(ProfitOperationPunkt == 0)
+                if(ProfitOperationAbs == 0)
                 {
                     CalculateProfitToPosition();
                 }
 
                 if (IsLotServer())
                 {
-                    return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
+                    return (ProfitOperationAbs / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
                 }
                 else if(PriceStep != 0)
                 {
-                    return (ProfitOperationPunkt / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
+                    return (ProfitOperationAbs / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
                 }
                 else
                 {
-                    return (ProfitOperationPunkt) * PriceStepCost * MaxVolume - CommissionTotal();
+                    return (ProfitOperationAbs) * PriceStepCost * MaxVolume - CommissionTotal();
                 }
             }
         }
@@ -1262,30 +1262,30 @@ namespace OsEngine.Entity
         {
             decimal commissionTotal = 0;
 
-            if (ComissionType != ComissionType.None && ComissionValue != 0)
+            if (CommissionType != CommissionType.None && CommissionValue != 0)
             {
-                if (ComissionType == ComissionType.Percent)
+                if (CommissionType == CommissionType.Percent)
                 {
                     if (EntryPrice != 0 && ClosePrice == 0)
                     {
-                        commissionTotal = MaxVolume * EntryPrice * (ComissionValue / 100);
+                        commissionTotal = MaxVolume * EntryPrice * (CommissionValue / 100);
                     }
                     else if (EntryPrice != 0 && ClosePrice != 0)
                     {
-                        commissionTotal = MaxVolume * EntryPrice * (ComissionValue / 100) +
-                                          MaxVolume * ClosePrice * (ComissionValue / 100);
+                        commissionTotal = MaxVolume * EntryPrice * (CommissionValue / 100) +
+                                          MaxVolume * ClosePrice * (CommissionValue / 100);
                     }
                 }
 
-                if (ComissionType == ComissionType.OneLotFix)
+                if (CommissionType == CommissionType.OneLotFix)
                 {
                     if (EntryPrice != 0 && ClosePrice == 0)
                     {
-                        commissionTotal = MaxVolume * ComissionValue;
+                        commissionTotal = MaxVolume * CommissionValue;
                     }
                     else if (EntryPrice != 0 && ClosePrice != 0)
                     {
-                        commissionTotal = MaxVolume * ComissionValue * 2;
+                        commissionTotal = MaxVolume * CommissionValue * 2;
                     }
                 }
             }
@@ -1347,7 +1347,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Iceberg application. Application consisting of several limit orders
         /// </summary>
-        Aceberg
+        Iceberg
     }
 
     /// <summary>
@@ -1425,7 +1425,7 @@ namespace OsEngine.Entity
     /// <summary>
     /// Commission type
     /// </summary>
-    public enum ComissionType
+    public enum CommissionType
     {
         /// <summary>
         /// None

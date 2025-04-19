@@ -65,9 +65,9 @@ namespace OsEngine.OsOptimizer
             TextBoxStartPortfolio.TextChanged += TextBoxStartPortfolio_TextChanged;
 
             CommissionTypeLabel.Content = OsLocalization.Optimizer.Label40;
-            CommissionTypeComboBox.Items.Add(ComissionType.None.ToString());
-            CommissionTypeComboBox.Items.Add(ComissionType.OneLotFix.ToString());
-            CommissionTypeComboBox.Items.Add(ComissionType.Percent.ToString());
+            CommissionTypeComboBox.Items.Add(CommissionType.None.ToString());
+            CommissionTypeComboBox.Items.Add(CommissionType.OneLotFix.ToString());
+            CommissionTypeComboBox.Items.Add(CommissionType.Percent.ToString());
             CommissionTypeComboBox.SelectedItem = _master.CommissionType.ToString();
             CommissionTypeComboBox.SelectionChanged += CommissionTypeComboBoxOnSelectionChanged;
 
@@ -814,7 +814,7 @@ namespace OsEngine.OsOptimizer
 
         private void CommissionTypeComboBoxOnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            ComissionType commissionType = (ComissionType)Enum.Parse(typeof(ComissionType),
+            CommissionType commissionType = (CommissionType)Enum.Parse(typeof(CommissionType),
                 (string)CommissionTypeComboBox.SelectedItem);
             _master.CommissionType = commissionType;
         }

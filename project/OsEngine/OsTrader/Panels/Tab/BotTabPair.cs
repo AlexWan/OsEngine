@@ -833,7 +833,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Is this pair of securities in trade?
         /// </summary>
-        public bool HaveThisPairInTrade(string sec1, string sec2, string secClass, TimeFrame timeFrame, ServerType serverType)
+        public bool HaveThisPairInTrade(string sec1, string sec2, string secClass, 
+            TimeFrame timeFrame, ServerType serverType, string serverName)
         {
             for (int i = 0; i < Pairs.Count; i++)
             {
@@ -845,6 +846,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ServerType serverType1 = Pairs[i].Tab1.Connector.ServerType;
                 ServerType serverType2 = Pairs[i].Tab2.Connector.ServerType;
 
+                string serverName1 = Pairs[i].Tab1.Connector.ServerFullName;
+                string serverName2 = Pairs[i].Tab2.Connector.ServerFullName;
+
                 TimeFrame timeFrame1 = Pairs[i].Tab1.Connector.TimeFrame;
                 TimeFrame timeFrame2 = Pairs[i].Tab2.Connector.TimeFrame;
 
@@ -855,7 +859,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     timeFrame == timeFrame1 &&
                     timeFrame == timeFrame2 &&
                     serverType == serverType1 &&
-                    serverType == serverType2)
+                    serverType == serverType2 &&
+                    serverName == serverName1 &&
+                    serverName == serverName2)
                 {
                     return true;
                 }
@@ -882,24 +888,26 @@ namespace OsEngine.OsTrader.Panels.Tab
         public void CreateNewPair(
             string sec1, string sec2, string secClass,
             TimeFrame timeFrame, ServerType serverType,
-            ComissionType comissionType, decimal comissionValue,
-            string portfolio)
+            CommissionType commissionType, decimal commissionValue,
+            string portfolio, string serverName)
         {
             CreatePair();
 
             PairToTrade newPair = Pairs[Pairs.Count - 1];
 
-            newPair.Tab1.CommissionType = comissionType;
-            newPair.Tab1.CommissionValue = comissionValue;
+            newPair.Tab1.CommissionType = commissionType;
+            newPair.Tab1.CommissionValue = commissionValue;
             newPair.Tab1.Connector.ServerType = serverType;
+            newPair.Tab1.Connector.ServerFullName = serverName;
             newPair.Tab1.Connector.TimeFrame = timeFrame;
             newPair.Tab1.Connector.SecurityName = sec1;
             newPair.Tab1.Connector.SecurityClass = secClass;
             newPair.Tab1.Connector.PortfolioName = portfolio;
 
-            newPair.Tab2.CommissionType = comissionType;
-            newPair.Tab2.CommissionValue = comissionValue;
+            newPair.Tab2.CommissionType = commissionType;
+            newPair.Tab2.CommissionValue = commissionValue;
             newPair.Tab2.Connector.ServerType = serverType;
+            newPair.Tab2.Connector.ServerFullName = serverName;
             newPair.Tab2.Connector.TimeFrame = timeFrame;
             newPair.Tab2.Connector.SecurityName = sec2;
             newPair.Tab2.Connector.SecurityClass = secClass;

@@ -1508,9 +1508,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         myTrade.SecurityNameCode = responseT.symbol;
                         myTrade.Side = responseT.orderSide.Equals("Buy", StringComparison.OrdinalIgnoreCase) ? Side.Buy : Side.Sell;
 
-                        string comissionSecName = responseT.feeCurrency;
+                        string commissionSecName = responseT.feeCurrency;
 
-                        if (myTrade.SecurityNameCode.StartsWith(comissionSecName))
+                        if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
                         {
                             myTrade.Volume = responseT.quantity.ToDecimal() - responseT.fee.ToDecimal();
 

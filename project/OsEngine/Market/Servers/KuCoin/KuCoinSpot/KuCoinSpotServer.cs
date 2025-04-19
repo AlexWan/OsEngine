@@ -949,9 +949,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 myTrade.SecurityNameCode = responseT.symbol;
                 myTrade.Side = responseT.side.Equals("buy") ? Side.Buy : Side.Sell;
 
-                string comissionSecName = responseT.feeCurrency;
+                string commissionSecName = responseT.feeCurrency;
 
-                if (myTrade.SecurityNameCode.StartsWith(comissionSecName))
+                if (myTrade.SecurityNameCode.StartsWith(commissionSecName))
                 {
                     myTrade.Volume = responseT.size.ToDecimal() + responseT.fee.ToDecimal();
                 }

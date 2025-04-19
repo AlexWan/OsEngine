@@ -74,6 +74,8 @@ using OsEngine.Market.Servers.CoinEx.Futures;
 using OsEngine.Market.Servers.RSSNews;
 using OsEngine.Market.Servers.SmartLabNews;
 using OsEngine.Market.Servers.AE;
+using Grpc.Core;
+using System.Windows.Controls.Primitives;
 
 
 namespace OsEngine.Market
@@ -519,7 +521,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.RSSNews)
                 {
-                    newServer = new RSSNewsServer();
+                    newServer = new RSSNewsServer(uniqueNum);
                 }
                 if (type == ServerType.MoexFixFastTwimeFutures)
                 {
@@ -535,7 +537,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.BingXSpot)
                 {
-                    newServer = new BingXServerSpot();
+                    newServer = new BingXServerSpot(uniqueNum);
                 }
                 if (type == ServerType.MoexAlgopack)
                 {
@@ -551,7 +553,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.BingXFutures)
                 {
-                    newServer = new BingXServerFutures();
+                    newServer = new BingXServerFutures(uniqueNum);
                 }
                 if (type == ServerType.KuCoinFutures)
                 {
@@ -579,7 +581,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.OKX)
                 {
-                    newServer = new OkxServer();
+                    newServer = new OkxServer(uniqueNum);
                 }
                 if (type == ServerType.MfdWeb)
                 {
@@ -635,11 +637,11 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.Binance)
                 {
-                    newServer = new BinanceServerSpot();
+                    newServer = new BinanceServerSpot(uniqueNum);
                 }
                 if (type == ServerType.BinanceFutures)
                 {
-                    newServer = new BinanceServerFutures();
+                    newServer = new BinanceServerFutures(uniqueNum);
                 }
                 if (type == ServerType.NinjaTrader)
                 {
@@ -1045,17 +1047,27 @@ namespace OsEngine.Market
         /// <summary>
         /// select a specific server type for auto connection
         /// </summary>
-        public static void SetServerToAutoConnection(ServerType type)
+        public static void SetServerToAutoConnection(ServerType type, string serverName)
         {
             lock (_startServerLocker)
             {
-                if (_needServerTypes == null)
-                {
-                    _needServerTypes = new List<ServerType>();
-                }
-
                 try
                 {
+                    bool isInArray = false;
+
+                    for (int i = 0; i < _needServerNames.Count; i++)
+                    {
+                        if (_needServerNames[i] == serverName)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+                    if(isInArray == false)
+                    {
+                        _needServerNames.Add(serverName);
+                    }
+                    
                     for (int i = 0; i < _needServerTypes.Count; i++)
                     {
                         if (_needServerTypes[i] == type)
@@ -1065,6 +1077,7 @@ namespace OsEngine.Market
                     }
 
                     _needServerTypes.Add(type);
+                
                 }
                 catch (Exception error)
                 {
@@ -1076,7 +1089,9 @@ namespace OsEngine.Market
         /// <summary>
         /// selected bot servers for auto connection
         /// </summary>
-        private static List<ServerType> _needServerTypes;
+        private static List<ServerType> _needServerTypes = new List<ServerType>();
+
+        private static List<string> _needServerNames = new List<string>();
 
         /// <summary>
         /// servers that we have already treid to connect
@@ -1146,7 +1161,8 @@ namespace OsEngine.Market
 
                 _tryActivateServerTypes.Add(type);
 
-                if (GetServers() == null || GetServers().Find(server1 => server1.ServerType == type) == null)
+                if (GetServers() == null 
+                    || GetServers().Find(server1 => server1.ServerType == type) == null)
                 { // if we don't have our server, create a new one / если у нас нашего сервера нет - создаём его
                     CreateServer(type, true);
                 }
@@ -1158,16 +1174,35 @@ namespace OsEngine.Market
                     return;
                 }
 
-                IServer server = servers.Find(server1 => server1.ServerType == type);
-
-                if (server == null)
+                for (int i = 0; i < servers.Count; i++)
                 {
-                    return;
-                }
+                    IServer currentServer = servers[i];
 
-                if (server.ServerStatus != ServerConnectStatus.Connect)
-                {
-                    server.StartServer();
+                    if (currentServer.ServerType != type)
+                    {
+                        continue;
+                    }
+
+                    bool isInArray = false;
+
+                    for (int j = 0; j < _needServerNames.Count; j++)
+                    {
+                        if (_needServerNames[j] == currentServer.ServerNameAndPrefix)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if(isInArray == false)
+                    {
+                        continue;
+                    }
+
+                    if (currentServer.ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        currentServer.StartServer();
+                    }
                 }
             }
             catch (Exception ex)

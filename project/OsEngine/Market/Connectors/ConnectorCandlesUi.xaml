@@ -25,10 +25,10 @@
         <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,18.8,9.8" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <Label Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="10,59,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label Name="Label5" Content="Security" HorizontalAlignment="Left" Margin="10,197,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="LabelComissionType" Content="Comission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxComissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="LabelComissionValue" Content="Comission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxComissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label x:Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
+        <ComboBox x:Name="ComboBoxCommissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label x:Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
+        <TextBox x:Name ="TextBoxCommissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <WindowsFormsHost Name="SecurityTable" HorizontalAlignment="Left" Height="156" Margin="12,259,0,0" VerticalAlignment="Top" Width="418"/>
         <TextBox Name="TextBoxSearchSecurity" HorizontalAlignment="Left" Margin="310,231,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="120"/>
         <Grid Name="GridCandleType" HorizontalAlignment="Left" Margin="12,426,0,35" Width="413">

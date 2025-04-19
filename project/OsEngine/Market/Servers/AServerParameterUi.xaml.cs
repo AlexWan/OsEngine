@@ -60,6 +60,7 @@ namespace OsEngine.Market.Servers
             ButtonConnect.Content = OsLocalization.Market.ButtonConnect;
             ButtonAbort.Content = OsLocalization.Market.ButtonDisconnect;
             LabelCurrentConnectionName.Content = OsLocalization.Market.Label164;
+            LabelPreConfiguredConnection.Content = OsLocalization.Market.Label166;
 
             if (servers[numServerInArray].NeedToHideParameters == true)
             {
@@ -161,28 +162,28 @@ namespace OsEngine.Market.Servers
 
             DataGridViewColumn column0 = new DataGridViewColumn();
             column0.CellTemplate = cell0;
-            column0.HeaderText = "Name"; // Server name (Unique)
+            column0.HeaderText = OsLocalization.Market.Label164; // Server name (Unique)
             column0.ReadOnly = true;
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridConnections.Columns.Add(column0);
 
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.CellTemplate = cell0;
-            column1.HeaderText = "Number"; // Server number
+            column1.HeaderText = OsLocalization.Market.Label167; // Server number
             column1.ReadOnly = true;
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridConnections.Columns.Add(column1);
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = "Prefix"; // Server prefix
+            column2.HeaderText = OsLocalization.Market.Label168; // Server prefix
             column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridConnections.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = "State"; // Server state
+            column3.HeaderText = OsLocalization.Market.Label169; // Server state
             column3.ReadOnly = true;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridConnections.Columns.Add(column3);
@@ -449,17 +450,17 @@ namespace OsEngine.Market.Servers
             nRow.Cells[3].Value = server.ServerStatus.ToString();     // Server state
 
             DataGridViewButtonCell button1 = new DataGridViewButtonCell();
-            button1.Value = "Connect";                                // Button "Connect"
+            button1.Value = OsLocalization.Market.ButtonConnect;            // Button "Connect"
             nRow.Cells.Add(button1);
 
             DataGridViewButtonCell button2 = new DataGridViewButtonCell();
-            button2.Value = "Disconnect";                             // Button "Disconnect"
+            button2.Value = OsLocalization.Market.ButtonDisconnect;         // Button "Disconnect"
             nRow.Cells.Add(button2);
 
             if (server.ServerNum != 0)
             {
                 DataGridViewButtonCell button3 = new DataGridViewButtonCell();
-                button3.Value = "Delete";                                 // Button "Delete"
+                button3.Value = OsLocalization.Market.Label47;                                 // Button "Delete"
                 nRow.Cells.Add(button3);
             }
             else
@@ -502,7 +503,7 @@ namespace OsEngine.Market.Servers
             nRow.Cells[nRow.Cells.Count - 1].ReadOnly = true;
 
             DataGridViewButtonCell button1 = new DataGridViewButtonCell();
-            button1.Value = "Add new";                             // Button "Add new"
+            button1.Value = OsLocalization.Market.Label170; // Button "Add new"
             nRow.Cells.Add(button1);
 
             return nRow;

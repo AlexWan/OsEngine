@@ -246,20 +246,20 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #region Common settings
 
-        public void ApplyStandartSettingsToAllSequence()
+        public void ApplyStandardSettingsToAllSequence()
         {
             for (int i = 0; i < Sequences.Count; i++)
             {
-                SetStandartSettingsInSequence(Sequences[i]);
+                SetStandardSettingsInSequence(Sequences[i]);
             }
         }
 
-        private void SetStandartSettingsInSequence(PolygonToTrade pair)
+        private void SetStandardSettingsInSequence(PolygonToTrade pair)
         {
             pair.SeparatorToSecurities = SeparatorToSecurities;
-            pair.ComissionType = ComissionType;
-            pair.ComissionValue = ComissionValue;
-            pair.CommisionIsSubstract = ComissionIsSubstract;
+            pair.CommissionType = CommissionType;
+            pair.CommissionValue = CommissionValue;
+            pair.CommissionIsSubstract = CommissionIsSubstract;
             pair.DelayType = DelayType;
             pair.DelayMls = DelayMls;
             pair.QtyStart = QtyStart;
@@ -288,9 +288,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(_emulatorIsOn);
 
                     writer.WriteLine(SeparatorToSecurities);
-                    writer.WriteLine(ComissionType);
-                    writer.WriteLine(ComissionValue);
-                    writer.WriteLine(ComissionIsSubstract);
+                    writer.WriteLine(CommissionType);
+                    writer.WriteLine(CommissionValue);
+                    writer.WriteLine(CommissionIsSubstract);
                     writer.WriteLine(DelayType);
                     writer.WriteLine(DelayMls);
                     writer.WriteLine(QtyStart);
@@ -330,9 +330,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _emulatorIsOn = Convert.ToBoolean(reader.ReadLine());
 
                     SeparatorToSecurities = reader.ReadLine();
-                    Enum.TryParse(reader.ReadLine(), out ComissionType);
-                    ComissionValue = reader.ReadLine().ToDecimal();
-                    ComissionIsSubstract = Convert.ToBoolean(reader.ReadLine());
+                    Enum.TryParse(reader.ReadLine(), out CommissionType);
+                    CommissionValue = reader.ReadLine().ToDecimal();
+                    CommissionIsSubstract = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out DelayType);
                     DelayMls = Convert.ToInt32(reader.ReadLine());
                     QtyStart = reader.ReadLine().ToDecimal();
@@ -373,17 +373,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Type of commission
         /// </summary>
-        public ComissionPolygonType ComissionType;
+        public CommissionPolygonType CommissionType;
 
         /// <summary>
-        /// Value of comission
+        /// Value of commission
         /// </summary>
-        public decimal ComissionValue;
+        public decimal CommissionValue;
 
         /// <summary>
         /// Whether the size of the commission should be subtracted from the volumes at each step
         /// </summary>
-        public bool ComissionIsSubstract;
+        public bool CommissionIsSubstract;
 
         /// <summary>
         /// Type of delay between orders 
@@ -502,7 +502,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 pair.Save();
 
-                SetStandartSettingsInSequence(pair);
+                SetStandardSettingsInSequence(pair);
 
                 Sequences.Add(pair);
 
@@ -640,7 +640,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Create a sequence of instruments according to predefined securities and settings. 
         /// Called from the auto-create sequences interface
         /// </summary>
-        public void CreateSequence(string sec1, string sec2, string sec3, string baseCurrency, string portfolio, ServerType server)
+        public void CreateSequence(string sec1, string sec2, string sec3, 
+            string baseCurrency, string portfolio, ServerType server, string serverName)
         {
             lock (_pairsLocker)
             {
@@ -665,9 +666,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     mySequence.Tab2TradeSide = Side.Sell;
                     mySequence.Tab3TradeSide = Side.Sell;
 
-                    StartThisTab(mySequence.Tab1, server, portfolio, sec1);
-                    StartThisTab(mySequence.Tab2, server, portfolio, sec2);
-                    StartThisTab(mySequence.Tab3, server, portfolio, sec3);
+                    StartThisTab(mySequence.Tab1, server, portfolio, sec1, serverName);
+                    StartThisTab(mySequence.Tab2, server, portfolio, sec2, serverName);
+                    StartThisTab(mySequence.Tab3, server, portfolio, sec3, serverName);
 
                     mySequence.Save();
                 }
@@ -678,7 +679,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void StartThisTab(BotTabSimple tab, ServerType server, string portfolioName, string securityName)
+        private void StartThisTab(BotTabSimple tab, ServerType server, 
+            string portfolioName, string securityName, string serverName)
         {
             // 1 берём сервер
             List<IServer> servers = ServerMaster.GetServers();
@@ -692,7 +694,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             for (int i = 0; i < servers.Count; i++)
             {
-                if (servers[i].ServerType == server)
+                if (servers[i].ServerType == server 
+                    && servers[i].ServerNameAndPrefix == serverName)
                 {
                     myServer = servers[i];
                     break;
@@ -759,6 +762,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             tab.TimeFrameBuilder.TimeFrame = TimeFrame.Hour1;
             tab.Connector.PortfolioName = myPortfolio.Number;
             tab.Connector.ServerType = server;
+            tab.Connector.ServerFullName = serverName;
             tab.Connector.EmulatorIsOn = _emulatorIsOn;
             tab.Connector.CandleMarketDataType = CandleMarketDataType.Tick;
             tab.Connector.CandleCreateMethodType = CandleCreateMethodType.Simple.ToString();
@@ -1681,9 +1685,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     Enum.TryParse(reader.ReadLine(), out Tab2TradeSide);
                     Enum.TryParse(reader.ReadLine(), out Tab3TradeSide);
                     SeparatorToSecurities = reader.ReadLine();
-                    Enum.TryParse(reader.ReadLine(), out ComissionType);
-                    ComissionValue = reader.ReadLine().ToDecimal();
-                    CommisionIsSubstract = Convert.ToBoolean(reader.ReadLine());
+                    Enum.TryParse(reader.ReadLine(), out CommissionType);
+                    CommissionValue = reader.ReadLine().ToDecimal();
+                    CommissionIsSubstract = Convert.ToBoolean(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), out DelayType);
                     DelayMls = Convert.ToInt32(reader.ReadLine());
                     QtyStart = reader.ReadLine().ToDecimal();
@@ -1718,9 +1722,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                     writer.WriteLine(Tab2TradeSide);
                     writer.WriteLine(Tab3TradeSide);
                     writer.WriteLine(SeparatorToSecurities);
-                    writer.WriteLine(ComissionType);
-                    writer.WriteLine(ComissionValue);
-                    writer.WriteLine(CommisionIsSubstract);
+                    writer.WriteLine(CommissionType);
+                    writer.WriteLine(CommissionValue);
+                    writer.WriteLine(CommissionIsSubstract);
                     writer.WriteLine(DelayType);
                     writer.WriteLine(DelayMls);
                     writer.WriteLine(QtyStart);
@@ -2178,10 +2182,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     result = bestBuy * qtyStart;
                 }
 
-                if (ComissionType == ComissionPolygonType.Percent
-                    && ComissionValue != 0)
+                if (CommissionType == CommissionPolygonType.Percent
+                    && CommissionValue != 0)
                 {
-                    result = result - result * (ComissionValue / 100);
+                    result = result - result * (CommissionValue / 100);
                 }
 
                 return result;
@@ -2223,10 +2227,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     result = bestBuy * qtyStart;
                 }
 
-                if (ComissionType == ComissionPolygonType.Percent
-                    && ComissionValue != 0)
+                if (CommissionType == CommissionPolygonType.Percent
+                    && CommissionValue != 0)
                 {
-                    result = result - result * (ComissionValue / 100);
+                    result = result - result * (CommissionValue / 100);
                 }
 
                 return result;
@@ -2268,10 +2272,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     result = bestBuy * qtyStart;
                 }
 
-                if (ComissionType == ComissionPolygonType.Percent
-                    && ComissionValue != 0)
+                if (CommissionType == CommissionPolygonType.Percent
+                    && CommissionValue != 0)
                 {
-                    result = result - result * (ComissionValue / 100);
+                    result = result - result * (CommissionValue / 100);
                 }
 
                 return result;
@@ -2296,17 +2300,17 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Type of commission
         /// </summary>
-        public ComissionPolygonType ComissionType;
+        public CommissionPolygonType CommissionType;
 
         /// <summary>
-        /// Value of comission
+        /// Value of commission
         /// </summary>
-        public decimal ComissionValue;
+        public decimal CommissionValue;
 
         /// <summary>
         /// Whether the size of the commission should be subtracted from the volumes at each step
         /// </summary>
-        public bool CommisionIsSubstract;
+        public bool CommissionIsSubstract;
 
         /// <summary>
         /// Type of delay between orders 
@@ -2436,12 +2440,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 // отсекаем комиссию от объёмов, если это включено
 
-                if (CommisionIsSubstract
-                    && ComissionType == ComissionPolygonType.Percent
-                    && ComissionValue != 0)
+                if (CommissionIsSubstract
+                    && CommissionType == CommissionPolygonType.Percent
+                    && CommissionValue != 0)
                 {
-                    tradeQty2Sell = tradeQty2Sell - (tradeQty2Sell * (ComissionValue / 100));
-                    tradeQty3Sell = tradeQty3Sell - (tradeQty3Sell * ((ComissionValue * 2) / 100));
+                    tradeQty2Sell = tradeQty2Sell - (tradeQty2Sell * (CommissionValue / 100));
+                    tradeQty3Sell = tradeQty3Sell - (tradeQty3Sell * ((CommissionValue * 2) / 100));
                 }
 
                 // обрезаем объёмы по кол-ву знаков
@@ -2844,15 +2848,15 @@ namespace OsEngine.OsTrader.Panels.Tab
     /// <summary>
     /// Possible types of commissions
     /// </summary>
-    public enum ComissionPolygonType
+    public enum CommissionPolygonType
     {
         /// <summary>
-        /// No comission
+        /// No commission
         /// </summary>
         None,
 
         /// <summary>
-        /// Comission in percent
+        /// Commission in percent
         /// </summary>
         Percent
     }

@@ -26,12 +26,12 @@ namespace OsEngine.Robots.CurrencyArbitrage
             OrderType = CreateParameter("Orders type", OrderPriceType.Limit.ToString(), new[] 
             { OrderPriceType.Limit.ToString(), OrderPriceType.Market.ToString()});
 
-            ComissionType = CreateParameter("Comission type", ComissionPolygonType.Percent.ToString(), new[] 
-            { ComissionPolygonType.None.ToString(), ComissionPolygonType.Percent.ToString() });
+            CommissionType = CreateParameter("Commission type", CommissionPolygonType.Percent.ToString(), new[] 
+            { CommissionPolygonType.None.ToString(), CommissionPolygonType.Percent.ToString() });
 
-            ComissionValue = CreateParameter("Comission value %", 0.1m, 0.1m, 50, 0.1m);
+            CommissionValue = CreateParameter("Commission value %", 0.1m, 0.1m, 50, 0.1m);
 
-            SubstractComission = CreateParameter("SubstractComission", true);
+            SubstractCommission = CreateParameter("SubstractCommission", true);
 
             DelayType = CreateParameter("Delay Type", DelayPolygonType.ByExecution.ToString() , new[] 
             { DelayPolygonType.ByExecution.ToString(), DelayPolygonType.InMLS.ToString(), DelayPolygonType.Instantly.ToString() });
@@ -59,11 +59,11 @@ namespace OsEngine.Robots.CurrencyArbitrage
 
         public StrategyParameterString OrderType;
 
-        public StrategyParameterString ComissionType;
+        public StrategyParameterString CommissionType;
 
-        public StrategyParameterDecimal ComissionValue;
+        public StrategyParameterDecimal CommissionValue;
 
-        public StrategyParameterBool SubstractComission;
+        public StrategyParameterBool SubstractCommission;
 
         public StrategyParameterString DelayType;
 
@@ -83,8 +83,8 @@ namespace OsEngine.Robots.CurrencyArbitrage
 
             sequence.QtyStart = Volume.ValueDecimal;
             sequence.DelayMls = DelayMls.ValueInt;
-            sequence.ComissionValue = ComissionValue.ValueDecimal;
-            sequence.CommisionIsSubstract = SubstractComission.ValueBool;
+            sequence.CommissionValue = CommissionValue.ValueDecimal;
+            sequence.CommissionIsSubstract = SubstractCommission.ValueBool;
 
             OrderPriceType orderType;
 
@@ -93,11 +93,11 @@ namespace OsEngine.Robots.CurrencyArbitrage
                 sequence.OrderPriceType = orderType;
             }
 
-            ComissionPolygonType cType;
+            CommissionPolygonType cType;
 
-            if (Enum.TryParse(ComissionType.ValueString, out cType))
+            if (Enum.TryParse(CommissionType.ValueString, out cType))
             {
-                sequence.ComissionType= cType;
+                sequence.CommissionType= cType;
             }
 
             DelayPolygonType delayType;

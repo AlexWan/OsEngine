@@ -697,6 +697,26 @@ namespace OsEngine.Language
           "Eng:Do you want to remove the connector? Settings will be lost!_" +
           "Ru:Хотите удалить коннектор? Настройки будут утеряны!_");
 
+        public string Label166 => OsLocalization.ConvertToLocString(
+          "Eng:Pre-configured connections_" +
+          "Ru:Преднастроенные соединения_");
+
+        public string Label167 => OsLocalization.ConvertToLocString(
+          "Eng:Number_" +
+          "Ru:Номер_");
+
+        public string Label168 => OsLocalization.ConvertToLocString(
+          "Eng:Prefix_" +
+          "Ru:Приставка_");
+
+        public string Label169 => OsLocalization.ConvertToLocString(
+          "Eng:State_" +
+          "Ru:Статус_");
+
+        public string Label170 => OsLocalization.ConvertToLocString(
+          "Eng:Add new_" +
+          "Ru:Добавить_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");

@@ -12,7 +12,6 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -20,9 +19,6 @@ using MessageBox = System.Windows.MessageBox;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
-    /// <summary>
-    /// Interaction logic for BotTabPairAutoSelectPairsUi.xaml
-    /// </summary>
     public partial class BotTabPairAutoSelectPairsUi : Window
     {
         public BotTabPairAutoSelectPairsUi(BotTabPair connectorBot)
@@ -53,31 +49,34 @@ namespace OsEngine.OsTrader.Panels.Tab
                 // upload settings to controls
                 for (int i = 0; i < servers.Count; i++)
                 {
-                    ComboBoxTypeServer.Items.Add(servers[i].ServerType);
+                    ComboBoxTypeServer.Items.Add(servers[i].ServerNameAndPrefix);
                 }
 
                 if (connectorBot.Pairs.Count != 0 &&
                     connectorBot.Pairs[0].Tab1.Connector.ServerType != ServerType.None)
                 {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.Pairs[0].Tab1.Connector.ServerType.ToString();
-                    _selectedType = connectorBot.Pairs[0].Tab1.Connector.ServerType;
+                    ComboBoxTypeServer.SelectedItem = connectorBot.Pairs[0].Tab1.Connector.ServerFullName;
+                    _selectedServerType = connectorBot.Pairs[0].Tab1.Connector.ServerType;
+                    _selectedServerName = connectorBot.Pairs[0].Tab1.Connector.ServerFullName;
                 }
                 else
                 {
-                    ComboBoxTypeServer.SelectedItem = servers[0].ServerType;
-                    _selectedType = servers[0].ServerType;
+                    ComboBoxTypeServer.SelectedItem = servers[0].ServerNameAndPrefix;
+                    _selectedServerType = servers[0].ServerType;
+                    _selectedServerName = servers[0].ServerNameAndPrefix;
                 }
 
                 if (connectorBot.StartProgram == StartProgram.IsTester)
                 {
                     ComboBoxTypeServer.IsEnabled = false;
                     CheckBoxIsEmulator.IsEnabled = false;
-                    ComboBoxTypeServer.SelectedItem = ServerType.Tester;
+                    ComboBoxTypeServer.SelectedItem = ServerType.Tester.ToString();
                     //ComboBoxClass.SelectedItem = ServerMaster.GetServers()[0].Securities[0].NameClass;
                     ComboBoxPortfolio.SelectedItem = ServerMaster.GetServers()[0].Portfolios[0].Number;
                     ComboBoxPortfolio.IsEnabled = false;
 
-                    _selectedType = ServerType.Tester;
+                    _selectedServerType = ServerType.Tester;
+                    _selectedServerName = ServerType.Tester.ToString();
                 }
 
                 CreateGrid();
@@ -103,12 +102,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TextBoxMaxPairsToSecurity.Text = "5";
 
-                ComboBoxComissionType.Items.Add(ComissionType.None.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.OneLotFix.ToString());
-                ComboBoxComissionType.Items.Add(ComissionType.Percent.ToString());
-                ComboBoxComissionType.SelectedItem = ComissionType.None.ToString();
+                ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
+                ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
+                ComboBoxCommissionType.SelectedItem = CommissionType.None.ToString();
 
-                TextBoxComissionValue.Text = "0";
+                TextBoxCommissionValue.Text = "0";
 
                 CheckBoxSaveAlreadyCreatedPairs.IsChecked = true;
 
@@ -121,8 +120,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 Label6.Content = OsLocalization.Market.Label6;
                 LabelTimeFrame.Content = OsLocalization.Market.Label10;
                
-                LabelComissionType.Content = OsLocalization.Market.LabelCommissionType;
-                LabelComissionValue.Content = OsLocalization.Market.LabelCommissionValue;
+                LabelCommissionType.Content = OsLocalization.Market.LabelCommissionType;
+                LabelCommissionValue.Content = OsLocalization.Market.LabelCommissionValue;
                 CheckBoxSelectAllCheckBox.Click += CheckBoxSelectAllCheckBox_Click;
                 CheckBoxSelectAllCheckBox.Content = OsLocalization.Trader.Label173;
                 TextBoxSearchSecurity.Text = OsLocalization.Market.Label64;
@@ -161,9 +160,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             Close();
         }
 
-        /// <summary>
-        /// Window close handler
-        /// </summary>
         private void BotTabScreenerUi_Closed(object sender, EventArgs e)
         {
             List<IServer> serversAll = ServerMaster.GetServers();
@@ -174,7 +170,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     continue;
                 }
-                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                serversAll[i].SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                 serversAll[i].PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
             }
 
@@ -199,19 +195,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             _pairTrader = null;
         }
 
-        BotTabPair _pairTrader;
+        private BotTabPair _pairTrader;
 
-        /// <summary>
-        /// It's need when security changes. For test connection we look at Timeframe for this security
-        /// </summary>
         private void ComboBoxSecurities_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             GetTimeFramesInTester();
         }
 
-        /// <summary>
-        /// Get timeframe in tester
-        /// </summary>
         private void GetTimeFramesInTester()
         {
             TesterServer server = (TesterServer)ServerMaster.GetServers()[0];
@@ -265,37 +255,57 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Selected server for now
-        /// </summary>
-        private ServerType _selectedType;
+        private ServerType _selectedServerType;
 
-        /// <summary>
-        /// User changed server type to connect
-        /// </summary>
+        private string _selectedServerName;
+
         private void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
             try
             {
+                if (ComboBoxTypeServer.SelectedValue == null)
+                {
+                    return;
+                }
+
+                string serverName = ComboBoxTypeServer.SelectedValue.ToString();
+
+                ServerType serverType;
+                if (Enum.TryParse(serverName.Split('_')[0], out serverType) == false)
+                {
+                    return;
+                }
+
+                _selectedServerType = serverType;
+                _selectedServerName = serverName;
+
+                if (_selectedServerType == ServerType.None)
+                {
+                    return;
+                }
+
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                if (serversAll == null ||
+                    serversAll.Count == 0)
+                {
+                    return;
+                }
+
+                IServer server =
+                    serversAll.Find(
+                        server1 =>
+                        server1.ServerType == _selectedServerType
+                        && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server != null)
                 {
-                    server.SecuritiesChangeEvent -= server_SecuritiesCharngeEvent;
+                    server.SecuritiesChangeEvent -= server_SecuritiesChangeEvent;
                     server.PortfoliosChangeEvent -= server_PortfoliosChangeEvent;
+                    server.SecuritiesChangeEvent += server_SecuritiesChangeEvent;
+                    server.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
                 }
 
-                Enum.TryParse(ComboBoxTypeServer.SelectedItem.ToString(), true, out _selectedType);
-
-                IServer server2 = serversAll.Find(server1 => server1.ServerType == _selectedType);
-
-                if (server2 != null)
-                {
-                    server2.SecuritiesChangeEvent += server_SecuritiesCharngeEvent;
-                    server2.PortfoliosChangeEvent += server_PortfoliosChangeEvent;
-                }
                 LoadPortfolioOnBox();
                 LoadClassOnBox();
                 LoadSecurityOnBox();
@@ -306,41 +316,32 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Happens after switching the class of displayed instruments
-        /// </summary>
         private void ComboBoxClass_SelectionChanged(object sender,
             System.Windows.Controls.SelectionChangedEventArgs e)
         {
             LoadSecurityOnBox();
         }
 
-        /// <summary>
-        /// New securities arrived at the server
-        /// </summary>
-        private void server_SecuritiesCharngeEvent(List<Security> securities)
+        private void server_SecuritiesChangeEvent(List<Security> securities)
         {
             LoadClassOnBox();
         }
 
-        /// <summary>
-        /// New accounts arrived at the server
-        /// </summary>
         private void server_PortfoliosChangeEvent(List<Portfolio> portfolios)
         {
             LoadPortfolioOnBox();
         }
 
-        /// <summary>
-        /// Unload accounts to the form
-        /// </summary>
         private void LoadPortfolioOnBox()
         {
             try
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
+                    && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -422,9 +423,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Place classes in the window
-        /// </summary>
         private void LoadClassOnBox()
         {
             try
@@ -436,7 +434,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
+                    && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
@@ -485,23 +486,24 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        #region work with papers on the grid
+        #region Work with papers on the grid
 
-        /// <summary>
-        /// Upload data from storage to form
-        /// </summary>
         private void LoadSecurityOnBox()
         {
             try
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
+                    && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
                     return;
                 }
+
                 // clear all
 
                 // download available instruments
@@ -537,11 +539,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        DataGridView _gridSecurities;
+        private DataGridView _gridSecurities;
 
-        /// <summary>
-        /// Create data grid
-        /// </summary>
         private void CreateGrid()
         {
             // number, class, type, paper abbreviation, full name, additional name, on/off
@@ -611,9 +610,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             SecuritiesHost.Child = _gridSecurities;
         }
 
-        /// <summary>
-        /// Update data geid
-        /// </summary>
         private void UpdateGrid(List<Security> securities)
         {
             _gridSecurities.Rows.Clear();
@@ -667,9 +663,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        /// <summary>
-        /// Choose all
-        /// </summary>
         private void CheckBoxSelectAllCheckBox_Click(object sender, RoutedEventArgs e)
         {
             bool isCheck = CheckBoxSelectAllCheckBox.IsChecked.Value;
@@ -680,11 +673,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        #endregion
-
-        /// <summary>
-        /// Load combo box with timeframes
-        /// </summary>
         private void LoadTimeFrameBox()
         {
             ComboBoxTimeFrame.Items.Clear();
@@ -732,9 +720,12 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedType);
+                IServer server =
+                    serversAll.Find(server1 =>
+                    server1.ServerType == _selectedServerType
+                    && server1.ServerNameAndPrefix == _selectedServerName);
 
-                IServerPermission permission = ServerMaster.GetServerPermission(_selectedType);
+                IServerPermission permission = ServerMaster.GetServerPermission(_selectedServerType);
 
                 if (server == null
                     || permission == null)
@@ -832,30 +823,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        // log messages
-
-        /// <summary>
-        /// Send new message to up
-        /// </summary>
-        private void SendNewLogMessage(string message, LogMessageType type)
-        {
-            if (LogMessageEvent != null)
-            {
-                LogMessageEvent(message, type);
-            }
-        }
-
-        /// <summary>
-        /// Outgoing log message
-        /// </summary>
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        // additional settings for different types of candles
-
-
-        /// <summary>
-        /// Get security by data from row
-        /// </summary>
         private ActivatedSecurity GetSecurity(DataGridViewRow row)
         {
             ActivatedSecurity sec = new ActivatedSecurity();
@@ -870,9 +837,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             return sec;
         }
 
+        #endregion
+
         #region Auto creation pairs
 
-        DataGridView _pairsGrid;
+        private DataGridView _pairsGrid;
 
         private void CreatePairsGrid()
         {
@@ -1059,7 +1028,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             return result;
         }
 
-        List<string> _pairNamesNew = new List<string>();
+        private List<string> _pairNamesNew = new List<string>();
 
         private void UpdatePairsGrid()
         {
@@ -1134,9 +1103,6 @@ namespace OsEngine.OsTrader.Panels.Tab
             return row;
         }
 
-        /// <summary>
-        /// Accept button
-        /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -1145,17 +1111,19 @@ namespace OsEngine.OsTrader.Panels.Tab
                 TimeFrame timeFrame;
                 Enum.TryParse(ComboBoxTimeFrame.Text, out timeFrame);
 
+                string serverName = ComboBoxTypeServer.Text;
+
                 ServerType server;
-                Enum.TryParse(ComboBoxTypeServer.Text, true, out server);
+                Enum.TryParse(serverName.Split('_')[0], true, out server);
 
-                ComissionType typeComission;
-                Enum.TryParse(ComboBoxComissionType.Text, true, out typeComission);
+                CommissionType typeCommission;
+                Enum.TryParse(ComboBoxCommissionType.Text, true, out typeCommission);
 
-                decimal comissionValue = 0;
+                decimal commissionValue = 0;
 
                 try
                 {
-                    comissionValue = TextBoxComissionValue.Text.ToDecimal();
+                    commissionValue = TextBoxCommissionValue.Text.ToDecimal();
                 }
                 catch
                 {
@@ -1183,12 +1151,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     string sec1 = _pairNamesNew[i].Replace("_|_", "*").Split('*')[0];
                     string sec2 = _pairNamesNew[i].Replace("_|_", "*").Split('*')[1];
 
-                    if(_pairTrader.HaveThisPairInTrade(sec1,sec2,secClass,timeFrame,server) == true)
+                    if(_pairTrader.HaveThisPairInTrade(sec1,sec2,secClass,timeFrame,server, serverName) == true)
                     {
                         continue;
                     }
 
-                    _pairTrader.CreateNewPair(sec1, sec2, secClass, timeFrame, server, typeComission,comissionValue,portfolio);
+                    _pairTrader.CreateNewPair(sec1, sec2, secClass, timeFrame, 
+                        server, typeCommission,commissionValue,portfolio,serverName);
 
                 }
 
@@ -1203,10 +1172,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-
         #endregion
 
-        #region search by securities table
+        #region Search by securities table
 
         private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -1233,7 +1201,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        List<int> _searchResults = new List<int>();
+        private List<int> _searchResults = new List<int>();
 
         private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
@@ -1414,6 +1382,20 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }		
         }
+
+        #endregion
+
+        #region Work with papers on the grid
+
+        private void SendNewLogMessage(string message, LogMessageType type)
+        {
+            if (LogMessageEvent != null)
+            {
+                LogMessageEvent(message, type);
+            }
+        }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }

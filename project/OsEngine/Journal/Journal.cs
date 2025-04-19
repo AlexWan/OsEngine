@@ -79,13 +79,13 @@ namespace OsEngine.Journal
             _positionController.Save();
         }
 
-        public ComissionType CommissionType
+        public CommissionType CommissionType
         {
             get
             {
                 if (_positionController == null)
                 {
-                    return ComissionType.None;
+                    return CommissionType.None;
                 }
                 return _positionController.CommissionType;
             }
@@ -383,7 +383,7 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < dealsToDay.Count; i++)
                 {
-                    profit += dealsToDay[i].ProfitOperationPersent;
+                    profit += dealsToDay[i].ProfitOperationPercent;
                 }
                 return profit;
             }

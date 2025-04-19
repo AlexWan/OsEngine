@@ -24,7 +24,7 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Label x:Name="LabelPreConfiguredConnection" Content="Pre-configured connections" Margin="0,0,509,0" VerticalAlignment="Top" HorizontalAlignment="Right" Height="23" Width="179" />
+        <Label x:Name="LabelPreConfiguredConnection" Content="Pre-configured connections" Margin="0,0,366,0" VerticalAlignment="Top" HorizontalAlignment="Right" Height="23" Width="322" />
         <WindowsFormsHost Name="HostPreConfiguredConnections" Margin="5,24,5,5"/>
         <Label x:Name="LabelCurrentConnectionName" Content="Name: " Grid.Row="1" Margin="5,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Height="23" Width="426" />
     </Grid>

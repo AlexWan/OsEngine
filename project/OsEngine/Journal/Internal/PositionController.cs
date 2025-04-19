@@ -292,7 +292,7 @@ namespace OsEngine.Journal.Internal
             }
         }
 
-        public ComissionType CommissionType
+        public CommissionType CommissionType
         {
             get { return _commissionType; }
             set
@@ -305,13 +305,13 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; AllPositions != null && i < AllPositions.Count; i++)
                 {
-                    AllPositions[i].ComissionType = _commissionType;
+                    AllPositions[i].CommissionType = _commissionType;
                 }
 
                 _needToSave = true;
             }
         }
-        private ComissionType _commissionType;
+        private CommissionType _commissionType;
 
         public decimal CommissionValue
         {
@@ -327,7 +327,7 @@ namespace OsEngine.Journal.Internal
 
                 for (int i = 0; AllPositions != null && i < AllPositions.Count; i++)
                 {
-                    AllPositions[i].ComissionValue = _commissionValue;
+                    AllPositions[i].CommissionValue = _commissionValue;
                 }
 
                 _needToSave = true;
@@ -431,8 +431,8 @@ namespace OsEngine.Journal.Internal
             // saving
             // сохраняем
 
-            newPosition.ComissionType = CommissionType;
-            newPosition.ComissionValue = CommissionValue;
+            newPosition.CommissionType = CommissionType;
+            newPosition.CommissionValue = CommissionValue;
 
             if (_deals == null)
             {
@@ -749,11 +749,11 @@ namespace OsEngine.Journal.Internal
                         || positions[i].State == PositionStateType.Closing
                         || positions[i].State == PositionStateType.ClosingFail)
                     {
-                        decimal profitOld = positions[i].ProfitOperationPunkt;
+                        decimal profitOld = positions[i].ProfitOperationAbs;
 
                         positions[i].SetBidAsk(bid, ask);
 
-                        if (profitOld != positions[i].ProfitOperationPunkt)
+                        if (profitOld != positions[i].ProfitOperationAbs)
                         {
                             ProcessPosition(positions[i]);
                         }
@@ -1571,7 +1571,7 @@ namespace OsEngine.Journal.Internal
                 nRow.Cells[11].Value = closePrice.ToStringWithNoEndZero();
             }
 
-            decimal profit = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice);
+            decimal profit = Math.Round(position.ProfitPortfolioAbs, decimalsPrice);
 
             if (nRow.Cells[12].Value == null
                 || nRow.Cells[12].Value.ToString() != profit.ToStringWithNoEndZero())
@@ -1771,7 +1771,7 @@ namespace OsEngine.Journal.Internal
                 }
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
-                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioPunkt, decimalsPrice).ToStringWithNoEndZero();
+                nRow.Cells[12].Value = Math.Round(position.ProfitPortfolioAbs, decimalsPrice).ToStringWithNoEndZero();
 
                 nRow.Cells.Add(new DataGridViewTextBoxCell());
                 nRow.Cells[13].Value = Math.Round(position.StopOrderRedLine, decimalsPrice).ToStringWithNoEndZero();

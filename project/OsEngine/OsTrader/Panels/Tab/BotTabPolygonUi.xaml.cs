@@ -42,15 +42,15 @@ namespace OsEngine.OsTrader.Panels.Tab
             TextBoxSeparatorToSecurities.Text = Polygon.SeparatorToSecurities;
             TextBoxSeparatorToSecurities.TextChanged += TextBoxSeparatorToSecurities_TextChanged;
 
-            ComboBoxComissionType.Items.Add(ComissionPolygonType.None.ToString());
-            ComboBoxComissionType.Items.Add(ComissionPolygonType.Percent.ToString());
-            ComboBoxComissionType.SelectedItem = Polygon.ComissionType.ToString();
-            ComboBoxComissionType.SelectionChanged += ComboBoxComissionType_SelectionChanged;
+            ComboBoxCommissionType.Items.Add(CommissionPolygonType.None.ToString());
+            ComboBoxCommissionType.Items.Add(CommissionPolygonType.Percent.ToString());
+            ComboBoxCommissionType.SelectedItem = Polygon.CommissionType.ToString();
+            ComboBoxCommissionType.SelectionChanged += ComboBoxCommissionType_SelectionChanged;
 
-            TextBoxComissionValue.Text = Polygon.ComissionValue.ToString();
-            TextBoxComissionValue.TextChanged += TextBoxComissionValue_TextChanged;
+            TextBoxCommissionValue.Text = Polygon.CommissionValue.ToString();
+            TextBoxCommissionValue.TextChanged += TextBoxCommissionValue_TextChanged;
 
-            CheckBoxCommisionIsSubstract.IsChecked = Polygon.CommisionIsSubstract;
+            CheckBoxCommisionIsSubstract.IsChecked = Polygon.CommissionIsSubstract;
             CheckBoxCommisionIsSubstract.Click += CheckBoxCommisionIsSubstract_Click;
 
             ComboBoxDelayType.Items.Add(DelayPolygonType.ByExecution.ToString());
@@ -91,11 +91,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             Title = OsLocalization.Trader.Label313;
 
             LabelStartSecutiySettings.Content = OsLocalization.Trader.Label315;
-            LabelComissionSettings.Content = OsLocalization.Trader.Label316;
+            LabelCommissionSettings.Content = OsLocalization.Trader.Label316;
             LabelBaseCurrency.Content = OsLocalization.Trader.Label317;
             LabelSeparator.Content = OsLocalization.Trader.Label319;
-            LabelComissionType.Content = OsLocalization.Trader.Label320;
-            LabelComissionValue.Content = OsLocalization.Trader.Label321;
+            LabelCommissionType.Content = OsLocalization.Trader.Label320;
+            LabelCommissionValue.Content = OsLocalization.Trader.Label321;
             CheckBoxCommisionIsSubstract.Content = OsLocalization.Trader.Label322;
 
             LabelQtyStartLimit.Content = OsLocalization.Trader.Label325;
@@ -163,8 +163,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 TextBoxBaseCurrency.TextChanged -= TextBoxBaseCurrency_TextChanged;
                 TextBoxSeparatorToSecurities.TextChanged -= TextBoxSeparatorToSecurities_TextChanged;
-                ComboBoxComissionType.SelectionChanged -= ComboBoxComissionType_SelectionChanged;
-                TextBoxComissionValue.TextChanged -= TextBoxComissionValue_TextChanged;
+                ComboBoxCommissionType.SelectionChanged -= ComboBoxCommissionType_SelectionChanged;
+                TextBoxCommissionValue.TextChanged -= TextBoxCommissionValue_TextChanged;
                 CheckBoxCommisionIsSubstract.Click -= CheckBoxCommisionIsSubstract_Click;
                 ComboBoxDelayType.SelectionChanged -= ComboBoxDelayType_SelectionChanged;
                 TextBoxDelayMls.TextChanged -= TextBoxDelayMls_TextChanged;
@@ -402,7 +402,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                Polygon.CommisionIsSubstract = CheckBoxCommisionIsSubstract.IsChecked.Value;
+                Polygon.CommissionIsSubstract = CheckBoxCommisionIsSubstract.IsChecked.Value;
                 Polygon.Save();
             }
             catch (Exception ex)
@@ -411,11 +411,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void TextBoxComissionValue_TextChanged(object sender, TextChangedEventArgs e)
+        private void TextBoxCommissionValue_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
             {
-                Polygon.ComissionValue = TextBoxComissionValue.Text.ToString().ToDecimal();
+                Polygon.CommissionValue = TextBoxCommissionValue.Text.ToString().ToDecimal();
                 Polygon.Save();
             }
             catch (Exception ex)
@@ -424,11 +424,11 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void ComboBoxComissionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBoxCommissionType_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
-                Enum.TryParse(ComboBoxComissionType.SelectedItem.ToString(), out Polygon.ComissionType);
+                Enum.TryParse(ComboBoxCommissionType.SelectedItem.ToString(), out Polygon.CommissionType);
                 Polygon.Save();
             }
             catch (Exception ex)
@@ -776,6 +776,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if(_grid == null)
+                {
+                    return;
+                }
+
                 List<DataGridViewRow> rows = GetRowsToGrid();
 
                 if (rows == null)
@@ -814,6 +819,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
+                if (_grid == null)
+                {
+                    return;
+                }
+
                 if (_grid.InvokeRequired)
                 {
                     _grid?.Invoke(new Action<DataGridViewRow, DataGridViewRow>(TryRePaintRow), rowInGrid, rowInArray);
