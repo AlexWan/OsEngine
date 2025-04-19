@@ -355,6 +355,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 ConnectorCandles connector = Tabs[0];
                 creator.ServerType = connector.ServerType;
+                creator.ServerName = connector.ServerFullName;
                 creator.TimeFrame = connector.TimeFrame;
                 creator.EmulatorIsOn = connector.EmulatorIsOn;
                 creator.SecuritiesClass = connector.SecurityClass;
@@ -439,6 +440,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 if (Tabs[i].SecurityName == security.SecurityName &&
                     Tabs[i].ServerType == creator.ServerType &&
+                    Tabs[i].ServerFullName == creator.ServerName &&
                     Tabs[i].TimeFrame == creator.TimeFrame)
                 {
                     return;
@@ -479,6 +481,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.SaveTradesInCandles = false;
 
             connector.ServerType = creator.ServerType;
+            connector.ServerFullName = creator.ServerName;
             connector.SecurityName = security.SecurityName;
             connector.SecurityClass = security.SecurityClass;
             connector.TimeFrame = creator.TimeFrame;

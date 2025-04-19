@@ -965,16 +965,20 @@ colum9.HeaderText = "Journal";
 
         private void UpdateTable()
         {
-            if(_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action(UpdateTable));
-                return;
-            }
-
-            if (_master.PanelsArray == null)return;
             try
             {
-                for (int i = 0; i < _master.PanelsArray.Count; i++)
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(UpdateTable));
+                    return;
+                }
+
+                if (_master.PanelsArray == null)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _master.PanelsArray.Count && i < _grid.Rows.Count; i++)
                 {
                     if (_lastTimeClick.AddSeconds(2) > DateTime.Now)
                     {
@@ -988,9 +992,9 @@ colum9.HeaderText = "Journal";
                     if (bot.TabsSimple.Count != 0 &&
                         bot.TabsSimple[0].Security != null)
                     {
-                        if(row.Cells[3].Value == null 
+                        if (row.Cells[3].Value == null
                             ||
-                            (row.Cells[3].Value != null 
+                            (row.Cells[3].Value != null
                             && row.Cells[3].Value.ToString() != bot.TabsSimple[0].Security.Name))
                         {
                             row.Cells[3].Value = bot.TabsSimple[0].Security.Name;

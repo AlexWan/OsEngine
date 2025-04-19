@@ -503,7 +503,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 row.Cells.Add((new DataGridViewTextBoxCell()));
-                row.Cells[2].Value = _spread.Tabs[i].ServerType.ToString();
+                row.Cells[2].Value = _spread.Tabs[i].ServerFullName.ToString();
 
                 row.Cells.Add((new DataGridViewTextBoxCell()));
                 row.Cells[3].Value = _spread.Tabs[i].TimeFrame.ToString();

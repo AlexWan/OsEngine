@@ -20,7 +20,7 @@ namespace OsEngine.Market.Connectors
             result += PortfolioName + "\n";
             result += SecuritiesClass + "\n";
             result += TimeFrame + "\n";
-            result += ServerType + "\n";
+            result += ServerType + "&" + ServerName + "\n";
             result += EmulatorIsOn + "\n";
             result += CandleMarketDataType + "\n";
             result += CommissionType + "\n";
@@ -44,7 +44,18 @@ namespace OsEngine.Market.Connectors
             PortfolioName = values[0];
             SecuritiesClass = values[1];
             Enum.TryParse(values[2], out TimeFrame);
-            Enum.TryParse(values[3], out ServerType);
+
+            Enum.TryParse(values[3].Split('&')[0], out ServerType);
+
+            if(values[3].Split('&').Length > 1)
+            {
+                ServerName = values[3].Split('&')[1];
+            }
+            else
+            {
+                ServerName = ServerType.ToString();
+            }
+
             EmulatorIsOn = Convert.ToBoolean(values[4]);
             Enum.TryParse(values[5], out CandleMarketDataType);
             Enum.TryParse(values[6], out CommissionType);
@@ -52,8 +63,6 @@ namespace OsEngine.Market.Connectors
             SaveTradesInCandles = Convert.ToBoolean(values[8]);
             CandleCreateMethodType = values[9];
             CandleSeriesRealization.SetSaveString(values[10]);
-
-
 
             for (int i = 11; i < values.Length; i++)
             {
@@ -101,6 +110,8 @@ namespace OsEngine.Market.Connectors
         public TimeFrame TimeFrame = TimeFrame.Min1;
 
         public ServerType ServerType;
+
+        public string ServerName;
 
         public bool EmulatorIsOn;
 

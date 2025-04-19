@@ -616,13 +616,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 OsLocalization.Trader.Label102 + " 1. "
                 + _pair.Tab1.Connector.SecurityName + ". "
                 + _pair.Tab1.Connector.TimeFrame + ". "
-                + _pair.Tab1.Connector.ServerType + ".";
+                + _pair.Tab1.Connector.ServerFullName + ".";
 
             ButtonSec2Connection.Content =
                 OsLocalization.Trader.Label102 + " 2. "
                 + _pair.Tab2.Connector.SecurityName + ". "
                 + _pair.Tab2.Connector.TimeFrame + ". "
-                + _pair.Tab2.Connector.ServerType + ".";
+                + _pair.Tab2.Connector.ServerFullName + ".";
 
             Title = OsLocalization.Trader.Label249 + "  "
                 + _pair.Tab1.Connector.SecurityName + " / " + _pair.Tab2.Connector.SecurityName;
