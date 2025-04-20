@@ -38,6 +38,7 @@ namespace OsEngine.Market.Servers.Alor
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "1", "10", "20"});
+            CreateParameterBoolean("Ignore morning auction trades", true);
         }
     }
 
@@ -80,6 +81,7 @@ namespace OsEngine.Market.Servers.Alor
                 _portfolioFutId = ((ServerParameterString)ServerParameters[2]).Value;
                 _portfolioCurrencyId = ((ServerParameterString)ServerParameters[3]).Value;
                 _portfolioSpareId = ((ServerParameterString)ServerParameters[4]).Value;
+                _ignoreMorningAuctionTrades = ((ServerParameterBool)ServerParameters[11]).Value;
 
                 if (string.IsNullOrEmpty(_apiTokenRefresh))
                 {
@@ -213,6 +215,7 @@ namespace OsEngine.Market.Servers.Alor
         private bool _useOptions = false;
         private bool _useCurrency = false;
         private bool _useOther = false;
+        private bool _ignoreMorningAuctionTrades = true; // ignore trades before 7:00 MSK for stocks and before 9:00 for futures
 
         private string _portfolioSpotId;
         private string _portfolioFutId;
@@ -1684,6 +1687,35 @@ namespace OsEngine.Market.Servers.Alor
             {
 
             }
+
+            if (_ignoreMorningAuctionTrades && DateTime.Now.Hour < 9) // process only mornings
+            {
+                Security security = _subscribedSecurities[0];
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    if (_subscribedSecurities[i].Name == trade.SecurityNameCode)
+                    {
+                        security = _subscribedSecurities[i];
+                        break;
+                    }
+                }
+
+                if (security.SecurityType == SecurityType.Futures)
+                {
+                    if (trade.Time < DateTime.Today.AddHours(9))
+                    {
+                        return;
+                    }
+                }
+                else
+                {
+                    if (trade.Time < DateTime.Today.AddHours(7))
+                    {
+                        return;
+                    }
+                }
+            }
+
 
             if (NewTradesEvent != null)
             {
