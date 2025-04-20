@@ -1663,6 +1663,24 @@ namespace OsEngine.Market.Servers.TInvest
                         trade.Side = marketDataResponse.Trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
                         trade.Volume = marketDataResponse.Trade.Quantity;
 
+                        if (_ignoreMorningAuctionTrades && DateTime.Now.Hour < 9) // process only mornings
+                        {
+                            if (security.SecurityType == SecurityType.Futures)
+                            {
+                                if (trade.Time < DateTime.Today.AddHours(9))
+                                {
+                                    continue;
+                                }
+                            }
+                            else
+                            {
+                                if (trade.Time < DateTime.Today.AddHours(7))
+                                {
+                                    continue;
+                                }
+                            }
+                        }
+
                         if (NewTradesEvent != null)
                         {
                             NewTradesEvent(trade);
