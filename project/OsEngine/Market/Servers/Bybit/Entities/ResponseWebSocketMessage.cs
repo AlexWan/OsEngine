@@ -57,6 +57,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string closedSize { get; set; }
         public string seq { get; set; }
     }
+
     public class SubscribleMessage
     {
         public string op;
@@ -65,6 +66,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string ret_msg;
         public string conn_id;
     }
+
     public class ResponseTrade
     {
         public string v;
@@ -75,15 +77,15 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string S;
         public string L;
         public string BT;
-
     }
+
     public class ResponseOrderBook
     {
         public string s;
-       
         public string[,] b;
         public string[,] a;
     }
+
     public class ResponseOrder
     {
         public string symbol { get; set; }
@@ -129,5 +131,4 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string smpOrderId { get; set; }
         public string feeCurrency { get; set; }
     }
-
 }
