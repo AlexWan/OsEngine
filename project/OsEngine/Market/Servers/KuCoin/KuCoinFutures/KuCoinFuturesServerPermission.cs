@@ -238,7 +238,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public bool IsSupports_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_ProxyFor_MultipleInstances

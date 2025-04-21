@@ -19,8 +19,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 {
     public class KuCoinSpotServer : AServer
     {
-        public KuCoinSpotServer()
+        public KuCoinSpotServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             KuCoinSpotServerRealization realization = new KuCoinSpotServerRealization();
             ServerRealization = realization;
 

@@ -557,11 +557,11 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.KuCoinFutures)
                 {
-                    newServer = new KuCoinFuturesServer();
+                    newServer = new KuCoinFuturesServer(uniqueNum);
                 }
                 if (type == ServerType.KuCoinSpot)
                 {
-                    newServer = new KuCoinSpotServer();
+                    newServer = new KuCoinSpotServer(uniqueNum);
                 }
                 if (type == ServerType.Alor)
                 {

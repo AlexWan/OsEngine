@@ -227,7 +227,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         public bool IsSupports_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_ProxyFor_MultipleInstances
