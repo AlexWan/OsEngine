@@ -39,11 +39,6 @@ namespace OsEngine.Market.Servers.Kraken.KrakenEntity
 
         }
 
-        public void InsertProxies(List<ProxyHolder> proxies)
-        {
-
-        }
-
         private object _queryLocker = new object();
 
         public void Dispose()

@@ -518,9 +518,6 @@ namespace OsEngine.Market.Servers.Bybit
                     if (oneSec.status.ToLower() == "trading")
                     {
                         Security security = new Security();
-                        int.TryParse(oneSec.priceScale, out int ps);
-                        security.Decimals = ps;
-                        security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.minOrderQty);
                         security.NameFull = oneSec.symbol;
 
                         if (category == Category.linear
@@ -564,9 +561,24 @@ namespace OsEngine.Market.Servers.Bybit
                             security.NameClass = oneSec.contractType;
                         }
 
+                        int.TryParse(oneSec.priceScale, out int ps);
+                        security.Decimals = ps;
+
                         security.PriceStep = oneSec.priceFilter.tickSize.ToDecimal();
                         security.PriceStepCost = oneSec.priceFilter.tickSize.ToDecimal();
                         security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+
+                        if(oneSec.lotSizeFilter.qtyStep != null)
+                        {
+                            security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.qtyStep);
+                            security.VolumeStep = oneSec.lotSizeFilter.qtyStep.ToDecimal();
+                        }
+                        else
+                        {
+                            security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.minOrderQty);
+                            security.VolumeStep = GetVolumeStepByVolumeDecimals(security.DecimalsVolume);
+                        }
+
                         security.State = SecurityStateType.Activ;
                         security.Exchange = "ByBit";
                         security.Lot = 1;
@@ -593,6 +605,30 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 return 0;
             }
+        }
+
+        private decimal GetVolumeStepByVolumeDecimals(int volumeDecimals)
+        {
+            if(volumeDecimals == 0)
+            {
+                return 1;
+            }
+
+            string result = "0.";
+
+            for(int i = 0;i < volumeDecimals;i++)
+            {
+                if(i +1 == volumeDecimals)
+                {
+                    result += "1";
+                }
+                else
+                {
+                    result += "0";
+                }
+            }
+
+            return result.ToDecimal();
         }
 
         #endregion 3

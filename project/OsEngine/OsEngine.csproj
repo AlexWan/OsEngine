@@ -472,10 +472,7 @@
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\News.cs" />
-    <Compile Include="Entity\ProxyHolder.cs" />
-    <Compile Include="Entity\ProxyHolderAddUi.xaml.cs">
-      <DependentUpon>ProxyHolderAddUi.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Market\Proxy\ProxyHolder.cs" />
     <Compile Include="Indicators\EmptyIndicator.cs" />
     <Compile Include="Indicators\IndicatorDataSeries.cs" />
     <Compile Include="Indicators\Samples\Sample1Blank.cs" />
@@ -1668,10 +1665,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Entity\DateTimeSelectionDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Entity\ProxyHolderAddUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

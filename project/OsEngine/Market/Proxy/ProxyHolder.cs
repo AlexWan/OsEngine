@@ -3,11 +3,9 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-namespace OsEngine.Entity
+namespace OsEngine.Market.Proxy
 {
-    /// <summary>
-    /// a class that stores data for sending requests through a proxy server
-    /// </summary>
+
     public class ProxyHolder
     {
         /// <summary>
@@ -31,7 +29,6 @@ namespace OsEngine.Entity
         public string GetStringToSave()
         {
             string result = Ip + "%";
-
             result += UserName + "%";
             result += UserPassword;
 

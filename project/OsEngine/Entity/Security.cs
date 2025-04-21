@@ -181,7 +181,14 @@ namespace OsEngine.Entity
         public int DecimalsVolume;
 
         /// <summary>
-        /// минимальный объём торгов по активу
+        /// volume step by asset
+        /// шаг объёма для актива
+        /// </summary>
+        public decimal VolumeStep;
+
+        /// <summary>
+        /// minimum order volume by asset
+        /// минимальный объём ордера по активу
         /// </summary>
         public decimal MinTradeAmount = 1;
 
@@ -245,6 +252,11 @@ namespace OsEngine.Entity
             Expiration = Convert.ToDateTime(array[15]);
             DecimalsVolume = Convert.ToInt32(array[16]);
             MinTradeAmount = array[17].ToDecimal();
+
+            if (array.Length > 18)
+            {
+                VolumeStep = array[18].ToDecimal();
+            }
         }
 
         /// <summary>
@@ -270,7 +282,9 @@ namespace OsEngine.Entity
             result += Strike + "\n";
             result += Expiration + "\n";
             result += DecimalsVolume + "\n";
-            result += MinTradeAmount;
+            result += MinTradeAmount + "\n";
+            result += VolumeStep;
+
             return result;
         }
 
