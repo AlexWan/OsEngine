@@ -1473,11 +1473,11 @@ namespace OsEngine.Market.Servers.Transaq
 
             int index;
 
-            if (needTf == 120)
+            if (needTf == 120) // если таймфрейм 2 часа
             {
                 index = oldCandles.FindIndex(can => can.TimeStart.Hour % 2 == 0);
             }
-            else if (needTf == 1440)
+            else if (needTf == 1440) // если таймфрейм 1 день
             {
                 index = oldCandles.FindIndex(can => can.TimeStart.Hour == 10 &&
                                                     can.TimeStart.Minute == 0 &&
@@ -1523,6 +1523,7 @@ namespace OsEngine.Market.Servers.Transaq
             }
             else
             {
+                // Ищем индекс первой свечи, у которой минута времени начала(TimeStart.Minute) кратна целевому таймфрейму
                 index = oldCandles.FindIndex(can => can.TimeStart.Minute % needTf == 0);
             }
 
@@ -1531,54 +1532,55 @@ namespace OsEngine.Market.Servers.Transaq
                 index = 0;
             }
 
-            int count = needTf / oldTf;
-
-            int counter = 0;
-
-            Candle newCandle = new Candle();
+            Candle newCandle = null;
 
             for (int i = index; i < oldCandles.Count; i++)
             {
-                counter++;
+                Candle currentCandle = oldCandles[i];
 
-                if (counter == 1)
+                // Проверяем, нужно ли начать новую свечу
+                if (newCandle == null || currentCandle.TimeStart.Subtract(newCandle.TimeStart).TotalMinutes >= needTf)
                 {
-                    newCandle = new Candle();
-                    newCandle.Open = oldCandles[i].Open;
-                    newCandle.TimeStart = oldCandles[i].TimeStart;
-                    newCandle.OpenInterest = oldCandles[i].OpenInterest;
-
-                    if (needTf <= 60 
-                        && newCandle.TimeStart.Minute % needTf != 0)  //AVP, если свечка пришла в некратное ТФ время, например, был пропуск свечи, то ТФ правим на кратное. на MOEX  в пропущенные на клиринге свечках, на 10 минутках давало сбой - сдвиг свечек на 5 минут.
+                    // Завершаем предыдущую свечу, если она существует
+                    if (newCandle != null)
                     {
-                        newCandle.TimeStart = newCandle.TimeStart.AddMinutes((newCandle.TimeStart.Minute % needTf) * -1);
+                        newCandle.State = CandleState.Finished;
+                        newCandles.Add(newCandle);
                     }
-                    newCandle.Low = Decimal.MaxValue;
+
+                    // Создаём новую свечу с выравниванием времени
+                    newCandle = new Candle
+                    {
+                        TimeStart = currentCandle.TimeStart,
+                        Open = currentCandle.Open,
+                        OpenInterest = currentCandle.OpenInterest,
+                        High = currentCandle.High,
+                        Low = currentCandle.Low,
+                        Volume = currentCandle.Volume,
+                        Close = currentCandle.Close,
+                        State = CandleState.Started
+                    };
+
+                    if (needTf <= 60
+                        && currentCandle.TimeStart.Minute % needTf != 0)  //AVP, если свечка пришла в некратное ТФ время, например, был пропуск свечи, то ТФ правим на кратное. на MOEX  в пропущенные на клиринге свечках, на 10 минутках давало сбой - сдвиг свечек на 5 минут.
+                    {
+                        newCandle.TimeStart = currentCandle.TimeStart.AddMinutes((currentCandle.TimeStart.Minute % needTf) * -1);
+                    }
+                }
+                else
+                {
+                    // Обновляем текущую свечу
+                    newCandle.High = Math.Max(newCandle.High, currentCandle.High);
+                    newCandle.Low = Math.Min(newCandle.Low, currentCandle.Low);
+                    newCandle.Volume += currentCandle.Volume;
+                    newCandle.OpenInterest = currentCandle.OpenInterest;
+                    newCandle.Close = currentCandle.Close;
                 }
 
-                newCandle.High = oldCandles[i].High > newCandle.High
-                    ? oldCandles[i].High
-                    : newCandle.High;
-
-                newCandle.Low = oldCandles[i].Low < newCandle.Low
-                    ? oldCandles[i].Low
-                    : newCandle.Low;
-
-                newCandle.Volume += oldCandles[i].Volume;
-                newCandle.OpenInterest = oldCandles[i].OpenInterest;
-
-                if (counter == count || (needTf <= 60 && i < oldCandles.Count - 2 && oldCandles[i + 1].TimeStart.Minute % needTf == 0))    // AVP добавил проверку "или", что следующая свечка в мелком ТФ, должна войти в следующую свечу более крупного ТФ
+                // Если это последняя свеча, добавляем её
+                if (i == oldCandles.Count - 1)
                 {
-                    newCandle.Close = oldCandles[i].Close;
-                    newCandle.State = CandleState.Finished;
-                    newCandles.Add(newCandle);
-                    counter = 0;
-                }
-
-                if (i == oldCandles.Count - 1 && counter != count)
-                {
-                    newCandle.Close = oldCandles[i].Close;
-                    newCandle.State = CandleState.Started;
+                    newCandle.State = CandleState.Started; // Оставляем как Started для последней свечи
                     newCandles.Add(newCandle);
                 }
             }
