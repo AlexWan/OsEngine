@@ -25,8 +25,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 {
     public class GateIoServerSpot : AServer
     {
-        public GateIoServerSpot()
+        public GateIoServerSpot(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             ServerRealization = new GateIoServerSpotRealization();
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");

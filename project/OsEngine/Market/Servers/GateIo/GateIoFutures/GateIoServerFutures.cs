@@ -27,8 +27,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 {
     public class GateIoServerFutures : AServer
     {
-        public GateIoServerFutures()
+        public GateIoServerFutures(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             ServerRealization = new GateIoServerFuturesRealization();
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");

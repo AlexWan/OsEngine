@@ -601,11 +601,11 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.GateIoSpot)
                 {
-                    newServer = new GateIoServerSpot();
+                    newServer = new GateIoServerSpot(uniqueNum);
                 }
                 if (type == ServerType.GateIoFutures)
                 {
-                    newServer = new GateIoServerFutures();
+                    newServer = new GateIoServerFutures(uniqueNum);
                 }
                 if (type == ServerType.Bybit)
                 {
