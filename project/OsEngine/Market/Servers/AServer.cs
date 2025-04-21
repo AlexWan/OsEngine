@@ -1802,11 +1802,12 @@ namespace OsEngine.Market.Servers
                             securities[j].Decimals = curSaveSec.Decimals;
                             securities[j].DecimalsVolume = curSaveSec.DecimalsVolume;
                             securities[j].MinTradeAmount = curSaveSec.MinTradeAmount;
-                            //securities[j].PriceLimitHigh = curSaveSec.PriceLimitHigh;
-                            //securities[j].PriceLimitLow = curSaveSec.PriceLimitLow;
-                            //securities[j].Go = curSaveSec.Go;
+                            securities[j].MinTradeAmountType = curSaveSec.MinTradeAmountType;
+                            securities[j].VolumeStep = curSaveSec.VolumeStep;
+                            securities[j].PriceLimitHigh = curSaveSec.PriceLimitHigh;
+                            securities[j].PriceLimitLow = curSaveSec.PriceLimitLow;
+                            securities[j].Go = curSaveSec.Go;
                             securities[j].Strike = curSaveSec.Strike;
-
 
                             break;
                         }

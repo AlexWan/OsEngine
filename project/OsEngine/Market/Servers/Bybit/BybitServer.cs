@@ -567,6 +567,7 @@ namespace OsEngine.Market.Servers.Bybit
                         security.PriceStep = oneSec.priceFilter.tickSize.ToDecimal();
                         security.PriceStepCost = oneSec.priceFilter.tickSize.ToDecimal();
                         security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+                        security.MinTradeAmountType = MinTradeAmountType.C_Currency;
 
                         if(oneSec.lotSizeFilter.qtyStep != null)
                         {

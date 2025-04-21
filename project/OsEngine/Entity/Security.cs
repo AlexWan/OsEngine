@@ -193,6 +193,12 @@ namespace OsEngine.Entity
         public decimal MinTradeAmount = 1;
 
         /// <summary>
+        /// type field MinTradeAmount. Contracts / Contract currency
+        /// тип поля MinTradeAmount. Контракты / Валюта контракта
+        /// </summary>
+        public MinTradeAmountType MinTradeAmountType;
+
+        /// <summary>
         /// Lower price limit for bids. If you place an order with a price lower - the system will reject
         /// Нижний лимит цены для заявок. Если выставить ордер с ценой ниже - система отвергнет
         /// </summary>
@@ -203,8 +209,8 @@ namespace OsEngine.Entity
         /// Верхний лимит цены для заявок. Если выставить ордер с ценой выше - система отвергнет
         /// </summary>
         public decimal PriceLimitHigh;
+
         // For options
-        // для опционов
 
         /// <summary>
         /// option type
@@ -232,6 +238,8 @@ namespace OsEngine.Entity
         /// </summary>
         public void LoadFromString(string save)
         {
+            save = save.Replace("\r", "");
+
             string[] array = save.Split('\n');
 
             Name = array[0];
@@ -256,6 +264,10 @@ namespace OsEngine.Entity
             if (array.Length > 18)
             {
                 VolumeStep = array[18].ToDecimal();
+            }
+            if (array.Length > 19)
+            {
+                Enum.TryParse(array[19], out MinTradeAmountType);
             }
         }
 
@@ -283,7 +295,8 @@ namespace OsEngine.Entity
             result += Expiration + "\n";
             result += DecimalsVolume + "\n";
             result += MinTradeAmount + "\n";
-            result += VolumeStep;
+            result += VolumeStep +"\n";
+            result += MinTradeAmountType;
 
             return result;
         }
@@ -294,6 +307,19 @@ namespace OsEngine.Entity
         /// </summary>
         public string UnderlyingAsset;
 
+    }
+
+    public enum MinTradeAmountType
+    {
+        /// <summary>
+        /// The minimum volume is specified in the contracts
+        /// </summary>
+        Contract,
+
+        /// <summary>
+        /// Minimum volume is specified in contract currency (USDT / RUB)
+        /// </summary>
+        C_Currency
     }
 
     /// <summary>
