@@ -549,7 +549,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.XTSpot)
                 {
-                    newServer = new XTServerSpot();
+                    newServer = new XTServerSpot(uniqueNum);
                 }
                 if (type == ServerType.BingXFutures)
                 {
@@ -633,7 +633,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.BitfinexSpot)
                 {
-                    newServer = new BitfinexSpotServer();
+                    newServer = new BitfinexSpotServer(uniqueNum);
                 }
                 if (type == ServerType.Binance)
                 {

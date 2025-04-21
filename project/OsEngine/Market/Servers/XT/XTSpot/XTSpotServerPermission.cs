@@ -224,7 +224,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
         public bool IsSupports_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_ProxyFor_MultipleInstances

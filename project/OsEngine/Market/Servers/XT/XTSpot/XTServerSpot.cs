@@ -18,8 +18,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 {
     public class XTServerSpot : AServer
     {
-        public XTServerSpot()
+        public XTServerSpot(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             XTServerSpotRealization realization = new XTServerSpotRealization();
             ServerRealization = realization;
 

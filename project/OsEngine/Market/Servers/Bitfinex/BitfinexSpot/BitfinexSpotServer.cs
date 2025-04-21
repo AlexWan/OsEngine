@@ -24,8 +24,9 @@ namespace OsEngine.Market.Servers.Bitfinex
 {
     public class BitfinexSpotServer : AServer
     {
-        public BitfinexSpotServer()
+        public BitfinexSpotServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             BitfinexSpotServerRealization realization = new BitfinexSpotServerRealization();
             ServerRealization = realization;
 
