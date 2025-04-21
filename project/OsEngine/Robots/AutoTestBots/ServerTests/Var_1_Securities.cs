@@ -55,7 +55,6 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             2.1.2.	OptionType – тип опциона. Не нужно нам пока
             2.1.3.	Strike – тоже опционная тематика. Не нужно
             2.1.4.	Expiration – опционы. Не нужно
-            2.1.5.	MinTradeAmount – Минимальный объём возможный для входа. Подаётся в очень малом кол-ве бирж. Можно игнорировать. Но если есть – надо добавлять.
             2.1.6.	PriceLimitLow – минимальная цена для выставления ордера. Подаётся в очень малом кол-ве бирж.
             2.1.7.	PriceLimitHigh – максимальная цена для выставления ордера. Подаётся в очень малом кол-ве бирж.
 
@@ -74,6 +73,8 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             2.2.10.	SecurityType.Тип инструмента
             2.2.11.	Decimals  - количество знаков после запятой у цены инструмента
             2.2.12.	DecimalsVolume – количество знаков после запятой у объёма инструмента
+            2.2.13. VolumeDecimals – шаг объёма
+            2.2.14.	MinTradeAmount – Минимальный объём возможный для входа.
 
             */
 
@@ -145,6 +146,16 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
                 {
                     SetNewError(serverType + " Security Error 16. PriceStep and Decimals in conflict ");
                 }
+            }
+
+            if (security.VolumeStep == 0)
+            {
+                SetNewError(serverType + " Security Error 17. VolumeStep is 0 ");
+            }
+
+            if (security.MinTradeAmount == 0)
+            {
+                SetNewError(serverType + " Security Error 18. MinTradeAmount is 0 ");
             }
         }
 
