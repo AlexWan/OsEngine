@@ -115,7 +115,7 @@ namespace OsEngine
             ProccesIsWorked = true;
             _window = this;
 
-            ServerMaster.ActivateLogging();
+            ServerMaster.Activate();
 
             Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 

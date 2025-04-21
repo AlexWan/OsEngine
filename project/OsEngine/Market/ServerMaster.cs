@@ -76,6 +76,8 @@ using OsEngine.Market.Servers.SmartLabNews;
 using OsEngine.Market.Servers.AE;
 using Grpc.Core;
 using System.Windows.Controls.Primitives;
+using OsEngine.Market.Proxy;
+using System.Net;
 
 
 namespace OsEngine.Market
@@ -88,6 +90,12 @@ namespace OsEngine.Market
     {
 
         #region Service
+
+        public static void Activate()
+        {
+            ActivateLogging();
+            ActivateProxy();
+        }
 
         /// <summary>
         /// show settings
@@ -1492,6 +1500,35 @@ namespace OsEngine.Market
 
         #endregion
 
+        #region Proxy 
+
+        private static ProxyMaster _proxyMaster;
+
+        private static void ActivateProxy()
+        {
+            if (_proxyMaster == null)
+            {
+                _proxyMaster = new ProxyMaster();
+                _proxyMaster.LogMessageEvent += SendNewLogMessage;
+                _proxyMaster.Activate();
+            }
+        }
+
+        public static WebProxy GetProxy(ServerType serverType, string serverName)
+        {
+            try
+            {
+                return _proxyMaster.GetProxy(serverType, serverName);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                return null;
+            }
+        }
+
+        #endregion
+
         #region Access to portfolio, orders and its drawing
 
         /// <summary>
@@ -1589,7 +1626,7 @@ namespace OsEngine.Market
         /// <summary>
         /// enable object logging
         /// </summary>
-        public static void ActivateLogging()
+        private static void ActivateLogging()
         {
             if (Log == null)
             {

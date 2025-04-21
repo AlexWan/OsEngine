@@ -472,7 +472,7 @@
     <Compile Include="Entity\HorizontalVolume.cs" />
     <Compile Include="Entity\MarketDepthPainter.cs" />
     <Compile Include="Entity\News.cs" />
-    <Compile Include="Market\Proxy\Proxy.cs" />
+    <Compile Include="Market\Proxy\ProxyOsa.cs" />
     <Compile Include="Indicators\EmptyIndicator.cs" />
     <Compile Include="Indicators\IndicatorDataSeries.cs" />
     <Compile Include="Indicators\Samples\Sample1Blank.cs" />
@@ -486,8 +486,9 @@
     <Compile Include="Market\Connectors\ConnectorNewsUi.xaml.cs">
       <DependentUpon>ConnectorNewsUi.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Market\Proxy\ProxyUi.xaml.cs">
-      <DependentUpon>ProxyUi.xaml</DependentUpon>
+    <Compile Include="Market\Proxy\ProxyMaster.cs" />
+    <Compile Include="Market\Proxy\ProxyMasterUi.xaml.cs">
+      <DependentUpon>ProxyMasterUi.xaml</DependentUpon>
     </Compile>
     <Compile Include="Market\Servers\AExchange\AExchangeServer.cs" />
     <Compile Include="Market\Servers\AExchange\AExchangeServerPermission.cs" />
@@ -1711,7 +1712,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Market\Proxy\ProxyUi.xaml">
+    <Page Include="Market\Proxy\ProxyMasterUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
