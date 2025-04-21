@@ -229,7 +229,7 @@ namespace OsEngine.Market.Servers.Mexc
 
         public bool IsSupports_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_ProxyFor_MultipleInstances

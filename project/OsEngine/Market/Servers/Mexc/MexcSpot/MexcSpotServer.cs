@@ -26,8 +26,9 @@ namespace OsEngine.Market.Servers.Mexc
 {
     public class MexcSpotServer : AServer
     {
-        public MexcSpotServer()
+        public MexcSpotServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             MexcSpotServerRealization realization = new MexcSpotServerRealization();
             ServerRealization = realization;
 

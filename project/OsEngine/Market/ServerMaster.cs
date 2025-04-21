@@ -725,7 +725,7 @@ namespace OsEngine.Market
                 }
                 else if (type == ServerType.MexcSpot)
                 {
-                    newServer = new MexcSpotServer();
+                    newServer = new MexcSpotServer(uniqueNum);
                 }
                 else if (type == ServerType.KiteConnect)
                 {
