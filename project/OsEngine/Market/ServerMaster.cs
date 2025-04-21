@@ -701,15 +701,15 @@ namespace OsEngine.Market
                 }
                 else if (type == ServerType.HTXSpot)
                 {
-                    newServer = new HTXSpotServer();
+                    newServer = new HTXSpotServer(uniqueNum);
                 }
                 else if (type == ServerType.HTXFutures)
                 {
-                    newServer = new HTXFuturesServer();
+                    newServer = new HTXFuturesServer(uniqueNum);
                 }
                 else if (type == ServerType.HTXSwap)
                 {
-                    newServer = new HTXSwapServer();
+                    newServer = new HTXSwapServer(uniqueNum);
                 }
                 else if (type == ServerType.BitMart)
                 {

@@ -20,8 +20,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
 {
     public class HTXFuturesServer : AServer
     {
-        public HTXFuturesServer()
+        public HTXFuturesServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             HTXFuturesServerRealization realization = new HTXFuturesServerRealization();
             ServerRealization = realization;
 

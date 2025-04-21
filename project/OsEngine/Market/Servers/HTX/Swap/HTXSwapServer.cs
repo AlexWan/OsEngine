@@ -20,8 +20,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
 {
     public class HTXSwapServer : AServer
     {
-        public HTXSwapServer()
+        public HTXSwapServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             HTXSwapServerRealization realization = new HTXSwapServerRealization();
             ServerRealization = realization;
 

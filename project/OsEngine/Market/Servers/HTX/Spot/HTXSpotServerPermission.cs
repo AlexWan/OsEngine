@@ -232,7 +232,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public bool IsSupports_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool IsSupports_ProxyFor_MultipleInstances

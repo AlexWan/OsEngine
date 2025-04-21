@@ -20,8 +20,9 @@ namespace OsEngine.Market.Servers.HTX.Spot
 {
     public class HTXSpotServer : AServer
     {
-        public HTXSpotServer()
+        public HTXSpotServer(int uniqueNumber)
         {
+            ServerNum = uniqueNumber;
             HTXSpotServerRealization realization = new HTXSpotServerRealization();
             ServerRealization = realization;
 
