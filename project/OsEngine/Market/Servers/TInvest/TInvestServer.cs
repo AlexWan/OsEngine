@@ -37,7 +37,7 @@ namespace OsEngine.Market.Servers.TInvest
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterBoolean("Filter out non-market data (holiday trading)", true);
             CreateParameterBoolean("Filter out dealer trades", false);
-            CreateParameterBoolean("Ignore morning auction trades", true);
+            CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
         }
     }
 
@@ -1663,18 +1663,18 @@ namespace OsEngine.Market.Servers.TInvest
                         trade.Side = marketDataResponse.Trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
                         trade.Volume = marketDataResponse.Trade.Quantity;
 
-                        if (_ignoreMorningAuctionTrades && DateTime.Now.Hour < 9) // process only mornings
+                        if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9) // process only mornings
                         {
                             if (security.SecurityType == SecurityType.Futures)
                             {
-                                if (trade.Time < DateTime.Today.AddHours(9))
+                                if (trade.Time < trade.Time.Date.AddHours(9))
                                 {
                                     continue;
                                 }
                             }
                             else
                             {
-                                if (trade.Time < DateTime.Today.AddHours(7))
+                                if (trade.Time < trade.Time.Date.AddHours(7))
                                 {
                                     continue;
                                 }

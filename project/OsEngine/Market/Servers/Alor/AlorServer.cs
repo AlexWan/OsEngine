@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers.Alor
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "1", "10", "20"});
-            CreateParameterBoolean("Ignore morning auction trades", false);
+            CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, false);
         }
     }
 
@@ -1688,7 +1688,7 @@ namespace OsEngine.Market.Servers.Alor
 
             }
 
-            if (_ignoreMorningAuctionTrades && DateTime.Now.Hour < 9) // process only mornings
+            if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9) // process only mornings
             {
                 Security security = _subscribedSecurities[0];
                 for (int i = 0; i < _subscribedSecurities.Count; i++)
@@ -1702,14 +1702,14 @@ namespace OsEngine.Market.Servers.Alor
 
                 if (security.SecurityType == SecurityType.Futures)
                 {
-                    if (trade.Time < DateTime.Today.AddHours(9))
+                    if (trade.Time < trade.Time.Date.AddHours(9))
                     {
                         return;
                     }
                 }
                 else
                 {
-                    if (trade.Time < DateTime.Today.AddHours(7))
+                    if (trade.Time < trade.Time.Date.AddHours(7))
                     {
                         return;
                     }

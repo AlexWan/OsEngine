@@ -1295,5 +1295,10 @@ namespace OsEngine.Language
 
 
         );
+        public string IgnoreMorningAuctionTrades => OsLocalization.ConvertToLocString(
+            "Eng:Ignore morning auction trades_" +
+            "Ru:Игнорировать сделки утреннего аукциона_");
+
+
     }
 }
