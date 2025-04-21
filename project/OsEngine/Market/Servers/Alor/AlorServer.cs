@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers.Alor
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterEnum(OsLocalization.Market.ServerParam13, "10", new List<string> { "1", "10", "20"});
-            CreateParameterBoolean("Ignore morning auction trades", false);
+            CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, false);
         }
     }
 

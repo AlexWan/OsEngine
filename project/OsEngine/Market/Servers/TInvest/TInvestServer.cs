@@ -37,7 +37,7 @@ namespace OsEngine.Market.Servers.TInvest
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterBoolean("Filter out non-market data (holiday trading)", true);
             CreateParameterBoolean("Filter out dealer trades", false);
-            CreateParameterBoolean("Ignore morning auction trades", true);
+            CreateParameterBoolean(OsLocalization.Market.IgnoreMorningAuctionTrades, true);
         }
     }
 
