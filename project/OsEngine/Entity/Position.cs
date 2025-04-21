@@ -531,7 +531,15 @@ namespace OsEngine.Entity
 
             if (openOrder != null)
             {
-               if (openOrder.State != OrderStateType.Done 
+                if (newOrder.State == OrderStateType.Fail &&
+                   (openOrder.State == OrderStateType.Partial
+                   || openOrder.State == OrderStateType.Done))
+                {// the order was definitely previously placed on the exchange
+                 // and received the statuses executed.
+                    return;
+                }
+
+                if (openOrder.State != OrderStateType.Done 
                     || openOrder.Volume != openOrder.VolumeExecute)    //AVP 
                 {
                     openOrder.State = newOrder.State;     //AVP 
