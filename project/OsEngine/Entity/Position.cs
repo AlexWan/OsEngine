@@ -533,7 +533,8 @@ namespace OsEngine.Entity
             {
                 if (newOrder.State == OrderStateType.Fail &&
                    (openOrder.State == OrderStateType.Partial
-                   || openOrder.State == OrderStateType.Done))
+                   || openOrder.State == OrderStateType.Done
+                   || openOrder.State == OrderStateType.Cancel))
                 {// the order was definitely previously placed on the exchange
                  // and received the statuses executed.
                     return;
