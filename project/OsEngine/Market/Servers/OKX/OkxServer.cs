@@ -383,6 +383,9 @@ namespace OsEngine.Market.Servers.OKX
                     security.DecimalsVolume = volStep.Split('.')[1].Length;
                 }
 
+                security.MinTradeAmountType = MinTradeAmountType.Contract;
+                security.MinTradeAmount = item.minSz.ToDecimal();
+                security.VolumeStep = item.lotSz.ToDecimal();
                 security.Name = item.instId;
                 security.NameFull = item.instId;
 
