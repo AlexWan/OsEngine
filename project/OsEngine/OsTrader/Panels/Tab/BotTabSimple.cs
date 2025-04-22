@@ -814,26 +814,10 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             get
             {
-                try
-                {
-                    if (_connector == null)
-                    {
-                        return null;
-                    }
-                    if (_security == null ||
-                        _security.Name != _connector.SecurityName)
-                    {
-                        _security = _connector.Security;
-                    }
-                    return _security;
-                }
-                catch
-                {
-                    return null;
-                }
+                return Security;
             }
 
-            set { _security = value; }
+            set { Security = value; }
         }
 
         /// <summary>
