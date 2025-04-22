@@ -957,6 +957,11 @@ colum12.HeaderText = "Delete";
             row.Cells.Add(new DataGridViewButtonCell()); //"Delete";
             row.Cells[11].Value = OsLocalization.Data.Label41;
 
+            for (int i = 0; i < row.Cells.Count; i++)
+            {
+                row.Cells[i].Style.BackColor = System.Drawing.Color.FromArgb(9, 11, 13);
+            }
+
             return row;
         }
 
