@@ -535,6 +535,7 @@ namespace OsEngine.Market.Servers.Bybit
                             security.Name = oneSec.symbol;
                             security.NameId = oneSec.symbol;
                             security.NameClass = oneSec.quoteCoin;
+                            security.MinTradeAmount = oneSec.lotSizeFilter.minOrderAmt.ToDecimal();
                         }
                         else if (category == Category.linear)
                         {
@@ -549,12 +550,15 @@ namespace OsEngine.Market.Servers.Bybit
                             {
                                 security.NameClass = oneSec.contractType;
                             }
+
+                            security.MinTradeAmount = oneSec.lotSizeFilter.minNotionalValue.ToDecimal();
                         }
                         else if (category == Category.inverse)
                         {
                             security.Name = oneSec.symbol + ".I";
                             security.NameId = oneSec.symbol + ".I";
                             security.NameClass = oneSec.contractType;
+                            security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
                         }
                         else
                         {
@@ -566,10 +570,10 @@ namespace OsEngine.Market.Servers.Bybit
 
                         security.PriceStep = oneSec.priceFilter.tickSize.ToDecimal();
                         security.PriceStepCost = oneSec.priceFilter.tickSize.ToDecimal();
-                        security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+
                         security.MinTradeAmountType = MinTradeAmountType.C_Currency;
 
-                        if(oneSec.lotSizeFilter.qtyStep != null)
+                        if (oneSec.lotSizeFilter.qtyStep != null)
                         {
                             security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.qtyStep);
                             security.VolumeStep = oneSec.lotSizeFilter.qtyStep.ToDecimal();
