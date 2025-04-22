@@ -135,13 +135,29 @@ namespace OsEngine.Entity
         }
 
         /// <summary>
-        /// Order status: None, Pending, Done, Patrial, Fail
+        /// Order status: None, Pending, Done, Partial, Fail
         /// </summary>
         public OrderStateType State 
         {
             get { return _state; }
             set
             {
+                if(value == OrderStateType.Fail 
+                    && _trades != null 
+                    && _trades.Count > 1)
+                {
+                    return;
+                }
+
+                if (value == OrderStateType.Fail
+                    && 
+                    (State == OrderStateType.Done 
+                    || State == OrderStateType.Partial
+                    || State == OrderStateType.Cancel))
+                {
+                    return;
+                }
+
                 _state = value;
             } 
         }
@@ -289,6 +305,11 @@ namespace OsEngine.Entity
             if (Volume == VolumeExecute)
             {
                 State = OrderStateType.Done;
+            }
+
+            if(State == OrderStateType.Fail)
+            {
+                State = OrderStateType.Partial;
             }
         }
 
