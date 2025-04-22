@@ -198,55 +198,65 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
-                string JsonResponse = responseMessage.Content;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    UpdateSecurity(JsonResponse);
+                    ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(responseMessage.Content);
+
+                    List<Security> securities = new List<Security>();
+
+                    if (response.status == "ok")
+                    {
+                        for (int i = 0; i < response.data.Count; i++)
+                        {
+                            ResponseMessageSecurities.Data item = response.data[i];
+
+                            if (item.state == "online")
+                            {
+                                Security newSecurity = new Security();
+
+                                newSecurity.Exchange = ServerType.HTXSpot.ToString();
+                                newSecurity.Name = item.symbol;
+                                newSecurity.NameFull = item.symbol;
+                                newSecurity.NameClass = item.qc;
+                                newSecurity.NameId = item.symbol;
+                                newSecurity.SecurityType = SecurityType.CurrencyPair;
+                                newSecurity.DecimalsVolume = Convert.ToInt32(item.ap);
+                                newSecurity.Lot = 1;
+                                newSecurity.VolumeStep = GetDecimalsFromPrecision(Convert.ToInt32(item.ap));
+                                newSecurity.PriceStep = GetDecimalsFromPrecision(Convert.ToInt32(item.pp));
+                                newSecurity.Decimals = Convert.ToInt32(item.pp);
+                                newSecurity.PriceStepCost = newSecurity.PriceStep;
+                                newSecurity.State = SecurityStateType.Activ;
+                                newSecurity.MinTradeAmount = item.minov.ToDecimal();
+
+                                if (item.symbol == "btcusdt")
+                                {
+                                    newSecurity.MinTradeAmount = 10;
+                                }
+
+                                newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+
+                                securities.Add(newSecurity);
+                            }
+                        }
+
+                        SecurityEvent(securities);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetSecurities> error", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                    SendLogMessage($"GetSecurities>. Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
-        }
-
-        private void UpdateSecurity(string json)
-        {
-            ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(json); ;
-
-            List<Security> securities = new List<Security>();
-
-            for (int i = 0; i < response.data.Count; i++)
-            {
-                ResponseMessageSecurities.Data item = response.data[i];
-
-                if (item.state == "online")
-                {
-                    Security newSecurity = new Security();
-
-                    newSecurity.Exchange = ServerType.HTXSpot.ToString();
-                    newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.qc;
-                    newSecurity.NameId = item.symbol;
-                    newSecurity.SecurityType = SecurityType.CurrencyPair;
-                    newSecurity.DecimalsVolume = Convert.ToInt32(item.ap);
-                    newSecurity.Lot = GetDecimalsFromPrecision(Convert.ToInt32(item.ap));
-                    newSecurity.PriceStep = GetDecimalsFromPrecision(Convert.ToInt32(item.pp));
-                    newSecurity.Decimals = Convert.ToInt32(item.pp);
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.State = SecurityStateType.Activ;
-                    newSecurity.MinTradeAmount = item.minov.ToDecimal();
-
-                    securities.Add(newSecurity);
-                }
-            }
-            SecurityEvent(securities);
         }
 
         public event Action<List<Security>> SecurityEvent;
