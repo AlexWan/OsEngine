@@ -854,7 +854,7 @@ namespace OsEngine.Market.Servers.Miner
             {
                 timeFrame = TimeFrame.Hour4;
             }
-            else if (frameSpan == new TimeSpan(24, 0, 0, 0))
+            else if (frameSpan == new TimeSpan(1, 0, 0, 0))
             {
                 timeFrame = TimeFrame.Day;
             }

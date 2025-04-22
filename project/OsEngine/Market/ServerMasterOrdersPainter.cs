@@ -544,14 +544,16 @@ namespace OsEngine.Market
                     {
                         for (int i = 0; i < _orders.Count; i++)
                         {
-                            if (_orders[i].State == OrderStateType.Active &&
-                                !string.IsNullOrEmpty(_orders[i].PortfolioNumber))
+                            Order order = _orders[i];
+
+                            if (order.State == OrderStateType.Active &&
+                                !string.IsNullOrEmpty(order.PortfolioNumber))
                             {
-                                if (_orders[i].PortfolioNumber == "Emulator")
+                                if (order.PortfolioNumber == "Emulator")
                                 {
                                     if(RevokeOrderToEmulatorEvent != null)
                                     {
-                                        RevokeOrderToEmulatorEvent(_orders[i]);
+                                        RevokeOrderToEmulatorEvent(order);
                                     }
                                 }
                                 else
@@ -561,11 +563,22 @@ namespace OsEngine.Market
                                         continue;
                                     }
 
+                                    IServer server = null;
 
-                                    IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == _orders[i].ServerType);
+                                    if (string.IsNullOrEmpty(order.ServerName) == false)
+                                    {
+                                        server = ServerMaster.GetServers().Find(server1 =>
+                                        server1.ServerNameAndPrefix == order.ServerName);
+                                    }
+                                    else
+                                    {
+                                        server = ServerMaster.GetServers().Find(server1 =>
+                                        server1.ServerType == order.ServerType);
+                                    }
+
                                     if (server != null)
                                     {
-                                        server.CancelOrder(_orders[i]);
+                                        server.CancelOrder(order);
                                     }
                                 }
                             }
@@ -650,7 +663,19 @@ namespace OsEngine.Market
                         }
                         else
                         {
-                            IServer server = ServerMaster.GetServers().Find(server1 => server1.ServerType == order.ServerType);
+                            IServer server = null;
+
+                            if(string.IsNullOrEmpty(order.ServerName) == false)
+                            {
+                                server = ServerMaster.GetServers().Find(server1 => 
+                                server1.ServerNameAndPrefix == order.ServerName);
+                            }
+                            else
+                            {
+                                server = ServerMaster.GetServers().Find(server1 => 
+                                server1.ServerType == order.ServerType);
+                            }
+
                             if (server != null)
                             {
                                 server.CancelOrder(order);
