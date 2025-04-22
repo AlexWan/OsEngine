@@ -5,6 +5,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
 {
     public class ResponseMessageSecurities
     {
+        public string status { get; set; }
         public List<Data> data { get; set; }
 
         public class Data
