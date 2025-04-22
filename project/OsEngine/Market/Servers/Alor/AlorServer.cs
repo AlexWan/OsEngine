@@ -2439,7 +2439,7 @@ namespace OsEngine.Market.Servers.Alor
                 if(qty <= 0 ||
                     order.State != OrderStateType.Active)
                 {
-                    SendLogMessage("Can`t change price to order. It's not in Activ state", LogMessageType.Error);
+                    SendLogMessage("Can`t change price to order. It's not in Active state", LogMessageType.Error);
                     return;
                 }
 
