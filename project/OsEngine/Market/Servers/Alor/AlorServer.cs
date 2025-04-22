@@ -341,6 +341,7 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.Exchange = item.exchange;
                     newSecurity.DecimalsVolume = 0;
                     newSecurity.Lot = item.lotsize.ToDecimal();
+                    newSecurity.VolumeStep = 1;
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol + "_" + item.board;
 
