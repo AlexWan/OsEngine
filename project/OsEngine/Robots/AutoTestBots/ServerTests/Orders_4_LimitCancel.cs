@@ -291,7 +291,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
         List<Order> _ordersCancel = new List<Order>();
         List<Order> _ordersDone = new List<Order>();
         List<Order> _ordersFail = new List<Order>();
-        List<Order> _ordersPatrial = new List<Order>();
+        List<Order> _ordersPartial = new List<Order>();
         List<Order> _ordersPending = new List<Order>();
 
         private void ClearOrders()
@@ -300,7 +300,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             _ordersCancel.Clear();
             _ordersDone.Clear();
             _ordersFail.Clear();
-            _ordersPatrial.Clear();
+            _ordersPartial.Clear();
             _ordersPending.Clear();
         }
 
@@ -335,7 +335,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             }
             else if (order.State == OrderStateType.Partial)
             {
-                _ordersPatrial.Add(order);
+                _ordersPartial.Add(order);
             }
             else if (order.State == OrderStateType.Pending)
             {

@@ -788,10 +788,23 @@ namespace OsEngine.Market.Connectors
         {
             try
             {
+                if(_gridSecurities.Rows == null ||
+                    _gridSecurities.Rows.Count ==0)
+                {
+                    return;
+                }
+
                 _gridSecurities.ClearSelection();
 
                 int columnInd = e.ColumnIndex;
                 int rowInd = e.RowIndex;
+
+                if(columnInd < 0
+                    || rowInd < 0 
+                    || rowInd >= _gridSecurities.Rows.Count)
+                {
+                    return;
+                }
 
                 for (int i = 0; i < _gridSecurities.RowCount; i++)
                 {

@@ -1513,7 +1513,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             {
                 if (cexOrder.unfilled_amount.ToString().ToDecimal() > 0)
                 {
-                    order.State = cexOrder.amount == cexOrder.unfilled_amount ? OrderStateType.Activ : OrderStateType.Patrial;
+                    order.State = cexOrder.amount == cexOrder.unfilled_amount ? OrderStateType.Active : OrderStateType.Partial;
                 }
             }
 
