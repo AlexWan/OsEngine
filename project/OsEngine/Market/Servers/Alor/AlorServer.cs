@@ -2837,7 +2837,13 @@ namespace OsEngine.Market.Servers.Alor
             {
                 // /md/v2/Clients/MOEX/D39004/LKOH/trades?format=Simple
 
-                string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/" + security + "/trades?format=Simple";
+                string exchange = "MOEX";
+                if (portfolio.StartsWith("E"))
+                {
+                    exchange = "UNITED";
+                }
+
+                string endPoint = $"/md/v2/clients/{exchange}/{portfolio}/{security}/trades?format=Simple";
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
@@ -2846,7 +2852,6 @@ namespace OsEngine.Market.Servers.Alor
                 RestClient client = new RestClient(_restApiHost);
 
                 IRestResponse response = client.Execute(requestRest);
-
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
