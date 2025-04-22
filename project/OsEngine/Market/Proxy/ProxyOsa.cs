@@ -39,29 +39,40 @@ namespace OsEngine.Market.Proxy
 
         public int MaxConnectorsOnThisProxy = 5;
 
+        public string PingWebAddress = "https://www.moex.com";
+
         public List<ServerType> AllowConnection = new List<ServerType>();
 
         public List<string> UseConnection = new List<string>();
 
         public string GetStringToSave()
         {
-            string result = Ip + "%";
+            string result = IsOn + "%";
+            result += Prefix + "%";
+            result += Location + "%";
+            result += Ip + "%";
             result += Port + "%";
             result += UserName + "%";
             result += UserPassword + "%";
-            result += Location;
+            result += AutoPingLastStatus + "%";
+            result += PingWebAddress + "%";
+            result += MaxConnectorsOnThisProxy ;
 
             return result;
         }
 
         public void LoadFromString(string saveStr)
         {
-            Ip = saveStr.Split('%')[0];
-            Port = int.Parse(saveStr.Split('%')[1]);
-            UserName = saveStr.Split('%')[2];
-            UserPassword = saveStr.Split('%')[3];
-            Location = saveStr.Split('%')[4];
+            IsOn = Convert.ToBoolean(saveStr.Split('%')[0]);
+            Prefix = saveStr.Split('%')[1];
+            Location = saveStr.Split('%')[2];
+            Ip = saveStr.Split('%')[3];
+            Port = int.Parse(saveStr.Split('%')[4]);
+            UserName = saveStr.Split('%')[5];
+            UserPassword = saveStr.Split('%')[6];
+            AutoPingLastStatus = saveStr.Split('%')[7];
+            PingWebAddress = saveStr.Split('%')[8];
+            MaxConnectorsOnThisProxy = Convert.ToInt32(saveStr.Split('%')[9]);
         }
-
     }
 }

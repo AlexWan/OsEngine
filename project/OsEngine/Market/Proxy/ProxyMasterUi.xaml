@@ -5,20 +5,26 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Market.Proxy"
         mc:Ignorable="d"
-        Title="Proxy" Height="306" Width="598" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Proxy" Height="347" Width="652" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
-        <TabControl Foreground="Black" Margin="0,0,0,0">
-            <TabItem Name="TabItem1" Header=" Proxies ">
-                <Grid>
-                    <WindowsFormsHost x:Name="HostProxy" Foreground="Black" Margin="0,0,0,0"/>
-                </Grid>
-            </TabItem>
-            <TabItem Name="TabItem2" Header=" Logging ">
-                <Grid>
-                    <WindowsFormsHost Name="HostLog" Foreground="Black" Margin="0,0,0,0"/>
-                </Grid>
-            </TabItem>
-        </TabControl>
-
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="116"/>
+            <RowDefinition Height="229*"/>
+        </Grid.RowDefinitions>
+        <Rectangle Stroke="Black" Margin="3,3,3,3"/>
+        <Rectangle Stroke="Black" Margin="3,3,3,3" Grid.Column="1"/>
+        <CheckBox Content="Auto ping is on" HorizontalAlignment="Left" Margin="39,12,0,0" VerticalAlignment="Top"/>
+        <CheckBox Content="Auto location is on" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Margin="40,12,0,0"/>
+        <Button Content="Check ping" HorizontalAlignment="Right" Margin="0,12,30,0" VerticalAlignment="Top" Width="106"/>
+        <Button Content="Check location" HorizontalAlignment="Right" Margin="0,12,30,0" VerticalAlignment="Top" Width="106" Grid.Column="1"/>
+        <ComboBox HorizontalAlignment="Left" Margin="189,42,0,0" VerticalAlignment="Top" Width="106"/>
+        <Label Content="Ping minutes interval" HorizontalAlignment="Left" Margin="39,42,0,0" VerticalAlignment="Top" Width="145"/>
+        <Label Content="Ping last time" HorizontalAlignment="Left" Margin="39,70,0,0" VerticalAlignment="Top" Width="145"/>
+        <TextBox HorizontalAlignment="Left" Margin="189,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="106"/>
+        <WindowsFormsHost Margin="3,2,3,3" Grid.Row="1" Grid.ColumnSpan="2"/>
     </Grid>
 </Window>

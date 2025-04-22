@@ -329,9 +329,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             }
 
-            List<Security> securitiesHistorical = CreateHistoricalSecurities(secNonPerp);
+            //List<Security> securitiesHistorical = CreateHistoricalSecurities(secNonPerp);
 
-            _securities.AddRange(securitiesHistorical);
+            //_securities.AddRange(securitiesHistorical);
 
             if (SecurityEvent != null)
             {

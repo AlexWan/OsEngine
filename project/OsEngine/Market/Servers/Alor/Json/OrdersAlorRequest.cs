@@ -17,6 +17,7 @@ namespace OsEngine.Market.Servers.Alor.Json
         public string timeInForce = "OneDay";
         public string icebergFixed;
         public string icebergVariance;
+        public bool allowMargin = true; // allow marginal position
     }
 
     public class MarketOrderAlorRequest
@@ -27,6 +28,7 @@ namespace OsEngine.Market.Servers.Alor.Json
         public instrumentAlor instrument;
         public string comment; // user ID
         public User user;
+        public bool allowMargin = true; // allow marginal position
     }
 
     public class instrumentAlor

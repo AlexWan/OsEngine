@@ -19,9 +19,6 @@ using System.Windows.Shapes;
 
 namespace OsEngine.Market.Proxy
 {
-    /// <summary>
-    /// Interaction logic for ProxyUi.xaml
-    /// </summary>
     public partial class ProxyMasterUi : Window
     {
         public ProxyMasterUi()

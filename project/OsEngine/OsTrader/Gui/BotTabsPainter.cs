@@ -11,6 +11,7 @@ using OsEngine.Market;
 using System.Windows.Input;
 using OsEngine.Journal;
 using OsEngine.Logging;
+using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -1032,37 +1033,91 @@ colum9.HeaderText = "Journal";
 
         private void _master_UserClickOnPositionShowBotInTableEvent(string botTabName)
         {
-            if(_rowToPaintInOpenPoses != -1)
+            try
             {
-                return;
-            }
-
-            int botNum = 0;
-
-            bool findTheBot = false;
-
-            for(int i = 0;i < _master.PanelsArray.Count;i++)
-            {
-                for(int i2 = 0;i2 < _master.PanelsArray[i].TabsSimple.Count; i2++)
+                if (_rowToPaintInOpenPoses != -1)
                 {
-                    if (_master.PanelsArray[i].TabsSimple[i2].TabName == botTabName)
+                    return;
+                }
+
+                int botNum = 0;
+
+                bool findTheBot = false;
+
+                for (int i = 0; i < _master.PanelsArray.Count; i++)
+                {
+                    BotPanel curRobot = _master.PanelsArray[i];
+
+                    if (curRobot.TabsSimple != null)
                     {
-                        botNum = i;
-                        findTheBot = true;
+                        for (int i2 = 0; i2 < curRobot.TabsSimple.Count; i2++)
+                        {
+                            if (curRobot.TabsSimple[i2].TabName == botTabName)
+                            {
+                                botNum = i;
+                                findTheBot = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (curRobot.TabsScreener != null)
+                    {
+                        for (int i2 = 0; i2 < curRobot.TabsScreener.Count; i2++)
+                        {
+                            BotTabScreener screener = curRobot.TabsScreener[i2];
+
+                            for (int j = 0; j < screener.Tabs.Count; j++)
+                            {
+                                if (screener.Tabs[j].TabName == botTabName)
+                                {
+                                    botNum = i;
+                                    findTheBot = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (curRobot.TabsPair != null)
+                    {
+                        for (int i2 = 0; i2 < curRobot.TabsPair.Count; i2++)
+                        {
+                            BotTabPair pair = curRobot.TabsPair[i2];
+
+                            for (int j = 0; j < pair.Pairs.Count; j++)
+                            {
+                                if (pair.Pairs[j].Tab1.TabName == botTabName)
+                                {
+                                    botNum = i;
+                                    findTheBot = true;
+                                    break;
+                                }
+                                if (pair.Pairs[j].Tab2.TabName == botTabName)
+                                {
+                                    botNum = i;
+                                    findTheBot = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (findTheBot)
+                    {
                         break;
                     }
                 }
 
-                if(findTheBot)
+                if (findTheBot)
                 {
-                    break;
+                    _rowToPaintInOpenPoses = botNum;
+                    Task.Run(PaintPos);
                 }
             }
-
-            if(findTheBot)
+            catch (Exception error)
             {
-                _rowToPaintInOpenPoses = botNum;
-               Task.Run(PaintPos);
+                _master.SendNewLogMessage(error.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1072,25 +1127,33 @@ colum9.HeaderText = "Journal";
 
         private async void PaintPos()
         {
-            await Task.Delay(200);
-            ColoredRow(System.Drawing.Color.LightSlateGray);
-            await Task.Delay(600);
-            ColoredRow(_lastBackColor);
-            _rowToPaintInOpenPoses = -1;
+            try
+            {
+                await Task.Delay(200);
+                ColoredRow(System.Drawing.Color.LightSlateGray);
+                await Task.Delay(600);
+                ColoredRow(_lastBackColor);
+                _rowToPaintInOpenPoses = -1;
+            }
+            catch
+            {
+               // ignore
+            }
         }
 
         private void ColoredRow(System.Drawing.Color color)
         {
-            if (_grid.InvokeRequired)
-            {
-                _grid.Invoke(new Action<System.Drawing.Color>(ColoredRow), color);
-                return;
-            }
             try
             {
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action<System.Drawing.Color>(ColoredRow), color);
+                    return;
+                }
+
                 _lastBackColor = _grid.Rows[_rowToPaintInOpenPoses].Cells[0].Style.BackColor;
 
-                for(int i =0;i < 7;i++)
+                for (int i = 0; i < 7; i++)
                 {
                     _grid.Rows[_rowToPaintInOpenPoses].Cells[i].Style.BackColor = color;
                 }

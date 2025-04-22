@@ -1227,6 +1227,24 @@ namespace OsEngine.Entity
             }
         }
 
+        [Obsolete("Obsolete. Use ProfitPortfolioAbs")]
+        public decimal ProfitPortfolioPunkt
+        {
+            get
+            {
+                return ProfitPortfolioAbs;
+            }
+        }
+
+        [Obsolete("Obsolete. Use ProfitPortfolioPercent")]
+        public decimal ProfitOperationPersent
+        {
+            get
+            {
+                return ProfitPortfolioPercent;
+            }
+        }
+
         /// <summary>
         /// Determines whether the exchange supports multiple securities in one lot.
         /// </summary>
