@@ -162,7 +162,7 @@ namespace OsEngine.Robots.High_Frequency
                 if (poses[i].State == PositionStateType.Open ||
                     poses[i].State == PositionStateType.ClosingFail)
                 {
-                    if (poses[i].CloseActiv)
+                    if (poses[i].CloseActive)
                     {
                         continue;
                     }

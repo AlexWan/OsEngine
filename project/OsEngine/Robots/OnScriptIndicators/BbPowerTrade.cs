@@ -183,7 +183,7 @@ public class BbPowerTrade : BotPanel
     {
         if (position.State == PositionStateType.Closing ||
             position.State == PositionStateType.Opening ||
-            position.CloseActiv == true ||
+            position.CloseActive == true ||
             (position.CloseOrders != null && position.CloseOrders.Count > 0))
         {
             return;

@@ -266,7 +266,7 @@ namespace OsEngine.Robots.High_Frequency
                     || position.SignalTypeClose == "Stop")
                 {
                     // отзываем ордер на закрытие по профиту
-                    if (position.CloseActiv == true 
+                    if (position.CloseActive == true 
                         && position.SignalTypeClose != "Stop")
                     {
                         tab.CloseAllOrderToPosition(position);
@@ -274,7 +274,7 @@ namespace OsEngine.Robots.High_Frequency
 
                     position.SignalTypeClose = "Stop";
 
-                    if (position.CloseActiv == true)
+                    if (position.CloseActive == true)
                     {
                         return;
                     }

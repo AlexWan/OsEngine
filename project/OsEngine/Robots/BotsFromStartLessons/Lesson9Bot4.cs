@@ -161,7 +161,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             {
                 Position position = openPositions[i];
 
-                position.StopOrderIsActiv = false;
+                position.StopOrderIsActive = false;
             }
         }
 
@@ -293,7 +293,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             {
                 Position position = openPositions[i];
 
-                position.StopOrderIsActiv = false;
+                position.StopOrderIsActive = false;
             }
         }
 
@@ -425,7 +425,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             {
                 Position position = openPositions[i];
 
-                position.ProfitOrderIsActiv = false;
+                position.ProfitOrderIsActive = false;
             }
         }
 

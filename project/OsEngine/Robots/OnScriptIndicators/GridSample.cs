@@ -108,8 +108,8 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             Position pos = openPos[0];
 
-            if(pos.CloseActiv == true ||
-                pos.OpenActiv == true)
+            if(pos.CloseActive == true ||
+                pos.OpenActive == true)
             { // если какой-то ордер на открытие или закрытие активен
                 return;
             }

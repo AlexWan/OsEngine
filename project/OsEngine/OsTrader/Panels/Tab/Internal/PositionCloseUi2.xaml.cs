@@ -319,7 +319,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
                 return;
             }
 
-            if (Position.CloseActiv == true)
+            if (Position.CloseActive == true)
             {
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label227);
                 ui.ShowDialog();
@@ -335,7 +335,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
 
         private void ButtonCloseAtMarket_Click(object sender, RoutedEventArgs e)
         {
-            if (Position.CloseActiv == true)
+            if (Position.CloseActive == true)
             {
                 AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label227);
                 ui.ShowDialog();
@@ -603,7 +603,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                Position.ProfitOrderIsActiv = false;
+                Position.ProfitOrderIsActive = false;
                 Position.ProfitOrderPrice = 0;
                 Position.ProfitOrderRedLine = 0;
             }
@@ -617,7 +617,7 @@ namespace OsEngine.OsTrader.Panels.Tab.Internal
         {
             try
             {
-                Position.StopOrderIsActiv = false;
+                Position.StopOrderIsActive = false;
                 Position.StopOrderPrice = 0;
                 Position.StopOrderRedLine = 0;
             }

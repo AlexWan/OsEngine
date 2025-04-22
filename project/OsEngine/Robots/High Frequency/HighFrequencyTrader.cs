@@ -251,7 +251,7 @@ namespace OsEngine.Robots.High_Frequency
         /// </summary>
         void _tab_PositionClosingFailEvent(Position position)
         {
-            if (position.CloseActiv)
+            if (position.CloseActive)
             {
                 return;
             }

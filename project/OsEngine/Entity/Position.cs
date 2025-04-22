@@ -154,7 +154,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Are there any active orders to open a position
         /// </summary>
-        public bool OpenActiv
+        public bool OpenActive
         {
             get
             {
@@ -178,7 +178,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Are there any active orders to close a position
         /// </summary>
-        public bool CloseActiv
+        public bool CloseActive
         {
             get
             {
@@ -203,7 +203,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Whether stop is active
         /// </summary>
-        public bool StopOrderIsActiv;
+        public bool StopOrderIsActive;
 
         /// <summary>
         /// Order price stop order
@@ -223,7 +223,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Is a profit active order
         /// </summary>
-        public bool ProfitOrderIsActiv;
+        public bool ProfitOrderIsActive;
 
         /// <summary>
         /// Order price order profit
@@ -562,7 +562,7 @@ namespace OsEngine.Entity
 
                 if (openOrder.State == OrderStateType.Done 
                     && openOrder.TradesIsComing 
-                    && OpenVolume != 0 && !CloseActiv)
+                    && OpenVolume != 0 && !CloseActive)
                 {
                     State = PositionStateType.Open;
                 }
@@ -570,8 +570,8 @@ namespace OsEngine.Entity
                     && newOrder.VolumeExecute == 0 
                     && OpenVolume == 0
                     && MaxVolume == 0
-                    && CloseActiv == false
-                    && OpenActiv == false)
+                    && CloseActive == false
+                    && OpenActive == false)
                 {
                     State = PositionStateType.OpeningFail;
                 }
@@ -579,8 +579,8 @@ namespace OsEngine.Entity
                     && newOrder.VolumeExecute == 0 
                     && OpenVolume == 0
                     && MaxVolume == 0
-                    && CloseActiv == false
-                    && OpenActiv == false)
+                    && CloseActive == false
+                    && OpenActive == false)
                 {
                     State = PositionStateType.OpeningFail;
                 }
@@ -594,14 +594,14 @@ namespace OsEngine.Entity
                     && OpenVolume == 0 
                     && CloseOrders != null 
                     && CloseOrders.Count > 0
-                    && CloseActiv == false
-                    && OpenActiv == false)
+                    && CloseActive == false
+                    && OpenActive == false)
                 {
                     State = PositionStateType.Done;
                 }
                 else if (OpenVolume == 0 
-                    && CloseActiv == false 
-                    && OpenActiv == false)
+                    && CloseActive == false 
+                    && OpenActive == false)
                 {
                     State = PositionStateType.Done;
                 }
@@ -656,20 +656,20 @@ namespace OsEngine.Entity
                 }
 
                 if(OpenVolume == 0 
-                    && CloseActiv == false 
-                    && OpenActiv == false)
+                    && CloseActive == false 
+                    && OpenActive == false)
                 {
                     State = PositionStateType.Done;
                 }
                 else if (closeOrder.State == OrderStateType.Fail 
-                    && CloseActiv == false
+                    && CloseActive == false
                     && OpenVolume != 0)
                 {
                     //AlertMessageManager.ThrowAlert(null, "Fail", "");
                     State = PositionStateType.ClosingFail;
                 }
                 else if (closeOrder.State == OrderStateType.Cancel 
-                    && CloseActiv == false
+                    && CloseActive == false
                     && OpenVolume != 0)
                 {
                     // if not fully closed and this is the last order in the closing orders
@@ -738,7 +738,7 @@ namespace OsEngine.Entity
                             State = PositionStateType.Open;
                         }
                         else if (OpenVolume == 0 
-                            && OpenActiv == false && CloseActiv == false)
+                            && OpenActive == false && CloseActive == false)
                         {
                             curOrdOpen.TimeDone = trade.Time;
                             State = PositionStateType.Done;
@@ -760,7 +760,7 @@ namespace OsEngine.Entity
                         curOrdClose.SetTrade(trade);
 
                         if (OpenVolume == 0
-                            && OpenActiv == false && CloseActiv == false)
+                            && OpenActive == false && CloseActive == false)
                         {
                             State = PositionStateType.Done;
                             curOrdClose.TimeDone = trade.Time;
@@ -869,11 +869,11 @@ namespace OsEngine.Entity
 
             result.Append(Comment + "#");
 
-            result.Append(StopOrderIsActiv + "#");
+            result.Append(StopOrderIsActive + "#");
             result.Append(StopOrderPrice + "#");
             result.Append(StopOrderRedLine + "#");
 
-            result.Append(ProfitOrderIsActiv + "#");
+            result.Append(ProfitOrderIsActive + "#");
             result.Append(ProfitOrderPrice + "#");
 
             result.Append(Lots + "#");
@@ -940,11 +940,11 @@ namespace OsEngine.Entity
             Number = Convert.ToInt32(arraySave[6]);
             Comment = arraySave[7];
 
-            StopOrderIsActiv = Convert.ToBoolean(arraySave[8]);
+            StopOrderIsActive = Convert.ToBoolean(arraySave[8]);
             StopOrderPrice = arraySave[9].ToDecimal();
             StopOrderRedLine = arraySave[10].ToDecimal();
 
-            ProfitOrderIsActiv = Convert.ToBoolean(arraySave[11]);
+            ProfitOrderIsActive = Convert.ToBoolean(arraySave[11]);
             ProfitOrderPrice = arraySave[12].ToDecimal();
 
             Lots = arraySave[13].ToDecimal();
@@ -1227,24 +1227,6 @@ namespace OsEngine.Entity
             }
         }
 
-        [Obsolete("Obsolete. Use ProfitPortfolioAbs")]
-        public decimal ProfitPortfolioPunkt
-        {
-            get
-            {
-                return ProfitPortfolioAbs;
-            }
-        }
-
-        [Obsolete("Obsolete. Use ProfitPortfolioPercent")]
-        public decimal ProfitOperationPersent
-        {
-            get
-            {
-                return ProfitPortfolioPercent;
-            }
-        }
-
         /// <summary>
         /// Determines whether the exchange supports multiple securities in one lot.
         /// </summary>
@@ -1354,6 +1336,66 @@ namespace OsEngine.Entity
             }
 
         }
+
+        #region Obsolete
+
+        [Obsolete("Obsolete. Use ProfitPortfolioAbs")]
+        public decimal ProfitPortfolioPunkt
+        {
+            get
+            {
+                return ProfitPortfolioAbs;
+            }
+        }
+
+        [Obsolete("Obsolete. Use ProfitPortfolioPercent")]
+        public decimal ProfitOperationPersent
+        {
+            get
+            {
+                return ProfitPortfolioPercent;
+            }
+        }
+
+        [Obsolete("Obsolete. Use StopOrderIsActive")]
+        public bool StopOrderIsActiv
+        {
+            get
+            {
+                return StopOrderIsActive;
+            }
+            set
+            {
+                StopOrderIsActive = value;
+            }
+        }
+
+        [Obsolete("Obsolete. Use ProfitOrderIsActive")]
+        public bool ProfitOrderIsActiv
+        {
+            get { return ProfitOrderIsActive; }
+            set { ProfitOrderIsActive = value; }
+        }
+
+        [Obsolete("Obsolete. Use CloseActive")]
+        public bool CloseActiv
+        {
+            get
+            {
+                return CloseActive;
+            }
+        }
+
+        [Obsolete("Obsolete. Use OpenActive")]
+        public bool OpenActiv
+        {
+            get
+            {
+                return OpenActive;
+            }
+        }
+
+        #endregion
     }
 
     /// <summary>

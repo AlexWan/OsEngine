@@ -302,8 +302,8 @@ namespace OsEngine.Robots.TechSamples
                 return;
             }
 
-            if(pos.StopOrderIsActiv == true ||
-                pos.ProfitOrderIsActiv == true)
+            if(pos.StopOrderIsActive == true ||
+                pos.ProfitOrderIsActive == true)
             {
                 return;
             }

@@ -170,7 +170,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             // Profit by limit orders
 
-            if(position.CloseActiv == false)
+            if(position.CloseActive == false)
             {
                 decimal firstOrderPrice = 0;
                 decimal secondOrderPrice = 0;

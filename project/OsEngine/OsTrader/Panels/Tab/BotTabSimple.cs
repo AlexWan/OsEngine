@@ -3429,8 +3429,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                position.ProfitOrderIsActiv = false;
-                position.StopOrderIsActiv = false;
+                position.ProfitOrderIsActive = false;
+                position.StopOrderIsActive = false;
 
                 for (int i = 0; position.CloseOrders != null && i < position.CloseOrders.Count; i++)
                 {
@@ -3512,8 +3512,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                position.ProfitOrderIsActiv = false;
-                position.StopOrderIsActiv = false;
+                position.ProfitOrderIsActive = false;
+                position.StopOrderIsActive = false;
 
                 if (volume <= 0 || position.OpenVolume <= 0)
                 {
@@ -3794,7 +3794,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (position.StopOrderIsActiv &&
+                if (position.StopOrderIsActive &&
                     position.StopOrderPrice == priceActivation &&
                     position.StopOrderRedLine == priceActivation &&
                     position.StopIsMarket == true)
@@ -3809,12 +3809,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                position.StopOrderIsActiv = false;
+                position.StopOrderIsActive = false;
 
                 position.StopIsMarket = true;
                 position.StopOrderPrice = priceActivation;
                 position.StopOrderRedLine = priceActivation;
-                position.StopOrderIsActiv = true;
+                position.StopOrderIsActive = true;
 
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
@@ -3846,14 +3846,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceOrder">order price</param>
         public void CloseAtTrailingStop(Position position, decimal priceActivation, decimal priceOrder)
         {
-            if (position.StopOrderIsActiv &&
+            if (position.StopOrderIsActive &&
                 position.Direction == Side.Buy &&
                 position.StopOrderPrice > priceOrder)
             {
                 return;
             }
 
-            if (position.StopOrderIsActiv &&
+            if (position.StopOrderIsActive &&
                 position.Direction == Side.Sell &&
                 position.StopOrderPrice < priceOrder)
             {
@@ -3883,14 +3883,14 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="priceActivation">the price of the stop order, after reaching which the order is placed</param>
         public void CloseAtTrailingStopMarket(Position position, decimal priceActivation)
         {
-            if (position.StopOrderIsActiv &&
+            if (position.StopOrderIsActive &&
                 position.Direction == Side.Buy &&
                 position.StopOrderRedLine > priceActivation)
             {
                 return;
             }
 
-            if (position.StopOrderIsActiv &&
+            if (position.StopOrderIsActive &&
                 position.Direction == Side.Sell &&
                 position.StopOrderRedLine < priceActivation)
             {
@@ -3904,12 +3904,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
 
-            position.StopOrderIsActiv = false;
+            position.StopOrderIsActive = false;
 
             position.StopIsMarket = true;
             position.StopOrderPrice = priceActivation;
             position.StopOrderRedLine = priceActivation;
-            position.StopOrderIsActiv = true;
+            position.StopOrderIsActive = true;
 
             _chartMaster.SetPosition(_journal.AllPosition);
             _journal.PaintPosition(position);
@@ -3972,7 +3972,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (position.ProfitOrderIsActiv &&
+                if (position.ProfitOrderIsActive &&
                     position.ProfitOrderPrice == priceActivation &&
                     position.ProfitOrderRedLine == priceActivation &&
                     position.ProfitIsMarket == true)
@@ -3988,13 +3988,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                position.ProfitOrderIsActiv = false;
+                position.ProfitOrderIsActive = false;
 
                 position.ProfitOrderPrice = priceActivation;
                 position.ProfitOrderRedLine = priceActivation;
                 position.ProfitIsMarket = true;
 
-                position.ProfitOrderIsActiv = true;
+                position.ProfitOrderIsActive = true;
 
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
@@ -4077,8 +4077,8 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                position.StopOrderIsActiv = false;
-                position.ProfitOrderIsActiv = false;
+                position.StopOrderIsActive = false;
+                position.ProfitOrderIsActive = false;
 
 
                 if (position.OpenOrders != null &&
@@ -4678,7 +4678,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (position.StopOrderIsActiv &&
+                if (position.StopOrderIsActive &&
                     position.StopOrderPrice == priceOrder &&
                     position.StopOrderRedLine == priceActivate)
                 {
@@ -4723,7 +4723,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     priceOrder = priceActivate;
                 }
 
-                position.StopOrderIsActiv = false;
+                position.StopOrderIsActive = false;
 
                 if (StartProgram == StartProgram.IsOsOptimizer ||
                     StartProgram == StartProgram.IsTester)
@@ -4735,7 +4735,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     position.StopOrderPrice = priceOrder;
                 }
                 position.StopOrderRedLine = priceActivate;
-                position.StopOrderIsActiv = true;
+                position.StopOrderIsActive = true;
 
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
@@ -4768,7 +4768,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return;
                 }
 
-                if (position.ProfitOrderIsActiv &&
+                if (position.ProfitOrderIsActive &&
                     position.ProfitOrderPrice == priceOrder &&
                     position.ProfitOrderRedLine == priceActivate)
                 {
@@ -4814,7 +4814,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
 
-                position.ProfitOrderIsActiv = false;
+                position.ProfitOrderIsActive = false;
 
                 if (StartProgram == StartProgram.IsOsOptimizer ||
                     StartProgram == StartProgram.IsTester)
@@ -4827,7 +4827,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 position.ProfitOrderRedLine = priceActivate;
-                position.ProfitOrderIsActiv = true;
+                position.ProfitOrderIsActive = true;
 
                 _chartMaster.SetPosition(_journal.AllPosition);
                 _journal.PaintPosition(position);
@@ -4965,7 +4965,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         {
             try
             {
-                if (!position.StopOrderIsActiv && !position.ProfitOrderIsActiv)
+                if (!position.StopOrderIsActive && !position.ProfitOrderIsActive)
                 {
                     return false;
                 }
@@ -4977,14 +4977,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     return false;
                 }
 
-                if (position.StopOrderIsActiv)
+                if (position.StopOrderIsActive)
                 {
 
                     if (position.Direction == Side.Buy &&
                         position.StopOrderRedLine >= lastTrade)
                     {
-                        position.ProfitOrderIsActiv = false;
-                        position.StopOrderIsActiv = false;
+                        position.ProfitOrderIsActive = false;
+                        position.StopOrderIsActive = false;
 
                         if (string.IsNullOrEmpty(position.SignalTypeStop) == false)
                         {
@@ -5015,8 +5015,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (position.Direction == Side.Sell &&
                         position.StopOrderRedLine <= lastTrade)
                     {
-                        position.StopOrderIsActiv = false;
-                        position.ProfitOrderIsActiv = false;
+                        position.StopOrderIsActive = false;
+                        position.ProfitOrderIsActive = false;
 
                         if (string.IsNullOrEmpty(position.SignalTypeStop) == false)
                         {
@@ -5045,13 +5045,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     }
                 }
 
-                if (position.ProfitOrderIsActiv)
+                if (position.ProfitOrderIsActive)
                 {
                     if (position.Direction == Side.Buy &&
                         position.ProfitOrderRedLine <= lastTrade)
                     {
-                        position.StopOrderIsActiv = false;
-                        position.ProfitOrderIsActiv = false;
+                        position.StopOrderIsActive = false;
+                        position.ProfitOrderIsActive = false;
 
                         if (string.IsNullOrEmpty(position.SignalTypeProfit) == false)
                         {
@@ -5082,8 +5082,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (position.Direction == Side.Sell &&
                         position.ProfitOrderRedLine >= lastTrade)
                     {
-                        position.StopOrderIsActiv = false;
-                        position.ProfitOrderIsActiv = false;
+                        position.StopOrderIsActive = false;
+                        position.ProfitOrderIsActive = false;
 
                         if (string.IsNullOrEmpty(position.SignalTypeProfit) == false)
                         {
@@ -5318,7 +5318,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 Position position = positions[i];
 
-                if (position.CloseActiv)
+                if (position.CloseActive)
                 {
                     CloseAllOrderToPosition(position);
                     haveOpenOrders = true;
@@ -5989,7 +5989,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
 
             if (trades == null ||
-                trades.Count == 0)
+                trades.Count == 0 ||
+                trades[trades.Count - 1] == null)
             {
                 return;
             }
@@ -6074,6 +6075,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                         {
                             try
                             {
+                                if (trades[i] == null)
+                                {
+                                    continue;
+                                }
+
                                 if (trades[i].Time < _lastTradeTime)
                                 {
                                     continue;
@@ -6153,8 +6159,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 for (int i = 0; i < openPositions.Count; i++)
                 {
-                    if (openPositions[i].StopOrderIsActiv == false &&
-                        openPositions[i].ProfitOrderIsActiv == false)
+                    if (openPositions[i].StopOrderIsActive == false &&
+                        openPositions[i].ProfitOrderIsActive == false)
                     {
                         continue;
                     }

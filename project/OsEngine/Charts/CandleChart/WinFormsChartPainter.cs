@@ -2088,7 +2088,7 @@ namespace OsEngine.Charts.CandleChart
                         || deals[i].State == PositionStateType.Opening
                         || deals[i].State == PositionStateType.Open) 
                         &&
-                        deals[i].StopOrderIsActiv)
+                        deals[i].StopOrderIsActive)
                     {
                         Series lineSeries = new Series("Stop_" + deals[i].Number);
                         lineSeries.ChartType = SeriesChartType.StepLine;
@@ -2137,7 +2137,7 @@ namespace OsEngine.Charts.CandleChart
                         || deals[i].State == PositionStateType.Opening
                         || deals[i].State == PositionStateType.Open) 
                         &&
-                        deals[i].ProfitOrderIsActiv)
+                        deals[i].ProfitOrderIsActive)
                     {
                         Series lineSeries = new Series("Profit_" + deals[i].Number);
                         lineSeries.ChartType = SeriesChartType.Line;

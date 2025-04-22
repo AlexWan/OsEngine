@@ -175,7 +175,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             // Average by limit orders
 
-            if (position.OpenActiv == false)
+            if (position.OpenActive == false)
             {
                 decimal firstOrderPrice = 0;
                 decimal secondOrderPrice = 0;

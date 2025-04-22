@@ -196,7 +196,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 }
             }
 
-            if (position.CloseActiv == false &&
+            if (position.CloseActive == false &&
                 (position.CloseOrders == null ||
                  executeCloseOrdersCount == 0))
             {// First Exit
@@ -204,14 +204,14 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 decimal orderPrice = position.EntryPrice + position.EntryPrice * (ExitOnePercent.ValueDecimal/100);
                 _tab.CloseAtLimit(position, orderPrice, position.MaxVolume / 3);
             }
-            else if(position.CloseActiv == false &&
+            else if(position.CloseActive == false &&
                 executeCloseOrdersCount == 1)
             { // Second Exit
 
                 decimal orderPrice = position.EntryPrice + position.EntryPrice * (ExitTwoPercent.ValueDecimal / 100);
                 _tab.CloseAtLimit(position, orderPrice, position.MaxVolume / 3);
             }
-            else if (position.CloseActiv == false &&
+            else if (position.CloseActive == false &&
                 executeCloseOrdersCount == 2)
             { // Third exit
 

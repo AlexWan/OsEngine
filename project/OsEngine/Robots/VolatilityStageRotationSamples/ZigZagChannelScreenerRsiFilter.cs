@@ -373,7 +373,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             if(zigZagUpLine != 0 &&
                 lastCandleClose > zigZagUpLine)
             {
-                position.StopOrderIsActiv = false;
+                position.StopOrderIsActive = false;
             }
         }
 

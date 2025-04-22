@@ -197,7 +197,7 @@ namespace OsEngine.Robots.Screeners
                     || position.SignalTypeClose == "Stop")
                 {
                     // отзываем ордер на закрытие по профиту
-                    if (position.CloseActiv == true
+                    if (position.CloseActive == true
                         && position.SignalTypeClose != "Stop")
                     {
                         tab.CloseAllOrderToPosition(position);
@@ -205,7 +205,7 @@ namespace OsEngine.Robots.Screeners
 
                     position.SignalTypeClose = "Stop";
 
-                    if (position.CloseActiv == true)
+                    if (position.CloseActive == true)
                     {
                         return;
                     }

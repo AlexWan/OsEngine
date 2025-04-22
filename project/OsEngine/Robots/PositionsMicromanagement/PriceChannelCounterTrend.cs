@@ -183,7 +183,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
 
             if (position.SignalTypeOpen == "First"
-                && position.CloseActiv == false)
+                && position.CloseActive == false)
             {
                 decimal price = 0;
 
@@ -201,7 +201,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
 
             if (position.SignalTypeOpen == "Second"
-                && position.CloseActiv == false)
+                && position.CloseActive == false)
             {
                 decimal price = 0;
 

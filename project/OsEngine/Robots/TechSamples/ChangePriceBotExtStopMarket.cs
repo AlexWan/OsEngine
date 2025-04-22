@@ -137,7 +137,7 @@ namespace OsEngine.Robots.TechSamples
 
         private void ClosePositionAtStopAndProfit(Position pos)
         {
-            if(pos.StopOrderIsActiv == true)
+            if(pos.StopOrderIsActive == true)
             {
                 return;
             }

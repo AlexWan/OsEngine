@@ -361,7 +361,7 @@ namespace OsEngine.Robots.TechSamples
             _signalBuyClose = lastCandle.Low > candles[candles.Count - 2].Low;
 
 
-            if (pos.StopOrderIsActiv == true)
+            if (pos.StopOrderIsActive == true)
             {
                 return;
             }
