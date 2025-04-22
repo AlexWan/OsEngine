@@ -120,7 +120,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 if (((ServerParameterEnum)ServerParameters[2]).Value == "USDT-M")
                 {
                     _baseUrl = "https://testnet.binancefuture.com";
-                    wss_point = "wss://testnet.binancefuture.com/ws-fapi/v1";
+                    wss_point = "wss://stream.binancefuture.com";
                     type_str_selector = "fapi";
                 }
                 else if (((ServerParameterEnum)ServerParameters[2]).Value == "COIN-M")

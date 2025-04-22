@@ -29,8 +29,9 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
-            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
+            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });            
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
+            CreateParameterEnum("Demo Mode", "Off", new List<string> { "Off", "On" });
         }
     }
 
@@ -91,6 +92,15 @@ namespace OsEngine.Market.Servers.OKX
             }
 
             _useOptions = ((ServerParameterBool)ServerParameters[5]).Value;
+
+            if (((ServerParameterEnum)ServerParameters[6]).Value == "Off")
+            {
+                _demoMode = false;
+            }
+            else
+            {
+                _demoMode = true;
+            }
 
             try
             {
@@ -186,12 +196,17 @@ namespace OsEngine.Market.Servers.OKX
 
         private string _webSocketUrlPrivate = "wss://ws.okx.com:8443/ws/v5/private";
 
+        private string _webSocketUrlPublicDemo = "wss://wspap.okx.com:8443/ws/v5/public";
+
+        private string _webSocketUrlPrivateDemo = "wss://wspap.okx.com:8443/ws/v5/private";
+
         private bool _hedgeMode;
 
         private string _marginMode;
 
         private bool _useOptions;
 
+        private bool _demoMode;
 
         #endregion
 
@@ -829,6 +844,12 @@ namespace OsEngine.Market.Servers.OKX
             try
             {
                 WebSocket webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
+
+                if (_demoMode)
+                {
+                    webSocketPublicNew = new WebSocket(_webSocketUrlPublicDemo);
+                }
+
                 webSocketPublicNew.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Ssl3
                     | System.Security.Authentication.SslProtocols.Tls11
@@ -843,7 +864,7 @@ namespace OsEngine.Market.Servers.OKX
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
                 webSocketPublicNew.Connect();
 
-                return webSocketPublicNew;
+                return webSocketPublicNew;               
             }
             catch (Exception exception)
             {
@@ -862,6 +883,12 @@ namespace OsEngine.Market.Servers.OKX
                 }
 
                 _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+
+                if (_demoMode)
+                {
+                    _webSocketPrivate = new WebSocket(_webSocketUrlPrivateDemo);
+                }
+
                 _webSocketPrivate.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Ssl3
                    | System.Security.Authentication.SslProtocols.Tls11
@@ -1012,7 +1039,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             string url = $"{_baseUrl}{"/api/v5/account/set-position-mode"}";
             string bodyStr = JsonConvert.SerializeObject(requestParams);
-            HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr));
+            HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr, _demoMode));
 
             HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
             string contentStr = res.Content.ReadAsStringAsync().Result;
@@ -2279,7 +2306,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2333,7 +2360,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2376,7 +2403,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/cancel-order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2669,7 +2696,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public HttpResponseMessage GetPrivateRequest(string url)
         {
-            HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null));
+            HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null, _demoMode));
             return _client.GetAsync(url).Result;
         }
 
