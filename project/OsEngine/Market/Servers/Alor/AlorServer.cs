@@ -341,6 +341,7 @@ namespace OsEngine.Market.Servers.Alor
                     newSecurity.Exchange = item.exchange;
                     newSecurity.DecimalsVolume = 0;
                     newSecurity.Lot = item.lotsize.ToDecimal();
+                    newSecurity.VolumeStep = 1;
                     newSecurity.Name = item.symbol;
                     newSecurity.NameFull = item.symbol + "_" + item.board;
 
@@ -2439,7 +2440,7 @@ namespace OsEngine.Market.Servers.Alor
                 if(qty <= 0 ||
                     order.State != OrderStateType.Active)
                 {
-                    SendLogMessage("Can`t change price to order. It's not in Activ state", LogMessageType.Error);
+                    SendLogMessage("Can`t change price to order. It's not in Active state", LogMessageType.Error);
                     return;
                 }
 
@@ -2836,7 +2837,13 @@ namespace OsEngine.Market.Servers.Alor
             {
                 // /md/v2/Clients/MOEX/D39004/LKOH/trades?format=Simple
 
-                string endPoint = "/md/v2/clients/MOEX/" + portfolio + "/" + security + "/trades?format=Simple";
+                string exchange = "MOEX";
+                if (portfolio.StartsWith("E"))
+                {
+                    exchange = "UNITED";
+                }
+
+                string endPoint = $"/md/v2/clients/{exchange}/{portfolio}/{security}/trades?format=Simple";
 
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
@@ -2845,7 +2852,6 @@ namespace OsEngine.Market.Servers.Alor
                 RestClient client = new RestClient(_restApiHost);
 
                 IRestResponse response = client.Execute(requestRest);
-
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
