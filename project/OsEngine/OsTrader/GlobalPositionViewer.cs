@@ -52,15 +52,21 @@ namespace OsEngine.OsTrader
                     {
                         continue;
                     }
-
-                    if(_journals[i].Name == journal.Name)
+                    try
                     {
-                        return;
+                        if (_journals[i].Name == journal.Name)
+                        {
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                        continue;
                     }
                 }
 
                 _journals.Add(journal);
-
             }
             catch (Exception error)
             {
@@ -84,10 +90,18 @@ namespace OsEngine.OsTrader
                         continue;
                     }
 
-                    if (_journals[i].Name == journal.Name)
+                    try
                     {
-                        _journals.RemoveAt(i);
-                        return;
+                        if (_journals[i].Name == journal.Name)
+                        {
+                            _journals.RemoveAt(i);
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                        // ignore
+                        continue;
                     }
                 }
             }

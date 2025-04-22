@@ -55,11 +55,11 @@ namespace OsEngine.Market
                     {
                         continue;
                     }
-                    servers[i].NewOrderIncomeEvent -= _server_NewOrderIncomeEvent;
-                    servers[i].NewMyTradeEvent -= serv_NewMyTradeEvent;
+                    servers[i].NewOrderIncomeEvent -= server_NewOrderIncomeEvent;
+                    servers[i].NewMyTradeEvent -= server_NewMyTradeEvent;
 
-                    servers[i].NewOrderIncomeEvent += _server_NewOrderIncomeEvent;
-                    servers[i].NewMyTradeEvent += serv_NewMyTradeEvent;
+                    servers[i].NewOrderIncomeEvent += server_NewOrderIncomeEvent;
+                    servers[i].NewMyTradeEvent += server_NewMyTradeEvent;
                 }
                 catch
                 {
@@ -160,7 +160,7 @@ namespace OsEngine.Market
 
         public void InsertOrder(Order order)
         {
-            _server_NewOrderIncomeEvent(order);
+            server_NewOrderIncomeEvent(order);
         }
 
         #region работа потока прорисовывающего ордера
@@ -270,7 +270,7 @@ namespace OsEngine.Market
 
         private object _lockerOrders = new Object();
 
-        private void _server_NewOrderIncomeEvent(Order order)
+        private void server_NewOrderIncomeEvent(Order order)
         {
             if (order.ServerType == ServerType.Optimizer ||
                 order.ServerType == ServerType.Miner)
@@ -380,7 +380,7 @@ namespace OsEngine.Market
 
         private object _lockerTrades = new Object();
 
-        private void serv_NewMyTradeEvent(MyTrade trade)
+        private void server_NewMyTradeEvent(MyTrade trade)
         {
             if (_orders == null || _orders.Count == 0)
             {
