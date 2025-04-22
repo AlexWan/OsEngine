@@ -1035,7 +1035,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             XmlNode openEquity = root.SelectSingleNode("open_equity");
             XmlNode equity = root.SelectSingleNode("equity");
-            XmlNode block = root.SelectSingleNode("go");
+            XmlNode go = root.SelectSingleNode("go");
             XmlNode cover = root.SelectSingleNode("cover");
             XmlNode pnl = root.SelectSingleNode("unrealized_pnl");
 
@@ -1053,12 +1053,15 @@ namespace OsEngine.Market.Servers.Transaq
             }
             if (equity != null
                 && cover != null
-                && block != null)
+                && go != null)
             {
+                decimal allValue = equity.InnerText.ToDecimal();
+                decimal coverValue = cover.InnerText.ToDecimal();
+                decimal blockValue = go.InnerText.ToDecimal();
                 portfolio.ValueBlocked =
-                    (equity.InnerText.ToDecimal()
-                    - cover.InnerText.ToDecimal())
-                    + block.InnerText.ToDecimal();
+                    (allValue
+                    - coverValue)
+                    + blockValue;
             }
 
             if(pnl != null)
@@ -1075,17 +1078,7 @@ namespace OsEngine.Market.Servers.Transaq
                 portfolio.Number = client;
             }
 
-            // остатки по портфелю в валюте портфеля
-
-            XmlNode currencyPortfolio = root.SelectSingleNode("portfolio_currency");
-            XmlNode balance = currencyPortfolio.SelectSingleNode("cover");
-            string cr = currencyPortfolio.Attributes[0].Value;
-
-            PositionOnBoard posCur = new PositionOnBoard();
-            posCur.SecurityNameCode = cr;
-            posCur.PortfolioName = portfolio.Number;
-            posCur.ValueCurrent = balance.InnerText.ToDecimal();
-            portfolio.SetNewPosition(posCur);
+            List<decimal> coverByAllPositions = new List<decimal>();
 
             for (int i = 0; i < allSecurity.Count; i++)
             {
@@ -1100,6 +1093,9 @@ namespace OsEngine.Market.Servers.Transaq
                 XmlNode buyNode = node.SelectSingleNode("bought");
                 XmlNode sellNode = node.SelectSingleNode("sold");
                 XmlNode pnlPos = node.SelectSingleNode("unrealized_pnl");
+
+                XmlNode coverSec = node.SelectSingleNode("cover");
+                coverByAllPositions.Add(coverSec.InnerText.ToDecimal());
 
                 decimal lot = 1;
 
@@ -1129,6 +1125,31 @@ namespace OsEngine.Market.Servers.Transaq
 
                 portfolio.SetNewPosition(pos);
             }
+
+            // остатки по портфелю в валюте портфеля
+
+            XmlNode currencyPortfolio = root.SelectSingleNode("portfolio_currency");
+            XmlNode balance = currencyPortfolio.SelectSingleNode("cover");
+            string cr = currencyPortfolio.Attributes[0].Value;
+
+            PositionOnBoard posCur = new PositionOnBoard();
+            posCur.SecurityNameCode = cr;
+            posCur.PortfolioName = portfolio.Number;
+
+            if (coverByAllPositions.Count > 0)
+            {
+                decimal summCover = 0;
+
+                for (int i = 0; i < coverByAllPositions.Count; i++)
+                {
+                    summCover += coverByAllPositions[i];
+                }
+
+                decimal allValue = equity.InnerText.ToDecimal();
+                posCur.ValueCurrent = allValue - summCover;
+            }
+
+            portfolio.SetNewPosition(posCur);
 
             return portfolio;
         }
