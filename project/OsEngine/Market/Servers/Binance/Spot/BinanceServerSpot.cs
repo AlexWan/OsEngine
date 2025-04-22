@@ -203,19 +203,35 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 }
 
                 if (sec.filters.Count > 1 &&
-                   sec.filters[1] != null &&
-                   sec.filters[1].minQty != null)
+                   sec.filters[1] != null)
                 {
-                    decimal minQty = sec.filters[1].minQty.ToDecimal();
-
-                    security.Lot = 1;
-                    string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
-
-                    if (qtyInStr.Split('.').Length > 1)
+                    if (sec.filters[1].minQty != null)
                     {
-                        security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                        decimal minQty = sec.filters[1].minQty.ToDecimal();
+
+                        security.Lot = 1;
+                        string qtyInStr = minQty.ToStringWithNoEndZero().Replace(",", ".");
+
+                        if (qtyInStr.Split('.').Length > 1)
+                        {
+                            security.DecimalsVolume = qtyInStr.Split('.')[1].Length;
+                        }
+                    }
+
+                    if (sec.filters[1].stepSize != null)
+                    {
+                        security.VolumeStep = sec.filters[1].stepSize.ToDecimal();
                     }
                 }
+
+                if (sec.filters.Count > 1 &&
+                    sec.filters[6] != null &&
+                    sec.filters[6].minNotional != null)
+                {
+                    security.MinTradeAmount = sec.filters[6].minNotional.ToDecimal();
+                }
+
+                security.MinTradeAmountType = MinTradeAmountType.C_Currency;
 
                 security.State = SecurityStateType.Activ;
                 _securities.Add(security);
