@@ -13,16 +13,18 @@ namespace OsEngine.Market.Servers.OKX.Entity
         private string _passPhrase;
         private string _secret;
         private string _bodyStr;
+        private bool _demoMode;
 
         //Задерждка для рест запросов
         public RateGate _rateGateRest = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        public HttpInterceptor(string apiKey, string secret, string passPhrase, string bodyStr)
+        public HttpInterceptor(string apiKey, string secret, string passPhrase, string bodyStr, bool demoMode)
         {
             this._apiKey = apiKey;
             this._passPhrase = passPhrase;
             this._secret = secret;
             this._bodyStr = bodyStr;
+            this._demoMode = demoMode;
             InnerHandler = new HttpClientHandler();
         }
 
@@ -50,7 +52,15 @@ namespace OsEngine.Market.Servers.OKX.Entity
             request.Headers.Add("OK-ACCESS-SIGN", sign);
             request.Headers.Add("OK-ACCESS-TIMESTAMP", timeStamp.ToString());
             request.Headers.Add("OK-ACCESS-PASSPHRASE", this._passPhrase);
-            request.Headers.Add("x-simulated-trading", "0");
+
+            if (_demoMode)
+            {
+                request.Headers.Add("x-simulated-trading", "1");
+            }
+            else
+            {
+                request.Headers.Add("x-simulated-trading", "0");
+            }
 
             return base.SendAsync(request, cancellationToken);
         }
