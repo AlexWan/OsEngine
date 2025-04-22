@@ -2411,7 +2411,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (message.code.Equals("1"))
                 {
-                    CreateOrderFail(order);
+                    GetOrderStatus(order);
                     SendLogMessage($"CancelOrder - {message.data[0].sMsg}", LogMessageType.Error);
                 }
             }
