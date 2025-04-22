@@ -101,6 +101,10 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string minOrderQty { get; set; }
         public string qtyStep { get; set; }
         public string postOnlyMaxOrderQty { get; set; }
+        public string minOrderAmt { get; set; }
+        public string maxOrderAmt { get; set; }
+        public string maxMktOrderQty { get; set; }
+        public string minNotionalValue { get; set; }
     }
 
     public class PriceFilter
