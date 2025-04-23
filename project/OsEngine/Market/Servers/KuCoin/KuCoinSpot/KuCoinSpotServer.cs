@@ -232,11 +232,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                     if (string.IsNullOrEmpty(item.baseIncrement) == false)
                     {
                         newSecurity.DecimalsVolume = item.baseIncrement.DecimalsCount();
+                        newSecurity.VolumeStep = item.baseIncrement.ToDecimal();
                     }
 
                     newSecurity.PriceStep = item.priceIncrement.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
+                    newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                    newSecurity.MinTradeAmount = item.baseMinSize.ToDecimal();
+
                     securities.Add(newSecurity);
                 }
             }
@@ -1231,14 +1235,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 }
                 else
                 {
-                    CreateOrderFail(order);
+                    GetOrderStatus(order);
                     SendLogMessage($"Code: {stateResponse.code}\n"
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
             else
             {
-                CreateOrderFail(order);
+                GetOrderStatus(order);
                 SendLogMessage($"CancelOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                 if (stateResponse != null && stateResponse.code != null)
