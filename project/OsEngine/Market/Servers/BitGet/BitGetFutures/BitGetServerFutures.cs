@@ -260,7 +260,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                             newSecurity.Exchange = ServerType.BitGetFutures.ToString();
                             newSecurity.DecimalsVolume = Convert.ToInt32(item.volumePlace);
-                            newSecurity.Lot = GetVolumeStep(newSecurity.DecimalsVolume);
+                            newSecurity.Lot = 1;
                             newSecurity.Name = item.symbol;
                             newSecurity.NameFull = item.symbol;
                             newSecurity.NameClass = _listCoin[indCoin];
@@ -270,6 +270,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             newSecurity.PriceStep = priceStep;
                             newSecurity.PriceStepCost = priceStep;
                             newSecurity.State = SecurityStateType.Activ;
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                            newSecurity.MinTradeAmount = item.minTradeUSDT.ToDecimal();
+
+                            if (newSecurity.DecimalsVolume == 0)
+                            {
+                                newSecurity.VolumeStep = 1;
+                            }
+                            else
+                            {
+                                newSecurity.VolumeStep = item.minTradeNum.ToDecimal();
+                            }
 
                             securities.Add(newSecurity);
                         }
@@ -2136,14 +2147,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
                     else
                     {
-                        CreateOrderFail(order);
+                        GetOrderStatus(order);
                         SendLogMessage($"Code: {stateResponse.code}\n"
                             + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    CreateOrderFail(order);
+                    GetOrderStatus(order);
                     SendLogMessage($"Http State Code: {response.StatusCode}", LogMessageType.Error);
 
                     if (stateResponse != null && stateResponse.code != null)

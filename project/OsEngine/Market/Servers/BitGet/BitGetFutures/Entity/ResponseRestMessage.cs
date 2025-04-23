@@ -32,6 +32,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string volumePlace;
         public string sizeMultiplier;
         public string symbolType;
+        public string minTradeUSDT;
+        public string maxSymbolOrderNum;
+        public string maxProductOrderNum;
+        public string maxPositionNum;
         public string symbolStatus;
         public string offTime;
         public string limitOpenTime;
