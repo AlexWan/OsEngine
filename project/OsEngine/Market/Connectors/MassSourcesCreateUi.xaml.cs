@@ -167,9 +167,22 @@ namespace OsEngine.Market.Connectors
 
             ComboBoxTypeServer.SelectionChanged += ComboBoxTypeServer_SelectionChanged;
 
+            CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles;
+            CheckBoxSaveTradeArrayInCandle.Click += delegate (object sender, RoutedEventArgs args)
+            {
+                _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
+            };
+
             ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.Tick);
             ComboBoxCandleMarketDataType.Items.Add(CandleMarketDataType.MarketDepth);
             ComboBoxCandleMarketDataType.SelectedItem = SourcesCreator.CandleMarketDataType;
+            ComboBoxCandleMarketDataType.SelectionChanged += ComboBoxCandleMarketDataType_SelectionChanged;
+
+            if (SourcesCreator.CandleMarketDataType == CandleMarketDataType.MarketDepth)
+            {
+                CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
+                CheckBoxSaveTradeArrayInCandle.IsChecked = false;
+            }
 
             ComboBoxCommissionType.Items.Add(CommissionType.None.ToString());
             ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
@@ -178,13 +191,7 @@ namespace OsEngine.Market.Connectors
 
             TextBoxCommissionValue.Text = SourcesCreator.CommissionValue.ToString();
 
-            CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles;
 
-
-            CheckBoxSaveTradeArrayInCandle.Click += delegate (object sender, RoutedEventArgs args)
-            {
-                _saveTradesInCandles = CheckBoxSaveTradeArrayInCandle.IsChecked.Value;
-            };
 
             _saveTradesInCandles = SourcesCreator.SaveTradesInCandles;
 
@@ -390,6 +397,33 @@ namespace OsEngine.Market.Connectors
 
             return sec;
         }
+
+        private void ComboBoxCandleMarketDataType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                CandleMarketDataType currentDataType;
+
+                if (Enum.TryParse(ComboBoxCandleMarketDataType.SelectedValue.ToString(), out currentDataType))
+                {
+                    if (currentDataType == CandleMarketDataType.MarketDepth)
+                    {
+                        CheckBoxSaveTradeArrayInCandle.IsEnabled = false;
+                        CheckBoxSaveTradeArrayInCandle.IsChecked = false;
+                    }
+                    else
+                    {
+                        CheckBoxSaveTradeArrayInCandle.IsEnabled = true;
+                        CheckBoxSaveTradeArrayInCandle.IsChecked = SourcesCreator.SaveTradesInCandles;
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
 
         private void ComboBoxTypeServer_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {

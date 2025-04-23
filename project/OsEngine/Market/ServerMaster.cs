@@ -1063,6 +1063,11 @@ namespace OsEngine.Market
                 {
                     bool isInArray = false;
 
+                    if(string.IsNullOrEmpty(serverName))
+                    {
+                        serverName = type.ToString();
+                    }
+
                     for (int i = 0; i < _needServerNames.Count; i++)
                     {
                         if (_needServerNames[i] == serverName)

@@ -176,8 +176,6 @@ namespace OsEngine.OsTrader.Panels
 
         #endregion
 
-
-
         #region Stop-Limits
 
         private void UpdateTabsInStopLimitViewer()
