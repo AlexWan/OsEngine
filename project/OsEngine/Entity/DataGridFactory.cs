@@ -640,6 +640,7 @@ positionOpener.LifeTimeType
         {
             DataGridView newGrid = GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
+            newGrid.ScrollBars = ScrollBars.Vertical;
             newGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
             cell0.Style = newGrid.DefaultCellStyle;

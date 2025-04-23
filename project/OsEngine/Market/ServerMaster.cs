@@ -74,8 +74,6 @@ using OsEngine.Market.Servers.CoinEx.Futures;
 using OsEngine.Market.Servers.RSSNews;
 using OsEngine.Market.Servers.SmartLabNews;
 using OsEngine.Market.Servers.AE;
-using Grpc.Core;
-using System.Windows.Controls.Primitives;
 using OsEngine.Market.Proxy;
 using System.Net;
 

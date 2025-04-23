@@ -960,25 +960,22 @@ namespace OsEngine.Entity
             CommissionValue = arraySave[20].ToDecimal();
             Enum.TryParse(arraySave[21], out CommissionType);
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 22; i < arraySave.Length - 3; i++)
             {
-                if (arraySave.Length > 22 + i)
-                {
-                    string saveOrd = arraySave[22 + i];
-
-                    if(saveOrd.Split('@').Length < 3)
-                    {
-                        continue;
-                    }
-
-                    Order newOrder = new Order();
-                    newOrder.SetOrderFromString(saveOrd);
-                    AddNewCloseOrder(newOrder);
-                }
-                else
+                if(i == arraySave.Length - 3)
                 {
                     break;
                 }
+                string saveOrd = arraySave[i];
+
+                if (saveOrd.Split('@').Length < 3)
+                {
+                    continue;
+                }
+
+                Order newOrder = new Order();
+                newOrder.SetOrderFromString(saveOrd);
+                AddNewCloseOrder(newOrder);
             }
 
             if(arraySave[arraySave.Length - 3] == "True" 
