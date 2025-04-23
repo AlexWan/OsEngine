@@ -18,10 +18,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
     public class RestMessageSymbol
     {
         public string symbol;
+        public string baseCoin;
+        public string quoteCoin;  // "USDT"
+        public string minTradeAmount;
+        public string maxTradeAmount;
+        public string takerFeeRate;
+        public string makerFeeRate;
         public string quantityPrecision;
+        public string quotePrecision;
         public string pricePrecision;
         public string status;
-        public string quoteCoin;  // "USDT"
+        public string minTradeUSDT;
+        public string buyLimitPriceRatio;
+        public string sellLimitPriceRatio;
     }
 
     public class RestMessageAccount
