@@ -1447,6 +1447,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 if (response.status != "ok")
                 {
+                    GetOrderStatus(order);
                     SendLogMessage($"CancelOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
                 }
                 else

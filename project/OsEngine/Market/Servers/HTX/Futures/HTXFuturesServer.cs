@@ -235,23 +235,68 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     Security newSecurity = new Security();
 
                     newSecurity.Exchange = ServerType.HTXFutures.ToString();
-                    newSecurity.Name = JoinSecurityName(item.symbol, item.contract_type); 
+                    newSecurity.Name = JoinSecurityName(item.symbol, item.contract_type);
                     newSecurity.NameFull = item.contract_code;
                     newSecurity.NameClass = "Futures";
                     newSecurity.NameId = item.contract_code;
                     newSecurity.SecurityType = SecurityType.Futures;
-                    newSecurity.DecimalsVolume = item.contract_size.DecimalsCount();
-                    newSecurity.Lot = item.contract_size.ToDecimal();
+                    decimal contractSize = GetContractSize(item.symbol);
+
+                    newSecurity.DecimalsVolume = contractSize.ToString().DecimalsCount();
+                    newSecurity.Lot = 1;
                     newSecurity.PriceStep = item.price_tick.ToDecimal();
                     newSecurity.Decimals = item.price_tick.DecimalsCount();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
-                    newSecurity.MinTradeAmount = item.contract_size.ToDecimal();
+                    newSecurity.MinTradeAmount = contractSize;
+                    newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+
+                    if (newSecurity.DecimalsVolume == 0)
+                    {
+                        newSecurity.VolumeStep = 1;
+                    }
+                    else
+                    {
+                        newSecurity.VolumeStep = contractSize;
+                    }
 
                     securities.Add(newSecurity);
                 }
             }
             SecurityEvent(securities);
+        }
+
+        private decimal GetContractSize(string symbol)
+        {
+            try
+            {
+                string name = symbol + "-USDT";
+                string _baseUrl = "api.hbdm.com";
+
+                string url = $"https://{_baseUrl}/linear-swap-api/v1/swap_contract_info?contract_code={name}";
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+                string JsonResponse = responseMessage.Content;
+
+                if (!JsonResponse.Contains("error"))
+                {
+                    ResponseMessageSecurities response = JsonConvert.DeserializeObject<ResponseMessageSecurities>(JsonResponse);
+                    decimal contractSize = response.data[0].contract_size.ToDecimal();
+
+                    return contractSize;
+                }
+                else
+                {
+                    SendLogMessage($"GetContractSize> Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                }
+                return 0;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return 0;
+            }
         }
 
         private string JoinSecurityName(string symbol, string contractType)
@@ -1344,6 +1389,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                 if (response.status != "ok")
                 {
+                    GetOrderStatus(order);
                     SendLogMessage($"CancelOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
                 }
                 else
