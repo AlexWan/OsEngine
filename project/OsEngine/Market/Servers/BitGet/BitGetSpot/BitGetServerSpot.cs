@@ -212,16 +212,27 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                         newSecurity.Exchange = ServerType.BitGetSpot.ToString();
                         newSecurity.DecimalsVolume = Convert.ToInt32(item.quantityPrecision);
-                        newSecurity.Lot = GetVolumeStep(newSecurity.DecimalsVolume);
+                        newSecurity.Lot = 1;
                         newSecurity.Name = item.symbol;
                         newSecurity.NameFull = item.symbol;
-                        newSecurity.NameClass = "Spot"; //+ "_" + item.quoteCoin;
+                        newSecurity.NameClass = item.quoteCoin;
                         newSecurity.NameId = item.symbol;
                         newSecurity.SecurityType = SecurityType.CurrencyPair;
                         newSecurity.Decimals = Convert.ToInt32(item.pricePrecision);
                         newSecurity.PriceStep = priceStep;
                         newSecurity.PriceStepCost = priceStep;
                         newSecurity.State = SecurityStateType.Activ;
+                        newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                        newSecurity.MinTradeAmount = item.minTradeUSDT.ToDecimal();
+
+                        if (newSecurity.DecimalsVolume == 0)
+                        {
+                            newSecurity.VolumeStep = 1;
+                        }
+                        else
+                        {
+                            newSecurity.VolumeStep = GetVolumeStep(newSecurity.DecimalsVolume);
+                        }
 
                         securities.Add(newSecurity);
                     }
@@ -1635,14 +1646,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     }
                     else
                     {
-                        CreateOrderFail(order);
+                        GetOrderStatus(order);
                         SendLogMessage($"Code: {stateResponse.code}\n"
                             + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    CreateOrderFail(order);
+                    GetOrderStatus(order);
                     SendLogMessage($"Http State Code: {response.StatusCode}", LogMessageType.Error);
 
                     if (stateResponse != null && stateResponse.code != null)
