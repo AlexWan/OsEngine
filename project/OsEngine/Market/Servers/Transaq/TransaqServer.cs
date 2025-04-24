@@ -297,6 +297,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                 _depths?.Clear();
 
+                _depthsByBidAsk?.Clear();
+
                 _depths = null;
 
                 _allCandleSeries?.Clear();
@@ -316,6 +318,8 @@ namespace OsEngine.Market.Servers.Transaq
                 _unsignedSecurities = new List<Security>();
 
                 _mdQueue = new ConcurrentQueue<string>();
+
+                _bestBidAsk = new ConcurrentQueue<string>();
 
                 _myTradesQueue = new ConcurrentQueue<string>();
 
@@ -1731,29 +1735,53 @@ namespace OsEngine.Market.Servers.Transaq
                 board = "FUT";
             }
 
-            string cmd = "<command id=\"subscribe\">";
-            cmd += "<alltrades>";
-            cmd += "<security>";
-            cmd += "<board>" + board + "</board>";
-            cmd += "<seccode>" + security.Name + "</seccode>";
-            cmd += "</security>";
-            cmd += "</alltrades>";
-            cmd += "<quotes>";
-            cmd += "<security>";
-            cmd += "<board>" + board + "</board>";
-            cmd += "<seccode>" + security.Name + "</seccode>";
-            cmd += "</security>";
-            cmd += "</quotes>";
-            cmd += "</command>";
+            bool fullMarketDepthIsOn = ((ServerParameterBool)ServerParameters[18]).Value;
 
-            // sending command / отправка команды
-            string res = ConnectorSendCommand(cmd);
+            string cmd = "";
+
+           // if (fullMarketDepthIsOn == true)
+           // {
+                cmd = "<command id=\"subscribe\">";
+                cmd += "<alltrades>";
+                cmd += "<security>";
+                cmd += "<board>" + board + "</board>";
+                cmd += "<seccode>" + security.Name + "</seccode>";
+                cmd += "</security>";
+                cmd += "</alltrades>";
+                cmd += "<quotes>";
+                cmd += "<security>";
+                cmd += "<board>" + board + "</board>";
+                cmd += "<seccode>" + security.Name + "</seccode>";
+                cmd += "</security>";
+                cmd += "</quotes>";
+                cmd += "</command>";
+           /* }
+            else if(fullMarketDepthIsOn == false)
+            {
+                cmd = "<command id=\"subscribe\">";
+                cmd += "<alltrades>";
+                cmd += "<security>";
+                cmd += "<board>" + board + "</board>";
+                cmd += "<seccode>" + security.Name + "</seccode>";
+                cmd += "</security>";
+                cmd += "</alltrades>";
+                cmd += "<quotations>";
+                cmd += "<security>";
+                cmd += "<board>" + board + "</board>";
+                cmd += "<seccode>" + security.Name + "</seccode>";
+                cmd += "</security>";
+                cmd += "</quotations>";
+                cmd += "</command>";
+            }*/
+
+                // sending command / отправка команды
+                string res = ConnectorSendCommand(cmd);
 
             if (res != "<result success=\"true\"/>")
             {
                 if (counter >= 3)
                 {
-                    SendLogMessage("Subscrible security error " + security.Name + "   " + res, LogMessageType.Error);
+                    SendLogMessage("Subscribe security error " + security.Name + "   " + res, LogMessageType.Error);
                     return;
                 }
                 else
@@ -2066,6 +2094,10 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 _mdQueue.Enqueue(data);
                             }
+                            if (data.StartsWith("<quotations>"))
+                            {
+                                _bestBidAsk.Enqueue(data);
+                            }
                             else if (data.StartsWith("<alltrades>"))
                             {
                                 _tradesQueue.Enqueue(data);
@@ -2213,6 +2245,8 @@ namespace OsEngine.Market.Servers.Transaq
         private ConcurrentQueue<string> _tradesQueue = new ConcurrentQueue<string>();
 
         private ConcurrentQueue<string> _mdQueue = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _bestBidAsk = new ConcurrentQueue<string>();
 
         private ConcurrentQueue<string> _portfoliosQueue = new ConcurrentQueue<string>();
 
@@ -2526,6 +2560,16 @@ namespace OsEngine.Market.Servers.Transaq
                             List<Quote> quotes = _deserializer.Deserialize<List<Quote>>(new RestResponse() { Content = data });
 
                             UpdateMarketDepths(quotes);
+                        }
+                    }
+                    if (_bestBidAsk.IsEmpty == false)
+                    {
+                        string data = null;
+
+                        if (_bestBidAsk.TryDequeue(out data))
+                        {
+                            BidAsk quotes = _deserializer.Deserialize<BidAsk>(new RestResponse() { Content = data });
+                            UpdateBidAsk(quotes);
                         }
                     }
                     else
@@ -2857,6 +2901,151 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
+        private List<MdSaveObj> _depthsByBidAsk = new List<MdSaveObj>();
+
+        private void UpdateBidAsk(BidAsk quotes)
+        {
+            if(quotes.Offer == null
+               && quotes.Offerdepth == null
+               && quotes.Bid == null 
+               && quotes.Biddepth == null)
+            {
+                return;
+            }
+
+            if (quotes.Seccode == null
+                || quotes.SecId == null)
+            {
+                return;
+            }
+
+            MarketDepth needDepth = null;
+
+            if (quotes.Bid != null ||
+                quotes.Biddepth != null)
+            {
+                needDepth = null;
+                
+                for(int i = 0;i < _depthsByBidAsk.Count;i++)
+                {
+                    if (_depthsByBidAsk[i].SecurityNameCode == quotes.Seccode
+                        && _depthsByBidAsk[i].SecurityId == quotes.SecId)
+                    {
+                        needDepth = _depthsByBidAsk[i].MarketDepth;
+                    }
+                }
+
+                if (needDepth == null)
+                {
+                    needDepth = new MarketDepth();
+                    needDepth.SecurityNameCode = quotes.Seccode;
+
+                    MdSaveObj saveObj = new MdSaveObj();
+                    saveObj.MarketDepth = needDepth;
+                    saveObj.SecurityNameCode = quotes.Seccode;
+                    saveObj.SecurityId = quotes.SecId;
+
+                    _depthsByBidAsk.Add(saveObj);
+                }
+
+                if(needDepth.Bids == null 
+                    || needDepth.Bids.Count == 0)
+                {
+                    needDepth.Bids.Add(new MarketDepthLevel());
+                }
+
+                MarketDepthLevel bid = needDepth.Bids[0];
+
+                if(quotes.Biddepth != null)
+                {
+                    bid.Bid = quotes.Biddepth.ToDecimal();
+                }
+
+                if(quotes.Bid != null)
+                {
+                    bid.Price = quotes.Bid.ToDecimal();
+                }
+
+                if (bid.Price == 0)
+                {
+                    return;
+                }
+                if (bid.Bid == 0)
+                {
+                    bid.Bid = 1;
+                }
+            }
+            
+            if (quotes.Offer != null
+               || quotes.Offerdepth != null)
+            {
+                needDepth = null;
+
+                for (int i = 0; i < _depthsByBidAsk.Count; i++)
+                {
+                    if (_depthsByBidAsk[i].SecurityNameCode == quotes.Seccode
+                        && _depthsByBidAsk[i].SecurityId == quotes.SecId)
+                    {
+                        needDepth = _depthsByBidAsk[i].MarketDepth;
+                        break;
+                    }
+                }
+
+                if (needDepth == null)
+                {
+                    needDepth = new MarketDepth();
+                    needDepth.SecurityNameCode = quotes.Seccode;
+
+                    MdSaveObj saveObj = new MdSaveObj();
+                    saveObj.MarketDepth = needDepth;
+                    saveObj.SecurityNameCode = quotes.Seccode;
+                    saveObj.SecurityId = quotes.SecId;
+
+                    _depthsByBidAsk.Add(saveObj);
+                }
+
+                if (needDepth.Asks == null
+                   || needDepth.Asks.Count == 0)
+                {
+                    needDepth.Asks.Add(new MarketDepthLevel());
+                }
+
+                MarketDepthLevel ask = needDepth.Asks[0];
+
+                if(quotes.Offerdepth != null)
+                {
+                    ask.Ask = quotes.Offerdepth.ToDecimal();
+                }
+                if(quotes.Offer != null)
+                {
+                    ask.Price = quotes.Offer.ToDecimal();
+                }
+
+                if (ask.Price == 0)
+                {
+                    return;
+                }
+                if (ask.Ask == 0)
+                {
+                    ask.Ask = 1;
+                }
+            }
+
+            needDepth.Time = ServerTime == DateTime.MinValue ? TimeManager.GetExchangeTime("Russian Standard Time") : ServerTime;
+
+            if (needDepth.Time <= _lastMdTime)
+            {
+                needDepth.Time = _lastMdTime.AddTicks(1);
+            }
+
+            _lastMdTime = needDepth.Time;
+
+            if (MarketDepthEvent != null)
+            {
+                MarketDepthEvent(needDepth.GetCopy());
+            }
+        }
+
         private void UpdateTrades(List<TransaqEntity.Trade> trades)
         {
             for (int i = 0; i < trades.Count; i++)
@@ -3027,4 +3216,14 @@ namespace OsEngine.Market.Servers.Transaq
 
         #endregion
     }
+
+    public class MdSaveObj
+    {
+        public MarketDepth MarketDepth;
+
+        public string SecurityNameCode;
+
+        public string SecurityId;
+    }
+
 }

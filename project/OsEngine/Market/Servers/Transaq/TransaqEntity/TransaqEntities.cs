@@ -163,6 +163,41 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
 
     }
 
+    [XmlRoot(ElementName = "quotation")]
+    public sealed class BidAsk
+    {
+        [XmlElement(ElementName = "board")]
+        public string Board { get; set; }
+        [XmlElement(ElementName = "seccode")]
+        public string Seccode { get; set; }
+        [XmlElement(ElementName = "secid")]
+        public string SecId { get; set; }
+        [XmlElement(ElementName = "last")]
+        public string Last { get; set; }
+        [XmlElement(ElementName = "quantity")]
+        public string Quantity { get; set; }
+        [XmlElement(ElementName = "time")]
+        public string Time { get; set; }
+        [XmlElement(ElementName = "change")]
+        public string Change { get; set; }
+        [XmlElement(ElementName = "priceminusprevwaprice")]
+        public string Priceminusprevwaprice { get; set; }
+        [XmlElement(ElementName = "bid")]
+        public string Bid { get; set; }
+        [XmlElement(ElementName = "biddepth")]
+        public string Biddepth { get; set; }
+        [XmlElement(ElementName = "biddeptht")]
+        public string Biddeptht { get; set; }
+        [XmlElement(ElementName = "numbids")]
+        public string Numbids { get; set; }
+        [XmlElement(ElementName = "offerdepth")]
+        public string Offerdepth { get; set; }
+        [XmlElement(ElementName = "offerdeptht")]
+        public string Offerdeptht { get; set; }
+        [XmlAttribute(AttributeName = "offer")]
+        public string Offer { get; set; }
+    }
+
     [XmlRoot(ElementName = "order")]
     public class Order
     {
