@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
+using System;
 
 namespace OsEngine.Indicators
 {
@@ -35,7 +36,7 @@ namespace OsEngine.Indicators
                 return;
             }
 
-            _series.Values[index] = candles[index].High - _sma.DataSeries[0].Values[index];
+            _series.Values[index] = Math.Round(candles[index].High - _sma.DataSeries[0].Values[index],7);
         }
     }
 }

@@ -30,10 +30,6 @@ namespace OsEngine.Market
 
         private CultureInfo _currentCulture;
 
-        /// <summary>
-        /// incoming events. a new server has been deployed in server-master
-        /// входящее событие. В сервермастере был развёрнут новый сервер
-        /// </summary>
         private void ServerMaster_ServerCreateEvent(IServer server)
         {
             if (server.ServerType == ServerType.Optimizer)
@@ -69,10 +65,6 @@ namespace OsEngine.Market
             }
         }
 
-        /// <summary>
-        /// start drawing class control
-        /// начать прорисовывать контролы класса 
-        /// </summary>
         public void StartPaint()
         {
             if (_hostActiveOrders.Dispatcher.CheckAccess() == false)
@@ -100,10 +92,6 @@ namespace OsEngine.Market
             }
         }
 
-        /// <summary>
-        /// stop drawing class control
-        /// остановить прорисовку контролов класса 
-        /// </summary>
         public void StopPaint()
         {
 
@@ -163,7 +151,7 @@ namespace OsEngine.Market
             server_NewOrderIncomeEvent(order);
         }
 
-        #region работа потока прорисовывающего ордера
+        #region Drawing order thread
 
         private async void PainterThreadArea()
         {
@@ -258,7 +246,7 @@ namespace OsEngine.Market
 
         #endregion
 
-        #region Работа по прорисовке
+        #region Drawing work
 
         private DataGridView _gridActiveOrders;
 
@@ -693,10 +681,9 @@ namespace OsEngine.Market
 
         public event Action<Order> RevokeOrderToEmulatorEvent;
 
-
         #endregion
 
-        // log message
+        #region Drawing work
 
         private void SendNewLogMessage(string message, LogMessageType type)
         {
@@ -711,5 +698,7 @@ namespace OsEngine.Market
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        #endregion
     }
 }
