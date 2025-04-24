@@ -2094,7 +2094,7 @@ namespace OsEngine.Market.Servers.Transaq
                             {
                                 _mdQueue.Enqueue(data);
                             }
-                            if (data.StartsWith("<quotations>"))
+                            else if (data.StartsWith("<quotations>"))
                             {
                                 _bestBidAsk.Enqueue(data);
                             }
