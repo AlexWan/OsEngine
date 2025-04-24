@@ -295,6 +295,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     security.PriceStepCost = security.PriceStep;
                     security.SecurityType = SecurityType.CurrencyPair;
                     security.DecimalsVolume = Convert.ToInt32(current.quantityPrecision);
+                    security.MinTradeAmount = current.tradeMinUSDT.ToDecimal();
+                    security.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                    security.VolumeStep = current.size.ToDecimal();
 
                     securities.Add(security);
                 }
@@ -1536,7 +1539,15 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         break;
                 }
 
-                newOrder.NumberUser = Convert.ToInt32(responseOrder.o.c);
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(responseOrder.o.c);
+                }
+                catch
+                {
+                    // ignore
+                }
+
                 newOrder.NumberMarket = responseOrder.o.i.ToString();
                 newOrder.SecurityNameCode = responseOrder.o.s;
                 newOrder.SecurityClassCode = responseOrder.o.N;
@@ -1854,11 +1865,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     }
                     else
                     {
+                        GetOrderStatus(order);
                         SendLogMessage($"Order cancel error: code - {response.code} | message - {response.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
+                    GetOrderStatus(order);
                     SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
