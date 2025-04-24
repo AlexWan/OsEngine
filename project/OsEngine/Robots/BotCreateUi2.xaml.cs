@@ -5,17 +5,18 @@
 
 using OsEngine.Entity;
 using OsEngine.Language;
+using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace OsEngine.Robots
 {
@@ -24,15 +25,20 @@ namespace OsEngine.Robots
     /// </summary>
     public partial class BotCreateUi2 : Window
     {
-        StartProgram _startProgram;
+        private StartProgram _startProgram;
 
-        public BotCreateUi2(List<string> botsIncluded, List<string> botsFromScript, StartProgram startProgram)
+        private List<string> _names;
+
+        public BotCreateUi2(List<string> botsIncluded, 
+            List<string> botsFromScript, StartProgram startProgram, List<string> names)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
 
             _startProgram = startProgram;
+
+            _names = names;
 
             if (_startProgram == StartProgram.IsOsOptimizer)
             {
@@ -89,7 +95,7 @@ namespace OsEngine.Robots
             ComboBoxLockation.Items.Add(BotCreationType.Script.ToString());
             ComboBoxLockation.SelectedItem = BotCreationType.All.ToString();
 
-            ComboBoxLockation.SelectionChanged += ComboBoxLockation_SelectionChanged;
+            ComboBoxLockation.SelectionChanged += ComboBoxLocation_SelectionChanged;
 
             LabelLocation.Content = OsLocalization.Trader.Label295;
 
@@ -113,7 +119,7 @@ namespace OsEngine.Robots
 
         }
 
-        private void ComboBoxLockation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ComboBoxLocation_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateTable();
         }
@@ -151,57 +157,144 @@ namespace OsEngine.Robots
 
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            IsAccepted = true;
-
-            if (_startProgram != StartProgram.IsOsOptimizer)
+            try
             {
-                if (string.IsNullOrEmpty(TextBoxName.Text) == true)
+                if (_startProgram != StartProgram.IsOsOptimizer)
                 {
+                    if (string.IsNullOrEmpty(TextBoxName.Text) == true)
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label436);
+                        ui.ShowDialog();
+
+                        Thread worker = new Thread(PaintTextBoxBotName);
+                        worker.Start();
+                        return;
+                    }
+
+                    NameBot = TextBoxName.Text;
+
+                    NameBot = NameBot
+                        .Replace("/", "")
+                        .Replace("\\", "")
+                        .Replace("*", "")
+                        .Replace("-", "")
+                        .Replace("+", "")
+                        .Replace(":", "")
+                        .Replace("@", "")
+                        .Replace(";", "")
+                        .Replace("%", "")
+                        .Replace(">", "")
+                        .Replace("<", "")
+                        .Replace("^", "")
+                        .Replace("{", "")
+                        .Replace("}", "")
+                        .Replace("[", "")
+                        .Replace("]", "")
+                        .Replace("_", "")
+                        .Replace("`", "")
+                        .Replace("(", "")
+                        .Replace(")", "")
+                        .Replace("$", "")
+                        .Replace("#", "")
+                        .Replace("!", "")
+                        .Replace("&", "")
+                        .Replace("?", "")
+                        .Replace("=", "")
+                        .Replace(",", "")
+                        .Replace(".", "")
+                        .Replace("'", "")
+                        .Replace("|", "")
+                        .Replace("~", "")
+                        .Replace("№", "")
+                        .Replace("\"", "");
+                }
+
+                if (_names != null)
+                {
+                    for (int i = 0; i < _names.Count; i++)
+                    {
+                        if (_names[i] == NameBot)
+                        {
+                            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label436);
+                            ui.ShowDialog();
+
+                            Thread worker = new Thread(PaintTextBoxBotName);
+                            worker.Start();
+
+                            return;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(NameStrategy))
+                {
+                    CustomMessageBoxUi box = new CustomMessageBoxUi(OsLocalization.Trader.Label304);
+                    box.ShowDialog();
                     return;
                 }
 
-                NameBot = TextBoxName.Text;
+                IsAccepted = true;
 
-                NameBot = NameBot
-                    .Replace("/", "")
-                    .Replace("\\", "")
-                    .Replace("*", "")
-                    .Replace("-", "")
-                    .Replace("+", "")
-                    .Replace(":", "")
-                    .Replace("@", "")
-                    .Replace(";", "")
-                    .Replace("%", "")
-                    .Replace(">", "")
-                    .Replace("<", "")
-                    .Replace("^", "")
-                    .Replace("{", "")
-                    .Replace("}", "")
-                    .Replace("[", "")
-                    .Replace("]", "")
-                    .Replace("_", "")
-                    .Replace("`", "")
-                    .Replace("(", "")
-                    .Replace(")", "")
-                    .Replace("$", "")
-                    .Replace("#", "")
-                    .Replace("!", "")
-                    .Replace("&", "")
-                    .Replace("?", "")
-                    .Replace("=", "")
-                    .Replace(",", "")
-                    .Replace(".", "")
-                    .Replace("'", "")
-                    .Replace("|", "")
-                    .Replace("~", "")
-                    .Replace("№", "")
-                    .Replace("\"", "");
+                Close();
             }
-
-            Close();
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
-        DataGridView _grid;
+        private void PaintTextBoxBotName()
+        {
+            try
+            {
+                Thread.Sleep(50);
+                SetRedTextBoxBotName();
+                Thread.Sleep(500);
+                SetStandardColorTextBoxBotName();
+            }
+            catch (Exception ex)
+            {
+               ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
+        }
+
+        private void SetRedTextBoxBotName()
+        {
+            try
+            {
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(SetRedTextBoxBotName));
+                    return;
+                }
+
+                TextBoxName.Background = new SolidColorBrush(Colors.DarkOrange);
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void SetStandardColorTextBoxBotName()
+        {
+            try
+            {
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(SetStandardColorTextBoxBotName));
+                    return;
+                }
+
+                TextBoxName.Background = TextBoxSearchSecurity.Background;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private DataGridView _grid;
 
         private void CreateTable()
         {
@@ -209,8 +302,8 @@ namespace OsEngine.Robots
             _grid.ScrollBars = ScrollBars.Vertical;
 
             DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
-            _grid.DefaultCellStyle.SelectionBackColor = Color.Black;
-            _grid.DefaultCellStyle.SelectionForeColor = Color.FromArgb(255, 85, 0);
+            _grid.DefaultCellStyle.SelectionBackColor = System.Drawing.Color.Black;
+            _grid.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
 
             cell0.Style = _grid.DefaultCellStyle;
 
@@ -267,40 +360,76 @@ namespace OsEngine.Robots
 
         private void _grid_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            int row = e.RowIndex;
-            int col = e.ColumnIndex;
-
-            if (row >= _grid.Rows.Count)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _grid.Rows.Count; i++)
-            {
-                if (i == row)
-                {
-                    NameStrategy = _grid.Rows[i].Cells[1].Value.ToString();
-
-                    if (_grid.Rows[i].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
-                    {
-                        IsScript = true;
-                    }
-                    else
-                    {
-                        IsScript = false;
-                    }
-                }
-            }
-
-            ReColorTable();
-
             try
             {
-                if (col == 2)
-                {
-                    string cellValue = _grid.Rows[row].Cells[col].Value.ToString();
+                int row = e.RowIndex;
+                int col = e.ColumnIndex;
 
-                    if (cellValue == BotCreationType.Script.ToString())
+                if (row >= _grid.Rows.Count)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _grid.Rows.Count; i++)
+                {
+                    if (i == row)
+                    {
+                        NameStrategy = _grid.Rows[i].Cells[1].Value.ToString();
+
+                        if (_grid.Rows[i].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+                        {
+                            IsScript = true;
+                        }
+                        else
+                        {
+                            IsScript = false;
+                        }
+                    }
+                }
+
+                ReColorTable();
+
+                try
+                {
+                    if (col == 2)
+                    {
+                        string cellValue = _grid.Rows[row].Cells[col].Value.ToString();
+
+                        if (cellValue == BotCreationType.Script.ToString())
+                        {
+                            int botNum = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
+
+                            string className = _grid.Rows[row].Cells[1].Value.ToString();
+
+                            BotDescription description = null;
+
+                            for (int i = 0; i < _lastLoadDescriptions.Count; i++)
+                            {
+                                if (_lastLoadDescriptions[i].ClassName == className)
+                                {
+                                    description = _lastLoadDescriptions[i];
+                                    break;
+                                }
+                            }
+
+                            string path =
+                                System.Windows.Forms.Application.ExecutablePath.Replace("OsEngine.exe", "")
+                                + "Custom\\Robots\\";
+
+                            string filePath = path + className + ".cs";
+
+                            if (!File.Exists(filePath))
+                            {
+                                return;
+                            }
+
+                            string argument = "/select, \"" + filePath + "\"";
+
+                            System.Diagnostics.Process.Start("explorer.exe", argument);
+
+                        }
+                    }
+                    else if (col == 5)
                     {
                         int botNum = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
 
@@ -317,220 +446,204 @@ namespace OsEngine.Robots
                             }
                         }
 
-                        string path =
-                            System.Windows.Forms.Application.ExecutablePath.Replace("OsEngine.exe", "")
-                            + "Custom\\Robots\\";
-
-                        string filePath = path + className + ".cs";
-
-                        if (!File.Exists(filePath))
+                        if (description != null &&
+                            string.IsNullOrEmpty(description.Description) == false)
                         {
-                            return;
+                            CustomMessageBoxUi ui = new CustomMessageBoxUi(description.Description);
+                            ui.ShowDialog();
                         }
-
-                        string argument = "/select, \"" + filePath + "\"";
-
-                        System.Diagnostics.Process.Start("explorer.exe", argument);
 
                     }
                 }
-                else if (col == 5)
+                catch (Exception ex)
                 {
-                    int botNum = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
-
-                    string className = _grid.Rows[row].Cells[1].Value.ToString();
-
-                    BotDescription description = null;
-
-                    for (int i = 0; i < _lastLoadDescriptions.Count; i++)
-                    {
-                        if (_lastLoadDescriptions[i].ClassName == className)
-                        {
-                            description = _lastLoadDescriptions[i];
-                            break;
-                        }
-                    }
-
-                    if (description != null &&
-                        string.IsNullOrEmpty(description.Description) == false)
-                    {
-                        CustomMessageBoxUi ui = new CustomMessageBoxUi(description.Description);
-                        ui.ShowDialog();
-                    }
-
+                    ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
                 }
             }
             catch (Exception ex)
             {
-                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
-                ui.Show();
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
         private void UpdateTable()
         {
-            List<BotDescription> descriptions = GetBotDescriptions();
-
-            for (int i = 0; i < _botsFromScript.Count; i++)
+            try
             {
-                bool isInArray = false;
+                List<BotDescription> descriptions = GetBotDescriptions();
 
-                for (int i2 = 0; i2 < descriptions.Count; i2++)
+                for (int i = 0; i < _botsFromScript.Count; i++)
                 {
-                    if (descriptions[i2].ClassName == _botsFromScript[i])
+                    bool isInArray = false;
+
+                    for (int i2 = 0; i2 < descriptions.Count; i2++)
                     {
-                        isInArray = true;
-                        break;
-                    }
-                }
-
-                if (isInArray == false)
-                {
-                    BotDescription newDesk = new BotDescription();
-                    newDesk.ClassName = _botsFromScript[i];
-                    newDesk.Description = "Script";
-                    descriptions.Insert(0, newDesk);
-                }
-            }
-
-            for (int i = 0; i < _botsIncluded.Count; i++)
-            {
-                bool isInArray = false;
-
-                for (int i2 = 0; i2 < descriptions.Count; i2++)
-                {
-                    if (descriptions[i2].ClassName == _botsIncluded[i])
-                    {
-                        isInArray = true;
-                        break;
-                    }
-                }
-
-                if (isInArray == false)
-                {
-                    BotDescription newDesk = new BotDescription();
-                    newDesk.ClassName = _botsIncluded[i];
-                    newDesk.Description = "Include";
-                    descriptions.Insert(0, newDesk);
-                }
-            }
-
-
-            _grid.Rows.Clear();
-
-            string lockation = ComboBoxLockation.SelectedItem.ToString();
-
-            for (int i = 0; i < descriptions.Count; i++)
-            {
-                BotDescription curDesc = descriptions[i];
-
-                if (_startProgram == StartProgram.IsTester)
-                {
-                    bool badBot = false;
-
-                    for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
-                    {
-                        if (curDesc.Sources[j].Contains("Polygon"))
+                        if (descriptions[i2].ClassName == _botsFromScript[i])
                         {
-                            badBot = true;
+                            isInArray = true;
                             break;
                         }
                     }
 
-                    if (badBot)
+                    if (isInArray == false)
                     {
+                        BotDescription newDesk = new BotDescription();
+                        newDesk.ClassName = _botsFromScript[i];
+                        newDesk.Description = "Script";
+                        descriptions.Insert(0, newDesk);
+                    }
+                }
+
+                for (int i = 0; i < _botsIncluded.Count; i++)
+                {
+                    bool isInArray = false;
+
+                    for (int i2 = 0; i2 < descriptions.Count; i2++)
+                    {
+                        if (descriptions[i2].ClassName == _botsIncluded[i])
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        BotDescription newDesk = new BotDescription();
+                        newDesk.ClassName = _botsIncluded[i];
+                        newDesk.Description = "Include";
+                        descriptions.Insert(0, newDesk);
+                    }
+                }
+
+
+                _grid.Rows.Clear();
+
+                string lockation = ComboBoxLockation.SelectedItem.ToString();
+
+                for (int i = 0; i < descriptions.Count; i++)
+                {
+                    BotDescription curDesc = descriptions[i];
+
+                    if (_startProgram == StartProgram.IsTester)
+                    {
+                        bool badBot = false;
+
+                        for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
+                        {
+                            if (curDesc.Sources[j].Contains("Polygon"))
+                            {
+                                badBot = true;
+                                break;
+                            }
+                        }
+
+                        if (badBot)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (_startProgram == StartProgram.IsOsOptimizer)
+                    {
+                        bool badBot = false;
+
+                        for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
+                        {
+                            if (curDesc.Sources[j].Contains("Polygon"))
+                            {
+                                badBot = true;
+                                break;
+                            }
+                            if (curDesc.Sources[j].Contains("Pair"))
+                            {
+                                badBot = true;
+                                break;
+                            }
+                            if (curDesc.Sources[j].Contains("Cluster"))
+                            {
+                                badBot = true;
+                                break;
+                            }
+                        }
+
+                        if (badBot)
+                        {
+                            continue;
+                        }
+                    }
+
+                    if (lockation == BotCreationType.All.ToString())
+                    {// роботы из всех мест
+                        _grid.Rows.Add(GetRow(descriptions[i], i + 1));
                         continue;
                     }
-                }
 
-                if (_startProgram == StartProgram.IsOsOptimizer)
-                {
-                    bool badBot = false;
-
-                    for (int j = 0; curDesc.Sources != null && j < curDesc.Sources.Count; j++)
-                    {
-                        if (curDesc.Sources[j].Contains("Polygon"))
-                        {
-                            badBot = true;
-                            break;
-                        }
-                        if (curDesc.Sources[j].Contains("Pair"))
-                        {
-                            badBot = true;
-                            break;
-                        }
-                        if (curDesc.Sources[j].Contains("Cluster"))
-                        {
-                            badBot = true;
-                            break;
-                        }
-                    }
-
-                    if (badBot)
-                    {
+                    if (descriptions[i].Location.ToString() != lockation)
+                    {// роботы из всех мест
                         continue;
                     }
-                }
 
-                if (lockation == BotCreationType.All.ToString())
-                {// роботы из всех мест
                     _grid.Rows.Add(GetRow(descriptions[i], i + 1));
-                    continue;
                 }
 
-                if (descriptions[i].Location.ToString() != lockation)
-                {// роботы из всех мест
-                    continue;
-                }
+                _lastLoadDescriptions = descriptions;
 
-                _grid.Rows.Add(GetRow(descriptions[i], i + 1));
+                UpdateSearchResults();
+                UpdateSearchPanel();
             }
-
-            _lastLoadDescriptions = descriptions;
-
-            UpdateSearchResults();
-            UpdateSearchPanel();
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ReColorTable()
         {
-            Color baseColor = Color.FromArgb(154, 156, 158);
-
-            for (int i = 0; i < _grid.Rows.Count; i++)
+            try
             {
-                if (_grid.Rows[i].Selected)
+                System.Drawing.Color baseColor = System.Drawing.Color.FromArgb(154, 156, 158);
+
+                for (int i = 0; i < _grid.Rows.Count; i++)
                 {
-                    _grid.Rows[i].Cells[0].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[0].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[1].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[1].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[2].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[2].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[3].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[3].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[4].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[4].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[5].Style.ForeColor = Color.FromArgb(255, 85, 0);
-                    _grid.Rows[i].Cells[5].Style.SelectionForeColor = Color.FromArgb(255, 85, 0);
-                }
-                else
-                {
-                    if (_grid.Rows[i].Cells[1].Style.ForeColor != baseColor)
+                    if (_grid.Rows[i].Selected)
                     {
-                        _grid.Rows[i].Cells[0].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[0].Style.SelectionForeColor = baseColor;
-                        _grid.Rows[i].Cells[1].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = baseColor;
-                        _grid.Rows[i].Cells[2].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[2].Style.SelectionForeColor = baseColor;
-                        _grid.Rows[i].Cells[3].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[3].Style.SelectionForeColor = baseColor;
-                        _grid.Rows[i].Cells[4].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[4].Style.SelectionForeColor = baseColor;
-                        _grid.Rows[i].Cells[5].Style.ForeColor = baseColor;
-                        _grid.Rows[i].Cells[5].Style.SelectionForeColor = baseColor;
+                        _grid.Rows[i].Cells[0].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[0].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[1].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[1].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[2].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[2].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[3].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[3].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[4].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[4].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[5].Style.ForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                        _grid.Rows[i].Cells[5].Style.SelectionForeColor = System.Drawing.Color.FromArgb(255, 85, 0);
+                    }
+                    else
+                    {
+                        if (_grid.Rows[i].Cells[1].Style.ForeColor != baseColor)
+                        {
+                            _grid.Rows[i].Cells[0].Style.ForeColor = baseColor;
+                            _grid.Rows[i].Cells[0].Style.SelectionForeColor = baseColor;
+                            _grid.Rows[i].Cells[1].Style.ForeColor = baseColor;
+                            _grid.Rows[i].Cells[1].Style.SelectionForeColor = baseColor;
+                            _grid.Rows[i].Cells[2].Style.ForeColor = baseColor;
+                            _grid.Rows[i].Cells[2].Style.SelectionForeColor = baseColor;
+                            _grid.Rows[i].Cells[3].Style.ForeColor = baseColor;
+                            _grid.Rows[i].Cells[3].Style.SelectionForeColor = baseColor;
+                            _grid.Rows[i].Cells[4].Style.ForeColor = baseColor;
+                            _grid.Rows[i].Cells[4].Style.SelectionForeColor = baseColor;
+                            _grid.Rows[i].Cells[5].Style.ForeColor = baseColor;
+                            _grid.Rows[i].Cells[5].Style.SelectionForeColor = baseColor;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -590,8 +703,8 @@ namespace OsEngine.Robots
 
             if (descriptions == null || descriptions.Count == 0)
             {
-                descriptions = GetBotDesctiptionsAsunc();
-                SaveDesctiptionsInFile(descriptions);
+                descriptions = GetBotDescriptionsAsunc();
+                SaveDescriptionsInFile(descriptions);
             }
 
             List<BotDescription> sortDescription = new List<BotDescription>();
@@ -671,9 +784,8 @@ namespace OsEngine.Robots
             return descriptions;
         }
 
-        private void SaveDesctiptionsInFile(List<BotDescription> descriptions)
+        private void SaveDescriptionsInFile(List<BotDescription> descriptions)
         {
-
             try
             {
                 using (StreamWriter writer = new StreamWriter(@"BotsDescriprion.txt", false)
@@ -846,14 +958,12 @@ namespace OsEngine.Robots
                 return;
             }
 
-            List<BotDescription> descriptions = GetBotDesctiptionsAsunc();
-            SaveDesctiptionsInFile(descriptions);
+            List<BotDescription> descriptions = GetBotDescriptionsAsunc();
+            SaveDescriptionsInFile(descriptions);
             UpdateTable();
         }
 
-        // загрузка описаний роботов из BotFactory
-
-        private List<BotDescription> GetBotDesctiptionsAsunc()
+        private List<BotDescription> GetBotDescriptionsAsunc()
         {
             _awaitUiBotsInfoLoading = new AwaitObject(OsLocalization.Trader.Label300, 100, 0, true);
             AwaitUi ui = new AwaitUi(_awaitUiBotsInfoLoading);
@@ -868,41 +978,48 @@ namespace OsEngine.Robots
             return _descriptionsFromBotFactoryLast;
         }
 
-        AwaitObject _awaitUiBotsInfoLoading;
+        private AwaitObject _awaitUiBotsInfoLoading;
 
         private void GetBotDescriptionsFromBotFactory()
         {
-            List<BotDescription> descriptions = new List<BotDescription>();
-
-            for (int i = 0;
-                _botsIncluded != null && i < _botsIncluded.Count;
-                i++)
+            try
             {
-                BotDescription curDescription = GetBotDescription(_botsIncluded[i], false);
+                List<BotDescription> descriptions = new List<BotDescription>();
 
-                if (curDescription != null)
+                for (int i = 0;
+                    _botsIncluded != null && i < _botsIncluded.Count;
+                    i++)
                 {
-                    descriptions.Add(curDescription);
-                }
-            }
+                    BotDescription curDescription = GetBotDescription(_botsIncluded[i], false);
 
-            for (int i = 0;
-                _botsFromScript != null && i < _botsFromScript.Count;
-                i++)
+                    if (curDescription != null)
+                    {
+                        descriptions.Add(curDescription);
+                    }
+                }
+
+                for (int i = 0;
+                    _botsFromScript != null && i < _botsFromScript.Count;
+                    i++)
+                {
+                    BotDescription curDescription = GetBotDescription(_botsFromScript[i], true);
+
+                    if (curDescription != null)
+                    {
+                        descriptions.Add(curDescription);
+                    }
+                }
+
+                _descriptionsFromBotFactoryLast = descriptions;
+                _awaitUiBotsInfoLoading.Dispose();
+            }
+            catch (Exception ex)
             {
-                BotDescription curDescription = GetBotDescription(_botsFromScript[i], true);
-
-                if (curDescription != null)
-                {
-                    descriptions.Add(curDescription);
-                }
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
-            _descriptionsFromBotFactoryLast = descriptions;
-            _awaitUiBotsInfoLoading.Dispose();
         }
 
-        List<BotDescription> _descriptionsFromBotFactoryLast;
+        private List<BotDescription> _descriptionsFromBotFactoryLast;
 
         private BotDescription GetBotDescription(string className, bool isScript)
         {
@@ -943,7 +1060,7 @@ namespace OsEngine.Robots
             }
         }
 
-        #region поиск по таблице
+        #region Search by grid
 
         private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
@@ -970,12 +1087,19 @@ namespace OsEngine.Robots
             }
         }
 
-        List<int> _searchResults = new List<int>();
+        private List<int> _searchResults = new List<int>();
 
         private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            UpdateSearchResults();
-            UpdateSearchPanel();
+            try
+            {
+                UpdateSearchResults();
+                UpdateSearchPanel();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void UpdateSearchResults()
@@ -1079,72 +1203,86 @@ namespace OsEngine.Robots
 
         private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
-
-            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
-
-            if (indexRow <= 0)
+            try
             {
-                indexRow = maxRowIndex;
-                LabelCurrentResultShow.Content = maxRowIndex.ToString();
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow <= 0)
+                {
+                    indexRow = maxRowIndex;
+                    LabelCurrentResultShow.Content = maxRowIndex.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow).ToString();
+                }
+
+                int realInd = _searchResults[indexRow - 1];
+
+                _grid.Rows[realInd].Selected = true;
+                _grid.FirstDisplayedScrollingRowIndex = realInd;
+
+                NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
+
+                if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+                {
+                    IsScript = true;
+                }
+                else
+                {
+                    IsScript = false;
+                }
+
+                ReColorTable();
             }
-            else
+            catch (Exception ex)
             {
-                LabelCurrentResultShow.Content = (indexRow).ToString();
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
-            int realInd = _searchResults[indexRow - 1];
-
-            _grid.Rows[realInd].Selected = true;
-            _grid.FirstDisplayedScrollingRowIndex = realInd;
-
-            NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
-
-            if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
-            {
-                IsScript = true;
-            }
-            else
-            {
-                IsScript = false;
-            }
-
-            ReColorTable();
         }
 
         private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
         {
-            int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
-
-            int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
-
-            if (indexRow >= maxRowIndex)
+            try
             {
-                indexRow = 0;
-                LabelCurrentResultShow.Content = 1.ToString();
+                int indexRow = Convert.ToInt32(LabelCurrentResultShow.Content) - 1 + 1;
+
+                int maxRowIndex = Convert.ToInt32(LabelCountResultsShow.Content);
+
+                if (indexRow >= maxRowIndex)
+                {
+                    indexRow = 0;
+                    LabelCurrentResultShow.Content = 1.ToString();
+                }
+                else
+                {
+                    LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+                }
+
+                int realInd = _searchResults[indexRow];
+
+                _grid.Rows[realInd].Selected = true;
+                _grid.FirstDisplayedScrollingRowIndex = realInd;
+
+                NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
+
+                if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
+                {
+                    IsScript = true;
+                }
+                else
+                {
+                    IsScript = false;
+                }
+
+                ReColorTable();
             }
-            else
+            catch (Exception ex)
             {
-                LabelCurrentResultShow.Content = (indexRow + 1).ToString();
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
-            int realInd = _searchResults[indexRow];
-
-            _grid.Rows[realInd].Selected = true;
-            _grid.FirstDisplayedScrollingRowIndex = realInd;
-
-            NameStrategy = _grid.Rows[realInd].Cells[1].Value.ToString();
-
-            if (_grid.Rows[realInd].Cells[2].Value.ToString() == BotCreationType.Script.ToString())
-            {
-                IsScript = true;
-            }
-            else
-            {
-                IsScript = false;
-            }
-
-            ReColorTable();
         }
 
         #endregion

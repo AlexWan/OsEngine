@@ -1491,7 +1491,7 @@ namespace OsEngine.OsTrader
             try
             {
                 BotCreateUi2 ui = new BotCreateUi2(BotFactory.GetIncludeNamesStrategy(),
-                    BotFactory.GetScriptsNamesStrategy(), _startProgram);
+                    BotFactory.GetScriptsNamesStrategy(), _startProgram, BotNames);
 
                 ui.ShowDialog();
 
@@ -1505,42 +1505,6 @@ namespace OsEngine.OsTrader
                     CustomMessageBoxUi box = new CustomMessageBoxUi(OsLocalization.Trader.Label304);
                     box.ShowDialog();
                     return;
-                }
-
-                if (File.Exists(@"Engine\" + @"SettingsRealKeeper.txt"))
-                {
-                    using (StreamReader reader = new StreamReader(@"Engine\" + @"SettingsRealKeeper.txt"))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            string[] str = reader.ReadLine().Split('@');
-
-                            if (str[0] == ui.NameBot)
-                            {
-                                CustomMessageBoxUi box = new CustomMessageBoxUi(OsLocalization.Trader.Label8);
-                                box.ShowDialog();
-                                return;
-                            }
-                        }
-                    }
-                }
-
-                if (File.Exists(@"Engine\" + @"SettingsTesterKeeper.txt"))
-                {
-                    using (StreamReader reader = new StreamReader(@"Engine\" + @"SettingsTesterKeeper.txt"))
-                    {
-                        while (!reader.EndOfStream)
-                        {
-                            string[] str = reader.ReadLine().Split('@');
-
-                            if (str[0] == ui.NameBot)
-                            {
-                                CustomMessageBoxUi box = new CustomMessageBoxUi(OsLocalization.Trader.Label8);
-                                box.ShowDialog();
-                                return;
-                            }
-                        }
-                    }
                 }
 
                 BotPanel newRobot = BotFactory.GetStrategyForName(ui.NameStrategy, ui.NameBot, _startProgram, ui.IsScript);
@@ -1571,6 +1535,45 @@ namespace OsEngine.OsTrader
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<string> BotNames
+        {
+            get
+            {
+                List<string> result = new List<string>();
+
+                if (File.Exists(@"Engine\" + @"SettingsRealKeeper.txt"))
+                {
+                    using (StreamReader reader = new StreamReader(@"Engine\" + @"SettingsRealKeeper.txt"))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            string[] str = reader.ReadLine().Split('@');
+
+                            string name = str[0];
+
+                            result.Add(name);
+                        }
+                    }
+                }
+
+                if (File.Exists(@"Engine\" + @"SettingsTesterKeeper.txt"))
+                {
+                    using (StreamReader reader = new StreamReader(@"Engine\" + @"SettingsTesterKeeper.txt"))
+                    {
+                        while (!reader.EndOfStream)
+                        {
+                            string[] str = reader.ReadLine().Split('@');
+
+                            string name = str[0];
+
+                            result.Add(name);
+                        }
+                    }
+                }
+                return result;
             }
         }
 

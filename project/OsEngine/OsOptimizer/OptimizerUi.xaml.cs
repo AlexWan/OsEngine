@@ -749,7 +749,7 @@ namespace OsEngine.OsOptimizer
             }
 
             BotCreateUi2 ui = new BotCreateUi2(includeNames, scriptsNames,
-                StartProgram.IsOsOptimizer);
+                StartProgram.IsOsOptimizer, null);
 
             ui.ShowDialog();
 

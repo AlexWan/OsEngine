@@ -1642,5 +1642,9 @@ namespace OsEngine.Language
         public string Label435 => OsLocalization.ConvertToLocString(
          "Eng:SOURCE IS OFF. NO CANDLES. NO MARKET DEPTHS. NONE._" +
          "Ru:ИСТОЧНИК ВЫКЛЮЧЕН. НЕТ СВЕЧЕЙ. НЕТ СТАКАНОВ. НИЧЕГО НЕТ_");
+
+        public string Label436 => OsLocalization.ConvertToLocString(
+         "Eng:You need to give the robot a unique name_" +
+         "Ru:Нужно дать роботу уникальное имя_");
     }
 }
