@@ -200,7 +200,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private List<Security> _securities;
 
-            private readonly RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(100));
+            private readonly RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
             public void GetSecurities()
             {
@@ -263,8 +263,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (!item.openapiEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
                             || !item.tradingEnabled.Equals("true", StringComparison.OrdinalIgnoreCase)
                             || !item.state.Equals("ONLINE", StringComparison.OrdinalIgnoreCase))
-
+                        {
                             continue;
+                        }
 
                         Security newSecurity = new Security();
 
@@ -284,11 +285,36 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (string.IsNullOrEmpty(item.quantityPrecision) == false)
                         {
                             newSecurity.DecimalsVolume = Convert.ToInt32(item.quantityPrecision);
+                            newSecurity.VolumeStep = Convert.ToInt32(item.quantityPrecision).GetValueByDecimals();
                         }
 
                         newSecurity.PriceStep = Convert.ToInt32(item.pricePrecision).GetValueByDecimals();
                         newSecurity.PriceStepCost = newSecurity.PriceStep;
                         newSecurity.State = SecurityStateType.Activ;
+
+                        if (item.filters != null)
+                        {
+                            for (int j = 0; j < item.filters.Count; j++)
+                            {
+                                newSecurity.MinTradeAmount = item.filters[j].min.ToDecimal();
+                            }
+                        }
+
+                        if (newSecurity.MinTradeAmount > 5)
+                        {
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                            newSecurity.VolumeStep = newSecurity.MinTradeAmount;
+                        }
+                        else if (newSecurity.MinTradeAmount == 0)
+                        {
+                            newSecurity.MinTradeAmount = 1;
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                        }
+                        else
+                        {
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                        }
+
                         _securities.Add(newSecurity);
                     }
 
@@ -515,7 +541,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             #endregion
 
-            #region 6 WecSocket creation
+            #region 6 WebSocket creation
 
             private WebSocket _webSocketPrivate;
 
@@ -750,7 +776,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 try
                 {
                     CheckFullActivation();
-                    SendLogMessage("WebSocketPublicTrades Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
+                    SendLogMessage("WebSocketPublicTrades Connection Closed by XT. WebSocket Closed Event " + e.Code + e.Reason, LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -760,11 +786,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private void _webSocketPublicTrades_OnOpen(object sender, EventArgs e)
             {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    CheckFullActivation();
-                    SendLogMessage("WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
-                }
+
+                CheckFullActivation();
+                SendLogMessage("WebSocketPublicTrades Connection to public trades is Open", LogMessageType.System);
+
             }
 
             private void _webSocketPublicMarketDepths_OnError(object sender, ErrorEventArgs e)
@@ -817,7 +842,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 try
                 {
                     CheckFullActivation();
-                    SendLogMessage("WebSocketPublicTMarketDepths Connection Closed by XT. WebSocket Closed Event", LogMessageType.Error);
+                    SendLogMessage("WebSocketPublicTMarketDepths Connection Closed by XT. WebSocket Closed Event " + e.Code + e.Reason, LogMessageType.Error);
                 }
                 catch (Exception ex)
                 {
@@ -827,11 +852,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private void _webSocketPublicMarketDepths_OnOpen(object sender, EventArgs e)
             {
-                if (ServerStatus == ServerConnectStatus.Disconnect)
-                {
-                    CheckFullActivation();
-                    SendLogMessage("WebSocketPublic Connection to public data is Open", LogMessageType.System);
-                }
+
+                CheckFullActivation();
+                SendLogMessage("WebSocketPublic Connection to public data is Open", LogMessageType.System);
+
             }
 
             private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
@@ -929,7 +953,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                             continue;
                         }
 
-                        Thread.Sleep(15000);
+                        Thread.Sleep(10000);
 
                         if (_webSocketPublicMarketDepths == null)
                         {
@@ -1363,7 +1387,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                                         Price = responseDepth.data.a[k][0].ToDecimal()
                                     });
                                 }
-                                else if (j != marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price 
+                                else if (j != marketDepth.Asks.Count - 1 && priceLevel > marketDepth.Asks[j].Price
                                     && priceLevel < marketDepth.Asks[j + 1].Price
                                     && responseDepth.data.a[k][1].ToDecimal() != 0)
                                 {
@@ -1900,14 +1924,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         }
                         else
                         {
-                            CreateOrderFail(order);
+                            GetOrderStatus(order);
                             SendLogMessage($"CancelOrder error, Code: {stateResponse.rc}\n"
                                 + $"Message code: {stateResponse.mc}", LogMessageType.Error);
                         }
                     }
                     else
                     {
-                        CreateOrderFail(order);
+                        GetOrderStatus(order);
                         SendLogMessage($"CancelOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                         if (stateResponse != null && stateResponse.rc != null)
@@ -2119,7 +2143,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private readonly string _baseUrl = "https://sapi.xt.com";
 
-            private readonly string _timeOut = "5000";
+            private readonly string _timeOut = "50000";
 
             private readonly string _encry = "HmacSHA256";
 
