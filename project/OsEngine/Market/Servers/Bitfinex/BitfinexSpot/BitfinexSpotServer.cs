@@ -259,8 +259,10 @@ namespace OsEngine.Market.Servers.Bitfinex
                         newSecurity.PriceStepCost = newSecurity.PriceStep;
                         newSecurity.DecimalsVolume = DigitsAfterComma(volume);
                         newSecurity.MinTradeAmount = GetMinSize(symbol);
-
+                        newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                        newSecurity.VolumeStep = newSecurity.DecimalsVolume.GetValueByDecimals();
                         securities.Add(newSecurity);
+
                     }
 
                     if (SecurityEvent != null)
@@ -2543,6 +2545,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (responseJson == null)
                     {
+                        GetOrderStatus(order);
                         SendLogMessage("CancelOrder> Deserialization resulted in null", LogMessageType.Error);
                         return;
                     }
@@ -2550,13 +2553,11 @@ namespace OsEngine.Market.Servers.Bitfinex
                     SendLogMessage($"Order canceled Successfully. Order ID:{order.NumberMarket}", LogMessageType.Trade);
                     order.State = OrderStateType.Cancel;
                     MyOrderEvent(order);
-
                 }
                 else
                 {
+                    GetOrderStatus(order);
                     SendLogMessage($" Error Order cancellation:  {response.Content}, {response.ErrorMessage}", LogMessageType.Error);
-                    order.State = OrderStateType.Fail;
-                    MyOrderEvent?.Invoke(order);
                 }
             }
             catch (Exception exception)
@@ -2707,7 +2708,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
                 else
                 {
-                    SendLogMessage($" Can't get all orders. State Code: {response.Content}", LogMessageType.Error);
+                    SendLogMessage($"GetAllOpenOrders>  Can't get all orders. State Code: {response.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
