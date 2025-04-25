@@ -7,7 +7,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
     {
         public string rc { get; set; } // Response code
         public string mc { get; set; } // Message code
-       // public List<string> ma { get; set; }
+                                       // public List<string> ma { get; set; }
         public T result { get; set; }
     }
 
@@ -33,14 +33,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
     public class ResponseSymbols
     {
         public string time { get; set; } //1662444177871 in ms,
-
-        public string
-            version
-        {
-            get;
-            set;
-        } //Version number, when the request version number is consistent with the response content version, the list will not be returned, reducing IO eg: 2e14d2cd5czcb2c2af2c1db 
-
+        public string version { get; set; } //Version number, when the request version number is consistent with the response content version,
+                                            //the list will not be returned, reducing IO eg: 2e14d2cd5czcb2c2af2c1db 
         public List<ResponseSymbol> symbols { get; set; } //List of symbols
     }
 
@@ -102,24 +96,23 @@ namespace OsEngine.Market.Servers.XT.XTSpot.Entity
         public string pricePrecision { get; set; } //"4", Transaction price accuracy
         public string quantityPrecision { get; set; } //"6", Transaction quantity accuracy
         public List<string> orderTypes { get; set; } //List of Order Types [LIMIT;MARKET]
-
-        public List<string>
-            timeInForces
-        {
-            get;
-            set;
-        } //List of Effective Ways [GTC, IOC, FOK, GTX=Revoke if unable to become a pending party]
-
+        public List<string> timeInForces { get; set; } //List of Effective Ways [GTC, IOC, FOK, GTX=Revoke if unable to become a pending party]
         public string displayWeight { get; set; } //Show the weight, the greater the weight, the more forward 
+        public string displayLevel { get; set; } //Presentation level, [FULL=Full display,SEARCH=Search display,DIRECT=Direct display,NONE=Don't show]
+        public List<Filter> filters { get; set; } //List of filters
+    }
 
-        public string
-            displayLevel
-        {
-            get;
-            set;
-        } //Presentation level, [FULL=Full display,SEARCH=Search display,DIRECT=Direct display,NONE=Don't show]
-
-        public List<object> filters { get; set; } //List of filters
+    public class Filter
+    {
+        public string filter { get; set; }
+        public string buyMaxDeviation { get; set; }
+        public string sellMaxDeviation { get; set; }
+        public string maxDeviation { get; set; }
+        public string durationSeconds { get; set; }
+        public string maxPriceMultiple { get; set; }
+        public string min { get; set; }
+        public string max { get; set; }
+        public string tickSize { get; set; }
     }
 
     public class ResponseMyTrade
