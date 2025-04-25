@@ -35,6 +35,12 @@ namespace OsEngine.Market.Servers.TraderNet.Entity
         public string step_price;
         public string min_step;
         public string lot_size_q;
+        public Quotes quotes;
+    }
+
+    public class Quotes
+    {
+        public string x_lot;
     }
 
     public class ResponseCandle

@@ -307,6 +307,9 @@ namespace OsEngine.Market.Servers.TraderNet
                     newSecurity.PriceStep = item.step_price.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.State = SecurityStateType.Activ;
+                    newSecurity.MinTradeAmount = item.quotes.x_lot.ToDecimal();
+                    newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                    newSecurity.VolumeStep = item.quotes.x_lot.ToDecimal();
 
                     securities.Add(newSecurity);
                 }
@@ -402,15 +405,15 @@ namespace OsEngine.Market.Servers.TraderNet
             DateTime startTimeReq = startTime;
             DateTime endTimeReq = startTimeReq.AddMinutes(tfTotalMinutes * 100000);
 
-            if(endTimeReq > endTime)
+            if (endTimeReq > endTime)
             {
                 endTimeReq = endTime;
             }
-            
+
             do
             {
                 List<Candle> candles = RequestCandleHistory(security, tfTotalMinutes, startTimeReq, endTimeReq);
-                
+
                 if (candles == null)
                 {
                     return null;
@@ -418,7 +421,7 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 if (allCandles.Count == 0)
                 {
-                    allCandles.AddRange(candles);                    
+                    allCandles.AddRange(candles);
                 }
 
                 if (candles.Count == 1 &&
@@ -433,7 +436,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     {
                         break;
                     }
-                         
+
                     if (candles[0].TimeStart <= allCandles[allCandles.Count - 1].TimeStart)
                     {
                         candles.RemoveAt(0);
@@ -461,7 +464,15 @@ namespace OsEngine.Market.Servers.TraderNet
                 }
 
             } while (true);
-                       
+
+            if (allCandles.Count > 1)
+            {
+                if (allCandles[0].TimeStart.Date != allCandles[1].TimeStart.Date)
+                {
+                    allCandles.RemoveAt(0);
+                }
+            }
+
             return allCandles;
         }
 
@@ -1138,7 +1149,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
                 marketDepth.SecurityNameCode = responseDepth.i;
-                                
+
                 for (int j = 0; j < _listMD[responseDepth.i].Count; j++)
                 {
                     if (_listMD[responseDepth.i][j].s == "S")
@@ -1168,7 +1179,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 {
                     marketDepth.Time = _lastTimeMd;
                 }
-                else if (marketDepth.Time == _lastTimeMd)
+                if (marketDepth.Time == _lastTimeMd)
                 {
                     _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
                     marketDepth.Time = _lastTimeMd;
@@ -1176,8 +1187,8 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 _lastTimeMd = marketDepth.Time;
 
-                MarketDepthEvent(marketDepth);                    
-                  
+                MarketDepthEvent(marketDepth);
+
             }
             catch (Exception ex)
             {
@@ -1186,7 +1197,7 @@ namespace OsEngine.Market.Servers.TraderNet
         }
 
         private void GetSnapshotMD(ResponseDepth responseDepth)
-        {               
+        {
             if (_listMD.ContainsKey(responseDepth.i) && responseDepth.n == "0")
             {
                 _listMD.Remove(responseDepth.i);
@@ -1196,13 +1207,13 @@ namespace OsEngine.Market.Servers.TraderNet
             {
                 _listMD.Add(responseDepth.i, new List<ListMdTiker>());
             }
-            
+
             if (responseDepth.del.Count > 0)
             {
                 for (int i = 0; i < responseDepth.del.Count; i++)
                 {
                     _listMD[responseDepth.i].RemoveAt(Convert.ToInt32(responseDepth.del[i].k));
-                }                
+                }
             }
 
             if (responseDepth.ins.Count > 0)
