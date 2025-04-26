@@ -3134,7 +3134,7 @@ namespace OsEngine.Market.Servers.Bybit
                                                                                                        //  retCode":170213,"retMsg":"Order does not exist."
                                                                                                        // The order does not exist (maybe it has not yet been created) or has already been cancelled. Let's ask about its status
                     {
-                        GetOrdersState(new List<Order>() { order });
+                        GetOrderStatus(order);
                         return;
                         /*DateTime TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
                         if ((TimeCancel - order.TimeCreate) > TimeSpan.FromSeconds(minTimeCreateOrders))
@@ -3156,118 +3156,6 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode}", LogMessageType.Error);
                 return;
-            }
-        }
-
-        public void GetOrdersState(List<Order> orders)
-        {
-            try
-            {
-                if (orders == null && orders.Count == 0)
-                {
-                    return;
-                }
-
-                Dictionary<string, object> parameters = new Dictionary<string, object>();
-
-                DateTime serverTime = ServerTime;
-
-                for (int i = 0; i < orders.Count; i++)
-                {
-                    Order order = orders[i];
-
-                    if ((order.SecurityClassCode != null
-                  && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
-                  || order.SecurityNameCode.EndsWith(".P"))
-                    {
-                        parameters["category"] = Category.linear.ToString();
-                    }
-                    else if ((order.SecurityClassCode != null
-                        && order.SecurityClassCode.ToLower().Contains(Category.inverse.ToString()))
-                        || order.SecurityNameCode.EndsWith(".I"))
-                    {
-                        parameters["category"] = Category.inverse.ToString();
-                    }
-                    else
-                    {
-                        parameters["category"] = Category.spot.ToString();
-                    }
-
-                    if (order.State != OrderStateType.Active)
-                    {
-                        continue;
-                    }
-
-                    parameters["orderLinkId"] = order.NumberUser;
-
-                    string bOrders = CreatePrivateQuery(parameters, HttpMethod.Get, "/v5/order/history");
-
-                    if (bOrders == null)
-                    {
-                        //        order.State = OrderStateType.Fail;
-                        //        MyOrderEvent?.Invoke(order);
-                        continue;
-                    }
-
-                    ResponseRestMessageList<ResponseMessageOrders> responseOrder = JsonConvert.DeserializeObject<ResponseRestMessageList<ResponseMessageOrders>>(bOrders);
-
-                    if (responseOrder != null
-                            && responseOrder.retCode == "0"
-                            && responseOrder.retMsg == "OK")
-                    {
-                        List<ResponseMessageOrders> OneOrder = responseOrder.result.list;
-
-                        if (OneOrder.Count == 0)
-                        {
-                            continue;
-                        }
-
-                        for (int i1 = 0; i1 < OneOrder.Count; i1++)
-                        {
-                            ResponseMessageOrders o = OneOrder[i1];
-                            string oStatus = o.orderStatus;
-
-                            switch (oStatus)
-                            {
-                                case "Created":
-                                    order.State = OrderStateType.Active;
-                                    break;
-                                case "Rejected":
-                                    order.State = OrderStateType.Fail;
-                                    break;
-                                case "New":
-                                    order.State = OrderStateType.Active;
-                                    break;
-                                case "PartiallyFilled":
-                                    order.State = OrderStateType.Active;
-                                    break;
-                                case "Filled":
-                                    order.State = OrderStateType.Done;
-                                    break;
-                                case "Cancelled":
-                                    order.State = OrderStateType.Cancel;
-                                    break;
-                                case "PendingCancel":
-                                    order.State = OrderStateType.Cancel;
-                                    break;
-                                default:
-                                    order.State = OrderStateType.Cancel;
-                                    break;
-                            }
-
-                            MyOrderEvent?.Invoke(order);
-                        }
-                    }
-                    else
-                    {
-                        SendLogMessage($"GetOrdersState>. Order error. Code: {responseOrder.retCode}\n"
-                                + $"Message: {responseOrder.retMsg}", LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"GetOrdersState>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 

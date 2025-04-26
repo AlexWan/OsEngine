@@ -24,7 +24,6 @@ using Color = System.Drawing.Color;
 using Grid = System.Windows.Controls.Grid;
 using Rectangle = System.Windows.Shapes.Rectangle;
 using OsEngine.Language;
-using System.Diagnostics;
 
 namespace OsEngine.Charts.CandleChart
 {

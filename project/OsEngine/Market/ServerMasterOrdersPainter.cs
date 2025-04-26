@@ -281,6 +281,11 @@ namespace OsEngine.Market
                     {
                         Order curOrder = _orders[i];
 
+                        if (curOrder == null)
+                        {
+                            continue;
+                        }
+
                         if(curOrder.NumberUser != 0 &&
                             order.NumberUser != 0 
                             && curOrder.NumberUser == order.NumberUser)
@@ -352,6 +357,7 @@ namespace OsEngine.Market
                         }
                     }
 
+                    
                     if (_orders.Count > 200)
                     {
                         _orders.RemoveAt(0);
@@ -391,7 +397,6 @@ namespace OsEngine.Market
                     return;
                 }
 
-                _orders.Remove(myOrder);
                 _needToPaintOrders = true;
             }
         }
@@ -422,8 +427,6 @@ namespace OsEngine.Market
 
                 for (int i = ordersToPaint.Count - 1; ordersToPaint != null && ordersToPaint.Count != 0 && i > -1; i--)
                 {
-
-
                     DataGridViewRow nRow = new DataGridViewRow();
 
                     nRow.Cells.Add(new DataGridViewTextBoxCell());
