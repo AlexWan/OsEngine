@@ -2344,7 +2344,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                     volume = Math.Abs(volume);
                 }
 
-                updateOrder.VolumeExecute = volume;
                 updateOrder.Volume = volume;
                 updateOrder.PortfolioNumber = "BitfinexSpotPortfolio";
 
@@ -2549,10 +2548,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                         SendLogMessage("CancelOrder> Deserialization resulted in null", LogMessageType.Error);
                         return;
                     }
-
-                    SendLogMessage($"Order canceled Successfully. Order ID:{order.NumberMarket}", LogMessageType.Trade);
-                    order.State = OrderStateType.Cancel;
-                    MyOrderEvent(order);
                 }
                 else
                 {
@@ -2932,7 +2927,6 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                                 historyOrder.Price = orderData[16].ToString().ToDecimal();
                                 historyOrder.PortfolioNumber = "BitfinexSpotPortfolio";
-                                historyOrder.VolumeExecute = volume;
                                 historyOrder.Volume = volume;
 
                                 ordersHistory.Add(historyOrder);
