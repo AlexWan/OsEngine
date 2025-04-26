@@ -6,6 +6,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Market.Servers.BitStamp.BitStampEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
@@ -154,145 +155,6 @@ namespace OsEngine.Robots
         public string NameStrategy;
 
         public bool IsScript;
-
-        private void ButtonAccept_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (_startProgram != StartProgram.IsOsOptimizer)
-                {
-                    if (string.IsNullOrEmpty(TextBoxName.Text) == true)
-                    {
-                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label436);
-                        ui.ShowDialog();
-
-                        Thread worker = new Thread(PaintTextBoxBotName);
-                        worker.Start();
-                        return;
-                    }
-
-                    NameBot = TextBoxName.Text;
-
-                    NameBot = NameBot
-                        .Replace("/", "")
-                        .Replace("\\", "")
-                        .Replace("*", "")
-                        .Replace("-", "")
-                        .Replace("+", "")
-                        .Replace(":", "")
-                        .Replace("@", "")
-                        .Replace(";", "")
-                        .Replace("%", "")
-                        .Replace(">", "")
-                        .Replace("<", "")
-                        .Replace("^", "")
-                        .Replace("{", "")
-                        .Replace("}", "")
-                        .Replace("[", "")
-                        .Replace("]", "")
-                        .Replace("_", "")
-                        .Replace("`", "")
-                        .Replace("(", "")
-                        .Replace(")", "")
-                        .Replace("$", "")
-                        .Replace("#", "")
-                        .Replace("!", "")
-                        .Replace("&", "")
-                        .Replace("?", "")
-                        .Replace("=", "")
-                        .Replace(",", "")
-                        .Replace(".", "")
-                        .Replace("'", "")
-                        .Replace("|", "")
-                        .Replace("~", "")
-                        .Replace("№", "")
-                        .Replace("\"", "");
-                }
-
-                if (_names != null)
-                {
-                    for (int i = 0; i < _names.Count; i++)
-                    {
-                        if (_names[i] == NameBot)
-                        {
-                            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label436);
-                            ui.ShowDialog();
-
-                            Thread worker = new Thread(PaintTextBoxBotName);
-                            worker.Start();
-
-                            return;
-                        }
-                    }
-                }
-
-                if (string.IsNullOrEmpty(NameStrategy))
-                {
-                    CustomMessageBoxUi box = new CustomMessageBoxUi(OsLocalization.Trader.Label304);
-                    box.ShowDialog();
-                    return;
-                }
-
-                IsAccepted = true;
-
-                Close();
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void PaintTextBoxBotName()
-        {
-            try
-            {
-                Thread.Sleep(50);
-                SetRedTextBoxBotName();
-                Thread.Sleep(500);
-                SetStandardColorTextBoxBotName();
-            }
-            catch (Exception ex)
-            {
-               ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
-            }
-        }
-
-        private void SetRedTextBoxBotName()
-        {
-            try
-            {
-                if (_grid.InvokeRequired)
-                {
-                    _grid.Invoke(new Action(SetRedTextBoxBotName));
-                    return;
-                }
-
-                TextBoxName.Background = new SolidColorBrush(Colors.DarkOrange);
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void SetStandardColorTextBoxBotName()
-        {
-            try
-            {
-                if (_grid.InvokeRequired)
-                {
-                    _grid.Invoke(new Action(SetStandardColorTextBoxBotName));
-                    return;
-                }
-
-                TextBoxName.Background = TextBoxSearchSecurity.Background;
-            }
-            catch (Exception ex)
-            {
-                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
 
         private DataGridView _grid;
 
@@ -1059,6 +921,241 @@ namespace OsEngine.Robots
                 return null;
             }
         }
+
+        #region Acception
+
+        private void ButtonAccept_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_startProgram != StartProgram.IsOsOptimizer)
+                {
+                    if (string.IsNullOrEmpty(TextBoxName.Text) == true)
+                    {
+                        _countNameError++;
+
+                        if (_countNameError == 4)
+                        {
+                            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label436);
+                            ui.ShowDialog();
+                            _countNameError = 0;
+                        }
+
+                        Thread worker = new Thread(PaintTextBoxBotName);
+                        worker.Start();
+
+                        return;
+                    }
+
+                    NameBot = TextBoxName.Text;
+
+                    NameBot = NameBot
+                        .Replace("/", "")
+                        .Replace("\\", "")
+                        .Replace("*", "")
+                        .Replace("-", "")
+                        .Replace("+", "")
+                        .Replace(":", "")
+                        .Replace("@", "")
+                        .Replace(";", "")
+                        .Replace("%", "")
+                        .Replace(">", "")
+                        .Replace("<", "")
+                        .Replace("^", "")
+                        .Replace("{", "")
+                        .Replace("}", "")
+                        .Replace("[", "")
+                        .Replace("]", "")
+                        .Replace("_", "")
+                        .Replace("`", "")
+                        .Replace("(", "")
+                        .Replace(")", "")
+                        .Replace("$", "")
+                        .Replace("#", "")
+                        .Replace("!", "")
+                        .Replace("&", "")
+                        .Replace("?", "")
+                        .Replace("=", "")
+                        .Replace(",", "")
+                        .Replace(".", "")
+                        .Replace("'", "")
+                        .Replace("|", "")
+                        .Replace("~", "")
+                        .Replace("№", "")
+                        .Replace("\"", "");
+                }
+
+                if (_names != null)
+                {
+                    for (int i = 0; i < _names.Count; i++)
+                    {
+                        if (_names[i] == NameBot)
+                        {
+                            _countNameError++;
+
+                            if (_countNameError == 4)
+                            {
+                                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label436);
+                                ui.ShowDialog();
+                                _countNameError = 0;
+                            }
+
+                            Thread worker = new Thread(PaintTextBoxBotName);
+                            worker.Start();
+
+                            return;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(NameStrategy))
+                {
+                    _countNoSelectBotTypeError++;
+
+                    if (_countNoSelectBotTypeError == 4)
+                    {
+                        CustomMessageBoxUi box = new CustomMessageBoxUi(OsLocalization.Trader.Label304);
+                        box.ShowDialog();
+                        _countNoSelectBotTypeError = 0;
+                    }
+
+                    Thread worker = new Thread(PaintBotsNameOnGrid);
+                    worker.Start();
+                    
+                    return;
+                }
+
+                IsAccepted = true;
+
+                Close();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private int _countNameError = 0;
+
+        private int _countNoSelectBotTypeError = 0;
+
+        private void PaintTextBoxBotName()
+        {
+            try
+            {
+                Thread.Sleep(50);
+                SetRedTextBoxBotName();
+                Thread.Sleep(500);
+                SetStandardColorTextBoxBotName();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void SetRedTextBoxBotName()
+        {
+            try
+            {
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(SetRedTextBoxBotName));
+                    return;
+                }
+
+                TextBoxName.Background = new SolidColorBrush(Color.FromRgb(255, 85, 0));
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void SetStandardColorTextBoxBotName()
+        {
+            try
+            {
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action(SetStandardColorTextBoxBotName));
+                    return;
+                }
+
+                TextBoxName.Background = TextBoxSearchSecurity.Background;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void PaintBotsNameOnGrid()
+        {
+            try
+            {
+                int firstRow = _grid.FirstDisplayedScrollingRowIndex;
+
+                if(firstRow < 0)
+                {
+                    firstRow = 0;
+                }
+
+                int lastRow = firstRow + 30;
+
+                for (int i = firstRow; i < _grid.Rows.Count && i < lastRow; i++)
+                {
+                    PaintRowOrange(i);
+                }
+
+                for (int i = firstRow; i < _grid.Rows.Count && i < lastRow; i++)
+                {
+                    PaintRowStandard(i);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void PaintRowOrange(int index)
+        {
+            try
+            {
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action<int>(PaintRowOrange), index);
+                    return;
+                }
+
+                _grid.Rows[index].Cells[1].Style.ForeColor = System.Drawing.Color.DarkOrange;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void PaintRowStandard(int index)
+        {
+            try
+            {
+                if (_grid.InvokeRequired)
+                {
+                    _grid.Invoke(new Action<int>(PaintRowStandard), index);
+                    return;
+                }
+
+                _grid.Rows[index].Cells[1].Style.ForeColor = _grid.ColumnHeadersDefaultCellStyle.ForeColor;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
 
         #region Search by grid
 

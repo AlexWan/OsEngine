@@ -102,6 +102,8 @@ public class GridBotClassic : BotPanel
 
         Thread worker = new Thread(WorkerThreadArea);
         worker.Start();
+
+        Description = "An example of a grid robot with rich customizations.";
     }
 
     private BotTabSimple _tab;
