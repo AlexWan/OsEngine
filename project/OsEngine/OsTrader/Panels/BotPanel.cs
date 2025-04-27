@@ -993,6 +993,24 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
+        /// <summary>
+        /// Whether the parameter window is open for display. True - is open
+        /// </summary>
+        public bool ParamGuiIsOpen
+        {
+            get
+            {
+                if(_parametersUi == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+        }
+
         /// <summary>       
         /// Gui Settings
         /// </summary>
