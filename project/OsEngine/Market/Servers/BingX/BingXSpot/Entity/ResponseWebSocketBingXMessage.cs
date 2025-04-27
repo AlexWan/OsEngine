@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Documents;
+﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.BingX.BingXSpot.Entity
 {
-    public class ResponceWebSocketBingXMessage<T>
+    public class ResponseWebSocketBingXMessage<T>
     {
         public string code { get; set; }
         public string msg { get; set; }

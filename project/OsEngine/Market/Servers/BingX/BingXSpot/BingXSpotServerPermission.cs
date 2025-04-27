@@ -110,6 +110,7 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
         #endregion
 
         #region Trade permission
+
         public bool MarketOrdersIsSupport
         {
             get { return true; }
@@ -148,13 +149,13 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = true,
@@ -167,7 +168,7 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
                 TimeFrameHour1IsOn = true,
                 TimeFrameHour2IsOn = true,
                 TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = true
+                TimeFrameDayIsOn = false,
             };
 
         public bool ManuallyClosePositionOnBoard_IsOn
@@ -186,8 +187,7 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
             {
                 string[] values = new string[]
                 {
-                    "USDT",
-                    "USDC",
+                    "USDT"
                 };
 
                 return values;
@@ -196,12 +196,12 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
 
         public bool CanQueryOrdersAfterReconnect
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool CanQueryOrderStatus
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

@@ -11,7 +11,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -50,52 +49,68 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             Thread thread = new Thread(GetUpdatePortfolio);
             thread.IsBackground = true;
+            thread.Name = "ThreadBingXSpotPortfolios";
             thread.Start();
 
-            Thread threadReader = new Thread(MessageReader);
+            Thread threadReader = new Thread(MessageReaderPrivate);
             threadReader.IsBackground = true;
             threadReader.Name = "MessageReaderBingXSpot";
             threadReader.Start();
+
+            Thread messageReaderPublic = new Thread(MessageReaderPublic);
+            messageReaderPublic.IsBackground = true;
+            messageReaderPublic.Name = "MessageReaderBingXSpot";
+            messageReaderPublic.Start();
         }
 
         public DateTime ServerTime { get; set; }
 
         public void Connect()
         {
-            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
-            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-
-            HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/openApi/swap/v2/server/time").Result;
-            string json = responseMessage.Content.ReadAsStringAsync().Result;
-
-            if (responseMessage.StatusCode != HttpStatusCode.OK)
+            try
             {
-                SendLogMessage($"The server is not available. No internet", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
-            }
-            else
-            {
-                try
+                _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+                _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+
+                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/openApi/swap/v2/server/time").Result;
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
+
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
                 {
-                    CreateWebSocketConnect();
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
-                    SendLogMessage("The connection cannot be opened. BingX. Error Request", LogMessageType.Error);
+                    SendLogMessage($"The server is not available. No internet", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
+                else
+                {
+                    try
+                    {
+                        FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                        FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+                        CreatePrivateWebSocketConnect();
+                        CheckSocketsActivate();
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage(ex.ToString(), LogMessageType.Error);
+                        SendLogMessage("The connection cannot be opened. BingX. Error Request", LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                }
             }
-
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage("The connection cannot be opened. BingXFutures. Error Request", LogMessageType.Error);
+            }
         }
 
         public void Dispose()
         {
-
             try
             {
+                UnsubscribeFromAllWebSockets();
                 _subscribledSecutiries.Clear();
                 DeleteWebscoektConnection();
             }
@@ -104,14 +119,19 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            _fifoListWebSocketMessage = new ConcurrentQueue<string>();
+            FIFOListWebSocketPublicMessage = null;
+            FIFOListWebSocketPrivateMessage = null;
 
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
-
         }
 
         public ServerType ServerType
@@ -141,6 +161,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 3 Securities
 
+        List<Security> _securities = new List<Security>();
+
         public void GetSecurities()
         {
             _rateGate.WaitToProceed();
@@ -168,7 +190,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     for (int i = 0; i < response.data.symbols.Count; i++)
                     {
-                        if (response.data.symbols[i].symbol.Contains("#")) // убираем NFT из списка доступных
+                        if (response.data.symbols[i].symbol.Contains("#")) // remove NFT from the list of available
                         {
                             continue;
                         }
@@ -189,8 +211,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void UpdateSecurity(List<SymbolData> currencyPairs)
         {
-            List<Security> securities = new List<Security>();
-
             for (int i = 0; i < currencyPairs.Count; i++)
             {
                 SymbolData current = currencyPairs[i];
@@ -209,15 +229,14 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     security.PriceStep = current.tickSize.ToDecimal();
                     security.PriceStepCost = security.PriceStep;
                     security.SecurityType = SecurityType.CurrencyPair;
-
                     security.Decimals = current.tickSize.DecimalsCount();
                     security.DecimalsVolume = current.stepSize.DecimalsCount();
 
-                    securities.Add(security);
+                    _securities.Add(security);
                 }
             }
 
-            SecurityEvent(securities);
+            SecurityEvent(_securities);
         }
 
         private string NameClass(string character)
@@ -244,14 +263,21 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             while (true)
             {
-                Thread.Sleep(5000);
-
                 if (ServerStatus != ServerConnectStatus.Connect)
                 {
+                    Thread.Sleep(3000);
                     continue;
                 }
 
-                CreateQueryPortfolio();
+                try
+                {
+                    Thread.Sleep(5000);
+                    CreateQueryPortfolio();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
             }
         }
 
@@ -274,16 +300,16 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 IRestResponse json = client.Execute(request);
 
-                ResponseSpotBingX<BalanceArray> responce = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<BalanceArray>());
+                ResponseSpotBingX<BalanceArray> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<BalanceArray>());
 
                 List<BalanceData> assets = new List<BalanceData>();
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
-                    if (responce.code == "0")
+                    if (response.code == "0")
                     {
-                        for (int i = 0; i < responce.data.balances.Count; i++)
+                        for (int i = 0; i < response.data.balances.Count; i++)
                         {
-                            assets.Add(responce.data.balances[i]);
+                            assets.Add(response.data.balances[i]);
                         }
                         UpdatePortfolio(assets);
                     }
@@ -297,10 +323,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     SendLogMessage($"Http State Code: {json.StatusCode}", LogMessageType.Error);
 
-                    if (assets != null && responce != null)
+                    if (assets != null && response != null)
                     {
-                        SendLogMessage($"Code: {responce.code}\n"
-                            + $"Message: {responce.msg}", LogMessageType.Error);
+                        SendLogMessage($"Code: {response.code}\n"
+                            + $"Message: {response.msg}", LogMessageType.Error);
                     }
                 }
             }
@@ -380,10 +406,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 string requestUri = $"{_baseUrl}{endPoint}?{parameters}&signature={sign}";
 
                 HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(requestUri).Result;
+                string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    string json = responseMessage.Content.ReadAsStringAsync().Result;
+
                     CandlestickChartData response = JsonConvert.DeserializeAnonymousType(json, new CandlestickChartData());
 
                     if (response.code == "0")
@@ -398,7 +425,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
                 else
                 {
-                    string json = responseMessage.Content.ReadAsStringAsync().Result;
+                    json = responseMessage.Content.ReadAsStringAsync().Result;
                     SendLogMessage($"Http State Code: {responseMessage.StatusCode} - {json}", LogMessageType.Error);
                 }
             }
@@ -461,6 +488,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
             DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
             if (!CheckTime(startTime, endTime, actualTime))
             {
                 return null;
@@ -480,19 +511,19 @@ namespace OsEngine.Market.Servers.BinGxSpot
             int timeRange = 0;
             if (interval == "1m")
             {
-                timeRange = tfTotalMinutes * 10000; // для 1m ограничение 10000 свечек
+                timeRange = tfTotalMinutes * 10000; // for 1m limit 10000 candles
             }
             else
             {
-                timeRange = tfTotalMinutes * 20000; // для остальных тф 20000
+                timeRange = tfTotalMinutes * 20000; // for other TF 20000
             }
 
-            DateTime maxStartTime = DateTime.Now.AddMinutes(-timeRange);
+            DateTime maxStartTime = DateTime.UtcNow.AddMinutes(-timeRange);
             DateTime startTimeData = startTime;
 
             if (maxStartTime > startTime)
             {
-                SendLogMessage($"Превышено максимальное колличество свечек для ТФ {interval}", LogMessageType.Error);
+                SendLogMessage($"Maximum number of candles for TF exceeded {interval}", LogMessageType.Error);
                 return null;
             }
 
@@ -512,7 +543,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     break;
                 }
 
-                Candle last = candles.Last();
+                Candle last = candles[candles.Count - 1];
 
                 if (last.TimeStart >= endTime)
                 {
@@ -531,14 +562,14 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 startTimeData = partEndTime;
                 partEndTime = startTimeData.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 720);
 
-                if (startTimeData >= DateTime.Now)
+                if (startTimeData >= DateTime.UtcNow)
                 {
                     break;
                 }
 
-                if (partEndTime > DateTime.Now)
+                if (partEndTime > DateTime.UtcNow)
                 {
-                    partEndTime = DateTime.Now;
+                    partEndTime = DateTime.UtcNow;
                 }
             }
             while (true);
@@ -548,11 +579,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            if (endTime > DateTime.Now ||
+            if (/*endTime > DateTime.UtcNow ||*/
                 startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now)
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -586,14 +617,72 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 6 WebSocket creation
 
-        private WebSocket _webSocket;
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+
+        private WebSocket _webSocketPrivate;
 
         private const string _webSocketUrl = "wss://open-api-ws.bingx.com/market";
 
         private string _listenKey = "";
 
-        private void CreateWebSocketConnect()
+        private void CreatePublicWebSocketConnect()
         {
+            try
+            {
+                if (FIFOListWebSocketPublicMessage == null)
+                {
+                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                }
+
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private WebSocket CreateNewPublicSocket()
+        {
+            try
+            {
+                _listenKey = CreateListenKey();
+
+                if (_listenKey == null)
+                {
+                    SendLogMessage("Authorization error. Listen key is note created", LogMessageType.Error);
+                    return null;
+                }
+
+                string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
+
+                WebSocket webSocketPublicNew = new WebSocket(urlStr);
+                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
+                    = System.Security.Authentication.SslProtocols.None;
+
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
+                webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
+                webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
+                webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
+                webSocketPublicNew.Connect();
+
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void CreatePrivateWebSocketConnect()
+        {
+            if (_webSocketPrivate != null)
+            {
+                return;
+            }
+
             _listenKey = CreateListenKey();
 
             if (_listenKey == null)
@@ -604,38 +693,110 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
 
-            _webSocket = new WebSocket(urlStr);
-
-            _webSocket.EmitOnPing = true;
-            _webSocket.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
-            _webSocket.OnOpen += WebSocket_Opened;
-            _webSocket.OnMessage += WebSocket_DataReceived;
-            _webSocket.OnError += WebSocket_Error;
-            _webSocket.OnClose += WebSocket_Closed;
-            
-
-            _webSocket.Connect();
+            _webSocketPrivate = new WebSocket(urlStr);
+            _webSocketPrivate.EmitOnPing = true;
+            _webSocketPrivate.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
+            _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
+            _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
+            _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
+            _webSocketPrivate.OnError += _webSocketPrivate_OnError;
+            _webSocketPrivate.Connect();
         }
 
         private void DeleteWebscoektConnection()
         {
-            if (_webSocket != null)
+            if (_webSocketPublic != null)
             {
-                _webSocket.OnOpen -= WebSocket_Opened;
-                _webSocket.OnClose -= WebSocket_Closed;
-                _webSocket.OnMessage -= WebSocket_DataReceived;
-                _webSocket.OnError -= WebSocket_Error;
-
                 try
                 {
-                    _webSocket.CloseAsync();
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
+                        webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
+                        webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
+                        webSocketPublic.OnError -= WebSocketPublicNew_OnError;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+                        webSocketPublic = null;
+                    }
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocket = null;
+                _webSocketPublic.Clear();
+            }
+
+
+            if (_webSocketPrivate != null)
+            {
+                try
+                {
+                    _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
+                    _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
+                    _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
+                    _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
+                    _webSocketPrivate.CloseAsync();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                _webSocketPrivate = null;
+            }
+        }
+
+        private string _socketActivateLocker = "socketActivateLocker";
+
+        private void CheckSocketsActivate()
+        {
+            try
+            {
+                lock (_socketActivateLocker)
+                {
+                    if (_webSocketPrivate == null
+                       || _webSocketPrivate?.ReadyState != WebSocketState.Open)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (_subscribledSecutiries.Count > 0)
+                    {
+                        if (_webSocketPublic.Count == 0
+                            || _webSocketPublic == null)
+                        {
+                            //Disconnect();
+                            return;
+                        }
+
+                        WebSocket webSocketPublic = _webSocketPublic[0];
+
+                        if (webSocketPublic == null
+                            || webSocketPublic?.ReadyState != WebSocketState.Open)
+                        {
+                            Disconnect();
+                            return;
+                        }
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Connect;
+                        ConnectEvent();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
@@ -643,7 +804,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 7 WebSocket events
 
-        private void WebSocket_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPublicNew_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -651,36 +812,138 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
             else
             {
-                SendLogMessage("Socket error" + e.Message.ToString(), LogMessageType.Error);
+                SendLogMessage("WebSocket Public error" + e.ToString(), LogMessageType.Error);
+                CheckSocketsActivate();
             }
         }
 
-        private void WebSocket_Opened(object sender, EventArgs e)
+        private void WebSocketPublicNew_OnMessage(object sender, MessageEventArgs e)
         {
-            SendLogMessage("Connection Open", LogMessageType.Connect);
-
-            if (ConnectEvent != null
-                && ServerStatus != ServerConnectStatus.Connect)
+            try
             {
-                ServerStatus = ServerConnectStatus.Connect;
-                ConnectEvent();
-            }
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
 
-            _webSocket.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // изменение ордеров
+                if (e == null)
+                {
+                    return;
+                }
+
+                if (e.RawData == null
+                    || e.RawData.Length == 0)
+                {
+                    return;
+                }
+
+                if (FIFOListWebSocketPublicMessage == null)
+                {
+                    return;
+                }
+
+                if (e.IsBinary)
+                {
+                    string item = Decompress(e.RawData);
+
+                    if (item.Contains("ping")) // send immediately upon receipt. 
+                    {
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
+                        {
+                            _webSocketPublic[i].Send("pong");
+                        }
+
+                        return;
+                    }
+
+                    FIFOListWebSocketPublicMessage.Enqueue(item);
+                }
+
+                if (e.IsText)
+                {
+                    FIFOListWebSocketPublicMessage.Enqueue(e.Data);
+                }
+
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
-        private void WebSocket_Closed(object sender, EventArgs e)
+        private void WebSocketPublicNew_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null
-                && ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by BingX. WebSocket Closed Event", LogMessageType.Connect);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                SendLogMessage($"Connection Closed by BingXSpot. {e.Code} {e.Reason}. WebSocket Public Closed Event", LogMessageType.Error);
+                CheckSocketsActivate();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
-        private void WebSocket_DataReceived(object sender, MessageEventArgs e)
+        private void WebSocketPublicNew_OnOpen(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("BingXSpot WebSocket Public connection open", LogMessageType.System);
+                    CheckSocketsActivate();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+            }
+            else
+            {
+                SendLogMessage("WebSocket Private error" + e.ToString(), LogMessageType.Error);
+                CheckSocketsActivate();
+            }
+        }
+
+        private void _webSocketPrivate_OnOpen(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("BingXFutures WebSocket Private connection open", LogMessageType.System);
+                    CheckSocketsActivate();
+                    _webSocketPrivate.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // changing orders
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPrivate_OnClose(object sender, CloseEventArgs e)
+        {
+            try
+            {
+                SendLogMessage($"Connection Closed by BingXSpot. {e.Code} {e.Reason}. WebSocket Private Closed Event", LogMessageType.Error);
+                CheckSocketsActivate();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPrivate_OnMessage(object sender, MessageEventArgs e)
         {
             try
             {
@@ -699,7 +962,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     return;
                 }
 
-                if (_fifoListWebSocketMessage == null)
+                if (FIFOListWebSocketPrivateMessage == null)
                 {
                     return;
                 }
@@ -708,24 +971,24 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     string item = Decompress(e.RawData);
 
-                    if (item.Contains("Ping")) // отправлять сразу после получения. 
+                    if (item.Contains("ping")) // send immediately upon receipt. 
                     {
-                        _webSocket.Send("Pong");
+                        _webSocketPrivate.Send("pong");
                         return;
                     }
 
-                    _fifoListWebSocketMessage.Enqueue(item);
+                    FIFOListWebSocketPrivateMessage.Enqueue(item);
                 }
 
                 if (e.IsText)
                 {
-                    _fifoListWebSocketMessage.Enqueue(e.Data);
+                    FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
                 }
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
-                SendLogMessage($"Error message read. Error: {error}", LogMessageType.Error);
+                SendLogMessage($"WebSocket Private Error message read. Error: {error}", LogMessageType.Error);
             }
         }
 
@@ -740,8 +1003,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             try
             {
                 CreateSubscribleSecurityMessageWebSocket(security);
-
-                Thread.Sleep(200);
+                Thread.Sleep(100);
             }
             catch (Exception exception)
             {
@@ -766,14 +1028,102 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             _subscribledSecutiries.Add(security.Name);
 
-            if (ServerStatus == ServerConnectStatus.Disconnect)
+            if (_subscribledSecutiries.Count > 0
+                    && _webSocketPublic.Count == 0)
+            {
+                CreatePublicWebSocketConnect();
+            }
+
+            if (_webSocketPublic.Count == 0)
             {
                 return;
             }
 
-            _webSocket.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}"); // трейды
+            WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
-            _webSocket.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}"); // глубина
+            if (webSocketPublic.ReadyState == WebSocketState.Open
+                && _subscribledSecutiries.Count != 0
+                && _subscribledSecutiries.Count % 60 == 0)
+            {
+                // creating a new socket
+                WebSocket newSocket = CreateNewPublicSocket();
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState == WebSocketState.Open)
+                {
+                    _webSocketPublic.Add(newSocket);
+                    webSocketPublic = newSocket;
+                }
+            }
+
+            if (webSocketPublic != null)
+            {
+                webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
+                webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}");
+            }
+        }
+
+        private void UnsubscribeFromAllWebSockets()
+        {
+            try
+            {
+                if (_webSocketPublic.Count != 0
+                    && _webSocketPublic != null)
+                {
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        try
+                        {
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            {
+                                if (_subscribledSecutiries != null)
+                                {
+                                    for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
+                                    {
+                                        string name = _subscribledSecutiries[i];
+
+                                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
+                                        webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20\" }}");
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            if (_webSocketPrivate != null
+               && _webSocketPrivate.ReadyState == WebSocketState.Open)
+            {
+                try
+                {
+                    _webSocketPrivate.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"spot.executionReport\"}}");
+                }
+                catch
+                {
+                    // ignore
+                }
+            }
         }
 
         public bool SubscribeNews()
@@ -787,7 +1137,9 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 9 WebSocket parsing the messages
 
-        private ConcurrentQueue<string> _fifoListWebSocketMessage = new ConcurrentQueue<string>();
+        private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
         public event Action<Order> MyOrderEvent;
 
@@ -799,34 +1151,29 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
-        private void MessageReader()
+        private void MessageReaderPublic()
         {
-            Thread.Sleep(1000);
+            Thread.Sleep(5000);
 
             while (true)
             {
                 try
                 {
-                    if (_fifoListWebSocketMessage.IsEmpty)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         Thread.Sleep(1000);
                         continue;
                     }
 
-                    if (_fifoListWebSocketMessage.TryDequeue(out string message))
+                    if (FIFOListWebSocketPublicMessage.IsEmpty)
                     {
-                        if (message.Contains("spot.executionReport"))
-                        {
-                            UpdateOrder(message);
-                            continue;
-                        }
-                        else if (message.Contains("@depth20"))
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (FIFOListWebSocketPublicMessage.TryDequeue(out string message))
+                    {
+                        if (message.Contains("@depth20"))
                         {
                             UpdateDepth(message);
                             continue;
@@ -834,6 +1181,43 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         else if (message.Contains("@trade"))
                         {
                             UpdateTrade(message);
+                            continue;
+                        }
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Thread.Sleep(2000);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private void MessageReaderPrivate()
+        {
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (FIFOListWebSocketPrivateMessage.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (FIFOListWebSocketPrivateMessage.TryDequeue(out string message))
+                    {
+                        if (message.Contains("spot.executionReport"))
+                        {
+                            UpdateOrder(message);
                             continue;
                         }
                     }
@@ -850,51 +1234,36 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData> responceOrder =
-                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData>());
+                ResponseWebSocketBingXMessage<SubscriptionOrderUpdateData> responseOrder =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketBingXMessage<SubscriptionOrderUpdateData>());
 
                 Order newOrder = new Order();
 
-                OrderStateType orderState = OrderStateType.None;
+                OrderStateType orderState = GetOrderState(responseOrder.data.X);
 
-                switch (responceOrder.data.X)
+                try
                 {
-                    case "FILLED":
-                        orderState = OrderStateType.Done;
-                        break;
-                    case "PENDING":
-                        orderState = OrderStateType.Active;
-                        break;
-                    case "PARTIALLY_FILLED":
-                        orderState = OrderStateType.Partial;
-                        break;
-                    case "CANCELED":
-                        orderState = OrderStateType.Cancel;
-                        break;
-                    case "FAILED":
-                        orderState = OrderStateType.Fail;
-                        break;
-                    case "NEW":
-                        orderState = OrderStateType.Active;
-                        break;
+                    newOrder.NumberUser = Convert.ToInt32(responseOrder.data.C);
+                }
+                catch
+                {
+                    // ignore
                 }
 
-                newOrder.NumberUser = Convert.ToInt32(responceOrder.data.C);
-                newOrder.NumberMarket = responceOrder.data.i.ToString();
-                newOrder.SecurityNameCode = responceOrder.data.s;
-                newOrder.SecurityClassCode = responceOrder.data.s.Split('-')[1];
+                newOrder.NumberMarket = responseOrder.data.i.ToString();
+                newOrder.SecurityNameCode = responseOrder.data.s;
+                newOrder.SecurityClassCode = responseOrder.data.s.Split('-')[1];
                 newOrder.PortfolioNumber = "BingXSpot";
-                newOrder.Side = responceOrder.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
-                newOrder.Price = responceOrder.data.p.Replace('.', ',').ToDecimal();
-                newOrder.Volume = responceOrder.data.q.Replace('.', ',').ToDecimal();
+                newOrder.Side = responseOrder.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
+                newOrder.Price = responseOrder.data.p.Replace('.', ',').ToDecimal();
+                newOrder.Volume = responseOrder.data.q.Replace('.', ',').ToDecimal();
                 newOrder.State = orderState;
-                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceOrder.data.E));
-                newOrder.TypeOrder = responceOrder.data.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.data.E));
+                newOrder.TypeOrder = responseOrder.data.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                 newOrder.ServerType = ServerType.BingXSpot;
 
                 MyOrderEvent(newOrder);
 
-                //если ордер исполнен, вызываем MyTradeEvent
                 if (orderState == OrderStateType.Done
                     || orderState == OrderStateType.Partial)
                 {
@@ -907,22 +1276,69 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
+        private OrderStateType GetOrderState(string orderStateResponse)
+        {
+            OrderStateType orderState;
+
+            switch (orderStateResponse)
+            {
+                case "FILLED":
+                    orderState = OrderStateType.Done;
+                    break;
+                case "PENDING":
+                    orderState = OrderStateType.Active;
+                    break;
+                case "PARTIALLY_FILLED":
+                    orderState = OrderStateType.Partial;
+                    break;
+                case "CANCELED":
+                    orderState = OrderStateType.Cancel;
+                    break;
+                case "FAILED":
+                    orderState = OrderStateType.Fail;
+                    break;
+                case "NEW":
+                    orderState = OrderStateType.Active;
+                    break;
+                default:
+                    orderState = OrderStateType.None;
+                    break;
+            }
+
+            return orderState;
+        }
+
         private void UpdateMyTrade(string message)
         {
             try
             {
-                ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData> responceOrder =
-                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<SubscriptionOrderUpdateData>());
+                ResponseWebSocketBingXMessage<SubscriptionOrderUpdateData> responseOrder =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketBingXMessage<SubscriptionOrderUpdateData>());
 
                 MyTrade newTrade = new MyTrade();
 
-                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceOrder.data.T));
-                newTrade.SecurityNameCode = responceOrder.data.s;
-                newTrade.NumberOrderParent = responceOrder.data.i;
-                newTrade.Price = responceOrder.data.p.ToDecimal();
-                newTrade.NumberTrade = responceOrder.data.t;
-                newTrade.Side = responceOrder.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
-                newTrade.Volume = responceOrder.data.q.ToDecimal();
+                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.data.T));
+                newTrade.SecurityNameCode = responseOrder.data.s;
+                newTrade.NumberOrderParent = responseOrder.data.i;
+                newTrade.Price = responseOrder.data.L.ToDecimal();
+                newTrade.NumberTrade = responseOrder.data.t;
+                newTrade.Side = responseOrder.data.S.Equals("BUY") ? Side.Buy : Side.Sell;
+
+                string commissionSecName = responseOrder.data.N;
+
+                if (newTrade.SecurityNameCode.StartsWith(commissionSecName))
+                {
+                    newTrade.Volume = responseOrder.data.l.ToDecimal() + responseOrder.data.n.ToDecimal();
+                    int decimalVolum = GetDecimalsVolume(responseOrder.data.s);
+                    if (decimalVolum > 0)
+                    {
+                        newTrade.Volume = Math.Floor(newTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
+                    }
+                }
+                else
+                {
+                    newTrade.Volume = responseOrder.data.l.ToDecimal();
+                }
 
                 MyTradeEvent(newTrade);
             }
@@ -932,21 +1348,34 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
+        private int GetDecimalsVolume(string security)
+        {
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (security == _securities[i].Name)
+                {
+                    return _securities[i].DecimalsVolume;
+                }
+            }
+
+            return 0;
+        }
+
         private void UpdateTrade(string message)
         {
             try
             {
-                ResponceWebSocketBingXMessage<ResponseWebSocketTrade> responceTrades =
-                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<ResponseWebSocketTrade>());
+                ResponseWebSocketBingXMessage<ResponseWebSocketTrade> responseTrades =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketBingXMessage<ResponseWebSocketTrade>());
 
                 Trade trade = new Trade();
-                trade.SecurityNameCode = responceTrades.data.s;
+                trade.SecurityNameCode = responseTrades.data.s;
 
-                trade.Price = responceTrades.data.p.Replace('.', ',').ToDecimal();
-                trade.Id = responceTrades.data.t;
-                trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceTrades.data.T));
-                trade.Volume = responceTrades.data.q.Replace('.', ',').ToDecimal();
-                if (responceTrades.data.m == "true")
+                trade.Price = responseTrades.data.p.Replace('.', ',').ToDecimal();
+                trade.Id = responseTrades.data.t;
+                trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrades.data.T));
+                trade.Volume = responseTrades.data.q.Replace('.', ',').ToDecimal();
+                if (responseTrades.data.m == "true")
                     trade.Side = Side.Sell;
                 else trade.Side = Side.Buy;
 
@@ -964,32 +1393,32 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                ResponceWebSocketBingXMessage<MarketDepthDataMessage> responceDepths =
-                    JsonConvert.DeserializeAnonymousType(message, new ResponceWebSocketBingXMessage<MarketDepthDataMessage>());
+                ResponseWebSocketBingXMessage<MarketDepthDataMessage> responseDepths =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketBingXMessage<MarketDepthDataMessage>());
                 MarketDepth depth = new MarketDepth();
 
                 List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
                 List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
 
-                depth.SecurityNameCode = responceDepths.dataType.Split('@')[0];
+                depth.SecurityNameCode = responseDepths.dataType.Split('@')[0];
 
-                for (int i = 0; i < responceDepths.data.asks.Count; i++)
+                for (int i = 0; i < responseDepths.data.asks.Count; i++)
                 {
                     MarketDepthLevel level = new MarketDepthLevel()
                     {
-                        Price = responceDepths.data.asks[i][0].ToDecimal(),
-                        Ask = responceDepths.data.asks[i][1].ToDecimal()
+                        Price = responseDepths.data.asks[i][0].ToDecimal(),
+                        Ask = responseDepths.data.asks[i][1].ToDecimal()
                     };
 
                     ascs.Insert(0, level);
                 }
 
-                for (int i = 0; i < responceDepths.data.bids.Count; i++)
+                for (int i = 0; i < responseDepths.data.bids.Count; i++)
                 {
                     bids.Add(new MarketDepthLevel()
                     {
-                        Price = responceDepths.data.bids[i][0].ToDecimal(),
-                        Bid = responceDepths.data.bids[i][1].ToDecimal()
+                        Price = responseDepths.data.bids[i][0].ToDecimal(),
+                        Bid = responseDepths.data.bids[i][1].ToDecimal()
                     });
                 }
 
@@ -997,6 +1426,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 depth.Bids = bids;
 
                 depth.Time = DateTime.UtcNow;
+
+                if (depth.Time <= _lastMdTime)
+                {
+                    depth.Time = _lastMdTime.AddTicks(1);
+                }
+
+                _lastMdTime = depth.Time;
 
                 _allDepths[depth.SecurityNameCode] = depth;
 
@@ -1008,81 +1444,85 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
+        DateTime _lastMdTime;
+
         #endregion
 
         #region 10 Trade
 
         public void SendOrder(Order order)
         {
-            _rateGate.WaitToProceed();
-
-            RestClient client = new RestClient(_baseUrl);
-            RestRequest request = new RestRequest("/openApi/spot/v1/trade/order", Method.POST);
-
-            string secName = order.SecurityNameCode;
-            string side = order.Side == Side.Buy ? "BUY" : "SELL";
-            string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            string quantity = order.Volume.ToString().Replace(",", ".");
-            string typeOrder = "";
-            string parameters = "";
-            string price = "";
-
-            if (order.TypeOrder == OrderPriceType.Market)
+            try
             {
-                typeOrder = "MARKET";
-                parameters = $"timestamp={timeStamp}&symbol={secName}&side={side}&type={typeOrder}&quantity={quantity}&newClientOrderId={order.NumberUser}";
-            }
-            else if (order.TypeOrder == OrderPriceType.Limit)
-            {
-                typeOrder = "LIMIT";
-                price = order.Price.ToString().Replace(",", ".");
-                parameters = $"timestamp={timeStamp}&symbol={secName}&side={side}&type={typeOrder}&quantity={quantity}&price={price}&newClientOrderId={order.NumberUser}";
-            }
-            string sign = CalculateHmacSha256(parameters);
+                _rateGate.WaitToProceed();
 
-            request.AddParameter("timestamp", timeStamp);
-            request.AddParameter("symbol", secName);
-            request.AddParameter("side", side);
-            request.AddParameter("type", typeOrder);
-            request.AddParameter("quantity", quantity);
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/spot/v1/trade/order", Method.POST);
 
-            if (typeOrder == "LIMIT")
-                request.AddParameter("price", price);
+                string secName = order.SecurityNameCode;
+                string side = order.Side == Side.Buy ? "BUY" : "SELL";
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string quantity = order.Volume.ToString().Replace(",", ".");
+                string typeOrder = "";
+                string parameters = "";
+                string price = "";
 
-            request.AddParameter("newClientOrderId", order.NumberUser);
-            request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", _publicKey);
-
-            IRestResponse json = client.Execute(request);
-
-            if (json.StatusCode == HttpStatusCode.OK)
-            {
-                ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
-                if (response.code == "0")
+                if (order.TypeOrder == OrderPriceType.Market)
                 {
-                    order.State = OrderStateType.Active;
-                    order.NumberMarket = response.data.orderId;
+                    typeOrder = "MARKET";
+                    parameters = $"timestamp={timeStamp}&symbol={secName}&side={side}&type={typeOrder}&quantity={quantity}&newClientOrderId={order.NumberUser}";
+                }
+                else if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    typeOrder = "LIMIT";
+                    price = order.Price.ToString().Replace(",", ".");
+                    parameters = $"timestamp={timeStamp}&symbol={secName}&side={side}&type={typeOrder}&quantity={quantity}&price={price}&newClientOrderId={order.NumberUser}";
+                }
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", secName);
+                request.AddParameter("side", side);
+                request.AddParameter("type", typeOrder);
+                request.AddParameter("quantity", quantity);
+
+                if (typeOrder == "LIMIT")
+                    request.AddParameter("price", price);
+
+                request.AddParameter("newClientOrderId", order.NumberUser);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
+                    if (response.code == "0")
+                    {
+                        order.State = OrderStateType.Active;
+                        order.NumberMarket = response.data.orderId;
+                    }
+                    else
+                    {
+                        CreateOrderFail(order);
+                        ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
+
+                        SendLogMessage($"Order execution error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
                     CreateOrderFail(order);
-                    ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-
-                    SendLogMessage($"Order execution error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
+
+                MyOrderEvent.Invoke(order);
             }
-            else
+            catch (Exception exception)
             {
-                CreateOrderFail(order);
-                SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
-
-            MyOrderEvent.Invoke(order);
-        }
-
-        public void GetOrdersState(List<Order> orders)
-        {
-
         }
 
         public void CancelAllOrders()
@@ -1092,81 +1532,95 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-            _rateGate.WaitToProceed();
-
-            RestClient client = new RestClient(_baseUrl);
-            RestRequest request = new RestRequest("/openApi/spot/v1/trade/cancelOpenOrders", Method.POST);
-
-            string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            string symbol = security.Name;
-            string parameters = $"timestamp={timeStamp}&symbol={symbol}";
-            string sign = CalculateHmacSha256(parameters);
-
-            request.AddParameter("timestamp", timeStamp);
-            request.AddParameter("symbol", symbol);
-            request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", _publicKey);
-
-            IRestResponse json = client.Execute(request);
-
-            if (json.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
-                if (response.code == "0")
-                {
+                _rateGate.WaitToProceed();
 
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/spot/v1/trade/cancelOpenOrders", Method.POST);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string symbol = security.Name;
+                string parameters = $"timestamp={timeStamp}&symbol={symbol}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", symbol);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
+                    if (response.code == "0")
+                    {
+
+                    }
+                    else
+                    {
+                        ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
+                        SendLogMessage($"CancelAllOrdersToSecurity> Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    }
                 }
                 else
                 {
-                    ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                    SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
-            else
+            catch (Exception exception)
             {
-                SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
         }
 
         public void CancelOrder(Order order)
         {
-            _rateGate.WaitToProceed();
-
-            RestClient client = new RestClient(_baseUrl);
-            RestRequest request = new RestRequest("/openApi/spot/v1/trade/cancel", Method.POST);
-
-            string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            string symbol = order.SecurityNameCode.ToString();
-            string orderId = order.NumberMarket.ToString();
-            string parameters = $"timestamp={timeStamp}&symbol={symbol}&orderId={orderId}";
-            string sign = CalculateHmacSha256(parameters);
-
-            request.AddParameter("timestamp", timeStamp);
-            request.AddParameter("symbol", symbol);
-            request.AddParameter("orderId", orderId);
-            request.AddParameter("signature", sign);
-            request.AddHeader("X-BX-APIKEY", _publicKey);
-
-            IRestResponse json = client.Execute(request);
-
-            if (json.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
-                if (response.code == "0")
-                {
+                _rateGate.WaitToProceed();
 
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/spot/v1/trade/cancel", Method.POST);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string symbol = order.SecurityNameCode.ToString();
+                string orderId = order.NumberMarket.ToString();
+                string parameters = $"timestamp={timeStamp}&symbol={symbol}&orderId={orderId}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", symbol);
+                request.AddParameter("orderId", orderId);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
+                    if (response.code == "0")
+                    {
+
+                    }
+                    else
+                    {
+                        GetOrderStatus(order);
+                        ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
+                        SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    }
                 }
                 else
                 {
-                    CreateOrderFail(order);
-                    ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                    SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                    GetOrderStatus(order);
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
             }
-            else
+            catch (Exception exception)
             {
-                CreateOrderFail(order);
-                SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                SendLogMessage(exception.Message, LogMessageType.Error);
             }
         }
 
@@ -1180,11 +1634,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
-        }
-
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
 
@@ -1192,12 +1641,323 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public void GetAllActivOrders()
         {
+            List<Order> orders = GetAllOpenOrders();
 
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                if (orders[i] == null)
+                {
+                    continue;
+                }
+
+                if (orders[i].State != OrderStateType.Active
+                    && orders[i].State != OrderStateType.Partial
+                    && orders[i].State != OrderStateType.Pending)
+                {
+                    continue;
+                }
+
+                if (MyOrderEvent != null)
+                {
+                    MyOrderEvent(orders[i]);
+                }
+            }
+        }
+
+        private List<Order> GetAllOpenOrders()
+        {
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/spot/v1/trade/openOrders", Method.GET);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseSpotBingX<OrderArray> responseOrders = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<OrderArray>());
+
+                    if (responseOrders.code == "0")
+                    {
+                        List<Order> orders = new List<Order>();
+
+                        for (int i = 0; i < responseOrders.data.orders.Count; i++)
+                        {
+                            ResponseGetOrder itemOrders = responseOrders.data.orders[i];
+
+                            Order newOrder = new Order();
+
+                            OrderStateType orderState = GetOrderState(itemOrders.status);
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(itemOrders.clientOrderID);
+                            }
+                            catch
+                            {
+                                // ignore
+                            }
+
+                            newOrder.NumberMarket = itemOrders.orderId.ToString();
+                            newOrder.SecurityNameCode = itemOrders.symbol;
+                            newOrder.SecurityClassCode = itemOrders.symbol.Split('-')[1];
+                            newOrder.PortfolioNumber = "BingXSpot";
+                            newOrder.Side = itemOrders.side.Equals("BUY") ? Side.Buy : Side.Sell;
+                            newOrder.Price = itemOrders.price.Replace('.', ',').ToDecimal();
+                            newOrder.Volume = itemOrders.origQty.Replace('.', ',').ToDecimal();
+                            newOrder.State = orderState;
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(itemOrders.updateTime));
+                            newOrder.TypeOrder = itemOrders.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                            newOrder.ServerType = ServerType.BingXSpot;
+
+                            orders.Add(newOrder);
+                        }
+
+                        return orders;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get all open orders request error: {responseOrders.code} - {responseOrders.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Get all open orders request error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
+                return null;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.Message, LogMessageType.Error);
+                return null;
+            }
         }
 
         public void GetOrderStatus(Order order)
         {
+            List<Order> orders = GetAllOpenOrders();
 
+            if (orders == null
+                || orders.Count == 0)
+            {
+                GetOrderFromExchange(order.SecurityNameCode, order.NumberUser.ToString());
+                return;
+            }
+
+            Order orderOnMarket = null;
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order curOder = orders[i];
+
+                if (order.NumberUser != 0
+                    && curOder.NumberUser != 0
+                    && curOder.NumberUser == order.NumberUser)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+
+                if (string.IsNullOrEmpty(order.NumberMarket) == false
+                    && order.NumberMarket == curOder.NumberMarket)
+                {
+                    orderOnMarket = curOder;
+                    break;
+                }
+            }
+
+            if (orderOnMarket == null)
+            {
+                return;
+            }
+
+            if (orderOnMarket != null &&
+                MyOrderEvent != null)
+            {
+                MyOrderEvent(orderOnMarket);
+            }
+        }
+
+        private void GetOrderFromExchange(string securityNameCode, string numberUser)
+        {
+            _rateGate.WaitToProceed();
+
+            try
+            {
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/spot/v1/trade/historyOrders", Method.GET);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}&symbol={securityNameCode}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", securityNameCode);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseSpotBingX<OrderArray> responseOrders = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<OrderArray>());
+
+                    if (responseOrders.code == "0")
+                    {
+                        List<Order> orders = new List<Order>();
+
+                        for (int i = 0; i < responseOrders.data.orders.Count; i++)
+                        {
+                            ResponseGetOrder itemOrders = responseOrders.data.orders[i];
+
+                            if (itemOrders.clientOrderID == numberUser)
+                            {
+                                Order newOrder = new Order();
+
+                                OrderStateType orderState = GetOrderState(itemOrders.status);
+
+                                try
+                                {
+                                    newOrder.NumberUser = Convert.ToInt32(itemOrders.clientOrderID);
+                                }
+                                catch
+                                {
+                                    // ignore
+                                }
+
+                                newOrder.NumberMarket = itemOrders.orderId.ToString();
+                                newOrder.SecurityNameCode = itemOrders.symbol;
+                                newOrder.SecurityClassCode = itemOrders.symbol.Split('-')[1];
+                                newOrder.PortfolioNumber = "BingXSpot";
+                                newOrder.Side = itemOrders.side.Equals("BUY") ? Side.Buy : Side.Sell;
+                                newOrder.Price = itemOrders.price.Replace('.', ',').ToDecimal();
+                                newOrder.Volume = itemOrders.origQty.Replace('.', ',').ToDecimal();
+                                newOrder.State = orderState;
+                                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(itemOrders.updateTime));
+                                newOrder.TypeOrder = itemOrders.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                                newOrder.ServerType = ServerType.BingXSpot;
+
+                                if (newOrder != null
+                                   && MyOrderEvent != null)
+                                {
+                                    MyOrderEvent(newOrder);
+                                }
+
+                                if (newOrder.State == OrderStateType.Done ||
+                                    newOrder.State == OrderStateType.Partial)
+                                {
+                                    FindMyTradesToOrder(newOrder);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetOrderFromExchange> Get status Order. Code: {responseOrders.code} - {responseOrders.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetOrderFromExchange> Get status Order. Error: {json.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void FindMyTradesToOrder(Order itemOrders)
+        {
+            try
+            {
+                _rateGate.WaitToProceed();
+
+                RestClient client = new RestClient(_baseUrl);
+                RestRequest request = new RestRequest("/openApi/spot/v1/trade/myTrades", Method.GET);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}&symbol={itemOrders.SecurityNameCode}&orderId={itemOrders.NumberMarket}";
+                string sign = CalculateHmacSha256(parameters);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", itemOrders.SecurityNameCode);
+                request.AddParameter("orderId", itemOrders.NumberMarket);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse json = client.Execute(request);
+
+                if (json.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseSpotBingX<TradeArray> responseTrade = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<TradeArray>());
+
+                    if (responseTrade.code == "0")
+                    {
+                        for (int i = 0; i < responseTrade.data.fills.Count; i++)
+                        {
+                            ResponseTrade itemTrades = responseTrade.data.fills[i];
+
+                            MyTrade newTrade = new MyTrade();
+
+                            newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(itemTrades.time));
+                            newTrade.SecurityNameCode = itemTrades.symbol;
+                            newTrade.NumberOrderParent = itemTrades.orderId;
+                            newTrade.Price = itemTrades.price.ToDecimal();
+                            newTrade.NumberTrade = itemTrades.id;
+
+                            if (itemTrades.isBuyer == "true")
+                            {
+                                newTrade.Side = Side.Buy;
+                            }
+                            else
+                            {
+                                newTrade.Side = Side.Sell;
+                            }
+
+                            string commissionSecName = itemTrades.commissionAsset;
+
+                            if (newTrade.SecurityNameCode.StartsWith(commissionSecName))
+                            {
+                                newTrade.Volume = itemTrades.qty.ToDecimal() + itemTrades.commission.ToDecimal();
+                                int decimalVolum = GetDecimalsVolume(itemTrades.symbol);
+                                if (decimalVolum > 0)
+                                {
+                                    newTrade.Volume = Math.Floor(newTrade.Volume * (decimal)Math.Pow(10, decimalVolum)) / (decimal)Math.Pow(10, decimalVolum);
+                                }
+                            }
+                            else
+                            {
+                                newTrade.Volume = itemTrades.qty.ToDecimal();
+                            }
+
+                            MyTradeEvent(newTrade);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetOrderFromExchange> Get status Order. Code: {responseTrade.code} - {responseTrade.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"FindMyTradesToOrder> Http State Code: {json.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1248,7 +2008,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
 
                 if (_timeLastUpdateListenKey.AddMinutes(30) > DateTime.Now)
-                {   // спим 30 минут
+                {
                     Thread.Sleep(10000);
                     continue;
                 }
