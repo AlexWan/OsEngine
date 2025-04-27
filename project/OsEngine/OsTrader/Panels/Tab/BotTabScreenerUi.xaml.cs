@@ -87,7 +87,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 if (connectorBot.ServerType != ServerType.None)
                 {
-                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerType.ToString();
+                    ComboBoxTypeServer.SelectedItem = connectorBot.ServerName;
                     _selectedServerType = connectorBot.ServerType;
                     _selectedServerName = connectorBot.ServerName;
                 }

@@ -6,7 +6,6 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
-using OsEngine.Market.Servers.BitStamp.BitStampEntity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using System;

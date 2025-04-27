@@ -148,7 +148,7 @@ namespace OsEngine.Market.Connectors
             }
             else
             {
-                ComboBoxTypeServer.SelectedItem = servers[0].ServerType.ToString();
+                ComboBoxTypeServer.SelectedItem = servers[0].ServerNameAndPrefix;
                 _selectedServerType = servers[0].ServerType;
                 _selectedServerName = servers[0].ServerNameAndPrefix;
             }
