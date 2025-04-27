@@ -688,7 +688,7 @@
     <Compile Include="Market\Servers\BingX\BingXSpot\BingXServerSpot.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\BingXSpotServerPermission.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ListenKeyBingX.cs" />
-    <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ResponceWebSocketBingXMessage.cs" />
+    <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ResponseWebSocketBingXMessage.cs" />
     <Compile Include="Market\Servers\BingX\BingXSpot\Entity\ResponseSpotBingX.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetFutures\BitGetFuturesServerPermission.cs" />
     <Compile Include="Market\Servers\BitGet\BitGetFutures\BitGetServerFutures.cs" />
