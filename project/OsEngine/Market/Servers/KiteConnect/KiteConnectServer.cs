@@ -375,6 +375,9 @@ namespace OsEngine.Market.Servers.KiteConnect
                         newSecurity.Decimals = security[7].DecimalsCount();
                         newSecurity.PriceStepCost = newSecurity.PriceStep;
                         newSecurity.State = SecurityStateType.Activ;
+                        newSecurity.VolumeStep = security[8].ToDecimal();
+                        newSecurity.MinTradeAmount = security[8].ToDecimal();
+                        newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
 
                         _securities.Add(newSecurity);
                     }
