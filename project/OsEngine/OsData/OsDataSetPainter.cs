@@ -354,6 +354,8 @@ namespace OsEngine.OsData
                 if (columnIndex == 10)
                 { // chart or раскрыть/скрыть бумаги внутри
 
+                    _dataGrid.Rows[rowIndex].Cells[0].Selected = true;
+
                     bool isClickOnShowChartBtn = false;
                     bool isClickOnShowHideSecs = false;
 
@@ -455,6 +457,8 @@ namespace OsEngine.OsData
                 }
                 else if (columnIndex == 11)
                 { // delete or detail
+
+                    _dataGrid.Rows[rowIndex].Cells[0].Selected = true;
 
                     if (_dataGrid.Rows[rowIndex].Cells[0].Value == null
                        || _dataGrid.Rows[rowIndex].Cells[0].Value.ToString() == "")
