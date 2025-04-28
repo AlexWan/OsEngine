@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -41,7 +42,7 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         private NinjaTraderClient _client;
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             if (_client == null)
             {

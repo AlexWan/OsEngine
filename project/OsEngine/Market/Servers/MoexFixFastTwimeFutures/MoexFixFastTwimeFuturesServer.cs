@@ -78,7 +78,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             thread7.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

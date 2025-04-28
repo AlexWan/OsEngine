@@ -11,6 +11,7 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using System.IO;
+using System.Net;
 
 namespace OsEngine.Market.Servers.InteractiveBrokers
 {
@@ -80,7 +81,7 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             }
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             if (_client == null)
             {

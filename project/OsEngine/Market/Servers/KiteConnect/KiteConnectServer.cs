@@ -54,7 +54,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             threadMessageReader.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

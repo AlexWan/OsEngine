@@ -13,6 +13,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -92,7 +93,7 @@ namespace OsEngine.Market.Servers.Bybit
             threadMessageReaderTradesInverse.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {

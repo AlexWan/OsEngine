@@ -717,6 +717,14 @@ namespace OsEngine.Language
           "Eng:Add new_" +
           "Ru:Добавить_");
 
+        public string Label171 => OsLocalization.ConvertToLocString(
+          "Eng:Proxy type_" +
+          "Ru:Тип Прокси_");
+
+        public string Label172 => OsLocalization.ConvertToLocString(
+          "Eng:Proxy_" +
+          "Ru:Прокси_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");

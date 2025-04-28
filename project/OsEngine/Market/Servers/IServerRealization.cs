@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -47,7 +48,7 @@ namespace OsEngine.Market.Servers
         /// request to connect to the source. guaranteed to be called no more than 60 seconds
         /// запрос подключения к источнику. гарантированно вызывается не чаще чем в 60 секунд
         /// </summary>
-        void Connect();
+        void Connect(WebProxy proxy);
 
         /// <summary>
         /// dispose resources of API

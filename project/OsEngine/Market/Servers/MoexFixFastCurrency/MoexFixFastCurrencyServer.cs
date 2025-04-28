@@ -76,7 +76,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             thread7.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

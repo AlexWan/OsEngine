@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using OsEngine.Language;
+using System.Net;
 
 namespace OsEngine.Market.Servers.Lmax
 {
@@ -100,7 +101,7 @@ namespace OsEngine.Market.Servers.Lmax
             ServerStatus = ServerConnectStatus.Disconnect;
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             var currentTime = DateTime.UtcNow;
 

@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -129,7 +130,7 @@ namespace OsEngine.Market.Servers.Transaq
 
         private CallBackDelegate _myCallbackDelegate;
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             string time = ((ServerParameterString)ServerParameters[4]).Value;
             if (CheckConnectionTime(time) == false)

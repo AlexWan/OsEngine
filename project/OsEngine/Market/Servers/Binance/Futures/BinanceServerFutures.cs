@@ -75,7 +75,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             worker4.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             ApiKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;

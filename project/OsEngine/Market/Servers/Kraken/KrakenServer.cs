@@ -9,6 +9,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using Kraken.WebSockets;
 using System.Threading.Tasks;
+using System.Net;
 
 
 namespace OsEngine.Market.Servers.Kraken
@@ -105,7 +106,7 @@ namespace OsEngine.Market.Servers.Kraken
         /// connect to API
         /// подсоединиться к апи
         /// </summary>
-        public async void Connect()
+        public async void Connect(WebProxy proxy)
         {
             if (_clientRest == null)
             {

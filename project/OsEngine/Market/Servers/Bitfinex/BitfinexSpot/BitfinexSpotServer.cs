@@ -66,7 +66,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {

@@ -41,7 +41,7 @@ namespace OsEngine.Market.Servers.RSSNews
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             _rssUrlsString = ((ServerParameterString)ServerParameters[0]).Value;
             _updatePeriod = ((ServerParameterInt)ServerParameters[1]).Value;

@@ -9,11 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
-using System.Security.Policy;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -28,6 +24,8 @@ namespace OsEngine.Market.Proxy
 
             SendLogMessage("Proxy master activated. Proxy count: " 
                 + Proxies.Count, LogMessageType.System);
+
+            Task.Run(AutoPingThreadArea);
         }
 
         private void LoadSettings()
@@ -144,7 +142,7 @@ namespace OsEngine.Market.Proxy
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                //SendLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -206,16 +204,59 @@ namespace OsEngine.Market.Proxy
 
         #region Proxy ping
 
-        public void CheckPing()
+        private void AutoPingThreadArea()
         {
-            if(_pingThread != null)
+            while (true)
             {
-                SendLogMessage("Ping in process", LogMessageType.Error);
-                return;
+                try
+                {
+                   Thread.Sleep(10000);
+
+                    if(MainWindow.ProccesIsWorked == false)
+                    {
+                        return;
+                    }
+
+                    if(AutoPingIsOn == false)
+                    {
+                        continue;
+                    }
+
+                    if(AutoPingLastTime.AddMinutes(AutoPingMinutes) > DateTime.Now)
+                    {
+                        continue;
+                    }
+
+                    AutoPingLastTime = DateTime.Now;
+
+                    CheckPing();
+
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
             }
 
-            _pingThread = new Thread(CheckPingThreadArea);
-            _pingThread.Start();
+        }
+
+        public void CheckPing()
+        {
+            try
+            {
+                if (_pingThread != null)
+                {
+                    SendLogMessage("Ping in process", LogMessageType.Error);
+                    return;
+                }
+
+                _pingThread = new Thread(CheckPingThreadArea);
+                _pingThread.Start();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private Thread _pingThread;

@@ -103,7 +103,7 @@ namespace OsEngine.Market.Servers.ZB
             return dictionary;
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

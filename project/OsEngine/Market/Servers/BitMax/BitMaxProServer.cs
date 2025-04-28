@@ -81,7 +81,7 @@ namespace OsEngine.Market.Servers.BitMax
         /// connect to API
         /// подсоединиться к апи
         /// </summary>
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             if (_client == null)
             {

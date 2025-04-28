@@ -20,6 +20,7 @@ using System.IO.Compression;
 using System.IO;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Net;
 
 namespace OsEngine.Market.Servers.CoinEx.Spot
 {
@@ -65,7 +66,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             worker1.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {

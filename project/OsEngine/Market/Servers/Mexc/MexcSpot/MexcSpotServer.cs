@@ -56,7 +56,7 @@ namespace OsEngine.Market.Servers.Mexc
             worker3.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             SendLogMessage("Start MexcSpot Connection", LogMessageType.System);
 

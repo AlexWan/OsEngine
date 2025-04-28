@@ -76,7 +76,7 @@ namespace OsEngine.Market.Servers.Atp
 
         private DateTime _lastConnectTime;
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             BrokerId = ((ServerParameterString)ServerParameters[0]).Value;
             UserId = ((ServerParameterString)ServerParameters[1]).Value;

@@ -54,7 +54,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             worker3.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {

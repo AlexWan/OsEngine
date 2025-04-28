@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Threading.Tasks;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -112,7 +113,7 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// connect to API
         /// подсоединиться к апи
         /// </summary>
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             if (_client == null)
             {

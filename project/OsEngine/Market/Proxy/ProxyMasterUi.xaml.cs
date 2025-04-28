@@ -127,13 +127,6 @@ namespace OsEngine.Market.Proxy
             column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _grid.Columns.Add(column0);
 
-            DataGridViewColumn column1 = new DataGridViewColumn();
-            column1.CellTemplate = cell0;
-            column1.HeaderText = "Prefix"; // Prefix
-            column1.ReadOnly = false;
-            column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column1);
-
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
             column2.HeaderText = "Is on"; // IsOn
@@ -176,13 +169,6 @@ namespace OsEngine.Market.Proxy
             column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column7);
 
-            DataGridViewColumn column8 = new DataGridViewColumn();
-            column8.CellTemplate = cell0;
-            column8.HeaderText = "Max connectors"; // Max connectors
-            column8.ReadOnly = false;
-            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column8);
-
             DataGridViewColumn column9 = new DataGridViewColumn();
             column9.CellTemplate = cell0;
             column9.HeaderText = "Ping status"; // Status
@@ -196,13 +182,6 @@ namespace OsEngine.Market.Proxy
             column10.ReadOnly = false;
             column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column10);
-
-            DataGridViewColumn column11_0 = new DataGridViewColumn();
-            column11_0.CellTemplate = cell0;
-            column11_0.HeaderText = "Allow connection"; // AllowConnection
-            column11_0.ReadOnly = true;
-            column11_0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            _grid.Columns.Add(column11_0);
 
             DataGridViewColumn column11 = new DataGridViewColumn();
             column11.CellTemplate = cell0;
@@ -237,18 +216,16 @@ namespace OsEngine.Market.Proxy
                 TextBoxAutoPingLastTime.Text = _master.AutoPingLastTime.ToString();
 
                 // 0 num
-                // 1 Prefix
-                // 2 IsOn
-                // 3 Ip
-                // 4 Port
-                // 5 UserName
-                // 6 UserPassword
-                // 7 Location
-                // 8 Max connectors
-                // 9 Status
-                // 10 Ping address
-                // 11 AllowConnection
-                // 12 UseConnection
+                // 1 IsOn
+                // 2 Ip
+                // 3 Port
+                // 4 UserName
+                // 5 UserPassword
+                // 6 Location
+                // 7 Max connectors
+                // 8 Status
+                // 9 Ping address
+                // 10 UseConnection
 
                 _grid.Rows.Clear();
 
@@ -272,9 +249,6 @@ namespace OsEngine.Market.Proxy
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[nRow.Cells.Count - 1].Value = proxy.Number;
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.Prefix;
-
             DataGridViewComboBoxCell cellIsOn = new DataGridViewComboBoxCell();
             cellIsOn.Items.Add("True");
             cellIsOn.Items.Add("False");
@@ -297,9 +271,6 @@ namespace OsEngine.Market.Proxy
             nRow.Cells[nRow.Cells.Count - 1].Value = proxy.Location;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.MaxConnectorsOnThisProxy;
-
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[nRow.Cells.Count - 1].Value = proxy.AutoPingLastStatus;
             if(proxy.AutoPingLastStatus == "Connect")
             {
@@ -308,9 +279,6 @@ namespace OsEngine.Market.Proxy
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[nRow.Cells.Count - 1].Value = proxy.PingWebAddress;
-
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.AllowConnectionCount;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells[nRow.Cells.Count - 1].Value = proxy.UseConnectionCount;
@@ -326,9 +294,6 @@ namespace OsEngine.Market.Proxy
         {
             DataGridViewRow nRow = new DataGridViewRow();
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -361,12 +326,12 @@ namespace OsEngine.Market.Proxy
                 }
 
                 if (row + 1 == _grid.Rows.Count
-                    && column == 13)
+                    && column == 10)
                 { // add new
                     _master.CreateNewProxy();
                     UpdateGrid();
                 }
-                else if (column == 13)
+                else if (column == 10)
                 { // delete
 
                     AcceptDialogUi ui = new AcceptDialogUi("The proxy will be deleted and data will be lost. Are you sure?");
@@ -410,81 +375,64 @@ namespace OsEngine.Market.Proxy
         {
             try
             {
-                if(nRow.Cells[1].Value != null)
-                {
-                    proxy.Prefix = nRow.Cells[1].Value.ToString();
-                }
-                else
-                {
-                    proxy.Prefix = "";
-                }
 
-                if (nRow.Cells[2].Value != null)
+                if (nRow.Cells[1].Value != null)
                 {
-                    proxy.IsOn = Convert.ToBoolean(nRow.Cells[2].Value.ToString());
+                    proxy.IsOn = Convert.ToBoolean(nRow.Cells[1].Value.ToString());
                 }
                 else
                 {
                     proxy.IsOn = false;
                 }
 
-                if (nRow.Cells[3].Value != null)
+                if (nRow.Cells[2].Value != null)
                 {
-                    proxy.Ip = nRow.Cells[3].Value.ToString();
+                    proxy.Ip = nRow.Cells[2].Value.ToString();
                 }
                 else
                 {
                     proxy.Ip = "";
                 }
 
-                if (nRow.Cells[4].Value != null)
+                if (nRow.Cells[3].Value != null)
                 {
-                    proxy.Port = Convert.ToInt32(nRow.Cells[4].Value.ToString());
+                    proxy.Port = Convert.ToInt32(nRow.Cells[3].Value.ToString());
                 }
                 else
                 {
                     proxy.Port = 0;
                 }
 
-                if (nRow.Cells[5].Value != null)
+                if (nRow.Cells[4].Value != null)
                 {
-                    proxy.Login = nRow.Cells[5].Value.ToString();
+                    proxy.Login = nRow.Cells[4].Value.ToString();
                 }
                 else
                 {
                     proxy.Login = "";
                 }
 
-                if (nRow.Cells[6].Value != null)
+                if (nRow.Cells[5].Value != null)
                 {
-                    proxy.UserPassword = nRow.Cells[6].Value.ToString();
+                    proxy.UserPassword = nRow.Cells[5].Value.ToString();
                 }
                 else
                 {
                     proxy.UserPassword = "";
                 }
 
-                if (nRow.Cells[7].Value != null)
+                if (nRow.Cells[6].Value != null)
                 {
-                    proxy.Location = nRow.Cells[7].Value.ToString();
+                    proxy.Location = nRow.Cells[6].Value.ToString();
                 }
                 else
                 {
                     proxy.Location = "";
                 }
-
-                if(nRow.Cells[8].Value != null)
-                {
-                    proxy.MaxConnectorsOnThisProxy = Convert.ToInt32(nRow.Cells[8].Value);
-                }
-                else
-                {
-                    proxy.MaxConnectorsOnThisProxy = 5;
-                }
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage("Save proxy error. Proxy: " + proxy.UniqueName + "\nError: " + ex.ToString(), Logging.LogMessageType.Error);
+                _master.SendLogMessage("Save proxy error. Proxy number: " + proxy.Number + "\nError: " + ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

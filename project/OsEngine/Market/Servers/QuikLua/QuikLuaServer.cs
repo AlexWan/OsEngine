@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using Newtonsoft.Json;
 using OsEngine.Entity;
@@ -99,7 +100,7 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

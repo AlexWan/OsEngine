@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.MFD
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             string result = GetRequest("http://mfd.ru/export/");
 

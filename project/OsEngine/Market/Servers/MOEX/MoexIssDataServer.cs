@@ -43,7 +43,7 @@ namespace OsEngine.Market.Servers.MOEX
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             string result = GetRequest("http://iss.moex.com/iss/engines/");
 

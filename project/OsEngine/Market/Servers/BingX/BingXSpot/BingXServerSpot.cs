@@ -65,7 +65,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {

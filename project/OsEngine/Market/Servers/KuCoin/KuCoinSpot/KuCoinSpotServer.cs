@@ -57,7 +57,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;

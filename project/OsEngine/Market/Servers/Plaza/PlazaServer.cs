@@ -8,6 +8,7 @@ using ru.micexrts.cgate.message;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Net;
 using System.Text;
 using System.Threading;
 using Message = ru.micexrts.cgate.message.Message;
@@ -48,7 +49,7 @@ namespace OsEngine.Market.Servers.Plaza
             _heartBeatSenderThread.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             string key = ((ServerParameterString)ServerParameters[0]).Value;
             int limitation = ((ServerParameterInt)ServerParameters[1]).Value;
@@ -544,7 +545,7 @@ namespace OsEngine.Market.Servers.Plaza
                         if (Connection == null && _statusNeeded == ServerConnectStatus.Connect)
                         {
                             Dispose();
-                            Connect();
+                            Connect(null);
 
                             continue;
                         }
@@ -568,7 +569,7 @@ namespace OsEngine.Market.Servers.Plaza
                             SendLogMessage("Router error", LogMessageType.Error);
 
                             Dispose();
-                            Connect();
+                            Connect(null);
 
                             continue;
                         }
@@ -1312,8 +1313,8 @@ namespace OsEngine.Market.Servers.Plaza
 
                 SendLogMessage($"Publisher error. Reconnect.", LogMessageType.System);
 
-                Dispose();
-                Connect();
+                Dispose(); 
+                Connect(null);
             }
 
             try

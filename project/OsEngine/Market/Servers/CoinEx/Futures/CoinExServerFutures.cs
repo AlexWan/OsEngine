@@ -20,6 +20,7 @@ using System.IO.Compression;
 using System.IO;
 using Newtonsoft.Json;
 using System.Net.Http;
+using System.Net;
 
 namespace OsEngine.Market.Servers.CoinEx.Futures
 {
@@ -64,7 +65,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             worker1.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {

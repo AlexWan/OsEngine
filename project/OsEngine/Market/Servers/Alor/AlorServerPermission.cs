@@ -233,7 +233,7 @@ namespace OsEngine.Market.Servers.Alor
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

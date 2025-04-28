@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Media;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using OsEngine.Entity;
@@ -121,6 +122,20 @@ namespace OsEngine.Market.Servers
                 CreateParameterButton(OsLocalization.Market.ServerParam12);
                 ServerParameters[9].Comment = OsLocalization.Market.Label131;
                 ((ServerParameterButton)ServerParameters[9]).UserClickButton += AServer_UserClickButton;
+
+                if (ServerPermission != null
+                    && ServerPermission.IsSupports_ProxyFor_MultipleInstances)
+                {
+                    List<string> proxyType = new List<string>();
+                    proxyType.Add("None");
+                    proxyType.Add("Auto");
+                    proxyType.Add("Manual");
+                    CreateParameterEnum(OsLocalization.Market.Label171, "None", proxyType);
+
+                    CreateParameterString(OsLocalization.Market.Label172, "");
+                }
+
+                _serverStandardParamsCount = ServerParameters.Count;
 
                 _serverRealization.ServerParameters = ServerParameters;
 
@@ -306,6 +321,8 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public List<IServerParameter> ServerParameters = new List<IServerParameter>();
 
+        private int _serverStandardParamsCount = 12;
+
         /// <summary>
         /// create STRING server parameter
         /// </summary>
@@ -318,7 +335,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterString)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -340,7 +357,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterInt)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -363,7 +380,7 @@ namespace OsEngine.Market.Servers
 
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -385,7 +402,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterDecimal)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -407,7 +424,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterBool)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -430,7 +447,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPassword)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -451,7 +468,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterPath)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -472,7 +489,7 @@ namespace OsEngine.Market.Servers
             newParam = (ServerParameterButton)LoadParam(newParam);
             if (_serverIsCreated)
             {
-                ServerParameters.Insert(ServerParameters.Count - 10, newParam);
+                ServerParameters.Insert(ServerParameters.Count - _serverStandardParamsCount, newParam);
             }
             else
             {
@@ -887,6 +904,17 @@ namespace OsEngine.Market.Servers
 
         #endregion
 
+        #region Proxy
+
+        private WebProxy GetProxy()
+        {
+
+            return null;
+        }
+
+
+        #endregion
+
         #region Thread 1. Work with connection
 
         /// <summary>
@@ -921,7 +949,18 @@ namespace OsEngine.Market.Servers
 
                         DeleteCandleManager();
 
-                        ServerRealization.Connect();
+                        if(ServerPermission != null 
+                            && ServerPermission.IsSupports_ProxyFor_MultipleInstances)
+                        {
+                            WebProxy proxy = GetProxy();
+
+                            ServerRealization.Connect(proxy);
+                        }
+                        else
+                        {
+                            ServerRealization.Connect(null);
+                        }
+
                         LastStartServerTime = DateTime.Now;
 
                         NeedToReconnectEvent?.Invoke();

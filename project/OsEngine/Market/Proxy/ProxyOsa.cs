@@ -21,24 +21,7 @@ namespace OsEngine.Market.Proxy
             return newProxy;
         }
 
-        public string UniqueName
-        {
-            get
-            {
-                string result = Number.ToString();
-
-                if(string.IsNullOrEmpty(Prefix) == false)
-                {
-                    result = result + "_" + Prefix;
-                }
-
-                return result;
-            }
-        }
-
         public int Number;
-
-        public string Prefix;
 
         public bool IsOn = false;
 
@@ -52,20 +35,9 @@ namespace OsEngine.Market.Proxy
 
         public string Location = "Unknown";
 
-        public int MaxConnectorsOnThisProxy = 5;
-
         public string AutoPingLastStatus = "Unknown";
 
         public string PingWebAddress = "https://www.moex.com";
-
-        public string AllowConnectionCount
-        {
-            get
-            {
-                return AllowConnection.Count.ToString();
-            }
-        }
-        public List<ServerType> AllowConnection = new List<ServerType>();
 
         public string UseConnectionCount
         {
@@ -80,7 +52,6 @@ namespace OsEngine.Market.Proxy
         {
             string result = IsOn + "%";
             result += Number + "%";
-            result += Prefix + "%";
             result += Location + "%";
             result += Ip + "%";
             result += Port + "%";
@@ -88,7 +59,6 @@ namespace OsEngine.Market.Proxy
             result += UserPassword + "%";
             result += AutoPingLastStatus + "%";
             result += PingWebAddress + "%";
-            result += MaxConnectorsOnThisProxy ;
 
             return result;
         }
@@ -97,15 +67,13 @@ namespace OsEngine.Market.Proxy
         {
             IsOn = Convert.ToBoolean(saveStr.Split('%')[0]);
             Number = Convert.ToInt32(saveStr.Split('%')[1]);
-            Prefix = saveStr.Split('%')[2];
-            Location = saveStr.Split('%')[3];
-            Ip = saveStr.Split('%')[4];
-            Port = int.Parse(saveStr.Split('%')[5]);
-            Login = saveStr.Split('%')[6];
-            UserPassword = saveStr.Split('%')[7];
-            AutoPingLastStatus = saveStr.Split('%')[8];
-            PingWebAddress = saveStr.Split('%')[9];
-            MaxConnectorsOnThisProxy = Convert.ToInt32(saveStr.Split('%')[10]);
+            Location = saveStr.Split('%')[2];
+            Ip = saveStr.Split('%')[3];
+            Port = int.Parse(saveStr.Split('%')[4]);
+            Login = saveStr.Split('%')[5];
+            UserPassword = saveStr.Split('%')[6];
+            AutoPingLastStatus = saveStr.Split('%')[7];
+            PingWebAddress = saveStr.Split('%')[8];
         }
     }
 }

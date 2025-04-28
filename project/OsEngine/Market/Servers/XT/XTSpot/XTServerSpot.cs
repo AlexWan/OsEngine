@@ -64,7 +64,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public DateTime ServerTime { get; set; }
 
-            public void Connect()
+            public void Connect(WebProxy proxy)
             {
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;

@@ -54,7 +54,7 @@ namespace OsEngine.Market.Servers.BitMex
             converter.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             _id = ((ServerParameterString)ServerParameters[0]).Value;
             _secKey = ((ServerParameterPassword)ServerParameters[1]).Value;

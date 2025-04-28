@@ -42,7 +42,7 @@ namespace OsEngine.Market.Servers.Finam
             }
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             // проверка соединения
             HttpWebResponse response = CheckFinamServer();

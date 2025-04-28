@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
             worker3.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             ApiKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;

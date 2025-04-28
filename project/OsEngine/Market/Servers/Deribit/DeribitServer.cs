@@ -16,6 +16,7 @@ using System.Threading;
 using WebSocket4Net;
 using OsEngine.Market.Servers.Deribit.Entity;
 using System.Security.Cryptography;
+using System.Net;
 
 // API doc - https://docs.deribit.com/
 
@@ -57,7 +58,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             _clientID = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;

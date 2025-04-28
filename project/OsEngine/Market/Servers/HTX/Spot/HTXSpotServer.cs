@@ -15,6 +15,7 @@ using System.IO.Compression;
 using System.IO;
 using System.Security.Authentication;
 using OsEngine.Language;
+using System.Net;
 
 namespace OsEngine.Market.Servers.HTX.Spot
 {
@@ -57,7 +58,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;

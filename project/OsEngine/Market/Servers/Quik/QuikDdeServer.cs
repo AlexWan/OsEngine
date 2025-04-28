@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity;
@@ -149,7 +150,7 @@ namespace OsEngine.Market.Servers.Quik
         /// connect to API
         /// подключиться к Апи
         /// </summary>
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

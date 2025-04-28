@@ -7,6 +7,7 @@ using SuperSocket.ClientEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -77,7 +78,7 @@ namespace OsEngine.Market.Servers.BitMaxFutures
         private string SeckretKey = String.Empty;
         private string AccGroup = String.Empty;
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;

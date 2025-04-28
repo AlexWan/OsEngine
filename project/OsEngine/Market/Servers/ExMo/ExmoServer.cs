@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -84,7 +85,7 @@ namespace OsEngine.Market.Servers.ExMo
         /// connect to API
         /// подсоединиться к апи
         /// </summary>
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             if (_client == null)
             {

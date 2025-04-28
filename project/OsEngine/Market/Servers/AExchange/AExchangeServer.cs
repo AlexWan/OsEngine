@@ -49,7 +49,7 @@ namespace OsEngine.Market.Servers.AE
             messageReader.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {

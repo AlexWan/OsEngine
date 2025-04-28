@@ -20,6 +20,7 @@ using Order = OsEngine.Entity.Order;
 using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
+using System.Net;
 
 namespace OsEngine.Market.Servers.TInvest
 {
@@ -77,7 +78,7 @@ namespace OsEngine.Market.Servers.TInvest
             worker7.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

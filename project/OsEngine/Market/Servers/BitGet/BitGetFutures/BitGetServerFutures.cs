@@ -62,7 +62,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             threadGetPortfolios.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;

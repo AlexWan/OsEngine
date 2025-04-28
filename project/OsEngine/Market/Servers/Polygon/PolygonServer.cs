@@ -7,6 +7,7 @@ using OsEngine.Market.Servers.Polygon.Entity;
 using OsEngine.Market.Servers.Entity;
 using System.IO;
 using System.Net.Http;
+using System.Net;
 
 namespace OsEngine.Market.Servers.Polygon
 {
@@ -41,7 +42,7 @@ namespace OsEngine.Market.Servers.Polygon
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

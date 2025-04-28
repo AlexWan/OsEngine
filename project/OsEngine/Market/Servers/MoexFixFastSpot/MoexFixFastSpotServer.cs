@@ -104,7 +104,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             worker10.Start();            
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {                

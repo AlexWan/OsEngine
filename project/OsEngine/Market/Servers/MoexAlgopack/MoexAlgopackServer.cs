@@ -49,7 +49,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             private bool _isAuthorized = false;
 
-            public void Connect()
+            public void Connect(WebProxy proxy)
             {
                 _username = ((ServerParameterString)ServerParameters[0]).Value;
                 _password = ((ServerParameterPassword)ServerParameters[1]).Value;

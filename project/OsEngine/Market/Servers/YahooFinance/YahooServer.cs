@@ -8,6 +8,7 @@ using OsEngine.Market.Servers.Entity;
 using System.IO;
 using RestSharp;
 using BytesRoad.Net.Ftp;
+using System.Net;
 
 namespace OsEngine.Market.Servers.YahooFinance
 {
@@ -40,7 +41,7 @@ namespace OsEngine.Market.Servers.YahooFinance
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
 
         public DateTime ServerTime { get; set; }
 
-        public void Connect()
+        public void Connect(WebProxy proxy)
         {
             try
             {

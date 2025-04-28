@@ -65,7 +65,7 @@ namespace OsEngine.Market.Servers.Alor
             worker4.Start();
         }
 
-        public void Connect()
+        public void Connect(WebProxy proxy = null)
         {
             try
             {
