@@ -219,7 +219,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 {
                     Security security = new Security();
                     security.Lot = 1;
-                    security.MinTradeAmount = current.stepSize.ToDecimal();
+                    security.MinTradeAmount = current.minNotional.ToDecimal();
                     security.Name = current.symbol;
                     security.NameFull = current.symbol;
                     security.NameClass = NameClass(current.symbol);
@@ -231,6 +231,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     security.SecurityType = SecurityType.CurrencyPair;
                     security.Decimals = current.tickSize.DecimalsCount();
                     security.DecimalsVolume = current.stepSize.DecimalsCount();
+                    security.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                    security.VolumeStep = current.stepSize.ToDecimal();
 
                     _securities.Add(security);
                 }
@@ -303,6 +305,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 ResponseSpotBingX<BalanceArray> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<BalanceArray>());
 
                 List<BalanceData> assets = new List<BalanceData>();
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     if (response.code == "0")
