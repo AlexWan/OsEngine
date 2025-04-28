@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using System;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -445,10 +446,107 @@ namespace OsEngine.Market.Proxy
 
         #region Save / Load settings in file
 
+        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+                openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                openFileDialog.RestoreDirectory = true;
+                openFileDialog.ShowDialog();
 
+                if (string.IsNullOrEmpty(openFileDialog.FileName))
+                {
+                    return;
+                }
 
+                string filePath = openFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    return;
+                }
+
+                try
+                {
+                    using (StreamReader reader = new StreamReader(filePath))
+                    {
+                        while(reader.EndOfStream == false)
+                        {
+                            string fileStr = reader.ReadLine();
+
+                            ProxyOsa newProxy = new ProxyOsa();
+                            newProxy.LoadFromString(fileStr);
+
+                            _master.Proxies.Add(newProxy);
+                        }
+                    }
+
+                    _master.SaveProxy();
+                }
+                catch (Exception ex)
+                {
+                    _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+
+           
+
+            UpdateGrid();
+        }
+
+        private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(saveFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = saveFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    using (FileStream stream = File.Create(filePath))
+                    {
+                        // do nothin
+                    }
+                }
+
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(filePath))
+                    {
+                        for(int i = 0;i <  _master.Proxies.Count; i++)
+                        {
+                            writer.WriteLine(_master.Proxies[i].GetStringToSave());
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _master.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         #endregion
-
     }
 }
