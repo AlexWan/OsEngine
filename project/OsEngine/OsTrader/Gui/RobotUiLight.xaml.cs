@@ -85,6 +85,7 @@ namespace OsEngine.OsTrader.Gui
             TabHistoricalOrders.Header = OsLocalization.Trader.Label190;
             TabStopLimitPoses.Header = OsLocalization.Trader.Label193;
             ButtonSupportTable.Content = OsLocalization.Market.Label81;
+            ButtonProxy.Content = OsLocalization.Market.Label172;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)

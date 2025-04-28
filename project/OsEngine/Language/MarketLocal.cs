@@ -727,7 +727,83 @@ namespace OsEngine.Language
 
         public string Label173 => OsLocalization.ConvertToLocString(
           "Eng:Use proxy_" +
-          "Ru:Используем прокси_"); 
+          "Ru:Используем прокси_");
+
+        public string Label174 => OsLocalization.ConvertToLocString(
+          "Eng:Auto ping is on_" +
+          "Ru:Включить авто пинг_");
+
+        public string Label175 => OsLocalization.ConvertToLocString(
+          "Eng:Check ping_" +
+          "Ru:Проверить пинг_");
+
+        public string Label176 => OsLocalization.ConvertToLocString(
+          "Eng:Check location_" +
+          "Ru:Проверить локацию_");
+
+        public string Label177 => OsLocalization.ConvertToLocString(
+          "Eng:Ping minutes interval_" +
+          "Ru:Интервал пинга. Минут_");
+
+        public string Label178 => OsLocalization.ConvertToLocString(
+          "Eng:Ping last time_" +
+          "Ru:Время последнего пинга_");
+
+        public string Label179 => OsLocalization.ConvertToLocString(
+          "Eng:Proxy hub_" +
+          "Ru:Хранилище прокси_");
+
+        public string Label180 => OsLocalization.ConvertToLocString(
+          "Eng:Save_" +
+          "Ru:Сохранить_");
+
+        public string Label181 => OsLocalization.ConvertToLocString(
+          "Eng:Load_" +
+          "Ru:Загрузить_");
+
+        public string Label182 => OsLocalization.ConvertToLocString(
+          "Eng:Is on_" +
+          "Ru:Включено?_");
+
+        public string Label183 => OsLocalization.ConvertToLocString(
+          "Eng:Ip_" +
+          "Ru:Ip_");
+
+        public string Label184 => OsLocalization.ConvertToLocString(
+          "Eng:Port_" +
+          "Ru:Port_");
+
+        public string Label185 => OsLocalization.ConvertToLocString(
+          "Eng:Login_" +
+          "Ru:Login_");
+
+        public string Label186 => OsLocalization.ConvertToLocString(
+          "Eng:Password_" +
+          "Ru:Password_");
+
+        public string Label187 => OsLocalization.ConvertToLocString(
+          "Eng:Location_" +
+          "Ru:Локация_");
+
+        public string Label188 => OsLocalization.ConvertToLocString(
+          "Eng:Status_" +
+          "Ru:Статус_");
+
+        public string Label189 => OsLocalization.ConvertToLocString(
+          "Eng:Ping address_" +
+          "Ru:Пинг адрес_");
+
+        public string Label190 => OsLocalization.ConvertToLocString(
+          "Eng:Used count_" +
+          "Ru:Использован раз_");
+
+        public string Label191 => OsLocalization.ConvertToLocString(
+          "Eng:Type of proxy usage. None - none. Auto - auto selection from the list. Manual - you need to specify a number or IP in the following field_" +
+          "Ru:Тип использования прокси. None - никак. Auto - авто выбор из списка. Manual - нужно указать номер или IP в следующем поле_");
+
+        public string Label192 => OsLocalization.ConvertToLocString(
+          "Eng:The field is used when the proxy selection type is Manual. In the field you should insert the proxy number or IP address_" +
+          "Ru:Поле используется при типе выбора прокси Manual. В поле надо вставить номер прокси или IP адрес_");
 
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +

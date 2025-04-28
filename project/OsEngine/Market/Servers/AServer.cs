@@ -131,8 +131,10 @@ namespace OsEngine.Market.Servers
                     proxyType.Add("Auto");
                     proxyType.Add("Manual");
                     CreateParameterEnum(OsLocalization.Market.Label171, "None", proxyType);
+                    ServerParameters[10].Comment = OsLocalization.Market.Label191;
 
                     CreateParameterString(OsLocalization.Market.Label172, "");
+                    ServerParameters[11].Comment = OsLocalization.Market.Label192;
                 }
 
                 _serverStandardParamsCount = ServerParameters.Count;

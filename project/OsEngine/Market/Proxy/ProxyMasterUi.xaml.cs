@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using System;
 using System.IO;
 using System.Windows;
@@ -43,6 +44,15 @@ namespace OsEngine.Market.Proxy
 
             _master.ProxyPingEndEvent += _master_ProxyPingEndEvent;
             _master.ProxyCheckLocationEndEvent += _master_ProxyCheckLocationEndEvent;
+
+            Title = OsLocalization.Market.Label179;
+            CheckBoxAutoPingIsOn.Content = OsLocalization.Market.Label174;
+            ButtonCheckPing.Content = OsLocalization.Market.Label175;
+            ButtonCheckLocation.Content = OsLocalization.Market.Label176;
+            LabelPingInterval.Content = OsLocalization.Market.Label177;
+            LabelPingLastTime.Content = OsLocalization.Market.Label178;
+            ButtonSave.Content = OsLocalization.Market.Label180;
+            ButtonLoad.Content = OsLocalization.Market.Label181;
         }
 
         private void _master_ProxyCheckLocationEndEvent()
@@ -130,63 +140,63 @@ namespace OsEngine.Market.Proxy
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = "Is on"; // IsOn
+            column2.HeaderText = OsLocalization.Market.Label182; // IsOn
             column2.ReadOnly = false;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column2);
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = "Ip"; // Ip
+            column3.HeaderText = OsLocalization.Market.Label183; // Ip
             column3.ReadOnly = false;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column3);
 
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
-            column4.HeaderText = "Port"; // Port
+            column4.HeaderText = OsLocalization.Market.Label184; // Port
             column4.ReadOnly = false;
             column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _grid.Columns.Add(column4);
 
             DataGridViewColumn column5 = new DataGridViewColumn();
             column5.CellTemplate = cell0;
-            column5.HeaderText = "Login"; // UserName
+            column5.HeaderText = OsLocalization.Market.Label185; // UserName
             column5.ReadOnly = false;
             column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column5);
 
             DataGridViewColumn column6 = new DataGridViewColumn();
             column6.CellTemplate = cell0;
-            column6.HeaderText = "User password"; // UserPassword
+            column6.HeaderText = OsLocalization.Market.Label186; // UserPassword
             column6.ReadOnly = false;
             column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column6);
 
             DataGridViewColumn column7 = new DataGridViewColumn();
             column7.CellTemplate = cell0;
-            column7.HeaderText = "Location"; // Location
+            column7.HeaderText = OsLocalization.Market.Label187; // Location
             column7.ReadOnly = false;
             column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column7);
 
             DataGridViewColumn column9 = new DataGridViewColumn();
             column9.CellTemplate = cell0;
-            column9.HeaderText = "Ping status"; // Status
+            column9.HeaderText = OsLocalization.Market.Label188; // Status
             column9.ReadOnly = false;
             column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _grid.Columns.Add(column9);
 
             DataGridViewColumn column10 = new DataGridViewColumn();
             column10.CellTemplate = cell0;
-            column10.HeaderText = "Ping address"; // Ping address
+            column10.HeaderText = OsLocalization.Market.Label189; // Ping address
             column10.ReadOnly = false;
             column10.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column10);
 
             DataGridViewColumn column11 = new DataGridViewColumn();
             column11.CellTemplate = cell0;
-            column11.HeaderText = "Used Connection"; // UseConnection
+            column11.HeaderText = OsLocalization.Market.Label190; // UseConnection
             column11.ReadOnly = true;
             column11.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _grid.Columns.Add(column11);
@@ -285,7 +295,7 @@ namespace OsEngine.Market.Proxy
             nRow.Cells[nRow.Cells.Count - 1].Value = proxy.UseConnectionCount;
 
             DataGridViewButtonCell cell = new DataGridViewButtonCell();
-            cell.Value = "Delete";
+            cell.Value = OsLocalization.Market.Label47;
             nRow.Cells.Add(cell);
 
             return nRow;
@@ -307,7 +317,7 @@ namespace OsEngine.Market.Proxy
             nRow.Cells.Add(new DataGridViewTextBoxCell());
 
             DataGridViewButtonCell cell = new DataGridViewButtonCell();
-            cell.Value = "Add new";
+            cell.Value = OsLocalization.Market.Label48;
             nRow.Cells.Add(cell);
 
             return nRow;
@@ -335,7 +345,7 @@ namespace OsEngine.Market.Proxy
                 else if (column == 10)
                 { // delete
 
-                    AcceptDialogUi ui = new AcceptDialogUi("The proxy will be deleted and data will be lost. Are you sure?");
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label191);
 
                     ui.ShowDialog();
 
