@@ -13,46 +13,78 @@ namespace OsEngine.Market.Proxy
     {
         public WebProxy GetWebProxy()
         {
-            string address = Ip.Replace(":" + Port.ToString(), "");
+            string address = Ip + ":" + Port.ToString();
 
             WebProxy newProxy = new WebProxy(address);
-            newProxy.Credentials = new NetworkCredential(UserName, UserPassword);
+            newProxy.Credentials = new NetworkCredential(Login, UserPassword);
 
             return newProxy;
         }
 
-        public bool IsOn;
+        public string UniqueName
+        {
+            get
+            {
+                string result = Number.ToString();
 
-        public string Prefix = "Unknown";
+                if(string.IsNullOrEmpty(Prefix) == false)
+                {
+                    result = result + "_" + Prefix;
+                }
 
-        public string Location = "Unknown";
+                return result;
+            }
+        }
+
+        public int Number;
+
+        public string Prefix;
+
+        public bool IsOn = false;
 
         public string Ip;
 
         public int Port;
 
-        public string UserName;
+        public string Login;
 
         public string UserPassword;
 
-        public string AutoPingLastStatus;
+        public string Location = "Unknown";
 
         public int MaxConnectorsOnThisProxy = 5;
 
+        public string AutoPingLastStatus = "Unknown";
+
         public string PingWebAddress = "https://www.moex.com";
 
+        public string AllowConnectionCount
+        {
+            get
+            {
+                return AllowConnection.Count.ToString();
+            }
+        }
         public List<ServerType> AllowConnection = new List<ServerType>();
 
+        public string UseConnectionCount
+        {
+            get
+            {
+                return UseConnection.Count.ToString();
+            }
+        }
         public List<string> UseConnection = new List<string>();
 
         public string GetStringToSave()
         {
             string result = IsOn + "%";
+            result += Number + "%";
             result += Prefix + "%";
             result += Location + "%";
             result += Ip + "%";
             result += Port + "%";
-            result += UserName + "%";
+            result += Login + "%";
             result += UserPassword + "%";
             result += AutoPingLastStatus + "%";
             result += PingWebAddress + "%";
@@ -64,15 +96,16 @@ namespace OsEngine.Market.Proxy
         public void LoadFromString(string saveStr)
         {
             IsOn = Convert.ToBoolean(saveStr.Split('%')[0]);
-            Prefix = saveStr.Split('%')[1];
-            Location = saveStr.Split('%')[2];
-            Ip = saveStr.Split('%')[3];
-            Port = int.Parse(saveStr.Split('%')[4]);
-            UserName = saveStr.Split('%')[5];
-            UserPassword = saveStr.Split('%')[6];
-            AutoPingLastStatus = saveStr.Split('%')[7];
-            PingWebAddress = saveStr.Split('%')[8];
-            MaxConnectorsOnThisProxy = Convert.ToInt32(saveStr.Split('%')[9]);
+            Number = Convert.ToInt32(saveStr.Split('%')[1]);
+            Prefix = saveStr.Split('%')[2];
+            Location = saveStr.Split('%')[3];
+            Ip = saveStr.Split('%')[4];
+            Port = int.Parse(saveStr.Split('%')[5]);
+            Login = saveStr.Split('%')[6];
+            UserPassword = saveStr.Split('%')[7];
+            AutoPingLastStatus = saveStr.Split('%')[8];
+            PingWebAddress = saveStr.Split('%')[9];
+            MaxConnectorsOnThisProxy = Convert.ToInt32(saveStr.Split('%')[10]);
         }
     }
 }

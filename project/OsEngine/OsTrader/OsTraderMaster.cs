@@ -74,9 +74,10 @@ namespace OsEngine.OsTrader
                 ((TesterServer)ServerMaster.GetServers()[0]).TestingEndEvent += StrategyKeeper_TestingEndEvent;
             }
 
-            if (_startProgram != StartProgram.IsTester)
+            if (_startProgram == StartProgram.IsOsTrader)
             {
                 ServerMaster.ActivateAutoConnection();
+                ServerMaster.ActivateProxy();
             }
 
             //ServerMaster.LogMessageEvent += SendNewLogMessage;

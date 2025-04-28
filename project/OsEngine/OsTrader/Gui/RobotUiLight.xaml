@@ -68,9 +68,10 @@
                             <ColumnDefinition Width="801*"/>
                         </Grid.ColumnDefinitions>
                         <WindowsFormsHost Name="HostServers" Margin="0,0,0,25"/>
-                        <WindowsFormsHost Name="HostServerLog" Margin="0,0,0,0" Grid.Column="1"/>
+                        <WindowsFormsHost Name="HostServerLog" Margin="0,0,0,26" Grid.Column="1"/>
                         <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Deploy servers automatically" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,0,0,0"/>
                         <Button Name="ButtonSupportTable" Content="Support table" VerticalAlignment="Bottom" Click="ButtonSupportTable_Click" HorizontalAlignment="Right" Width="133"/>
+                        <Button x:Name="ButtonProxy" Content="Proxy" VerticalAlignment="Bottom" Grid.Column="1" HorizontalAlignment="Left" Width="133" Click="ButtonProxy_Click"/>
                     </Grid>
 
                 </TabItem>

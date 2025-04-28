@@ -92,7 +92,6 @@ namespace OsEngine.Market
         public static void Activate()
         {
             ActivateLogging();
-            ActivateProxy();
         }
 
         /// <summary>
@@ -1507,7 +1506,7 @@ namespace OsEngine.Market
 
         private static ProxyMaster _proxyMaster;
 
-        private static void ActivateProxy()
+        public static void ActivateProxy()
         {
             if (_proxyMaster == null)
             {
@@ -1527,6 +1526,18 @@ namespace OsEngine.Market
             {
                 SendNewLogMessage(ex.ToString(),LogMessageType.Error);
                 return null;
+            }
+        }
+
+        public static void ShowProxyDialog()
+        {
+            try
+            {
+                _proxyMaster.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error); 
             }
         }
 

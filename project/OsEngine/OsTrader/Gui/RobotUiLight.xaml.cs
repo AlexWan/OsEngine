@@ -106,6 +106,11 @@ namespace OsEngine.OsTrader.Gui
 
         public static bool IsRobotUiLightStart = false;
 
+        private void ButtonProxy_Click(object sender, RoutedEventArgs e)
+        {
+            ServerMaster.ShowProxyDialog();
+        }
+
         // смещение областей
 
         private void GreedChartPanel_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -215,5 +220,7 @@ namespace OsEngine.OsTrader.Gui
                 e.Cancel = true;
             }
         }
+
+        
     }
 }

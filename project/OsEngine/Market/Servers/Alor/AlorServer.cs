@@ -1540,7 +1540,7 @@ namespace OsEngine.Market.Servers.Alor
                 subObjMarketDepth.guid = GetGuid();
                 subObjMarketDepth.token = _apiTokenReal;
 
-                if (((ServerParameterBool)ServerParameters[18]).Value == false)
+                if (((ServerParameterBool)ServerParameters[19]).Value == false)
                 {
                     subObjMarketDepth.depth = "1";
                 }

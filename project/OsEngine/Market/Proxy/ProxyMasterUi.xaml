@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Market.Proxy"
         mc:Ignorable="d"
-        Title="Proxy" Height="347" Width="652" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Proxy" Height="600" Width="1000" MinWidth="700" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition/>
@@ -17,14 +17,15 @@
         </Grid.RowDefinitions>
         <Rectangle Stroke="Black" Margin="3,3,3,3"/>
         <Rectangle Stroke="Black" Margin="3,3,3,3" Grid.Column="1"/>
-        <CheckBox Content="Auto ping is on" HorizontalAlignment="Left" Margin="39,12,0,0" VerticalAlignment="Top"/>
-        <CheckBox Content="Auto location is on" HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Column="1" Margin="40,12,0,0"/>
-        <Button Content="Check ping" HorizontalAlignment="Right" Margin="0,12,30,0" VerticalAlignment="Top" Width="106"/>
-        <Button Content="Check location" HorizontalAlignment="Right" Margin="0,12,30,0" VerticalAlignment="Top" Width="106" Grid.Column="1"/>
-        <ComboBox HorizontalAlignment="Left" Margin="189,42,0,0" VerticalAlignment="Top" Width="106"/>
-        <Label Content="Ping minutes interval" HorizontalAlignment="Left" Margin="39,42,0,0" VerticalAlignment="Top" Width="145"/>
-        <Label Content="Ping last time" HorizontalAlignment="Left" Margin="39,70,0,0" VerticalAlignment="Top" Width="145"/>
-        <TextBox HorizontalAlignment="Left" Margin="189,70,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="106"/>
-        <WindowsFormsHost Margin="3,2,3,3" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <CheckBox Name="CheckBoxAutoPingIsOn" Content="Auto ping is on" HorizontalAlignment="Left" Margin="39,12,0,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonCheckPing" Content="Check ping" Margin="189,12,30,0" VerticalAlignment="Top" Click="ButtonCheckPing_Click"/>
+        <Button Name="ButtonCheckLocation" Content="Check location" Margin="109,12,110,0" VerticalAlignment="Top" Grid.Column="1" Click="ButtonCheckLocation_Click"/>
+        <ComboBox Name="ComboBoxAutoPingInterval" Margin="189,42,30,0" VerticalAlignment="Top"/>
+        <Label Name="LabelPingInterval" Content="Ping minutes interval" HorizontalAlignment="Left" Margin="39,42,0,0" VerticalAlignment="Top" Width="145"/>
+        <Label Name="LabelPingLastTime"  Content="Ping last time" HorizontalAlignment="Left" Margin="39,70,0,0" VerticalAlignment="Top" Width="145"/>
+        <TextBox Name="TextBoxAutoPingLastTime" Margin="189,70,30,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <WindowsFormsHost Name="HostProxy" Margin="3,2,3,44" Grid.Row="1" Grid.ColumnSpan="2"/>
+        <Button Grid.Column="1" Content="Save" Margin="0,0,10,10" Grid.Row="1" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="122"/>
+        <Button Grid.Column="1" Content="Load" Margin="0,0,147,10" Grid.Row="1" Height="25" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="122"/>
     </Grid>
 </Window>
