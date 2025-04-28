@@ -16,6 +16,7 @@ namespace OsEngine.Market.Proxy
             string address = Ip + ":" + Port.ToString();
 
             WebProxy newProxy = new WebProxy(address);
+           
             newProxy.Credentials = new NetworkCredential(Login, UserPassword);
 
             return newProxy;
@@ -39,14 +40,7 @@ namespace OsEngine.Market.Proxy
 
         public string PingWebAddress = "https://www.moex.com";
 
-        public string UseConnectionCount
-        {
-            get
-            {
-                return UseConnection.Count.ToString();
-            }
-        }
-        public List<string> UseConnection = new List<string>();
+        public int UseConnectionCount;
 
         public string GetStringToSave()
         {

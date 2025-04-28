@@ -908,10 +908,54 @@ namespace OsEngine.Market.Servers
 
         private WebProxy GetProxy()
         {
+            // OsLocalization.Market.Label171 Proxy type
+            // OsLocalization.Market.Label172 Proxy
+
+            ServerParameterEnum proxyType = null;
+            ServerParameterString proxy = null;
+
+            for (int i = 0; i < ServerParameters.Count; i++)
+            {
+                if (ServerParameters[i].Name == OsLocalization.Market.Label171)
+                {
+                    proxyType = (ServerParameterEnum)ServerParameters[i];
+                }
+                if (ServerParameters[i].Name == OsLocalization.Market.Label172)
+                {
+                    proxy = (ServerParameterString)ServerParameters[i];
+                }
+            }
+
+            if (proxy == null
+                || proxyType == null)
+            {
+                return null;
+            }
+
+            if (proxyType.Value == "None")
+            {
+                return null;
+            }
+
+            if (proxyType.Value == "Manual")
+            {
+                string proxyName = proxy.Value;
+
+                if (string.IsNullOrEmpty(proxyName))
+                {
+                    return null;
+                }
+
+                return ServerMaster.GetProxyManualRegime(proxyName);
+            }
+            else if (proxyType.Value == "Auto")
+            {
+
+                return ServerMaster.GetProxyAutoRegime(this.ServerType, this.ServerNameAndPrefix);
+            }
 
             return null;
         }
-
 
         #endregion
 
@@ -953,6 +997,11 @@ namespace OsEngine.Market.Servers
                             && ServerPermission.IsSupports_ProxyFor_MultipleInstances)
                         {
                             WebProxy proxy = GetProxy();
+
+                            if(proxy != null)
+                            {
+                                SendLogMessage(OsLocalization.Market.Label173 + "\n" + proxy.Address, LogMessageType.System);
+                            }
 
                             ServerRealization.Connect(proxy);
                         }

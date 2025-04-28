@@ -1516,15 +1516,28 @@ namespace OsEngine.Market
             }
         }
 
-        public static WebProxy GetProxy(ServerType serverType, string serverName)
+        public static WebProxy GetProxyAutoRegime(ServerType serverType, string serverName)
         {
             try
             {
-                return _proxyMaster.GetProxy(serverType, serverName);
+                return _proxyMaster.GetProxyAutoRegime(serverType, serverName);
             }
             catch (Exception ex)
             {
                 SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                return null;
+            }
+        }
+
+        public static WebProxy GetProxyManualRegime(string userValue)
+        {
+            try
+            {
+                return _proxyMaster.GetProxyManualRegime(userValue);
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 return null;
             }
         }

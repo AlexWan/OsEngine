@@ -65,10 +65,13 @@ namespace OsEngine.Market.Servers.Alor
             worker4.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy = null)
         {
             try
             {
+                _myProxy = proxy;
                 _securities.Clear();
                 _myPortfolios.Clear();
                 _subscribedSecurities.Clear();
@@ -150,6 +153,12 @@ namespace OsEngine.Market.Servers.Alor
                 string endPoint = "/refresh?token=" + _apiTokenRefresh;
                 RestRequest requestRest = new RestRequest(endPoint, Method.POST);
                 RestClient client = new RestClient(_oauthApiHost);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -286,6 +295,12 @@ namespace OsEngine.Market.Servers.Alor
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
                 RestClient client = new RestClient(_restApiHost);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -653,6 +668,11 @@ namespace OsEngine.Market.Servers.Alor
 
                 RestClient client = new RestClient(_restApiHost);
 
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -839,6 +859,12 @@ namespace OsEngine.Market.Servers.Alor
                 requestRest.AddHeader("accept", "application/json");
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
                 RestClient client = new RestClient(_restApiHost);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -973,6 +999,12 @@ namespace OsEngine.Market.Servers.Alor
                 requestRest.AddHeader("accept", "application/json");
                 requestRest.AddHeader("Authorization", "Bearer " + _apiTokenReal);
                 RestClient client = new RestClient(_restApiHost);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -1068,6 +1100,13 @@ namespace OsEngine.Market.Servers.Alor
                     _webSocketData.OnClose += WebSocketData_Closed;
                     _webSocketData.OnMessage += WebSocketData_MessageReceived;
                     _webSocketData.OnError += WebSocketData_Error;
+
+                    if(_myProxy != null)
+                    {
+                        NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                        _webSocketData.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    }
+
                     _webSocketData.Connect();
 
                     _webSocketPortfolio = new WebSocket(_wsHost);
@@ -1076,6 +1115,13 @@ namespace OsEngine.Market.Servers.Alor
                     _webSocketPortfolio.OnClose += _webSocketPortfolio_Closed;
                     _webSocketPortfolio.OnMessage += _webSocketPortfolio_MessageReceived;
                     _webSocketPortfolio.OnError += _webSocketPortfolio_Error;
+
+                    if (_myProxy != null)
+                    {
+                        NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                        _webSocketPortfolio.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    }
+
                     _webSocketPortfolio.Connect();
 
                 }
@@ -2306,6 +2352,11 @@ namespace OsEngine.Market.Servers.Alor
 
                 RestClient client = new RestClient(_restApiHost);
 
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -2448,6 +2499,11 @@ namespace OsEngine.Market.Servers.Alor
                 
                 RestClient client = new RestClient(_restApiHost);
 
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 AlorChangePriceOrder alorChangePriceOrder = new AlorChangePriceOrder();
                 alorChangePriceOrder.MarketId = order.NumberMarket;
                 alorChangePriceOrder.TimeChangePriceOrder = DateTime.Now;
@@ -2535,6 +2591,11 @@ namespace OsEngine.Market.Servers.Alor
                 requestRest.AddHeader("accept", "application/json");
 
                 RestClient client = new RestClient(_restApiHost);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
 
                 IRestResponse response = client.Execute(requestRest);
 
@@ -2774,6 +2835,11 @@ namespace OsEngine.Market.Servers.Alor
 
                 RestClient client = new RestClient(_restApiHost);
 
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
 
@@ -2850,6 +2916,11 @@ namespace OsEngine.Market.Servers.Alor
                 requestRest.AddHeader("accept", "application/json");
 
                 RestClient client = new RestClient(_restApiHost);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
 
                 IRestResponse response = client.Execute(requestRest);
 

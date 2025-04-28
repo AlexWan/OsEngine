@@ -12,6 +12,7 @@ using System.IO;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace OsEngine.Market.Proxy
 {
@@ -101,16 +102,119 @@ namespace OsEngine.Market.Proxy
 
         public List<ProxyOsa> Proxies = new List<ProxyOsa>();
 
-        public WebProxy GetProxy(ServerType serverType, string serverName)
+        private string _getProxyLocker = "getProxyLocker";
+
+        public WebProxy GetProxyAutoRegime(ServerType serverType, string serverName)
         {
-            if(Proxies.Count == 0)
+            try
+            {
+                lock (_getProxyLocker)
+                {
+                    if (Proxies == null
+                                    || Proxies.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    List<ProxyOsa> connectedProxy = new List<ProxyOsa>();
+
+                    for (int i = 0; i < Proxies.Count; i++)
+                    {
+                        if (Proxies[i].AutoPingLastStatus != "Connect")
+                        {
+                            PingProxy(Proxies[i]);
+
+                            if (Proxies[i].AutoPingLastStatus != "Connect")
+                            {
+                                continue;
+                            }
+
+                            continue;
+                        }
+
+                        if (Proxies[i].IsOn == false)
+                        {
+                            continue;
+                        }
+
+                        connectedProxy.Add(Proxies[i]);
+                    }
+
+                    if (connectedProxy.Count == 0)
+                    {
+                        return null;
+                    }
+
+                    if (connectedProxy.Count > 1)
+                    {
+                        connectedProxy = connectedProxy.OrderBy(x => x.UseConnectionCount).ToList();
+                    }
+                    connectedProxy[0].UseConnectionCount++;
+                    return connectedProxy[0].GetWebProxy();
+                }
+            }
+            catch
             {
                 return null;
             }
+        }
 
+        public WebProxy GetProxyManualRegime(string userValue)
+        {
+            try
+            {
+                lock (_getProxyLocker)
+                {
+                    if (Proxies == null
+                 || Proxies.Count == 0)
+                    {
+                        return null;
+                    }
 
+                    for (int i = 0; i < Proxies.Count; i++)
+                    {
+                        if (Proxies[i].AutoPingLastStatus != "Connect")
+                        {
+                            PingProxy(Proxies[i]);
 
-            return null;
+                            if (Proxies[i].AutoPingLastStatus != "Connect")
+                            {
+                                continue;
+                            }
+
+                            continue;
+                        }
+
+                        if (Proxies[i].IsOn == false)
+                        {
+                            continue;
+                        }
+
+                        if (Proxies[i].Number.ToString() == userValue)
+                        {
+                            Proxies[i].UseConnectionCount++;
+                            return Proxies[i].GetWebProxy();
+                        }
+
+                        if (Proxies[i].Ip == userValue)
+                        {
+                            Proxies[i].UseConnectionCount++;
+                            return Proxies[i].GetWebProxy();
+                        }
+
+                        if (Proxies[i].Ip + ":" + Proxies[i].Port == userValue)
+                        {
+                            Proxies[i].UseConnectionCount++;
+                            return Proxies[i].GetWebProxy();
+                        }
+                    }
+                    return null;
+                }
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         private void LoadProxy()
@@ -318,7 +422,7 @@ namespace OsEngine.Market.Proxy
 
         private void PingProxy(ProxyOsa proxy)
         {
-            if(string.IsNullOrEmpty(proxy.Ip) == true)
+            if (string.IsNullOrEmpty(proxy.Ip) == true)
             {
                 proxy.AutoPingLastStatus = "Error. no IP";
                 return;
