@@ -75,8 +75,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
             worker4.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy = null)
         {
+            _myProxy = proxy;
             ApiKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
@@ -1310,6 +1313,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 string urlStr = wss_point + "/ws/" + _listenKey;
 
                 _socketPrivateData = new WebSocket(urlStr);
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    _socketPrivateData.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                }
+
                 _socketPrivateData.EmitOnPing = true;
                 _socketPrivateData.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
                 _socketPrivateData.OnOpen += _socketClient_Opened;
@@ -1535,6 +1545,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             WebSocket wsClientDepth = new WebSocket(urlStrDepth);
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                wsClientDepth.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
 
             wsClientDepth.EmitOnPing = true;
             wsClientDepth.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
@@ -2709,7 +2725,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             string baseUrl = _baseUrl;
 
-            var response = new RestClient(baseUrl).Execute(request).Content;
+            RestClient client = new RestClient(baseUrl);
+
+            if (_myProxy != null)
+            {
+                client.Proxy = _myProxy;
+            }
+
+            var response = client.Execute(request).Content;
 
             if (response.StartsWith("<!DOCTYPE"))
             {

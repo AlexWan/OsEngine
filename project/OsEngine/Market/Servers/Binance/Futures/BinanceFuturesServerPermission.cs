@@ -234,7 +234,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
