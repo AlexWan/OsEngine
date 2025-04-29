@@ -55,12 +55,29 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         public DateTime ServerTime { get; set; }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy)
         {
+            _myProxy = proxy;
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
             HttpResponseMessage responseMessage = null;
+
+            if (_myProxy == null)
+            {
+                _httpPublicClient = new HttpClient();
+            }
+            else
+            {
+                HttpClientHandler httpClientHandler = new HttpClientHandler
+                {
+                    Proxy = _myProxy
+                };
+
+                _httpPublicClient = new HttpClient(httpClientHandler);
+            }
 
             int tryCounter = 0;
 
@@ -649,6 +666,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         private void CreateWebSocketConnection()
         {
             _webSocket = new WebSocket(WEB_SOCKET_URL);
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                _webSocket.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
             _webSocket.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.Ssl3
                 | System.Security.Authentication.SslProtocols.Tls11
@@ -657,6 +681,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 | System.Security.Authentication.SslProtocols.Tls13
                 | System.Security.Authentication.SslProtocols.Tls;
             _webSocket.EmitOnPing = true;
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                _webSocket.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
 
             _webSocket.OnOpen += WebSocket_Opened;
             _webSocket.OnClose += WebSocket_Closed;
@@ -1363,6 +1393,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 string fullUrl = $"{_host}{_prefix}{url}";
 
                 RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.POST);
                 request.AddHeader("KEY", _publicKey);
                 request.AddHeader("SIGN", sign);
@@ -1414,6 +1450,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 string fullUrl = $"{_host}{_prefix}{url}?{queryParam}";
 
                 RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.DELETE);
                 request.AddHeader("KEY", _publicKey);
                 request.AddHeader("SIGN", sign);
@@ -1474,6 +1516,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 string fullUrl = $"{_host}{_prefix}{url}?{queryParam}";
 
                 RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 request.AddHeader("KEY", _publicKey);
                 request.AddHeader("SIGN", sign);
@@ -1626,6 +1674,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 string fullUrl = $"{_host}{_prefix}{url}?{queryParam}";
 
                 RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 request.AddHeader("KEY", _publicKey);
                 request.AddHeader("SIGN", sign);
@@ -1726,6 +1780,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                 string fullUrl = $"{_host}{_prefix}{url}?{queryParam}";
 
                 RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest(Method.GET);
                 request.AddHeader("KEY", _publicKey);
                 request.AddHeader("SIGN", sign);
@@ -1801,7 +1861,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         private const string HttpUrl = "https://api.gateio.ws/api/v4";
 
-        private readonly HttpClient _httpPublicClient = new HttpClient();
+        private HttpClient _httpPublicClient;
 
         private readonly Dictionary<string, Security> _subscribedSecurities = new Dictionary<string, Security>();
 
