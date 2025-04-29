@@ -235,7 +235,7 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

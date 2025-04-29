@@ -65,14 +65,33 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         public DateTime ServerTime { get; set; }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy = null)
         {
             try
             {
+                _myProxy = proxy;
+
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
+                if (_myProxy == null)
+                {
+                    _httpPublicClient = new HttpClient();
+                }
+                else
+                {
+                    HttpClientHandler httpClientHandler = new HttpClientHandler
+                    {
+                        Proxy = _myProxy
+                    };
+
+                    _httpPublicClient = new HttpClient(httpClientHandler);
+                }
+
                 HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/openApi/swap/v2/server/time").Result;
+                
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (responseMessage.StatusCode != HttpStatusCode.OK)
@@ -170,6 +189,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
             try
             {
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/common/symbols", Method.GET);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -290,6 +315,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
             try
             {
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/account/balance", Method.GET);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -407,6 +438,23 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 string sign = CalculateHmacSha256(parameters);
                 string requestUri = $"{_baseUrl}{endPoint}?{parameters}&signature={sign}";
+
+                if (_httpPublicClient == null)
+                {
+                    if (_myProxy == null)
+                    {
+                        _httpPublicClient = new HttpClient();
+                    }
+                    else
+                    {
+                        HttpClientHandler httpClientHandler = new HttpClientHandler
+                        {
+                            Proxy = _myProxy
+                        };
+
+                        _httpPublicClient = new HttpClient(httpClientHandler);
+                    }
+                }
 
                 HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(requestUri).Result;
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
@@ -660,6 +708,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
 
                 WebSocket webSocketPublicNew = new WebSocket(urlStr);
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    webSocketPublicNew.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                }
+
                 webSocketPublicNew.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.None;
 
@@ -697,6 +752,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
             string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
 
             _webSocketPrivate = new WebSocket(urlStr);
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
             _webSocketPrivate.EmitOnPing = true;
             _webSocketPrivate.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
             _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
@@ -1460,6 +1522,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 _rateGate.WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/trade/order", Method.POST);
 
                 string secName = order.SecurityNameCode;
@@ -1540,6 +1608,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 _rateGate.WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/trade/cancelOpenOrders", Method.POST);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -1585,6 +1659,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 _rateGate.WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/trade/cancel", Method.POST);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -1674,6 +1754,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
             try
             {
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/trade/openOrders", Method.GET);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -1798,6 +1884,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
             try
             {
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/trade/historyOrders", Method.GET);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -1887,6 +1979,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 _rateGate.WaitToProceed();
 
                 RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/spot/v1/trade/myTrades", Method.GET);
 
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
@@ -1969,7 +2067,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private const string _baseUrl = "https://open-api.bingx.com";
 
-        private readonly HttpClient _httpPublicClient = new HttpClient();
+        private HttpClient _httpPublicClient;
 
         private string CreateListenKey()
         {
@@ -1983,7 +2081,14 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 RestRequest request = new RestRequest(endpoint, Method.POST);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
-                string response = new RestClient(baseUrl).Execute(request).Content;
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                string response = client.Execute(request).Content;
 
                 string responseStr = JsonConvert.DeserializeAnonymousType(response, new ListenKeyBingX()).listenKey;
 
@@ -2028,6 +2133,12 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     string endpoint = "/openApi/user/auth/userDataStream";
 
                     RestClient client = new RestClient(_baseUrl);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
                     RestRequest request = new RestRequest(endpoint, Method.PUT);
 
                     request.AddQueryParameter("listenKey", _listenKey);

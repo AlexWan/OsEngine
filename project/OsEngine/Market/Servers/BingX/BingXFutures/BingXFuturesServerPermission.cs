@@ -249,6 +249,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             get { return true; }
         }
+
         #endregion
     }
 }

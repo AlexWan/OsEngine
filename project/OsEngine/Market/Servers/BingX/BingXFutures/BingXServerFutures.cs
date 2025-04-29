@@ -76,8 +76,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
 
-                _httpPublicClient = null;
-
                 if (_myProxy == null)
                 {
                     _httpPublicClient = new HttpClient();
