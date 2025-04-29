@@ -65,8 +65,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         public DateTime ServerTime { get; set; }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy)
         {
+            _myProxy = proxy;
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _userId = ((ServerParameterString)ServerParameters[2]).Value;
@@ -99,7 +102,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 {
                     string requestStr = "/futures/usdt/contracts/BTC_USDT";
                     RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                    response = new RestClient(HTTP_URL).Execute(requestRest);
+
+                    RestClient client = new RestClient(HTTP_URL);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
+                    response = client.Execute(requestRest);
                     break;
                 }
                 catch (Exception e)
@@ -167,7 +178,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 _subscribedSecurities.Clear();
                 _allDepths.Clear();
 
-                DeleteWebsocketConnection();
+                DeleteWebSocketConnection();
             }
             catch (Exception exception)
             {
@@ -543,7 +554,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 string requestUri = HTTP_URL + $"/futures/{_wallet}/trades?" + queryParam;
 
                 RestRequest requestRest = new RestRequest(Method.GET);
-                IRestResponse responseMessage = new RestClient(requestUri).Execute(requestRest);
+
+                RestClient client = new RestClient(requestUri);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse responseMessage = client.Execute(requestRest);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -776,7 +795,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 string requestUri = HTTP_URL + $"/futures/{_wallet}/candlesticks?" + queryParam;
 
                 RestRequest requestRest = new RestRequest(Method.GET);
-                IRestResponse responseCandleHistory = new RestClient(requestUri).Execute(requestRest);
+
+                RestClient client = new RestClient(requestUri);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse responseCandleHistory = client.Execute(requestRest);
 
                 if (responseCandleHistory.StatusCode == HttpStatusCode.OK)
                 {
@@ -825,6 +852,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         private void CreateWebSocketConnection()
         {
             _webSocket = new WebSocket(WEB_SOCKET_URL + _wallet);
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                _webSocket.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
             _webSocket.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.Ssl3
                 | System.Security.Authentication.SslProtocols.Tls11
@@ -842,7 +876,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             _webSocket.Connect();
         }
 
-        private void DeleteWebsocketConnection()
+        private void DeleteWebSocketConnection()
         {
             if (_webSocket != null)
             {
@@ -1855,6 +1889,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 string fullUrl = baseUri + endPoint;
 
                 RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest requestRest = new RestRequest(method);
 
                 if (signer)
@@ -1892,6 +1932,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 string fullUrl = url + endPoint;
 
                 RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest requestRest = new RestRequest(method);
 
                 requestRest.AddHeader("Timestamp", timeStamp);
