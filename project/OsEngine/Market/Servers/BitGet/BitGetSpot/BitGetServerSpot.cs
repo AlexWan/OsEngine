@@ -54,8 +54,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             thread.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy = null)
         {
+            _myProxy = proxy;
             PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
             SeckretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             Passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
@@ -80,7 +83,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 string requestStr = "/api/v2/public/time";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
+
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -183,7 +194,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 string requestStr = $"/api/v2/spot/public/symbols";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
+
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
@@ -552,7 +571,15 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 string requestStr = $"{stringUrl}?symbol={security.Name}&productType={security.NameClass.ToLower()}&" +
                     $"startTime={startTime}&granularity={interval}&limit={limitCandles}&endTime={endTime}";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                IRestResponse response = new RestClient(BaseUrl).Execute(requestRest);
+
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -1969,6 +1996,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 RestClient client = new RestClient(BaseUrl);
 
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 IRestResponse response = client.Execute(requestRest);
 
                 return response;
@@ -1984,26 +2016,40 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         {
             try
             {
-                HttpClient _httpClient = new HttpClient();
+                HttpClient httpClient = null;
+
+                if (_myProxy == null)
+                {
+                    httpClient = new HttpClient();
+                }
+                else
+                {
+                    HttpClientHandler httpClientHandler = new HttpClientHandler
+                    {
+                        Proxy = _myProxy
+                    };
+
+                    httpClient = new HttpClient(httpClientHandler);
+                }
 
                 string requestPath = path;
                 string url = $"{BaseUrl}{requestPath}";
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                 string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, SeckretKey);
 
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
-                _httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
-                _httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+                httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
+                httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
+                httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
+                httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
+                httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
 
                 if (method.Equals("POST"))
                 {
-                    return _httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+                    return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
                 }
                 else
                 {
-                    return _httpClient.GetAsync(url).Result;
+                    return httpClient.GetAsync(url).Result;
                 }
             }
             catch (Exception ex)
