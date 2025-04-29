@@ -93,14 +93,21 @@ namespace OsEngine.Market.Servers.Bybit
             threadMessageReaderTradesInverse.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy = null)
         {
             try
             {
+                _myProxy = proxy;
+
                 PublicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 net_type = (Net_type)Enum.Parse(typeof(Net_type), ((ServerParameterEnum)ServerParameters[2]).Value);
                 margineMode = (MarginMode)Enum.Parse(typeof(MarginMode), ((ServerParameterEnum)ServerParameters[3]).Value);
+
+                httpClientHandler = null;
+                httpClient = null;
 
                 if (((ServerParameterEnum)ServerParameters[4]).Value == "On")
                 {
@@ -1388,6 +1395,13 @@ namespace OsEngine.Market.Servers.Bybit
             WebSocket webSocketPublicSpot = new WebSocket(wsPublicUrl(Category.spot));
             webSocketPublicSpot.EmitOnPing = true;
             webSocketPublicSpot.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                webSocketPublicSpot.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
             webSocketPublicSpot.OnOpen += WebSocketPublic_Opened;
             webSocketPublicSpot.OnMessage += WebSocketPublic_MessageReceivedSpot;
             webSocketPublicSpot.OnError += WebSocketPublic_Error;
@@ -1403,6 +1417,13 @@ namespace OsEngine.Market.Servers.Bybit
             WebSocket webSocketPublicLinear = new WebSocket(wsPublicUrl(Category.linear));
             webSocketPublicLinear.EmitOnPing = true;
             webSocketPublicLinear.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                webSocketPublicLinear.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
             webSocketPublicLinear.OnOpen += WebSocketPublic_Opened;
             webSocketPublicLinear.OnMessage += WebSocketPublic_MessageReceivedLinear;
             webSocketPublicLinear.OnError += WebSocketPublic_Error;
@@ -1418,6 +1439,13 @@ namespace OsEngine.Market.Servers.Bybit
             WebSocket webSocketPublicInverse = new WebSocket(wsPublicUrl(Category.inverse));
             webSocketPublicInverse.EmitOnPing = true;
             webSocketPublicInverse.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                webSocketPublicInverse.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
             webSocketPublicInverse.OnOpen += WebSocketPublic_Opened;
             webSocketPublicInverse.OnMessage += WebSocketPublicInverse_OnMessage;
             webSocketPublicInverse.OnError += WebSocketPublic_Error;
@@ -1437,6 +1465,12 @@ namespace OsEngine.Market.Servers.Bybit
                 webSocketPrivate = new WebSocket(wsPrivateUrl);
                 webSocketPrivate.EmitOnPing = true;
                 webSocketPrivate.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                }
 
                 webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
                 webSocketPrivate.OnClose += WebSocketPrivate_Closed;
@@ -3684,9 +3718,21 @@ namespace OsEngine.Market.Servers.Bybit
         {
             try
             {
-                if (httpClientHandler is null)
+                if (httpClientHandler == null)
                 {
-                    httpClientHandler = new HttpClientHandler();
+                    if(_myProxy == null)
+                    {
+                        httpClientHandler = new HttpClientHandler();
+                    }
+                    else if(_myProxy != null)
+                    {
+                        httpClientHandler = new HttpClientHandler
+                        {
+                            Proxy = _myProxy
+                        };
+                    }
+
+
                 }
                 if (httpClient is null)
                 {
@@ -3772,6 +3818,8 @@ namespace OsEngine.Market.Servers.Bybit
                         jsonPayload = parameters.Count > 0 ? GenerateQueryString(parameters) : "";
                         request = new HttpRequestMessage(httpMethod, RestUrl + uri + $"?" + jsonPayload);
                     }
+
+                    
 
                     request.Headers.Add("X-BAPI-API-KEY", PublicKey);
                     request.Headers.Add("X-BAPI-SIGN", signature);

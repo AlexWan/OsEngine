@@ -146,6 +146,8 @@ namespace OsEngine
             {
                 UnblockInterface();
             }
+
+            ChangeText();
         }
 
         #region Block and Unblock interface

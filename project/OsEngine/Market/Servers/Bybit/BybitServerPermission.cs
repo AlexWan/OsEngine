@@ -250,7 +250,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
