@@ -225,7 +225,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

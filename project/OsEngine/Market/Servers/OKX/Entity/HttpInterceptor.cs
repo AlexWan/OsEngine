@@ -1,5 +1,6 @@
 ﻿using OsEngine.Market.Servers.Entity;
 using System;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -18,14 +19,25 @@ namespace OsEngine.Market.Servers.OKX.Entity
         //Задерждка для рест запросов
         public RateGate _rateGateRest = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        public HttpInterceptor(string apiKey, string secret, string passPhrase, string bodyStr, bool demoMode)
+        public HttpInterceptor(string apiKey, string secret, string passPhrase, string bodyStr, bool demoMode, WebProxy myProxy)
         {
             this._apiKey = apiKey;
             this._passPhrase = passPhrase;
             this._secret = secret;
             this._bodyStr = bodyStr;
             this._demoMode = demoMode;
-            InnerHandler = new HttpClientHandler();
+
+            if (myProxy == null)
+            {
+                InnerHandler = new HttpClientHandler();
+            }
+            else if (myProxy != null)
+            {
+                InnerHandler = new HttpClientHandler
+                {
+                    Proxy = myProxy
+                };
+            }
         }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

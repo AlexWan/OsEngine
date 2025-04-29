@@ -67,8 +67,12 @@ namespace OsEngine.Market.Servers.OKX
 
         public DateTime ServerTime { get; set; }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy)
         {
+            _myProxy = proxy;
+
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _password = ((ServerParameterPassword)ServerParameters[2]).Value;
@@ -475,6 +479,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public void GetPortfolios()
         {
+
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -843,11 +848,21 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                WebSocket webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
+                WebSocket webSocketPublicNew = null;
 
                 if (_demoMode)
                 {
                     webSocketPublicNew = new WebSocket(_webSocketUrlPublicDemo);
+                }
+                else
+                {
+                    webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
+                }
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    webSocketPublicNew.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
                 }
 
                 webSocketPublicNew.SslConfiguration.EnabledSslProtocols
@@ -882,11 +897,19 @@ namespace OsEngine.Market.Servers.OKX
                     return;
                 }
 
-                _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
-
                 if (_demoMode)
                 {
                     _webSocketPrivate = new WebSocket(_webSocketUrlPrivateDemo);
+                }
+                else
+                {
+                    _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+                }
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
                 }
 
                 _webSocketPrivate.SslConfiguration.EnabledSslProtocols
@@ -1039,7 +1062,7 @@ namespace OsEngine.Market.Servers.OKX
         {
             string url = $"{_baseUrl}{"/api/v5/account/set-position-mode"}";
             string bodyStr = JsonConvert.SerializeObject(requestParams);
-            HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr, _demoMode));
+            HttpClient client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, bodyStr, _demoMode, _myProxy));
 
             HttpResponseMessage res = client.PostAsync(url, new StringContent(bodyStr, Encoding.UTF8, "application/json")).Result;
             string contentStr = res.Content.ReadAsStringAsync().Result;
@@ -2306,7 +2329,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode, _myProxy));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2360,7 +2383,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode, _myProxy));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2403,7 +2426,7 @@ namespace OsEngine.Market.Servers.OKX
 
                 string url = $"{_baseUrl}/api/v5/trade/cancel-order";
 
-                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode));
+                HttpClient responseMessage = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, json, _demoMode, _myProxy));
                 HttpResponseMessage res = responseMessage.PostAsync(url, new StringContent(json, Encoding.UTF8, "application/json")).Result;
                 string contentStr = res.Content.ReadAsStringAsync().Result;
 
@@ -2696,7 +2719,7 @@ namespace OsEngine.Market.Servers.OKX
 
         public HttpResponseMessage GetPrivateRequest(string url)
         {
-            HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null, _demoMode));
+            HttpClient _client = new HttpClient(new HttpInterceptor(_publicKey, _secretKey, _password, null, _demoMode, _myProxy));
             return _client.GetAsync(url).Result;
         }
 
