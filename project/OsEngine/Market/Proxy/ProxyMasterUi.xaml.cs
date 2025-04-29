@@ -440,6 +440,15 @@ namespace OsEngine.Market.Proxy
                 {
                     proxy.Location = "";
                 }
+
+                if (nRow.Cells[8].Value != null)
+                {
+                    proxy.PingWebAddress = nRow.Cells[8].Value.ToString();
+                }
+                else
+                {
+                    proxy.PingWebAddress = "";
+                }
             }
             catch (Exception ex)
             {

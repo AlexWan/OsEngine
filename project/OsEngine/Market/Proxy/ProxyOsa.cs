@@ -38,7 +38,7 @@ namespace OsEngine.Market.Proxy
 
         public string AutoPingLastStatus = "Unknown";
 
-        public string PingWebAddress = "https://www.moex.com";
+        public string PingWebAddress = "http://ipinfo.io/";
 
         public int UseConnectionCount;
 

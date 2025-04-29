@@ -677,6 +677,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 _webSocketPublic = new WebSocket(_webSocketUrlPublic);
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    _webSocketPublic.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                }
+
                 _webSocketPublic.EmitOnPing = true;
                 _webSocketPublic.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Ssl3
@@ -696,6 +703,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                }
+
                 _webSocketPrivate.EmitOnPing = true;
                 _webSocketPrivate.SslConfiguration.EnabledSslProtocols
                    = System.Security.Authentication.SslProtocols.Ssl3
