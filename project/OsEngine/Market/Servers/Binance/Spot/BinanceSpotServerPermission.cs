@@ -211,7 +211,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public bool IsSupports_ProxyFor_MultipleInstances
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion

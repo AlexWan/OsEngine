@@ -58,8 +58,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
             worker3.Start();
         }
 
+        private WebProxy _myProxy;
+
         public void Connect(WebProxy proxy = null)
         {
+            _myProxy = proxy;
+
             ApiKey = ((ServerParameterString)ServerParameters[0]).Value;
             SecretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
@@ -1245,6 +1249,12 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 WebSocket client = new WebSocket(urlStr); //create a web socket / создаем вебсокет
 
+                if(_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    client.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                }
+
                 client.OnOpen += Client_Opened;
                 client.OnError += Client_Error;
                 client.OnClose += Client_Closed;
@@ -1428,6 +1438,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
 
             WebSocket _wsClient = new WebSocket(urlStr); // create web-socket 
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                _wsClient.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
             _wsClient.EmitOnPing = true;
             _wsClient.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
 
@@ -2713,7 +2730,14 @@ namespace OsEngine.Market.Servers.Binance.Spot
                         baseUrl = "https://api.binance.com";
                     }
 
-                    var response = new RestClient(baseUrl).Execute(request).Content;
+                    RestClient client = new RestClient(baseUrl);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
+                    var response = client.Execute(request).Content;
 
                     if (response.Contains("code"))
                     {
