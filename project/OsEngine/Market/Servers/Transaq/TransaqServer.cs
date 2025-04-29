@@ -110,7 +110,7 @@ namespace OsEngine.Market.Servers.Transaq
             worker8.Name = "TransaqThreadUpdateSecurityInfo";
             worker8.Start();
 
-            
+
         }
 
         public ServerType ServerType
@@ -553,9 +553,9 @@ namespace OsEngine.Market.Servers.Transaq
 
                     Thread.Sleep(10000);
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
-                    SendLogMessage("ThreadUpdateAndSubscribeSecurity error: " + ex.ToString(),LogMessageType.Error);
+                    SendLogMessage("ThreadUpdateAndSubscribeSecurity error: " + ex.ToString(), LogMessageType.Error);
                     Thread.Sleep(5000);
                 }
             }
@@ -668,11 +668,11 @@ namespace OsEngine.Market.Servers.Transaq
                         security.Decimals = Convert.ToInt32(securityData.Decimals);
                         security.Exchange = securityData.Board;
 
-                        if(securityData.Sectype == "FUT")
+                        if (securityData.Sectype == "FUT")
                         {
                             int countD = 0;
 
-                            for(int i2 = 0;i2 < security.NameFull.Length;i2++)
+                            for (int i2 = 0; i2 < security.NameFull.Length; i2++)
                             {
                                 if (security.NameFull[i2] == '-')
                                 {
@@ -680,7 +680,7 @@ namespace OsEngine.Market.Servers.Transaq
                                 }
                             }
 
-                            if(countD >= 2)
+                            if (countD >= 2)
                             {
                                 security.NameClass = "FUTSPREAD";
                             }
@@ -785,7 +785,7 @@ namespace OsEngine.Market.Servers.Transaq
                             security.PriceStepCost = security.PriceStep;
                         }
 
-                        if(securityData.Active == "true"
+                        if (securityData.Active == "true"
                             || security.SecurityType == SecurityType.Index)
                         {
                             security.State = SecurityStateType.Activ;
@@ -1069,7 +1069,7 @@ namespace OsEngine.Market.Servers.Transaq
                     + blockValue;
             }
 
-            if(pnl != null)
+            if (pnl != null)
             {
                 portfolio.UnrealizedPnl = pnl.InnerText.ToDecimal();
             }
@@ -1117,7 +1117,7 @@ namespace OsEngine.Market.Servers.Transaq
                     pos.ValueBegin = beginNode.InnerText.ToDecimal() / lot;
                 }
 
-                if(pnlPos != null)
+                if (pnlPos != null)
                 {
                     pos.UnrealizedPnl = pnlPos.InnerText.ToDecimal();
                 }
@@ -1471,11 +1471,11 @@ namespace OsEngine.Market.Servers.Transaq
                     osCandle.Volume = candles.Candle[i].Volume.ToDecimal();
                     osCandle.TimeStart = DateTime.Parse(candles.Candle[i].Date);
 
-                    if(string.IsNullOrEmpty(candles.Candle[i].Oi) == false)
+                    if (string.IsNullOrEmpty(candles.Candle[i].Oi) == false)
                     {
                         osCandle.OpenInterest = candles.Candle[i].Oi.ToDecimal();
                     }
-                    
+
                     osCandles.Add(osCandle);
                 }
 
@@ -1731,7 +1731,7 @@ namespace OsEngine.Market.Servers.Transaq
 
             string board = security.NameClass;
 
-            if(board == "FUTSPREAD")
+            if (board == "FUTSPREAD")
             {
                 board = "FUT";
             }
@@ -1740,8 +1740,8 @@ namespace OsEngine.Market.Servers.Transaq
 
             string cmd = "";
 
-           // if (fullMarketDepthIsOn == true)
-           // {
+            if (fullMarketDepthIsOn == true)
+            {
                 cmd = "<command id=\"subscribe\">";
                 cmd += "<alltrades>";
                 cmd += "<security>";
@@ -1756,8 +1756,8 @@ namespace OsEngine.Market.Servers.Transaq
                 cmd += "</security>";
                 cmd += "</quotes>";
                 cmd += "</command>";
-           /* }
-            else if(fullMarketDepthIsOn == false)
+            }
+            else if (fullMarketDepthIsOn == false)
             {
                 cmd = "<command id=\"subscribe\">";
                 cmd += "<alltrades>";
@@ -1773,10 +1773,10 @@ namespace OsEngine.Market.Servers.Transaq
                 cmd += "</security>";
                 cmd += "</quotations>";
                 cmd += "</command>";
-            }*/
+            }
 
-                // sending command / отправка команды
-                string res = ConnectorSendCommand(cmd);
+            // sending command / отправка команды
+            string res = ConnectorSendCommand(cmd);
 
             if (res != "<result success=\"true\"/>")
             {
@@ -2199,7 +2199,7 @@ namespace OsEngine.Market.Servers.Transaq
                             }
                             else if (data.StartsWith("<news_header>"))
                             {
-                                if(_newsIsSubscribed)
+                                if (_newsIsSubscribed)
                                 {
                                     _newsIdQueue.Enqueue(data);
                                 }
@@ -2292,7 +2292,7 @@ namespace OsEngine.Market.Servers.Transaq
                             _allCandleSeries.Add(newCandles);
                         }
                     }
-                    else if(_historicalTradesQueue.IsEmpty == false)
+                    else if (_historicalTradesQueue.IsEmpty == false)
                     {
                         string data = null;
 
@@ -2313,14 +2313,14 @@ namespace OsEngine.Market.Servers.Transaq
 
                             _news.Add(newsTransaq);
 
-                            if(_news.Count > 100)
+                            if (_news.Count > 100)
                             {
                                 _news.RemoveAt(0);
                             }
 
                             string cmd =
                                 $"<command id=\"get_news_body\" news_id=\"{newsTransaq.Id}\"/>";
-                            
+
                             // sending command / отправка команды
                             string res = ConnectorSendCommand(cmd);
 
@@ -2336,7 +2336,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                             TransaqNews myNews = null;
 
-                            for(int i = 0;i < _news.Count;i++)
+                            for (int i = 0; i < _news.Count; i++)
                             {
                                 if (_news[i].Id == newsTransaq.Id)
                                 {
@@ -2346,7 +2346,7 @@ namespace OsEngine.Market.Servers.Transaq
                                 }
                             }
 
-                            if(myNews == null)
+                            if (myNews == null)
                             {
                                 continue;
                             }
@@ -2394,7 +2394,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_securityInfoQueue.TryDequeue(out data))
                         {
-                            SecurityInfo newInfo = 
+                            SecurityInfo newInfo =
                                 _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
                             UpdateSecurity(newInfo);
                         }
@@ -2430,7 +2430,7 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_ordersQueue.TryDequeue(out data))
                         {
-                            List<TransaqEntity.Order> orders = 
+                            List<TransaqEntity.Order> orders =
                                 _deserializer.Deserialize<List<TransaqEntity.Order>>(new RestResponse() { Content = data });
 
                             UpdateMyOrders(orders);
@@ -2442,13 +2442,13 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_myTradesQueue.TryDequeue(out data))
                         {
-                            List<TransaqEntity.Trade> trades = 
+                            List<TransaqEntity.Trade> trades =
                                 _deserializer.Deserialize<List<TransaqEntity.Trade>>(new RestResponse() { Content = data });
 
                             UpdateMyTrades(trades);
                         }
                     }
-                    else if(_portfoliosQueue.IsEmpty == false)
+                    else if (_portfoliosQueue.IsEmpty == false)
                     {
                         string data = null;
 
@@ -2517,11 +2517,11 @@ namespace OsEngine.Market.Servers.Transaq
 
                     if (_tradesQueue.IsEmpty == false)
                     {
-                       string data  = null;
+                        string data = null;
 
                         if (_tradesQueue.TryDequeue(out data))
                         {
-                            List<TransaqEntity.Trade> trades = 
+                            List<TransaqEntity.Trade> trades =
                                 _deserializer.Deserialize<List<TransaqEntity.Trade>>(new RestResponse() { Content = data });
 
                             UpdateTrades(trades);
@@ -2569,8 +2569,12 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_bestBidAsk.TryDequeue(out data))
                         {
-                            BidAsk quotes = _deserializer.Deserialize<BidAsk>(new RestResponse() { Content = data });
-                            UpdateBidAsk(quotes);
+                            QuotationsList quotes = Deserialize<QuotationsList>(data);
+
+                            for (int i = 0; i < quotes.Quotations.Count; i++)
+                            {
+                                UpdateBidAsk(quotes.Quotations[i]);
+                            }
                         }
                     }
                     else
@@ -2627,7 +2631,7 @@ namespace OsEngine.Market.Servers.Transaq
                 newOrder.Price = order.Price.ToDecimal();
                 newOrder.ServerType = ServerType.Transaq;
 
-                if(string.IsNullOrEmpty(order.Union) == false)
+                if (string.IsNullOrEmpty(order.Union) == false)
                 {
                     newOrder.PortfolioNumber = "United_" + order.Union;
                 }
@@ -2906,9 +2910,9 @@ namespace OsEngine.Market.Servers.Transaq
 
         private void UpdateBidAsk(BidAsk quotes)
         {
-            if(quotes.Offer == null
+            if (quotes.Offer == null
                && quotes.Offerdepth == null
-               && quotes.Bid == null 
+               && quotes.Bid == null
                && quotes.Biddepth == null)
             {
                 return;
@@ -2926,8 +2930,8 @@ namespace OsEngine.Market.Servers.Transaq
                 quotes.Biddepth != null)
             {
                 needDepth = null;
-                
-                for(int i = 0;i < _depthsByBidAsk.Count;i++)
+
+                for (int i = 0; i < _depthsByBidAsk.Count; i++)
                 {
                     if (_depthsByBidAsk[i].SecurityNameCode == quotes.Seccode
                         && _depthsByBidAsk[i].SecurityId == quotes.SecId)
@@ -2949,7 +2953,7 @@ namespace OsEngine.Market.Servers.Transaq
                     _depthsByBidAsk.Add(saveObj);
                 }
 
-                if(needDepth.Bids == null 
+                if (needDepth.Bids == null
                     || needDepth.Bids.Count == 0)
                 {
                     needDepth.Bids.Add(new MarketDepthLevel());
@@ -2957,12 +2961,12 @@ namespace OsEngine.Market.Servers.Transaq
 
                 MarketDepthLevel bid = needDepth.Bids[0];
 
-                if(quotes.Biddepth != null)
+                if (quotes.Biddepth != null)
                 {
                     bid.Bid = quotes.Biddepth.ToDecimal();
                 }
 
-                if(quotes.Bid != null)
+                if (quotes.Bid != null)
                 {
                     bid.Price = quotes.Bid.ToDecimal();
                 }
@@ -2976,7 +2980,7 @@ namespace OsEngine.Market.Servers.Transaq
                     bid.Bid = 1;
                 }
             }
-            
+
             if (quotes.Offer != null
                || quotes.Offerdepth != null)
             {
@@ -3013,11 +3017,11 @@ namespace OsEngine.Market.Servers.Transaq
 
                 MarketDepthLevel ask = needDepth.Asks[0];
 
-                if(quotes.Offerdepth != null)
+                if (quotes.Offerdepth != null)
                 {
                     ask.Ask = quotes.Offerdepth.ToDecimal();
                 }
-                if(quotes.Offer != null)
+                if (quotes.Offer != null)
                 {
                     ask.Price = quotes.Offer.ToDecimal();
                 }
@@ -3067,11 +3071,11 @@ namespace OsEngine.Market.Servers.Transaq
                 trade.Volume = t.Quantity.ToDecimal();
                 trade.Time = DateTime.Parse(t.Time);
 
-                if(string.IsNullOrEmpty(t.Openinterest) == false)
+                if (string.IsNullOrEmpty(t.Openinterest) == false)
                 {
                     trade.OpenInterest = t.Openinterest.ToDecimal();
                 }
-               
+
                 NewTradesEvent?.Invoke(trade);
             }
         }

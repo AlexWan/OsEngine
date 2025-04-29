@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace OsEngine.Market.Servers.Transaq.TransaqEntity
@@ -163,39 +164,141 @@ namespace OsEngine.Market.Servers.Transaq.TransaqEntity
 
     }
 
-    [XmlRoot(ElementName = "quotation")]
-    public sealed class BidAsk
+    [XmlRoot(ElementName = "quotations")]
+    public class QuotationsList
     {
+        [XmlElement(ElementName = "quotation")]
+        public List<BidAsk> Quotations { get; set; } = new List<BidAsk>();
+    }
+
+    [XmlRoot(ElementName = "quotation")]
+    public class BidAsk
+    {
+        [XmlAttribute(AttributeName = "secid")]
+        public string SecId { get; set; }
+
         [XmlElement(ElementName = "board")]
         public string Board { get; set; }
+
         [XmlElement(ElementName = "seccode")]
         public string Seccode { get; set; }
-        [XmlElement(ElementName = "secid")]
-        public string SecId { get; set; }
-        [XmlElement(ElementName = "last")]
-        public string Last { get; set; }
-        [XmlElement(ElementName = "quantity")]
-        public string Quantity { get; set; }
-        [XmlElement(ElementName = "time")]
-        public string Time { get; set; }
-        [XmlElement(ElementName = "change")]
-        public string Change { get; set; }
-        [XmlElement(ElementName = "priceminusprevwaprice")]
-        public string Priceminusprevwaprice { get; set; }
-        [XmlElement(ElementName = "bid")]
-        public string Bid { get; set; }
+
+        [XmlElement(ElementName = "accruedintvalue")]
+        public string AccruedIntValue { get; set; }
+
+        [XmlElement(ElementName = "open")]
+        public string Open { get; set; }
+
+        [XmlElement(ElementName = "waprice")]
+        public string Waprice { get; set; }
+
         [XmlElement(ElementName = "biddepth")]
         public string Biddepth { get; set; }
+
         [XmlElement(ElementName = "biddeptht")]
-        public string Biddeptht { get; set; }
+        public string BiddepthT { get; set; }
+
         [XmlElement(ElementName = "numbids")]
-        public string Numbids { get; set; }
+        public string NumBids { get; set; }
+
         [XmlElement(ElementName = "offerdepth")]
         public string Offerdepth { get; set; }
+
         [XmlElement(ElementName = "offerdeptht")]
-        public string Offerdeptht { get; set; }
-        [XmlAttribute(AttributeName = "offer")]
+        public string OfferdepthT { get; set; }
+
+        [XmlElement(ElementName = "bid")]
+        public string Bid { get; set; }
+
+        [XmlElement(ElementName = "offer")]
         public string Offer { get; set; }
+
+        [XmlElement(ElementName = "numoffers")]
+        public string NumOffers { get; set; }
+
+        [XmlElement(ElementName = "numtrades")]
+        public string NumTrades { get; set; }
+
+        [XmlElement(ElementName = "voltoday")]
+        public string VolToday { get; set; }
+
+        [XmlElement(ElementName = "openpositions")]
+        public string OpenPositions { get; set; }
+
+        [XmlElement(ElementName = "deltapositions")]
+        public string DeltaPositions { get; set; }
+
+        [XmlElement(ElementName = "last")]
+        public string Last { get; set; }
+
+        [XmlElement(ElementName = "quantity")]
+        public string Quantity { get; set; }
+
+        [XmlElement(ElementName = "time")]
+        public DateTime Time { get; set; }
+
+        [XmlElement(ElementName = "change")]
+        public string Change { get; set; }
+
+        [XmlElement(ElementName = "priceminusprevwaprice")]
+        public string PriceMinusPrevWaprice { get; set; }
+
+        [XmlElement(ElementName = "valtoday")]
+        public string ValToday { get; set; }
+
+        [XmlElement(ElementName = "yield")]
+        public string Yield { get; set; }
+
+        [XmlElement(ElementName = "yieldatwaprice")]
+        public string YieldAtWaprice { get; set; }
+
+        [XmlElement(ElementName = "marketpricetoday")]
+        public string MarketPriceToday { get; set; }
+
+        [XmlElement(ElementName = "highbid")]
+        public string HighBid { get; set; }
+
+        [XmlElement(ElementName = "lowoffer")]
+        public string LowOffer { get; set; }
+
+        [XmlElement(ElementName = "high")]
+        public string High { get; set; }
+
+        [XmlElement(ElementName = "low")]
+        public string Low { get; set; }
+
+        [XmlElement(ElementName = "closeprice")]
+        public string ClosePrice { get; set; }
+
+        [XmlElement(ElementName = "closeyield")]
+        public string CloseYield { get; set; }
+
+        [XmlElement(ElementName = "status")]
+        public string Status { get; set; }
+
+        [XmlElement(ElementName = "tradingstatus")]
+        public string TradingStatus { get; set; }
+
+        [XmlElement(ElementName = "buydeposit")]
+        public string BuyDeposit { get; set; }
+
+        [XmlElement(ElementName = "selldeposit")]
+        public string SellDeposit { get; set; }
+
+        [XmlElement(ElementName = "volatility")]
+        public string Volatility { get; set; }
+
+        [XmlElement(ElementName = "theoreticalprice")]
+        public string TheoreticalPrice { get; set; }
+
+        [XmlElement(ElementName = "bgo_buy")]
+        public string BgoBuy { get; set; }
+
+        [XmlElement(ElementName = "point_cost")]
+        public string PointCost { get; set; }
+
+        [XmlElement(ElementName = "lcurrentprice")]
+        public string LCurrentPrice { get; set; }
     }
 
     [XmlRoot(ElementName = "order")]
