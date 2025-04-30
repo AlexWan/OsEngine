@@ -588,8 +588,8 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                         else
                         {
-                            security.DecimalsVolume = GetDecimalsVolume(oneSec.lotSizeFilter.minOrderQty);
-                            security.VolumeStep = GetVolumeStepByVolumeDecimals(security.DecimalsVolume);
+                            security.DecimalsVolume = oneSec.lotSizeFilter.basePrecision.DecimalsCount();
+                            security.VolumeStep = oneSec.lotSizeFilter.basePrecision.ToDecimal();
                         }
 
                         security.State = SecurityStateType.Activ;
