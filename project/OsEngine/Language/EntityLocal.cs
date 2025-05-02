@@ -525,7 +525,7 @@ namespace OsEngine.Language
 
         public string PositionStartDepoLabel => OsLocalization.ConvertToLocString(
              "Eng:Deposit on opening position_" +
-             "Ru:Депозит на открытии позицию_");
+             "Ru:Депозит на открытии позиции_");
 
         public string CustomColorDialogUiTitle => OsLocalization.ConvertToLocString(
              "Eng:Color dialog_" +

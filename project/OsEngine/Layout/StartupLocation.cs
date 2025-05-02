@@ -70,7 +70,7 @@ namespace OsEngine.Layout
             double topPos = yPosByWin32 - ui.Height / 2;
 
             System.Drawing.Rectangle actualArea = new System.Drawing.Rectangle();     
-            actualArea = System.Windows.Forms.Screen.GetBounds(System.Windows.Forms.Control.MousePosition);   
+            actualArea = System.Windows.Forms.Screen.GetWorkingArea(System.Windows.Forms.Control.MousePosition);
 
             // проверка разворачивания окна за экраном слева и сверху
 
