@@ -41,7 +41,7 @@ namespace OsEngine.Market
                 }
 
                 Close();
-                
+
                 servers = ServerMaster.GetServers();
                 servers.Find(s => s.ServerType == ServerType.Tester).ShowDialog();
                 return;
@@ -53,7 +53,16 @@ namespace OsEngine.Market
             CheckBoxServerAutoOpen.Content = OsLocalization.Market.Label20;
             ButtonSupportTable.Content = OsLocalization.Market.Label81;
 
-            ServerMasterSourcesPainter painter = new ServerMasterSourcesPainter(HostSource, HostLog, CheckBoxServerAutoOpen);
+            ServerMasterSourcesPainter painter = new ServerMasterSourcesPainter(
+                HostSource,
+                HostLog,
+                CheckBoxServerAutoOpen,
+                TextBoxSearchSource,
+                ButtonRightInSearchResults,
+                ButtonLeftInSearchResults,
+                LabelCurrentResultShow,
+                LabelCommasResultShow,
+                LabelCountResultsShow);
 
             Closing += delegate (object sender, CancelEventArgs args)
             {

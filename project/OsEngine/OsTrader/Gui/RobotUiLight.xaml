@@ -67,13 +67,18 @@
                             <ColumnDefinition Width="380"/>
                             <ColumnDefinition Width="801*"/>
                         </Grid.ColumnDefinitions>
-                        <WindowsFormsHost Name="HostServers" Margin="0,0,0,25"/>
+                        <WindowsFormsHost Name="HostServers" Margin="0,24,0,22"/>
                         <WindowsFormsHost Name="HostServerLog" Margin="0,0,0,26" Grid.Column="1"/>
+                        <TextBox Name="TextBoxSearchSource" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" HorizontalAlignment="Left" Width="186" Margin="4,0,0,0"/>
+                        <Button Name="ButtonRightInSearchResults" Content=">" HorizontalAlignment="Left" Margin="317,2,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+                        <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="212,2,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+                        <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="249,2,0,0" VerticalAlignment="Top" Height="20"/>
+                        <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="264,2,0,0" VerticalAlignment="Top" Height="20"/>
+                        <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="283,2,0,0" VerticalAlignment="Top" Height="20"/>
                         <CheckBox x:Name="CheckBoxServerAutoOpen" Content="Deploy servers automatically" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,0,0,0"/>
-                        <Button Name="ButtonSupportTable" Content="Support table" VerticalAlignment="Bottom" Click="ButtonSupportTable_Click" HorizontalAlignment="Right" Width="133"/>
-                        <Button x:Name="ButtonProxy" Content="Proxy" VerticalAlignment="Bottom" Grid.Column="1" HorizontalAlignment="Left" Width="133" Click="ButtonProxy_Click"/>
+                        <Button Name="ButtonSupportTable" Content="Support table" VerticalAlignment="Bottom" Click="ButtonSupportTable_Click" Margin="0,0,5,1" HorizontalAlignment="Right" Width="133" Height="22"/>
+                        <Button x:Name="ButtonProxy" Content="Proxy" VerticalAlignment="Bottom" Grid.Column="1" HorizontalAlignment="Left" Width="133" Click="ButtonProxy_Click" Margin="3,0,0,1" Height="22"/>
                     </Grid>
-
                 </TabItem>
 
             </TabControl>

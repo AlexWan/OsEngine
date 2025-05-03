@@ -41,7 +41,16 @@ namespace OsEngine.OsTrader.Gui
 
             _painter = new BotTabsPainter(_strategyKeeper, BotsHost);
 
-            _painterServer = new ServerMasterSourcesPainter(HostServers, HostServerLog, CheckBoxServerAutoOpen);
+            _painterServer = new ServerMasterSourcesPainter(
+                HostServers, 
+                HostServerLog, 
+                CheckBoxServerAutoOpen,
+                TextBoxSearchSource,
+                ButtonRightInSearchResults,
+                ButtonLeftInSearchResults,
+                LabelCurrentResultShow,
+                LabelCommasResultShow,
+                LabelCountResultsShow);
 
             this.Activate();
             this.Focus();

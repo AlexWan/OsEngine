@@ -14,6 +14,8 @@ using System.Windows.Forms.Integration;
 using System.IO;
 using System.Threading;
 using OsEngine.Language;
+using OsEngine.Logging;
+using System.Windows.Input;
 
 namespace OsEngine.Market
 {
@@ -21,7 +23,13 @@ namespace OsEngine.Market
     {
         public ServerMasterSourcesPainter(WindowsFormsHost hostServers,
             WindowsFormsHost hostLog,
-            System.Windows.Controls.CheckBox boxCreateServerAutomatic)
+            System.Windows.Controls.CheckBox boxCreateServerAutomatic
+            , System.Windows.Controls.TextBox textBoxSearchSource
+            , System.Windows.Controls.Button buttonRightInSearchResults
+            , System.Windows.Controls.Button buttonLeftInSearchResults
+            , System.Windows.Controls.Label labelCurrentResultShow
+            , System.Windows.Controls.Label labelCommasResultShow
+            , System.Windows.Controls.Label labelCountResultsShow)
         {
             _boxCreateServerAutomatic = boxCreateServerAutomatic;
 
@@ -48,12 +56,38 @@ namespace OsEngine.Market
 
             CreateSourceGrid();
             RePaintSourceGrid();
+
+            _textBoxSearchSecurity = textBoxSearchSource;
+            _buttonRightInSearchResults = buttonRightInSearchResults;
+            _buttonLeftInSearchResults = buttonLeftInSearchResults;
+            _labelCurrentResultShow = labelCurrentResultShow;
+            _labelCommasResultShow = labelCommasResultShow;
+            _labelCountResultsShow = labelCountResultsShow;
+
+            _buttonRightInSearchResults.Visibility = Visibility.Hidden;
+            _buttonLeftInSearchResults.Visibility = Visibility.Hidden;
+            _labelCurrentResultShow.Visibility = Visibility.Hidden;
+            _labelCommasResultShow.Visibility = Visibility.Hidden;
+            _labelCountResultsShow.Visibility = Visibility.Hidden;
+            _textBoxSearchSecurity.MouseEnter += TextBoxSearchSecurity_MouseEnter;
+            _textBoxSearchSecurity.TextChanged += TextBoxSearchSecurity_TextChanged;
+            _textBoxSearchSecurity.MouseLeave += TextBoxSearchSecurity_MouseLeave;
+            _textBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
+            _buttonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
+            _buttonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
         }
 
         public void Dispose()
         {
             try
             {
+                _textBoxSearchSecurity.MouseEnter -= TextBoxSearchSecurity_MouseEnter;
+                _textBoxSearchSecurity.TextChanged -= TextBoxSearchSecurity_TextChanged;
+                _textBoxSearchSecurity.MouseLeave -= TextBoxSearchSecurity_MouseLeave;
+                _textBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
+                _buttonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+                _buttonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
+
                 ServerMaster.ServerCreateEvent -= ServerMasterOnServerCreateEvent;
 
                 for (int i = 0; _servers != null && i < _servers.Count; i++)
@@ -687,6 +721,232 @@ namespace OsEngine.Market
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
+
+        #region Search in grid
+
+        private System.Windows.Controls.TextBox _textBoxSearchSecurity;
+
+        private System.Windows.Controls.Button _buttonRightInSearchResults;
+
+        private System.Windows.Controls.Button _buttonLeftInSearchResults;
+
+        private System.Windows.Controls.Label _labelCurrentResultShow;
+
+        private System.Windows.Controls.Label _labelCommasResultShow;
+
+        private System.Windows.Controls.Label _labelCountResultsShow;
+
+        private void TextBoxSearchSecurity_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                if (_textBoxSearchSecurity.Text == ""
+                    && _textBoxSearchSecurity.IsKeyboardFocused == false)
+                {
+                    _textBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxSearchSecurity_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            try
+            {
+                if (_textBoxSearchSecurity.Text == OsLocalization.Market.Label64)
+                {
+                    _textBoxSearchSecurity.Text = "";
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxSearchSecurity_LostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+        {
+            try
+            {
+                if (_textBoxSearchSecurity.Text == "")
+                {
+                    _textBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<int> _searchResults = new List<int>();
+
+        private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+      {
+            UpdateSearchResults();
+            UpdateSearchPanel();
+        }
+
+        private void UpdateSearchResults()
+        {
+            try
+            {
+                _searchResults.Clear();
+
+                string key = _textBoxSearchSecurity.Text;
+
+                if (key == "")
+                {
+                    UpdateSearchPanel();
+                    return;
+                }
+
+                key = key.ToLower();
+
+                int indexFirstSec = int.MaxValue;
+
+                for (int i = 0; i < _gridSources.Rows.Count; i++)
+                {
+                    string security = "";
+
+                    if (_gridSources.Rows[i].Cells[0].Value != null)
+                    {
+                        security = _gridSources.Rows[i].Cells[0].Value.ToString();
+                    }
+
+
+                    security = security.ToLower();
+
+                    if (security.Contains(key))
+                    {
+                        if (security.IndexOf(key) == 0)
+                        {
+                            indexFirstSec = i;
+                        }
+
+                        _searchResults.Add(i);
+                    }
+                }
+
+                if (_searchResults.Count > 1 && _searchResults.Contains(indexFirstSec) && _searchResults.IndexOf(indexFirstSec) != 0)
+                {
+                    int index = _searchResults.IndexOf(indexFirstSec);
+                    _searchResults.RemoveAt(index);
+                    _searchResults.Insert(0, indexFirstSec);
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdateSearchPanel()
+        {
+            try
+            {
+                if (_searchResults.Count == 0)
+                {
+                    _buttonRightInSearchResults.Visibility = Visibility.Hidden;
+                    _buttonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    _labelCurrentResultShow.Visibility = Visibility.Hidden;
+                    _labelCommasResultShow.Visibility = Visibility.Hidden;
+                    _labelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                int firstRow = _searchResults[0];
+
+                _gridSources.Rows[firstRow].Selected = true;
+                _gridSources.FirstDisplayedScrollingRowIndex = firstRow;
+
+                if (_searchResults.Count < 2)
+                {
+                    _buttonRightInSearchResults.Visibility = Visibility.Hidden;
+                    _buttonLeftInSearchResults.Visibility = Visibility.Hidden;
+                    _labelCurrentResultShow.Visibility = Visibility.Hidden;
+                    _labelCommasResultShow.Visibility = Visibility.Hidden;
+                    _labelCountResultsShow.Visibility = Visibility.Hidden;
+                    return;
+                }
+
+                _labelCurrentResultShow.Content = 1.ToString();
+                _labelCountResultsShow.Content = (_searchResults.Count).ToString();
+
+                _buttonRightInSearchResults.Visibility = Visibility.Visible;
+                _buttonLeftInSearchResults.Visibility = Visibility.Visible;
+                _labelCurrentResultShow.Visibility = Visibility.Visible;
+                _labelCommasResultShow.Visibility = Visibility.Visible;
+                _labelCountResultsShow.Visibility = Visibility.Visible;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonLeftInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int indexRow = Convert.ToInt32(_labelCurrentResultShow.Content) - 1;
+
+                int maxRowIndex = Convert.ToInt32(_labelCountResultsShow.Content);
+
+                if (indexRow <= 0)
+                {
+                    indexRow = maxRowIndex;
+                    _labelCurrentResultShow.Content = maxRowIndex.ToString();
+                }
+                else
+                {
+                    _labelCurrentResultShow.Content = (indexRow).ToString();
+                }
+
+                int realInd = _searchResults[indexRow - 1];
+
+                _gridSources.Rows[realInd].Selected = true;
+                _gridSources.FirstDisplayedScrollingRowIndex = realInd;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonRightInSearchResults_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                int indexRow = Convert.ToInt32(_labelCurrentResultShow.Content) - 1 + 1;
+
+                int maxRowIndex = Convert.ToInt32(_labelCountResultsShow.Content);
+
+                if (indexRow >= maxRowIndex)
+                {
+                    indexRow = 0;
+                    _labelCurrentResultShow.Content = 1.ToString();
+                }
+                else
+                {
+                    _labelCurrentResultShow.Content = (indexRow + 1).ToString();
+                }
+
+                int realInd = _searchResults[indexRow];
+
+                _gridSources.Rows[realInd].Selected = true;
+                _gridSources.FirstDisplayedScrollingRowIndex = realInd;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
 
         #region Attaching servers on top
 
