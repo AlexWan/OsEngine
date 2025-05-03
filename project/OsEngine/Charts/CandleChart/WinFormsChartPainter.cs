@@ -2753,6 +2753,11 @@ namespace OsEngine.Charts.CandleChart
 
                     Series mySeriesPoint = FindSeriesByNameSafe(element.UniqName + "Point");
 
+                    if(mySeriesPoint == null)
+                    {
+                        mySeriesPoint = FindSeriesByNameSafe(element.UniqName + "Points");
+                    }
+
                     if (mySeriesPoint != null)
                     {
                         _chart.Series.Remove(mySeriesPoint);
