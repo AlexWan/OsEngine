@@ -591,9 +591,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                     ComboBoxClass.Dispatcher.Invoke(LoadClassOnBox);
                     return;
                 }
+
                 List<IServer> serversAll = ServerMaster.GetServers();
 
-                IServer server = serversAll.Find(server1 => server1.ServerType == _selectedServerType);
+                IServer server =
+                  serversAll.Find(
+                  server1 =>
+                  server1.ServerType == _selectedServerType
+                  && server1.ServerNameAndPrefix == _selectedServerName);
 
                 if (server == null)
                 {
