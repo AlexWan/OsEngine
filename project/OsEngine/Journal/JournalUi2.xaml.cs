@@ -3971,7 +3971,7 @@ namespace OsEngine.Journal
 
                 if (positionsAll.Count > 1)
                 {
-                    positionsAll = positionsAll.OrderBy(x => x.TimeClose).ToList();
+                    positionsAll = positionsAll.OrderBy(x => x.TimeOpen).ToList();
                 }
 
                 _allPositions = positionsAll.FindAll(p => p.State != PositionStateType.OpeningFail);
