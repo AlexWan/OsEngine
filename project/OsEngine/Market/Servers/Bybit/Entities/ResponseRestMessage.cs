@@ -97,6 +97,8 @@ namespace OsEngine.Market.Servers.Bybit.Entities
 
     public class LotSizeFilter
     {
+        public string basePrecision { get; set; }
+        public string quotePrecision { get; set; }
         public string maxOrderQty { get; set; }
         public string minOrderQty { get; set; }
         public string qtyStep { get; set; }
