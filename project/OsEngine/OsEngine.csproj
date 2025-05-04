@@ -520,6 +520,10 @@
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexAsset.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexEntity\BitMexCandle.cs" />
     <Compile Include="Market\Servers\BitMex\BitMexServerPermission.cs" />
+    <Compile Include="Market\Servers\BloFin\BloFinFutures\BloFinFuturesServer.cs" />
+    <Compile Include="Market\Servers\BloFin\BloFinFutures\BloFinFuturesServerPermission.cs" />
+    <Compile Include="Market\Servers\BloFin\BloFinFutures\Entity\ResponseRestMessage.cs" />
+    <Compile Include="Market\Servers\BloFin\BloFinFutures\Entity\ResponseWebSocketMessage.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\CoinExServerFutures.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\CoinExServerFuturesPermission.cs" />
     <Compile Include="Market\Servers\CoinEx\Futures\Entity\CexCandle.cs" />
