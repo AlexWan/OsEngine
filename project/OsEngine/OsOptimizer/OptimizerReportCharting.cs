@@ -980,7 +980,7 @@ namespace OsEngine.OsOptimizer
             {
 
                 List<decimal> values = new List<decimal>();
-                decimal maxValue = 0;
+                decimal maxValue = decimal.MinValue;
 
                 decimal averageProfitPercent = 0;
 
@@ -1026,7 +1026,7 @@ namespace OsEngine.OsOptimizer
                         values.Add(value);
                     }
 
-                    averageProfitPercent += bestBotInOutOfSample.AverageProfitPercentOneContract;
+                    averageProfitPercent += value;
                 }
                 if (values.Count != 0)
                 {
@@ -1110,8 +1110,15 @@ namespace OsEngine.OsOptimizer
                 if (max != decimal.MinValue &&
                     min != decimal.MaxValue)
                 {
-                    max = Math.Round(max + max * 0.2m, 4);
-                    min = Math.Round(min, 4);
+                    if(max > 0)
+                    {
+                        max = Math.Round(max + max * 0.2m, 4);
+                    }
+                    else
+                    {
+                        max = Math.Round(max - max * 0.2m, 4);
+                    }
+                        min = Math.Round(min, 4);
 
                     if (max > min)
                     {

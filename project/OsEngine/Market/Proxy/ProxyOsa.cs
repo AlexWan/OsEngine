@@ -4,7 +4,6 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Net;
 
 namespace OsEngine.Market.Proxy
