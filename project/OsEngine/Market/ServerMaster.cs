@@ -76,6 +76,7 @@ using OsEngine.Market.Servers.SmartLabNews;
 using OsEngine.Market.Servers.AE;
 using OsEngine.Market.Proxy;
 using System.Net;
+using OsEngine.Market.Servers.BloFin;
 
 
 namespace OsEngine.Market
@@ -319,6 +320,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.RSSNews);
                 serverTypes.Add(ServerType.SmartLabNews);
                 serverTypes.Add(ServerType.AExchange);
+                serverTypes.Add(ServerType.BloFinFutures);
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
@@ -751,6 +753,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.CoinExFutures)
                 {
                     newServer = new CoinExServerFutures();
+                }
+                else if (type == ServerType.BloFinFutures)
+                {
+                    newServer = new BloFinFuturesServer(uniqueNum);
                 }
 
                 if (newServer == null)
@@ -1485,6 +1491,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new AExchangeServerPermission();
                 }
+                else if (type == ServerType.BloFinFutures)
+                {
+                    serverPermission = new BloFinFuturesServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2043,5 +2053,9 @@ namespace OsEngine.Market
         /// </summary>
         AExchange,
 
+        /// <summary>
+        /// BloFinFutures exchange
+        /// </summary>
+        BloFinFutures,
     }
 }
