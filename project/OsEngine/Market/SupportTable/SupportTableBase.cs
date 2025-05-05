@@ -384,6 +384,16 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(bitMartFutures);
 
+            SupportConnection bloFin = new SupportConnection()
+            {
+                ServerType = ServerType.BloFinFutures,
+                SupportType = SupportServerType.Prime,
+                LinqToLogo = "\\Images\\Connections\\Crypto\\BloFin.png",
+                LingSiteUrl = "https://partner.blofin.com/d/IHJBujb",
+                Discount = 20
+            };
+            supportList.Add(bloFin);
+
             SupportConnection bitmex = new SupportConnection()
             {
                 ServerType = ServerType.BitMex,
