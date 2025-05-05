@@ -77,7 +77,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 {
                     _webSocketPublicMessages = new ConcurrentQueue<string>();
                     _webSocketPrivateMessages = new ConcurrentQueue<string>();
-                    CreateWebSocketConnection();
+                    CreatePublicWebSocketConnect();
+                    CreatePrivateWebSocketConnect();
                     CheckActivationSockets();
                 }
                 catch (Exception exception)
@@ -131,27 +132,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
-        }
-
-        private void UnsubscribeFromAllWebSockets()
-        {
-            if (_webSocketPublic == null
-                || _webSocketPrivate == null)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
-            {
-                string securityName = _subscribedSecurities[i];
-
-                _webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/tickerV2:{securityName}\"}}"); // transactions
-                _webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // marketDepth
-                _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{securityName}\"}}"); // change of positions
-            }
-
-            _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
-            _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
         }
 
         public ServerType ServerType
@@ -308,7 +288,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                 }
             }
-
         }
 
         public void GetPortfolios()
@@ -463,13 +442,61 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private WebSocket _webSocketPrivate;
 
-        private WebSocket _webSocketPublic;
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
 
         private string _webSocketPrivateUrl = "wss://ws-api-futures.kucoin.com/?token=xxx&[connectId=xxxxx]";
 
         private string _webSocketPublicUrl = "wss://ws-api-futures.kucoin.com/?token=xxx&[connectId=xxxxx]";
 
-        private void CreateWebSocketConnection()
+        private void CreatePublicWebSocketConnect()
+        {
+            try
+            {
+                if (_webSocketPublicMessages == null)
+                {
+                    _webSocketPublicMessages = new ConcurrentQueue<string>();
+                }
+
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private WebSocket CreateNewPublicSocket()
+        {
+            try
+            {
+                HttpResponseMessage responseMessage = _httpPublicClient.PostAsync(_baseUrl + "/api/v1/bullet-public", new StringContent(String.Empty, Encoding.UTF8, "application/json")).Result;
+                string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+                ResponsePrivateWebSocketConnection wsResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponsePrivateWebSocketConnection());
+
+                // set dynamic server address ws
+                _webSocketPublicUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
+
+                WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
+                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
+                   = System.Security.Authentication.SslProtocols.Tls12;
+
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += _webSocketPublic_OnOpen;
+                webSocketPublicNew.OnMessage += _webSocketPublic_OnMessage;
+                webSocketPublicNew.OnError += _webSocketPublic_OnError;
+                webSocketPublicNew.OnClose += _webSocketPublic_OnClose;
+                webSocketPublicNew.Connect();
+
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void CreatePrivateWebSocketConnect()
         {
             // 1. get websocket address
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/bullet-private", "POST", null, String.Empty);
@@ -489,42 +516,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
             _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Ssl3
-                | System.Security.Authentication.SslProtocols.Tls11
-                | System.Security.Authentication.SslProtocols.None
-                | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13
-                | System.Security.Authentication.SslProtocols.Tls;
+                = System.Security.Authentication.SslProtocols.Tls12;
             _webSocketPrivate.EmitOnPing = true;
-
             _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
             _webSocketPrivate.Connect();
-
-            responseMessage = _httpPublicClient.PostAsync(_baseUrl + "/api/v1/bullet-public", new StringContent(String.Empty, Encoding.UTF8, "application/json")).Result;
-            JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            wsResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponsePrivateWebSocketConnection());
-
-            // set dynamic server address ws
-            _webSocketPublicUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
-
-            _webSocketPublic = new WebSocket(_webSocketPublicUrl);
-            _webSocketPublic.SslConfiguration.EnabledSslProtocols
-               = System.Security.Authentication.SslProtocols.Ssl3
-               | System.Security.Authentication.SslProtocols.Tls11
-               | System.Security.Authentication.SslProtocols.None
-               | System.Security.Authentication.SslProtocols.Tls12
-               | System.Security.Authentication.SslProtocols.Tls13
-               | System.Security.Authentication.SslProtocols.Tls;
-            _webSocketPublic.EmitOnPing = true;
-
-            _webSocketPublic.OnOpen += _webSocketPublic_OnOpen;
-            _webSocketPublic.OnMessage += _webSocketPublic_OnMessage;
-            _webSocketPublic.OnError += _webSocketPublic_OnError;
-            _webSocketPublic.OnClose += _webSocketPublic_OnClose;
-            _webSocketPublic.Connect();
         }
 
         private string _lockerCheckActivateionSockets = "lockerCheckActivateionSocketsKuCoinFutures";
@@ -539,8 +537,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     Disconnect();
                     return;
                 }
-                if (_webSocketPublic == null
-                    || _webSocketPublic.ReadyState != WebSocketState.Open)
+
+                if (_webSocketPublic.Count == 0)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[0];
+
+                if (webSocketPublic == null
+                    || webSocketPublic?.ReadyState != WebSocketState.Open)
                 {
                     Disconnect();
                     return;
@@ -560,22 +567,34 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void DeleteWebsocketConnection()
         {
+
             if (_webSocketPublic != null)
             {
                 try
                 {
-                    _webSocketPublic.OnOpen -= _webSocketPublic_OnOpen;
-                    _webSocketPublic.OnMessage -= _webSocketPublic_OnMessage;
-                    _webSocketPublic.OnError -= _webSocketPublic_OnError;
-                    _webSocketPublic.OnClose -= _webSocketPublic_OnClose;
-                    _webSocketPublic.CloseAsync();
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= _webSocketPublic_OnOpen;
+                        webSocketPublic.OnClose -= _webSocketPublic_OnClose;
+                        webSocketPublic.OnMessage -= _webSocketPublic_OnMessage;
+                        webSocketPublic.OnError -= _webSocketPublic_OnError;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+
+                        webSocketPublic = null;
+                    }
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocketPublic = null;
+                _webSocketPublic.Clear();
             }
 
             if (_webSocketPrivate != null)
@@ -653,7 +672,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         private void _webSocketPublic_OnOpen(object sender, EventArgs e)
         {
             SendLogMessage("Connection to public data is Open", LogMessageType.System);
-
             CheckActivationSockets();
         }
 
@@ -742,24 +760,20 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     }
                     else
                     {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
+                        Disconnect();
                     }
 
-                    if (_webSocketPublic != null && _webSocketPublic.ReadyState == WebSocketState.Open ||
-                        _webSocketPublic.ReadyState == WebSocketState.Connecting)
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        _webSocketPublic.Send($"{{\"type\": \"ping\"}}");
-                    }
-                    else
-                    {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            webSocketPublic.Send($"{{\"type\": \"ping\"}}");
+                        }
+                        else
+                        {
+                            Disconnect();
                         }
                     }
                 }
@@ -789,6 +803,125 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private List<string> _subscribedSecurities = new List<string>();
+
+        private void CreateSubscribedSecurityMessageWebSocket(Security security)
+        {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
+            {
+                if (_subscribedSecurities[i].Equals(security.Name))
+                {
+                    return;
+                }
+            }
+
+            _subscribedSecurities.Add(security.Name);
+
+            if (_webSocketPublic.Count == 0)
+            {
+                return;
+            }
+
+            WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+            if (webSocketPublic.ReadyState == WebSocketState.Open
+                && _subscribedSecurities.Count != 0
+                && _subscribedSecurities.Count % 100 == 0)
+            {
+                // creating a new socket
+                WebSocket newSocket = CreateNewPublicSocket();
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                while (newSocket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (newSocket.ReadyState == WebSocketState.Open)
+                {
+                    _webSocketPublic.Add(newSocket);
+                    webSocketPublic = newSocket;
+                }
+            }
+
+            if (webSocketPublic != null)
+            {
+                webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}"); // transactions
+                webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/level2Depth5:{security.Name}\"}}"); // MarketDepth 5+5 
+            }
+
+            if (_webSocketPrivate != null)
+            {
+                _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{security.Name}\"}}"); // change of positions
+            }
+        }
+
+        private void UnsubscribeFromAllWebSockets()
+        {
+            try
+            {
+                if (_webSocketPublic.Count != 0
+                    && _webSocketPublic != null)
+                {
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        try
+                        {
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                            {
+                                if (_subscribedSecurities != null)
+                                {
+                                    for (int i2 = 0; i2 < _subscribedSecurities.Count; i2++)
+                                    {
+                                        string securityName = _subscribedSecurities[i];
+
+                                        webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/tickerV2:{securityName}\"}}"); // transactions
+                                        webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // marketDepth
+                                        _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{securityName}\"}}"); // change of positions
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+            if (_webSocketPrivate != null
+               && _webSocketPrivate.ReadyState == WebSocketState.Open)
+            {
+                try
+                {
+                    _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractMarket/tradeOrders\"}}"); // changing orders
+                    _webSocketPrivate.Send($"{{\"type\": \"unsubscribe\", \"privateChannel\": \"true\", \"topic\": \"/contractAccount/wallet\"}}"); // portfolio change
+                }
+                catch
+                {
+                    // ignore
+                }
             }
         }
 
@@ -1559,32 +1692,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         private RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
         HttpClient _httpPublicClient = new HttpClient();
-
-        private List<string> _subscribedSecurities = new List<string>();
-
-        private void CreateSubscribedSecurityMessageWebSocket(Security security)
-        {
-            if (ServerStatus == ServerConnectStatus.Disconnect)
-            {
-                return;
-            }
-
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
-            {
-                if (_subscribedSecurities[i].Equals(security.Name))
-                {
-                    return;
-                }
-            }
-
-            _subscribedSecurities.Add(security.Name);
-
-            _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/ticker:{security.Name}\"}}"); // transactions
-
-            _webSocketPublic.Send($"{{\"type\": \"subscribe\",\"topic\": \"/contractMarket/level2Depth5:{security.Name}\"}}"); // MarketDepth 5+5 https://www.kucoin.com/docs/websocket/futures-trading/public-channels/level2-5-best-ask-bid-orders
-
-            _webSocketPrivate.Send($"{{\"type\": \"subscribe\", \"privateChannel\": \"true\", \"topic\": \"/contract/position:{security.Name}\"}}"); // change of positions https://www.kucoin.com/docs/websocket/futures-trading/private-channels/position-change-events
-        }
 
         private void CreateQueryPortfolio(bool IsUpdateValueBegin, string currency = "USDT")
         {
