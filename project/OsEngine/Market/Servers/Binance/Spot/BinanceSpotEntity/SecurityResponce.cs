@@ -27,9 +27,10 @@ namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
         public string symbol { get; set; }
         public string status { get; set; }
         public string baseAsset { get; set; }
-        public int baseAssetPrecision { get; set; }
+        public string contractType { get; set; }
+        public string baseAssetPrecision { get; set; }
         public string quoteAsset { get; set; }
-        public int quotePrecision { get; set; }
+        public string quotePrecision { get; set; }
         public List<string> orderTypes { get; set; }
         public bool icebergAllowed { get; set; }
         public List<Filter> filters { get; set; }
@@ -38,7 +39,7 @@ namespace OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity
     public class SecurityResponce
     {
         public string timezone { get; set; }
-        public long serverTime { get; set; }
+        public string serverTime { get; set; }
         public List<RateLimit> rateLimits { get; set; }
         public List<object> exchangeFilters { get; set; }
         public List<Symbol> symbols { get; set; }

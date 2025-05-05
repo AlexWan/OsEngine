@@ -266,6 +266,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 security.Name = sec.symbol;
                 security.NameFull = sec.symbol;
                 security.NameClass = sec.quoteAsset;
+
+                if (sec.contractType == "CURRENT_QUARTER" 
+                    || sec.contractType == "NEXT_QUARTER")
+                {
+                    security.NameFull = sec.symbol + "_" + sec.contractType;
+                    security.NameClass = "DeliverableFutures";
+                }
+               
                 security.NameId = sec.symbol + sec.quoteAsset;
                 security.SecurityType = SecurityType.Futures;
                 security.Exchange = ServerType.BinanceFutures.ToString();
