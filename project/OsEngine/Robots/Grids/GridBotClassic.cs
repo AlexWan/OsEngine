@@ -132,9 +132,17 @@ public class GridBotClassic : BotPanel
 
     public Type_Profit TypeProfit;
 
+    public Type_Profit TypeStep;
+
     public decimal StartVolume = 1;
 
     public decimal ProfitStep;
+
+    public decimal ProfitMultiplicator = 1;
+
+    public decimal StepMultiplicator = 1;
+
+    public decimal MartingaleMultiplicator = 1;
 
     public List<GridBotLine> Lines = new List<GridBotLine>();
 
@@ -167,6 +175,10 @@ public class GridBotClassic : BotPanel
                 writer.WriteLine(StartVolume);
                 writer.WriteLine(ProfitStep);
                 writer.WriteLine(TypeProfit);
+                writer.WriteLine(TypeStep);
+                writer.WriteLine(StepMultiplicator);
+                writer.WriteLine(MartingaleMultiplicator);
+                writer.WriteLine(ProfitMultiplicator);
                 writer.Close();
             }
         }
@@ -196,8 +208,11 @@ public class GridBotClassic : BotPanel
                 Enum.TryParse(reader.ReadLine(), out TypeVolume);
                 StartVolume = reader.ReadLine().ToDecimal();
                 ProfitStep = reader.ReadLine().ToDecimal();
-
                 Enum.TryParse(reader.ReadLine(),out TypeProfit);
+                Enum.TryParse(reader.ReadLine(), out TypeStep);
+                StepMultiplicator = reader.ReadLine().ToDecimal();
+                MartingaleMultiplicator = reader.ReadLine().ToDecimal();
+                ProfitMultiplicator = reader.ReadLine().ToDecimal();
 
                 reader.Close();
             }
@@ -373,31 +388,37 @@ public class GridBotClassic : BotPanel
 
             DataGridViewColumn newColumn4 = new DataGridViewColumn();
             newColumn4.CellTemplate = cellParam0;
-            newColumn4.HeaderText = "Orders step";
+            newColumn4.HeaderText = "Step type";
             _gridDataGrid.Columns.Add(newColumn4);
             newColumn4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             DataGridViewColumn newColumn5 = new DataGridViewColumn();
             newColumn5.CellTemplate = cellParam0;
-            newColumn5.HeaderText = "Volume type";
+            newColumn5.HeaderText = "Step";
             _gridDataGrid.Columns.Add(newColumn5);
             newColumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             DataGridViewColumn newColumn6 = new DataGridViewColumn();
             newColumn6.CellTemplate = cellParam0;
-            newColumn6.HeaderText = "Volume in order";
+            newColumn6.HeaderText = "Profit type";
             _gridDataGrid.Columns.Add(newColumn6);
             newColumn6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
+            DataGridViewColumn newColumn9 = new DataGridViewColumn();
+            newColumn9.CellTemplate = cellParam0;
+            newColumn9.HeaderText = "Profit";
+            _gridDataGrid.Columns.Add(newColumn9);
+            newColumn9.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
             DataGridViewColumn newColumn7 = new DataGridViewColumn();
             newColumn7.CellTemplate = cellParam0;
-            newColumn7.HeaderText = "Profit type";
+            newColumn7.HeaderText = "Volume type";
             _gridDataGrid.Columns.Add(newColumn7);
             newColumn7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
             DataGridViewColumn newColumn8 = new DataGridViewColumn();
             newColumn8.CellTemplate = cellParam0;
-            newColumn8.HeaderText = "Profit";
+            newColumn8.HeaderText = "Volume in order";
             _gridDataGrid.Columns.Add(newColumn8);
             newColumn8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -425,6 +446,11 @@ public class GridBotClassic : BotPanel
             _gridDataGrid.Rows.Clear();
 
             _gridDataGrid.Rows.Add(CreateFirstRow());
+            _gridDataGrid.Rows.Add(CreateSpaceRow());
+
+            _gridDataGrid.Rows.Add(CreateSecondRowHeaders());
+            _gridDataGrid.Rows.Add(CreateSecondRowValues());
+
             _gridDataGrid.Rows.Add(CreateSpaceRow());
             _gridDataGrid.Rows.Add(CreateRowButton());
             _gridDataGrid.Rows.Add(CreateSpaceRow());
@@ -460,16 +486,13 @@ public class GridBotClassic : BotPanel
         DataGridViewTextBoxCell lineCountTextBox = new DataGridViewTextBoxCell();
         row.Cells.Add(lineCountTextBox);
 
+        DataGridViewComboBoxCell stepTypeTextBox = new DataGridViewComboBoxCell();
+        stepTypeTextBox.Items.Add(Type_Profit.Absolute.ToString());
+        stepTypeTextBox.Items.Add(Type_Profit.Percent.ToString());
+        row.Cells.Add(stepTypeTextBox);
+
         DataGridViewTextBoxCell lineStepTextBox = new DataGridViewTextBoxCell();
         row.Cells.Add(lineStepTextBox);
-
-        DataGridViewComboBoxCell volumeTypeTextBox = new DataGridViewComboBoxCell();
-        volumeTypeTextBox.Items.Add(Type_Volume.Currency.ToString());
-        volumeTypeTextBox.Items.Add(Type_Volume.Contracts.ToString());
-        row.Cells.Add(volumeTypeTextBox);
-
-        DataGridViewTextBoxCell startVolumeTextBox = new DataGridViewTextBoxCell();
-        row.Cells.Add(startVolumeTextBox);
 
         DataGridViewComboBoxCell profitTypeTextBox = new DataGridViewComboBoxCell();
         profitTypeTextBox.Items.Add(Type_Profit.Absolute.ToString());
@@ -478,6 +501,14 @@ public class GridBotClassic : BotPanel
 
         DataGridViewTextBoxCell profitPercentTextBox = new DataGridViewTextBoxCell();
         row.Cells.Add(profitPercentTextBox);
+
+        DataGridViewComboBoxCell volumeTypeTextBox = new DataGridViewComboBoxCell();
+        volumeTypeTextBox.Items.Add(Type_Volume.Currency.ToString());
+        volumeTypeTextBox.Items.Add(Type_Volume.Contracts.ToString());
+        row.Cells.Add(volumeTypeTextBox);
+
+        DataGridViewTextBoxCell startVolumeTextBox = new DataGridViewTextBoxCell();
+        row.Cells.Add(startVolumeTextBox);
 
         try
         {
@@ -489,6 +520,7 @@ public class GridBotClassic : BotPanel
             volumeTypeTextBox.Value = TypeVolume.ToString();
             startVolumeTextBox.Value = StartVolume.ToString();
             profitTypeTextBox.Value = TypeProfit.ToString();
+            stepTypeTextBox.Value = TypeStep.ToString();
 
             profitPercentTextBox.Value = ProfitStep.ToString();
         }
@@ -496,6 +528,60 @@ public class GridBotClassic : BotPanel
         {
 
         }
+
+        return row;
+    }
+
+    private DataGridViewRow CreateSecondRowHeaders()
+    {
+        DataGridViewRow row = new DataGridViewRow();
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].Value = "Step multiplicator";
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].Value = "Profit multiplicator";
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].Value = "Martingale multiplicator";
+
+        row.ReadOnly = true;
+
+        return row;
+    }
+
+    private DataGridViewRow CreateSecondRowValues()
+    {
+        DataGridViewRow row = new DataGridViewRow();
+        row.ReadOnly = true;
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].ReadOnly = false;
+        row.Cells[row.Cells.Count - 1].Value = StepMultiplicator;
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].ReadOnly = false;
+        row.Cells[row.Cells.Count - 1].Value = ProfitMultiplicator;
+
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].ReadOnly = false;
+        row.Cells[row.Cells.Count - 1].Value = MartingaleMultiplicator;
 
         return row;
     }
@@ -636,7 +722,7 @@ public class GridBotClassic : BotPanel
     {
         try
         {
-            if (clickCell.ColumnIndex == 0 && clickCell.RowIndex == 2)
+            if (clickCell.ColumnIndex == 0 && clickCell.RowIndex == 5)
             {
                 if (ProfitStep <= 0)
                 {
@@ -674,11 +760,24 @@ public class GridBotClassic : BotPanel
                     }
                 }
 
+                if (_tab.IsConnected == false 
+                    || _tab.Security == null 
+                    || _tab.PriceBestAsk == 0)
+                {
+                    AcceptDialogUi ui = new AcceptDialogUi("There may be a loss of accuracy, as you have not yet connected the security");
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction == false)
+                    {
+                        return;
+                    }
+                }
+
                 DeleteTable();
                 CreateNewTable();
                 UpdateAllTable();
             }
-            else if (clickCell.ColumnIndex == 2 && clickCell.RowIndex == 2)
+            else if (clickCell.ColumnIndex == 2 && clickCell.RowIndex == 5)
             {
                 AcceptDialogUi ui
                     = new AcceptDialogUi("Are you sure you want to delete the grid? The data will be destroyed, all previously opened positions will have to be closed manually!");
@@ -691,12 +790,12 @@ public class GridBotClassic : BotPanel
                 DeleteTable();
                 UpdateAllTable();
             }
-            else if (clickCell.ColumnIndex == 4 && clickCell.RowIndex == 2)
+            else if (clickCell.ColumnIndex == 4 && clickCell.RowIndex == 5)
             {
                 CreateNewLine();
                 UpdateAllTable();
             }
-            else if (clickCell.ColumnIndex == 6 && clickCell.RowIndex == 2)
+            else if (clickCell.ColumnIndex == 6 && clickCell.RowIndex == 5)
             {
                 AcceptDialogUi ui
                 = new AcceptDialogUi("Are you sure you want to remove the grid level? This change is not reversible!");
@@ -728,7 +827,7 @@ public class GridBotClassic : BotPanel
     {
         List<int> numbers = new List<int>();
 
-        for(int i = 5;i < _gridDataGrid.Rows.Count;i++)
+        for(int i = 8;i < _gridDataGrid.Rows.Count;i++)
         {
             DataGridViewCheckBoxCell cell = (DataGridViewCheckBoxCell)_gridDataGrid.Rows[i].Cells[6];
 
@@ -761,36 +860,36 @@ public class GridBotClassic : BotPanel
 
             LineCountStart = GetInt(LineCountStart, _gridDataGrid.Rows[0].Cells[3]);
 
-            LineStep = GetDecimal(LineStep, _gridDataGrid.Rows[0].Cells[4]);
+            Enum.TryParse(_gridDataGrid.Rows[0].Cells[4].Value.ToString(), out TypeStep);
+
+            LineStep = GetDecimal(LineStep, _gridDataGrid.Rows[0].Cells[5]);
+
+            StepMultiplicator = GetDecimal(StepMultiplicator, _gridDataGrid.Rows[3].Cells[5]);
 
             if (_tab.Security != null
                 && LineStep < _tab.Security.PriceStep)
             {
                 LineStep = _tab.Security.PriceStep;
-                _gridDataGrid.Rows[0].Cells[4].Value = LineStep.ToString();
+                _gridDataGrid.Rows[0].Cells[5].Value = LineStep.ToString();
             }
 
             if (_tab.Security != null
                 && LineStep % _tab.Security.PriceStep != 0)
             {
                 LineStep = Math.Round(LineStep, _tab.Security.Decimals);
-                _gridDataGrid.Rows[0].Cells[4].Value = LineStep.ToString();
+                _gridDataGrid.Rows[0].Cells[5].Value = LineStep.ToString();
             }
 
-            Enum.TryParse(_gridDataGrid.Rows[0].Cells[5].Value.ToString(), out TypeVolume);
+            Enum.TryParse(_gridDataGrid.Rows[0].Cells[6].Value.ToString(), out TypeProfit);
 
-            StartVolume = GetDecimal(StartVolume, _gridDataGrid.Rows[0].Cells[6]);
-
-            Enum.TryParse(_gridDataGrid.Rows[0].Cells[7].Value.ToString(), out TypeProfit);
-
-            ProfitStep = GetDecimal(ProfitStep, _gridDataGrid.Rows[0].Cells[8]);
+            ProfitStep = GetDecimal(ProfitStep, _gridDataGrid.Rows[0].Cells[7]);
 
             if (TypeProfit == Type_Profit.Absolute
                 && _tab.Security != null
                 && ProfitStep % _tab.Security.PriceStep != 0)
             {
                 ProfitStep = Math.Round(ProfitStep, _tab.Security.Decimals);
-                _gridDataGrid.Rows[0].Cells[8].Value = ProfitStep.ToString();
+                _gridDataGrid.Rows[0].Cells[7].Value = ProfitStep.ToString();
             }
 
             if (TypeProfit == Type_Profit.Absolute
@@ -798,28 +897,37 @@ public class GridBotClassic : BotPanel
                && ProfitStep < _tab.Security.PriceStep)
             {
                 ProfitStep = _tab.Security.PriceStep;
-                _gridDataGrid.Rows[0].Cells[8].Value = ProfitStep.ToString();
+                _gridDataGrid.Rows[0].Cells[7].Value = ProfitStep.ToString();
             }
+
+            ProfitMultiplicator = GetDecimal(ProfitMultiplicator, _gridDataGrid.Rows[3].Cells[7]);
+
+            Enum.TryParse(_gridDataGrid.Rows[0].Cells[8].Value.ToString(), out TypeVolume);
+
+            StartVolume = GetDecimal(StartVolume, _gridDataGrid.Rows[0].Cells[9]);
+
+            MartingaleMultiplicator = GetDecimal(MartingaleMultiplicator, _gridDataGrid.Rows[3].Cells[9]);
 
             SaveSettings();
 
             try
             {
-                int findRowIndex = 5;
-
-                for (int i = 0; i < Lines.Count; i++)
+                for (int i = 8; i < Lines.Count; i++)
                 {
-                    Lines[i].IsOn = Convert.ToBoolean(_gridDataGrid.Rows[i + findRowIndex].Cells[1].Value.ToString().ToLower());
-                    Lines[i].PriceEnter = _gridDataGrid.Rows[i + findRowIndex].Cells[2].Value.ToString().ToDecimal();
-                    Lines[i].PriceExit = _gridDataGrid.Rows[i + findRowIndex].Cells[3].Value.ToString().ToDecimal();
-                    Lines[i].Volume = _gridDataGrid.Rows[i + findRowIndex].Cells[4].Value.ToString().ToDecimal();
+                    Lines[i].IsOn = Convert.ToBoolean(_gridDataGrid.Rows[i].Cells[1].Value.ToString().ToLower());
+                    Lines[i].PriceEnter = _gridDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
+                    Lines[i].PriceExit = _gridDataGrid.Rows[i].Cells[3].Value.ToString().ToDecimal();
+                    Lines[i].Volume = _gridDataGrid.Rows[i ].Cells[4].Value.ToString().ToDecimal();
 
-                    if (_gridDataGrid.Rows[i + findRowIndex].Cells[6].Value.ToString() == "Checked" || _gridDataGrid.Rows[i + findRowIndex].Cells[6].Value.ToString() == "True")
+                    if (_gridDataGrid.Rows[i].Cells[6].Value.ToString() == "Checked" 
+                        || _gridDataGrid.Rows[i].Cells[6].Value.ToString() == "True")
                     {
                         Lines[i].checkStateLine = CheckState.Checked;
                     }
                     else
+                    {
                         Lines[i].checkStateLine = CheckState.Unchecked;
+                    }
                 }
                 SaveLines();
             }
@@ -918,13 +1026,54 @@ public class GridBotClassic : BotPanel
 
         decimal volumeCurrent = StartVolume;
 
+        decimal curStep = LineStep;
+
+        decimal profitStep = ProfitStep;
+
+        if(TypeStep == Type_Profit.Percent)
+        {
+            curStep = priceCurrent * (curStep/100);
+
+            if (_tab.Security != null)
+            {
+                curStep = Math.Round(curStep, _tab.Security.Decimals);
+            }
+        }
+
         for (int i = 0; i < LineCountStart; i++)
         {
+            if (curStep > FirstPrice)
+            {
+                break;
+            }
+
+            if(priceCurrent <= 0)
+            {
+                break;
+            }
+
+            if(priceCurrent / FirstPrice > 3)
+            {
+                break;
+            }
+
             GridBotLine newLine = new GridBotLine();
             newLine.PriceEnter = priceCurrent;
+
+            if (_tab.Security != null)
+            {
+                newLine.PriceEnter = Math.Round(newLine.PriceEnter, _tab.Security.Decimals);
+            }
+
             newLine.Side = GridSide;
             newLine.IsOn = LineIsOn;
             newLine.Volume = volumeCurrent;
+
+            if (_tab.Security != null
+               && _tab.Security.DecimalsVolume >= 0)
+            {
+                newLine.Volume = Math.Round(volumeCurrent,_tab.Security.DecimalsVolume);
+            }
 
             Lines.Add(newLine);
 
@@ -932,40 +1081,57 @@ public class GridBotClassic : BotPanel
             {
                 if (TypeProfit == Type_Profit.Percent)
                 {
-                    newLine.PriceExit = newLine.PriceEnter + (newLine.PriceEnter * ProfitStep / 100);
-
-                    if(_tab.Security != null)
-                    {
-                        newLine.PriceExit = Math.Round(newLine.PriceExit, _tab.Security.Decimals);
-                    }
+                    newLine.PriceExit = newLine.PriceEnter + (newLine.PriceEnter * profitStep / 100);
                 }
                 else if (TypeProfit == Type_Profit.Absolute)
                 {
-                    newLine.PriceExit = newLine.PriceEnter + ProfitStep;
+                    newLine.PriceExit = newLine.PriceEnter + profitStep;
                 }
 
-                priceCurrent -= LineStep;
+                if (_tab.Security != null)
+                {
+                    newLine.PriceExit = Math.Round(newLine.PriceExit, _tab.Security.Decimals);
+                }
+
+                priceCurrent -= curStep;
+
             }
             else if (GridSide == Side.Sell)
             {
                 if (TypeProfit == Type_Profit.Percent)
                 {
-                    newLine.PriceExit = newLine.PriceEnter - (newLine.PriceEnter * ProfitStep / 100);
-
-                    if (_tab.Security != null)
-                    {
-                        newLine.PriceExit = Math.Round(newLine.PriceExit, _tab.Security.Decimals);
-                    }
+                    newLine.PriceExit = newLine.PriceEnter - (newLine.PriceEnter * profitStep / 100);
                 }
                 else if (TypeProfit == Type_Profit.Absolute)
                 {
-                    newLine.PriceExit = newLine.PriceEnter - ProfitStep;
+                    newLine.PriceExit = newLine.PriceEnter - profitStep;
                 }
 
-                priceCurrent += LineStep;
+                if (_tab.Security != null)
+                {
+                    newLine.PriceExit = Math.Round(newLine.PriceExit, _tab.Security.Decimals);
+                }
+
+                priceCurrent += curStep;
             }
 
-            //volumeCurrent += Math.Round(volumeCurrent / 100, VolumeDecimals);
+            if (StepMultiplicator != 1
+                && StepMultiplicator != 0)
+            {
+                curStep = curStep * StepMultiplicator;
+            }
+
+            if (ProfitMultiplicator != 1
+                && ProfitMultiplicator != 0)
+            {
+                profitStep = profitStep * ProfitMultiplicator;
+            }
+
+            if (MartingaleMultiplicator != 0
+                && MartingaleMultiplicator != 1)
+            {
+                volumeCurrent = volumeCurrent * MartingaleMultiplicator;
+            }
         }
 
         SaveLines();
@@ -992,7 +1158,8 @@ public class GridBotClassic : BotPanel
 
     public void DeleteSelectedLines(int index)
     {
-        index = index - 5;
+        index = index - 8;
+
         if (index < 0
             || index >= Lines.Count)
         {
