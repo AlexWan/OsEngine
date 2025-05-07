@@ -508,7 +508,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Stock;
                     newSecurity.Lot = item.Lot;
-
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -562,7 +562,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Bond;
                     newSecurity.Lot = item.Lot;
-
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -615,6 +615,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Index;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
 
 
                     newSecurity.State = SecurityStateType.Activ;
@@ -656,6 +657,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Index;
                     newSecurity.Lot = 1;
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -709,6 +711,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.CurrencyPair;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
 
 
                     newSecurity.State = SecurityStateType.Activ;
@@ -763,6 +766,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Futures;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
                     newSecurity.Go = GetValue(item.InitialMarginOnBuy); // есть еще при продаже (одинаковые?)
 
                     if (item.MinPriceIncrementAmount != null)
@@ -822,6 +826,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Option;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
