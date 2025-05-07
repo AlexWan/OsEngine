@@ -272,12 +272,20 @@ namespace OsEngine.Journal.Internal
             foreach (Position deal in deals)
             {
                 // 1. Get the portfolio return percentage for the trade
-                decimal tradeReturnPercent = deal.ProfitPortfolioPercent;
+                decimal tradeReturnPercent = deal.ProfitOperationPercent;
 
                 // 2. Apply scaling from MultToJournal (e.g., 50% → 0.5)
-                decimal scaledReturn = tradeReturnPercent * (deal.MultToJournal / 100m)/100m;
+                decimal scaledReturn = tradeReturnPercent * (deal.MultToJournal / 100m);
+                decimal days = (decimal)(deal.TimeClose - deal.TimeOpen).TotalDays;
 
-                totalReturn += scaledReturn;
+                if (days == 0)
+                {
+                    days = 1;
+                }
+
+                decimal annualizedReturn = scaledReturn * (365.0m / days);
+
+                totalReturn += annualizedReturn;
             }
 
             // 4. Calculate arithmetic mean  and scaling from percent to decimal
@@ -311,7 +319,7 @@ namespace OsEngine.Journal.Internal
                 return 0;
             }
 
-            // берём RFR - безрисковая ставка, рассчитанная за всё время которое мог получить инвестор от открытия первой сделки до открытия последней
+            // RFR - no-risk rate 
 
             DateTime timeFirstDeal = DateTime.MaxValue;
             DateTime timeEndDeal = DateTime.MinValue;
@@ -333,17 +341,25 @@ namespace OsEngine.Journal.Internal
             if (timeFirstDeal != DateTime.MaxValue && timeEndDeal != DateTime.MinValue && riskFreeProfitInYear != 0)
             {
                 int daysCountInPoses = (int)(timeEndDeal - timeFirstDeal).TotalDays;
-                decimal riskFreeProfitInYearDecimal = riskFreeProfitInYear / 100m; // Convert to decimal
-                decimal riskFreeProfitInDay = riskFreeProfitInYearDecimal / 365;
-                rfr = daysCountInPoses * riskFreeProfitInDay/deals.Length; // average risk-free return from holding time 
+                decimal riskFreeProfitInYearDecimal = riskFreeProfitInYear; // Convert to decimal
+                rfr = ((decimal)daysCountInPoses/365) * riskFreeProfitInYearDecimal; // average risk-free return from holding time 
             }
 
             // 3. Calculate standard deviation
             List<decimal> portfolioReturns = new List<decimal>();
             foreach (Position deal in deals)
             {
-                decimal scaledReturn = (deal.ProfitPortfolioPercent * (deal.MultToJournal / 100m))/100m;
-                portfolioReturns.Add(scaledReturn);
+                decimal scaledReturn = (deal.ProfitOperationPercent * (deal.MultToJournal / 100m));
+                decimal days = (decimal)(deal.TimeClose - deal.TimeOpen).TotalDays;
+
+                if (days == 0)
+                {
+                    days = 1;
+                }            
+
+                decimal annualizedReturn = scaledReturn * (365.0m / days);
+
+                portfolioReturns.Add(annualizedReturn);
             }
 
             decimal sd = GetValueStandardDeviation(portfolioReturns);
@@ -371,7 +387,8 @@ namespace OsEngine.Journal.Internal
                 sd += x * x;  // Avoid double conversion
             }
 
-            sd = (decimal)Math.Sqrt((double)(sd / length));  // Population SD
+            decimal variance = sd / length;
+            sd = (decimal)Math.Sqrt((double)variance);  // Population SD
             return Math.Round(sd, 5);
         }
 
