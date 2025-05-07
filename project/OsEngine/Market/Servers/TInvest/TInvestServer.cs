@@ -9,6 +9,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
@@ -507,7 +508,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Stock;
                     newSecurity.Lot = item.Lot;
-
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -561,7 +562,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Bond;
                     newSecurity.Lot = item.Lot;
-
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -614,6 +615,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Index;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
 
 
                     newSecurity.State = SecurityStateType.Activ;
@@ -655,6 +657,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Index;
                     newSecurity.Lot = 1;
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -708,6 +711,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.CurrencyPair;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
 
 
                     newSecurity.State = SecurityStateType.Activ;
@@ -762,6 +766,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Futures;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
                     newSecurity.Go = GetValue(item.InitialMarginOnBuy); // есть еще при продаже (одинаковые?)
 
                     if (item.MinPriceIncrementAmount != null)
@@ -821,6 +826,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                     newSecurity.SecurityType = SecurityType.Option;
                     newSecurity.Lot = item.Lot;
+                    newSecurity.VolumeStep = 1;
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -2290,9 +2296,13 @@ namespace OsEngine.Market.Servers.TInvest
                             continue;
                         }
 
+                        HashSet<string> ordersToCheck = new HashSet<string>();
+
                         for (int i = 0; i < tradesResponse.OrderTrades.Trades.Count; i++)
                         {
                             MyTrade trade = new MyTrade();
+
+                            ordersToCheck.Add(tradesResponse.OrderTrades.OrderId); // save for checking status later
 
                             trade.SecurityNameCode = security.Name;
                             trade.Price = GetValue(tradesResponse.OrderTrades.Trades[i].Price);
@@ -2308,6 +2318,17 @@ namespace OsEngine.Market.Servers.TInvest
                             {
                                 MyTradeEvent(trade);
                             }
+                        }
+
+                        // sometimes order status gets lost so lets query it implicitly
+                        string[] orderIds = ordersToCheck.ToArray();
+                        for (int i = 0; i < orderIds.Length; i++)
+                        {
+                            Order order = new Order();
+                            order.NumberMarket = orderIds[i];
+                            order.PortfolioNumber = tradesResponse.OrderTrades.AccountId;
+
+                            GetOrderStatusWithTrades(order, false); // no need to resend trades
                         }
                     }
                 }
@@ -2791,7 +2812,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public void GetOrderStatusWithTrades(Order order, bool processTrades)
         {
             _rateGateOrders.WaitToProceed();
 
@@ -2880,7 +2901,7 @@ namespace OsEngine.Market.Servers.TInvest
                     MyOrderEvent(newOrder);
                 }
 
-                if (newOrder.State == OrderStateType.Done || newOrder.State == OrderStateType.Partial)
+                if (processTrades && (newOrder.State == OrderStateType.Done || newOrder.State == OrderStateType.Partial))
                 {
                     // add all trades for this order
                     for (int i = 0; i < state.Stages.Count; i++)
@@ -2915,6 +2936,11 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage("Get order state request error. " + exception.ToString(), LogMessageType.Error);
             }
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+            GetOrderStatusWithTrades(order, true);
         }
 
         private List<Order> GetAllOrdersFromExchange()
