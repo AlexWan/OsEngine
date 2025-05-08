@@ -331,7 +331,8 @@ namespace OsEngine.Market.Servers.MOEX
                     if (code != "TQBR" && // акции
                        code != "RFUD" && // фьючерсы торгующиеся
                        code != "RTSI" &&// индексы RTS
-                       code != "CETS" // валютная секция
+                       code != "CETS" && // валютная секция
+                       code != "SNDX" // Индексы фондового рынка
                        )
                     {
                         continue;
@@ -354,6 +355,10 @@ namespace OsEngine.Market.Servers.MOEX
                     if (code == "CETS")
                     {
                         fullName = "Валютная секция";
+                    }
+                    if (code == "SNDX")
+                    {
+                        fullName = "Индексы фондового рынка";
                     }
 
                     string str = markets[i] + "#" + innerArray[2].ToString() + "#" + fullName;
