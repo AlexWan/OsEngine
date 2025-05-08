@@ -158,6 +158,17 @@ namespace OsEngine.Entity
                     return;
                 }
 
+                if((value == OrderStateType.Active
+                    || value == OrderStateType.Activ)
+                    &&
+                    (_state == OrderStateType.Done
+                    || _state == OrderStateType.Partial
+                    || _state == OrderStateType.Patrial)
+                    )
+                {
+                    return;
+                }
+
                 _state = value;
             } 
         }
