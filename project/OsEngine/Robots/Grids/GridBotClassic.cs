@@ -88,6 +88,12 @@ public class GridBotClassic : BotPanel
         NonTradePeriod4Start = CreateParameterTimeOfDay("Start period " + "4", 23, 40, 0, 0, "Non trade periods");
         NonTradePeriod4End = CreateParameterTimeOfDay("End period " + "4", 23, 59, 0, 0, "Non trade periods");
 
+        NonTradePeriod5OnOff
+            = CreateParameter("Block trade. Period " + "5",
+            "Off", new string[] { "Off", "On" }, "Non trade periods");
+        NonTradePeriod5Start = CreateParameterTimeOfDay("Start period " + "5", 23, 40, 0, 0, "Non trade periods");
+        NonTradePeriod5End = CreateParameterTimeOfDay("End period " + "5", 23, 59, 0, 0, "Non trade periods");
+
         // events
 
         _gridDataGrid.CellClick += EventСlickOnButtonCreatingLine;
@@ -290,6 +296,10 @@ public class GridBotClassic : BotPanel
     public StrategyParameterTimeOfDay NonTradePeriod4Start;
     public StrategyParameterTimeOfDay NonTradePeriod4End;
 
+    public StrategyParameterString NonTradePeriod5OnOff;
+    public StrategyParameterTimeOfDay NonTradePeriod5Start;
+    public StrategyParameterTimeOfDay NonTradePeriod5End;
+
     private bool IsBlockNonTradePeriods(DateTime curTime)
     {
         if (NonTradePeriod1OnOff.ValueString == "On")
@@ -298,6 +308,15 @@ public class GridBotClassic : BotPanel
              && NonTradePeriod1End.Value > curTime)
             {
                 return true;
+            }
+
+            if(NonTradePeriod1Start.Value > NonTradePeriod1End.Value)
+            { // overnight transfer
+                if (NonTradePeriod1Start.Value > curTime
+                    || NonTradePeriod1End.Value < curTime)
+                {
+                    return true;
+                }
             }
         }
 
@@ -308,6 +327,15 @@ public class GridBotClassic : BotPanel
             {
                 return true;
             }
+
+            if (NonTradePeriod2Start.Value > NonTradePeriod2End.Value)
+            { // overnight transfer
+                if (NonTradePeriod2Start.Value > curTime
+                    || NonTradePeriod2End.Value < curTime)
+                {
+                    return true;
+                }
+            }
         }
 
         if (NonTradePeriod3OnOff.ValueString == "On")
@@ -317,6 +345,15 @@ public class GridBotClassic : BotPanel
             {
                 return true;
             }
+
+            if (NonTradePeriod3Start.Value > NonTradePeriod3End.Value)
+            { // overnight transfer
+                if (NonTradePeriod3Start.Value > curTime
+                    || NonTradePeriod3End.Value < curTime)
+                {
+                    return true;
+                }
+            }
         }
 
         if (NonTradePeriod4OnOff.ValueString == "On")
@@ -325,6 +362,33 @@ public class GridBotClassic : BotPanel
              && NonTradePeriod4End.Value > curTime)
             {
                 return true;
+            }
+
+            if (NonTradePeriod4Start.Value > NonTradePeriod4End.Value)
+            { // overnight transfer
+                if (NonTradePeriod4Start.Value > curTime
+                    || NonTradePeriod4End.Value < curTime)
+                {
+                    return true;
+                }
+            }
+        }
+
+        if (NonTradePeriod5OnOff.ValueString == "On")
+        {
+            if (NonTradePeriod5Start.Value < curTime
+             && NonTradePeriod5End.Value > curTime)
+            {
+                return true;
+            }
+
+            if (NonTradePeriod5Start.Value > NonTradePeriod5End.Value)
+            { // overnight transfer
+                if (NonTradePeriod5Start.Value > curTime
+                    || NonTradePeriod5End.Value < curTime)
+                {
+                    return true;
+                }
             }
         }
 
