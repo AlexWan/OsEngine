@@ -75,6 +75,7 @@
     <Reference Update="System.Runtime.Serialization">
       <Private>True</Private>
     </Reference>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="Google.Protobuf" Version="3.30.2" />
