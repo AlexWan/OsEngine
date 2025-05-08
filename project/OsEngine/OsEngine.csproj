@@ -25,6 +25,18 @@
     <ApplicationIcon>OsLogo.ico</ApplicationIcon>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+   <OutputPath>bin\Debug\</OutputPath>
+   <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+   <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Robots\StrategyBiases.cs" />
+    <Compile Remove="Robots\StrategyPlatform.cs" />
+    <Compile Remove="Robots\StrategyTrendHighest.cs" />
+    <Compile Remove="Robots\StrategyTrendoSEMA.cs" />
+    <Compile Remove="Robots\StrategyWithThreeEmaAndAtrVola.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="BytesRoad.Net.Ftp">
       <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
