@@ -7,8 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Windows.Controls;
 using System.Windows.Forms;
-using System.Windows.Forms.DataVisualization.Charting;
 using System.Windows.Forms.Integration;
 using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
@@ -667,25 +667,32 @@ namespace OsEngine.Alerts
             // shortcut menu creation
             // cоздание контекстного меню
 
-            MenuItem[] items = new MenuItem[4];
+            ToolStripMenuItem[] items = new ToolStripMenuItem[4];
 
-            items[0] = new MenuItem();
-            items[0].Text = OsLocalization.Alerts.ContextMenu1;
+            items[0] = new ToolStripMenuItem(OsLocalization.Alerts.ContextMenu1);
             items[0].Click += AlertDelete_Click;
 
-            items[1] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu2 };
+            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            items[1] = new ToolStripMenuItem(OsLocalization.Alerts.ContextMenu2);
             items[1].Click += AlertRedact_Click;
 
-            items[2] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu3 };
+            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            items[2] = new ToolStripMenuItem() { Text = OsLocalization.Alerts.ContextMenu3 };
             items[2].Click += AlertChartCreate_Click;
 
-            items[3] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu4 };
+            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            items[3] = new ToolStripMenuItem() { Text = OsLocalization.Alerts.ContextMenu4 };
             items[3].Click += AlertPriceCreate_Click;
 
-            ContextMenu menu = new ContextMenu(items);
+            // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            ContextMenuStrip menu = new ContextMenuStrip();
+            menu.Items.Add(items[0]);
+            menu.Items.Add(items[1]);
+            menu.Items.Add(items[2]);
+            menu.Items.Add(items[3]);
 
-            GridViewBox.ContextMenu = menu;
-            GridViewBox.ContextMenu.Show(GridViewBox, new Point(mouse.X, mouse.Y));
+            GridViewBox.ContextMenuStrip = menu;
+            GridViewBox.ContextMenuStrip.Show(GridViewBox, new Point(mouse.X, mouse.Y));
         }
 
         void GridViewBox_DoubleClick(object sender, EventArgs e)

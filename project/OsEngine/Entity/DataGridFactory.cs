@@ -118,9 +118,11 @@ namespace OsEngine.Entity
         {
             DataGridView grid = (DataGridView)sender;
 
-            List<MenuItem> items = new List<MenuItem>();
+            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-            items.Add(new MenuItem("Save table in file"));
+            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            items.Add(new ToolStripMenuItem("Save table in file"));
 
             items[items.Count - 1].Click += delegate (Object sender, EventArgs e)
             {
@@ -172,7 +174,8 @@ namespace OsEngine.Entity
                 }
             };
 
-            ContextMenu menu = new ContextMenu(items.ToArray());
+            // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
             MouseEventArgs mouse = (MouseEventArgs)e;
             if (mouse.Button != MouseButtons.Right)
@@ -180,8 +183,8 @@ namespace OsEngine.Entity
                 return;
             }
 
-            grid.ContextMenu = menu;
-            grid.ContextMenu.Show(grid, new Point(mouse.X, mouse.Y));
+            grid.ContextMenuStrip = menu;
+            grid.ContextMenuStrip.Show(grid, new Point(mouse.X, mouse.Y));
         }
 
         public static void ClearLinks(DataGridView grid)

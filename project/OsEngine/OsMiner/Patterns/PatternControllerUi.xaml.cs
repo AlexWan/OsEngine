@@ -12,8 +12,12 @@ using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Miner;
 using OsEngine.Market.Servers.Tester;
-using ContextMenu = System.Windows.Forms.ContextMenu;
-using MenuItem = System.Windows.Forms.MenuItem;
+using // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+ContextMenu = // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+System.Windows.Forms.ContextMenuStrip;
+using // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+MenuItem = // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+System.Windows.Forms.ToolStripMenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
 namespace OsEngine.OsMiner.Patterns
@@ -666,18 +670,23 @@ namespace OsEngine.OsMiner.Patterns
             }
             try
             {
-                MenuItem[] items = new MenuItem[2];
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                items[0] = new MenuItem { Text = OsLocalization.Miner.Message6};
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[0] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message6};
                 items[0].Click += GridPatternsToOpenAdd_Click;
 
-                items[1] = new MenuItem { Text = OsLocalization.Miner.Message7};
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[1] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message7};
                 items[1].Click += GridPatternsToOpenRemove_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip();
+                menu.Items.AddRange(items);
 
-                _gridPatternsToOpen.ContextMenu = menu;
-                _gridPatternsToOpen.ContextMenu.Show(_gridPatternsToOpen, new System.Drawing.Point(mouse.X, mouse.Y));
+                _gridPatternsToOpen.ContextMenuStrip = menu;
+                _gridPatternsToOpen.ContextMenuStrip.Show(_gridPatternsToOpen, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {
@@ -916,18 +925,23 @@ namespace OsEngine.OsMiner.Patterns
 
             try
             {
-                MenuItem[] items = new MenuItem[2];
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                items[0] = new MenuItem { Text = OsLocalization.Miner.Message6 };
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[0] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message6 };
                 items[0].Click += GridPatternsToCloseAdd_Click;
 
-                items[1] = new MenuItem { Text = OsLocalization.Miner.Message7 };
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[1] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message7 };
                 items[1].Click += GridPatternsToCloseRemove_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip();
+                menu.Items.AddRange(items);
 
-                _gridPatternsToClose.ContextMenu = menu;
-                _gridPatternsToClose.ContextMenu.Show(_gridPatternsToClose, new System.Drawing.Point(mouse.X, mouse.Y));
+                _gridPatternsToClose.ContextMenuStrip = menu;
+                _gridPatternsToClose.ContextMenuStrip.Show(_gridPatternsToClose, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {

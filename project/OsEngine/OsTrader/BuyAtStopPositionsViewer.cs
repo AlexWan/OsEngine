@@ -245,18 +245,22 @@ namespace OsEngine.OsTrader
 
             try
             {
-                MenuItem[] items = new MenuItem[2];
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                items[0] = new MenuItem { Text = OsLocalization.Trader.Label213 };
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[0] = new ToolStripMenuItem { Text = OsLocalization.Trader.Label213 };
                 items[0].Click += PositionCloseAll_Click;
 
-                items[1] = new MenuItem { Text = OsLocalization.Trader.Label214 };
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[1] = new ToolStripMenuItem { Text = OsLocalization.Trader.Label214 };
                 items[1].Click += PositionCloseForNumber_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
-                _grid.ContextMenu = menu;
-                _grid.ContextMenu.Show(_grid, new Point(mouse.X, mouse.Y));
+                _grid.ContextMenuStrip = menu;
+                _grid.ContextMenuStrip.Show(_grid, new Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {

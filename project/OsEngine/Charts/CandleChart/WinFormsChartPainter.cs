@@ -222,9 +222,10 @@ namespace OsEngine.Charts.CandleChart
             }
         }
 
-        public void ShowContextMenu(ContextMenu menu)
+        public void ShowContextMenu(// TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+ContextMenuStrip menu)
         {
-           _chart.ContextMenu = menu;
+           _chart.ContextMenuStrip = menu;
         }
 
         /// <summary>
