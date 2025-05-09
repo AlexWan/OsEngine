@@ -1,432 +1,369 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows;
-using Microsoft.CSharp;
-using OsEngine.Entity;
-using OsEngine.Indicators;
+using System.Windows; // Used for MessageBox
+using OsEngine.Entity; // Assuming Aindicator and IndicatorAttribute are here
+using OsEngine.Indicators; // Namespace for the factory itself
+
+// Roslyn specific usings
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace OsEngine.Indicators
 {
+    // NamesFilesFromFolder can remain as is if used by other parts,
+    // or its logic can be integrated/simplified if only used here.
+    // For this refactor, it's kept as per the original structure.
     public class NamesFilesFromFolder
     {
         public string Folder;
-
         public List<string> Files;
 
         public List<string> GetFilesCopy()
         {
-            List<string> results = new List<string>();
-
-            for(int i = 0;i < Files.Count;i++)
-            {
-                results.Add(Files[i]);
-            }
-
-            return results;
+            // Defensive copy
+            return Files != null ? new List<string>(Files) : new List<string>();
         }
     }
 
-    public class IndicatorsFactory
+    public static class IndicatorsFactory // Made static to match CandleFactory and common factory patterns
     {
         public static readonly Dictionary<string, Type> IndicatorsWithAttribute = GetTypesWithIndicatorAttribute();
 
         private static Dictionary<string, Type> GetTypesWithIndicatorAttribute()
         {
-            Assembly assembly = Assembly.GetAssembly(typeof(Aindicator));
+            // Assumes Aindicator is in OsEngine.Entity or OsEngine.Indicators
+            Assembly assembly = typeof(Aindicator).Assembly;
             Dictionary<string, Type> indicators = new Dictionary<string, Type>();
             foreach (Type type in assembly.GetTypes())
             {
-                object[] attributes = type.GetCustomAttributes(typeof(IndicatorAttribute), false);
-                if (attributes.Length > 0)
+                // Ensure type is public, not abstract, and assignable to Aindicator
+                if (type.IsPublic && !type.IsAbstract && typeof(Aindicator).IsAssignableFrom(type))
                 {
-                    indicators[((IndicatorAttribute)attributes[0]).Name] = type;
+                    object[] attributes = type.GetCustomAttributes(typeof(IndicatorAttribute), false);
+                    if (attributes.Length > 0 && attributes[0] is IndicatorAttribute attr)
+                    {
+                        indicators[attr.Name] = type;
+                    }
                 }
             }
-
             return indicators;
         }
 
         public static List<string> GetIndicatorsNames()
         {
-            if (Directory.Exists(@"Custom") == false)
+            const string customIndicatorsScriptPath = @"Custom\Indicators\Scripts";
+
+            if (!Directory.Exists(@"Custom"))
             {
                 Directory.CreateDirectory(@"Custom");
             }
-            if (Directory.Exists(@"Custom\Indicators") == false)
+            if (!Directory.Exists(@"Custom\Indicators"))
             {
                 Directory.CreateDirectory(@"Custom\Indicators");
             }
-            if (Directory.Exists(@"Custom\Indicators\Scripts") == false)
+            if (!Directory.Exists(customIndicatorsScriptPath))
             {
-                Directory.CreateDirectory(@"Custom\Indicators\Scripts");
+                Directory.CreateDirectory(customIndicatorsScriptPath);
             }
 
-            List<string> resultOne = GetFullNamesFromFolder(@"Custom\Indicators\Scripts");
+            List<string> scriptFileNames = GetFullNamesFromFolder(customIndicatorsScriptPath)
+                .Select(fullPath => Path.GetFileNameWithoutExtension(fullPath))
+                .ToList();
 
-            for (int i = 0; i < resultOne.Count; i++)
-            {
-                resultOne[i] = resultOne[i].Split('\\')[resultOne[i].Split('\\').Length - 1];
-                resultOne[i] = resultOne[i].Split('.')[0];
-            }
+            // The original custom sorting logic was a bit complex.
+            // Combining with attribute-based indicators and then sorting alphabetically.
+            List<string> allIndicatorNames = new List<string>(scriptFileNames);
+            allIndicatorNames.AddRange(IndicatorsWithAttribute.Keys);
 
-            //resultOne.Add("Template");
-
-            List<string> resultTrue = new List<string>();
-
-            for (int i = 0; i < resultOne.Count; i++)
-            {
-                bool isInArray = false;
-
-                for (int i2 = 0; i2 < resultTrue.Count; i2++)
-                {
-                    if (resultTrue[i2][0] > resultOne[i][0])
-                    {
-                        resultTrue.Insert(i2, resultOne[i]);
-                        isInArray = true;
-                        break;
-                    }
-                }
-
-                if (isInArray == false)
-                {
-                    resultTrue.Add(resultOne[i]);
-                }
-            }
-
-            resultTrue.AddRange(IndicatorsWithAttribute.Keys);
-
-            var result = resultTrue.OrderBy(x => x).ToList();
-
-            return result;
+            // Remove duplicates that might arise if a script has the same name as an attribute-based indicator
+            // and then sort alphabetically.
+            return allIndicatorNames.Distinct(StringComparer.OrdinalIgnoreCase).OrderBy(name => name).ToList();
         }
 
-        private static List<NamesFilesFromFolder> _filesInDir = new List<NamesFilesFromFolder>();
+        private static readonly List<NamesFilesFromFolder> _filesInDirCache = new List<NamesFilesFromFolder>();
+        private static readonly object _filesInDirCacheLock = new object();
+
 
         public static List<string> GetFullNamesFromFolder(string directory)
         {
-            for(int i = 0;i < _filesInDir.Count;i++)
+            lock (_filesInDirCacheLock)
             {
-                if (_filesInDir[i] == null)
+                var cachedEntry = _filesInDirCache.FirstOrDefault(f => f != null && f.Folder.Equals(directory, StringComparison.OrdinalIgnoreCase));
+                if (cachedEntry != null)
                 {
-                    continue;
-                }
-
-                if (_filesInDir[i].Folder == directory)
-                {
-                    return _filesInDir[i].GetFilesCopy();
+                    return cachedEntry.GetFilesCopy();
                 }
             }
 
             List<string> results = new List<string>();
-
-            string[] subDirectories = Directory.GetDirectories(directory);
-
-            for (int i = 0; i < subDirectories.Length; i++)
-            {
-                results.AddRange(GetFullNamesFromFolder(subDirectories[i]));
-            }
-
-            string[] files = Directory.GetFiles(directory);
-
-            results.AddRange(files.ToList());
-
-            for (int i = 0; i < results.Count; i++)
-            {
-                if (results.Contains("Dlls"))
-                {
-                    results.RemoveAt(i);
-                    i--;
-                    continue;
-                }
-            }
-
-            NamesFilesFromFolder dir = new NamesFilesFromFolder();
-            dir.Folder = directory;
-            dir.Files = results;
-            _filesInDir.Add(dir);
-
-            return dir.GetFilesCopy();
-        }
-
-        public static Aindicator CreateIndicatorByName(string nameClass, string name, bool canDelete,StartProgram startProgram = StartProgram.IsOsTrader)
-        {
-             Aindicator Indicator = null;
-
-            //if (nameClass == "FBD")
-            //{
-            //    Indicator = new FBD();
-            //}
-        
             try
             {
-                if (IndicatorsWithAttribute.ContainsKey(nameClass))
+                string[] subDirectories = Directory.GetDirectories(directory);
+                foreach (string subDir in subDirectories)
                 {
-                    Indicator = (Aindicator)Activator.CreateInstance(IndicatorsWithAttribute[nameClass]);
+                    // If "Dlls" folders should be excluded from recursive search:
+                    // if (Path.GetFileName(subDir).Equals("Dlls", StringComparison.OrdinalIgnoreCase)) continue;
+                    results.AddRange(GetFullNamesFromFolder(subDir));
                 }
 
-                if (Indicator == null)
+                string[] files = Directory.GetFiles(directory);
+                results.AddRange(files);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error accessing directory {directory}: {ex.Message}");
+                // Depending on requirements, either throw or return partial/empty results
+            }
+
+            lock (_filesInDirCacheLock)
+            {
+                // Double-check before adding to avoid race conditions if multiple threads hit this for the first time
+                if (!_filesInDirCache.Any(f => f != null && f.Folder.Equals(directory, StringComparison.OrdinalIgnoreCase)))
                 {
-                    if (!Directory.Exists(@"Custom\Indicators\Scripts"))
-                        Directory.CreateDirectory(@"Custom\Indicators\Scripts");
-
-                    List<string> fullPaths = GetFullNamesFromFolder(@"Custom\Indicators\Scripts");
-
-                    string longNameClass = nameClass + ".txt";
-                    string longNameClass2 = nameClass + ".cs";
-
-                    string myPath = "";
-
-                    for (int i = 0; i < fullPaths.Count; i++)
+                    NamesFilesFromFolder dirEntry = new NamesFilesFromFolder
                     {
-                        string nameInFile = fullPaths[i].Split('\\')[fullPaths[i].Split('\\').Length - 1];
+                        Folder = directory,
+                        Files = new List<string>(results) // Store a copy in the cache
+                    };
+                    _filesInDirCache.Add(dirEntry);
+                }
+            }
+            return new List<string>(results); // Return a copy
+        }
 
-                        if (nameInFile == longNameClass ||
-                            nameInFile == longNameClass2)
+        public static Aindicator CreateIndicatorByName(string nameClass, string nameInstance, bool canDelete, StartProgram startProgram = StartProgram.IsOsTrader)
+        {
+            Aindicator indicator = null;
+
+            try
+            {
+                if (IndicatorsWithAttribute.TryGetValue(nameClass, out Type precompiledType))
+                {
+                    indicator = (Aindicator)Activator.CreateInstance(precompiledType);
+                }
+
+                if (indicator == null)
+                {
+                    const string scriptFolderPath = @"Custom\Indicators\Scripts";
+                    if (!Directory.Exists(scriptFolderPath))
+                        Directory.CreateDirectory(scriptFolderPath); // Should already exist from GetIndicatorsNames
+
+                    List<string> fullPaths = GetFullNamesFromFolder(scriptFolderPath);
+
+                    // Scripts can be .cs or .txt
+                    string scriptFileNameTxt = nameClass + ".txt";
+                    string scriptFileNameCs = nameClass + ".cs";
+                    string scriptPath = "";
+
+                    foreach (string fullPath in fullPaths)
+                    {
+                        string fileName = Path.GetFileName(fullPath);
+                        if (fileName.Equals(scriptFileNameTxt, StringComparison.OrdinalIgnoreCase) ||
+                            fileName.Equals(scriptFileNameCs, StringComparison.OrdinalIgnoreCase))
                         {
-                            myPath = fullPaths[i];
+                            scriptPath = fullPath;
                             break;
                         }
                     }
 
-                    if (myPath == "")
+                    if (string.IsNullOrEmpty(scriptPath))
                     {
-                        MessageBox.Show("Error! Indicator with name " + nameClass + " not found");
-                        return Indicator;
+                        MessageBox.Show($"Error! Indicator script '{nameClass}' not found in {scriptFolderPath}");
+                        return null;
                     }
 
-                    Indicator = Serialize(myPath, nameClass, name, canDelete);
+                    indicator = CompileAndInstantiateIndicatorScript(scriptPath, nameClass);
                 }
 
-                Indicator.Init(name, startProgram);
-                Indicator.CanDelete = canDelete;
+                if (indicator != null)
+                {
+                    indicator.Init(nameInstance, startProgram);
+                    indicator.CanDelete = canDelete;
+                }
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString());
+                MessageBox.Show($"Error creating indicator '{nameClass}':\n{e.ToString()}");
+                // Consider logging the exception or re-throwing specific exceptions
             }
 
-            return Indicator;
+            return indicator;
         }
 
-        private static bool _isFirstTime = true;
+        private static List<MetadataReference> _baseReferences;
+        private static readonly object _referencesLock = new object();
+        // Cache for successfully compiled indicator types. Key: nameClass, Value: Type
+        private static readonly Dictionary<string, Type> _compiledIndicatorTypesCache = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+        private static readonly object _compiledTypesCacheLock = new object();
 
-        private static string[] linksToDll;
 
-        private static List<Aindicator> _serializedInd = new List<Aindicator>();
-
-        private static Aindicator Serialize(string path, string nameClass, string name, bool canDelete)
+        // Comparer for MetadataReference based on Display path to avoid duplicates
+        private class MetadataReferenceComparer : IEqualityComparer<MetadataReference>
         {
-            // 1 пробуем клонировать из ранее сериализованных объектов. Это быстрее чем подымать из файла
-
-            for (int i = 0; i < _serializedInd.Count; i++)
+            public bool Equals(MetadataReference x, MetadataReference y)
             {
-                if (_serializedInd[i].GetType().Name == nameClass)
+                if (ReferenceEquals(x, y)) return true;
+                if (x is null || y is null) return false;
+                return x.Display.Equals(y.Display, StringComparison.OrdinalIgnoreCase);
+            }
+
+            public int GetHashCode(MetadataReference obj)
+            {
+                return obj?.Display?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0;
+            }
+        }
+
+
+        private static void InitializeBaseReferences()
+        {
+            if (_baseReferences == null)
+            {
+                lock (_referencesLock)
                 {
-                    object[] param = new object[] { name };
-                    Aindicator newPanel = (Aindicator)Activator.CreateInstance(_serializedInd[i].GetType());
-                    return newPanel;
+                    if (_baseReferences == null) // Double-check locking
+                    {
+                        var references = new HashSet<MetadataReference>(new MetadataReferenceComparer());
+                        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                        {
+                            if (!assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                            {
+                                try
+                                {
+                                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Warning: Could not create metadata reference for {assembly.FullName} from {assembly.Location}. {ex.Message}");
+                                }
+                            }
+                        }
+                        _baseReferences = references.ToList();
+                    }
+                }
+            }
+        }
+
+        private static Aindicator CompileAndInstantiateIndicatorScript(string scriptPath, string nameClass)
+        {
+            Type indicatorType;
+            lock (_compiledTypesCacheLock)
+            {
+                if (_compiledIndicatorTypesCache.TryGetValue(nameClass, out indicatorType))
+                {
+                    return (Aindicator)Activator.CreateInstance(indicatorType);
                 }
             }
 
-            // сериализуем из файла
+            InitializeBaseReferences();
+            List<MetadataReference> currentCompilationReferences = new List<MetadataReference>(_baseReferences);
 
-            try
+            List<string> dllsFromScriptFolder = GetDllsPathFromScriptFolder(scriptPath);
+            if (dllsFromScriptFolder != null)
             {
-                if (linksToDll == null)
+                foreach (string dllPath in dllsFromScriptFolder)
                 {
-                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-                    var res = Array.ConvertAll<Assembly, string>(assemblies, (x) =>
-                    {
-                        if (!x.IsDynamic)
-                        {
-                            return x.Location;
-                        }
-
-                        return null;
-                    });
-
-                    for (int i = 0; i < res.Length; i++)
-                    {
-                        if (string.IsNullOrEmpty(res[i]))
-                        {
-                            List<string> list = res.ToList();
-                            list.RemoveAt(i);
-                            res = list.ToArray();
-                            i--;
-                        }
-                        else if (res[i].Contains("System.Runtime.Serialization")
-                                 || i > 24)
-                        {
-                            List<string> list = res.ToList();
-                            list.RemoveAt(i);
-                            res = list.ToArray();
-                            i--;
-                        }
-                    }
-
-                    string dllPath = AppDomain.CurrentDomain.BaseDirectory + "System.Runtime.Serialization.dll";
-
-                    List<string> listRes = res.ToList();
-                    listRes.Add(dllPath);
-                    res = listRes.ToArray();
-
-                    linksToDll = res;
-                }
-
-                List<string> dllsToCompiler = linksToDll.ToList();
-
-                List<string> dllsFromPath = GetDllsPathFromFolder(path);
-
-                if (dllsFromPath != null && dllsFromPath.Count != 0)
-                {
-                    for (int i = 0; i < dllsFromPath.Count; i++)
-                    {
-                        string dll = dllsFromPath[i].Split('\\')[dllsFromPath[i].Split('\\').Length - 1];
-
-                        if (dllsToCompiler.Find(d => d.Contains(dll)) == null)
-                        {
-                            dllsToCompiler.Add(dllsFromPath[i]);
-                        }
-                    }
-                }
-
-
-                CompilerParameters cp = new CompilerParameters(dllsToCompiler.ToArray());
-                cp.IncludeDebugInformation = true;
-                cp.GenerateInMemory = true;
-
-                string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
-
-                if (Directory.Exists(folderCur) == false)
-                {
-                    Directory.CreateDirectory(folderCur);
-                }
-
-                folderCur += "\\Indicators";
-
-                if (Directory.Exists(folderCur) == false)
-                {
-                    Directory.CreateDirectory(folderCur);
-                }
-
-                if (_isFirstTime)
-                {
-                    _isFirstTime = false;
-
-                    string[] files = Directory.GetFiles(folderCur);
-
-                    for (int i = 0; i < files.Length; i++)
+                    if (!currentCompilationReferences.Any(r => r.Display.Equals(dllPath, StringComparison.OrdinalIgnoreCase)))
                     {
                         try
                         {
-                            File.Delete(files[i]);
+                            currentCompilationReferences.Add(MetadataReference.CreateFromFile(dllPath));
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            // ignore
+                            Console.WriteLine($"Warning: Could not create metadata reference for custom DLL {dllPath}. {ex.Message}");
                         }
                     }
                 }
+            }
 
-                cp.TempFiles = new TempFileCollection(folderCur, false);
+            string sourceCode = ReadFile(scriptPath);
+            if (string.IsNullOrWhiteSpace(sourceCode))
+            {
+                throw new InvalidOperationException($"Source code file is empty or could not be read: {scriptPath}");
+            }
 
-                Aindicator result = null;
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(
+                sourceCode,
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
 
-                string fileStr = ReadFile(path);
+            string assemblyName = "Indicator_" + Path.GetFileNameWithoutExtension(scriptPath) + "_" + Guid.NewGuid().ToString("N");
+            CSharpCompilationOptions compilationOptions = new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                optimizationLevel: OptimizationLevel.Debug, // Or Release
+                platform: Platform.AnyCpu);
 
-                CSharpCodeProvider prov = new CSharpCodeProvider();
+            CSharpCompilation compilation = CSharpCompilation.Create(
+                assemblyName,
+                syntaxTrees: new[] { syntaxTree },
+                references: currentCompilationReferences,
+                options: compilationOptions);
 
-                CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
+            using (var assemblyStream = new MemoryStream())
+            using (var pdbStream = new MemoryStream())
+            {
+                EmitOptions emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.PortablePdb);
+                EmitResult result = compilation.Emit(assemblyStream, pdbStream, options: emitOptions);
 
-                if (results.Errors != null && results.Errors.Count != 0)
+                if (!result.Success)
                 {
-                    string errorString = "Error! Indicator script runTime compilation problem! \n";
-                    errorString += "Path to indicator: " + path + " \n";
-
-                    int errorNum = 1;
-
-                    foreach (var error in results.Errors)
+                    IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
+                        diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error);
+                    string errorString = $"Error! Indicator script compilation problem for: {scriptPath}\n";
+                    foreach (var diagnostic in failures)
                     {
-                        errorString += "Error Number: " + errorNum + " \n";
-                        errorString += error.ToString() + "\n";
-                        errorNum++;
+                        errorString += $"  {diagnostic.Id}: {diagnostic.GetMessage()} at {diagnostic.Location.GetLineSpan()}\n";
                     }
-
                     throw new Exception(errorString);
                 }
 
-                result = (Aindicator)results.CompiledAssembly.CreateInstance(results.CompiledAssembly.DefinedTypes.ElementAt(0).FullName);
+                assemblyStream.Seek(0, SeekOrigin.Begin);
+                pdbStream.Seek(0, SeekOrigin.Begin);
+                Assembly compiledAssembly = Assembly.Load(assemblyStream.ToArray(), pdbStream.ToArray());
 
-                cp.TempFiles.Delete();
+                // Try to find the type by nameClass, or the first public Aindicator derivative
+                indicatorType = compiledAssembly.GetTypes().FirstOrDefault(t => t.Name.Equals(nameClass, StringComparison.OrdinalIgnoreCase) && typeof(Aindicator).IsAssignableFrom(t) && t.IsPublic && !t.IsAbstract)
+                             ?? compiledAssembly.GetTypes().FirstOrDefault(t => typeof(Aindicator).IsAssignableFrom(t) && t.IsPublic && !t.IsAbstract);
 
-                bool isInArray = false;
 
-                for (int i = 0; i < _serializedInd.Count; i++)
+                if (indicatorType == null)
                 {
-                    if (_serializedInd[i].GetType().Name == nameClass)
+                    throw new TypeLoadException($"Could not find a suitable public Aindicator type (ideally named '{nameClass}') in compiled script: {scriptPath}");
+                }
+
+                lock (_compiledTypesCacheLock)
+                {
+                    // Add to cache if not already added by another thread
+                    if (!_compiledIndicatorTypesCache.ContainsKey(nameClass))
                     {
-                        isInArray = true;
-                        break;
+                        _compiledIndicatorTypesCache[nameClass] = indicatorType;
+                    }
+                    else // If another thread just compiled and cached it, use that type
+                    {
+                        indicatorType = _compiledIndicatorTypesCache[nameClass];
                     }
                 }
-
-                if (isInArray == false)
-                {
-                    _serializedInd.Add(result);
-                }
-
-                return result;
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.ToString());
+                return (Aindicator)Activator.CreateInstance(indicatorType);
             }
         }
 
-        private static List<string> GetDllsPathFromFolder(string path)
+        private static List<string> GetDllsPathFromScriptFolder(string scriptFilePath)
         {
-            string folderPath = path.Remove(path.LastIndexOf('\\'), path.Length - path.LastIndexOf('\\'));
+            string scriptFolder = Path.GetDirectoryName(scriptFilePath);
+            if (string.IsNullOrEmpty(scriptFolder)) return null;
 
-            if (Directory.Exists(folderPath + "\\Dlls") == false)
-            {
-                return null;
-            }
+            string dllsFolder = Path.Combine(scriptFolder, "Dlls");
+            if (!Directory.Exists(dllsFolder)) return null;
 
-            string[] filesInFolder = Directory.GetFiles(folderPath + "\\Dlls");
-
-            List<string> dlls = new List<string>();
-
-            for (int i = 0; i < filesInFolder.Length; i++)
-            {
-                if (filesInFolder[i].EndsWith(".dll") == false)
-                {
-                    continue;
-                }
-
-                string dllPath = AppDomain.CurrentDomain.BaseDirectory + filesInFolder[i];
-
-                dlls.Add(dllPath);
-            }
-
-            return dlls;
+            return Directory.GetFiles(dllsFolder, "*.dll").ToList();
         }
 
         private static string ReadFile(string path)
         {
-            String result = "";
-
-            using (StreamReader reader = new StreamReader(path))
-            {
-                result = reader.ReadToEnd();
-                reader.Close();
-            }
-
-            return result;
+            return File.ReadAllText(path); // Assumes UTF-8 or default encoding
         }
     }
 }

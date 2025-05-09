@@ -3416,7 +3416,7 @@ namespace OsEngine.OsOptimizer
 
         private void ButtonStrategyReload_Click(object sender, RoutedEventArgs e)
         {
-            BotFactory.NeedToReload = true;
+            BotFactory.NeedToReloadOptimizerBots = true;
 
             Task.Run(new Action(StrategyLoader));
         }
