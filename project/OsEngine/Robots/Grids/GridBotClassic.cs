@@ -34,7 +34,7 @@ public class GridBotClassic : BotPanel
     public GridBotClassic(string name, StartProgram startProgram)
           : base(name, startProgram)
     {
-        Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, " Base settings ");
+        Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On", "Only Close" }, " Base settings ");
         MaxOpenOrdersInMarket = CreateParameter("Max orders in market", 5, 1, 20, 1, " Base settings ");
         RegimeLogicEntry = CreateParameter("Regime logic entry", "On new trade", new string[] { "On new trade", "Once per second" }, " Base settings ");
 
@@ -57,42 +57,67 @@ public class GridBotClassic : BotPanel
 
         // grid to orders
 
-        CustomTabToParametersUi customTabOrderGrid = ParamGuiSettings.CreateCustomTab(" Grid settings ");
+        CustomTabToParametersUi customTabOrderGrid = ParamGuiSettings.CreateCustomTab(" Grid ");
         CreateGrid();
         UpdateAllTable();
         customTabOrderGrid.AddChildren(_hostGrid);
+
+        // stop grid parameters
+
+        StopGridByPositionsCountIsOn = CreateParameter("Stop by positions count. Is on", false, "Grid auto-stop");
+
+        StopGridByPositionsCountValue = CreateParameter("Stop by positions count. Value", 10, 1, 20, 1, "Grid auto-stop");
+
+        StopGridByProfitIsOn = CreateParameter("Stop by move in profit. Is on", false, "Grid auto-stop");
+
+        StopGridByProfitValuePercent = CreateParameter("Stop by move in profit. Value", 5m, 1, 20, 1, "Grid auto-stop");
+
+        StopGridByStopIsOn = CreateParameter("Stop by move in loss. Is on", false, "Grid auto-stop");
+
+        StopGridByStopValuePercent = CreateParameter("Stop by move in loss. Value", 5m, 1, 20, 1, "Grid auto-stop");
 
         // non trade periods
 
         NonTradePeriod1OnOff
             = CreateParameter("Block trade. Period " + "1",
-            "Off", new string[] { "Off", "On" }, "Non trade periods");
-        NonTradePeriod1Start = CreateParameterTimeOfDay("Start period " + "1", 9, 0, 0, 0, "Non trade periods");
-        NonTradePeriod1End = CreateParameterTimeOfDay("End period " + "1", 10, 5, 0, 0, "Non trade periods");
+            "Off", new string[] { "Off", "On" }, " Trade periods ");
+        NonTradePeriod1Start = CreateParameterTimeOfDay("Start period " + "1", 9, 0, 0, 0, " Trade periods ");
+        NonTradePeriod1End = CreateParameterTimeOfDay("End period " + "1", 10, 5, 0, 0, " Trade periods ");
 
         NonTradePeriod2OnOff
             = CreateParameter("Block trade. Period " + "2",
-            "Off", new string[] { "Off", "On" }, "Non trade periods");
-        NonTradePeriod2Start = CreateParameterTimeOfDay("Start period " + "2", 13, 55, 0, 0, "Non trade periods");
-        NonTradePeriod2End = CreateParameterTimeOfDay("End period " + "2", 14, 5, 0, 0, "Non trade periods");
+            "Off", new string[] { "Off", "On" }, " Trade periods ");
+        NonTradePeriod2Start = CreateParameterTimeOfDay("Start period " + "2", 13, 55, 0, 0, " Trade periods ");
+        NonTradePeriod2End = CreateParameterTimeOfDay("End period " + "2", 14, 5, 0, 0, " Trade periods ");
 
         NonTradePeriod3OnOff
             = CreateParameter("Block trade. Period " + "3",
-            "Off", new string[] { "Off", "On" }, "Non trade periods");
-        NonTradePeriod3Start = CreateParameterTimeOfDay("Start period " + "3", 18, 40, 0, 0, "Non trade periods");
-        NonTradePeriod3End = CreateParameterTimeOfDay("End period " + "3", 19, 5, 0, 0, "Non trade periods");
+            "Off", new string[] { "Off", "On" }, " Trade periods ");
+        NonTradePeriod3Start = CreateParameterTimeOfDay("Start period " + "3", 18, 40, 0, 0, " Trade periods ");
+        NonTradePeriod3End = CreateParameterTimeOfDay("End period " + "3", 19, 5, 0, 0, " Trade periods ");
 
         NonTradePeriod4OnOff
             = CreateParameter("Block trade. Period " + "4",
-            "Off", new string[] { "Off", "On" }, "Non trade periods");
-        NonTradePeriod4Start = CreateParameterTimeOfDay("Start period " + "4", 23, 40, 0, 0, "Non trade periods");
-        NonTradePeriod4End = CreateParameterTimeOfDay("End period " + "4", 23, 59, 0, 0, "Non trade periods");
+            "Off", new string[] { "Off", "On" }, " Trade periods ");
+        NonTradePeriod4Start = CreateParameterTimeOfDay("Start period " + "4", 23, 40, 0, 0, " Trade periods ");
+        NonTradePeriod4End = CreateParameterTimeOfDay("End period " + "4", 23, 59, 0, 0, " Trade periods ");
 
         NonTradePeriod5OnOff
             = CreateParameter("Block trade. Period " + "5",
-            "Off", new string[] { "Off", "On" }, "Non trade periods");
-        NonTradePeriod5Start = CreateParameterTimeOfDay("Start period " + "5", 23, 40, 0, 0, "Non trade periods");
-        NonTradePeriod5End = CreateParameterTimeOfDay("End period " + "5", 23, 59, 0, 0, "Non trade periods");
+            "Off", new string[] { "Off", "On" }, " Trade periods ");
+        NonTradePeriod5Start = CreateParameterTimeOfDay("Start period " + "5", 23, 40, 0, 0, " Trade periods ");
+
+        NonTradePeriod5End = CreateParameterTimeOfDay("End period " + "5", 23, 59, 0, 0, " Trade periods ");
+
+        CreateParameterLabel("Empty string tp", "", "", 20, 20, System.Drawing.Color.Black, " Trade periods ");
+
+        TradeInMonday = CreateParameter("Trade in Monday. Is on", true, " Trade periods ");
+        TradeInTuesday = CreateParameter("Trade in Tuesday. Is on", true, " Trade periods ");
+        TradeInWednesday = CreateParameter("Trade in Wednesday. Is on", true, " Trade periods ");
+        TradeInThursday = CreateParameter("Trade in Thursday. Is on", true, " Trade periods ");
+        TradeInFriday = CreateParameter("Trade in Friday. Is on", true, " Trade periods ");
+        TradeInSaturday = CreateParameter("Trade in Saturday. Is on", true, " Trade periods ");
+        TradeInSunday = CreateParameter("Trade in Sunday. Is on", true, " Trade periods ");
 
         // events
 
@@ -104,6 +129,7 @@ public class GridBotClassic : BotPanel
         _tab.PositionClosingSuccesEvent += _tab_PositionClosingSuccessEvent;
         _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
         _tab.ManualPositionSupport.DisableManualSupport();
+
         this.ParametrsChangeByUser += GridBot_ParametrsChangeByUser;
 
         Thread worker = new Thread(WorkerThreadArea);
@@ -134,13 +160,15 @@ public class GridBotClassic : BotPanel
 
     public decimal LineStep;
 
-    public Type_Volume TypeVolume;
+    public Type_VolumeGrid TypeVolume;
 
-    public Type_Profit TypeProfit;
+    public Type_ProfitGrid TypeProfit;
 
-    public Type_Profit TypeStep;
+    public Type_ProfitGrid TypeStep;
 
     public decimal StartVolume = 1;
+
+    public string TradeAssetInPortfolio = "Prime";
 
     public decimal ProfitStep;
 
@@ -150,7 +178,7 @@ public class GridBotClassic : BotPanel
 
     public decimal MartingaleMultiplicator = 1;
 
-    public List<GridBotLine> Lines = new List<GridBotLine>();
+    public List<GridBotClassicLine> Lines = new List<GridBotClassicLine>();
 
     private void Strategy_DeleteEvent()
     {
@@ -185,6 +213,7 @@ public class GridBotClassic : BotPanel
                 writer.WriteLine(StepMultiplicator);
                 writer.WriteLine(MartingaleMultiplicator);
                 writer.WriteLine(ProfitMultiplicator);
+                writer.WriteLine(TradeAssetInPortfolio);
                 writer.Close();
             }
         }
@@ -219,13 +248,17 @@ public class GridBotClassic : BotPanel
                 StepMultiplicator = reader.ReadLine().ToDecimal();
                 MartingaleMultiplicator = reader.ReadLine().ToDecimal();
                 ProfitMultiplicator = reader.ReadLine().ToDecimal();
+                TradeAssetInPortfolio = reader.ReadLine();
 
                 reader.Close();
             }
         }
         catch
         {
-            // ignore
+            StepMultiplicator = 1;
+            MartingaleMultiplicator = 1;
+            ProfitMultiplicator = 1;
+            TradeAssetInPortfolio = "Prime";
         }
     }
 
@@ -263,7 +296,7 @@ public class GridBotClassic : BotPanel
             {
                 while (reader.EndOfStream == false)
                 {
-                    GridBotLine newLine = new GridBotLine();
+                    GridBotClassicLine newLine = new GridBotClassicLine();
                     newLine.SetFromStr(reader.ReadLine());
                     Lines.Add(newLine);
                 }
@@ -299,6 +332,14 @@ public class GridBotClassic : BotPanel
     public StrategyParameterString NonTradePeriod5OnOff;
     public StrategyParameterTimeOfDay NonTradePeriod5Start;
     public StrategyParameterTimeOfDay NonTradePeriod5End;
+
+    public StrategyParameterBool TradeInMonday;
+    public StrategyParameterBool TradeInTuesday;
+    public StrategyParameterBool TradeInWednesday;
+    public StrategyParameterBool TradeInThursday;
+    public StrategyParameterBool TradeInFriday;
+    public StrategyParameterBool TradeInSaturday;
+    public StrategyParameterBool TradeInSunday;
 
     private bool IsBlockNonTradePeriods(DateTime curTime)
     {
@@ -392,12 +433,155 @@ public class GridBotClassic : BotPanel
             }
         }
 
+        if(TradeInMonday.ValueBool == false
+            && curTime.DayOfWeek == DayOfWeek.Monday)
+        {
+            return true;
+        }
+
+        if (TradeInTuesday.ValueBool == false
+            && curTime.DayOfWeek == DayOfWeek.Tuesday)
+        {
+            return true;
+        }
+
+        if (TradeInWednesday.ValueBool == false
+            && curTime.DayOfWeek == DayOfWeek.Wednesday)
+        {
+            return true;
+        }
+
+        if (TradeInThursday.ValueBool == false
+            && curTime.DayOfWeek == DayOfWeek.Thursday)
+        {
+            return true;
+        }
+
+        if (TradeInFriday.ValueBool == false
+            && curTime.DayOfWeek == DayOfWeek.Friday)
+        {
+            return true;
+        }
+
+        if (TradeInSaturday.ValueBool == false
+            && curTime.DayOfWeek == DayOfWeek.Saturday)
+        {
+            return true;
+        }
+
+        if (TradeInSunday.ValueBool == false
+            && curTime.DayOfWeek == DayOfWeek.Sunday)
+        {
+            return true;
+        }
+
         return false;
     }
 
     #endregion
 
-    #region Data Grid Prime
+    #region Stop Grid by Event
+
+    public StrategyParameterBool StopGridByPositionsCountIsOn;
+
+    public StrategyParameterInt StopGridByPositionsCountValue;
+
+    public StrategyParameterBool StopGridByProfitIsOn;
+
+    public StrategyParameterDecimal StopGridByProfitValuePercent;
+
+    public StrategyParameterBool StopGridByStopIsOn;
+
+    public StrategyParameterDecimal StopGridByStopValuePercent;
+
+    public void TryStopGridByEvent()
+    {
+        if(Regime.ValueString != "On")
+        {
+            return;
+        }
+
+        if(StopGridByPositionsCountIsOn.ValueBool == true)
+        {
+            if (_lastGridOpenPositions > StopGridByPositionsCountValue.ValueInt)
+            { // Останавливаем сетку по кол-ву уже открытых позиций с последнего создания сетки
+                Regime.ValueString = "Only Close";
+
+                SendNewLogMessage(
+                    "Grid stopped by open positions count. Open positions: " + _lastGridOpenPositions, 
+                    OsEngine.Logging.LogMessageType.System);
+
+                return;
+            }
+        }
+
+        if(StopGridByProfitIsOn.ValueBool == true 
+            || StopGridByStopIsOn.ValueBool == true)
+        {
+            decimal lastPrice = _tab.PriceBestAsk;
+
+            if(lastPrice == 0)
+            {
+                return;
+            }
+
+            if(StopGridByProfitIsOn.ValueBool == true)
+            {
+                decimal profitMove = 0;
+
+                if (GridSide == Side.Buy)
+                {
+                    profitMove = (lastPrice - FirstPrice) / (FirstPrice / 100); 
+                }
+                else if (GridSide == Side.Sell)
+                {
+                    profitMove = (FirstPrice - lastPrice) / (FirstPrice / 100);
+                }
+
+                if (profitMove > StopGridByProfitValuePercent.ValueDecimal)
+                {
+                    // Останавливаем сетку по движению вверх от первой цены сетки
+                    Regime.ValueString = "Only Close";
+
+                    SendNewLogMessage(
+                        "Grid stopped by move in Profit. Open positions: " + _lastGridOpenPositions,
+                        OsEngine.Logging.LogMessageType.System);
+
+                    return;
+                }
+            }
+
+            if (StopGridByStopIsOn.ValueBool == true)
+            {
+                decimal lossMove = 0;
+
+                if (GridSide == Side.Buy)
+                {
+                    lossMove = (FirstPrice - lastPrice) / (FirstPrice / 100);
+                }
+                else if (GridSide == Side.Sell)
+                {
+                    lossMove = (lastPrice - FirstPrice) / (FirstPrice / 100);
+                }
+
+                if (lossMove > StopGridByProfitValuePercent.ValueDecimal)
+                {
+                    // Останавливаем сетку по движению вверх от первой цены сетки
+                    Regime.ValueString = "Only Close";
+
+                    SendNewLogMessage(
+                        "Grid stopped by move in Loss. Open positions: " + _lastGridOpenPositions,
+                        OsEngine.Logging.LogMessageType.System);
+
+                    return;
+                }
+            }
+        }
+    }
+
+    #endregion
+
+    #region Data Grid Creation
 
     private DataGridView _gridDataGrid;
 
@@ -482,7 +666,7 @@ public class GridBotClassic : BotPanel
 
             DataGridViewColumn newColumn8 = new DataGridViewColumn();
             newColumn8.CellTemplate = cellParam0;
-            newColumn8.HeaderText = "Volume in order";
+            newColumn8.HeaderText = "Volume";
             _gridDataGrid.Columns.Add(newColumn8);
             newColumn8.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -551,24 +735,25 @@ public class GridBotClassic : BotPanel
         row.Cells.Add(lineCountTextBox);
 
         DataGridViewComboBoxCell stepTypeTextBox = new DataGridViewComboBoxCell();
-        stepTypeTextBox.Items.Add(Type_Profit.Absolute.ToString());
-        stepTypeTextBox.Items.Add(Type_Profit.Percent.ToString());
+        stepTypeTextBox.Items.Add(Type_ProfitGrid.Absolute.ToString());
+        stepTypeTextBox.Items.Add(Type_ProfitGrid.Percent.ToString());
         row.Cells.Add(stepTypeTextBox);
 
         DataGridViewTextBoxCell lineStepTextBox = new DataGridViewTextBoxCell();
         row.Cells.Add(lineStepTextBox);
 
         DataGridViewComboBoxCell profitTypeTextBox = new DataGridViewComboBoxCell();
-        profitTypeTextBox.Items.Add(Type_Profit.Absolute.ToString());
-        profitTypeTextBox.Items.Add(Type_Profit.Percent.ToString());
+        profitTypeTextBox.Items.Add(Type_ProfitGrid.Absolute.ToString());
+        profitTypeTextBox.Items.Add(Type_ProfitGrid.Percent.ToString());
         row.Cells.Add(profitTypeTextBox);
 
         DataGridViewTextBoxCell profitPercentTextBox = new DataGridViewTextBoxCell();
         row.Cells.Add(profitPercentTextBox);
 
         DataGridViewComboBoxCell volumeTypeTextBox = new DataGridViewComboBoxCell();
-        volumeTypeTextBox.Items.Add(Type_Volume.Currency.ToString());
-        volumeTypeTextBox.Items.Add(Type_Volume.Contracts.ToString());
+        volumeTypeTextBox.Items.Add(Type_VolumeGrid.Currency.ToString());
+        volumeTypeTextBox.Items.Add(Type_VolumeGrid.Contracts.ToString());
+        volumeTypeTextBox.Items.Add(Type_VolumeGrid.DepoPercent.ToString());
         row.Cells.Add(volumeTypeTextBox);
 
         DataGridViewTextBoxCell startVolumeTextBox = new DataGridViewTextBoxCell();
@@ -614,8 +799,9 @@ public class GridBotClassic : BotPanel
         row.Cells[row.Cells.Count - 1].Value = "Profit multiplicator";
 
         row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].Value = "Deposit asset";
         row.Cells.Add(new DataGridViewTextBoxCell());
-        row.Cells[row.Cells.Count - 1].Value = "Martingale multiplicator";
+        row.Cells[row.Cells.Count - 1].Value = "Volume multiplicator";
 
         row.ReadOnly = true;
 
@@ -643,6 +829,9 @@ public class GridBotClassic : BotPanel
         row.Cells[row.Cells.Count - 1].Value = ProfitMultiplicator;
 
         row.Cells.Add(new DataGridViewTextBoxCell());
+        row.Cells[row.Cells.Count - 1].ReadOnly = false;
+        row.Cells[row.Cells.Count - 1].Value = TradeAssetInPortfolio;
+
         row.Cells.Add(new DataGridViewTextBoxCell());
         row.Cells[row.Cells.Count - 1].ReadOnly = false;
         row.Cells[row.Cells.Count - 1].Value = MartingaleMultiplicator;
@@ -837,8 +1026,8 @@ public class GridBotClassic : BotPanel
                     }
                 }
 
-                DeleteTable();
-                CreateNewTable();
+                DeleteGrid();
+                CreateNewGrid();
                 UpdateAllTable();
             }
             else if (clickCell.ColumnIndex == 2 && clickCell.RowIndex == 5)
@@ -851,7 +1040,7 @@ public class GridBotClassic : BotPanel
                     return;
                 }
 
-                DeleteTable();
+                DeleteGrid();
                 UpdateAllTable();
             }
             else if (clickCell.ColumnIndex == 4 && clickCell.RowIndex == 5)
@@ -948,7 +1137,7 @@ public class GridBotClassic : BotPanel
 
             ProfitStep = GetDecimal(ProfitStep, _gridDataGrid.Rows[0].Cells[7]);
 
-            if (TypeProfit == Type_Profit.Absolute
+            if (TypeProfit == Type_ProfitGrid.Absolute
                 && _tab.Security != null
                 && ProfitStep % _tab.Security.PriceStep != 0)
             {
@@ -956,7 +1145,7 @@ public class GridBotClassic : BotPanel
                 _gridDataGrid.Rows[0].Cells[7].Value = ProfitStep.ToString();
             }
 
-            if (TypeProfit == Type_Profit.Absolute
+            if (TypeProfit == Type_ProfitGrid.Absolute
                 && _tab.Security != null
                && ProfitStep < _tab.Security.PriceStep)
             {
@@ -969,6 +1158,8 @@ public class GridBotClassic : BotPanel
             Enum.TryParse(_gridDataGrid.Rows[0].Cells[8].Value.ToString(), out TypeVolume);
 
             StartVolume = GetDecimal(StartVolume, _gridDataGrid.Rows[0].Cells[9]);
+
+            TradeAssetInPortfolio = _gridDataGrid.Rows[3].Cells[8].Value.ToString();
 
             MartingaleMultiplicator = GetDecimal(MartingaleMultiplicator, _gridDataGrid.Rows[3].Cells[9]);
 
@@ -1058,9 +1249,9 @@ public class GridBotClassic : BotPanel
         return value;
     }
 
-    public void DeleteTable()
+    public void DeleteGrid()
     {
-        Lines = new List<GridBotLine>();
+        Lines = new List<GridBotClassicLine>();
 
         List<Position> positions = _tab.PositionsOpenAll;
 
@@ -1077,12 +1268,20 @@ public class GridBotClassic : BotPanel
         SaveLines();
     }
 
-    public void CreateNewTable()
+    public void CreateNewGrid()
     {
-        if (FirstPrice == 0)
+        if (FirstPrice <= 0)
         {
+            SendNewLogMessage("No first price to Grid. ",OsEngine.Logging.LogMessageType.Error);
             return;
         }
+        if (StartVolume <= 0)
+        {
+            SendNewLogMessage("No first volume to Grid. ", OsEngine.Logging.LogMessageType.Error);
+            return;
+        }
+
+        _lastGridOpenPositions = 0;
 
         Lines.Clear();
 
@@ -1094,7 +1293,7 @@ public class GridBotClassic : BotPanel
 
         decimal profitStep = ProfitStep;
 
-        if(TypeStep == Type_Profit.Percent)
+        if(TypeStep == Type_ProfitGrid.Percent)
         {
             curStep = priceCurrent * (curStep/100);
 
@@ -1121,7 +1320,7 @@ public class GridBotClassic : BotPanel
                 break;
             }
 
-            GridBotLine newLine = new GridBotLine();
+            GridBotClassicLine newLine = new GridBotClassicLine();
             newLine.PriceEnter = priceCurrent;
 
             if (_tab.Security != null)
@@ -1134,20 +1333,25 @@ public class GridBotClassic : BotPanel
             newLine.Volume = volumeCurrent;
 
             if (_tab.Security != null
-               && _tab.Security.DecimalsVolume >= 0)
+               && _tab.Security.DecimalsVolume >= 0
+               && TypeVolume == Type_VolumeGrid.Contracts)
             {
                 newLine.Volume = Math.Round(volumeCurrent,_tab.Security.DecimalsVolume);
+            }
+            else
+            {
+                newLine.Volume = Math.Round(volumeCurrent, 4);
             }
 
             Lines.Add(newLine);
 
             if (GridSide == Side.Buy)
             {
-                if (TypeProfit == Type_Profit.Percent)
+                if (TypeProfit == Type_ProfitGrid.Percent)
                 {
                     newLine.PriceExit = newLine.PriceEnter + (newLine.PriceEnter * profitStep / 100);
                 }
-                else if (TypeProfit == Type_Profit.Absolute)
+                else if (TypeProfit == Type_ProfitGrid.Absolute)
                 {
                     newLine.PriceExit = newLine.PriceEnter + profitStep;
                 }
@@ -1162,11 +1366,11 @@ public class GridBotClassic : BotPanel
             }
             else if (GridSide == Side.Sell)
             {
-                if (TypeProfit == Type_Profit.Percent)
+                if (TypeProfit == Type_ProfitGrid.Percent)
                 {
                     newLine.PriceExit = newLine.PriceEnter - (newLine.PriceEnter * profitStep / 100);
                 }
-                else if (TypeProfit == Type_Profit.Absolute)
+                else if (TypeProfit == Type_ProfitGrid.Absolute)
                 {
                     newLine.PriceExit = newLine.PriceEnter - profitStep;
                 }
@@ -1203,7 +1407,7 @@ public class GridBotClassic : BotPanel
 
     public void CreateNewLine()
     {
-        GridBotLine newLine = new GridBotLine();
+        GridBotClassicLine newLine = new GridBotClassicLine();
         newLine.PriceEnter = FirstPrice;
         newLine.Volume = StartVolume;
         newLine.Side = GridSide;
@@ -1277,6 +1481,8 @@ public class GridBotClassic : BotPanel
 
     #region Trade logic
 
+    private int _lastGridOpenPositions = 0;
+
     private void WorkerThreadArea()
     {
         while (true)
@@ -1311,8 +1517,19 @@ public class GridBotClassic : BotPanel
                 {
                     CloseLogic();
                 }
+                else if (Regime.ValueString == "Only Close")
+                {
+                    return;
+                }
 
-                TradeLogic();
+                if (Regime.ValueString == "Only Close")
+                {
+                    TryCancelOrdersToOpenPos();
+                }
+                else
+                {
+                    TradeLogic();
+                }
             }
             catch (Exception e)
             {
@@ -1347,8 +1564,10 @@ public class GridBotClassic : BotPanel
         }
     }
 
-    private void _tab_PositionOpeningSuccesEvent(Position obj)
+    private void _tab_PositionOpeningSuccesEvent(Position position)
     {
+        _lastGridOpenPositions++;
+
         if (RegimeLogicEntry.ValueString != "On new trade")
         {
             return;
@@ -1362,7 +1581,7 @@ public class GridBotClassic : BotPanel
         CloseLogic();
     }
 
-    private void _tab_PositionClosingSuccessEvent(Position obj)
+    private void _tab_PositionClosingSuccessEvent(Position position)
     {
         JournalAutoClear();
 
@@ -1379,7 +1598,7 @@ public class GridBotClassic : BotPanel
         TradeLogic();
     }
 
-    private void _tab_CandleFinishedEvent(List<Candle> obj)
+    private void _tab_CandleFinishedEvent(List<Candle> candles)
     {
         if (RegimeLogicEntry.ValueString != "On new trade")
         {
@@ -1419,8 +1638,19 @@ public class GridBotClassic : BotPanel
         {
             CloseLogic();
         }
+        else if(Regime.ValueString == "Only Close")
+        {
+            return;
+        }
 
-        TradeLogic();
+        if (Regime.ValueString == "Only Close")
+        {
+            TryCancelOrdersToOpenPos();
+        }
+        else
+        {
+            TradeLogic();
+        }
     }
 
     private decimal _lastTradePrice = 0;
@@ -1443,33 +1673,16 @@ public class GridBotClassic : BotPanel
             return;
         }
 
-        // 1 отзыв ордеров на случай отключения сетки
+        TryStopGridByEvent();
+
+        if (Regime.ValueString == "Only Close")
+        {
+            return;
+        }
 
         List<Position> positions = _tab.PositionsOpenAll;
 
-        if (Regime.ValueString == "Off"
-            || Regime.ValueString == "Выключен")
-        {
-            for (int i = positions.Count - 1; i >= 0; i--)
-            {
-                if (positions[i].State == PositionStateType.Opening
-                    && positions[i].Comment != "canceled")
-                {
-                    if (string.IsNullOrEmpty(positions[i].OpenOrders[0].NumberMarket) == false)
-                    {
-                        positions[i].Comment = "canceled";
-                        _tab.CloseAllOrderToPosition(positions[i]);
-                    }
-                }
-            }
-            return;
-        }
-        if (_tab.IsConnected == false)
-        {
-            return;
-        }
-
-        // 2 отзыв ордеров на случай отключения отдельных линий
+        // 1 отзыв ордеров на случай отключения отдельных линий
 
         for (int i = 0; i < Lines.Count; i++)
         {
@@ -1497,7 +1710,7 @@ public class GridBotClassic : BotPanel
             }
         }
 
-        // 3 логика открытия позиции
+        // 2 логика открытия позиции
 
         for (int i = 0; i < Lines.Count; i++)
         {
@@ -1604,7 +1817,7 @@ public class GridBotClassic : BotPanel
             }
         }
 
-        // 4 Проверяем лишние ордера, если пользователь переставил сетку
+        // 3 Проверяем лишние ордера, если пользователь переставил сетку
 
         for (int i = 0; i < positions.Count; i++)
         {
@@ -1654,7 +1867,7 @@ public class GridBotClassic : BotPanel
             _lastCheckOldOrders = DateTime.Now;
         }
 
-        // 5 проверяем максимальное кол-во ордеров в рынке. Отзываем дальние
+        // 4 проверяем максимальное кол-во ордеров в рынке. Отзываем дальние
 
         if(positions.Count != 0)
         {
@@ -1689,7 +1902,7 @@ public class GridBotClassic : BotPanel
             }
         }
 
-        // 6 проверяем целостность сетки сверху вниз при Buy
+        // 5 проверяем целостность сетки сверху вниз при Buy
 
         if (positions.Count != 0 &&
             Lines[0].Side == Side.Buy)
@@ -1745,7 +1958,7 @@ public class GridBotClassic : BotPanel
 
                     // C расстояние между ордерами больше. Ищем линии между
 
-                    List<GridBotLine> linesBetwen = Lines.FindAll(l => l.PriceEnter < upGridPrice && l.PriceEnter > curOrderPrice);
+                    List<GridBotClassicLine> linesBetwen = Lines.FindAll(l => l.PriceEnter < upGridPrice && l.PriceEnter > curOrderPrice);
 
                     // D если есть активные линии между ордерами. Ставим флаг об удалении всего что ниже
                     for (int j = 0; linesBetwen != null && j < linesBetwen.Count; j++)
@@ -1791,7 +2004,7 @@ public class GridBotClassic : BotPanel
             }
         }
 
-        // 7 проверяем целостность сетки снизу вверх при Sell
+        // 6 проверяем целостность сетки снизу вверх при Sell
 
         if (positions.Count != 0 &&
             Lines[0].Side == Side.Sell)
@@ -1847,7 +2060,7 @@ public class GridBotClassic : BotPanel
 
                     // C расстояние между ордерами больше. Ищем линии между
 
-                    List<GridBotLine> linesBetwen = Lines.FindAll(l => l.PriceEnter > lowGridPrice && l.PriceEnter < curOrderPrice);
+                    List<GridBotClassicLine> linesBetwen = Lines.FindAll(l => l.PriceEnter > lowGridPrice && l.PriceEnter < curOrderPrice);
 
                     // D если есть активные линии между ордерами. Ставим флаг об удалении всего что ниже
                     for (int j = 0; linesBetwen != null && j < linesBetwen.Count; j++)
@@ -1997,23 +2210,77 @@ public class GridBotClassic : BotPanel
         }
     }
 
-    private decimal GetVolume(GridBotLine paramFromLine)
+    private decimal GetVolume(GridBotClassicLine paramFromLine)
     {
         decimal volume = 0;
         decimal volumeFromLine = paramFromLine.Volume;
         decimal priceEnterForLine = paramFromLine.PriceEnter;
 
-        if (TypeVolume == Type_Volume.Currency) // "Валюта контракта"
+        if (TypeVolume == Type_VolumeGrid.Currency) // "Валюта контракта"
         {
             decimal contractPrice = priceEnterForLine;
             volume = Math.Round(volumeFromLine / contractPrice, _tab.Security.DecimalsVolume);
             return volume;
         }
-        else// "Кол-во контрактов
+        else if(TypeVolume == Type_VolumeGrid.Contracts) // кол-во контрактов
         {
             return paramFromLine.Volume;
         }
+        else // if (TypeVolume == Type_Volume.DepoPercent) // процент депозита
+        {
+            Portfolio myPortfolio = _tab.Portfolio;
 
+            if (myPortfolio == null)
+            {
+                return 0;
+            }
+
+            decimal portfolioPrimeAsset = 0;
+
+            if (TradeAssetInPortfolio == "Prime")
+            {
+                portfolioPrimeAsset = myPortfolio.ValueCurrent;
+            }
+            else
+            {
+                List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                if (positionOnBoard == null)
+                {
+                    return 0;
+                }
+
+                for (int i = 0; i < positionOnBoard.Count; i++)
+                {
+                    if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio)
+                    {
+                        portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                        break;
+                    }
+                }
+            }
+
+            if (portfolioPrimeAsset == 0 
+                || portfolioPrimeAsset == 1)
+            {
+                SendNewLogMessage("Can`t found portfolio in Deposit Percent volume mode " + TradeAssetInPortfolio, OsEngine.Logging.LogMessageType.Error);
+                return 0;
+            }
+            decimal moneyOnPosition = portfolioPrimeAsset * (volumeFromLine / 100);
+
+            decimal qty = moneyOnPosition / _tab.PriceBestAsk / _tab.Security.Lot;
+
+            if (_tab.StartProgram == StartProgram.IsOsTrader)
+            {
+                qty = Math.Round(qty, _tab.Security.DecimalsVolume);
+            }
+            else
+            {
+                qty = Math.Round(qty, 7);
+            }
+
+            return qty;
+        }
     }
 
     private void JournalAutoClear()
@@ -2060,10 +2327,32 @@ public class GridBotClassic : BotPanel
         }
     }
 
+    private void TryCancelOrdersToOpenPos()
+    {
+        if (_tab.IsReadyToTrade == false ||
+         _tab.IsConnected == false)
+        {
+            return;
+        }
+
+        List<Position> positions = _tab.PositionsOpenAll;
+
+        for (int i = positions.Count - 1; i >= 0; i--)
+        {
+            if (positions[i].State == PositionStateType.Opening
+                && positions[i].Comment != "canceled"
+                && string.IsNullOrEmpty(positions[i].OpenOrders[0].NumberMarket) == false)
+            {
+                positions[i].Comment = "canceled";
+                _tab.CloseAllOrderToPosition(positions[i]);
+            }
+        }
+    }
+
     #endregion
 }
 
-public class GridBotLine
+public class GridBotClassicLine
 {
     public bool IsOn;
 
@@ -2102,13 +2391,14 @@ public class GridBotLine
     }
 }
 
-public enum Type_Volume
+public enum Type_VolumeGrid
 {
     Contracts,
     Currency,
+    DepoPercent
 }
 
-public enum Type_Profit
+public enum Type_ProfitGrid
 {
     Absolute,
     Percent,

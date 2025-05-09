@@ -1182,14 +1182,15 @@ namespace OsEngine.Charts.CandleChart
 
                 indicator.Delete();
 
-                if (_indicators.Count == 1)
+                for (int i = 0; i < _indicators.Count; i++)
                 {
-                    _indicators = null;
+                    if(_indicators[i].Name == indicator.Name)
+                    {
+                        _indicators.RemoveAt(i);
+                        break;
+                    }
                 }
-                else
-                {
-                    _indicators.Remove(indicator);
-                }
+
                 Save();
                 ReloadContext();
             }
