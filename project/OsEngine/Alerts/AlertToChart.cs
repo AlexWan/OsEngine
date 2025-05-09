@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
-using System.Threading;
 using System.Windows.Forms.Integration;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -522,7 +521,7 @@ namespace OsEngine.Alerts
         /// Horizontal line
         /// Горизонтальная линия
         /// </summary>
-        HorisontalLine,
+        HorizontalLine,
     }
 
     /// <summary>
@@ -561,25 +560,22 @@ namespace OsEngine.Alerts
         /// </summary>
         public decimal LastPoint;
 
+        private readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
+
         /// <summary>
         /// take string to save
         /// взять строку для сохранение
         /// </summary>
         public string GetStringToSave()
         {
-            if (!Thread.CurrentThread.CurrentCulture.Equals(new CultureInfo("ru-RU")))
-            {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("ru-RU");
-            }
-
             string result = "";
 
-            result += TimeFirstPoint + "@";
-            result += ValueFirstPoint + "@";
+            result += TimeFirstPoint.ToString(CultureInfo) + "@";
+            result += ValueFirstPoint.ToString(CultureInfo) + "@";
 
-            result += TimeSecondPoint + "@";
-            result += ValueSecondPoint + "@";
-            result += LastPoint + "@";
+            result += TimeSecondPoint.ToString(CultureInfo) + "@";
+            result += ValueSecondPoint.ToString(CultureInfo) + "@";
+            result += LastPoint.ToString(CultureInfo) + "@";
 
             return result;
         }
@@ -592,12 +588,12 @@ namespace OsEngine.Alerts
         {
             string[] saveStrings = saveString.Split('@');
 
-            TimeFirstPoint = Convert.ToDateTime(saveStrings[0]);
-            ValueFirstPoint = Convert.ToDecimal(saveStrings[1]);
+            TimeFirstPoint = Convert.ToDateTime(saveStrings[0], CultureInfo);
+            ValueFirstPoint = saveStrings[1].ToDecimal();
 
-            TimeSecondPoint = Convert.ToDateTime(saveStrings[2]);
-            ValueSecondPoint = Convert.ToDecimal(saveStrings[3]);
-            LastPoint = Convert.ToDecimal(saveStrings[4]);
+            TimeSecondPoint = Convert.ToDateTime(saveStrings[2], CultureInfo);
+            ValueSecondPoint = saveStrings[3].ToDecimal();
+            LastPoint = saveStrings[4].ToDecimal();
         }
 
     }

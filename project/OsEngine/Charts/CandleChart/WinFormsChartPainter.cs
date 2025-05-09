@@ -5713,6 +5713,10 @@ namespace OsEngine.Charts.CandleChart
 
                             valueDecimalsCount = value.ToString().DecimalsCount();
 
+                            if(valueToPaint.Length > 30)
+                            {
+                                break;
+                            }
                         }
 
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,

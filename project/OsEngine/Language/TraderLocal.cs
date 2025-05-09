@@ -1646,5 +1646,29 @@ namespace OsEngine.Language
         public string Label436 => OsLocalization.ConvertToLocString(
          "Eng:You need to give the robot a unique name_" +
          "Ru:Нужно дать роботу уникальное имя_");
+
+        public string Label437 => OsLocalization.ConvertToLocString(
+         "Eng:Grids_" +
+         "Ru:Сетки_");
+
+        public string Label438 => OsLocalization.ConvertToLocString(
+         "Eng:No active source. Can`t create Alert_" +
+         "Ru:Нет активного источника. Невозможно создать оповещение_");
+
+        public string Label439 => OsLocalization.ConvertToLocString(
+         "Eng:Active source is not BotTabSimple. Can`t create Alert_" +
+         "Ru:Активный источник не является BotTabSimple. Невозможно создать оповещение_");
+
+        public string Label440 => OsLocalization.ConvertToLocString(
+         "Eng:Add new visual alert_" +
+         "Ru:Добавить визуальный алерт_");
+
+        public string Label441 => OsLocalization.ConvertToLocString(
+         "Eng:Add new price alert_" +
+         "Ru:Добавить алерт по цене_");
+
+        public string Label442 => OsLocalization.ConvertToLocString(
+         "Eng:First, you need to connect the source to the security_" +
+         "Ru:Сначала нужно подключить источник к бумаге_");
     }
 }

@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Media;
 using OsEngine.Entity;
 using OsEngine.Language;
@@ -48,7 +47,7 @@ namespace OsEngine.Alerts
             ComboBoxType.Items.Add(ChartAlertType.Line);
             ComboBoxType.Items.Add(ChartAlertType.FibonacciChannel);
             ComboBoxType.Items.Add(ChartAlertType.FibonacciSpeedLine);
-            ComboBoxType.Items.Add(ChartAlertType.HorisontalLine);
+            ComboBoxType.Items.Add(ChartAlertType.HorizontalLine);
 
             ComboBoxType.SelectedItem = ChartAlertType.Line;
 
@@ -611,7 +610,7 @@ namespace OsEngine.Alerts
             }
             // create new alert
             // создаём новый алерт
-            AlertToChart alert = new AlertToChart(_keeper.HostAllert);
+            AlertToChart alert = new AlertToChart(_keeper.HostAlert);
             alert.ColorLine = System.Drawing.Color.DodgerBlue;
             alert.ColorLabel = System.Drawing.Color.DodgerBlue;
             alert.Name = null;
@@ -636,7 +635,7 @@ namespace OsEngine.Alerts
         private ChartAlertLine[] GetAlertLines(List<Candle> candles)
         {
             if (ComboBoxType.Text == ChartAlertType.Line.ToString() ||
-                ComboBoxType.Text == ChartAlertType.HorisontalLine.ToString())
+                ComboBoxType.Text == ChartAlertType.HorizontalLine.ToString())
             {
                 decimal valueOne = _candleOneValue;
                 decimal valueTwo = _candleTwoValue;
@@ -1104,7 +1103,7 @@ namespace OsEngine.Alerts
                 }
                 Slider.Value = 100;
             }
-            else if (type == ChartAlertType.HorisontalLine)
+            else if (type == ChartAlertType.HorizontalLine)
             {
                 _waitHorisont = true;
                 _waitOne = false;

@@ -11,6 +11,10 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Layout;
+using OsEngine.Alerts;
+using OsEngine.Logging;
+using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -25,7 +29,8 @@ namespace OsEngine.OsTrader.Gui
             ServerMaster.SetHostTable(HostPositionOnBoard, HostOrdersOnBoard,null);
 
             _strategyKeeper = new OsTraderMaster(GridChart, ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition,
-                                         HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,TabControlBotTab,TextBoxPrice,GridChartControlPanel, StartProgram.IsOsTrader);
+                                         HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName,
+                                         TabControlBotTab,TextBoxPrice,GridChartControlPanel, StartProgram.IsOsTrader, TabControlControl);
 
             _strategyKeeper.CreateGlobalPositionController(HostAllPosition);
 
@@ -39,7 +44,7 @@ namespace OsEngine.OsTrader.Gui
 
             TabControlBotsName.SizeChanged += TabControlBotsName_SizeChanged;
             Local();
-            TabControlMd.SelectedIndex = 2;
+            TabControlControl.SelectedIndex = 3;
 
             this.Activate();
             this.Focus();
@@ -103,6 +108,10 @@ namespace OsEngine.OsTrader.Gui
             ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
             ButtonRiskManager.Content = OsLocalization.Trader.Label46;
             ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
+            ButtonAddVisualAlert.Content = OsLocalization.Trader.Label440;
+            ButtonAddPriceAlert.Content = OsLocalization.Trader.Label441;
+            TabItemGrids.Header = OsLocalization.Trader.Label437;
+
         }
 
         #endregion
@@ -430,6 +439,90 @@ namespace OsEngine.OsTrader.Gui
             catch (Exception ex)
             {
                 _strategyKeeper.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Alert
+
+        private void ButtonAddVisualAlert_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                BotPanel _panel = _strategyKeeper._activePanel;
+
+                if (_panel == null)
+                {
+                    return;
+                }
+
+                if (_panel.ActiveTab == null)
+                {
+                    _panel.SendNewLogMessage(OsLocalization.Trader.Label438, LogMessageType.Error);
+                    return;
+                }
+
+                if (_panel.ActiveTab is BotTabSimple)
+                {
+                    BotTabSimple tab = (BotTabSimple)_panel.ActiveTab;
+
+                    if (tab.IsConnected == false)
+                    {
+                        _panel.SendNewLogMessage(OsLocalization.Trader.Label442, LogMessageType.Error);
+                        return;
+                    }
+
+                    tab._alerts.ShowAlertNewDialog(AlertType.ChartAlert);
+                }
+                else
+                {
+                    _panel.SendNewLogMessage(OsLocalization.Trader.Label439, LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ButtonAddPriceAlert_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                BotPanel _panel = _strategyKeeper._activePanel;
+
+                if (_panel == null)
+                {
+                    return;
+                }
+
+                if (_panel.ActiveTab == null)
+                {
+                    _panel.SendNewLogMessage(OsLocalization.Trader.Label438, LogMessageType.Error);
+                    return;
+                }
+
+                if (_panel.ActiveTab is BotTabSimple)
+                {
+                    BotTabSimple tab = (BotTabSimple)_panel.ActiveTab;
+
+                    if (tab.IsConnected == false)
+                    {
+                        _panel.SendNewLogMessage(OsLocalization.Trader.Label442, LogMessageType.Error);
+                        return;
+                    }
+
+                    tab._alerts.ShowAlertNewDialog(AlertType.PriceAlert);
+                }
+                else
+                {
+                    _panel.SendNewLogMessage(OsLocalization.Trader.Label439, LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _strategyKeeper.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

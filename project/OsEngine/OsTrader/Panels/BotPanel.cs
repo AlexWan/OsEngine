@@ -267,9 +267,11 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// start drawing this robot
         /// </summary> 
-        public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost glass, WindowsFormsHost hostOpenDeals,
-            WindowsFormsHost hostCloseDeals, WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
-            TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, TextBox textBoxVolume)
+        public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost glass, 
+            WindowsFormsHost hostOpenDeals,WindowsFormsHost hostCloseDeals, 
+            WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
+            TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, 
+            TextBox textBoxVolume, TabControl tabControlControl)
         {
             if (_isPainting)
             {
@@ -287,6 +289,9 @@ namespace OsEngine.OsTrader.Panels
             _textBoxLimitPrice = textBoxLimitPrice;
             _gridChartControlPanel = gridChartControlPanel;
             _textBoxVolume = textBoxVolume;
+            _tabControlControl = tabControlControl;
+            _tabControlControl.SelectionChanged += _tabControlControl_SelectionChanged;
+
             try
             {
                 if (_tabBotTab == null)
@@ -297,9 +302,10 @@ namespace OsEngine.OsTrader.Panels
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
                     _tabBotTab.Dispatcher.Invoke(new Action<Grid, WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
-                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid, TextBox>
+                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid, TextBox, TabControl>
                     (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals,
-                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, gridChartControlPanel, textBoxVolume);
+                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, 
+                    gridChartControlPanel, textBoxVolume, tabControlControl);
                     return;
                 }
 
@@ -382,6 +388,12 @@ namespace OsEngine.OsTrader.Panels
                 _gridChartControlPanel = null;
                 _textBoxVolume = null;
 
+                if(_tabControlControl != null)
+                {
+                    _tabControlControl.SelectionChanged -= _tabControlControl_SelectionChanged;
+                    _tabControlControl = null;
+                }
+
                 _isPainting = false;
                 ReloadTab();
             }
@@ -401,6 +413,7 @@ namespace OsEngine.OsTrader.Panels
         private TextBox _textBoxLimitPrice;
         private TextBox _textBoxVolume;
         private Grid _gridChartControlPanel;
+        private TabControl _tabControlControl;
 
         /// <summary>
         /// bot name
@@ -590,6 +603,7 @@ namespace OsEngine.OsTrader.Panels
                 _hostAlerts = null;
                 _textBoxLimitPrice = null;
                 _gridChartControlPanel = null;
+                _tabControlControl = null;
 
                 if (DeleteEvent != null)
                 {
@@ -1651,6 +1665,26 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
+        private void _tabControlControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if(ActiveTab == null)
+                {
+                    return;
+                }
+
+                if (ActiveTab.TabType == BotTabType.Simple)
+                {
+                   ((BotTabSimple)ActiveTab).SelectedControlTab = _tabControlControl.SelectedIndex;
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         /// <summary>
         /// create tab
         /// </summary>
@@ -1865,30 +1899,48 @@ position => position.State != PositionStateType.OpeningFail
                 {
                     ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
                         _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel, _textBoxVolume);
+
+                    for(int i = 0;i < _tabControlControl.Items.Count;i++)
+                    {
+                        System.Windows.Controls.TabItem itemN = (System.Windows.Controls.TabItem)_tabControlControl.Items[i];
+                        itemN.IsEnabled = true;
+                    }
+                    _tabControlControl.SelectedIndex = ((BotTabSimple)ActiveTab).SelectedControlTab;
                 }
-                else if (ActiveTab.TabType == BotTabType.Index)
+                else
                 {
-                    ((BotTabIndex)ActiveTab).StartPaint(_gridChart, _hostChart, _rectangle);
-                }
-                else if (ActiveTab.TabType == BotTabType.Cluster)
-                {
-                    ((BotTabCluster)ActiveTab).StartPaint(_hostChart, _rectangle);
-                }
-                else if (ActiveTab.TabType == BotTabType.Screener)
-                {
-                    ((BotTabScreener)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
-                }
-                else if (ActiveTab.TabType == BotTabType.Pair)
-                {
-                    ((BotTabPair)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
-                }
-                else if (ActiveTab.TabType == BotTabType.Polygon)
-                {
-                    ((BotTabPolygon)ActiveTab).StartPaint(_hostChart);
-                }
-                else if (ActiveTab.TabType == BotTabType.News)
-                {
-                    ((BotTabNews)ActiveTab).StartPaint(_hostChart);
+                    System.Windows.Controls.TabItem item1 = (System.Windows.Controls.TabItem)_tabControlControl.Items[0];
+                    item1.IsEnabled = false;
+                    System.Windows.Controls.TabItem item2 = (System.Windows.Controls.TabItem)_tabControlControl.Items[1];
+                    item2.IsEnabled = false;
+                    System.Windows.Controls.TabItem item3 = (System.Windows.Controls.TabItem)_tabControlControl.Items[2];
+                    item3.IsEnabled = false;
+                    _tabControlControl.SelectedIndex = 3;
+
+                    if (ActiveTab.TabType == BotTabType.Index)
+                    {
+                        ((BotTabIndex)ActiveTab).StartPaint(_gridChart, _hostChart, _rectangle);
+                    }
+                    else if (ActiveTab.TabType == BotTabType.Cluster)
+                    {
+                        ((BotTabCluster)ActiveTab).StartPaint(_hostChart, _rectangle);
+                    }
+                    else if (ActiveTab.TabType == BotTabType.Screener)
+                    {
+                        ((BotTabScreener)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
+                    }
+                    else if (ActiveTab.TabType == BotTabType.Pair)
+                    {
+                        ((BotTabPair)ActiveTab).StartPaint(_hostChart, _hostOpenDeals, _hostCloseDeals);
+                    }
+                    else if (ActiveTab.TabType == BotTabType.Polygon)
+                    {
+                        ((BotTabPolygon)ActiveTab).StartPaint(_hostChart);
+                    }
+                    else if (ActiveTab.TabType == BotTabType.News)
+                    {
+                        ((BotTabNews)ActiveTab).StartPaint(_hostChart);
+                    }
                 }
             }
             catch (Exception error)

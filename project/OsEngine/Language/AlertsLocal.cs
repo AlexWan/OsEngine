@@ -28,8 +28,8 @@ namespace OsEngine.Language
             "Ru:Тип_");
 
         public string GridHeader2 => OsLocalization.ConvertToLocString(
-            "Eng:Type_"+
-            "Ru:Тип_");
+            "Eng:State_"+
+            "Ru:Статус_");
 
         public string Message1 => OsLocalization.ConvertToLocString(
             "Eng:One menu to create the alert is already open!_"+

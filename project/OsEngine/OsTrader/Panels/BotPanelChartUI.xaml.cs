@@ -172,6 +172,9 @@ namespace OsEngine.OsTrader.Panels
             ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
             ButtonRedactTab.Content = OsLocalization.Trader.Label44;
             ButtonMoreOpenPositionDetail.Content = OsLocalization.Trader.Label197;
+            ButtonAddVisualAlert.Content = OsLocalization.Trader.Label440;
+            ButtonAddPriceAlert.Content = OsLocalization.Trader.Label441;
+            TabItemGrids.Header = OsLocalization.Trader.Label437;
         }
 
         #endregion
@@ -310,7 +313,7 @@ namespace OsEngine.OsTrader.Panels
             {
                 _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
                 HostClosePosition, HostBotLog, RectChart,
-                HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, TextBoxVolumeFast);
+                HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, TextBoxVolumeFast, TabControlControl);
             }
             catch (Exception ex)
             {
@@ -620,6 +623,77 @@ namespace OsEngine.OsTrader.Panels
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        #endregion
+
+        #region Alert
+
+        private void ButtonAddVisualAlert_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel.ActiveTab == null)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label438, LogMessageType.Error);
+                    return;
+                }
+
+                if (_panel.ActiveTab is BotTabSimple)
+                {
+                    BotTabSimple tab = (BotTabSimple)_panel.ActiveTab;
+
+                    if(tab.IsConnected == false)
+                    {
+                        SendNewLogMessage(OsLocalization.Trader.Label442, LogMessageType.Error);
+                        return;
+                    }
+
+                    tab._alerts.ShowAlertNewDialog(AlertType.ChartAlert);
+                }
+                else
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label439, LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);  
+            }
+        }
+
+        private void ButtonAddPriceAlert_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_panel.ActiveTab == null)
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label438, LogMessageType.Error);
+                    return;
+                }
+
+                if (_panel.ActiveTab is BotTabSimple)
+                {
+                    BotTabSimple tab = (BotTabSimple)_panel.ActiveTab;
+
+                    if (tab.IsConnected == false)
+                    {
+                        SendNewLogMessage(OsLocalization.Trader.Label442, LogMessageType.Error);
+                        return;
+                    }
+
+                    tab._alerts.ShowAlertNewDialog(AlertType.PriceAlert);
+                }
+                else
+                {
+                    SendNewLogMessage(OsLocalization.Trader.Label439, LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
         }
 
         #endregion

@@ -8,7 +8,7 @@
             <RowDefinition Height="190"/>
         </Grid.RowDefinitions>
         <Grid x:Name="GreedTraderEngine" Margin="0,0,0,182" HorizontalAlignment="Right" Width="300" Grid.RowSpan="2">
-            <TabControl HorizontalAlignment="Left" Width="300" BorderThickness="0" Margin="0,0,0,0">
+            <TabControl Name="TabControlControl" HorizontalAlignment="Left" Width="300" BorderThickness="0" Margin="0,0,0,0">
                 <TabItem Name="TabItemMarketDepth" Header="Market depth" Width="90 ">
                     <Grid >
                         <Button Name="ButtonBuyFast" Content="   Buy &#xD;&#xA;at market" HorizontalAlignment="Left" Margin="10,0,0,82" VerticalAlignment="Bottom" Width="102" Click="buttonBuyFast_Click_1" Height="31" FontSize="11"  />
@@ -26,12 +26,20 @@
                         <TextBox Name="TextBoxPriceText" Height="13" BorderThickness="1,1,1,0" Style="{StaticResource TextBoxRectangular}" Margin="100,0,100,64" TextWrapping="Wrap" Text="Price" HorizontalContentAlignment="Center" IsReadOnly="True" VerticalAlignment="Bottom" FontSize="10"/>
                     </Grid>
                 </TabItem>
-                <TabItem Name="TabItemAlerts" Header="Alerts" Width="90">
+                <TabItem Name="TabItemAlerts" Header="Alerts" Width="50">
                     <Grid >
-                        <WindowsFormsHost  x:Name="HostAllert"  Foreground="Black"/>
+                        <WindowsFormsHost  x:Name="HostAllert"  Foreground="Black" Margin="0,59,0,0"/>
+                        <Button Name="ButtonAddVisualAlert" Content="Add new visual alert" Margin="0,5,0,0" VerticalAlignment="Top" Height="21" Click="ButtonAddVisualAlert_Click"/>
+                        <Button Name="ButtonAddPriceAlert" Content="Add new price alert" Margin="0,31,0,0" VerticalAlignment="Top" Height="21" Click="ButtonAddPriceAlert_Click"/>
                     </Grid>
                 </TabItem>
-                <TabItem Name="TabItemControl" Header="Control" Width="90" >
+                <TabItem Name="TabItemGrids" Header="Grid" Width="50">
+                    <Grid >
+                        <WindowsFormsHost  x:Name="HostGrids"  Foreground="Black" Margin="0,47,0,0"/>
+                        <Label Content="Tab in progress..." HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Width="270"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabItemControl" Header="Control" Width="80" >
                     <Grid>
                         <Label Name="LabelGeneralSettings" Content="General settings" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,6,0,0" FontSize="18"/>
                         <Button Name="ButtonStrategSettings" Content="Position support"  HorizontalAlignment="Left" Margin="66,187,0,0" VerticalAlignment="Top" Width="161" Click="ButtonStrategManualSettings_Click"/>
@@ -52,7 +60,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            
+
             <Rectangle Name="rectToMove" Margin="0,-11,0,0" Fill="#FCEE21" RadiusX="0" RadiusY="0" Height="10"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="290" />
 
             <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" >

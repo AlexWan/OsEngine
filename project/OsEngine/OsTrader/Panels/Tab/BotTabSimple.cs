@@ -245,6 +245,8 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         public bool IsCreatedByScreener { get; set; }
 
+        public int SelectedControlTab = 0;
+
         /// <summary>
         /// are events sent to the top from the tab?
         /// </summary>
