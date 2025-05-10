@@ -56,7 +56,6 @@ namespace OsEngine.OsTrader.Panels
                     _testerServer.TestingFastEvent += Serv_TestingFastEvent;
                     _testerServer.TestingEndEvent += _testerServer_TestingEndEvent;
                 }
-
             }
 
             LocationChanged += RobotUi_LocationChanged;
@@ -313,7 +312,8 @@ namespace OsEngine.OsTrader.Panels
             {
                 _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
                 HostClosePosition, HostBotLog, RectChart,
-                HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, TextBoxVolumeFast, TabControlControl);
+                HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, 
+                TextBoxVolumeFast, TabControlControl,HostGrids);
             }
             catch (Exception ex)
             {

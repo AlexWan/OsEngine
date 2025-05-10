@@ -31,7 +31,7 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper = new OsTraderMaster(GridChart,
                 ChartHostPanel, HostGlass, HostOpenPosition, HostClosePosition,
                 HostBotLog, HostBotLogPrime, RectChart, HostAllert, TabControlBotsName, TabControlBotTab, TextBoxPrice,
-                GridChartControlPanel,StartProgram.IsTester, TabControlControl);
+                GridChartControlPanel,StartProgram.IsTester, TabControlControl, HostGrids);
 
             _strategyKeeper.CreateGlobalPositionController(HostAllPosition);
 

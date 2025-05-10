@@ -1232,6 +1232,11 @@
     <Compile Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml.cs">
       <DependentUpon>BotTabScreenerUi.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OsTrader\Panels\Tab\Grids\TradeGrid.cs" />
+    <Compile Include="OsTrader\Panels\Tab\Grids\TradeGridsMaster.cs" />
+    <Compile Include="OsTrader\Panels\Tab\Grids\TradeGridUi.xaml.cs">
+      <DependentUpon>TradeGridUi.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OsTrader\Panels\Tab\Internal\PositionCloseUi2.xaml.cs">
       <DependentUpon>PositionCloseUi2.xaml</DependentUpon>
     </Compile>
@@ -1922,6 +1927,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="OsTrader\Panels\Tab\BotTabScreenerUi.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="OsTrader\Panels\Tab\Grids\TradeGridUi.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

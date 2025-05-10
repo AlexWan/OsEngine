@@ -271,7 +271,7 @@ namespace OsEngine.OsTrader.Panels
             WindowsFormsHost hostOpenDeals,WindowsFormsHost hostCloseDeals, 
             WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
             TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, 
-            TextBox textBoxVolume, TabControl tabControlControl)
+            TextBox textBoxVolume, TabControl tabControlControl, WindowsFormsHost hostGrids)
         {
             if (_isPainting)
             {
@@ -291,6 +291,7 @@ namespace OsEngine.OsTrader.Panels
             _textBoxVolume = textBoxVolume;
             _tabControlControl = tabControlControl;
             _tabControlControl.SelectionChanged += _tabControlControl_SelectionChanged;
+            _hostGrids = hostGrids;
 
             try
             {
@@ -302,10 +303,11 @@ namespace OsEngine.OsTrader.Panels
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
                     _tabBotTab.Dispatcher.Invoke(new Action<Grid, WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
-                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, Grid, TextBox, TabControl>
+                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, 
+                    Grid, TextBox, TabControl, WindowsFormsHost>
                     (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals,
                     boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, 
-                    gridChartControlPanel, textBoxVolume, tabControlControl);
+                    gridChartControlPanel, textBoxVolume, tabControlControl, hostGrids);
                     return;
                 }
 
@@ -387,8 +389,9 @@ namespace OsEngine.OsTrader.Panels
                 _textBoxLimitPrice = null;
                 _gridChartControlPanel = null;
                 _textBoxVolume = null;
+                _hostGrids = null;
 
-                if(_tabControlControl != null)
+                if (_tabControlControl != null)
                 {
                     _tabControlControl.SelectionChanged -= _tabControlControl_SelectionChanged;
                     _tabControlControl = null;
@@ -414,6 +417,7 @@ namespace OsEngine.OsTrader.Panels
         private TextBox _textBoxVolume;
         private Grid _gridChartControlPanel;
         private TabControl _tabControlControl;
+        private WindowsFormsHost _hostGrids;
 
         /// <summary>
         /// bot name
@@ -1897,8 +1901,9 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (ActiveTab.TabType == BotTabType.Simple)
                 {
-                    ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, _hostCloseDeals,
-                        _rectangle, _hostAlerts, _textBoxLimitPrice, _gridChartControlPanel, _textBoxVolume);
+                    ((BotTabSimple)ActiveTab).StartPaint(_gridChart, _hostChart, _hostGlass, _hostOpenDeals, 
+                        _hostCloseDeals, _rectangle, _hostAlerts, _textBoxLimitPrice, 
+                        _gridChartControlPanel, _textBoxVolume, _hostGrids);
 
                     for(int i = 0;i < _tabControlControl.Items.Count;i++)
                     {

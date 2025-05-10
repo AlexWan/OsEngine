@@ -29,7 +29,7 @@ namespace OsEngine.OsTrader.Gui
             _strategyKeeper = new OsTraderMaster(null,
                 null, null, null, null,
                 null, HostBotLogPrime, null, null, null, null, null,
-                null, StartProgram.IsOsTrader, null);
+                null, StartProgram.IsOsTrader, null, null);
 
             _strategyKeeper.CreateGlobalPositionController(HostActivePoses, HostHistoricalPoses);
             _strategyKeeper.CreateBuyAtStopPosViewer(HostStopLimitPoses);
