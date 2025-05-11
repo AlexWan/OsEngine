@@ -35,8 +35,7 @@
                 </TabItem>
                 <TabItem Name="TabItemGrids" Header="Grid" Width="50">
                     <Grid >
-                        <WindowsFormsHost  Name="HostGrids"  Foreground="Black" Margin="0,47,0,0"/>
-                        <Label Content="Tab in progress..." HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Width="270"/>
+                        <WindowsFormsHost  Name="HostGrids"  Foreground="Black" Margin="0,0,0,0"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemControl" Header="Control" Width="80" >

@@ -27,6 +27,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels.Tab.Internal;
+using OsEngine.OsTrader.Grids;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -59,6 +60,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.ConnectorStartedReconnectEvent += _connector_ConnectorStartedReconnectEvent;
                 _connector.SecuritySubscribeEvent += _connector_SecuritySubscribeEvent;
                 _connector.DialogClosed += _connector_DialogClosed;
+
+                _gridsMaster = new TradeGridsMaster(startProgram, name, this);
+                _gridsMaster.LogMessageEvent += SetNewLogMessage;
 
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
@@ -200,8 +204,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _chartMaster?.StartPaint(gridChart, hostChart, rectangleChart);
                 _marketDepthPainter?.StartPaint(hostGlass, textBoxLimitPrice, textBoxVolume);
                 _journal?.StartPaint(hostOpenDeals, hostCloseDeals);
-
                 _alerts?.StartPaint(hostAlerts);
+                _gridsMaster?.StartPaint(hostGrids);
 
                 _chartMaster?.StartPaintChartControlPanel(gridChartControlPanel);
             }
@@ -222,6 +226,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _marketDepthPainter?.StopPaint();
                 _journal?.StopPaint();
                 _alerts?.StopPaint();
+                _gridsMaster?.StopPaint();
             }
             catch (Exception error)
             {
@@ -328,6 +333,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _chartMaster.Clear();
                 }
 
+                if (_gridsMaster != null)
+                {
+                    _gridsMaster.Clear();
+                }
+
                 _lastTradeTime = DateTime.MinValue;
                 _lastTradeIndex = 0;
             }
@@ -408,6 +418,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _chartMaster.Delete();
                     _chartMaster.LogMessageEvent -= SetNewLogMessage;
                     _chartMaster = null;
+                }
+
+                if (_gridsMaster != null)
+                {
+                    _gridsMaster.Delete();
+                    _gridsMaster.LogMessageEvent -= SetNewLogMessage;
+                    _gridsMaster = null;
                 }
 
                 if (_marketDepthPainter != null)
@@ -660,6 +677,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Chart drawing master
         /// </summary>
         private ChartCandleMaster _chartMaster;
+
+        /// <summary>
+        /// Automatic trading grids
+        /// </summary>
+        private TradeGridsMaster _gridsMaster;
 
         /// <summary>
         /// Class drawing a marketDepth

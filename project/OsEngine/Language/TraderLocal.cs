@@ -1670,5 +1670,9 @@ namespace OsEngine.Language
         public string Label442 => OsLocalization.ConvertToLocString(
          "Eng:First, you need to connect the source to the security_" +
          "Ru:Сначала нужно подключить источник к бумаге_");
+
+        public string Label443 => OsLocalization.ConvertToLocString(
+          "Eng:The grid will be deleted. All data will be lost. Are you sure?_" +
+          "Ru:Сетка будет удалена. Все данные потеряны. Вы уверены?_");
     }
 }
