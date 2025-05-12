@@ -21,8 +21,6 @@ using System.Windows.Forms.DataVisualization.Charting;
 using OsEngine.Language;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
-using ContextMenu = System.Windows.Forms.ContextMenu;
-using MenuItem = System.Windows.Forms.MenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using System.Threading;
 using OsEngine.Layout;
@@ -2177,34 +2175,43 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                List<MenuItem> items = new List<MenuItem>();
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                items.Add(new MenuItem { Text = OsLocalization.Journal.PositionMenuItem8 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem8 });
                 items[0].Click += OpenDealMoreInfo_Click;
 
-                items.Add(new MenuItem { Text = OsLocalization.Journal.PositionMenuItem9 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem9 });
                 items[1].Click += OpenDealDelete_Click;
 
-                items.Add(new MenuItem { Text = OsLocalization.Journal.PositionMenuItem10 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem10 });
                 items[2].Click += OpenDealClearAll_Click;
 
                 if (_botsJournals.Count != 0)
                 {
-                    List<MenuItem> itemsBots = new List<MenuItem>();
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    List<ToolStripMenuItem> itemsBots = new List<ToolStripMenuItem>();
 
                     for (int i = 0; i < _botsJournals.Count; i++)
                     {
-                        itemsBots.Add(new MenuItem { Text = _botsJournals[i].BotName });
+                        itemsBots.Add(new ToolStripMenuItem { Text = _botsJournals[i].BotName });
                         itemsBots[i].Click += OpenDealCreatePosition_Click;
                     }
 
-                    items.Add(new MenuItem(OsLocalization.Journal.PositionMenuItem13, itemsBots.ToArray()));
+                    var item = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem13};
+                    item.DropDownItems.AddRange(itemsBots.ToArray());
+
+                    items.Add(item);
                 }
 
-                ContextMenu menu = new ContextMenu(items.ToArray());
+                ContextMenuStrip menu = new ContextMenuStrip();
+                menu.Items.AddRange(items.ToArray());
 
-                _openPositionGrid.ContextMenu = menu;
-                _openPositionGrid.ContextMenu.Show(_openPositionGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+                _openPositionGrid.ContextMenuStrip = menu;
+                _openPositionGrid.ContextMenuStrip.Show(_openPositionGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {
@@ -2218,8 +2225,6 @@ namespace OsEngine.Journal
 
             try
             {
-              
-
                 if (_openPositionGrid.CurrentCell == null)
                 {
                     return;
@@ -2308,7 +2313,8 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                int number = ((MenuItem)sender).Index;
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                int number = ((ToolStripMenuItem)sender).MergeIndex;
 
                 string botName = _botsJournals[number].BotName;
 
@@ -2635,24 +2641,25 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                MenuItem[] items = new MenuItem[4];
+                ToolStripMenuItem[] items = new ToolStripMenuItem[4];
 
-                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem8 };
+                items[0] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem8 };
                 items[0].Click += CloseDealMoreInfo_Click;
 
-                items[1] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem9 };
+                items[1] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem9 };
                 items[1].Click += CloseDealDelete_Click;
 
-                items[2] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem10 };
+                items[2] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem10 };
                 items[2].Click += CloseDealClearAll_Click;
 
-                items[3] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem11 };
+                items[3] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem11 };
                 items[3].Click += CloseDealSaveInFile_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                ContextMenuStrip menu = new ContextMenuStrip();
+                menu.Items.AddRange(items);
 
-                _closePositionGrid.ContextMenu = menu;
-                _closePositionGrid.ContextMenu.Show(_closePositionGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+                _closePositionGrid.ContextMenuStrip = menu;
+                _closePositionGrid.ContextMenuStrip.Show(_closePositionGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {

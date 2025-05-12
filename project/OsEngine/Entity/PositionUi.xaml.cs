@@ -298,18 +298,22 @@ namespace OsEngine.Entity
 
             try
             {
-                List<MenuItem> items = new List<MenuItem>();
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
                 items[0].Click += CloseOrdersAddOrder_Click;
 
-                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
                 items[1].Click += CloseOrdersDeleteOrder_Click;
 
-                ContextMenu menu = new ContextMenu(items.ToArray());
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
-                _closeOrdersGrid.ContextMenu = menu;
-                _closeOrdersGrid.ContextMenu.Show(_closeOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+                _closeOrdersGrid.ContextMenuStrip = menu;
+                _closeOrdersGrid.ContextMenuStrip.Show(_closeOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {
@@ -388,18 +392,22 @@ namespace OsEngine.Entity
 
             try
             {
-                List<MenuItem> items = new List<MenuItem>();
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
                 items[0].Click += OpenOrdersAddOrder_Click;
 
-                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
                 items[1].Click += OpenOrdersDeleteOrder_Click;
 
-                ContextMenu menu = new ContextMenu(items.ToArray());
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
-                _openOrdersGrid.ContextMenu = menu;
-                _openOrdersGrid.ContextMenu.Show(_openOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+                _openOrdersGrid.ContextMenuStrip = menu;
+                _openOrdersGrid.ContextMenuStrip.Show(_openOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {
@@ -664,44 +672,53 @@ namespace OsEngine.Entity
 
             try
             {
-                List<MenuItem> items = new List<MenuItem>();
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
                 List<Order> ordersOpen = _position.OpenOrders;
                 List<Order> ordersClose = _position.CloseOrders;
 
                 if(ordersOpen != null && ordersOpen.Count != 0)
                 {
-                    List<MenuItem> itemsOrdersOpen = new List<MenuItem>();
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    List<ToolStripMenuItem> itemsOrdersOpen = new List<ToolStripMenuItem>();
                     for(int i = 0;i < ordersOpen.Count;i++)
                     {
-                        itemsOrdersOpen.Add(new MenuItem { Text = "Num " +  ordersOpen[i].NumberUser});
+                        itemsOrdersOpen.Add(new ToolStripMenuItem { Text = "Num " +  ordersOpen[i].NumberUser});
                         itemsOrdersOpen[itemsOrdersOpen.Count-1].Click += MyTradeAddInOpenOrders_Click;
                     }
 
-                    items.Add(new MenuItem(OsLocalization.Entity.OrderContextMenuItem3,
-                        itemsOrdersOpen.ToArray()));
+                    var item2 = new ToolStripMenuItem(OsLocalization.Entity.OrderContextMenuItem3);
+                    item2.DropDownItems.AddRange(itemsOrdersOpen.ToArray()); 
+                    items.Add(item2);
                 }
 
                 if (ordersClose != null && ordersClose.Count != 0)
                 {
-                    List<MenuItem> itemsOrdersClose = new List<MenuItem>();
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    List<ToolStripMenuItem> itemsOrdersClose = new List<ToolStripMenuItem>();
                     for (int i = 0; i < ordersClose.Count; i++)
                     {
-                        itemsOrdersClose.Add(new MenuItem { Text = "Num " + ordersClose[i].NumberUser });
+                        // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                        itemsOrdersClose.Add(new ToolStripMenuItem { Text = "Num " + ordersClose[i].NumberUser });
                         itemsOrdersClose[itemsOrdersClose.Count - 1].Click += MyTradeAddInCloseOrders_Click;
                     }
 
-                    items.Add(new MenuItem(OsLocalization.Entity.OrderContextMenuItem4,
-                        itemsOrdersClose.ToArray()));
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    var item2 = new ToolStripMenuItem(OsLocalization.Entity.OrderContextMenuItem4);
+                    item2.DropDownItems.AddRange(itemsOrdersClose.ToArray());
+                    items.Add(item2);
                 }
 
-                items.Add(new MenuItem { Text = OsLocalization.Entity.OrderContextMenuItem5 });
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem5 });
                 items[items.Count-1].Click += MyTradeDelete_Click;
 
-                ContextMenu menu = new ContextMenu(items.ToArray());
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
-                _tradesGrid.ContextMenu = menu;
-                _tradesGrid.ContextMenu.Show(_tradesGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+                _tradesGrid.ContextMenuStrip = menu;
+                _tradesGrid.ContextMenuStrip.Show(_tradesGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {
@@ -711,7 +728,8 @@ namespace OsEngine.Entity
 
         void MyTradeAddInOpenOrders_Click(object sender, EventArgs e)
         {
-            string str = ((MenuItem)sender).Text.ToString().Split(' ')[1];
+            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            string str = ((ToolStripMenuItem)sender).Text.ToString().Split(' ')[1];
             int ordNum = Convert.ToInt32(str);
             Order myOrd = _position.OpenOrders.Find(o => o.NumberUser == ordNum);
 
@@ -741,7 +759,8 @@ namespace OsEngine.Entity
                 return;
             }
 
-            string str = ((MenuItem)sender).Text.ToString().Split(' ')[1];
+            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+            string str = ((ToolStripMenuItem)sender).Text.ToString().Split(' ')[1];
             int ordNum = Convert.ToInt32(str);
             Order myOrd = _position.CloseOrders.Find(o => o.NumberUser == ordNum);
 

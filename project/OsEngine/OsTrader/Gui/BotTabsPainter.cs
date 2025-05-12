@@ -336,37 +336,46 @@ namespace OsEngine.OsTrader.Gui
 
                 _lastSelectedBot = _master.PanelsArray[rowIndex];
 
-                List<MenuItem> items = new List<MenuItem>();
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                items.Add(new MenuItem(_lastSelectedBot.GetNameStrategyType() + "  " + _lastSelectedBot.NameStrategyUniq));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(_lastSelectedBot.GetNameStrategyType() + "  " + _lastSelectedBot.NameStrategyUniq));
                 items[0].Enabled = false;
 
-                items.Add(new MenuItem(OsLocalization.Trader.Label172));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label172));
                 items[1].Click += BotTabsPainter_Chart_Click;
 
-                items.Add(new MenuItem(OsLocalization.Trader.Label45));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label45));
                 items[2].Click += BotTabsPainter_Parameters_Click;
 
-                items.Add(new MenuItem(OsLocalization.Trader.Label40));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label40));
                 items[3].Click += BotTabsPainter_Journal_Click;
 
                 if(_lastSelectedBot.OnOffEventsInTabs == true)
                 {
-                    items.Add(new MenuItem(OsLocalization.Trader.Label412));
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label412));
                 }
                 else //if (selectedBot.OnOffEventsInTabs == false)
                 {
-                    items.Add(new MenuItem(OsLocalization.Trader.Label413));
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label413));
                 }
                 items[4].Click += BotTabsPainter_OnOffEvents_Click;
 
                 if (_lastSelectedBot.OnOffEmulatorsInTabs == true)
                 {
-                    items.Add(new MenuItem(OsLocalization.Trader.Label414));
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label414));
                 }
                 else //if (selectedBot.OnOffEventsInTabs == false)
                 {
-                    items.Add(new MenuItem(OsLocalization.Trader.Label415));
+                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                    items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label415));
                 }
                 if(_master._startProgram == StartProgram.IsTester)
                 {
@@ -374,19 +383,23 @@ namespace OsEngine.OsTrader.Gui
                 }
                 items[5].Click += BotTabsPainter_OnOffEmulator_Click;
 
-                items.Add(new MenuItem(OsLocalization.Trader.Label416));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label416));
                 items[6].Click += BotTabsPainter_MoveUp_Click;
 
-                items.Add(new MenuItem(OsLocalization.Trader.Label417));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label417));
                 items[7].Click += BotTabsPainter_MoveDown_Click;
 
-                items.Add(new MenuItem(OsLocalization.Trader.Label39));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label39));
                 items[8].Click += BotTabsPainter_Delete_Click;
 
-                ContextMenu menu = new ContextMenu(items.ToArray());
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
-                _grid.ContextMenu = menu;
-                _grid.ContextMenu.Show(_grid, new System.Drawing.Point(_mouseXPos, _mouseYPos));
+                _grid.ContextMenuStrip = menu;
+                _grid.ContextMenuStrip.Show(_grid, new System.Drawing.Point(_mouseXPos, _mouseYPos));
             }
             catch (Exception ex)
             {

@@ -14,8 +14,8 @@ using System.Drawing;
 using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using ContextMenu = System.Windows.Forms.ContextMenu;
-using MenuItem = System.Windows.Forms.MenuItem;
+using ContextMenu = System.Windows.Forms.ContextMenuStrip;
+using MenuItem = System.Windows.Forms.ToolStripMenuItem;
 using MessageBox = System.Windows.Forms.MessageBox;
 using Point = System.Drawing.Point;
 
@@ -600,22 +600,23 @@ namespace OsEngine.OsData
 
                 // creating a context menu
 
-                MenuItem[] items = new MenuItem[3];
+                ToolStripMenuItem[] items = new ToolStripMenuItem[3];
 
-                items[0] = new MenuItem();
+                items[0] = new ToolStripMenuItem();
                 items[0].Text = OsLocalization.Data.Label6;
                 items[0].Click += AddSet_Click;
 
-                items[1] = new MenuItem() { Text = OsLocalization.Data.Label7 };
+                items[1] = new ToolStripMenuItem() { Text = OsLocalization.Data.Label7 };
                 items[1].Click += RedactSet_Click;
 
-                items[2] = new MenuItem() { Text = OsLocalization.Data.Label8 };
+                items[2] = new ToolStripMenuItem() { Text = OsLocalization.Data.Label8 };
                 items[2].Click += DeleteSet_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                ContextMenuStrip menu = new ContextMenuStrip();
+                menu.Items.AddRange(items);
 
-                _gridSets.ContextMenu = menu;
-                _gridSets.ContextMenu.Show(_gridSets, new Point(mouse.X, mouse.Y));
+                _gridSets.ContextMenuStrip = menu;
+                _gridSets.ContextMenuStrip.Show(_gridSets, new Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {

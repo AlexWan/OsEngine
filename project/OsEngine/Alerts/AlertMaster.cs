@@ -379,25 +379,26 @@ namespace OsEngine.Alerts
             // shortcut menu creation
             // cоздание контекстного меню
 
-            MenuItem[] items = new MenuItem[4];
+            ToolStripMenuItem[] items = new ToolStripMenuItem[4];
 
-            items[0] = new MenuItem();
+            items[0] = new ToolStripMenuItem();
             items[0].Text = OsLocalization.Alerts.ContextMenu1;
             items[0].Click += AlertDelete_Click;
 
-            items[1] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu2 };
+            items[1] = new ToolStripMenuItem() { Text = OsLocalization.Alerts.ContextMenu2 };
             items[1].Click += AlertRedact_Click;
 
-            items[2] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu3 };
+            items[2] = new ToolStripMenuItem() { Text = OsLocalization.Alerts.ContextMenu3 };
             items[2].Click += AlertChartCreate_Click;
 
-            items[3] = new MenuItem() { Text = OsLocalization.Alerts.ContextMenu4 };
+            items[3] = new ToolStripMenuItem() { Text = OsLocalization.Alerts.ContextMenu4 };
             items[3].Click += AlertPriceCreate_Click;
 
-            ContextMenu menu = new ContextMenu(items);
+            ContextMenuStrip menu = new ContextMenuStrip();
+            menu.Items.AddRange(items);
 
-            GridViewBox.ContextMenu = menu;
-            GridViewBox.ContextMenu.Show(GridViewBox, new Point(mouse.X, mouse.Y));
+            GridViewBox.ContextMenuStrip = menu;
+            GridViewBox.ContextMenuStrip.Show(GridViewBox, new Point(mouse.X, mouse.Y));
         }
 
         private void GridViewBox_DoubleClick(object sender, EventArgs e)
