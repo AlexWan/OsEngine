@@ -1566,7 +1566,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             wsClientDepth.OnMessage += _socket_PublicMessage;
             wsClientDepth.OnError += _socketClient_Error;
             wsClientDepth.OnClose += _socketClient_Closed;
-            wsClientDepth.ConnectAsync();
+            wsClientDepth.Connect();
 
             _socketsArray.Add(security.Name + "_depth20", wsClientDepth);
 
@@ -2679,6 +2679,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
             catch (Exception ex)
             {
+                if (ex.Message == "The operation of cancel all open order is done.")
+                {
+                    return null;
+                }
+
                 return HandleHttpRequestException(ex);
             }
         }
@@ -2825,6 +2830,4 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         #endregion
     }
-
-
 }
