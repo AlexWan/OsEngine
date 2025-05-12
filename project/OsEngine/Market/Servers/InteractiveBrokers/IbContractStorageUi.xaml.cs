@@ -9,12 +9,6 @@ using System.Windows;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Language;
-using // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-ContextMenu = // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-System.Windows.Forms.ContextMenuStrip;
-using // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-MenuItem = // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-System.Windows.Forms.ToolStripMenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
 namespace OsEngine.Market.Servers.InteractiveBrokers
@@ -199,24 +193,25 @@ namespace OsEngine.Market.Servers.InteractiveBrokers
             MouseEventArgs mouse = (MouseEventArgs)e;
             if (mouse.Button != MouseButtons.Right)
             {
+                if(_grid.ContextMenuStrip != null)
+                {
+                    _grid.ContextMenuStrip = null;
+                }
+
                 return;
             }
 
             // creating a context menu / cоздание контекстного меню
 
-            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                        ToolStripMenuItem[] items = new ToolStripMenuItem[2];
+            ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
             items[0] = new ToolStripMenuItem();
             items[0].Text = OsLocalization.Market.Label47;
             items[0].Click += AlertDelete_Click;
 
-            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
             items[1] = new ToolStripMenuItem() { Text = OsLocalization.Market.Label48 };
             items[1].Click += AlertCreate_Click;
 
-            // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.Items.AddRange(items);
 

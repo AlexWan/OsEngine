@@ -23,12 +23,7 @@ using System.Windows.Forms.DataVisualization.Charting;
 using OsEngine.Language;
 using Chart = System.Windows.Forms.DataVisualization.Charting.Chart;
 using ChartArea = System.Windows.Forms.DataVisualization.Charting.ChartArea;
-using // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-ContextMenu = // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-System.Windows.Forms.ContextMenuStrip;
-using // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-MenuItem = // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-System.Windows.Forms.ToolStripMenuItem;
+using MenuItem = System.Windows.Forms.ToolStripMenuItem;
 using Series = System.Windows.Forms.DataVisualization.Charting.Series;
 using OsEngine.Layout;
 
@@ -2009,32 +2004,31 @@ namespace OsEngine.Journal
                 MouseEventArgs mouse = (MouseEventArgs)e;
                 if (mouse.Button != MouseButtons.Right)
                 {
+                    if (_openPositionGrid.ContextMenuStrip != null)
+                    {
+                        _openPositionGrid.ContextMenuStrip = null;
+                    }
+
                     return;
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem8 });
                 items[0].Click += OpenDealMoreInfo_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem9 });
                 items[1].Click += OpenDealDelete_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem10 });
                 items[2].Click += OpenDealClearAll_Click;
 
                 if (_botsJournals.Count != 0)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     List<ToolStripMenuItem> itemsBots = new List<ToolStripMenuItem>();
 
                     for (int i = 0; i < _botsJournals.Count; i++)
                     {
-                        // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                         itemsBots.Add(new ToolStripMenuItem { Text = _botsJournals[i].BotName });
                         itemsBots[i].Click += OpenDealCreatePosition_Click;
                     }
@@ -2044,7 +2038,6 @@ namespace OsEngine.Journal
                     items.Add(item);
                 }
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.AddRange(items.ToArray());
 

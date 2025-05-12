@@ -348,25 +348,21 @@ namespace OsEngine.OsMiner
         /// </summary>
         void _gridSets_MouseClick(object sender, MouseEventArgs mouse)
         {
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message6 };
                 items[0].Click += OsMinerMasterAdd_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[1] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message7 };
                 items[1].Click += OsMinerMasterRemove_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
                 _gridSets.ContextMenuStrip = menu;
@@ -387,7 +383,17 @@ namespace OsEngine.OsMiner
         /// </summary>
         void OsMinerMasterRemove_Click(object sender, EventArgs e)
         {
-            DeleteSet();
+            try
+            {
+                DeleteSet();
+            }
+            catch (Exception error)
+            {
+                if (LogMessageEvent != null)
+                {
+                    LogMessageEvent(error.ToString(), LogMessageType.Error);
+                }
+            }
         }
 
         /// <summary>
@@ -396,7 +402,17 @@ namespace OsEngine.OsMiner
         /// </summary>
         void OsMinerMasterAdd_Click(object sender, EventArgs e)
         {
-             CreateSet();
+            try
+            {
+                CreateSet();
+            }
+            catch (Exception error)
+            {
+                if (LogMessageEvent != null)
+                {
+                    LogMessageEvent(error.ToString(), LogMessageType.Error);
+                }
+            }
         }
 
         /// <summary>
@@ -405,25 +421,35 @@ namespace OsEngine.OsMiner
         /// </summary>
         void _gridSets_Click(object sender, EventArgs e)
         {
-            if (_gridSets.SelectedCells.Count == 0)
+            try
             {
-                return;
-            }
-            int activPattern = _gridSets.SelectedCells[0].RowIndex;
+                if (_gridSets.SelectedCells.Count == 0)
+                {
+                    return;
+                }
+                int activPattern = _gridSets.SelectedCells[0].RowIndex;
 
-            if (activPattern >= Sets.Count)
+                if (activPattern >= Sets.Count)
+                {
+                    return;
+                }
+
+                if (ActivSetNum == activPattern)
+                {
+                    return;
+                }
+
+                Sets[ActivSetNum].StopPaint();
+                ActivSetNum = activPattern;
+                PaintActivSet();
+            }
+            catch (Exception error)
             {
-                return;
+                if (LogMessageEvent != null)
+                {
+                    LogMessageEvent(error.ToString(), LogMessageType.Error);
+                }
             }
-
-            if(ActivSetNum == activPattern)
-            {
-                return;
-            }
-
-            Sets[ActivSetNum].StopPaint();
-            ActivSetNum = activPattern;
-            PaintActivSet();
         }
 
         /// <summary>

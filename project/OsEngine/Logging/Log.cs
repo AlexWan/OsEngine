@@ -189,28 +189,27 @@ namespace OsEngine.Logging
 
                 if (mouse.Button != MouseButtons.Right)
                 {
+                    if(_grid.ContextMenuStrip != null)
+                    {
+                        _grid.ContextMenuStrip = null;
+                    }
                     return;
                 }
 
                 int mouseXPos = mouse.X;
                 int mouseYPos = mouse.Y;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label27));
                 items[0].Click += Log_MessageServer_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label28));
                 items[1].Click += Log_ShowFile_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label29));
                 items[2].Click += Log_ShowErrorLog_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
                 _grid.ContextMenuStrip = menu;

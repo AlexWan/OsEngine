@@ -2172,27 +2172,26 @@ namespace OsEngine.Journal
                 MouseEventArgs mouse = (MouseEventArgs)e;
                 if (mouse.Button != MouseButtons.Right)
                 {
+                    if(_openPositionGrid.ContextMenuStrip != null)
+                    {
+                        _openPositionGrid.ContextMenuStrip = null;
+                    }
                     return;
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem8 });
                 items[0].Click += OpenDealMoreInfo_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem9 });
                 items[1].Click += OpenDealDelete_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem10 });
                 items[2].Click += OpenDealClearAll_Click;
 
                 if (_botsJournals.Count != 0)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     List<ToolStripMenuItem> itemsBots = new List<ToolStripMenuItem>();
 
                     for (int i = 0; i < _botsJournals.Count; i++)
@@ -2313,17 +2312,33 @@ namespace OsEngine.Journal
                     return;
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                int number = ((ToolStripMenuItem)sender).MergeIndex;
+                ToolStripMenuItem tab = (ToolStripMenuItem)sender;
 
-                string botName = _botsJournals[number].BotName;
+                string botName = tab.Text; 
 
                 Position newPos = new Position();
 
                 newPos.Number = NumberGen.GetNumberDeal(_startProgram);
                 newPos.NameBot = botName;
-                _botsJournals[number]._Tabs[0].Journal.SetNewDeal(newPos);
 
+                BotPanelJournal myJournal = null;
+
+                for(int i = 0;i < _botsJournals.Count;i++)
+                {
+                    if (_botsJournals[i].BotName == botName)
+                    {
+                        myJournal = _botsJournals[i];
+                        break;
+
+                    }
+                }
+
+                if(myJournal == null)
+                {
+                    return;
+                }
+
+                myJournal._Tabs[0].Journal.SetNewDeal(newPos);
 
                 RePaint();
             }
@@ -4032,6 +4047,13 @@ namespace OsEngine.Journal
 
                 _minTime = _startTime;
                 _maxTime = _endTime;
+
+                if(_minTime == DateTime.MinValue 
+                    ||
+                    _maxTime == DateTime.MaxValue)
+                {
+                    return;
+                }
 
                 if (IsSlide == false)
                 { // слайдер времени выключен. Просто обновляем
