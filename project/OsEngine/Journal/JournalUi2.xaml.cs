@@ -4048,13 +4048,6 @@ namespace OsEngine.Journal
                 _minTime = _startTime;
                 _maxTime = _endTime;
 
-                if(_minTime == DateTime.MinValue 
-                    ||
-                    _maxTime == DateTime.MaxValue)
-                {
-                    return;
-                }
-
                 if (IsSlide == false)
                 { // слайдер времени выключен. Просто обновляем
                     _startTime = startTime.AddDays(-1);
