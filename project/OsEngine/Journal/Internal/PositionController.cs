@@ -1843,26 +1843,22 @@ namespace OsEngine.Journal.Internal
 
         private void _gridCloseDeal_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
-
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                MouseEventArgs mouse = (MouseEventArgs)e;
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem12 };
                 items[0].Click += ClosedPosesGrid_PositionScrollOnChart_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[1] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem9 };
                 items[1].Click += ClosedPosesGrid_PositionDelete_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
                 _gridCloseDeal.ContextMenuStrip = menu;

@@ -1002,7 +1002,8 @@ namespace OsEngine.Entity
             get
             {
                 if (_timeCreate == DateTime.MinValue &&
-                    _openOrders != null)
+                    _openOrders != null
+                    && _openOrders.Count > 0)
                 {
                     _timeCreate = _openOrders[0].GetLastTradeTime();
                 }
@@ -1020,7 +1021,8 @@ namespace OsEngine.Entity
         {
             get
             {
-                if (CloseOrders != null && CloseOrders.Count != 0)
+                if (CloseOrders != null 
+                    && CloseOrders.Count != 0)
                 {
                     for (int i = CloseOrders.Count-1; i > -1 && i < CloseOrders.Count; i--)
                     {

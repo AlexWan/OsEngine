@@ -492,19 +492,15 @@ namespace OsEngine.Market
                     return;
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Market.Message4 };
 
                 items[0].Click += OrdersCloseAll_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[1] = new ToolStripMenuItem { Text = OsLocalization.Market.Message5 };
                 items[1].Click += PositionCloseForNumber_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
                 _gridActiveOrders.ContextMenuStrip = menu;

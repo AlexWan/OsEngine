@@ -1,23 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Input;
+using Microsoft.VisualBasic.Devices;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Miner;
 using OsEngine.Market.Servers.Tester;
-using // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-ContextMenu = // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-System.Windows.Forms.ContextMenuStrip;
-using // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-MenuItem = // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-System.Windows.Forms.ToolStripMenuItem;
 using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
 
 namespace OsEngine.OsMiner.Patterns
@@ -658,30 +654,27 @@ namespace OsEngine.OsMiner.Patterns
 
         void _gridPatternsToOpen_MouseClick(object sender, MouseEventArgs mouse)
         {
-            if (mouse.Button == MouseButtons.Left &&
-                _gridPatternsToOpen.SelectedCells.Count != 0)
-            {
-                _pattern.PaintOpenPattern(_gridPatternsToOpen.SelectedCells[0].RowIndex);
-                return;
-            }
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                if (mouse.Button == MouseButtons.Left &&
+                _gridPatternsToOpen.SelectedCells.Count != 0)
+                {
+                    _pattern.PaintOpenPattern(_gridPatternsToOpen.SelectedCells[0].RowIndex);
+                    return;
+                }
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
                 ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                items[0] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message6};
+                items[0] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message6 };
                 items[0].Click += GridPatternsToOpenAdd_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                items[1] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message7};
+                items[1] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message7 };
                 items[1].Click += GridPatternsToOpenRemove_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.AddRange(items);
 
@@ -696,18 +689,31 @@ namespace OsEngine.OsMiner.Patterns
 
         void GridPatternsToOpenAdd_Click(object sender, EventArgs e)
         {
-            TabControlPrime.SelectedIndex = 3;
-            _pattern.PlaceToUsePattern = UsePatternType.OpenPosition;
-            ComboBoxPlaceToUsePattern.SelectedItem = _pattern.PlaceToUsePattern;
-            _pattern.Save();
+            try
+            {
+                TabControlPrime.SelectedIndex = 3;
+                _pattern.PlaceToUsePattern = UsePatternType.OpenPosition;
+                ComboBoxPlaceToUsePattern.SelectedItem = _pattern.PlaceToUsePattern;
+                _pattern.Save();
+            }
+            catch (Exception error)
+            {
+                _pattern.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         void GridPatternsToOpenRemove_Click(object sender, EventArgs e)
         {
-            int patternNum = _gridPatternsToOpen.SelectedCells[0].RowIndex;
-
-            _pattern.RemovePatternToInter(patternNum);
-            PaintGridPatternsToOpen();
+            try
+            {
+                int patternNum = _gridPatternsToOpen.SelectedCells[0].RowIndex;
+                _pattern.RemovePatternToInter(patternNum);
+                PaintGridPatternsToOpen();
+            }
+            catch (Exception error)
+            {
+                _pattern.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
 // tab position closing variable
@@ -913,30 +919,27 @@ namespace OsEngine.OsMiner.Patterns
 
         void _gridPatternsToClose_MouseClick(object sender, MouseEventArgs mouse)
         {
-            if (mouse.Button == MouseButtons.Left)
-            {
-                if (_gridPatternsToClose.SelectedCells.Count == 0)
-                {
-                    return;
-                }
-                _pattern.PaintClosePattern(_gridPatternsToClose.SelectedCells[0].RowIndex);
-                return;
-            }
-
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                if (mouse.Button == MouseButtons.Left)
+                {
+                    if (_gridPatternsToClose.SelectedCells.Count == 0)
+                    {
+                        return;
+                    }
+                    _pattern.PaintClosePattern(_gridPatternsToClose.SelectedCells[0].RowIndex);
+                    return;
+                }
+
+
                 ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message6 };
                 items[0].Click += GridPatternsToCloseAdd_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[1] = new ToolStripMenuItem { Text = OsLocalization.Miner.Message7 };
                 items[1].Click += GridPatternsToCloseRemove_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.AddRange(items);
 
@@ -951,18 +954,32 @@ namespace OsEngine.OsMiner.Patterns
 
         void GridPatternsToCloseAdd_Click(object sender, EventArgs e)
         {
-            TabControlPrime.SelectedIndex = 3;
-            _pattern.PlaceToUsePattern = UsePatternType.ClosePosition;
-            ComboBoxPlaceToUsePattern.SelectedItem = _pattern.PlaceToUsePattern;
-            _pattern.Save();
+            try
+            {
+                TabControlPrime.SelectedIndex = 3;
+                _pattern.PlaceToUsePattern = UsePatternType.ClosePosition;
+                ComboBoxPlaceToUsePattern.SelectedItem = _pattern.PlaceToUsePattern;
+                _pattern.Save();
+            }
+            catch (Exception error)
+            {
+                _pattern.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
         void GridPatternsToCloseRemove_Click(object sender, EventArgs e)
         {
-            int patternNum = _gridPatternsToClose.SelectedCells[0].RowIndex;
+            try
+            {
+                int patternNum = _gridPatternsToClose.SelectedCells[0].RowIndex;
 
-            _pattern.RemovePatternToExit(patternNum);
-            PaintGridPatternsToClose();
+                _pattern.RemovePatternToExit(patternNum);
+                PaintGridPatternsToClose();
+            }
+            catch (Exception error)
+            {
+                _pattern.SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
         }
 
 // DATE tab

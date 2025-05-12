@@ -298,213 +298,240 @@ namespace OsEngine.Entity
 
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
                 items[0].Click += CloseOrdersAddOrder_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
                 items[1].Click += CloseOrdersDeleteOrder_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
                 _closeOrdersGrid.ContextMenuStrip = menu;
                 _closeOrdersGrid.ContextMenuStrip.Show(_closeOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
-            catch (Exception error)
+            catch (Exception ex) 
             {
-
+                MessageBox.Show(ex.ToString());
             }
         }
 
         void CloseOrdersAddOrder_Click(object sender, EventArgs e)
         {
-            Order newOrder = new Order();
-            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
-
-            if (_position.Direction == Side.Buy)
+            try
             {
-                newOrder.Side = Side.Sell;
+                Order newOrder = new Order();
+                newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
+
+                if (_position.Direction == Side.Buy)
+                {
+                    newOrder.Side = Side.Sell;
+                }
+                else
+                {
+                    newOrder.Side = Side.Buy;
+                }
+
+                newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgram).ToString();
+                newOrder.TypeOrder = OrderPriceType.Limit;
+                newOrder.PortfolioNumber = GetPortfolioName();
+                newOrder.PositionConditionType = OrderPositionConditionType.Close;
+
+                _position.AddNewCloseOrder(newOrder);
+
+                SyncPositionWithOrdersAndMyTrades();
+                PaintOrderTable();
             }
-            else
+            catch (Exception ex)
             {
-                newOrder.Side = Side.Buy;
+                MessageBox.Show(ex.ToString());
             }
-
-            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgram).ToString();
-            newOrder.TypeOrder = OrderPriceType.Limit;
-            newOrder.PortfolioNumber = GetPortfolioName();
-            newOrder.PositionConditionType = OrderPositionConditionType.Close;
-
-            _position.AddNewCloseOrder(newOrder);
-
-            SyncPositionWithOrdersAndMyTrades();
-            PaintOrderTable();
         }
 
         void CloseOrdersDeleteOrder_Click(object sender, EventArgs e)
         {
-            if (_position.CloseOrders == null)
-            {
-                return;
-            }
-            if (_closeOrdersGrid.Rows.Count == 0)
-            {
-                return;
-            }
-
-            int number;
             try
             {
-                number = _closeOrdersGrid.CurrentCell.RowIndex;
-            }
-            catch (Exception)
-            {
-                return;
-            }
+                if (_position.CloseOrders == null)
+                {
+                    return;
+                }
+                if (_closeOrdersGrid.Rows.Count == 0)
+                {
+                    return;
+                }
 
-            if (number >= _position.CloseOrders.Count)
-            {
-                return;
-            }
+                int number;
+                try
+                {
+                    number = _closeOrdersGrid.CurrentCell.RowIndex;
+                }
+                catch (Exception)
+                {
+                    return;
+                }
 
-            if(ActionDeleteIsAccepted() == false)
-            {
-                return;
-            }
+                if (number >= _position.CloseOrders.Count)
+                {
+                    return;
+                }
 
-            _position.CloseOrders.RemoveAt(number);
-            RePaint();
+                if (ActionDeleteIsAccepted() == false)
+                {
+                    return;
+                }
+
+                _position.CloseOrders.RemoveAt(number);
+                RePaint();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         private void OpenOrdersGrid_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-            if (mouse.Button != MouseButtons.Right)
-            {
-                CheckOpenOrdersTimeButtonClick(_position.OpenOrders, _openOrdersGrid);
-                return;
-            }
-
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                MouseEventArgs mouse = (MouseEventArgs)e;
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    CheckOpenOrdersTimeButtonClick(_position.OpenOrders, _openOrdersGrid);
+                    return;
+                }
+
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem1 });
                 items[0].Click += OpenOrdersAddOrder_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem2 });
                 items[1].Click += OpenOrdersDeleteOrder_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
                 _openOrdersGrid.ContextMenuStrip = menu;
                 _openOrdersGrid.ContextMenuStrip.Show(_openOrdersGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
-            catch (Exception error)
+            catch (Exception ex)
             {
-
+                MessageBox.Show(ex.ToString());
             }
         }
 
         private void CheckOpenOrdersTimeButtonClick(List<Order> orders, DataGridView grid)
         {
-            if(orders == null ||
+            try
+            {
+                if (orders == null ||
                 orders.Count == 0)
-            {
-                return;
-            }
-            if (grid.SelectedCells == null ||
-                grid.SelectedCells.Count == 0)
-            {
-                return;
-            }
-            int tabRow = grid.SelectedCells[0].RowIndex;
-            int tabColumn = grid.SelectedCells[0].ColumnIndex;
-
-            if (tabColumn == 2)
-            {
-                if(tabRow >= orders.Count)
                 {
                     return;
                 }
-                Order myOrder = orders[tabRow];
-
-                DateTime time = myOrder.TimeCallBack;
-
-                if (myOrder.TimeCallBack == DateTime.MinValue)
+                if (grid.SelectedCells == null ||
+                    grid.SelectedCells.Count == 0)
                 {
-                    time = DateTime.Now;
+                    return;
                 }
-                else
-                {
-                    time = myOrder.TimeCallBack;
-                }
+                int tabRow = grid.SelectedCells[0].RowIndex;
+                int tabColumn = grid.SelectedCells[0].ColumnIndex;
 
-                DateTimeSelectionDialog dialog = new DateTimeSelectionDialog(time);
-                dialog.ShowDialog();
-
-                if(dialog.IsSaved)
+                if (tabColumn == 2)
                 {
-                    myOrder.TimeCallBack = dialog.Time;
-                    myOrder.TimeCreate = dialog.Time;
-                    RePaint();
+                    if (tabRow >= orders.Count)
+                    {
+                        return;
+                    }
+                    Order myOrder = orders[tabRow];
+
+                    DateTime time = myOrder.TimeCallBack;
+
+                    if (myOrder.TimeCallBack == DateTime.MinValue)
+                    {
+                        time = DateTime.Now;
+                    }
+                    else
+                    {
+                        time = myOrder.TimeCallBack;
+                    }
+
+                    DateTimeSelectionDialog dialog = new DateTimeSelectionDialog(time);
+                    dialog.ShowDialog();
+
+                    if (dialog.IsSaved)
+                    {
+                        myOrder.TimeCallBack = dialog.Time;
+                        myOrder.TimeCreate = dialog.Time;
+                        RePaint();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
             }
         }
 
         void OpenOrdersAddOrder_Click(object sender, EventArgs e)
         {
-            Order newOrder = new Order();
-            newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
-            newOrder.Side = _position.Direction;
-            newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgram).ToString();
-            newOrder.TypeOrder = OrderPriceType.Limit;
-            newOrder.PortfolioNumber = GetPortfolioName();
-            newOrder.PositionConditionType = OrderPositionConditionType.Open;
+            try
+            {
+                Order newOrder = new Order();
+                newOrder.NumberUser = NumberGen.GetNumberOrder(_startProgram);
+                newOrder.Side = _position.Direction;
+                newOrder.NumberMarket = NumberGen.GetNumberOrder(_startProgram).ToString();
+                newOrder.TypeOrder = OrderPriceType.Limit;
+                newOrder.PortfolioNumber = GetPortfolioName();
+                newOrder.PositionConditionType = OrderPositionConditionType.Open;
 
-            _position.AddNewOpenOrder(newOrder);
+                _position.AddNewOpenOrder(newOrder);
 
-            SyncPositionWithOrdersAndMyTrades();
-            PaintOrderTable();
+                SyncPositionWithOrdersAndMyTrades();
+                PaintOrderTable();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         void OpenOrdersDeleteOrder_Click(object sender, EventArgs e)
         {
-            if (_position.OpenOrders == null)
-            {
-                return;
-            }
-            if (_openOrdersGrid.Rows.Count == 0)
-            {
-                return;
-            }
-
-            int number;
             try
             {
-                number = _openOrdersGrid.CurrentCell.RowIndex;
-            }
-            catch (Exception)
-            {
-                return;
-            }
+                if (_position.OpenOrders == null)
+                {
+                    return;
+                }
+                if (_openOrdersGrid.Rows.Count == 0)
+                {
+                    return;
+                }
 
-            if (number >= _position.OpenOrders.Count)
-            {
-                return;
-            }
+                int number;
+                try
+                {
+                    number = _openOrdersGrid.CurrentCell.RowIndex;
+                }
+                catch (Exception)
+                {
+                    return;
+                }
 
-            _position.OpenOrders.RemoveAt(number);
-            RePaint();
+                if (number >= _position.OpenOrders.Count)
+                {
+                    return;
+                }
+
+                _position.OpenOrders.RemoveAt(number);
+                RePaint();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         // trades
@@ -580,48 +607,55 @@ namespace OsEngine.Entity
 
         private void CheckMyTradeTimeButtonClick(List<MyTrade> trades, DataGridView grid)
         {
-            if (grid.SelectedCells == null ||
-                grid.SelectedCells.Count == 0)
+            try
             {
-                return;
-            }
-
-            if(trades == null ||
-                trades.Count == 0)
-            {
-                return;
-            }
-
-            int tabRow = grid.SelectedCells[0].RowIndex;
-            int tabColumn = grid.SelectedCells[0].ColumnIndex;
-
-            if (tabColumn == 3)
-            {
-                if (tabRow >= trades.Count)
+                if (grid.SelectedCells == null ||
+              grid.SelectedCells.Count == 0)
                 {
                     return;
                 }
-                MyTrade myOrder = trades[tabRow];
 
-                DateTime time = myOrder.Time;
-
-                if (myOrder.Time == DateTime.MinValue)
+                if (trades == null ||
+                    trades.Count == 0)
                 {
-                    time = DateTime.Now;
-                }
-                else
-                {
-                    time = myOrder.Time;
+                    return;
                 }
 
-                DateTimeSelectionDialog dialog = new DateTimeSelectionDialog(time);
-                dialog.ShowDialog();
+                int tabRow = grid.SelectedCells[0].RowIndex;
+                int tabColumn = grid.SelectedCells[0].ColumnIndex;
 
-                if (dialog.IsSaved)
+                if (tabColumn == 3)
                 {
-                    myOrder.Time = dialog.Time;
-                    RePaint();
+                    if (tabRow >= trades.Count)
+                    {
+                        return;
+                    }
+                    MyTrade myOrder = trades[tabRow];
+
+                    DateTime time = myOrder.Time;
+
+                    if (myOrder.Time == DateTime.MinValue)
+                    {
+                        time = DateTime.Now;
+                    }
+                    else
+                    {
+                        time = myOrder.Time;
+                    }
+
+                    DateTimeSelectionDialog dialog = new DateTimeSelectionDialog(time);
+                    dialog.ShowDialog();
+
+                    if (dialog.IsSaved)
+                    {
+                        myOrder.Time = dialog.Time;
+                        RePaint();
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
             }
         }
 
@@ -663,208 +697,225 @@ namespace OsEngine.Entity
 
         private void _tradesGrid_Click(object sender, EventArgs e)
         {
-            MouseEventArgs mouse = (MouseEventArgs)e;
-            if (mouse.Button != MouseButtons.Right)
-            {
-                CheckMyTradeTimeButtonClick(GetMyTrades(), _tradesGrid);
-                return;
-            }
-
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                MouseEventArgs mouse = (MouseEventArgs)e;
+                if (mouse.Button != MouseButtons.Right)
+                {
+                    if(_tradesGrid.ContextMenuStrip != null)
+                    {
+                        _tradesGrid.ContextMenuStrip = null;
+                    }
+
+                    CheckMyTradeTimeButtonClick(GetMyTrades(), _tradesGrid);
+                    return;
+                }
+
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
                 List<Order> ordersOpen = _position.OpenOrders;
                 List<Order> ordersClose = _position.CloseOrders;
 
-                if(ordersOpen != null && ordersOpen.Count != 0)
+                if (ordersOpen != null && ordersOpen.Count != 0)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     List<ToolStripMenuItem> itemsOrdersOpen = new List<ToolStripMenuItem>();
-                    for(int i = 0;i < ordersOpen.Count;i++)
+                    for (int i = 0; i < ordersOpen.Count; i++)
                     {
-                        itemsOrdersOpen.Add(new ToolStripMenuItem { Text = "Num " +  ordersOpen[i].NumberUser});
-                        itemsOrdersOpen[itemsOrdersOpen.Count-1].Click += MyTradeAddInOpenOrders_Click;
+                        itemsOrdersOpen.Add(new ToolStripMenuItem { Text = "Num " + ordersOpen[i].NumberUser });
+                        itemsOrdersOpen[itemsOrdersOpen.Count - 1].Click += MyTradeAddInOpenOrders_Click;
                     }
 
                     var item2 = new ToolStripMenuItem(OsLocalization.Entity.OrderContextMenuItem3);
-                    item2.DropDownItems.AddRange(itemsOrdersOpen.ToArray()); 
+                    item2.DropDownItems.AddRange(itemsOrdersOpen.ToArray());
                     items.Add(item2);
                 }
 
                 if (ordersClose != null && ordersClose.Count != 0)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     List<ToolStripMenuItem> itemsOrdersClose = new List<ToolStripMenuItem>();
                     for (int i = 0; i < ordersClose.Count; i++)
                     {
-                        // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                         itemsOrdersClose.Add(new ToolStripMenuItem { Text = "Num " + ordersClose[i].NumberUser });
                         itemsOrdersClose[itemsOrdersClose.Count - 1].Click += MyTradeAddInCloseOrders_Click;
                     }
 
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     var item2 = new ToolStripMenuItem(OsLocalization.Entity.OrderContextMenuItem4);
                     item2.DropDownItems.AddRange(itemsOrdersClose.ToArray());
                     items.Add(item2);
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem { Text = OsLocalization.Entity.OrderContextMenuItem5 });
-                items[items.Count-1].Click += MyTradeDelete_Click;
+                items[items.Count - 1].Click += MyTradeDelete_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
                 _tradesGrid.ContextMenuStrip = menu;
                 _tradesGrid.ContextMenuStrip.Show(_tradesGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
-            catch (Exception error)
+            catch (Exception ex)
             {
-
+                MessageBox.Show(ex.ToString());
             }
         }
 
         void MyTradeAddInOpenOrders_Click(object sender, EventArgs e)
         {
-            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-            string str = ((ToolStripMenuItem)sender).Text.ToString().Split(' ')[1];
-            int ordNum = Convert.ToInt32(str);
-            Order myOrd = _position.OpenOrders.Find(o => o.NumberUser == ordNum);
-
-            if (myOrd == null)
+            try
             {
-                return;
+                string str = ((ToolStripMenuItem)sender).Text.ToString().Split(' ')[1];
+                int ordNum = Convert.ToInt32(str);
+                Order myOrd = _position.OpenOrders.Find(o => o.NumberUser == ordNum);
+
+                if (myOrd == null)
+                {
+                    return;
+                }
+
+                MyTrade trade = new MyTrade();
+                trade.SecurityNameCode = myOrd.SecurityNameCode;
+                trade.Side = myOrd.Side;
+                trade.NumberOrderParent = myOrd.NumberMarket.ToString();
+                trade.NumberPosition = _position.Number.ToString();
+                trade.NumberTrade = NumberGen.GetNumberOrder(_startProgram).ToString();
+
+                myOrd.SetTrade(trade);
+
+                SyncPositionWithOrdersAndMyTrades();
+                RePaint();
             }
-
-            MyTrade trade = new MyTrade();
-            trade.SecurityNameCode = myOrd.SecurityNameCode;
-            trade.Side = myOrd.Side;
-            trade.NumberOrderParent = myOrd.NumberMarket.ToString();
-            trade.NumberPosition = _position.Number.ToString();
-            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgram).ToString();
-
-            myOrd.SetTrade(trade);
-
-            SyncPositionWithOrdersAndMyTrades();
-            RePaint();
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         void MyTradeAddInCloseOrders_Click(object sender, EventArgs e)
         {
-            if(_position.CloseOrders == null ||
-                _position.CloseOrders.Count == 0)
+            try
             {
-                return;
+                if (_position.CloseOrders == null ||
+                    _position.CloseOrders.Count == 0)
+                {
+                    return;
+                }
+
+                string str = ((ToolStripMenuItem)sender).Text.ToString().Split(' ')[1];
+                int ordNum = Convert.ToInt32(str);
+                Order myOrd = _position.CloseOrders.Find(o => o.NumberUser == ordNum);
+
+                if (myOrd == null)
+                {
+                    return;
+                }
+
+                MyTrade trade = new MyTrade();
+                trade.SecurityNameCode = myOrd.SecurityNameCode;
+                trade.Side = myOrd.Side;
+                trade.NumberOrderParent = myOrd.NumberMarket.ToString();
+                trade.NumberPosition = _position.Number.ToString();
+                trade.NumberTrade = NumberGen.GetNumberOrder(_startProgram).ToString();
+
+                myOrd.SetTrade(trade);
+
+                SyncPositionWithOrdersAndMyTrades();
+                RePaint();
             }
-
-            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-            string str = ((ToolStripMenuItem)sender).Text.ToString().Split(' ')[1];
-            int ordNum = Convert.ToInt32(str);
-            Order myOrd = _position.CloseOrders.Find(o => o.NumberUser == ordNum);
-
-            if(myOrd == null)
+            catch (Exception ex)
             {
-                return;
+                MessageBox.Show(ex.ToString());
             }
-
-            MyTrade trade = new MyTrade();
-            trade.SecurityNameCode = myOrd.SecurityNameCode;
-            trade.Side = myOrd.Side;
-            trade.NumberOrderParent = myOrd.NumberMarket.ToString();
-            trade.NumberPosition = _position.Number.ToString();
-            trade.NumberTrade = NumberGen.GetNumberOrder(_startProgram).ToString();
-
-            myOrd.SetTrade(trade);
-
-            SyncPositionWithOrdersAndMyTrades();
-            RePaint();
         }
 
         void MyTradeDelete_Click(object sender, EventArgs e)
         {
-            if (_position.OpenOrders == null)
-            {
-                return;
-            }
-            if (_openOrdersGrid.Rows.Count == 0)
-            {
-                return;
-            }
-
-            int number;
             try
             {
-                number = _tradesGrid.CurrentCell.RowIndex;
-            }
-            catch (Exception)
-            {
-                return;
-            }
-
-            if(number >= _tradesGrid.Rows.Count)
-            {
-                return;
-            }
-
-            if (ActionDeleteIsAccepted() == false)
-            {
-                return;
-            }
-
-            string strNum = _tradesGrid.Rows[number].Cells[0].Value.ToString();
-
-            List<Order> openOrders = _position.OpenOrders;
-            List<Order> closeOrders = _position.CloseOrders;
-
-            bool isInArray = false;
-
-            for(int i = 0; openOrders != null && i < openOrders.Count;i++)
-            {
-                if(isInArray == true)
+                if (_position.OpenOrders == null)
                 {
-                    break;
+                    return;
+                }
+                if (_openOrdersGrid.Rows.Count == 0)
+                {
+                    return;
                 }
 
-                Order curOrd = openOrders[i];
-
-                for (int i2 = 0; i2 < curOrd.MyTrades.Count; i2++)
+                int number;
+                try
                 {
-                    MyTrade curTrade = curOrd.MyTrades[i2];
+                    number = _tradesGrid.CurrentCell.RowIndex;
+                }
+                catch (Exception)
+                {
+                    return;
+                }
 
-                    if(curTrade.NumberTrade == strNum)
+                if (number >= _tradesGrid.Rows.Count)
+                {
+                    return;
+                }
+
+                if (ActionDeleteIsAccepted() == false)
+                {
+                    return;
+                }
+
+                string strNum = _tradesGrid.Rows[number].Cells[0].Value.ToString();
+
+                List<Order> openOrders = _position.OpenOrders;
+                List<Order> closeOrders = _position.CloseOrders;
+
+                bool isInArray = false;
+
+                for (int i = 0; openOrders != null && i < openOrders.Count; i++)
+                {
+                    if (isInArray == true)
                     {
-                        curOrd.MyTrades.RemoveAt(i2);
-                        isInArray = true;
                         break;
                     }
-                }
-            }
 
-            for (int i = 0; closeOrders != null && i < closeOrders.Count; i++)
-            {
-                if (isInArray == true)
-                {
-                    break;
-                }
+                    Order curOrd = openOrders[i];
 
-                Order curOrd = closeOrders[i];
-
-                for (int i2 = 0; i2 < curOrd.MyTrades.Count; i2++)
-                {
-                    MyTrade curTrade = curOrd.MyTrades[i2];
-
-                    if (curTrade.NumberTrade == strNum)
+                    for (int i2 = 0; i2 < curOrd.MyTrades.Count; i2++)
                     {
-                        curOrd.MyTrades.RemoveAt(i2);
-                        isInArray = true;
-                        break;
+                        MyTrade curTrade = curOrd.MyTrades[i2];
+
+                        if (curTrade.NumberTrade == strNum)
+                        {
+                            curOrd.MyTrades.RemoveAt(i2);
+                            isInArray = true;
+                            break;
+                        }
                     }
                 }
-            }
 
-            RePaint();
+                for (int i = 0; closeOrders != null && i < closeOrders.Count; i++)
+                {
+                    if (isInArray == true)
+                    {
+                        break;
+                    }
+
+                    Order curOrd = closeOrders[i];
+
+                    for (int i2 = 0; i2 < curOrd.MyTrades.Count; i2++)
+                    {
+                        MyTrade curTrade = curOrd.MyTrades[i2];
+
+                        if (curTrade.NumberTrade == strNum)
+                        {
+                            curOrd.MyTrades.RemoveAt(i2);
+                            isInArray = true;
+                            break;
+                        }
+                    }
+                }
+
+                RePaint();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.ToString());
+            }
         }
 
         // accept ui
@@ -954,22 +1005,23 @@ namespace OsEngine.Entity
 
         private void SaveChangesButton_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            if(ActionSaveIsAccepted() == false)
+            try
             {
-                return;
-            }
+                if (ActionSaveIsAccepted() == false)
+                {
+                    return;
+                }
 
-            try
-            {
-                _position.PortfolioValueOnOpenPosition = Convert.ToDecimal(TextBoxStartDepo.Text);
-            }
-            catch
-            {
-                // ignore
-            }
-            
-            try
-            {
+                try
+                {
+                    _position.PortfolioValueOnOpenPosition = Convert.ToDecimal(TextBoxStartDepo.Text);
+                }
+                catch
+                {
+                    // ignore
+                }
+
+
                 SyncPositionWithOrdersAndMyTrades();
                 SavePosition();
                 SaveOrders(_position.OpenOrders, _openOrdersGrid.Rows);
@@ -980,7 +1032,7 @@ namespace OsEngine.Entity
 
                 RePaint();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 CustomMessageBoxUi box = new CustomMessageBoxUi(ex.Message);
                 box.ShowDialog();

@@ -523,39 +523,31 @@ namespace OsEngine.Market
                     }
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(serverType.ToString()));
                 items[0].Enabled = false;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Market.Label119));
                 items[1].Click += _gridSources_ShowSettingsWindow_Click;
 
                 if (isPin == false)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     items.Add(new ToolStripMenuItem(OsLocalization.Market.Label117));
                     items[2].Click += _gridSources_AttachServer_Click;
                 }
                 else if (isPin == true)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     items.Add(new ToolStripMenuItem(OsLocalization.Market.Label118));
                     items[2].Click += _gridSources_DetachServer_Click;
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Market.ButtonConnect));
                 items[3].Click += _gridSources_Connect_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Market.ButtonDisconnect));
                 items[4].Click += _gridSources_Disconnect_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
                 _gridSources.ContextMenuStrip = menu;
@@ -653,15 +645,12 @@ namespace OsEngine.Market
                     return;
                 }
 
-
-
                 myServer.StartServer();
             }
             catch (Exception ex)
             {
                 ServerMaster.Log?.ProcessMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
-
         }
 
         private void _gridSources_Disconnect_Click(object sender, EventArgs e)
