@@ -322,6 +322,11 @@ namespace OsEngine.OsTrader.Gui
             {
                 if (e.Button != MouseButtons.Right)
                 {
+                    if (_grid.ContextMenuStrip != null)
+                    {
+                        _grid.ContextMenuStrip = null;
+                    }
+
                     return;
                 }
 

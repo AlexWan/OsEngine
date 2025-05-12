@@ -240,23 +240,23 @@ namespace OsEngine.OsTrader
 
             if (mouse.Button != MouseButtons.Right)
             {
+                if(_grid.ContextMenuStrip != null)
+                {
+                    _grid.ContextMenuStrip = null;
+                }
                 return;
             }
 
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[0] = new ToolStripMenuItem { Text = OsLocalization.Trader.Label213 };
                 items[0].Click += PositionCloseAll_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items[1] = new ToolStripMenuItem { Text = OsLocalization.Trader.Label214 };
                 items[1].Click += PositionCloseForNumber_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
                 _grid.ContextMenuStrip = menu;
