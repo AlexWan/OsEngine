@@ -111,12 +111,6 @@
     <PackageReference Include="WebSocket4Net" Version="0.15.2" />
     <PackageReference Include="WinForms.DataVisualization" Version="1.10.0" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <Content Include="bin\Release\zlib1.dll">
-      <Link>zlib1.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
   <ItemGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <Content Include="bin\$(Configuration)\libcrypto-3-x64.dll">
       <Link>libcrypto-3-x64.dll</Link>
@@ -130,6 +124,8 @@
   <ItemGroup>
     <Content Remove="bin\Debug\libcrypto-3-x64.dll" />
     <Content Remove="bin\Debug\libssl-3-x64.dll" />
+    <Content Remove="bin\Release\libcrypto-3-x64.dll" />
+    <Content Remove="bin\Release\libssl-3-x64.dll" />
   </ItemGroup>
   <ItemGroup>
     <AppDesigner Include="Properties\" />
@@ -230,6 +226,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Debug\" />
+    <Folder Include="bin\Release\" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Settings.Designer.cs">
