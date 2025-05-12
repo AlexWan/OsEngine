@@ -290,7 +290,11 @@ namespace OsEngine.OsTrader.Panels
             _gridChartControlPanel = gridChartControlPanel;
             _textBoxVolume = textBoxVolume;
             _tabControlControl = tabControlControl;
-            _tabControlControl.SelectionChanged += _tabControlControl_SelectionChanged;
+            if (_tabControlControl != null)
+            {
+                _tabControlControl.SelectionChanged += _tabControlControl_SelectionChanged;
+            }
+
             _hostGrids = hostGrids;
 
             try
