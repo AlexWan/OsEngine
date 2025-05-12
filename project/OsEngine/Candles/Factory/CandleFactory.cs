@@ -11,8 +11,11 @@ using OsEngine.Candles.Series;
 using System.IO;
 using System.Linq;
 using System.Windows;
-using Microsoft.CSharp;
-using System.CodeDom.Compiler;
+
+// Roslyn specific usings
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace OsEngine.Candles
 {
@@ -49,27 +52,32 @@ namespace OsEngine.Candles
                 }
             }
 
+            // This sorting logic seems a bit complex and might not always produce
+            // a standard alphabetical sort if that's the intent.
+            // Consider using resultOne.Sort() if simple alphabetical is desired after the "Simple" adjustment.
             List<string> resultFolderSort = new List<string>();
-            resultFolderSort.Add(resultOne[0]);
-
-            for (int i = 1; i < resultOne.Count; i++)
+            if (resultOne.Count > 0)
             {
-                bool isInArray = false;
+                resultFolderSort.Add(resultOne[0]);
 
-                for (int i2 = 1; i2 < resultFolderSort.Count; i2++)
+                for (int i = 1; i < resultOne.Count; i++)
                 {
-
-                    if (resultFolderSort[i2][0] > resultOne[i][0])
+                    bool isInArray = false;
+                    // Start i2 from 0 if comparing with all elements already in resultFolderSort for insertion
+                    for (int i2 = 0; i2 < resultFolderSort.Count; i2++) // Adjusted to iterate correctly
                     {
-                        resultFolderSort.Insert(i2, resultOne[i]);
-                        isInArray = true;
-                        break;
+                        if (string.Compare(resultOne[i], resultFolderSort[i2], StringComparison.Ordinal) < 0)
+                        {
+                            resultFolderSort.Insert(i2, resultOne[i]);
+                            isInArray = true;
+                            break;
+                        }
                     }
-                }
 
-                if (isInArray == false)
-                {
-                    resultFolderSort.Add(resultOne[i]);
+                    if (isInArray == false)
+                    {
+                        resultFolderSort.Add(resultOne[i]);
+                    }
                 }
             }
 
@@ -94,320 +102,333 @@ namespace OsEngine.Candles
 
                     List<string> fullPaths = GetFullNamesFromFolder(@"Custom\CandleSeries");
 
-                    string longNameClass = nameClass + ".txt";
-                    string longNameClass2 = nameClass + ".cs";
+                    // Scripts can be .cs or .txt
+                    string longNameClassTxt = nameClass + ".txt";
+                    string longNameClassCs = nameClass + ".cs";
 
                     string myPath = "";
 
                     for (int i = 0; i < fullPaths.Count; i++)
                     {
-                        string nameInFile = fullPaths[i].Split('\\')[fullPaths[i].Split('\\').Length - 1];
+                        string nameInFile = Path.GetFileName(fullPaths[i]);
 
-                        if (nameInFile == longNameClass ||
-                            nameInFile == longNameClass2)
+                        if (nameInFile.Equals(longNameClassTxt, StringComparison.OrdinalIgnoreCase) ||
+                            nameInFile.Equals(longNameClassCs, StringComparison.OrdinalIgnoreCase))
                         {
                             myPath = fullPaths[i];
                             break;
                         }
                     }
 
-                    if (myPath == "")
+                    if (string.IsNullOrEmpty(myPath))
                     {
-                        MessageBox.Show("Error! Candle series with name " + nameClass + " not found");
-                        return series;
+                        // It's better to throw an exception or return null consistently
+                        // MessageBox is UI dependent and might not be suitable for all contexts
+                        // For now, keeping MessageBox as in original code.
+                        MessageBox.Show("Error! Candle series script with name " + nameClass + " not found");
+                        return null; // Or throw new FileNotFoundException(...)
                     }
 
-                    series = Serialize(myPath, nameClass);
+                    series = CompileAndInstantiateScript(myPath, nameClass);
                 }
             }
             catch (Exception e)
             {
-                MessageBox.Show(e.ToString());
+                MessageBox.Show("Error creating candle series realization: " + nameClass + "\n" + e.ToString());
+                // Consider logging the exception or re-throwing specific exceptions
             }
 
             return series;
         }
 
-        private static bool _isFirstTime = true;
+        private static readonly List<ACandlesSeriesRealization> _compiledScriptInstancesCache = new List<ACandlesSeriesRealization>();
+        private static List<MetadataReference> _baseReferences;
+        private static readonly object _referencesLock = new object();
 
-        private static string[] linksToDll;
-
-        private static List<ACandlesSeriesRealization> _serializedInd = new List<ACandlesSeriesRealization>();
-
-        private static ACandlesSeriesRealization Serialize(string path, string nameClass)
+        // Comparer for MetadataReference based on Display path to avoid duplicates
+        private class MetadataReferenceComparer : IEqualityComparer<MetadataReference>
         {
-            // 1 пробуем клонировать из ранее сериализованных объектов. Это быстрее чем подымать из файла
-
-            for (int i = 0; i < _serializedInd.Count; i++)
+            public bool Equals(MetadataReference x, MetadataReference y)
             {
-                if (_serializedInd[i].GetType().Name == nameClass)
-                {
-                    object[] param = new object[] { };
-                    ACandlesSeriesRealization newPanel = (ACandlesSeriesRealization)Activator.CreateInstance(_serializedInd[i].GetType());
-                    return newPanel;
-                }
+                if (ReferenceEquals(x, y)) return true;
+                if (x is null || y is null) return false;
+                return x.Display.Equals(y.Display, StringComparison.OrdinalIgnoreCase);
             }
 
-            // сериализуем из файла
-
-            try
+            public int GetHashCode(MetadataReference obj)
             {
-                if (linksToDll == null)
-                {
-                    var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-
-                    var res = Array.ConvertAll<Assembly, string>(assemblies, (x) =>
-                    {
-                        if (!x.IsDynamic)
-                        {
-                            return x.Location;
-                        }
-
-                        return null;
-                    });
-
-                    for (int i = 0; i < res.Length; i++)
-                    {
-                        if (string.IsNullOrEmpty(res[i]))
-                        {
-                            List<string> list = res.ToList();
-                            list.RemoveAt(i);
-                            res = list.ToArray();
-                            i--;
-                        }
-                        else if (res[i].Contains("System.Runtime.Serialization")
-                                 || i > 24)
-                        {
-                            List<string> list = res.ToList();
-                            list.RemoveAt(i);
-                            res = list.ToArray();
-                            i--;
-                        }
-                    }
-
-                    string dllPath = AppDomain.CurrentDomain.BaseDirectory + "System.Runtime.Serialization.dll";
-
-                    List<string> listRes = res.ToList();
-                    listRes.Add(dllPath);
-                    res = listRes.ToArray();
-
-                    linksToDll = res;
-                }
-
-                List<string> dllsToCompiler = linksToDll.ToList();
-
-                List<string> dllsFromPath = GetDllsPathFromFolder(path);
-
-                if (dllsFromPath != null && dllsFromPath.Count != 0)
-                {
-                    for (int i = 0; i < dllsFromPath.Count; i++)
-                    {
-                        string dll = dllsFromPath[i].Split('\\')[dllsFromPath[i].Split('\\').Length - 1];
-
-                        if (dllsToCompiler.Find(d => d.Contains(dll)) == null)
-                        {
-                            dllsToCompiler.Add(dllsFromPath[i]);
-                        }
-                    }
-                }
-
-
-                CompilerParameters cp = new CompilerParameters(dllsToCompiler.ToArray());
-                cp.IncludeDebugInformation = true;
-                cp.GenerateInMemory = true;
-
-                string folderCur = AppDomain.CurrentDomain.BaseDirectory + "Engine\\Temp";
-
-                if (Directory.Exists(folderCur) == false)
-                {
-                    Directory.CreateDirectory(folderCur);
-                }
-
-                folderCur += "\\Indicators";
-
-                if (Directory.Exists(folderCur) == false)
-                {
-                    Directory.CreateDirectory(folderCur);
-                }
-
-                if (_isFirstTime)
-                {
-                    _isFirstTime = false;
-
-                    string[] files = Directory.GetFiles(folderCur);
-
-                    for (int i = 0; i < files.Length; i++)
-                    {
-                        try
-                        {
-                            File.Delete(files[i]);
-                        }
-                        catch
-                        {
-                            // ignore
-                        }
-                    }
-                }
-
-                cp.TempFiles = new TempFileCollection(folderCur, false);
-
-                ACandlesSeriesRealization result = null;
-
-                string fileStr = ReadFile(path);
-
-                CSharpCodeProvider prov = new CSharpCodeProvider();
-
-                CompilerResults results = prov.CompileAssemblyFromSource(cp, fileStr);
-
-                if (results.Errors != null && results.Errors.Count != 0)
-                {
-                    string errorString = "Error! Indicator script runTime compilation problem! \n";
-                    errorString += "Path to indicator: " + path + " \n";
-
-                    int errorNum = 1;
-
-                    foreach (var error in results.Errors)
-                    {
-                        errorString += "Error Number: " + errorNum + " \n";
-                        errorString += error.ToString() + "\n";
-                        errorNum++;
-                    }
-
-                    throw new Exception(errorString);
-                }
-
-                result = (ACandlesSeriesRealization)results.CompiledAssembly.CreateInstance(results.CompiledAssembly.DefinedTypes.ElementAt(0).FullName);
-
-                cp.TempFiles.Delete();
-
-                bool isInArray = false;
-
-                for (int i = 0; i < _serializedInd.Count; i++)
-                {
-                    if (_serializedInd[i].GetType().Name == nameClass)
-                    {
-                        isInArray = true;
-                        break;
-                    }
-                }
-
-                if (isInArray == false)
-                {
-                    _serializedInd.Add(result);
-                }
-
-                return result;
-            }
-            catch (Exception e)
-            {
-                throw new Exception(e.ToString());
+                return obj?.Display?.GetHashCode(StringComparison.OrdinalIgnoreCase) ?? 0;
             }
         }
 
-        private static List<string> GetDllsPathFromFolder(string path)
+        private static void InitializeBaseReferences()
         {
-            string folderPath = path.Remove(path.LastIndexOf('\\'), path.Length - path.LastIndexOf('\\'));
+            if (_baseReferences == null)
+            {
+                lock (_referencesLock)
+                {
+                    if (_baseReferences == null)
+                    {
+                        var references = new HashSet<MetadataReference>(new MetadataReferenceComparer());
 
-            if (Directory.Exists(folderPath + "\\Dlls") == false)
+                        // Add all assemblies currently loaded that are not dynamic and have a location.
+                        foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                        {
+                            if (!assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
+                            {
+                                try
+                                {
+                                    references.Add(MetadataReference.CreateFromFile(assembly.Location));
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Log this warning, e.g., to Console or a proper logger
+                                    Console.WriteLine($"Warning: Could not create metadata reference for {assembly.FullName} from {assembly.Location}. {ex.Message}");
+                                }
+                            }
+                        }
+                        _baseReferences = references.ToList();
+                    }
+                }
+            }
+        }
+
+        private static ACandlesSeriesRealization CompileAndInstantiateScript(string scriptPath, string nameClass)
+        {
+            // 1. Try to clone from previously compiled and cached instances
+            lock (_compiledScriptInstancesCache) // Ensure thread safety for cache access
+            {
+                foreach (var cachedInstance in _compiledScriptInstancesCache)
+                {
+                    if (cachedInstance.GetType().Name == nameClass)
+                    {
+                        // Create a new instance of the already compiled type
+                        return (ACandlesSeriesRealization)Activator.CreateInstance(cachedInstance.GetType());
+                    }
+                }
+            }
+
+            // 2. Compile from file
+            InitializeBaseReferences();
+
+            List<MetadataReference> currentCompilationReferences = new List<MetadataReference>(_baseReferences);
+
+            List<string> dllsFromScriptFolder = GetDllsPathFromScriptFolder(scriptPath);
+            if (dllsFromScriptFolder != null)
+            {
+                foreach (string dllPath in dllsFromScriptFolder)
+                {
+                    // Avoid adding duplicates if _baseReferences already contains it
+                    if (!currentCompilationReferences.Any(r => r.Display.Equals(dllPath, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        try
+                        {
+                            currentCompilationReferences.Add(MetadataReference.CreateFromFile(dllPath));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Warning: Could not create metadata reference for custom DLL {dllPath}. {ex.Message}");
+                        }
+                    }
+                }
+            }
+
+            string sourceCode = ReadFile(scriptPath);
+            if (string.IsNullOrWhiteSpace(sourceCode))
+            {
+                throw new InvalidOperationException($"Source code file is empty or could not be read: {scriptPath}");
+            }
+
+            // Parse the source code
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(
+                sourceCode,
+                CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest)); // Or specific version
+
+            // Define compilation options
+            // Using a unique assembly name for each compilation to avoid conflicts if loaded into same context
+            string assemblyName = Path.GetRandomFileName();
+            CSharpCompilationOptions compilationOptions = new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                optimizationLevel: OptimizationLevel.Debug, // Or Release for production
+                platform: Platform.AnyCpu, // Or specific
+                warningLevel: 4 // Standard warning level
+                                //concurrentBuild: true // Can enable for performance on multi-core
+                );
+
+            // Create the compilation
+            CSharpCompilation compilation = CSharpCompilation.Create(
+                assemblyName,
+                syntaxTrees: new[] { syntaxTree },
+                references: currentCompilationReferences,
+                options: compilationOptions);
+
+            using (var assemblyStream = new MemoryStream())
+            using (var pdbStream = new MemoryStream()) // For debug symbols
+            {
+                EmitOptions emitOptions = new EmitOptions(
+                    debugInformationFormat: DebugInformationFormat.PortablePdb);
+                // pdbFilePath: if you want to save PDBs to disk, specify a path
+
+                EmitResult result = compilation.Emit(assemblyStream, pdbStream, options: emitOptions);
+
+                if (!result.Success)
+                {
+                    IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
+                        diagnostic.IsWarningAsError ||
+                        diagnostic.Severity == DiagnosticSeverity.Error);
+
+                    string errorString = $"Error! Script compilation problem for: {scriptPath}\n";
+                    int errorNum = 1;
+                    foreach (Diagnostic diagnostic in failures)
+                    {
+                        errorString += $"Error Number: {errorNum}\n";
+                        errorString += $"ID: {diagnostic.Id}\n";
+                        errorString += $"Message: {diagnostic.GetMessage()}\n";
+                        errorString += $"Location: {diagnostic.Location.GetLineSpan().ToString()}\n\n";
+                        errorNum++;
+                    }
+                    throw new Exception(errorString);
+                }
+
+                assemblyStream.Seek(0, SeekOrigin.Begin);
+                pdbStream.Seek(0, SeekOrigin.Begin);
+
+                // Load the assembly and its symbols from memory
+                Assembly compiledAssembly = Assembly.Load(assemblyStream.ToArray(), pdbStream.ToArray());
+
+                // Instantiate the target type
+                // Assuming the class name in the script matches `nameClass` (without namespace)
+                // or it's the first public type defined.
+                Type typeToInstantiate = compiledAssembly.GetTypes().FirstOrDefault(t => t.Name == nameClass && t.IsPublic && !t.IsAbstract);
+
+                if (typeToInstantiate == null) // Fallback: try first public non-abstract class if name match failed
+                {
+                    typeToInstantiate = compiledAssembly.GetTypes().FirstOrDefault(t => t.IsPublic && !t.IsAbstract && typeof(ACandlesSeriesRealization).IsAssignableFrom(t));
+                }
+
+                if (typeToInstantiate == null)
+                {
+                    throw new TypeLoadException($"Could not find a public type named '{nameClass}' or a suitable ACandlesSeriesRealization derivative in compiled script: {scriptPath}");
+                }
+
+                ACandlesSeriesRealization newInstance = (ACandlesSeriesRealization)Activator.CreateInstance(typeToInstantiate);
+
+                // Cache the successfully compiled instance for future cloning
+                lock (_compiledScriptInstancesCache)
+                {
+                    // Check again to prevent adding duplicates if another thread just compiled it
+                    if (!_compiledScriptInstancesCache.Any(ci => ci.GetType().FullName == newInstance.GetType().FullName))
+                    {
+                        _compiledScriptInstancesCache.Add(newInstance);
+                    }
+                }
+                return newInstance;
+            }
+        }
+
+        private static List<string> GetDllsPathFromScriptFolder(string scriptFilePath)
+        {
+            string scriptFolder = Path.GetDirectoryName(scriptFilePath);
+            if (string.IsNullOrEmpty(scriptFolder)) return null;
+
+            string dllsFolder = Path.Combine(scriptFolder, "Dlls");
+
+            if (!Directory.Exists(dllsFolder))
             {
                 return null;
             }
 
-            string[] filesInFolder = Directory.GetFiles(folderPath + "\\Dlls");
-
-            List<string> dlls = new List<string>();
-
-            for (int i = 0; i < filesInFolder.Length; i++)
-            {
-                if (filesInFolder[i].EndsWith(".dll") == false)
-                {
-                    continue;
-                }
-
-                string dllPath = AppDomain.CurrentDomain.BaseDirectory + filesInFolder[i];
-
-                dlls.Add(dllPath);
-            }
-
-            return dlls;
+            // Directory.GetFiles returns full paths
+            return Directory.GetFiles(dllsFolder, "*.dll").ToList();
         }
 
         private static string ReadFile(string path)
         {
-            String result = "";
-
-            using (StreamReader reader = new StreamReader(path))
-            {
-                result = reader.ReadToEnd();
-                reader.Close();
-            }
-
-            return result;
+            // Using File.ReadAllText for simplicity, ensure encoding is appropriate (UTF-8 usually)
+            return File.ReadAllText(path);
         }
 
         private static List<NamesFilesFromFolder> _filesInDir = new List<NamesFilesFromFolder>();
 
         private static List<string> GetFullNamesFromFolder(string directory)
         {
-            for (int i = 0; i < _filesInDir.Count; i++)
-            {
-                if (_filesInDir[i] == null)
-                {
-                    continue;
-                }
+            // This caching and retrieval logic for file names can be kept as is,
+            // though it could be simplified or made more robust.
+            // The original 'results.Contains("Dlls")' check was likely a bug.
+            // It's removed here as it wouldn't correctly filter a "Dlls" folder path.
+            // If filtering out "Dlls" subdirectories is intended, it needs different logic.
 
-                if (_filesInDir[i].Folder == directory)
+            lock (_filesInDir) // Basic thread safety for the cache
+            {
+                var existingEntry = _filesInDir.FirstOrDefault(f => f != null && f.Folder == directory);
+                if (existingEntry != null)
                 {
-                    return _filesInDir[i].GetFilesCopy();
+                    return existingEntry.GetFilesCopy();
                 }
             }
+
 
             List<string> results = new List<string>();
-
-            string[] subDirectories = Directory.GetDirectories(directory);
-
-            for (int i = 0; i < subDirectories.Length; i++)
+            try
             {
-                results.AddRange(GetFullNamesFromFolder(subDirectories[i]));
+                string[] subDirectories = Directory.GetDirectories(directory);
+                foreach (string subDir in subDirectories)
+                {
+                    // If you want to exclude specific folder names like "Dlls" from recursive search:
+                    // if (Path.GetFileName(subDir).Equals("Dlls", StringComparison.OrdinalIgnoreCase)) continue;
+                    results.AddRange(GetFullNamesFromFolder(subDir));
+                }
+
+                string[] files = Directory.GetFiles(directory);
+                results.AddRange(files); // No .ToList() needed, AddRange takes IEnumerable
+
+            }
+            catch (Exception ex)
+            {
+                // Log or handle directory access errors
+                Console.WriteLine($"Error accessing directory {directory}: {ex.Message}");
+                return results; // Return whatever was collected so far or an empty list
             }
 
-            string[] files = Directory.GetFiles(directory);
-
-            results.AddRange(files.ToList());
-
-            for (int i = 0; i < results.Count; i++)
+            lock (_filesInDir)
             {
-                if (results.Contains("Dlls"))
+                // Ensure no duplicate entry is added if multiple threads call concurrently for the same new folder
+                if (!_filesInDir.Any(f => f != null && f.Folder == directory))
                 {
-                    results.RemoveAt(i);
-                    i--;
-                    continue;
+                    NamesFilesFromFolder dirEntry = new NamesFilesFromFolder
+                    {
+                        Folder = directory,
+                        Files = results // Store the actual list, GetFilesCopy will create a copy
+                    };
+                    _filesInDir.Add(dirEntry);
                 }
             }
 
-            NamesFilesFromFolder dir = new NamesFilesFromFolder();
-            dir.Folder = directory;
-            dir.Files = results;
-            _filesInDir.Add(dir);
-
-            return dir.GetFilesCopy();
+            // Return a copy as per original GetFilesCopy logic
+            return new List<string>(results);
         }
 
         private static readonly Dictionary<string, Type> _candlesTypes = GetCandlesTypesWithAttribute();
 
         private static Dictionary<string, Type> GetCandlesTypesWithAttribute()
         {
-            Assembly assembly = Assembly.GetAssembly(typeof(BotPanel));
+            // This method seems fine for discovering pre-compiled types with attributes.
+            // Assembly.GetAssembly(typeof(BotPanel)) might be better as:
+            // typeof(BotPanel).Assembly to be more direct.
+            Assembly assembly = typeof(BotPanel).Assembly;
             Dictionary<string, Type> candles = new Dictionary<string, Type>();
             foreach (Type type in assembly.GetTypes())
             {
-                object[] attributes = type.GetCustomAttributes(typeof(CandleAttribute), false);
-                if (attributes.Length > 0)
+                // Ensure type is public and not abstract if it's meant to be instantiated
+                if (type.IsPublic && !type.IsAbstract && typeof(ACandlesSeriesRealization).IsAssignableFrom(type))
                 {
-                    candles[((CandleAttribute)attributes[0]).Name] = type;
+                    object[] attributes = type.GetCustomAttributes(typeof(CandleAttribute), false);
+                    if (attributes.Length > 0)
+                    {
+                        candles[((CandleAttribute)attributes[0]).Name] = type;
+                    }
                 }
             }
-
             return candles;
         }
     }
@@ -423,22 +444,16 @@ namespace OsEngine.Candles
         }
     }
 
+    // This class seems to be a simple container for caching file lists.
     public class NamesFilesFromFolder
     {
         public string Folder;
-
-        public List<string> Files;
+        public List<string> Files; // Should ideally be private with a getter
 
         public List<string> GetFilesCopy()
         {
-            List<string> results = new List<string>();
-
-            for (int i = 0; i < Files.Count; i++)
-            {
-                results.Add(Files[i]);
-            }
-
-            return results;
+            // Create a defensive copy
+            return Files != null ? new List<string>(Files) : new List<string>();
         }
     }
 }

@@ -1810,30 +1810,30 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                MenuItem[] items = new MenuItem[6];
+                ToolStripMenuItem[] items = new ToolStripMenuItem[6];
 
-                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
+                items[0] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem1 };
                 items[0].Click += PositionCloseAll_Click;
 
-                items[1] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem2 };
+                items[1] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem2 };
                 items[1].Click += PositionOpen_Click;
 
-                items[2] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem3 };
+                items[2] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem3 };
                 items[2].Click += PositionCloseForNumber_Click;
 
-                items[3] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
+                items[3] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem5 };
                 items[3].Click += PositionNewStop_Click;
 
-                items[4] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
+                items[4] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem6 };
                 items[4].Click += PositionNewProfit_Click;
 
-                items[5] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
+                items[5] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem7 };
                 items[5].Click += PositionClearDelete_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
-                _gridOpenDeal.ContextMenu = menu;
-                _gridOpenDeal.ContextMenu.Show(_gridOpenDeal, new Point(mouse.X, mouse.Y));
+                _gridOpenDeal.ContextMenuStrip = menu;
+                _gridOpenDeal.ContextMenuStrip.Show(_gridOpenDeal, new Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {
@@ -1851,18 +1851,22 @@ namespace OsEngine.Journal.Internal
 
             try
             {
-                MenuItem[] items = new MenuItem[2];
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ToolStripMenuItem[] items = new ToolStripMenuItem[2];
 
-                items[0] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem12 };
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[0] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem12 };
                 items[0].Click += ClosedPosesGrid_PositionScrollOnChart_Click;
 
-                items[1] = new MenuItem { Text = OsLocalization.Journal.PositionMenuItem9 };
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items[1] = new ToolStripMenuItem { Text = OsLocalization.Journal.PositionMenuItem9 };
                 items[1].Click += ClosedPosesGrid_PositionDelete_Click;
 
-                ContextMenu menu = new ContextMenu(items);
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items);
 
-                _gridCloseDeal.ContextMenu = menu;
-                _gridCloseDeal.ContextMenu.Show(_gridCloseDeal, new Point(mouse.X, mouse.Y));
+                _gridCloseDeal.ContextMenuStrip = menu;
+                _gridCloseDeal.ContextMenuStrip.Show(_gridCloseDeal, new Point(mouse.X, mouse.Y));
             }
             catch (Exception error)
             {

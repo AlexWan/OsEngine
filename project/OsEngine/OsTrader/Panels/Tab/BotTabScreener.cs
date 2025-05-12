@@ -1676,11 +1676,12 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 BotTabSimple tab = Tabs[0];
 
-                System.Windows.Forms.ContextMenu menu = tab.GetContextDialog();
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                System.Windows.Forms.ContextMenuStrip menu = tab.GetContextDialog();
 
-                SecuritiesDataGrid.ContextMenu = menu;
+                SecuritiesDataGrid.ContextMenuStrip = menu;
 
-                SecuritiesDataGrid.ContextMenu.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
+                SecuritiesDataGrid.ContextMenuStrip.Show(SecuritiesDataGrid, new System.Drawing.Point(mouse.X, mouse.Y));
             }
             catch (Exception ex)
             {

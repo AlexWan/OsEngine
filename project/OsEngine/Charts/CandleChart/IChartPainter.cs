@@ -107,7 +107,7 @@ namespace OsEngine.Charts.CandleChart
         /// <returns>returns the name of data series. null in case of error/возвращается имя серии данных. null в случае ошибки</returns>
         string CreateSeries(string areaName, IndicatorChartPaintType indicatorType, string name);
 
-        void ShowContextMenu(ContextMenu menu);
+        void ShowContextMenu(ContextMenuStrip menu);
 
         List<string> GetAreasNames();
 

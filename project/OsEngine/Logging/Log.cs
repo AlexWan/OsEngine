@@ -195,21 +195,26 @@ namespace OsEngine.Logging
                 int mouseXPos = mouse.X;
                 int mouseYPos = mouse.Y;
 
-                List<MenuItem> items = new List<MenuItem>();
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                items.Add(new MenuItem(OsLocalization.Logging.Label27));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label27));
                 items[0].Click += Log_MessageServer_Click;
 
-                items.Add(new MenuItem(OsLocalization.Logging.Label28));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label28));
                 items[1].Click += Log_ShowFile_Click;
 
-                items.Add(new MenuItem(OsLocalization.Logging.Label29));
+                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                items.Add(new ToolStripMenuItem(OsLocalization.Logging.Label29));
                 items[2].Click += Log_ShowErrorLog_Click;
 
-                ContextMenu menu = new ContextMenu(items.ToArray());
+                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+                ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
-                _grid.ContextMenu = menu;
-                _grid.ContextMenu.Show(_grid, new System.Drawing.Point(mouseXPos, mouseYPos));
+                _grid.ContextMenuStrip = menu;
+                _grid.ContextMenuStrip.Show(_grid, new System.Drawing.Point(mouseXPos, mouseYPos));
             }
             catch (Exception ex)
             {
