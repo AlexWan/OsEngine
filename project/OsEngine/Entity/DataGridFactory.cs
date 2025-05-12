@@ -9,7 +9,6 @@ using System.Drawing;
 using System.Windows.Forms;
 using OsEngine.Language;
 using System.IO;
-using System.Data.Common;
 
 namespace OsEngine.Entity
 {
@@ -116,23 +115,27 @@ namespace OsEngine.Entity
 
         private static void GridClickMenuEvent(Object sender, EventArgs e)
         {
+            MouseEventArgs mouse = (MouseEventArgs)e;
+            if (mouse.Button != MouseButtons.Right)
+            {
+                return;
+            }
+
             DataGridView grid = (DataGridView)sender;
 
-            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
             List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-            items.Add(new ToolStripMenuItem("Save table in file"));
+            items.Add(new ToolStripMenuItem(OsLocalization.Entity.TableSaveMenu1));
 
             items[items.Count - 1].Click += delegate (Object sender, EventArgs e)
             {
-                if (grid.Rows.Count == 0)
-                {
-                    return;
-                }
-
                 try
                 {
+                    if (grid.Rows.Count == 0)
+                    {
+                        return;
+                    }
+
                     SaveFileDialog myDialog = new SaveFileDialog();
                     myDialog.Filter = "*.txt|";
                     myDialog.ShowDialog();
@@ -174,14 +177,7 @@ namespace OsEngine.Entity
                 }
             };
 
-            // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
             ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
-
-            MouseEventArgs mouse = (MouseEventArgs)e;
-            if (mouse.Button != MouseButtons.Right)
-            {
-                return;
-            }
 
             grid.ContextMenuStrip = menu;
             grid.ContextMenuStrip.Show(grid, new Point(mouse.X, mouse.Y));

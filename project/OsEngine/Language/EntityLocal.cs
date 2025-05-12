@@ -531,5 +531,9 @@ namespace OsEngine.Language
              "Eng:Color dialog_" +
              "Ru:Выбор цвета_");
 
+        public string TableSaveMenu1 => OsLocalization.ConvertToLocString(
+            "Eng:Save table in file_" +
+            "Ru:Сохранить таблицу в файл_");
+
     }
 }
