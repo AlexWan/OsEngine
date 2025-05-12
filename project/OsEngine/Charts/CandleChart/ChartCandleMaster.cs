@@ -651,7 +651,6 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         private void ReloadContext()
         {
-            // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
             ContextMenuStrip menu = GetContextMenu();
             ChartCandle.ShowContextMenu(menu);
         }
@@ -660,32 +659,31 @@ namespace OsEngine.Charts.CandleChart
         /// взять контекстное меню настройки отображения чарта и индикаторов
         /// </summary>
         /// <returns></returns>
-        public // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-ContextMenuStrip GetContextMenu()
+        public ContextMenuStrip GetContextMenu()
         {
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> menuRedact = null;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> menuDelete = null;
 
                 if (_indicators != null)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     menuRedact = new List<ToolStripMenuItem>();
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+
                     menuDelete = new List<ToolStripMenuItem>();
                     for (int i = 0; i < _indicators.Count; i++)
                     {
-                        // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                        menuRedact.Add(new ToolStripMenuItem(_indicators[i].GetType().Name));
+                        string indicatorName = _indicators[i].GetType().Name;
+
+                        menuRedact.Add(new ToolStripMenuItem(indicatorName));
+                        menuRedact[menuRedact.Count - 1].ToolTipText = indicatorName + "*" + i;
                         menuRedact[menuRedact.Count - 1].Click += RedactContextMenu_Click;
+
                         if (_indicators[i].CanDelete)
                         {
-                            // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                            menuDelete.Add(new ToolStripMenuItem(_indicators[i].GetType().Name));
+                            menuDelete.Add(new ToolStripMenuItem(indicatorName));
+                            menuDelete[menuDelete.Count - 1].ToolTipText = indicatorName + "*" + i;
                             menuDelete[menuDelete.Count - 1].Click += DeleteContextMenu_Click;
                         }
                     }
@@ -701,12 +699,11 @@ ContextMenuStrip GetContextMenu()
                 {
                     if (menuRedact == null)
                     {
-                        // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                         menuRedact = new List<ToolStripMenuItem>();
-                        // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+
                         menuDelete = new List<ToolStripMenuItem>();
                     }
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
+
                     menuDelete.Add(new ToolStripMenuItem("Trades"));
                     menuDelete[menuDelete.Count - 1].Click += DeleteContextMenu_Click;
                 }
@@ -714,14 +711,18 @@ ContextMenuStrip GetContextMenu()
                 List<ToolStripMenuItem> items;
 
                 items = new List<ToolStripMenuItem>();
-                var item1 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem1);
-                var item2 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem2);
+
+
+                ToolStripMenuItem item1 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem1);
+
+
+                ToolStripMenuItem item2 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem2);
 
                 item2.DropDownItems.AddRange(new ToolStripMenuItem[]{
                             new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem3),
                             new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem4)});
 
-                var item5 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem5);
+                ToolStripMenuItem item5 = new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem5);
                 item5.DropDownItems.AddRange(
                     new ToolStripMenuItem[]{
                         new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem15),
@@ -735,14 +736,14 @@ ContextMenuStrip GetContextMenu()
 
                 items.Add(item1);
 
-                ((ToolStripMenuItem)items[items.Count - 1].DropDownItems[0]).DropDownItems[0].Click += ChartBlackColor_Click;
-                ((ToolStripMenuItem)items[items.Count - 1].DropDownItems[0]).DropDownItems[0].Click += ChartWhiteColor_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[0].Click += ChartBlackColor_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[0]).DropDownItems[1].Click += ChartWhiteColor_Click;
 
-                ((ToolStripMenuItem)items[items.Count - 1].DropDownItems[0]).DropDownItems[0].Click += ChartAutoToPosition_Click;
-                ((ToolStripMenuItem)items[items.Count - 1].DropDownItems[0]).DropDownItems[1].Click += ChartCrossToPosition_Click;
-                ((ToolStripMenuItem)items[items.Count - 1].DropDownItems[0]).DropDownItems[2].Click += ChartRombToPosition_Click;
-                ((ToolStripMenuItem)items[items.Count - 1].DropDownItems[0]).DropDownItems[3].Click += ChartCircleToPosition_Click;
-                ((ToolStripMenuItem)items[items.Count - 1].DropDownItems[0]).DropDownItems[4].Click += ChartTriangleToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[0].Click += ChartAutoToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[1].Click += ChartCrossToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[2].Click += ChartRombToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[3].Click += ChartCircleToPosition_Click;
+                ((ToolStripMenuItem)items[0].DropDownItems[1]).DropDownItems[4].Click += ChartTriangleToPosition_Click;
 
                 items.Add(new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem10));
                 items[items.Count - 1].Click += ChartHideIndicators_Click;
@@ -761,11 +762,9 @@ ContextMenuStrip GetContextMenu()
                     items.Add(itemDel);
                 }
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                items.Add(new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem14));
+               items.Add(new ToolStripMenuItem(OsLocalization.Charts.ChartMenuItem14));
                 items[items.Count - 1].Click += CreateIndicators_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip();
                 menu.Items.AddRange(items.ToArray());
 
@@ -872,10 +871,12 @@ ContextMenuStrip GetContextMenu()
         {
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ToolStripMenuItem item = (ToolStripMenuItem)sender;
-                _indicators[item.MergeIndex].ShowDialog();
-                _indicators[item.MergeIndex].Save();
+
+                int num = Convert.ToInt32(item.ToolTipText.Split('*')[1]);
+
+                _indicators[num].ShowDialog();
+                _indicators[num].Save();
 
                 if (IndicatorUpdateEvent != null)
                 {
@@ -902,27 +903,24 @@ ContextMenuStrip GetContextMenu()
         {
             try
             {
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                int number = ((ToolStripMenuItem)sender).MergeIndex;
+                ToolStripMenuItem item = (ToolStripMenuItem)sender;
 
-                if ((_indicators == null || _indicators.Count <= number))
+                int number = Convert.ToInt32(item.ToolTipText.Split('*')[1]);
+
+
+                if ((_indicators == null || number >= _indicators.Count))
                 {
                     return;
                 }
 
-                List<IIndicator> indicators = _indicators.FindAll(candle => candle.CanDelete == true);
-                if (number < indicators.Count)
+                IIndicator indicator = _indicators[number];
+
+                DeleteIndicator(indicator);
+
+                if (IndicatorManuallyDeleteEvent != null)
                 {
-                    IIndicator indicator = indicators[number];
-
-                    DeleteIndicator(indicator);
-
-                    if (IndicatorManuallyDeleteEvent != null)
-                    {
-                        IndicatorManuallyDeleteEvent(indicator);
-                    }
+                    IndicatorManuallyDeleteEvent(indicator);
                 }
-
             }
             catch (Exception error)
             {
