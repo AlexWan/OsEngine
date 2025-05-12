@@ -10,6 +10,7 @@
     <UpdateEnabled>false</UpdateEnabled>
     <UpdateMode>Foreground</UpdateMode>
     <UpdateInterval>7</UpdateInterval>
+    <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     <UpdateIntervalUnits>Days</UpdateIntervalUnits>
     <UpdatePeriodically>false</UpdatePeriodically>
     <UpdateRequired>false</UpdateRequired>
@@ -31,6 +32,26 @@
    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
+  <Target Name="RemoveSatelliteAssemblies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+        <ReferenceCopyLocalPaths Remove="@(ReferenceSatellitePaths)" />
+    </ItemGroup>
+  </Target>
+  <Target Name="FilterPublishSatelliteResources" AfterTargets="RunResolvePublishAssemblies" Condition="'$(SatelliteResourceLanguages)' != ''">
+
+    <ItemGroup>
+      <PublishSatelliteResources Include="@(ResolvedAssembliesToPublish)" Condition="'%(ResolvedAssembliesToPublish.AssetType)' == 'resources'" />
+    </ItemGroup>
+
+    <JoinItems Left="@(PublishSatelliteResources)" LeftKey="Culture" LeftMetadata="*" Right="$(SatelliteResourceLanguages)" RightKey="" RightMetadata="" ItemSpecToUse="Left">
+      <Output TaskParameter="JoinResult" ItemName="FilteredPublishSatelliteResources" />
+    </JoinItems>
+
+    <ItemGroup Condition="'@(PublishSatelliteResources)' != ''">
+      <ResolvedAssembliesToPublish Remove="@(PublishSatelliteResources)" />
+      <ResolvedAssembliesToPublish Include="@(FilteredPublishSatelliteResources)" />
+    </ItemGroup>
+  </Target>
   <ItemGroup>
     <Reference Include="BytesRoad.Net.Ftp">
       <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
@@ -209,5 +230,18 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="bin\Debug\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
   </ItemGroup>
 </Project>
