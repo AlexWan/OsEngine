@@ -336,46 +336,37 @@ namespace OsEngine.OsTrader.Gui
 
                 _lastSelectedBot = _master.PanelsArray[rowIndex];
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 List<ToolStripMenuItem> items = new List<ToolStripMenuItem>();
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(_lastSelectedBot.GetNameStrategyType() + "  " + _lastSelectedBot.NameStrategyUniq));
                 items[0].Enabled = false;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label172));
                 items[1].Click += BotTabsPainter_Chart_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label45));
                 items[2].Click += BotTabsPainter_Parameters_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label40));
                 items[3].Click += BotTabsPainter_Journal_Click;
 
                 if(_lastSelectedBot.OnOffEventsInTabs == true)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label412));
                 }
                 else //if (selectedBot.OnOffEventsInTabs == false)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label413));
                 }
                 items[4].Click += BotTabsPainter_OnOffEvents_Click;
 
                 if (_lastSelectedBot.OnOffEmulatorsInTabs == true)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                     items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label414));
                 }
                 else //if (selectedBot.OnOffEventsInTabs == false)
                 {
-                    // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-                    items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label415));
+                   items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label415));
                 }
                 if(_master._startProgram == StartProgram.IsTester)
                 {
@@ -383,19 +374,15 @@ namespace OsEngine.OsTrader.Gui
                 }
                 items[5].Click += BotTabsPainter_OnOffEmulator_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label416));
                 items[6].Click += BotTabsPainter_MoveUp_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label417));
                 items[7].Click += BotTabsPainter_MoveDown_Click;
 
-                // TODO MenuItem больше не поддерживается. Взамен используйте ToolStripMenuItem. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 items.Add(new ToolStripMenuItem(OsLocalization.Trader.Label39));
                 items[8].Click += BotTabsPainter_Delete_Click;
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 ContextMenuStrip menu = new ContextMenuStrip(); menu.Items.AddRange(items.ToArray());
 
                 _grid.ContextMenuStrip = menu;

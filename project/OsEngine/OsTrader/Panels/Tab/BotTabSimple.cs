@@ -1552,8 +1552,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Take the context menu for setting the chart and indicators
         /// </summary>
-        public // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
-System.Windows.Forms.ContextMenuStrip GetContextDialog()
+        public System.Windows.Forms.ContextMenuStrip GetContextDialog()
         {
             return _chartMaster.GetContextMenu();
         }
