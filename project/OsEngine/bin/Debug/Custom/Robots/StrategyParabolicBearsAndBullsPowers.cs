@@ -78,8 +78,8 @@ namespace OsEngine.Robots.myRobots
             BullsPeriod = CreateParameter("Bulls Period", 20, 10, 300, 10, "Indicator");
 
             // Create indicator Ema
-            _PS = IndicatorsFactory.CreateIndicatorByName(nameClass: "ParabolicSAR", name: name + "Parabolic", canDelete: false);
-            _PS = (Aindicator)_tab.CreateCandleIndicator(_PS, nameArea: "Prime");
+            _PS = IndicatorsFactory.CreateIndicatorByName("ParabolicSAR", name + "Parabolic", false);
+            _PS = (Aindicator)_tab.CreateCandleIndicator(_PS, "Prime");
             ((IndicatorParameterDecimal)_PS.Parameters[0]).ValueDecimal = Step.ValueDecimal;
             ((IndicatorParameterDecimal)_PS.Parameters[1]).ValueDecimal = MaxStep.ValueDecimal;
             _PS.Save();

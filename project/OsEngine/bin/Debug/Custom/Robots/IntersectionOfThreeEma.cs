@@ -68,24 +68,24 @@ namespace OsEngine.Robots.MyRobots
             _periodEmaSlow = CreateParameter("slow EMA3 period", 300, 10, 300, 1, "Indicator");
 
             // Creating an indicator EmaFast
-            _ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema1", canDelete: false);
-            _ema1 = (Aindicator)_tab.CreateCandleIndicator(_ema1, nameArea: "Prime");
+            _ema1 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema1", false);
+            _ema1 = (Aindicator)_tab.CreateCandleIndicator(_ema1, "Prime");
             ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _periodEmaFast.ValueInt;
             _ema1.ParametersDigit[0].Value = _periodEmaFast.ValueInt;
             _ema1.DataSeries[0].Color = Color.Red;
             _ema1.Save();
 
             // Creating an indicator Middle
-            _ema2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema2", canDelete: false);
-            _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, nameArea: "Prime");
+            _ema2 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema2", false);
+            _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, "Prime");
             ((IndicatorParameterInt)_ema2.Parameters[0]).ValueInt = _periodMiddle.ValueInt;
             _ema2.ParametersDigit[0].Value = _periodMiddle.ValueInt;
             _ema2.DataSeries[0].Color = Color.Blue;
             _ema2.Save();
 
             // Creating an indicator EmaSlow
-            _ema3 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema3", canDelete: false);
-            _ema3 = (Aindicator)_tab.CreateCandleIndicator(_ema3, nameArea: "Prime");
+            _ema3 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema3", false);
+            _ema3 = (Aindicator)_tab.CreateCandleIndicator(_ema3, "Prime");
             ((IndicatorParameterInt)_ema3.Parameters[0]).ValueInt = _periodEmaSlow.ValueInt;
             _ema3.ParametersDigit[0].Value = _periodEmaSlow.ValueInt;
             _ema3.DataSeries[0].Color = Color.Green;

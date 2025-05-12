@@ -5,7 +5,7 @@ using OsEngine.Entity;
 namespace OsEngine.Indicators
 {
     [Indicator("AdaptiveLookBack")]
-    class AdaptiveLookBack : Aindicator
+    public class AdaptiveLookBack : Aindicator
     {
         private IndicatorParameterInt _length;
 

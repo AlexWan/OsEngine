@@ -85,15 +85,15 @@ namespace OsEngine.Robots.My_bots
             _ADX.Save();
            
             // Creating an indicator LRMA1
-            _LRMAUp = IndicatorsFactory.CreateIndicatorByName(nameClass: "LinearRegressionLine", name: name + "_LRMAUp", canDelete: false);
-            _LRMAUp = (Aindicator)_tab.CreateCandleIndicator(_LRMAUp, nameArea: "Prime");
+            _LRMAUp = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "_LRMAUp", false);
+            _LRMAUp = (Aindicator)_tab.CreateCandleIndicator(_LRMAUp, "Prime");
             ((IndicatorParameterInt)_LRMAUp.Parameters[0]).ValueInt = _periodLRMAChannel.ValueInt;
             ((IndicatorParameterString)_LRMAUp.Parameters[1]).ValueString = "High";
             _LRMAUp.Save();
 
             // Creating an indicator LRMA2
-            _LRMADown = IndicatorsFactory.CreateIndicatorByName(nameClass: "LinearRegressionLine", name: name + "_LRMADown", canDelete: false);
-            _LRMADown = (Aindicator)_tab.CreateCandleIndicator(_LRMADown, nameArea: "Prime");
+            _LRMADown = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "_LRMADown", false);
+            _LRMADown = (Aindicator)_tab.CreateCandleIndicator(_LRMADown, "Prime");
             ((IndicatorParameterInt)_LRMADown.Parameters[0]).ValueInt = _periodLRMAChannel.ValueInt;
             ((IndicatorParameterString)_LRMADown.Parameters[1]).ValueString = "Low";
             _LRMADown.Save();

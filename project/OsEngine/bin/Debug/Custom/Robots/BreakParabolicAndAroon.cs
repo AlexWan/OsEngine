@@ -64,8 +64,8 @@ namespace OsEngine.Robots.MyBots
             AroonLength = CreateParameter("Aroon Length", 14, 1, 200, 1, "Indicator");
 
             // Create indicator Parabolic Sar
-            _PS = IndicatorsFactory.CreateIndicatorByName(nameClass: "ParabolicSAR", name: name + "Parabolic", canDelete: false);
-            _PS = (Aindicator)_tab.CreateCandleIndicator(_PS, nameArea: "Prime");
+            _PS = IndicatorsFactory.CreateIndicatorByName("ParabolicSAR", name + "Parabolic", false);
+            _PS = (Aindicator)_tab.CreateCandleIndicator(_PS, "Prime");
             ((IndicatorParameterDecimal)_PS.Parameters[0]).ValueDecimal = Step.ValueDecimal;
             ((IndicatorParameterDecimal)_PS.Parameters[1]).ValueDecimal = MaxStep.ValueDecimal;
             _PS.Save();

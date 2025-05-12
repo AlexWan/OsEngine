@@ -76,7 +76,7 @@ namespace OsEngine.Robots.MyRobots
 
             // Creating an indicator Ssma
             _ssma = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma", false);
-            _ssma = (Aindicator)_tab.CreateCandleIndicator(_ssma, nameArea: "Prime");
+            _ssma = (Aindicator)_tab.CreateCandleIndicator(_ssma, "Prime");
             ((IndicatorParameterInt)_ssma.Parameters[0]).ValueInt = _ssmaPeriod.ValueInt;
             _ssma.Save();
 

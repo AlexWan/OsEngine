@@ -80,7 +80,7 @@ namespace OsEngine.Robots.MyBots
 
             // Creating an indicator Ssma
             _Ema = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema", false);
-            _Ema = (Aindicator)_tab.CreateCandleIndicator(_Ema, nameArea: "Prime");
+            _Ema = (Aindicator)_tab.CreateCandleIndicator(_Ema, "Prime");
             ((IndicatorParameterInt)_Ema.Parameters[0]).ValueInt = LengthEma.ValueInt;
             _Ema.Save();
 

@@ -77,8 +77,8 @@ namespace OsEngine.Robots.myRobots
             BullsPeriod = CreateParameter("Bulls Period", 20, 10, 300, 10, "Indicator");
 
             // Create indicator Ema
-            _ema = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema", canDelete: false);
-            _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, nameArea: "Prime");
+            _ema = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema", false);
+            _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, "Prime");
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;
             _ema.Save();
             

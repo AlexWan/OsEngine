@@ -87,40 +87,40 @@ namespace OsEngine.Robots.MyRobots
             _periodEmaChannel = CreateParameter("EMA Channel Length", 10, 50, 50, 400, "Indicator");
 
             // Creating indicator Ema1
-            _ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema1", canDelete: false);
-            _ema1 = (Aindicator)_tab.CreateCandleIndicator(_ema1, nameArea: "Prime");
+            _ema1 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema1", false);
+            _ema1 = (Aindicator)_tab.CreateCandleIndicator(_ema1, "Prime");
             ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _periodEma1.ValueInt;// Indicator Settings
             _ema1.ParametersDigit[0].Value = _periodEma1.ValueInt;
             _ema1.DataSeries[0].Color = Color.Red;
             _ema1.Save();
 
             // Creating indicator Ema2
-            _ema2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema2", canDelete: false);
-            _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, nameArea: "Prime");
+            _ema2 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema2", false);
+            _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, "Prime");
             ((IndicatorParameterInt)_ema2.Parameters[0]).ValueInt = _periodEma3.ValueInt;
             _ema2.ParametersDigit[0].Value = _periodEma3.ValueInt;
             _ema2.DataSeries[0].Color = Color.Blue;
             _ema2.Save();
 
             // Creating indicator Ema3
-            _ema3 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema3", canDelete: false);
-            _ema3 = (Aindicator)_tab.CreateCandleIndicator(_ema3, nameArea: "Prime");
+            _ema3 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema3", false);
+            _ema3 = (Aindicator)_tab.CreateCandleIndicator(_ema3, "Prime");
             ((IndicatorParameterInt)_ema3.Parameters[0]).ValueInt = _periodEma3.ValueInt;
             _ema3.ParametersDigit[0].Value = _periodEma4.ValueInt;
             _ema3.DataSeries[0].Color = Color.Green;
             _ema3.Save();
 
             // Creating indicator Ema4
-            _ema4 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema4", canDelete: false);
-            _ema4 = (Aindicator)_tab.CreateCandleIndicator(_ema4, nameArea: "Prime");
+            _ema4 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema4", false);
+            _ema4 = (Aindicator)_tab.CreateCandleIndicator(_ema4, "Prime");
             ((IndicatorParameterInt)_ema4.Parameters[0]).ValueInt = _periodEma4.ValueInt;
             _ema4.ParametersDigit[0].Value = _periodEma4.ValueInt;
             _ema4.DataSeries[0].Color = Color.Aqua;
             _ema4.Save();
 
             // Creating indicator EmaUp
-            _emaUp = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EmaUp", canDelete: false);
-            _emaUp = (Aindicator)_tab.CreateCandleIndicator(_emaUp, nameArea: "Prime");
+            _emaUp = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EmaUp", false);
+            _emaUp = (Aindicator)_tab.CreateCandleIndicator(_emaUp, "Prime");
             ((IndicatorParameterInt)_emaUp.Parameters[0]).ValueInt = _periodEmaChannel.ValueInt;
             ((IndicatorParameterString)_emaUp.Parameters[1]).ValueString = "High";
             _emaUp.ParametersDigit[0].Value = _periodEmaChannel.ValueInt;
@@ -128,8 +128,8 @@ namespace OsEngine.Robots.MyRobots
             _emaUp.Save();
             
             // Creating indicator EmaDown
-            _emaDown = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EmaDown", canDelete: false);
-            _emaDown = (Aindicator)_tab.CreateCandleIndicator(_emaDown, nameArea: "Prime");
+            _emaDown = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EmaDown", false);
+            _emaDown = (Aindicator)_tab.CreateCandleIndicator(_emaDown, "Prime");
             ((IndicatorParameterInt)_emaDown.Parameters[0]).ValueInt = _periodEmaChannel.ValueInt;
             ((IndicatorParameterString)_emaDown.Parameters[1]).ValueString = "Low";
             _emaDown.ParametersDigit[0].Value = _periodEmaChannel.ValueInt;

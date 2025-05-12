@@ -60,8 +60,8 @@ namespace OsEngine.Robots.MyRobots
             _ssmaPeriod = CreateParameter("Moving period", 15, 50, 300, 1, "Indicator");
 
             // Creating an indicator
-            _ssma = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "Ssma", canDelete: false);
-            _ssma = (Aindicator)_tab.CreateCandleIndicator(_ssma, nameArea: "Prime");
+            _ssma = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma", false);
+            _ssma = (Aindicator)_tab.CreateCandleIndicator(_ssma, "Prime");
             ((IndicatorParameterInt)_ssma.Parameters[0]).ValueInt = _ssmaPeriod.ValueInt;
             _ssma.Save();
 

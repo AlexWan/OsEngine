@@ -62,8 +62,8 @@ namespace OsEngine.Robots.MyRobots
             _emaPeriod = CreateParameter("Moving period", 15, 50, 300, 1, "Indicator");
 
             // Creating an indicator
-            _ema = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EMA", canDelete: false);
-            _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, nameArea: "Prime");
+            _ema = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EMA", false);
+            _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, "Prime");
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;
             _ema.Save();
             

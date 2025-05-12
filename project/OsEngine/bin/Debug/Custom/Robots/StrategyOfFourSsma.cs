@@ -79,8 +79,8 @@ namespace OsEngine.Robots.MyRobots
 
 
             // Creating an indicator SsmaUp1
-            _ssmaUp1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "SsmaUp1", canDelete: false);
-            _ssmaUp1 = (Aindicator)_tab.CreateCandleIndicator(_ssmaUp1, nameArea: "Prime");
+            _ssmaUp1 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "SsmaUp1", false);
+            _ssmaUp1 = (Aindicator)_tab.CreateCandleIndicator(_ssmaUp1, "Prime");
             ((IndicatorParameterInt)_ssmaUp1.Parameters[0]).ValueInt = _periodSsmaChannelFast.ValueInt;
             ((IndicatorParameterString)_ssmaUp1.Parameters[1]).ValueString = "High";
             _ssmaUp1.ParametersDigit[0].Value = _periodSsmaChannelFast.ValueInt;
@@ -88,8 +88,8 @@ namespace OsEngine.Robots.MyRobots
             _ssmaUp1.Save();
 
             // Creating an indicator SsmaDown1
-            _ssmaDown1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "SsmaDown1", canDelete: false);
-            _ssmaDown1 = (Aindicator)_tab.CreateCandleIndicator(_ssmaDown1, nameArea: "Prime");
+            _ssmaDown1 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "SsmaDown1", false);
+            _ssmaDown1 = (Aindicator)_tab.CreateCandleIndicator(_ssmaDown1, "Prime");
             ((IndicatorParameterInt)_ssmaDown1.Parameters[0]).ValueInt = _periodSsmaChannelFast.ValueInt;
             ((IndicatorParameterString)_ssmaDown1.Parameters[1]).ValueString = "Low";
             _ssmaDown1.ParametersDigit[0].Value = _periodSsmaChannelFast.ValueInt;
@@ -97,16 +97,16 @@ namespace OsEngine.Robots.MyRobots
             _ssmaDown1.Save();
 
             // Creating an indicator SsmaUp2
-            _ssmaUp2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "SsmaUp2", canDelete: false);
-            _ssmaUp2 = (Aindicator)_tab.CreateCandleIndicator(_ssmaUp2, nameArea: "Prime");
+            _ssmaUp2 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "SsmaUp2", false);
+            _ssmaUp2 = (Aindicator)_tab.CreateCandleIndicator(_ssmaUp2, "Prime");
             ((IndicatorParameterInt)_ssmaUp2.Parameters[0]).ValueInt = _periodSsmaChannelSlow.ValueInt;
             ((IndicatorParameterString)_ssmaUp2.Parameters[1]).ValueString = "High";
             _ssmaUp2.ParametersDigit[0].Value = _periodSsmaChannelSlow.ValueInt;
             _ssmaUp2.DataSeries[0].Color = Color.AliceBlue;
 
             // Creating an indicator SsmaDown2
-            _ssmaDown2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "SsmaDown2", canDelete: false);
-            _ssmaDown2 = (Aindicator)_tab.CreateCandleIndicator(_ssmaDown2, nameArea: "Prime");
+            _ssmaDown2 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "SsmaDown2", false);
+            _ssmaDown2 = (Aindicator)_tab.CreateCandleIndicator(_ssmaDown2, "Prime");
             ((IndicatorParameterInt)_ssmaDown2.Parameters[0]).ValueInt = _periodSsmaChannelSlow.ValueInt;
             ((IndicatorParameterString)_ssmaDown2.Parameters[1]).ValueString = "Low";
             _ssmaDown2.ParametersDigit[0].Value = _periodSsmaChannelSlow.ValueInt;

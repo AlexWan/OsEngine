@@ -68,16 +68,16 @@ namespace OsEngine.Robots.MyRobots
             _periodEmaSlow = CreateParameter("slow EMA2 period", 1000, 500, 1500, 100, "Indicator");
 
             // Creating indicator Ema1
-            _ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EMA1", canDelete: false);
-            _ema1 = (Aindicator)_tab.CreateCandleIndicator(_ema1, nameArea: "Prime");
+            _ema1 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EMA1", false);
+            _ema1 = (Aindicator)_tab.CreateCandleIndicator(_ema1, "Prime");
             ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _periodEmaFast.ValueInt;
             _ema1.ParametersDigit[0].Value = _periodEmaFast.ValueInt;
             _ema1.DataSeries[0].Color = Color.Red;
             _ema1.Save();
             
             // Creating indicator Ema2
-            _ema2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema2", canDelete: false);
-            _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, nameArea: "Prime");
+            _ema2 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema2", false);
+            _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, "Prime");
             _ema2.ParametersDigit[0].Value = _periodEmaSlow.ValueInt;
             _ema2.DataSeries[0].Color = Color.Green;
             _ema2.Save();

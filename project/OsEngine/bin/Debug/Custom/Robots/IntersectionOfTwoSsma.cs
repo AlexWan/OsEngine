@@ -63,16 +63,16 @@ namespace OsEngine.Robots.MyRobots
             _periodSsmaSlow = CreateParameter("slow EMA2 period", 1000, 500, 1500, 100, "Indicator");
 
             // Creating an indicator Ssma1
-            _ssma1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "SsMA1", canDelete: false);
-            _ssma1 = (Aindicator)_tab.CreateCandleIndicator(_ssma1, nameArea: "Prime");
+            _ssma1 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "SsMA1", false);
+            _ssma1 = (Aindicator)_tab.CreateCandleIndicator(_ssma1, "Prime");
             ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
             _ssma1.ParametersDigit[0].Value = _periodSsmaFast.ValueInt;
             _ssma1.DataSeries[0].Color = Color.Red;
             _ssma1.Save();
 
             // Creating indicator Ssma2
-            _ssma2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "Ssma2", canDelete: false);
-            _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, nameArea: "Prime");
+            _ssma2 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma2", false);
+            _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, "Prime");
             _ssma2.ParametersDigit[0].Value = _periodSsmaSlow.ValueInt;
             _ssma2.DataSeries[0].Color = Color.Green;
             _ssma2.Save();

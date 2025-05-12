@@ -81,15 +81,15 @@ namespace OsEngine.Robots.MyBots
             _DeM.Save();
 
             // Creating indicator Ema1
-            _Ema1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "EMA1", canDelete: false);
-            _Ema1 = (Aindicator)_tab.CreateCandleIndicator(_Ema1, nameArea: "Prime");
+            _Ema1 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EMA1", false);
+            _Ema1 = (Aindicator)_tab.CreateCandleIndicator(_Ema1, "Prime");
             ((IndicatorParameterInt)_Ema1.Parameters[0]).ValueInt = LengthEmaFast.ValueInt;
             _Ema1.DataSeries[0].Color = Color.Red;
             _Ema1.Save();
 
             // Creating indicator Ema2
-            _Ema2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema2", canDelete: false);
-            _Ema2 = (Aindicator)_tab.CreateCandleIndicator(_Ema2, nameArea: "Prime");
+            _Ema2 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema2", false);
+            _Ema2 = (Aindicator)_tab.CreateCandleIndicator(_Ema2, "Prime");
             ((IndicatorParameterInt)_Ema2.Parameters[0]).ValueInt = LengthEmaSlow.ValueInt;
             _Ema2.DataSeries[0].Color = Color.Green;
             _Ema2.Save();

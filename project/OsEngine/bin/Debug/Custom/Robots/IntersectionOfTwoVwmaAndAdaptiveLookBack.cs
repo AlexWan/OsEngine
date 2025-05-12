@@ -73,8 +73,8 @@ namespace OsEngine.Robots.myRobots
             PeriodVwmaSlow = CreateParameter("Slow Vwma2 period", 1000, 500, 1500, 100, "Indicator");
 
             // Create indicator Adaptive Look Back
-            ALB = IndicatorsFactory.CreateIndicatorByName(nameClass: "AdaptiveLookBack", name: name + "ALB", canDelete: false);
-            ALB = (Aindicator)_tab.CreateCandleIndicator(ALB, nameArea: "NewArea");
+            ALB = IndicatorsFactory.CreateIndicatorByName("AdaptiveLookBack", name + "ALB", false);
+            ALB = (Aindicator)_tab.CreateCandleIndicator(ALB, "NewArea");
         ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = PeriodALB.ValueInt;
             ALB.Save();
 

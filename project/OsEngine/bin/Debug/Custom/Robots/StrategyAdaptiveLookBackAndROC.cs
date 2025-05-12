@@ -80,8 +80,8 @@ namespace OsEngine.Robots.My_bots
 
 
             // Create indicator Adaptive Look Back
-            ALB = IndicatorsFactory.CreateIndicatorByName(nameClass: "AdaptiveLookBack", name: name + "ALB", canDelete: false);
-            ALB = (Aindicator)_tab.CreateCandleIndicator(ALB, nameArea: "NewArea0");
+            ALB = IndicatorsFactory.CreateIndicatorByName("AdaptiveLookBack", name + "ALB", false);
+            ALB = (Aindicator)_tab.CreateCandleIndicator(ALB, "NewArea0");
             ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = PeriodALB.ValueInt;
             ALB.Save();
 

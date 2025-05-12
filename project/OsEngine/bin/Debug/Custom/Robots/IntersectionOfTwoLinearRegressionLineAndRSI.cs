@@ -79,20 +79,20 @@ namespace OsEngine.Robots.My_bots
             _periodLRMASlow = CreateParameter("Period LRMA Slow", 500, 100, 1500, 100, "Indicator");
            
             // Creating an indicator RSI
-            _Rsi = IndicatorsFactory.CreateIndicatorByName(nameClass: "RSI", name: name + "Rsi", canDelete: false);
-            _Rsi = (Aindicator)_tab.CreateCandleIndicator(_Rsi, nameArea: "NewArea");
+            _Rsi = IndicatorsFactory.CreateIndicatorByName("RSI", name + "Rsi", false);
+            _Rsi = (Aindicator)_tab.CreateCandleIndicator(_Rsi, "NewArea");
             ((IndicatorParameterInt)_Rsi.Parameters[0]).ValueInt = _periodRsi.ValueInt;
             _Rsi.Save();
 
             // Creating an indicator LRMA1
-            _LRMA1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "LinearRegressionLine", name: name + "LRMA1", canDelete: false);
-            _LRMA1 = (Aindicator)_tab.CreateCandleIndicator(_LRMA1, nameArea: "Prime");
+            _LRMA1 = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "LRMA1", false);
+            _LRMA1 = (Aindicator)_tab.CreateCandleIndicator(_LRMA1, "Prime");
             ((IndicatorParameterInt)_LRMA1.Parameters[0]).ValueInt = _periodLRMAFast.ValueInt;
             _LRMA1.Save();
 
             // Creating an indicator LRMA2
-            _LRMA2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "LinearRegressionLine", name: name + "LRMA2", canDelete: false);
-            _LRMA2 = (Aindicator)_tab.CreateCandleIndicator(_LRMA2, nameArea: "Prime");
+            _LRMA2 = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "LRMA2", false);
+            _LRMA2 = (Aindicator)_tab.CreateCandleIndicator(_LRMA2, "Prime");
             ((IndicatorParameterInt)_LRMA2.Parameters[0]).ValueInt = _periodLRMASlow.ValueInt;
             _LRMA2.DataSeries[0].Color = Color.Aquamarine;
             _LRMA2.Save();

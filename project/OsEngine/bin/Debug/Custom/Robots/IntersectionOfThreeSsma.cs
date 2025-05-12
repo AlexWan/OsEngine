@@ -65,24 +65,24 @@ Exit: on the opposite signal.
         _periodSsmaSlow = CreateParameter("slow Ssma3 period", 300, 10, 300, 1, "Indicator");
 
         // Creating an indicator EmaFast
-        _ssma1 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "Ssma1", canDelete: false);
-        _ssma1 = (Aindicator)_tab.CreateCandleIndicator(_ssma1, nameArea: "Prime");
+        _ssma1 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma1", false);
+        _ssma1 = (Aindicator)_tab.CreateCandleIndicator(_ssma1, "Prime");
         ((IndicatorParameterInt)_ssma1.Parameters[0]).ValueInt = _periodSsmaFast.ValueInt;
         _ssma1.ParametersDigit[0].Value = _periodSsmaFast.ValueInt;
         _ssma1.DataSeries[0].Color = Color.Red;
         _ssma1.Save();
 
         // Creating an indicator  SsmaMiddle
-        _ssma2 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "Ssma2", canDelete: false);
-        _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, nameArea: "Prime");
+        _ssma2 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma2", false);
+        _ssma2 = (Aindicator)_tab.CreateCandleIndicator(_ssma2, "Prime");
         ((IndicatorParameterInt)_ssma2.Parameters[0]).ValueInt = _periodSsmaMiddle.ValueInt;
         _ssma2.ParametersDigit[0].Value = _periodSsmaMiddle.ValueInt;
         _ssma2.DataSeries[0].Color = Color.Blue;
         _ssma2.Save();
 
         // Creating an indicator SsmaSlow
-        _ssma3 = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ssma", name: name + "Ssma3", canDelete: false);
-        _ssma3 = (Aindicator)_tab.CreateCandleIndicator(_ssma3, nameArea: "Prime");
+        _ssma3 = IndicatorsFactory.CreateIndicatorByName("Ssma", name + "Ssma3", false);
+        _ssma3 = (Aindicator)_tab.CreateCandleIndicator(_ssma3, "Prime");
         ((IndicatorParameterInt)_ssma3.Parameters[0]).ValueInt = _periodSsmaSlow.ValueInt;
         _ssma3.ParametersDigit[0].Value = _periodSsmaSlow.ValueInt;
         _ssma3.DataSeries[0].Color = Color.Green;

@@ -73,14 +73,14 @@ namespace OsEngine.Robots.My_bots
             _periodLRMA= CreateParameter("LRMA period", 10, 50, 200, 10, "Indicator");
 
             // Creating an indicator EMA
-            _ema = IndicatorsFactory.CreateIndicatorByName(nameClass: "Ema", name: name + "Ema", canDelete: false);
-            _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, nameArea: "Prime");
+            _ema = IndicatorsFactory.CreateIndicatorByName("Ema", name + "Ema", false);
+            _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, "Prime");
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _periodEma.ValueInt;
             _ema.Save();
 
             // Creating an indicator LRMA
-            _LRMA = IndicatorsFactory.CreateIndicatorByName(nameClass: "LinearRegressionLine", name: name + "LRMA", canDelete: false);
-            _LRMA = (Aindicator)_tab.CreateCandleIndicator(_LRMA, nameArea: "Prime");
+            _LRMA = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "LRMA", false);
+            _LRMA = (Aindicator)_tab.CreateCandleIndicator(_LRMA, "Prime");
             ((IndicatorParameterInt)_LRMA.Parameters[0]).ValueInt = _periodLRMA.ValueInt;
             _LRMA.Save();
 
