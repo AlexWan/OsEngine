@@ -135,7 +135,7 @@ namespace OsEngine.Indicators
             return new List<string>(results); // Return a copy
         }
 
-        public static Aindicator CreateIndicatorByName(string nameClass, string nameInstance, bool canDelete, StartProgram startProgram = StartProgram.IsOsTrader)
+        public static Aindicator CreateIndicatorByName(string nameClass, string name, bool canDelete, StartProgram startProgram = StartProgram.IsOsTrader)
         {
             Aindicator indicator = null;
 
@@ -181,7 +181,7 @@ namespace OsEngine.Indicators
 
                 if (indicator != null)
                 {
-                    indicator.Init(nameInstance, startProgram);
+                    indicator.Init(name, startProgram);
                     indicator.CanDelete = canDelete;
                 }
             }
