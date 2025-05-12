@@ -1527,6 +1527,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
                 if (mouse.Button == MouseButtons.Left)
                 {
+                    if(SecuritiesDataGrid.ContextMenuStrip != null)
+                    {
+                        SecuritiesDataGrid.ContextMenuStrip = null;
+                    }
+
                     // send to watch the chart
                     if (SecuritiesDataGrid.SelectedCells == null ||
                         SecuritiesDataGrid.SelectedCells.Count == 0)
@@ -1676,7 +1681,6 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                 BotTabSimple tab = Tabs[0];
 
-                // TODO ContextMenu больше не поддерживается. Взамен используйте ContextMenuStrip. Подробности см. в https://docs.microsoft.com/en-us/dotnet/core/compatibility/winforms#removed-controls
                 System.Windows.Forms.ContextMenuStrip menu = tab.GetContextDialog();
 
                 SecuritiesDataGrid.ContextMenuStrip = menu;
