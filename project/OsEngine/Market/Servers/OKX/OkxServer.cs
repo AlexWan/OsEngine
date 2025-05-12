@@ -112,7 +112,6 @@ namespace OsEngine.Market.Servers.OKX
                     SecurityProtocolType.Tls11 |
                     SecurityProtocolType.Tls12 |
                     SecurityProtocolType.Tls13 |
-                    SecurityProtocolType.Ssl3 |
                     SecurityProtocolType.SystemDefault;
 
                 HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/time").Result;
