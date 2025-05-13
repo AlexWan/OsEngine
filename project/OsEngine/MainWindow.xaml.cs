@@ -61,6 +61,7 @@ namespace OsEngine
 
             InitializeComponent();
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
             ImageAlor2.Visibility = Visibility.Collapsed;
             ImageAlor.Visibility = Visibility.Collapsed;
@@ -488,6 +489,29 @@ namespace OsEngine
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
             string message = OsLocalization.MainWindow.Message5 + e.ExceptionObject;
+
+            message = _startProgram + "  " + message;
+
+            message = System.Reflection.Assembly.GetExecutingAssembly() + "\n" + message;
+
+            _messageToCrashServer = "Crash% " + message;
+            Thread worker = new Thread(SendMessageInCrashServer);
+            worker.Start();
+
+            if (PrimeSettingsMaster.RebootTradeUiLight == true &&
+                RobotUiLight.IsRobotUiLightStart)
+            {
+                Reboot(message);
+            }
+            else
+            {
+                MessageBox.Show(message);
+            }
+        }
+
+        private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
+        {
+            string message = OsLocalization.MainWindow.Message5 + e.Exception.ToString();
 
             message = _startProgram + "  " + message;
 
