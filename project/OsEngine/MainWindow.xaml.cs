@@ -488,7 +488,7 @@ namespace OsEngine
 
         void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            string message = OsLocalization.MainWindow.Message5 + e.ExceptionObject;
+            string message = OsLocalization.MainWindow.Message5 + " THREAD " + e.ExceptionObject;
 
             message = _startProgram + "  " + message;
 
@@ -511,7 +511,7 @@ namespace OsEngine
 
         private void TaskScheduler_UnobservedTaskException(object sender, UnobservedTaskExceptionEventArgs e)
         {
-            string message = OsLocalization.MainWindow.Message5 + e.Exception.ToString();
+            string message = OsLocalization.MainWindow.Message5 + " TASK " + e.Exception.ToString();
 
             message = _startProgram + "  " + message;
 
