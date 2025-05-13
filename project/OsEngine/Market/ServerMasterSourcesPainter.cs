@@ -493,6 +493,10 @@ namespace OsEngine.Market
             {
                 if (e.Button != MouseButtons.Right)
                 {
+                    if(_gridSources.ContextMenuStrip != null)
+                    {
+                        _gridSources.ContextMenuStrip = null;
+                    }
                     return;
                 }
 
