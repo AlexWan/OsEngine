@@ -38,7 +38,7 @@
           "qC": "1.0.0.0",
           "RestSharp": "105.2.3.0",
           "TInvestApi": "1.0.0.0",
-          "websocket-sharp": "1.0.2.32519"
+          "websocket-sharp": "1.0.2.0"
         },
         "runtime": {
           "OsEngine.dll": {}
@@ -1060,11 +1060,11 @@
           }
         }
       },
-      "websocket-sharp/1.0.2.32519": {
+      "websocket-sharp/1.0.2.0": {
         "runtime": {
           "websocket-sharp.dll": {
-            "assemblyVersion": "1.0.2.32519",
-            "fileVersion": "1.0.2.32519"
+            "assemblyVersion": "1.0.2.0",
+            "fileVersion": "1.0.2.0"
           }
         }
       }
@@ -1840,7 +1840,7 @@
       "serviceable": false,
       "sha512": ""
     },
-    "websocket-sharp/1.0.2.32519": {
+    "websocket-sharp/1.0.2.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
