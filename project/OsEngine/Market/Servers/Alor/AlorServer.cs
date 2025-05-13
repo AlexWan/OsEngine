@@ -15,7 +15,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.Alor
 {
@@ -59,10 +59,6 @@ namespace OsEngine.Market.Servers.Alor
             Thread worker3 = new Thread(PortfolioMessageReader);
             worker3.Name = "AlorPortfolioMessageReader";
             worker3.Start();
-
-            Thread worker4 = new Thread(KeepaliveUserDataStream);
-            worker4.Name = "AlorKeepaliveUserDataStream";
-            worker4.Start();
         }
 
         private WebProxy _myProxy;
@@ -1103,8 +1099,7 @@ namespace OsEngine.Market.Servers.Alor
 
                     if(_myProxy != null)
                     {
-                        NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                        _webSocketData.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                        _webSocketData.SetProxy(_myProxy);
                     }
 
                     _webSocketData.Connect();
@@ -1118,8 +1113,7 @@ namespace OsEngine.Market.Servers.Alor
 
                     if (_myProxy != null)
                     {
-                        NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                        _webSocketPortfolio.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                        _webSocketPortfolio.SetProxy(_myProxy);
                     }
 
                     _webSocketPortfolio.Connect();
@@ -1348,7 +1342,7 @@ namespace OsEngine.Market.Servers.Alor
             CheckActivationSockets();
         }
 
-        private void WebSocketData_Closed(object sender, EventArgs e)
+        private void WebSocketData_Closed(object sender, CloseEventArgs e)
         {
             try
             {
@@ -1366,7 +1360,7 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void WebSocketData_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketData_Error(object sender, ErrorEventArgs e)
         {
             try
             {
@@ -1430,7 +1424,7 @@ namespace OsEngine.Market.Servers.Alor
             CheckActivationSockets();
         }
 
-        private void _webSocketPortfolio_Closed(object sender, EventArgs e)
+        private void _webSocketPortfolio_Closed(object sender, CloseEventArgs e)
         {
             try
             {
@@ -1448,7 +1442,7 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        private void _webSocketPortfolio_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void _webSocketPortfolio_Error(object sender, ErrorEventArgs e)
         {
             try
             {
@@ -1508,33 +1502,6 @@ namespace OsEngine.Market.Servers.Alor
         #endregion
 
         #region 8 WebSocket check alive
-
-        private void KeepaliveUserDataStream()
-        {
-            while (true)
-            {
-                try
-                {
-                    Thread.Sleep(30000);
-
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
-                    {
-                        continue;
-                    }
-
-                    if (_webSocketData.Ping() == false &&
-                        _webSocketPortfolio.Ping() == false)
-                    {
-                        SendLogMessage("Alor connector. WARNING. Sockets Ping Pong not work. No internet or the server ALOR is not available", LogMessageType.Error);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
-                }
-            }
-        }
 
         #endregion
 

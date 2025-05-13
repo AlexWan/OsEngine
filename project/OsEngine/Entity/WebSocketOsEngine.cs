@@ -10,19 +10,12 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Helpers;
 
 namespace OsEngine.Entity.WebSocketOsEngine
 {
     public class WebSocket
     {
-        private ClientWebSocket _client { get; }
-
-        private CancellationTokenSource _cts;
-
-        private Task _receiveTask;
-
-        private string _url;
-
         public WebSocket(string url)
         {
             _client = new ClientWebSocket();
@@ -30,7 +23,17 @@ namespace OsEngine.Entity.WebSocketOsEngine
             ReadyState = WebSocketState.Closed;
         }
 
+        private string _url;
+
+        private ClientWebSocket _client { get; }
+
+        private CancellationTokenSource _cts;
+
+        private Task _receiveTask;
+
         public WebSocketState ReadyState;
+
+       // public SslConfiguration
 
         public bool EmitOnPing = true;
 
@@ -46,6 +49,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         {
             try
             {
+                
                 if (string.IsNullOrEmpty(_url))
                 {
                     throw new InvalidOperationException("URL must be set before connecting.");
@@ -136,6 +140,37 @@ namespace OsEngine.Entity.WebSocketOsEngine
                     OnError?.Invoke(this, eventArgs);
                 }
             }
+        }
+
+        public bool Ping()
+        {
+            try
+            {
+                if (_client.State == System.Net.WebSockets.WebSocketState.Open 
+                    && _cts != null 
+                    && !_cts.IsCancellationRequested)
+                {
+                    try
+                    {
+                        string message = "ping";
+
+                        var messageBuffer = Encoding.UTF8.GetBytes(message);
+                        _client.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text,true, _cts.Token).WaitForResult();
+
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+
+            return false;
         }
 
         public void Dispose()

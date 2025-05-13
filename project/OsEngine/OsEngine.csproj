@@ -53,7 +53,6 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
-    <PackageReference Include="websocketsharp.core" Version="1.0.1" />
     <Reference Include="BytesRoad.Net.Ftp">
       <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
     </Reference>
@@ -112,6 +111,7 @@
     <PackageReference Include="System.ServiceModel.NetTcp" Version="8.1.2" />
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.0" />
     <PackageReference Include="System.ServiceModel.Federation" Version="8.1.2" />
+    <PackageReference Include="websocketsharp.core" Version="1.0.1" />
     <PackageReference Include="WinForms.DataVisualization" Version="1.10.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Platform)' == 'AnyCPU' ">
