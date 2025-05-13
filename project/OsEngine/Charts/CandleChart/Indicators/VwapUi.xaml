@@ -9,23 +9,23 @@
         <CheckBox Name="UseDate" Content="Enable" HorizontalAlignment="Right" Margin="0,10,334,0" VerticalAlignment="Top"/>
 
         <Label Content="Start date" HorizontalAlignment="Right" Margin="0,44,442,0" VerticalAlignment="Top" />
-        <WindowsFormsHost x:Name="DatePickerStart" HorizontalAlignment="Left" Height="23" Margin="166,44,0,0" VerticalAlignment="Top" Width="120">
+        <WindowsFormsHost Name="DatePickerStart" HorizontalAlignment="Left" Height="23" Margin="166,44,0,0" VerticalAlignment="Top" Width="120">
             <forms:DateTimePicker Format="Short"></forms:DateTimePicker>
         </WindowsFormsHost>
 
         <Label Content="Start time" HorizontalAlignment="Right" Margin="0,72,441,0" VerticalAlignment="Top" />
-        <WindowsFormsHost x:Name="TimePickerStart" HorizontalAlignment="Left" Height="23" Margin="166,72,0,0" VerticalAlignment="Top" Width="120">
+        <WindowsFormsHost Name="TimePickerStart" HorizontalAlignment="Left" Height="23" Margin="166,72,0,0" VerticalAlignment="Top" Width="120">
             <forms:DateTimePicker Format="Time"></forms:DateTimePicker>
         </WindowsFormsHost>
         <CheckBox Name="ToEndTicks" Content="Until the last tick" HorizontalAlignment="Right" Margin="0,100,391,0" VerticalAlignment="Top"/>
 
         <Label Content="End date" HorizontalAlignment="Right" Margin="0,128,446,0" VerticalAlignment="Top" />
-        <WindowsFormsHost x:Name="DatePickerEnd" HorizontalAlignment="Left" Height="23" Margin="166,128,0,0" VerticalAlignment="Top" Width="120">
+        <WindowsFormsHost Name="DatePickerEnd" HorizontalAlignment="Left" Height="23" Margin="166,128,0,0" VerticalAlignment="Top" Width="120">
             <forms:DateTimePicker Format="Short"></forms:DateTimePicker>
         </WindowsFormsHost>
 
         <Label Content="End time" HorizontalAlignment="Right" Margin="0,156,446,0" VerticalAlignment="Top" />
-        <WindowsFormsHost x:Name="TimePickerEnd" HorizontalAlignment="Left" Height="23" Margin="166,156,0,0" VerticalAlignment="Top" Width="120">
+        <WindowsFormsHost Name="TimePickerEnd" HorizontalAlignment="Left" Height="23" Margin="166,156,0,0" VerticalAlignment="Top" Width="120">
             <forms:DateTimePicker Format="Time"></forms:DateTimePicker>
         </WindowsFormsHost>
         <Label Content="Deviations" HorizontalAlignment="Right" Margin="0,184,442,0" VerticalAlignment="Top" />
@@ -33,10 +33,10 @@
         <CheckBox Name="Deviations3" Content="3" HorizontalAlignment="Right" Margin="0,184,351,0" VerticalAlignment="Top"/>
         <CheckBox Name="Deviations4" Content="4" HorizontalAlignment="Right" Margin="0,184,317,0" VerticalAlignment="Top"/>
         
-        <Button x:Name="ButtonColorUp" Content="Color" HorizontalAlignment="Left" Margin="63,215,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorUp_Click" />
-        <WindowsFormsHost x:Name="HostColorUp" HorizontalAlignment="Left" Height="22" Margin="166,215,0,0" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="ButtonColorDown" Content="Color" HorizontalAlignment="Left" Margin="63,245,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorDown_Click" />
-        <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="166,245,300,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonColorUp" Content="Color" HorizontalAlignment="Left" Margin="63,215,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorUp_Click" />
+        <WindowsFormsHost Name="HostColorUp" HorizontalAlignment="Left" Height="22" Margin="166,215,0,0" VerticalAlignment="Top" Width="120"/>
+        <Button Name="ButtonColorDown" Content="Color" HorizontalAlignment="Left" Margin="63,245,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorDown_Click" />
+        <WindowsFormsHost Name="HostColorDown" Height="22" Margin="166,245,300,0" VerticalAlignment="Top"/>
 
         <Label Content="Daily Vwap" HorizontalAlignment="Right" Margin="0,10,152,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <CheckBox Name="UseDay" Content="Enable" HorizontalAlignment="Right" Margin="0,10,40,0" VerticalAlignment="Top"/>
@@ -45,10 +45,10 @@
         <CheckBox Name="DayDeviations3" Content="3" HorizontalAlignment="Right" Margin="0,43,69,0" VerticalAlignment="Top"/>
         <CheckBox Name="DayDeviations4" Content="4" HorizontalAlignment="Right" Margin="0,43,29,0" VerticalAlignment="Top"/>
         
-        <Button x:Name="ButtonColorDayUp" Content="Color" HorizontalAlignment="Left" Margin="345,74,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorDayUp_Click" />
-        <WindowsFormsHost x:Name="HostColorDayUp" HorizontalAlignment="Left" Height="22" Margin="448,74,0,0" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="ButtonColorDayDown" Content="Color" HorizontalAlignment="Left" Margin="345,107,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorDayDown_Click" />
-        <WindowsFormsHost x:Name="HostColorDayDown" Height="22" Margin="448,107,18,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonColorDayUp" Content="Color" HorizontalAlignment="Left" Margin="345,74,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorDayUp_Click" />
+        <WindowsFormsHost Name="HostColorDayUp" HorizontalAlignment="Left" Height="22" Margin="448,74,0,0" VerticalAlignment="Top" Width="120"/>
+        <Button Name="ButtonColorDayDown" Content="Color" HorizontalAlignment="Left" Margin="345,107,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorDayDown_Click" />
+        <WindowsFormsHost Name="HostColorDayDown" Height="22" Margin="448,107,18,0" VerticalAlignment="Top"/>
 
         <Label Content="Weekly Vwap" HorizontalAlignment="Right" Margin="0,156,139,0" VerticalAlignment="Top" FontWeight="Bold"/>
         <CheckBox Name="UseWeekly" Content="Enable" HorizontalAlignment="Right" Margin="0,156,39,0" VerticalAlignment="Top"/>
@@ -57,11 +57,11 @@
         <CheckBox Name="WeekDeviations3" Content="3" HorizontalAlignment="Right" Margin="0,183,69,0" VerticalAlignment="Top"/>
         <CheckBox Name="WeekDeviations4" Content="4" HorizontalAlignment="Right" Margin="0,183,29,0" VerticalAlignment="Top"/>
         
-        <Button x:Name="ButtonColorWeekUp" Content="Color" HorizontalAlignment="Left" Margin="345,215,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorWeekUp_Click" />
-        <WindowsFormsHost x:Name="HostColorWeekUp" HorizontalAlignment="Left" Height="22" Margin="448,215,0,0" VerticalAlignment="Top" Width="120"/>
-        <Button x:Name="ButtonColorWeekDown" Content="Color" HorizontalAlignment="Left" Margin="345,245,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorWeekDown_Click" />
-        <WindowsFormsHost x:Name="HostColorWeekDown" Height="22" Margin="448,245,18,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonColorWeekUp" Content="Color" HorizontalAlignment="Left" Margin="345,215,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorWeekUp_Click" />
+        <WindowsFormsHost Name="HostColorWeekUp" HorizontalAlignment="Left" Height="22" Margin="448,215,0,0" VerticalAlignment="Top" Width="120"/>
+        <Button Name="ButtonColorWeekDown" Content="Color" HorizontalAlignment="Left" Margin="345,245,0,0" VerticalAlignment="Top" Width="89" Height="22" Click="ButtonColorWeekDown_Click" />
+        <WindowsFormsHost Name="HostColorWeekDown" Height="22" Margin="448,245,18,0" VerticalAlignment="Top"/>
 
-        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="139" Click="ButtonAccept_Click"/>
+        <Button Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="139" Click="ButtonAccept_Click"/>
     </Grid>
 </Window>

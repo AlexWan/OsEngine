@@ -21,26 +21,26 @@
             <Button Name="NewDataSetButton" Content="Add new data set" Margin="149,216,10,0" VerticalAlignment="Top" Click="NewDataSetButton_Click"/>
 
         </Grid>
-        <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,0,315,0">
+        <Grid Grid.Row="0" Name="GreedChartPanel" Margin="0,0,315,0">
 
-            <Rectangle x:Name="RectChart"/>
-            <WindowsFormsHost x:Name="ChartHostPanel" Margin="2,30,2,2"/>
+            <Rectangle Name="RectChart"/>
+            <WindowsFormsHost Name="ChartHostPanel" Margin="2,30,2,2"/>
             <Label Name="LabelSetName" Content="Set Name:" HorizontalAlignment="Left" Margin="2,2,0,0" VerticalAlignment="Top" Width="94" FontSize="16"/>
             <Label Name="LabelSetNameValue" Content="Value" HorizontalAlignment="Left" Margin="96,2,0,0" VerticalAlignment="Top" Width="160" FontSize="13"/>
             <Label Name="LabelStartTimeStr" Content="Start: " HorizontalAlignment="Left" Margin="236,2,0,0" VerticalAlignment="Top" Width="86" FontSize="16"/>
-            <Label x:Name="LabelTimeStartValue" Content="value" HorizontalAlignment="Left" Margin="298,3,0,0" VerticalAlignment="Top" Width="106" FontSize="13"/>
-            <Label x:Name="LabelTimeEndStr" Content="End: " HorizontalAlignment="Left" Margin="409,2,0,0" VerticalAlignment="Top" Width="80" FontSize="16"/>
+            <Label Name="LabelTimeStartValue" Content="value" HorizontalAlignment="Left" Margin="298,3,0,0" VerticalAlignment="Top" Width="106" FontSize="13"/>
+            <Label Name="LabelTimeEndStr" Content="End: " HorizontalAlignment="Left" Margin="409,2,0,0" VerticalAlignment="Top" Width="80" FontSize="16"/>
             <ProgressBar Name="ProgressBarLoadProgress" Height="24" Margin="580,2,0,0" VerticalAlignment="Top"/>
-            <Label x:Name="LabelTimeEndValue" Content="Value" HorizontalAlignment="Left" Margin="464,2,0,0" VerticalAlignment="Top" Width="69" FontSize="13"/>
+            <Label Name="LabelTimeEndValue" Content="Value" HorizontalAlignment="Left" Margin="464,2,0,0" VerticalAlignment="Top" Width="69" FontSize="13"/>
 
 
         </Grid>
-        <Grid x:Name="GreedLog" Margin="0,0,0,5" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
+        <Grid Name="GreedLog" Margin="0,0,0,5" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
 
-            <TabControl Margin="22,-20,5,5" x:Name="TabControlPrime" BorderThickness="0" Foreground="Black">
+            <TabControl Margin="22,-20,5,5" Name="TabControlPrime" BorderThickness="0" Foreground="Black">
                 <TabItem Name="Label26" Header="Log" Width="140" Foreground="Black" >
                     <Grid >
-                        <WindowsFormsHost x:Name="HostLog"/>
+                        <WindowsFormsHost Name="HostLog"/>
                     </Grid>
                 </TabItem>
             </TabControl>
@@ -55,7 +55,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-30,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+        <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-30,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>

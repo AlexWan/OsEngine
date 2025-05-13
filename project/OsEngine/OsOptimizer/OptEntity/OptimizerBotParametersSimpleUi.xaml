@@ -9,7 +9,7 @@
     <Grid>
         <Rectangle Margin="5" />
         <WindowsFormsHost Name="HostParams1" Margin="5,5,0,5" HorizontalAlignment="Left" Width="496"/>
-        <WindowsFormsHost x:Name="HostParams2" Margin="506,5,5,5"/>
+        <WindowsFormsHost Name="HostParams2" Margin="506,5,5,5"/>
     </Grid>
 </Window>
 

@@ -97,10 +97,10 @@ namespace OsEngine.Market.Servers.Optimizer
             }
 
             TextBoxDataPath.Text = _server.PathToFolder;
-            ComboBoxDataSourseType.Items.Add(TesterSourceDataType.Folder);
-            ComboBoxDataSourseType.Items.Add(TesterSourceDataType.Set);
-            ComboBoxDataSourseType.SelectedItem = _server.SourceDataType;
-            ComboBoxDataSourseType.SelectionChanged += ComboBoxDataSourceType_SelectionChanged;
+            ComboBoxDataSourceType.Items.Add(TesterSourceDataType.Folder);
+            ComboBoxDataSourceType.Items.Add(TesterSourceDataType.Set);
+            ComboBoxDataSourceType.SelectedItem = _server.SourceDataType;
+            ComboBoxDataSourceType.SelectionChanged += ComboBoxDataSourceType_SelectionChanged;
 
             TextBoxSlippageSimpleOrder.Text = master.SlippageToSimpleOrder.ToString(new CultureInfo("ru-RU"));
             TextBoxSlippageSimpleOrder.TextChanged += TextBoxSlippageSimpleOrderTextChanged;
@@ -188,7 +188,7 @@ namespace OsEngine.Market.Servers.Optimizer
             try
             {
                 TesterSourceDataType sourceDataType;
-                Enum.TryParse(ComboBoxDataSourseType.SelectedItem.ToString(), out sourceDataType);
+                Enum.TryParse(ComboBoxDataSourceType.SelectedItem.ToString(), out sourceDataType);
                 _server.SourceDataType = sourceDataType;
             }
             catch (Exception ex)

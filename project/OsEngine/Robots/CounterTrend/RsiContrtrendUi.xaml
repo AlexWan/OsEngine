@@ -12,8 +12,8 @@
         <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="173,25,0,0" VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="23,25,0,0" VerticalAlignment="Top" />
         <Label Name="LabelRsiOverbought" Content="RSI overbought" HorizontalAlignment="Left" Margin="321,21,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="RsiUp" HorizontalAlignment="Left" Height="23" Margin="455,21,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
+        <TextBox Name="RsiUp" HorizontalAlignment="Left" Height="23" Margin="455,21,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
         <Label Name="LabelRsiOversold" Content="RSI Oversold" HorizontalAlignment="Left" Margin="321,52,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="RsiDown" HorizontalAlignment="Left" Height="23" Margin="455,52,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
+        <TextBox Name="RsiDown" HorizontalAlignment="Left" Height="23" Margin="455,52,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="83"/>
     </Grid>
 </Window>

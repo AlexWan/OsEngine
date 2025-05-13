@@ -8,10 +8,10 @@
          Title="Быстрый переход" Height="130" Width="322" WindowStartupLocation="CenterScreen"  Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True"  Tag="АВП" >
     <Grid>
         <Rectangle Margin="5,5,5,40"/>
-        <Button x:Name ="ButtonAccept"  Content="Accept" Margin="41,0,42,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom"/>
-        <DatePicker x:Name="CalendarSelectData" HorizontalAlignment="Left" Margin="159,10,0,0" VerticalAlignment="Top" Width="151" CalendarOpened="CalendarSelectData_CalendarOpened" SelectedDateChanged="CalendarSelectData_SelectedDateChanged"/>
-        <Slider x:Name="DateSlider" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="300" ValueChanged="DateSlider_ValueChanged"/>
-        <Label x:Name="LabelGoTo" Content="Перейти на" HorizontalAlignment="Right" Margin="0,10,202,0" VerticalAlignment="Top" Width="108"/>
+        <Button Name ="ButtonAccept"  Content="Accept" Margin="41,0,42,10" Click="ButtonAccept_Click" VerticalAlignment="Bottom"/>
+        <DatePicker Name="CalendarSelectData" HorizontalAlignment="Left" Margin="159,10,0,0" VerticalAlignment="Top" Width="151" CalendarOpened="CalendarSelectData_CalendarOpened" SelectedDateChanged="CalendarSelectData_SelectedDateChanged"/>
+        <Slider Name="DateSlider" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top" Width="300" ValueChanged="DateSlider_ValueChanged"/>
+        <Label Name="LabelGoTo" Content="Перейти на" HorizontalAlignment="Right" Margin="0,10,202,0" VerticalAlignment="Top" Width="108"/>
 
     </Grid>
 </Window>

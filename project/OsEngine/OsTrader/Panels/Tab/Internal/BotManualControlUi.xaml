@@ -36,10 +36,10 @@
         <Label Name="LabelSlippage3" Content="Slippage" HorizontalAlignment="Left" Margin="22,273,0,0" VerticalAlignment="Top" RenderTransformOrigin="-0.132,0.346" OpacityMask="#FFDEB1B1" Foreground="#FFDFE1E6" />
         <TextBox Name="TextBoxSlippageDoubleExit" HorizontalAlignment="Left" Height="23" Margin="159,273,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <Rectangle Margin="295,237,5,58" StrokeThickness="0"/>
-        <Label x:Name="LabelValuesType" Content="Values type" HorizontalAlignment="Left" Margin="310,241,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
+        <Label Name="LabelValuesType" Content="Values type" HorizontalAlignment="Left" Margin="310,241,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
         <ComboBox Name="ComboBoxValuesType" HorizontalAlignment="Left" Margin="449,241,0,0" VerticalAlignment="Top" Width="134"/>
-        <Label x:Name="LabelOrdersTypeTime" Content="Orders type time" HorizontalAlignment="Left" Margin="310,268,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
-        <ComboBox x:Name="ComboBoxOrdersTypeTime" HorizontalAlignment="Left" Margin="449,268,0,0" VerticalAlignment="Top" Width="134"/>
+        <Label Name="LabelOrdersTypeTime" Content="Orders type time" HorizontalAlignment="Left" Margin="310,268,0,0" VerticalAlignment="Top" Foreground="#FFE2E3E8" OpacityMask="#FFDEB1B1" />
+        <ComboBox Name="ComboBoxOrdersTypeTime" HorizontalAlignment="Left" Margin="449,268,0,0" VerticalAlignment="Top" Width="134"/>
 
     </Grid>
 </Window>

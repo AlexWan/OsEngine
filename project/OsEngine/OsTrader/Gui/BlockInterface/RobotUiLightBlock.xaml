@@ -13,7 +13,7 @@
         <Label Name="LabelPassword" Content="Password" HorizontalAlignment="Left" Margin="27,34,0,0" VerticalAlignment="Top" FontSize="16" />
         <TextBox Name="TextBoxPassword" Margin="120,34,80,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelRepeat" Content="Repeat" HorizontalAlignment="Left" Margin="27,68,0,0" VerticalAlignment="Top" FontSize="16" />
-        <TextBox x:Name="TextBoxPasswordRepeat" Margin="120,68,80,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxPasswordRepeat" Margin="120,68,80,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Image Name="ImageEye" Source="/Images/eyeBig.png"  Height="32" Margin="416,46,36,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

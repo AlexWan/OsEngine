@@ -7,14 +7,14 @@
             <RowDefinition Height="466*"/>
             <RowDefinition Height="190"/>
         </Grid.RowDefinitions>
-        <Grid x:Name="GreedTraderEngine" Margin="0,0,0,182" HorizontalAlignment="Right" Width="300" Grid.RowSpan="2">
+        <Grid Name="GreedTraderEngine" Margin="0,0,0,182" HorizontalAlignment="Right" Width="300" Grid.RowSpan="2">
             <TabControl Name="TabControlControl" HorizontalAlignment="Left" Width="300" BorderThickness="0" Margin="0,0,0,0">
                 <TabItem Name="TabItemMarketDepth" Header="Market depth" Width="90">
                     <Grid >
                         <Button Name="ButtonBuyFast" Content="   Buy &#xD;&#xA;at market" HorizontalAlignment="Left" Margin="10,0,0,82" VerticalAlignment="Bottom" Width="102" Click="buttonBuyFast_Click_1" Height="31" FontSize="11"  />
                         <Button Name="ButtonSellFast" Content="           Sell &#xA;       at market" FontSize="11" Margin="164,0,10,82" VerticalAlignment="Bottom" Click="buttonSellFast_Click" Height="31" />
                         <TextBox Name="TextBoxVolumeFast" Style="{StaticResource TextBoxRectangular}" TextAlignment="Center" BorderThickness="1,0,1,1" Height="18" Margin="100,0,100,82" TextWrapping="Wrap" Text="1" VerticalAlignment="Bottom"/>
-                        <WindowsFormsHost x:Name="HostGlass" Margin="0,0,0,127" Foreground="#FF060606"/>
+                        <WindowsFormsHost Name="HostGlass" Margin="0,0,0,127" Foreground="#FF060606"/>
                         <Button Name="ButtonBuyLimit" Content="Buy &#xD;&#xA;limit" HorizontalAlignment="Left" FontSize="11" Margin="10,0,0,46" VerticalAlignment="Bottom" Width="102" Click="ButtonBuyLimit_Click" Height="31"/>
                         <Button Name="ButtonSellLimit" Content="           Sell &#xA;           limit" HorizontalAlignment="Left" FontSize="11" Margin="162,0,0,46" VerticalAlignment="Bottom" Width="118"  Click="ButtonSellLimit_Click" Height="31"/>
                         <TextBox Name="TextBoxPrice" Style="{StaticResource TextBoxRectangular}" TextAlignment="Center" BorderThickness="1,0,1,1" Margin="100,0,100,46" TextWrapping="Wrap" VerticalAlignment="Bottom" Height="18"/>
@@ -25,14 +25,14 @@
                 </TabItem>
                 <TabItem Name="TabItemAlerts" Header="Alerts" Width="50">
                     <Grid >
-                        <WindowsFormsHost  x:Name="HostAllert"  Foreground="Black" Margin="0,59,0,0"/>
+                        <WindowsFormsHost  Name="HostAllert"  Foreground="Black" Margin="0,59,0,0"/>
                         <Button Name="ButtonAddVisualAlert" Content="Add new visual alert" Margin="0,5,0,0" VerticalAlignment="Top" Height="21" Click="ButtonAddVisualAlert_Click"/>
                         <Button Name="ButtonAddPriceAlert" Content="Add new price alert" Margin="0,31,0,0" VerticalAlignment="Top" Height="21" Click="ButtonAddPriceAlert_Click"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemGrids" Header="Grid" Width="50">
                     <Grid >
-                        <WindowsFormsHost  x:Name="HostGrids"  Foreground="Black" Margin="0,0,0,0"/>
+                        <WindowsFormsHost  Name="HostGrids"  Foreground="Black" Margin="0,0,0,0"/>
 
                     </Grid>
                 </TabItem>
@@ -57,31 +57,31 @@
 
         </Grid>
 
-        <Grid x:Name="GreedPozitonLogHost" Margin="25,0,10,10" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
-            <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" >
+        <Grid Name="GreedPozitonLogHost" Margin="25,0,10,10" Height="167" VerticalAlignment="Bottom" Grid.Row="1">
+            <TabControl Margin="0,-23,0,0" Name="TabControlPrime" BorderThickness="0" >
                 <TabItem Name="TabPozition" Header="Open positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostOpenPosition" Margin="0,0,0,0" Foreground="Black"/>
+                        <WindowsFormsHost Name="HostOpenPosition" Margin="0,0,0,0" Foreground="Black"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemClosedPos" Header="Closed positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" />
+                        <WindowsFormsHost Name="HostClosePosition" Foreground="Black" />
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemAllPos" Header="All positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostAllPosition" Foreground="Black" />
+                        <WindowsFormsHost Name="HostAllPosition" Foreground="Black" />
                     </Grid>
                 </TabItem>
                 <TabItem Name="TextBoxPositionBord" Header="Portfolio" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostPositionOnBoard" Foreground="Black" />
+                        <WindowsFormsHost Name="HostPositionOnBoard" Foreground="Black" />
                     </Grid>
                 </TabItem>
                 <TabItem Name="TextBoxPositionAllOrders" Header="Ordres" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostOrdersOnBoard"  Foreground="Black"/>
+                        <WindowsFormsHost Name="HostOrdersOnBoard"  Foreground="Black"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemLogBot"  Header="Bot log" Width="140">
@@ -89,7 +89,7 @@
                         <WindowsFormsHost Name ="HostBotLog" Foreground="Black" />
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TabItemLogPrime"  Header="Prime Log" Width="140">
+                <TabItem Name="TabItemLogPrime"  Header="Prime Log" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost Name ="HostBotLogPrime" Foreground="Black" />
                     </Grid>
@@ -106,7 +106,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+        <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -116,16 +116,16 @@
                 </TransformGroup>
             </Label.RenderTransform>
         </Label>
-        <TabControl Grid.Row="0" x:Name="TabControlBotsName"  Margin="28,0,315,0" VerticalAlignment="Top">
+        <TabControl Grid.Row="0" Name="TabControlBotsName"  Margin="28,0,315,0" VerticalAlignment="Top">
             <TabItem Header="Empty" >
                 <Grid/>
             </TabItem>
         </TabControl>
-        <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,26,308,10">
-            <Rectangle x:Name="RectChart"/>
-            <Grid x:Name="GridChart"/>
-            <WindowsFormsHost x:Name="ChartHostPanel" Margin="26,23,0,0"/>
-            <TabControl x:Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" Width="28">
+        <Grid Grid.Row="0" Name="GreedChartPanel" Margin="0,26,308,10">
+            <Rectangle Name="RectChart"/>
+            <Grid Name="GridChart"/>
+            <WindowsFormsHost Name="ChartHostPanel" Margin="26,23,0,0"/>
+            <TabControl Name="TabControlBotTab" HorizontalAlignment="Left" TabStripPlacement="Left" Margin="0,33,0,10" Width="28">
                 <TabItem Header=" 1" Margin="0,0,0,0" >
                     <Grid Background="#FFE5E5E5"/>
                 </TabItem>

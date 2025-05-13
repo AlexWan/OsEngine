@@ -13,7 +13,7 @@
         <TabControl Margin="0,0,0,2">
             <TabItem Name="TabControlItem1" Header="Base settings">
                 <Grid >
-                    <WindowsFormsHost x:Name="HostSecurity1" Margin="10,0,75,94" />
+                    <WindowsFormsHost Name="HostSecurity1" Margin="10,0,75,94" />
                     <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,5" Height="46" FontSize="14" FontFamily="Calibri" Click="ButtonAccept_Click"  VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="150"/>
                     <Button Name="ButtonSecurity1" Content="+"  Height="59" FontSize="14" FontFamily="Calibri" Margin="0,33,10,0" VerticalAlignment="Top" Click="ButtonAddSecurity_Click" HorizontalAlignment="Right" Width="52"/>
                     <RepeatButton Name="ButtonSecurity2" Content="-" Height="59" FontSize="14" FontFamily="Calibri" Margin="0,106,10,0" VerticalAlignment="Top" Delay="1000" Interval="10" Click="RepeatButtonDeleteSecurity_Click" HorizontalAlignment="Right" Width="52"/>
@@ -61,8 +61,8 @@
                     <ComboBox Name="ComboBoxDaysLookBackInBuilding" Margin="152,168,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="148" Grid.Column="1" Height="23"/>
                     <Label Name="LabelDaysLookBackInBuilding" Content="Days look back" HorizontalAlignment="Left" Margin="18,168,0,0" VerticalAlignment="Top" Width="137" Grid.Column="1" Height="23"/>
 
-                    <TextBox x:Name="TextboxUserFormulaSecondTab"  Margin="10,0,10,36" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Height="37" Grid.ColumnSpan="2"/>
-                    <Button x:Name="ButtonRebuildFormulaNow" Content="Rebuild Formula" HorizontalAlignment="Left" Margin="5,0,0,5" VerticalAlignment="Bottom" Width="160" Height="22" />
+                    <TextBox Name="TextboxUserFormulaSecondTab"  Margin="10,0,10,36" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Height="37" Grid.ColumnSpan="2"/>
+                    <Button Name="ButtonRebuildFormulaNow" Content="Rebuild Formula" HorizontalAlignment="Left" Margin="5,0,0,5" VerticalAlignment="Bottom" Width="160" Height="22" />
 
 
                 </Grid>

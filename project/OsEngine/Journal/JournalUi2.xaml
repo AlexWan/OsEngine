@@ -9,10 +9,10 @@
     <Grid>
         <Grid Name="GridTabPrime" Margin="510,0,-0.333,-0.333">
 
-            <TabControl Margin="0,0,0,0" BorderThickness="0" x:Name="TabControlPrime" TabStripPlacement="Bottom">
+            <TabControl Margin="0,0,0,0" BorderThickness="0" Name="TabControlPrime" TabStripPlacement="Bottom">
                 <TabItem Name="TabItem1" Header="Equity" Width="140" Margin="41,0,-140,0">
                     <Grid>
-                        <WindowsFormsHost x:Name="HostEquity" Foreground="Black" Margin="0,0,0,47" />
+                        <WindowsFormsHost Name="HostEquity" Foreground="Black" Margin="0,0,0,47" />
                         <Rectangle Fill="White"  HorizontalAlignment="Left" Height="25" Margin="152,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
                         <Label Name="Label1" Content="Total profit" HorizontalAlignment="Left" Margin="40,0,0,10" VerticalAlignment="Bottom"/>
                         <Rectangle Fill="DeepSkyBlue"  HorizontalAlignment="Left" Height="25" Margin="320,0,0,10" Stroke="Black" VerticalAlignment="Bottom" Width="38"/>
@@ -25,35 +25,35 @@
                 </TabItem>
                 <TabItem Name="TabItem2" Header="Statistics" Width="140" Margin="41,0,-140,0">
                     <Grid >
-                        <WindowsFormsHost x:Name="HostStatistics" Foreground="Black" Margin="250,10" RenderTransformOrigin="0.5,0.5"/>
+                        <WindowsFormsHost Name="HostStatistics" Foreground="Black" Margin="250,10" RenderTransformOrigin="0.5,0.5"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem3" Header="Drawdown" Width="140" Margin="41,0,-140,0">
                     <Grid >
-                        <WindowsFormsHost x:Name="HostDrawdown" Foreground="Black" Margin="10"/>
+                        <WindowsFormsHost Name="HostDrawdown" Foreground="Black" Margin="10"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem4" Header="Volume" Width="140" Margin="41,0,-140,0">
                     <Grid>
-                        <WindowsFormsHost x:Name="HostVolume" Foreground="Black" Margin="0,0,0,38"/>
+                        <WindowsFormsHost Name="HostVolume" Foreground="Black" Margin="0,0,0,38"/>
                         <Label Name="LabelVolumeShowNumbers" Content="Show" HorizontalAlignment="Left" Margin="310,0,0,10" VerticalAlignment="Bottom" Width="98"/>
                         <ComboBox Name="VolumeShowNumbers" HorizontalAlignment="Left" Margin="424,0,0,10" VerticalAlignment="Bottom" Width="146"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem5" Header="Open positions" Width="140" Margin="41,0,-140,0">
                     <Grid>
-                        <WindowsFormsHost x:Name="HostOpenPosition" Foreground="Black" Margin="10,10,10,42"/>
+                        <WindowsFormsHost Name="HostOpenPosition" Foreground="Black" Margin="10,10,10,42"/>
 
                         <ComboBox Name="ComboBoxOpenPosesOnPage" HorizontalAlignment="Right" Margin="0,0,153,10" VerticalAlignment="Bottom" Width="170"/>
-                        <ComboBox x:Name="ComboBoxOpenPosesShowNumbers" HorizontalAlignment="Right" Margin="0,0,328,10" VerticalAlignment="Bottom" Width="170"/>
+                        <ComboBox Name="ComboBoxOpenPosesShowNumbers" HorizontalAlignment="Right" Margin="0,0,328,10" VerticalAlignment="Bottom" Width="170"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItem6" Header="Closed positions" Width="140" Margin="41,0,-140,0" >
                     <Grid>
-                        <WindowsFormsHost x:Name="HostClosePosition" Foreground="Black" Margin="10,10,10,40"/>
+                        <WindowsFormsHost Name="HostClosePosition" Foreground="Black" Margin="10,10,10,40"/>
                         <CheckBox Name="CheckBoxShowDontOpenPoses" Content="Show don`t open positions" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom"/>
-                        <ComboBox x:Name="ComboBoxClosePosesOnPage" HorizontalAlignment="Right" Margin="0,0,153,10" VerticalAlignment="Bottom" Width="170"/>
-                        <ComboBox x:Name="ComboBoxClosePosesShowNumbers" HorizontalAlignment="Right" Margin="0,0,328,10" VerticalAlignment="Bottom" Width="170"/>
+                        <ComboBox Name="ComboBoxClosePosesOnPage" HorizontalAlignment="Right" Margin="0,0,153,10" VerticalAlignment="Bottom" Width="170"/>
+                        <ComboBox Name="ComboBoxClosePosesShowNumbers" HorizontalAlignment="Right" Margin="0,0,328,10" VerticalAlignment="Bottom" Width="170"/>
                     </Grid>
                 </TabItem>
             </TabControl>
@@ -61,7 +61,7 @@
         </Grid>
         <Grid Name="GridActivBots" Margin="0,0" HorizontalAlignment="Left" Width="510">
             <Rectangle RadiusX="0" Margin="0,0,0,36" Stroke="Black"/>
-            <Button x:Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click" RenderTransformOrigin="0.5,0.508"/>
+            <Button Name="ButtonHideLeftPanel" Content="&lt;&lt;&lt;&lt;" HorizontalAlignment="Left" Margin="0,0,0,-0.333" VerticalAlignment="Bottom" Width="140" Click="ButtonHideLeftPanel_Click" RenderTransformOrigin="0.5,0.508"/>
             <Label Name="LabelFrom" Content="From" HorizontalAlignment="Left" Margin="0,9,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelTo" Content="To" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
             <TextBox Name="TextBoxFrom" HorizontalAlignment="Left" Margin="43,9,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
@@ -81,10 +81,10 @@
             <CheckBox Name="ButtonAutoReload" Content="Auto update" HorizontalAlignment="Left" Margin="400,5,0,0" VerticalAlignment="Top" Width="110"/>
             <TabControl Margin="5,67,0,36">
                 <TabItem Name="TabItemBotFilters" Header="Bots filter">
-                    <WindowsFormsHost x:Name="HostBotsSelected" Margin="0,0,0,0"/>
+                    <WindowsFormsHost Name="HostBotsSelected" Margin="0,0,0,0"/>
                 </TabItem>
                 <TabItem Name="TabItemSecurityFilters" Header="Securities filter">
-                    <WindowsFormsHost x:Name="HostSecuritiesSelected" Margin="0,0,0,0"/>
+                    <WindowsFormsHost Name="HostSecuritiesSelected" Margin="0,0,0,0"/>
                 </TabItem>
             </TabControl>
         </Grid>

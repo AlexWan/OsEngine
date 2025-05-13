@@ -16,40 +16,40 @@
         <Rectangle Margin="2,197,0,5" HorizontalAlignment="Left" Width="407" />
         <Rectangle Margin="2,61,0,0" Height="131" VerticalAlignment="Top" HorizontalAlignment="Left" Width="407" />
         <Rectangle Margin="2,5,0,0" Height="51" VerticalAlignment="Top" HorizontalAlignment="Left" Width="407" />
-        <Label x:Name="Label1" Content="Server" HorizontalAlignment="Left" Margin="41,19,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxTypeServer" Margin="206,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="Label3" Content="Portfolio for operations" HorizontalAlignment="Left"  Margin="41,84,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxPortfolio" Margin="206,84,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="40,248,0,0" VerticalAlignment="Top" Width="78"/>
-        <ComboBox x:Name ="ComboBoxTimeFrame" Margin="206,248,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
-        <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="120,112,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="10,59,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="Label5" Content="Candles settings" HorizontalAlignment="Left" Margin="10,197,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxCommissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxCommissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label Name="Label1" Content="Server" HorizontalAlignment="Left" Margin="41,19,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxTypeServer" Margin="206,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label Name="Label3" Content="Portfolio for operations" HorizontalAlignment="Left"  Margin="41,84,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxPortfolio" Margin="206,84,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label Name="LabelTimeFrame" Content="TimeFrame" HorizontalAlignment="Left" Margin="40,248,0,0" VerticalAlignment="Top" Width="78"/>
+        <ComboBox Name ="ComboBoxTimeFrame" Margin="206,248,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <CheckBox Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="120,112,0,0" VerticalAlignment="Top"/>
+        <Label Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="10,59,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Label Name="Label5" Content="Candles settings" HorizontalAlignment="Left" Margin="10,197,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Label Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left"  Margin="41,135,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxCommissionType" Margin="206,135,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="41,163,0,0" VerticalAlignment="Top" />
+        <TextBox Name ="TextBoxCommissionValue" Margin="206,163,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <Rectangle Margin="412,5,379,5" />
         <WindowsFormsHost Name="SecuritiesHost" Margin="419,82,381,6"/>
-        <Button x:Name="ButtonAccept" Content="Load Pairs" Margin="838,0,5,5" VerticalAlignment="Bottom" Click="ButtonAccept_Click"/>
-        <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,57,393,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,31,393,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
-        <Label x:Name="LabelSecurities" Content="Securities" HorizontalAlignment="Left" Margin="419,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Right" Margin="0,8,393,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Right" Margin="0,8,503,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Right" Margin="0,8,468,0" VerticalAlignment="Top" Height="20"/>
-        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Right" Margin="0,8,449,0" VerticalAlignment="Top" Height="20"/>
-        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Right" Margin="0,8,434,0" VerticalAlignment="Top" Height="20"/>
-        <Label x:Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="419,33,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxClass" Margin="547,33,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122"/>
+        <Button Name="ButtonAccept" Content="Load Pairs" Margin="838,0,5,5" VerticalAlignment="Bottom" Click="ButtonAccept_Click"/>
+        <CheckBox Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,57,393,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,31,393,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
+        <Label Name="LabelSecurities" Content="Securities" HorizontalAlignment="Left" Margin="419,5,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <Button Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Right" Margin="0,8,393,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Right" Margin="0,8,503,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Right" Margin="0,8,468,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Right" Margin="0,8,449,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Right" Margin="0,8,434,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="419,33,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxClass" Margin="547,33,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="122"/>
         <Rectangle Margin="0,5,2,35" HorizontalAlignment="Right" Width="374" />
-        <Label x:Name="LabelPairs" Content="Final pairs" Margin="838,158,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Width="371"/>
-        <Button x:Name="ButtonConvertToPairs" Content="Convert" Margin="857,109,18,0" VerticalAlignment="Top" Click="ButtonConvertToPairs_Click"/>
+        <Label Name="LabelPairs" Content="Final pairs" Margin="838,158,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18" HorizontalAlignment="Left" Width="371"/>
+        <Button Name="ButtonConvertToPairs" Content="Convert" Margin="857,109,18,0" VerticalAlignment="Top" Click="ButtonConvertToPairs_Click"/>
         <WindowsFormsHost Name="HostPairs" Margin="840,186,1,35"/>
-        <Label x:Name="LabelConverter" Content="Converter" Margin="838,7,2,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <CheckBox x:Name="CheckBoxSaveAlreadyCreatedPairs" Content="Save already created pairs" Margin="865,70,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="331"/>
-        <Label x:Name="LabelTextBoxMaxPairsToSecurity" Content="Max pairs to security" Margin="866,35,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" />
-        <TextBox x:Name ="TextBoxMaxPairsToSecurity" Margin="1066,33,18,0" VerticalAlignment="Top"  />
+        <Label Name="LabelConverter" Content="Converter" Margin="838,7,2,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <CheckBox Name="CheckBoxSaveAlreadyCreatedPairs" Content="Save already created pairs" Margin="865,70,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="331"/>
+        <Label Name="LabelTextBoxMaxPairsToSecurity" Content="Max pairs to security" Margin="866,35,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="200" />
+        <TextBox Name ="TextBoxMaxPairsToSecurity" Margin="1066,33,18,0" VerticalAlignment="Top"  />
 
     </Grid>
 </Window>

@@ -4,13 +4,13 @@
          Title="Envelops" Height="239" Width="310" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="117" Click="ButtonAccept_Click"/>
+        <Button Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="117" Click="ButtonAccept_Click"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="155,128,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColorUp" Content="Color up" HorizontalAlignment="Left" Margin="23,74,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
-        <WindowsFormsHost x:Name="HostColorUp" Height="22" Margin="155,74,19,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonMa" Content="Sma settings" Margin="23,44,19,0" VerticalAlignment="Top" Click="ButtonMa_Click" />
-        <Button x:Name="ButtonColorDown" Content="Color down" HorizontalAlignment="Left" Margin="23,101,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
-        <WindowsFormsHost x:Name="HostColorDown" Height="22" Margin="155,101,19,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonColorUp" Content="Color up" HorizontalAlignment="Left" Margin="23,74,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorUp_Click" />
+        <WindowsFormsHost Name="HostColorUp" Height="22" Margin="155,74,19,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonMa" Content="Sma settings" Margin="23,44,19,0" VerticalAlignment="Top" Click="ButtonMa_Click" />
+        <Button Name="ButtonColorDown" Content="Color down" HorizontalAlignment="Left" Margin="23,101,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColorDown_Click" />
+        <WindowsFormsHost Name="HostColorDown" Height="22" Margin="155,101,19,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxDeviation" Margin="155,16,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelIndicatorDeviation" Content="Deviation" HorizontalAlignment="Left" Margin="48,16,0,0" VerticalAlignment="Top"/>
 

@@ -12,8 +12,8 @@
             <RowDefinition Height="190"/>
         </Grid.RowDefinitions>
 
-        <Grid x:Name="GreedPozitonLogHost" Margin="25,13,10,10" Grid.Row="1">
-            <TabControl Margin="0,-23,0,0" x:Name="TabControlPrime" BorderThickness="0" >
+        <Grid Name="GreedPozitonLogHost" Margin="25,13,10,10" Grid.Row="1">
+            <TabControl Margin="0,-23,0,0" Name="TabControlPrime" BorderThickness="0" >
                 <TabItem Name="TabItemAllPos" Header="Positions" Width="140"  >
                     <Grid Margin="-5,-5,-5,-5">
                         <TabControl>
@@ -53,10 +53,10 @@
                 </TabItem>
                 <TabItem Name="TabPortfolios" Header="Portfolio" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
-                        <WindowsFormsHost x:Name="HostPositionOnBoard" Foreground="Black" />
+                        <WindowsFormsHost Name="HostPositionOnBoard" Foreground="Black" />
                     </Grid>
                 </TabItem>
-                <TabItem x:Name="TabItemLogPrime"  Header="Prime Log" Width="140">
+                <TabItem Name="TabItemLogPrime"  Header="Prime Log" Width="140">
                     <Grid Margin="-5,-5,-5,-5">
                         <WindowsFormsHost Name ="HostBotLogPrime" Foreground="Black" />
                     </Grid>
@@ -76,7 +76,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+        <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -86,14 +86,14 @@
                 </TransformGroup>
             </Label.RenderTransform>
         </Label>
-        <Grid Grid.Row="0" x:Name="GreedChartPanel" Margin="0,0,0,0">
+        <Grid Grid.Row="0" Name="GreedChartPanel" Margin="0,0,0,0">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition Height="10"/>
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0"  Margin="0,0,0,0">
-                <WindowsFormsHost x:Name="BotsHost" Margin="0,0,0,0"/>
+                <WindowsFormsHost Name="BotsHost" Margin="0,0,0,0"/>
             </Grid>
 
             <Grid Grid.Row="1"  Margin="0,0,0,0">

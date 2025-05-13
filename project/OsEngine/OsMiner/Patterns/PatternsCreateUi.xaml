@@ -4,7 +4,7 @@
          Title="Creating a pattern group" Height="178.713" Width="261.112" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <TextBox x:Name="TextBoxPatternName" Height="23" Margin="10,44,10,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxPatternName" Height="23" Margin="10,44,10,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="10,19,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonAccept" Content="Accept" Margin="0,0,10,7" VerticalAlignment="Bottom" Click="ButtonAccept_Click" HorizontalAlignment="Right" Width="147"/>
 

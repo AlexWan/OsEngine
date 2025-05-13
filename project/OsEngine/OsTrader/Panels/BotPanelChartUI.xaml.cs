@@ -143,13 +143,13 @@ namespace OsEngine.OsTrader.Panels
 
         private void Local()
         {
-            if (!TabPozition.CheckAccess())
+            if (!TabPosition.CheckAccess())
             {
-                TabPozition.Dispatcher.Invoke(new Action(Local));
+                TabPosition.Dispatcher.Invoke(new Action(Local));
                 return;
             }
 
-            TabPozition.Header = OsLocalization.Trader.Label18;
+            TabPosition.Header = OsLocalization.Trader.Label18;
             TabItemClosedPos.Header = OsLocalization.Trader.Label19;
             TabItemLogBot.Header = OsLocalization.Trader.Label23;
             TabItemMarketDepth.Header = OsLocalization.Trader.Label25;
@@ -165,10 +165,10 @@ namespace OsEngine.OsTrader.Panels
             ButtonCloseLimit.Content = OsLocalization.Trader.Label34;
             LabelGeneralSettings.Content = OsLocalization.Trader.Label35;
             ButtonJournalCommunity.Content = OsLocalization.Trader.Label40;
-            ButtonStrategParametr.Content = OsLocalization.Trader.Label45;
+            ButtonStrategyParameter.Content = OsLocalization.Trader.Label45;
             ButtonRiskManager.Content = OsLocalization.Trader.Label46;
-            ButtonStrategSettings.Content = OsLocalization.Trader.Label47;
-            ButtonStrategSettingsIndividual.Content = OsLocalization.Trader.Label43;
+            ButtonStrategySettings.Content = OsLocalization.Trader.Label47;
+            ButtonStrategySettingsIndividual.Content = OsLocalization.Trader.Label43;
             ButtonRedactTab.Content = OsLocalization.Trader.Label44;
             ButtonMoreOpenPositionDetail.Content = OsLocalization.Trader.Label197;
             ButtonAddVisualAlert.Content = OsLocalization.Trader.Label440;
@@ -312,7 +312,7 @@ namespace OsEngine.OsTrader.Panels
             {
                 _panel.StartPaint(GridChart, ChartHostPanel, HostGlass, HostOpenPosition,
                 HostClosePosition, HostBotLog, RectChart,
-                HostAllert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, 
+                HostAlert, TabControlBotTab, TextBoxPrice, GridChartControlPanel, 
                 TextBoxVolumeFast, TabControlControl,HostGrids);
             }
             catch (Exception ex)
@@ -1045,7 +1045,7 @@ namespace OsEngine.OsTrader.Panels
 
                 GridPrime.RowDefinitions[1].Height = new GridLength(190);
                 GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
-                GreedPozitonLogHost.Height = 167;
+                GreedPositionLogHost.Height = 167;
 
                 TabControlPrime.Visibility = Visibility.Visible;
 
@@ -1121,13 +1121,13 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                if (GreedPozitonLogHost.Cursor == System.Windows.Input.Cursors.ScrollN)
+                if (GreedPositionLogHost.Cursor == System.Windows.Input.Cursors.ScrollN)
                 {
                     DoBigLowPanel();
                     _lowPanelIsBig = true;
                     SaveLeftPanelPosition();
                 }
-                else if (GreedPozitonLogHost.Cursor == System.Windows.Input.Cursors.ScrollS)
+                else if (GreedPositionLogHost.Cursor == System.Windows.Input.Cursors.ScrollS)
                 {
                     DoSmallLowPanel();
                     _lowPanelIsBig = false;
@@ -1144,7 +1144,7 @@ namespace OsEngine.OsTrader.Panels
         {
             try
             {
-                GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.Arrow;
+                GreedPositionLogHost.Cursor = System.Windows.Input.Cursors.Arrow;
             }
             catch (Exception ex)
             {
@@ -1158,11 +1158,11 @@ namespace OsEngine.OsTrader.Panels
             {
                 if (GridPrime.RowDefinitions[1].Height.Value == 190)
                 {
-                    GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.ScrollN;
+                    GreedPositionLogHost.Cursor = System.Windows.Input.Cursors.ScrollN;
                 }
                 if (GridPrime.RowDefinitions[1].Height.Value == 500)
                 {
-                    GreedPozitonLogHost.Cursor = System.Windows.Input.Cursors.ScrollS;
+                    GreedPositionLogHost.Cursor = System.Windows.Input.Cursors.ScrollS;
                 }
             }
             catch (Exception ex)
@@ -1175,7 +1175,7 @@ namespace OsEngine.OsTrader.Panels
         {
             GridPrime.RowDefinitions[1].Height = new GridLength(500, GridUnitType.Pixel);
             GreedTraderEngine.Margin = new Thickness(0, 0, 0, 492);
-            GreedPozitonLogHost.Height = 475;
+            GreedPositionLogHost.Height = 475;
             this.MinHeight = 600;
         }
 
@@ -1183,7 +1183,7 @@ namespace OsEngine.OsTrader.Panels
         {
             GridPrime.RowDefinitions[1].Height = new GridLength(190, GridUnitType.Pixel);
             GreedTraderEngine.Margin = new Thickness(0, 0, 0, 182);
-            GreedPozitonLogHost.Height = 167;
+            GreedPositionLogHost.Height = 167;
             this.MinHeight = 300;
 
         }

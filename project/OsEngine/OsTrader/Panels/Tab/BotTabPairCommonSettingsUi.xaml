@@ -50,10 +50,10 @@
 
         <Label Name="LabelRegime1" Content="Regime" HorizontalAlignment="Left" Margin="10,164,0,0" VerticalAlignment="Top"/>
         <ComboBox Name="ComboBoxRegime1" HorizontalAlignment="Left" Margin="83,164,0,0" VerticalAlignment="Top" Width="123"/>
-        <Label x:Name="LabelRegime2" Content="Regime" HorizontalAlignment="Left" Margin="297,164,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxRegime2" HorizontalAlignment="Left" Margin="375,164,0,0" VerticalAlignment="Top" Width="123"/>
-        <CheckBox x:Name="CheckBoxCorrelationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="106,330,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="379,330,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelRegime2" Content="Regime" HorizontalAlignment="Left" Margin="297,164,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxRegime2" HorizontalAlignment="Left" Margin="375,164,0,0" VerticalAlignment="Top" Width="123"/>
+        <CheckBox Name="CheckBoxCorrelationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="106,330,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="379,330,0,0" VerticalAlignment="Top"/>
 
 
     </Grid>

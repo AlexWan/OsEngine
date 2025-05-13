@@ -10,8 +10,8 @@
         <ComboBox Name="ComboBoxRegime" Margin="173,21,19,0" VerticalAlignment="Top"/>
         <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="23,21,0,0" VerticalAlignment="Top" />
         <Label Name="LabelBetweenLines" Content="% between the lines" HorizontalAlignment="Left" Margin="23,80,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxSpreadBeetwenLine" Height="23" Margin="173,80,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSpreadBeetwenLine" Height="23" Margin="173,80,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxNeedToPaint" Content="Is painting" HorizontalAlignment="Left" Margin="173,108,0,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonAbout" Content="???" HorizontalAlignment="Left" Margin="5,0,0,10" VerticalAlignment="Bottom" Width="43" Click="ButtonAbout_Click"/>
+        <Button Name="ButtonAbout" Content="???" HorizontalAlignment="Left" Margin="5,0,0,10" VerticalAlignment="Bottom" Width="43" Click="ButtonAbout_Click"/>
     </Grid>
 </Window>

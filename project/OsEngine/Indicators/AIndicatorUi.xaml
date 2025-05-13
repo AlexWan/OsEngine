@@ -26,7 +26,7 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Button x:Name="ButtonDefault" Content="Default" HorizontalAlignment="Left" Margin="10,0,0,7" VerticalAlignment="Bottom" Width="138" Click="ButtonDefault_Click" />
+        <Button Name="ButtonDefault" Content="Default" HorizontalAlignment="Left" Margin="10,0,0,7" VerticalAlignment="Bottom" Width="138" Click="ButtonDefault_Click" />
 
     </Grid>
 </Window>

@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Title="Settings" Height="226" Width="342" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
-        <Rectangle x:Name="RectTradeEngine" Margin="5,5,5,40"/>
+        <Rectangle Name="RectTradeEngine" Margin="5,5,5,40"/>
         <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Left" Margin="23,56,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxVolumeOne" Height="23" Margin="173,56,25,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="LabelSlippage" Content="Slippage" HorizontalAlignment="Left" Margin="23,84,0,0" VerticalAlignment="Top" />

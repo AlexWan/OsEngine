@@ -4,7 +4,7 @@
       Title="Security settings" Height="276.533" Width="271" Topmost="True" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,37" Stroke="Black"/>
-        <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
+        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <Label  Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="33,10,0,0" VerticalAlignment="Top" Width="217"/>
         <Label Name="SecuritiesColumn4" Content="Price step" HorizontalAlignment="Left" Margin="28,40,0,0" VerticalAlignment="Top"/>
         <Label Name="SecuritiesColumn5"  Content="Price step price" HorizontalAlignment="Left" Margin="28,68,0,0" VerticalAlignment="Top"/>
@@ -15,7 +15,7 @@
         <TextBox Name="TextBoxGoPersent" Height="23" Margin="119,96,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxLot" Height="23" Margin="119,124,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="SecuritiesVolumeDecimals"  Content="Volume Decimals" HorizontalAlignment="Left" Margin="28,152,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxVolumeDecimals" Height="23" Margin="161,152,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxVolumeDecimals" Height="23" Margin="161,152,19,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

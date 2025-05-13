@@ -13,13 +13,13 @@
         <Label Name="LabelIndicatorPeriod" Content="RSI Period" HorizontalAlignment="Left" Margin="17,18,0,0" VerticalAlignment="Top" />
         <Button Name="ButtonColorK" Content="Color K" HorizontalAlignment="Left" Margin="17,134,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click" Height="22"/>
         <WindowsFormsHost Name="HostColor" Height="22" Margin="150,134,20,0" VerticalAlignment="Top"/>
-        <TextBox x:Name ="TextBoxStochasticLength" Height="23" Margin="150,46,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label x:Name="LabelStochasticLength" Content="Stochastic Period" HorizontalAlignment="Left" Margin="17,46,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxK" Height="23" Margin="150,74,20,0" TextWrapping="Wrap" VerticalAlignment="Top" />
-        <Label x:Name="LabelK" Content="K" HorizontalAlignment="Left" Margin="17,74,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxD" Height="23" Margin="150,97,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-        <Label x:Name="LabelD" Content="D" HorizontalAlignment="Left" Margin="17,97,0,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColorD" Content="Color D" HorizontalAlignment="Left" Margin="17,161,0,0" VerticalAlignment="Top" Width="120" Height="22" Click="ButtonColorD_Click"/>
-        <WindowsFormsHost x:Name="HostColorD" Height="22" Margin="150,161,20,0" VerticalAlignment="Top"/>
+        <TextBox Name ="TextBoxStochasticLength" Height="23" Margin="150,46,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelStochasticLength" Content="Stochastic Period" HorizontalAlignment="Left" Margin="17,46,0,0" VerticalAlignment="Top" />
+        <TextBox Name ="TextBoxK" Height="23" Margin="150,74,20,0" TextWrapping="Wrap" VerticalAlignment="Top" />
+        <Label Name="LabelK" Content="K" HorizontalAlignment="Left" Margin="17,74,0,0" VerticalAlignment="Top" />
+        <TextBox Name ="TextBoxD" Height="23" Margin="150,97,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Label Name="LabelD" Content="D" HorizontalAlignment="Left" Margin="17,97,0,0" VerticalAlignment="Top" />
+        <Button Name="ButtonColorD" Content="Color D" HorizontalAlignment="Left" Margin="17,161,0,0" VerticalAlignment="Top" Width="120" Height="22" Click="ButtonColorD_Click"/>
+        <WindowsFormsHost Name="HostColorD" Height="22" Margin="150,161,20,0" VerticalAlignment="Top"/>
     </Grid>
 </Window>

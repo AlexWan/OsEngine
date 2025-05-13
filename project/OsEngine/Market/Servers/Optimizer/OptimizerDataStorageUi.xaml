@@ -11,14 +11,14 @@
         <TabControl Margin="10,10,12,10">
             <TabItem Name="Label22" Header="Broadcast data" FontSize="14">
                 <Grid >
-                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,71,0,0"/>
-                    <ComboBox x:Name="ComboBoxSets" Margin="365,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
+                    <WindowsFormsHost Name="HostSecurities" Foreground="Black" Margin="0,71,0,0"/>
+                    <ComboBox Name="ComboBoxSets" Margin="365,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
                     <Label Name="Label28" Content="Sets" HorizontalAlignment="Left" Margin="323,5,0,0" VerticalAlignment="Top" />
-                    <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="114,35,0,0" VerticalAlignment="Top" Width="178"/>
+                    <ComboBox Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="114,35,0,0" VerticalAlignment="Top" Width="178"/>
                     <Label Name="Label25" Content="Translation type" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top"/>
-                    <Button x:Name="ButtonSetDataFromPath" Content="Find in folder" Margin="626,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
-                    <TextBox x:Name="TextBoxDataPath" Margin="323,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <ComboBox x:Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="95,5,0,0" VerticalAlignment="Top" Width="197"/>
+                    <Button Name="ButtonSetDataFromPath" Content="Find in folder" Margin="626,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
+                    <TextBox Name="TextBoxDataPath" Margin="323,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxDataSourceType" HorizontalAlignment="Left" Margin="95,5,0,0" VerticalAlignment="Top" Width="197"/>
                     <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top"  />
                 </Grid>
             </TabItem>
@@ -28,12 +28,12 @@
                         <RowDefinition Height="124"/>
                         <RowDefinition Height="221*"/>
                     </Grid.RowDefinitions>
-                    <Grid x:Name="GridOrdersSettings" >
-                        <TextBox x:Name="TextBoxSlippageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
+                    <Grid Name="GridOrdersSettings" >
+                        <TextBox Name="TextBoxSlippageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
                         <Label Name = "Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="38,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
                         <CheckBox Name = "CheckBoxSlippageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="38,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageLimitOff_Checked" Height="23" Width="121"/>
                         <CheckBox Name = "CheckBoxSlippageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="38,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageLimitOn_Checked" Height="23" Width="92"/>
-                        <TextBox x:Name="TextBoxSlippageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
+                        <TextBox Name="TextBoxSlippageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
                         <Label Name = "Label33" Content="Stop slippage" Margin="284,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" HorizontalAlignment="Left" Width="208" />
                         <CheckBox Name = "CheckBoxSlippageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="284,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageStopOff_Checked" Height="24" Width="104"/>
                         <CheckBox Name = "CheckBoxSlippageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="284,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageStopOn_Checked" Height="23" Width="101"/>
@@ -55,7 +55,7 @@
             </TabItem>
             <TabItem Name="Label23" Header="Logging" FontSize="14">
                 <Grid >
-                    <WindowsFormsHost x:Name="Host" Foreground="Black" Margin="0,10,0,0" />
+                    <WindowsFormsHost Name="Host" Foreground="Black" Margin="0,10,0,0" />
                 </Grid>
             </TabItem>
         </TabControl>

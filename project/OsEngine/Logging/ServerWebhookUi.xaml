@@ -4,11 +4,11 @@
         xmlns:system="clr-namespace:System;assembly=mscorlib" x:Class="OsEngine.Logging.ServerWebhookDeliveryUi"
         Title="Webhook server" Height="254" Width="666.887" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
-        <Button x:Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
         <Rectangle Margin="5,5,5,37"/>
-        <TextBox x:Name="TextBoxWebhooks" Margin="105,18,19,95" TextWrapping="Wrap" Height="Auto" AcceptsReturn="True"/>
+        <TextBox Name="TextBoxWebhooks" Margin="105,18,19,95" TextWrapping="Wrap" Height="Auto" AcceptsReturn="True"/>
 
-        <TextBox x:Name="TextBoxSlackBotToken" Height="23" Margin="105,158,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlackBotToken" Height="23" Margin="105,158,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="Label16" Content="Webhooks" HorizontalAlignment="Left" Margin="19,18,0,0" VerticalAlignment="Top" Width="81" />
         <Label Name="Label17" Content="Slack token" HorizontalAlignment="Left" Margin="19,158,0,0" VerticalAlignment="Top" Width="81" />
     </Grid>

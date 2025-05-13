@@ -4,10 +4,10 @@
          Title="On Balance Volume" Height="156.447" Width="310" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}"  ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="117" Click="ButtonAccept_Click"/>
+        <Button Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="117" Click="ButtonAccept_Click"/>
         <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,50,0,0" VerticalAlignment="Top" />
-        <Button x:Name="ButtonColor" Content="Color" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
-        <WindowsFormsHost x:Name="HostColorBase" Height="25" Margin="154,20,20,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonColor" Content="Color" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
+        <WindowsFormsHost Name="HostColorBase" Height="25" Margin="154,20,20,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

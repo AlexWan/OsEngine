@@ -65,15 +65,15 @@
             <Label Name="LabelCointegrationLookBack" Content="Look back" HorizontalAlignment="Left" Margin="65,165,0,0" VerticalAlignment="Top"/>
             <Button Name="ButtonCointegrationReload" Content="Reload" HorizontalAlignment="Left" Margin="151,193,0,0" VerticalAlignment="Top" Width="120"/>
             <CheckBox Name="CheckBoxCorrelationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="151,10,0,0" VerticalAlignment="Top"/>
-            <CheckBox x:Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="152,101,0,0" VerticalAlignment="Top"/>
+            <CheckBox Name="CheckBoxCointegrationAutoIsOn" Content="Auto" HorizontalAlignment="Left" Margin="152,101,0,0" VerticalAlignment="Top"/>
         </Grid>
-        <Grid x:Name="GreedChartPanel" Margin="0,0,308,0">
+        <Grid Name="GreedChartPanel" Margin="0,0,308,0">
             <Grid.RowDefinitions>
                 <RowDefinition/>
                 <RowDefinition/>
             </Grid.RowDefinitions>
 
-            <Grid x:Name="GridSecurities" Margin="0,0,0,0">
+            <Grid Name="GridSecurities" Margin="0,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />
@@ -82,7 +82,7 @@
                 <WindowsFormsHost Name="HostSec2" Grid.Row="1" Margin="0,0,0,0"/>
             </Grid>
 
-            <Grid x:Name="GridIndicators" Grid.Row="1" Margin="0,0,0,0">
+            <Grid Name="GridIndicators" Grid.Row="1" Margin="0,0,0,0">
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />

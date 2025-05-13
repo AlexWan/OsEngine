@@ -4,11 +4,11 @@
         xmlns:system="clr-namespace:System;assembly=mscorlib"
         Title="Sms server" Height="193" Width="331" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
-        <Button x:Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="buttonAccept_Click" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="101"/>
         <Rectangle Margin="5,5,5,37"/>
-        <TextBox x:Name="TextBoxMyLogin" Height="23" Margin="115,20,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxPassword" Height="23" Margin="115,48,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxFones" Margin="115,76,19,0" TextWrapping="Wrap" Height="23" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxMyLogin" Height="23" Margin="115,20,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxPassword" Height="23" Margin="115,48,19,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxFones" Margin="115,76,19,0" TextWrapping="Wrap" Height="23" VerticalAlignment="Top"/>
         <Label Name="Label15" Content="Login" HorizontalAlignment="Left" Margin="21,20,0,0" VerticalAlignment="Top" Width="81"/>
         <Label Name="Label12" Content="Password" HorizontalAlignment="Left" Margin="21,48,0,0" VerticalAlignment="Top" Width="67"/>
         <Label Name="Label14" Content="Phone number" HorizontalAlignment="Left" Margin="21,76,0,0" VerticalAlignment="Top" Width="94"/>

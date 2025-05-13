@@ -11,23 +11,23 @@
         <Rectangle Margin="4,104,5,0" Height="148" VerticalAlignment="Top" />
         <Rectangle Margin="4,69,5,0" Height="30" VerticalAlignment="Top" />
         <Label Name="Label1" Content="Server" HorizontalAlignment="Left" Margin="40,72,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxTypeServer" Margin="205,72,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <ComboBox Name="ComboBoxTypeServer" Margin="205,72,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
 
         <Label Name="Label3" Content="Portfolio for operations" HorizontalAlignment="Left"  Margin="40,138,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxPortfolio" Margin="205,138,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <ComboBox Name="ComboBoxPortfolio" Margin="205,138,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
 
         <Label Name="Label6" Content="Classes displayed" HorizontalAlignment="Left" Margin="28,291,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxClass" Margin="140,291,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="163"/>
+        <ComboBox Name="ComboBoxClass" Margin="140,291,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="163"/>
 
-        <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="119,166,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="119,166,0,0" VerticalAlignment="Top"/>
 
-        <Button x:Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,18.8,9.8" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
+        <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,18.8,9.8" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <Label Name="Label2" Content="Order execution" HorizontalAlignment="Left" Margin="9,113,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label Name="Label5" Content="Security" HorizontalAlignment="Left" Margin="9,257,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <Label x:Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left"  Margin="40,189,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxCommissionType" Margin="205,189,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
-        <Label x:Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="40,217,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name ="TextBoxCommissionValue" Margin="205,217,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
+        <Label Name="LabelCommissionType" Content="Commission type" HorizontalAlignment="Left"  Margin="40,189,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxCommissionType" Margin="205,189,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <Label Name="LabelCommissionValue" Content="Commission value" HorizontalAlignment="Left" Margin="40,217,0,0" VerticalAlignment="Top" />
+        <TextBox Name ="TextBoxCommissionValue" Margin="205,217,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"  />
         <WindowsFormsHost Name="SecurityTable" HorizontalAlignment="Left" Margin="11,319,0,46" Width="418"/>
         <TextBox Name="TextBoxSearchSecurity" HorizontalAlignment="Left" Margin="309,291,0,0" TextWrapping="Wrap" Text="search..." VerticalAlignment="Top" Width="120"/>
         <Button Name="ButtonRightInSearchResults" Content=">" HorizontalAlignment="Left" Margin="406,271,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
@@ -39,7 +39,7 @@
         <Label Name="LabelBaseCurrency" Content="Base Currency" HorizontalAlignment="Left" Margin="40,10,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxBaseCurrency" HorizontalAlignment="Left" Margin="205,10,0,0" TextWrapping="Wrap" IsEnabled="False" VerticalAlignment="Top" Width="184"/>
         <Label Name="LabelOperation" Content="Operation" HorizontalAlignment="Left" Margin="40,38,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxOperationType" Margin="205,38,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <ComboBox Name="ComboBoxOperationType" Margin="205,38,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
 
 
     </Grid>

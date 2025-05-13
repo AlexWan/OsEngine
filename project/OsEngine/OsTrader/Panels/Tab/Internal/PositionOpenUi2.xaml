@@ -14,7 +14,7 @@
             <Label Name="LabelSecurityValue" Content="BNBUSDT" HorizontalAlignment="Left" Margin="59,58,0,0" VerticalAlignment="Top" Width="128"/>
             <Label Name="LabelTabName" Content="Bot tab:" HorizontalAlignment="Left" Margin="1,86,0,0" VerticalAlignment="Top"/>
             <Label Name="LabelTabNameValue" Content="TabName" HorizontalAlignment="Left" Margin="59,86,0,0" VerticalAlignment="Top" Width="128"/>
-            <CheckBox x:Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="3,114,0,0" VerticalAlignment="Top"/>
+            <CheckBox Name="CheckBoxIsEmulator" Content="Execute trades in the emulator" HorizontalAlignment="Left" Margin="3,114,0,0" VerticalAlignment="Top"/>
 
         </Grid>
         <TabControl Name="TabControlTypePosition" Margin="0,0,0,45" Height="251" VerticalAlignment="Bottom">
@@ -46,14 +46,14 @@
                     <TextBox Name="TextBoxStopVolume" HorizontalAlignment="Left" Margin="148,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelStopVolume" Content="Volume" HorizontalAlignment="Left" Margin="9,150,0,0" VerticalAlignment="Top"/>
 
-                    <ComboBox x:Name="ComboBoxStopLimitType" HorizontalAlignment="Left" Margin="148,10,0,0" VerticalAlignment="Top" Width="199"/>
-                    <Label x:Name="LabelStopActivationType" Content="Activation Type" HorizontalAlignment="Left" Margin="9,10,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopLimitType" HorizontalAlignment="Left" Margin="148,10,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopActivationType" Content="Activation Type" HorizontalAlignment="Left" Margin="9,10,0,0" VerticalAlignment="Top"/>
 
-                    <TextBox x:Name="TextBoxStopLifeTime" HorizontalAlignment="Left" Margin="148,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
-                    <Label x:Name="LabelStopLifeTime" Content="Lifetime candles" HorizontalAlignment="Left" Margin="9,66,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopLifeTime" HorizontalAlignment="Left" Margin="148,66,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopLifeTime" Content="Lifetime candles" HorizontalAlignment="Left" Margin="9,66,0,0" VerticalAlignment="Top"/>
 
-                    <ComboBox x:Name="ComboBoxStopLifetimeType" HorizontalAlignment="Left" Margin="148,38,0,0" VerticalAlignment="Top" Width="199"/>
-                    <Label x:Name="LabelStopLifeTimeType" Content="Lifetime Type" HorizontalAlignment="Left" Margin="9,38,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopLifetimeType" HorizontalAlignment="Left" Margin="148,38,0,0" VerticalAlignment="Top" Width="199"/>
+                    <Label Name="LabelStopLifeTimeType" Content="Lifetime Type" HorizontalAlignment="Left" Margin="9,38,0,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
 
@@ -63,7 +63,7 @@
                     <TextBox Name="TextBoxFakeVolume" HorizontalAlignment="Left" Margin="149,133,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
                     <Label Name="LabelFakePrice" Content="Price" HorizontalAlignment="Left" Margin="45,105,0,0" VerticalAlignment="Top"/>
                     <Label Name="LabelFakeVolume" Content="Volume" HorizontalAlignment="Left" Margin="45,133,0,0" VerticalAlignment="Top"/>
-                    <DatePicker x:Name="DatePickerFakeOpenDate" HorizontalAlignment="Left" Margin="149,37,0,0" VerticalAlignment="Top" Width="139"/>
+                    <DatePicker Name="DatePickerFakeOpenDate" HorizontalAlignment="Left" Margin="149,37,0,0" VerticalAlignment="Top" Width="139"/>
                     <Label Name="LabelFakeOpenDate" Content="Open Date" HorizontalAlignment="Left" Margin="45,37,0,0" VerticalAlignment="Top" Width="104"/>
                     <TextBox Name="TextBoxFakeOpenTime" HorizontalAlignment="Left" Margin="149,67,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="139"/>
                     <Label Name="LabelFakeOpenTime" Content="Open Time" HorizontalAlignment="Left" Margin="45,67,0,0" VerticalAlignment="Top" Width="104"/>

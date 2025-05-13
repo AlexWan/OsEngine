@@ -16,7 +16,7 @@
             <ComboBox Name="ComboBoxThreadsCount" HorizontalAlignment="Right" Margin="0,0,186,19" VerticalAlignment="Bottom" Width="135" Height="21"/>
             <Label Name="Label8" Content="Threads" HorizontalAlignment="Right" Margin="0,0,224,41" VerticalAlignment="Bottom"/>
             <Button Name="ButtonResults" Content="Results" Margin="0,52,24,0" VerticalAlignment="Top" Click="ButtonResults_Click" HorizontalAlignment="Right" Width="148"/>
-            <Label x:Name="LabelTimeToEnd" Content="Time to end" Foreground="AliceBlue" HorizontalAlignment="Left" Margin="10,24,0,0" VerticalAlignment="Top" Height="19" Width="229" FontSize="12"/>
+            <Label Name="LabelTimeToEnd" Content="Time to end" Foreground="AliceBlue" HorizontalAlignment="Left" Margin="10,24,0,0" VerticalAlignment="Top" Height="19" Width="229" FontSize="12"/>
         </Grid>
         <Grid Grid.Row="1">
             <TabControl Name="TabControlPrime" Margin="10,-15,10,10">
@@ -30,16 +30,16 @@
                         <TextBox Name="CommissionValueTextBox" Margin="125,190,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="101" Height="28"/>
                         <WindowsFormsHost Name="HostLog" Margin="10,224,10,10" Foreground="Black"/>
                         <Rectangle Name="RectangleTimeFramesAndSecurities" Margin="231,0,10,0" Height="164" VerticalAlignment="Top"/>
-                        <WindowsFormsHost x:Name="HostTabsSimple" Foreground="Black" Height="156" Margin="247,26,5,0" VerticalAlignment="Top"/>
+                        <WindowsFormsHost Name="HostTabsSimple" Foreground="Black" Height="156" Margin="247,26,5,0" VerticalAlignment="Top"/>
                         <Label Name="LabelTabsEndTimeFrames" Content="Sources" HorizontalAlignment="Left" Margin="247,1,0,0" VerticalAlignment="Top"/>
                         <Rectangle Name="RectangleServerData" HorizontalAlignment="Left" Height="55" Margin="10,1,0,0" VerticalAlignment="Top" Width="206"/>
-                        <Button x:Name="ButtonServerDialog" Content="Data Server Settings" HorizontalAlignment="Left" Margin="12,10,0,0" VerticalAlignment="Top" Width="214" Height="39" Click="ButtonServerDialog_Click"/>
+                        <Button Name="ButtonServerDialog" Content="Data Server Settings" HorizontalAlignment="Left" Margin="12,10,0,0" VerticalAlignment="Top" Width="214" Height="39" Click="ButtonServerDialog_Click"/>
                         <Rectangle Name="RectangleStrategyName" HorizontalAlignment="Left" Height="58" Margin="10,48,0,0"  VerticalAlignment="Top" Width="206"/>
                         <Label Name="Label12" Content="Optimization strategy" HorizontalAlignment="Left" Margin="12,48,0,0" VerticalAlignment="Top"/>
                         <Button Name="ButtonStrategySelect" Content="Select" HorizontalAlignment="Left" Margin="156,53,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategySelect_Click"/>
                         <TextBox Name="TextBoxStrategyName" HorizontalAlignment="Left" IsReadOnly="True" Margin="12,71,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="139" Height="37"/>
-                        <Button x:Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="195" Click="ButtonPositionSupport_Click" />
-                        <Button x:Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,83,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategyReload_Click"/>
+                        <Button Name="ButtonPositionSupport" Content="Position support"  HorizontalAlignment="Left" Margin="231,190,0,0" VerticalAlignment="Top" Width="195" Click="ButtonPositionSupport_Click" />
+                        <Button Name="ButtonStrategyReload" Content="Reload" HorizontalAlignment="Left" Margin="156,83,0,0" VerticalAlignment="Top" Width="69" Click="ButtonStrategyReload_Click"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemParameters" Header="Parameters" FontSize="14" Width="120">
@@ -47,8 +47,8 @@
                         <WindowsFormsHost Name="HostParam"  Foreground="Black" Margin="10,38,10,26"/>
                         <Label Name="Label17" Content="Parameters table" HorizontalAlignment="Left" Margin="10,8,0,0" VerticalAlignment="Top"/>
                         <Label Name="LabelIteartionCount" Content="Iteration count: " HorizontalAlignment="Right" Margin="0,10,122,0" VerticalAlignment="Top"/>
-                        <Label x:Name="LabelIteartionCountNumber" Content="unknown" HorizontalAlignment="Right" Margin="0,10,56,0" VerticalAlignment="Top"/>
-                        <Button Name="ButtonSetStandardParameters" Content="Set Standart Parameters" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Bottom" Width="260" Click="ButtonSetStandardParameters_Click"/>
+                        <Label Name="LabelIteartionCountNumber" Content="unknown" HorizontalAlignment="Right" Margin="0,10,56,0" VerticalAlignment="Top"/>
+                        <Button Name="ButtonSetStandardParameters" Content="Set Standard Parameters" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Bottom" Width="260" Click="ButtonSetStandardParameters_Click"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemFazes" Header="Fazes" FontSize="14" Width="120">
@@ -60,10 +60,10 @@
                         <Label Name="Label20" Content="Test period" HorizontalAlignment="Left" Margin="377,4,0,0" VerticalAlignment="Top"/>
                         <TextBox Name="TextBoxPercentFiltration" Height="23" Margin="0,29,10,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="144"/>
                         <Label Name="Label21" Content="% of time OutOfSample" HorizontalAlignment="Right" Margin="0,4,10,0" VerticalAlignment="Top"/>
-                        <TextBox x:Name="TextBoxIterationCount" Height="23" Margin="0,29,181,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="144"/>
-                        <Label x:Name="Label23" Content="Iteration count" HorizontalAlignment="Right" Margin="0,4,204,0" VerticalAlignment="Top"/>
+                        <TextBox Name="TextBoxIterationCount" Height="23" Margin="0,29,181,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Right" Width="144"/>
+                        <Label Name="Label23" Content="Iteration count" HorizontalAlignment="Right" Margin="0,4,204,0" VerticalAlignment="Top"/>
                         <CheckBox Name="CheckBoxLastInSample" Content="Last inSample" HorizontalAlignment="Left" Margin="579,29,0,0" VerticalAlignment="Top"/>
-                        <WindowsFormsHost x:Name="HostWalkForwardPeriods"  Foreground="Black" Margin="738,72,10,10"/>
+                        <WindowsFormsHost Name="HostWalkForwardPeriods"  Foreground="Black" Margin="738,72,10,10"/>
                     </Grid>
                 </TabItem>
                 <TabItem Name="TabItemFilters" Header="Filters" FontSize="14" Width="120">
@@ -87,26 +87,26 @@
                         <TabControl  Name="TabControlResults" Margin="0,0,0,0">
                             <TabItem Name="TabControlResultsSeries"  Header="Series and Results">
                                 <Grid >
-                                    <WindowsFormsHost x:Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="207" Margin="0,22,538,0" VerticalAlignment="Top"/>
-                                    <Label x:Name="Label30" Content="Optimization series" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,250,5,0"/>
-                                    <Label x:Name="Label31" Content="Result table" HorizontalAlignment="Left" VerticalAlignment="Center" Height="22"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostResultsChart"  Foreground="Black" Height="207" Margin="533,22,5,0" VerticalAlignment="Top"/>
-                                    <Label x:Name="LabelSeriesResultChart" Content="Series results chart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Margin="532,0,0,0"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="207" Margin="0,22,538,0" VerticalAlignment="Top"/>
+                                    <Label Name="Label30" Content="Optimization series" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,250,5,0"/>
+                                    <Label Name="Label31" Content="Result table" HorizontalAlignment="Left" VerticalAlignment="Center" Height="22"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostResultsChart"  Foreground="Black" Height="207" Margin="533,22,5,0" VerticalAlignment="Top"/>
+                                    <Label Name="LabelSeriesResultChart" Content="Series results chart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Margin="532,0,0,0"/>
                                 </Grid>
                             </TabItem>
                             <TabItem Name="TabControlResultsOutOfSampleResults" Header="Out of sample statistic">
                                 <Grid >
-                                    <WindowsFormsHost x:Name="HostStepsOfOptimizationTable"  Foreground="Black" Margin="0,37,0,222"/>
+                                    <WindowsFormsHost Name="HostStepsOfOptimizationTable"  Foreground="Black" Margin="0,37,0,222"/>
                                     <ComboBox Name="ComboBoxSortResultsType" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
                                     <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="26,9,0,0" VerticalAlignment="Top"/>
-                                    <WindowsFormsHost x:Name="HostRobustness"  Foreground="Black" Margin="0,0,587.6,10" Height="183" VerticalAlignment="Bottom"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostTotalProfit"  Foreground="Black" Margin="0,0,0,10" Height="181" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="583"/>
-                                    <Label x:Name="LabelRobustnessMetric" Content="Robustness metric: " HorizontalAlignment="Left" Margin="0,0,0,194" VerticalAlignment="Bottom" Width="209"/>
-                                    <Label x:Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="214,0,0,194" VerticalAlignment="Bottom" Width="81"/>
-                                    <Label x:Name="LabelTotalAbsProfit" Content="Total profit summ" VerticalAlignment="Bottom" Height="23" Margin="0,0,435,194" HorizontalAlignment="Right" Width="143"/>
-                                    <ComboBox x:Name="ComboBoxTotalProfit" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="155" Margin="0,0,260,194"/>
-                                    <ComboBox x:Name="ComboBoxSortResultsBotNumPercent" HorizontalAlignment="Left" Margin="407,10,0,0" VerticalAlignment="Top" Width="67" Height="22"/>
+                                    <WindowsFormsHost Name="HostRobustness"  Foreground="Black" Margin="0,0,587.6,10" Height="183" VerticalAlignment="Bottom"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostTotalProfit"  Foreground="Black" Margin="0,0,0,10" Height="181" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="583"/>
+                                    <Label Name="LabelRobustnessMetric" Content="Robustness metric: " HorizontalAlignment="Left" Margin="0,0,0,194" VerticalAlignment="Bottom" Width="209"/>
+                                    <Label Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="214,0,0,194" VerticalAlignment="Bottom" Width="81"/>
+                                    <Label Name="LabelTotalAbsProfit" Content="Total profit summ" VerticalAlignment="Bottom" Height="23" Margin="0,0,435,194" HorizontalAlignment="Right" Width="143"/>
+                                    <ComboBox Name="ComboBoxTotalProfit" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="155" Margin="0,0,260,194"/>
+                                    <ComboBox Name="ComboBoxSortResultsBotNumPercent" HorizontalAlignment="Left" Margin="407,10,0,0" VerticalAlignment="Top" Width="67" Height="22"/>
 
                                 </Grid>
                             </TabItem>
@@ -125,7 +125,7 @@
                     </TransformGroup>
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+            <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
                 <Label.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>

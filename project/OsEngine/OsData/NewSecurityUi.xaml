@@ -8,13 +8,13 @@
         <Button Name="ButtonAccept" Content="Accept" Height="22" FontSize="13" FontFamily="Calibri" Margin="0,0,5,10" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="129" Click="ButtonAccept_Click"/>
         <ComboBox Name="ComboBoxClass" Margin="10,28,251.4,0" VerticalAlignment="Top"/>
         <WindowsFormsHost Name="HostSecurity" Margin="10,56,10.4,42.4"/>
-        <Label x:Name="LabelSearchString" Content="" HorizontalAlignment="Left" Margin="10,218,0,0" VerticalAlignment="Top" Width="145" />
-        <CheckBox x:Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,28,10.4,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,28,110.4,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
-        <Button x:Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="292,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Button x:Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="182,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
-        <Label x:Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="225,5,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label x:Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="240,5,0,0" VerticalAlignment="Top" Height="20"/>
-        <Label x:Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="259,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelSearchString" Content="" HorizontalAlignment="Left" Margin="10,218,0,0" VerticalAlignment="Top" Width="145" />
+        <CheckBox Name="CheckBoxSelectAllCheckBox" Content="Select all" HorizontalAlignment="Right" Margin="0,28,10.4,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSearchSecurity" HorizontalAlignment="Right" Margin="0,28,110.4,0" Text="Search..." TextWrapping="Wrap" VerticalAlignment="Top" Width="133"/>
+        <Button Name="ButtonRightInSearchResults" Content="&gt;" HorizontalAlignment="Left" Margin="292,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Button Name="ButtonLeftInSearchResults" Content="&lt;" HorizontalAlignment="Left" Margin="182,5,0,0" VerticalAlignment="Top" Width="23" Height="20"/>
+        <Label Name="LabelCurrentResultShow" Content="1" HorizontalAlignment="Left" Margin="225,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelCommasResultShow" Content="...." HorizontalAlignment="Left" Margin="240,5,0,0" VerticalAlignment="Top" Height="20"/>
+        <Label Name="LabelCountResultsShow" Content="8" HorizontalAlignment="Left" Margin="259,5,0,0" VerticalAlignment="Top" Height="20"/>
     </Grid>
 </Window>

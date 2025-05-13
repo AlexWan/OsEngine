@@ -76,13 +76,13 @@
             <Label Name="LabelLog" Content="Log" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <WindowsFormsHost Name="HostLog" Margin="1,22,14,1"/>
         </Grid>
-        <Grid x:Name="GreedChartPanel" Margin="0,0,600,0">
+        <Grid Name="GreedChartPanel" Margin="0,0,600,0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="153*"/>
                 <RowDefinition Height="73*"/>
             </Grid.RowDefinitions>
 
-            <Grid x:Name="GridSecurities">
+            <Grid Name="GridSecurities">
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition />
@@ -93,7 +93,7 @@
                 <Button Name="ButtonSec2" Content="Select" HorizontalAlignment="Left" VerticalAlignment="Top" Height="21" Width="122" Grid.Row="1"/>
             </Grid>
 
-            <Grid x:Name="GridIndicators" Grid.Row="1">
+            <Grid Name="GridIndicators" Grid.Row="1">
                 <Grid.RowDefinitions>
                     <RowDefinition />
                 </Grid.RowDefinitions>

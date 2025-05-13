@@ -25,7 +25,7 @@ namespace OsEngine.Market.Servers.AstsBridge
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _server = server;
 
-            TextBoxServerAdress.Text = _server.ServerAdress;
+            TextBoxServerAddress.Text = _server.ServerAdress;
             TextBoxUserName.Text = _server.UserLogin;
             TextBoxUserPassword.Password = _server.UserPassword;
             TextBoxServerName.Text = _server.ServerName;
@@ -46,7 +46,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
             TextBoxClientCode.Text = server.ClientCode;
 
-            LabelAdress.Content = OsLocalization.Market.Message59;
+            LabelAddress.Content = OsLocalization.Market.Message59;
             LabelServerName.Content = OsLocalization.Market.Message60;
             LabelServiceName.Content = OsLocalization.Market.Message61;
             LabelPlace.Content = OsLocalization.Market.Message62;
@@ -62,9 +62,9 @@ namespace OsEngine.Market.Servers.AstsBridge
 
         void _server_ConnectStatusChangeEvent(string state)
         {
-            if (!TextBoxServerAdress.Dispatcher.CheckAccess())
+            if (!TextBoxServerAddress.Dispatcher.CheckAccess())
             {
-                TextBoxServerAdress.Dispatcher.Invoke(new Action<string>(_server_ConnectStatusChangeEvent), state);
+                TextBoxServerAddress.Dispatcher.Invoke(new Action<string>(_server_ConnectStatusChangeEvent), state);
                 return;
             }
 
@@ -73,7 +73,7 @@ namespace OsEngine.Market.Servers.AstsBridge
 
         private void ButtonConnect_Click(object sender, RoutedEventArgs e)
         {
-            _server.ServerAdress = TextBoxServerAdress.Text;
+            _server.ServerAdress = TextBoxServerAddress.Text;
             _server.UserLogin = TextBoxUserName.Text;
             _server.UserPassword = TextBoxUserPassword.Password;
             _server.ServerName = TextBoxServerName.Text;

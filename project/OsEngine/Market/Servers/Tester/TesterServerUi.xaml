@@ -10,10 +10,10 @@
         </Grid.RowDefinitions>
         <Rectangle Margin="5"  Grid.Row="1"/>
         <Button Grid.Row="0" Grid.Column="0" Name="ButtonSynchronizer" Content="More settings" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top" Width="129" Click="ButtonSynchronizer_Click" FontSize="14"/>
-        <Button Grid.Row="0" x:Name="ButtonFast" Content="&gt;&gt;&gt;&gt;&gt;" Margin="162,49,383,0" VerticalAlignment="Top" RenderTransformOrigin="0.333,1.5" Click="buttonFast_Click" IsEnabled="True"
+        <Button Grid.Row="0" Name="ButtonFast" Content="&gt;&gt;&gt;&gt;&gt;" Margin="162,49,383,0" VerticalAlignment="Top" RenderTransformOrigin="0.333,1.5" Click="buttonFast_Click" IsEnabled="True"
                 Grid.Column="0" FontSize="14" />
-        <Button Grid.Row="0" x:Name="ButtonNextCandle" Content="+ 1" Margin="0,49,194,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonNextCandle_Click" HorizontalAlignment="Right" Width="90" FontSize="14"/>
-        <Button Grid.Row="0" x:Name="ButtonPausePlay" Content="| |" Margin="0,49,289,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonPausePlay_Click" HorizontalAlignment="Right" Width="89" FontSize="14"/>
+        <Button Grid.Row="0" Name="ButtonNextCandle" Content="+ 1" Margin="0,49,194,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonNextCandle_Click" HorizontalAlignment="Right" Width="90" FontSize="14"/>
+        <Button Grid.Row="0" Name="ButtonPausePlay" Content="| |" Margin="0,49,289,0" VerticalAlignment="Top" IsEnabled="True" Click="buttonPausePlay_Click" HorizontalAlignment="Right" Width="89" FontSize="14"/>
         <Button Grid.Row="0" Grid.Column="0" Name="ButtonStartTest" Content="Start test" HorizontalAlignment="Left" Margin="5,49,0,0" VerticalAlignment="Top" Width="152" RenderTransformOrigin="0.333,1.5" IsEnabled="True" Click="buttonStartTest_Click" FontSize="14"/>
         <ProgressBar Name="ProgressBar" Height="9" Margin="5,35,5,0" VerticalAlignment="Top" Grid.Row="0" Grid.Column="0" />
         <Label Name="Label21" Content="Connection state " HorizontalAlignment="Right" Margin="0,6,112,0" VerticalAlignment="Top" Grid.Row="0" FontFamily="Calibri" Width="138" FontWeight="Bold" FontSize="16" />
@@ -21,17 +21,17 @@
         <TabControl Margin="10,21,12,10" Grid.Row="1">
             <TabItem Name="Label29" Header=" Broadcast data " FontSize="14">
                 <Grid>
-                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="0,148,0,0"/>
-                    <ComboBox x:Name="ComboBoxSets" Margin="366,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
+                    <WindowsFormsHost Name="HostSecurities" Foreground="Black" Margin="0,148,0,0"/>
+                    <ComboBox Name="ComboBoxSets" Margin="366,5,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="255"/>
                     <Label Name="Label28" Content="Sets" HorizontalAlignment="Left" Margin="324,5,0,0" VerticalAlignment="Top" />
-                    <ComboBox x:Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="109,35,0,0" VerticalAlignment="Top" Width="184"/>
+                    <ComboBox Name="ComboBoxDataType" HorizontalAlignment="Left" Margin="109,35,0,0" VerticalAlignment="Top" Width="184"/>
                     <Label Name="Label25" Content="Translation type" HorizontalAlignment="Left" Margin="9,35,0,0" VerticalAlignment="Top"/>
-                    <Button x:Name="ButtonSetDataFromPath" Content="Find in folder" Margin="627,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
-                    <TextBox x:Name="TextBoxDataPath" Margin="324,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-                    <ComboBox x:Name="ComboBoxDataSourceType" HorizontalAlignment="Left" Margin="96,5,0,0" VerticalAlignment="Top" Width="197"/>
+                    <Button Name="ButtonSetDataFromPath" Content="Find in folder" Margin="627,4,10,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click"/>
+                    <TextBox Name="TextBoxDataPath" Margin="324,35,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxDataSourceType" HorizontalAlignment="Left" Margin="96,5,0,0" VerticalAlignment="Top" Width="197"/>
                     <Label Name="Label24" Content="Source" HorizontalAlignment="Left" Margin="9,5,0,0" VerticalAlignment="Top"  />
-                    <Slider x:Name="SliderFrom" Margin="268,65,10,0" VerticalAlignment="Top" Height="22"/>
-                    <Slider x:Name="SliderTo" Margin="268,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
+                    <Slider Name="SliderFrom" Margin="268,65,10,0" VerticalAlignment="Top" Height="22"/>
+                    <Slider Name="SliderTo" Margin="268,95,12,0" VerticalAlignment="Top" Height="22" RenderTransformOrigin="0.5,0.5">
                         <Slider.RenderTransform>
                             <TransformGroup>
                                 <ScaleTransform/>
@@ -55,12 +55,12 @@
                         <RowDefinition Height="124"/>
                         <RowDefinition Height="221*"/>
                     </Grid.RowDefinitions>
-                    <Grid x:Name="GridOrdersSettings" >
-                        <TextBox x:Name="TextBoxSlippageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
+                    <Grid Name="GridOrdersSettings" >
+                        <TextBox Name="TextBoxSlippageSimpleOrder" Margin="135,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="96" Height="23"/>
                         <Label Name = "Label32" Content="Limit slippage" HorizontalAlignment="Left" Margin="38,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" Width="193" />
                         <CheckBox Name = "CheckBoxSlippageLimitOff" Content="Disabled" HorizontalAlignment="Left" Margin="38,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageLimitOff_Checked" Height="23" Width="121"/>
                         <CheckBox Name = "CheckBoxSlippageLimitOn" Content="In steps" HorizontalAlignment="Left" Margin="38,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageLimitOn_Checked" Height="23" Width="92"/>
-                        <TextBox x:Name="TextBoxSlippageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
+                        <TextBox Name="TextBoxSlippageStop" Margin="390,85,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="102" Height="23"/>
                         <Label Name = "Label33" Content="Stop slippage" Margin="284,10,0,0" VerticalAlignment="Top" FontSize="14" Height="23" HorizontalAlignment="Left" Width="208" />
                         <CheckBox Name = "CheckBoxSlippageStopOff" Content="Disabled" HorizontalAlignment="Left" Margin="284,0,0,0" VerticalAlignment="Center" Checked="CheckBoxSlippageStopOff_Checked" Height="24" Width="104"/>
                         <CheckBox Name = "CheckBoxSlippageStopOn" Content="In steps" HorizontalAlignment="Left" Margin="284,85,0,0" VerticalAlignment="Top" Checked="CheckBoxSlippageStopOn_Checked" Height="23" Width="101"/>
@@ -82,19 +82,19 @@
             </TabItem>
             <TabItem Name="Label31" Header=" Portfolio " FontSize="14">
                 <Grid >
-                    <WindowsFormsHost x:Name="HostPortfolio" Margin="0,32,0,0"/>
+                    <WindowsFormsHost Name="HostPortfolio" Margin="0,32,0,0"/>
                     <Label Name="Label40" Content="Initial deposit" Margin="266,4,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="129"/>
-                    <TextBox x:Name="TextBoxStartDepozit" Margin="400,4,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
+                    <TextBox Name="TextBoxStartDepozit" Margin="400,4,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="141"/>
                     <CheckBox Name="CheckBoxOnOffMarketPortfolio" Content="Enable portfolio calculation" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" Click="CheckBoxOnOffMarketPortfolio_Checked"/>
                 </Grid>
             </TabItem>
             <TabItem Name="Label23" Header=" Logging " FontSize="14">
                 <Grid>
-                    <WindowsFormsHost x:Name="Host" Foreground="Black" Margin="0,10,0,0" />
+                    <WindowsFormsHost Name="Host" Foreground="Black" Margin="0,10,0,0" />
                 </Grid>
             </TabItem>
         </TabControl>
-        <Button Grid.Row="0" x:Name="ButtonGoTo" Content="&gt;&gt;go to" Margin="0,49,5,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonGoTo_Click"/>
-        <Button Grid.Row="0" x:Name="ButtonNextPos" Content="&gt;&gt;next pos" Margin="0,49,99,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonNextPos_Click"/>
+        <Button Grid.Row="0" Name="ButtonGoTo" Content="&gt;&gt;go to" Margin="0,49,5,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonGoTo_Click"/>
+        <Button Grid.Row="0" Name="ButtonNextPos" Content="&gt;&gt;next pos" Margin="0,49,99,0" VerticalAlignment="Top" IsEnabled="True" HorizontalAlignment="Right" Width="90" FontSize="14" Click="ButtonNextPos_Click"/>
     </Grid>
 </Window>

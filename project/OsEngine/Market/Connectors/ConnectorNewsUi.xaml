@@ -9,7 +9,7 @@
     <Grid>
         <Rectangle Margin="5,5,5,40" />
         <Label Name="Label1" Content="Server" HorizontalAlignment="Left" Margin="41,19,0,0" VerticalAlignment="Top" Width="165"/>
-        <ComboBox x:Name="ComboBoxTypeServer" Margin="206,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
+        <ComboBox Name="ComboBoxTypeServer" Margin="206,19,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="184"/>
         <Button Name="ButtonAccept" Content="Accept" HorizontalAlignment="Right" Margin="0,0,18.8,9.8" VerticalAlignment="Bottom" Width="130" Click="ButtonAccept_Click"/>
         <Label Name="LabelCountNewsToSave" Content="Count news to save" Margin="41,61,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="165"/>
         <TextBox Name="TextBoxCountNewsToSave" HorizontalAlignment="Left" Margin="206,61,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="184"/>

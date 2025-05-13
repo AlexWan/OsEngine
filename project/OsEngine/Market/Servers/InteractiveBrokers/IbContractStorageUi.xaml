@@ -4,7 +4,7 @@
         Title="Ib Securities" Height="323.334" Width="656.667" Topmost="True" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Icon="/OsEngine;component/Images/OsLogo.ico">
     <Grid>
         <Rectangle Margin="5,5,5,29" />
-        <WindowsFormsHost x:Name="Host" Margin="10,10,10,34"/>
+        <WindowsFormsHost Name="Host" Margin="10,10,10,34"/>
         <Button Content="Button" Visibility="Hidden" HorizontalAlignment="Left" Margin="490,177,0,0" VerticalAlignment="Top" Width="119" Click="Button_Click"/>
 
     </Grid>

@@ -10,11 +10,11 @@
         <Rectangle Margin="5,5,5,37"/>
         <Button Name="ButtonSave" Content="Save" Margin="5,0,7,10" VerticalAlignment="Bottom" Click="ButtonSave_Click"/>
         <DatePicker Name="DateTimePicker" Margin="10,10,7,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxHour" Height="23" Margin="85,40,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxHour" Height="23" Margin="85,40,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelHour" Content="Hour" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxMinute" Height="23" Margin="85,68,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxMinute" Height="23" Margin="85,68,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelMinute" Content="Minute" HorizontalAlignment="Left" Margin="10,68,0,0" VerticalAlignment="Top"/>
-        <TextBox x:Name="TextBoxSecond" Height="23" Margin="85,96,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSecond" Height="23" Margin="85,96,10,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelSecond" Content="Second" HorizontalAlignment="Left" Margin="10,96,0,0" VerticalAlignment="Top"/>
 
     </Grid>

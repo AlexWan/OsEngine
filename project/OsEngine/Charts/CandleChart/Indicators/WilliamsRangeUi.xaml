@@ -4,12 +4,12 @@
        Title="Williams % Range" Height="188.384" Width="312.667" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" Icon="/Images/OsLogo.ico" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Button x:Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="124" Click="ButtonAccept_Click"/>
-        <TextBox x:Name ="TextBoxLength"  Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Button Name ="ButtonAccept"  Content="Accept" HorizontalAlignment="Right" Margin="0,0,5,7" VerticalAlignment="Bottom" Width="124" Click="ButtonAccept_Click"/>
+        <TextBox Name ="TextBoxLength"  Margin="154,20,20,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelIndicatorLongPeriod" Content="Period" HorizontalAlignment="Left" Margin="22,20,0,0" VerticalAlignment="Top" />
         <CheckBox Name="CheckBoxPaintOnOff" Content="Is visible" HorizontalAlignment="Left" Margin="154,80,0,0" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonColor" Content="Color" HorizontalAlignment="Left" Margin="22,50,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
-        <WindowsFormsHost x:Name="HostColorBase" Height="25" Margin="154,50,20,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonColor" Content="Color" HorizontalAlignment="Left" Margin="22,50,0,0" VerticalAlignment="Top" Width="120" Click="ButtonColor_Click"/>
+        <WindowsFormsHost Name="HostColorBase" Height="25" Margin="154,50,20,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

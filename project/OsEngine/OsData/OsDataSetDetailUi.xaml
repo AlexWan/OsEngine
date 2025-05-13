@@ -17,16 +17,16 @@
         <Label Name="LabelTimeEnd" Content="Time End: " HorizontalAlignment="Left" Margin="279,38,0,0" VerticalAlignment="Top"/>
         <Label Name="LabelTimeStartReal" Content="Time Start Real: " HorizontalAlignment="Left" Margin="279,66,0,0" VerticalAlignment="Top"/>
         <Label Name="LabelTimeEndReal" Content="Time End Real: " HorizontalAlignment="Left" Margin="279,94,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelStatusValue" Content="StatusVal" HorizontalAlignment="Left" Margin="136,10,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelExchangeValue" Content="ExchangeVal" HorizontalAlignment="Left" Margin="136,38,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelSecurityValue" Content="SecurityVal" HorizontalAlignment="Left" Margin="136,66,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelClassValue" Content="ClassVal" HorizontalAlignment="Left" Margin="136,94,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelTimeFrameValue" Content="TimeFrameVal" HorizontalAlignment="Left" Margin="136,122,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelTimeStartValue" Content="Time Start val " HorizontalAlignment="Left" Margin="417,10,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelTimeEndValue" Content="Time End val" HorizontalAlignment="Left" Margin="417,38,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelTimeStartRealValue" Content="Time Start Real val" HorizontalAlignment="Left" Margin="417,66,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelTimeEndRealValue" Content="Time End Real val" HorizontalAlignment="Left" Margin="417,94,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelCache" Content="Cache data " HorizontalAlignment="Left" Margin="0,167,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelStatusValue" Content="StatusVal" HorizontalAlignment="Left" Margin="136,10,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelExchangeValue" Content="ExchangeVal" HorizontalAlignment="Left" Margin="136,38,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelSecurityValue" Content="SecurityVal" HorizontalAlignment="Left" Margin="136,66,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelClassValue" Content="ClassVal" HorizontalAlignment="Left" Margin="136,94,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeFrameValue" Content="TimeFrameVal" HorizontalAlignment="Left" Margin="136,122,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeStartValue" Content="Time Start val " HorizontalAlignment="Left" Margin="417,10,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeEndValue" Content="Time End val" HorizontalAlignment="Left" Margin="417,38,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeStartRealValue" Content="Time Start Real val" HorizontalAlignment="Left" Margin="417,66,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelTimeEndRealValue" Content="Time End Real val" HorizontalAlignment="Left" Margin="417,94,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelCache" Content="Cache data " HorizontalAlignment="Left" Margin="0,167,0,0" VerticalAlignment="Top"/>
 
 
 

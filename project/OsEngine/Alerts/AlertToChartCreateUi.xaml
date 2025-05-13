@@ -8,41 +8,41 @@
         <Rectangle   Margin="5,61,71,0" Height="153" VerticalAlignment="Top"/>
         <Rectangle   Margin="5,5,5,0" Height="51" VerticalAlignment="Top"/>
         <Rectangle   Margin="0,10,5,10" HorizontalAlignment="Right" Width="61"/>
-        <ComboBox x:Name="ComboBoxType" HorizontalAlignment="Left" Margin="194,26,0,0" VerticalAlignment="Top" Width="185"/>
-        <Button x:Name="ButtonSendFirst" Content="Send" HorizontalAlignment="Left" Margin="394,26,0,0" VerticalAlignment="Top" Width="65" Click="ButtonSendFirst_Click"/>
-        <Button x:Name="ButtonSave" Content="Accept" Margin="0,0,71,12" VerticalAlignment="Bottom" Click="ButtonSave_Click" HorizontalAlignment="Right" Width="132"/>
-        <CheckBox x:Name="CheckBoxMusicAlert" Content="Sound" HorizontalAlignment="Left" Margin="44,261,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxOnOff" Content="On/Off"  HorizontalAlignment="Left" Margin="29,22,0,0" VerticalAlignment="Top"  FontSize="18" FontWeight="Bold"/>
+        <ComboBox Name="ComboBoxType" HorizontalAlignment="Left" Margin="194,26,0,0" VerticalAlignment="Top" Width="185"/>
+        <Button Name="ButtonSendFirst" Content="Send" HorizontalAlignment="Left" Margin="394,26,0,0" VerticalAlignment="Top" Width="65" Click="ButtonSendFirst_Click"/>
+        <Button Name="ButtonSave" Content="Accept" Margin="0,0,71,12" VerticalAlignment="Bottom" Click="ButtonSave_Click" HorizontalAlignment="Right" Width="132"/>
+        <CheckBox Name="CheckBoxMusicAlert" Content="Sound" HorizontalAlignment="Left" Margin="44,261,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxOnOff" Content="On/Off"  HorizontalAlignment="Left" Margin="29,22,0,0" VerticalAlignment="Top"  FontSize="18" FontWeight="Bold"/>
         <Label Name="LabelToopTipText" Content="ToolTip Text" HorizontalAlignment="Left" Margin="45,320,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxLabelAlert" HorizontalAlignment="Left" Height="45" Margin="38,342,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="207" />
+        <TextBox Name="TextBoxLabelAlert" HorizontalAlignment="Left" Height="45" Margin="38,342,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="207" />
         <Label Name="LabelLineColor" Content="Line Color" HorizontalAlignment="Right" Margin="0,289,195,0" VerticalAlignment="Top"/>
-        <Button  x:Name="ButtonColorLine" Content="Settings" HorizontalAlignment="Right" Margin="0,289,97,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLine_Click"/>
+        <Button  Name="ButtonColorLine" Content="Settings" HorizontalAlignment="Right" Margin="0,289,97,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLine_Click"/>
         <CheckBox Name="CheckBoxWindow" Content="Popup window" Margin="261,320,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="132"/>
         <Label Name="LabelLineWidth" Content="Line width" HorizontalAlignment="Left" Margin="45,292,0,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxFatLine" HorizontalAlignment="Left" Margin="166,292,0,0" VerticalAlignment="Top" Width="79">
+        <ComboBox Name="ComboBoxFatLine" HorizontalAlignment="Left" Margin="166,292,0,0" VerticalAlignment="Top" Width="79">
             <system:Int32>1</system:Int32>
             <system:Int32>2</system:Int32>
             <system:Int32>3</system:Int32>
             <system:Int32>4</system:Int32>
             <system:Int32>5</system:Int32>
         </ComboBox>
-        <TextBox x:Name="TextBoxAlertMessage" HorizontalAlignment="Right" Height="45" Margin="0,342,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="193" />
+        <TextBox Name="TextBoxAlertMessage" HorizontalAlignment="Right" Height="45" Margin="0,342,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="193" />
         <Label Name="LabelToolTipColor" Content="ToolTip Color" HorizontalAlignment="Right" Margin="0,262,193,0" VerticalAlignment="Top"/>
         <Button Name="ButtonColorLabel" Content="Settings" HorizontalAlignment="Right" Margin="0,262,97,0" VerticalAlignment="Top" Width="96" Click="ButtonColorLabel_Click"/>
         <Label Name="LabelReactionType" Content="Reaction" HorizontalAlignment="Left" Margin="38,101,0,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="124,101,0,0" VerticalAlignment="Top" Width="103"/>
-        <Slider x:Name="Slider" Margin="0,22,26,18" Maximum="200" SmallChange="1" Orientation="Vertical" Value="100" HorizontalAlignment="Right" Width="22"/>
-        <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Right" Height="23" Margin="0,97,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
+        <ComboBox Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="124,101,0,0" VerticalAlignment="Top" Width="103"/>
+        <Slider Name="Slider" Margin="0,22,26,18" Maximum="200" SmallChange="1" Orientation="Vertical" Value="100" HorizontalAlignment="Right" Width="22"/>
+        <TextBox Name="TextBoxVolumeReaction" HorizontalAlignment="Right" Height="23" Margin="0,97,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96"/>
         <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Right" Margin="0,97,195,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="124,129,0,0" VerticalAlignment="Top" Width="103" />
+        <ComboBox Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="124,129,0,0" VerticalAlignment="Top" Width="103" />
         <Label Name="LabelOrderType" Content="Order type" HorizontalAlignment="Left" Margin="38,129,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxSlippage" HorizontalAlignment="Right" Height="23" Margin="0,125,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" />
+        <TextBox Name="TextBoxSlippage" HorizontalAlignment="Right" Height="23" Margin="0,125,97,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" />
         <Label Name="LabelSlippage" Content="Slippage" HorizontalAlignment="Right" Margin="0,125,195,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxClosePosition" HorizontalAlignment="Right" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" Margin="0,181,162,0" />
+        <TextBox Name="TextBoxClosePosition" HorizontalAlignment="Right" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="96" Margin="0,181,162,0" />
         <Label Name="LabelNumClosedPos" Content="Number of position to be closed" HorizontalAlignment="Right" Margin="0,181,258,0" VerticalAlignment="Top"/>
         <Label Name="LabelTrade" Content="Trading" HorizontalAlignment="Left" Margin="29,66,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
         <Label Name="LabelFireworks" Content="Fireworks" HorizontalAlignment="Left" Margin="29,228,0,0" VerticalAlignment="Top" FontSize="18" FontWeight="Bold"/>
-        <ComboBox x:Name="ComboBoxMusicType" HorizontalAlignment="Left" Margin="166,261,0,0" VerticalAlignment="Top" Width="79" ></ComboBox>
+        <ComboBox Name="ComboBoxMusicType" HorizontalAlignment="Left" Margin="166,261,0,0" VerticalAlignment="Top" Width="79" ></ComboBox>
         <Rectangle Fill="#FCEE21" Height="179" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="1,0,0,0">
             <Rectangle.RenderTransform>
                 <TransformGroup>
@@ -63,7 +63,7 @@
                 </TransformGroup>
             </Label.RenderTransform>
         </Label>
-        <Label x:Name="LabelSlippageType" Content="Slippage type" HorizontalAlignment="Right" Margin="0,153,194,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxSlippageType" Margin="0,153,97,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="96" />
+        <Label Name="LabelSlippageType" Content="Slippage type" HorizontalAlignment="Right" Margin="0,153,194,0" VerticalAlignment="Top" />
+        <ComboBox Name="ComboBoxSlippageType" Margin="0,153,97,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="96" />
     </Grid>
 </Window>

@@ -16,12 +16,12 @@
                         <TabControl  Name="TabControlResults" Margin="0,0,0,0">
                             <TabItem Name="TabControlResultsSeries"  Header="Series and Results">
                                 <Grid >
-                                    <WindowsFormsHost x:Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="220" Margin="0,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="523"/>
-                                    <Label x:Name="LabelOptimSeries" Content="Optimization series" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,269,5,0"/>
-                                    <Label x:Name="LabelTableResults" Content="Result table" HorizontalAlignment="Left" Margin="0,246,0,0" VerticalAlignment="Top" Height="22"/>
-                                    <WindowsFormsHost x:Name="WindowsFormsHostResultsChart"  Foreground="Black" Height="220" Margin="527,22,5,0" VerticalAlignment="Top"/>
-                                    <Label x:Name="LabelSeriesResultChart" Content="Series results chart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Margin="527,0,0,0"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="220" Margin="0,22,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="523"/>
+                                    <Label Name="LabelOptimSeries" Content="Optimization series" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,269,5,0"/>
+                                    <Label Name="LabelTableResults" Content="Result table" HorizontalAlignment="Left" Margin="0,246,0,0" VerticalAlignment="Top" Height="22"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostResultsChart"  Foreground="Black" Height="220" Margin="527,22,5,0" VerticalAlignment="Top"/>
+                                    <Label Name="LabelSeriesResultChart" Content="Series results chart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Margin="527,0,0,0"/>
                                 </Grid>
                             </TabItem>
                             <TabItem Name="TabControlResultsOutOfSampleResults" Header="Out of sample statistic">
@@ -31,11 +31,11 @@
                                             <ColumnDefinition Width="47*"/>
                                             <ColumnDefinition Width="63*"/>
                                         </Grid.ColumnDefinitions>
-                                        <WindowsFormsHost x:Name="HostTotalProfit"  Foreground="Black" Height="190" Margin="1,28,0,0" VerticalAlignment="Top" Grid.Column="1"/>
-                                        <WindowsFormsHost x:Name="HostRobustness"  Foreground="Black" Height="190" VerticalAlignment="Top" Margin="0,28,0,0"/>
-                                        <Label x:Name="LabelRobustnessMetric" Content="Robustness metric: " HorizontalAlignment="Left" VerticalAlignment="Top" Width="219" Height="23"/>
-                                        <Label x:Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="224,0,0,0" VerticalAlignment="Top" Width="87" Height="23"/>
-                                        <Label x:Name="LabelTotalProfit" Content="Total profit summ" VerticalAlignment="Top" Height="23" HorizontalAlignment="Left" Width="143" Grid.Column="1"/>
+                                        <WindowsFormsHost Name="HostTotalProfit"  Foreground="Black" Height="190" Margin="1,28,0,0" VerticalAlignment="Top" Grid.Column="1"/>
+                                        <WindowsFormsHost Name="HostRobustness"  Foreground="Black" Height="190" VerticalAlignment="Top" Margin="0,28,0,0"/>
+                                        <Label Name="LabelRobustnessMetric" Content="Robustness metric: " HorizontalAlignment="Left" VerticalAlignment="Top" Width="219" Height="23"/>
+                                        <Label Name="LabelRobustnessMetricValue" Content="value" HorizontalAlignment="Left" Margin="224,0,0,0" VerticalAlignment="Top" Width="87" Height="23"/>
+                                        <Label Name="LabelTotalProfit" Content="Total profit summ" VerticalAlignment="Top" Height="23" HorizontalAlignment="Left" Width="143" Grid.Column="1"/>
                                         <ComboBox Name="ComboBoxTotalProfit" Grid.Column="1" HorizontalAlignment="Left" VerticalAlignment="Top" Width="155" Margin="163,0,0,0"/>
 
                                     </Grid>
@@ -44,19 +44,19 @@
                                             <RowDefinition Height="200*"/>
                                             <RowDefinition Height="200*"/>
                                         </Grid.RowDefinitions>
-                                        <WindowsFormsHost x:Name="HostAverageProfit"  Foreground="Black" Margin="0,25,0,0"/>
-                                        <Label x:Name="LabelAverageProfitPersent" Content="P/L % 1 contract" VerticalAlignment="Top" HorizontalAlignment="Left" Width="198" Height="23"/>
+                                        <WindowsFormsHost Name="HostAverageProfit"  Foreground="Black" Margin="0,25,0,0"/>
+                                        <Label Name="LabelAverageProfitPersent" Content="P/L % 1 contract" VerticalAlignment="Top" HorizontalAlignment="Left" Width="198" Height="23"/>
 
 
 
-                                        <WindowsFormsHost x:Name="HostProfitFactor"  Foreground="Black" Margin="0,33,0,0" Grid.Row="1"/>
+                                        <WindowsFormsHost Name="HostProfitFactor"  Foreground="Black" Margin="0,33,0,0" Grid.Row="1"/>
 
-                                        <Label x:Name="LabelAverageProfitFactor" Content="Profit Factor" VerticalAlignment="Top" HorizontalAlignment="Left" Width="149" Height="23" Grid.Row="1" Margin="0,6,0,0"/>
+                                        <Label Name="LabelAverageProfitFactor" Content="Profit Factor" VerticalAlignment="Top" HorizontalAlignment="Left" Width="149" Height="23" Grid.Row="1" Margin="0,6,0,0"/>
                                     </Grid>
-                                    <WindowsFormsHost x:Name="HostStepsOfOptimizationTable"  Foreground="Black" Margin="0,37,287,229"/>
+                                    <WindowsFormsHost Name="HostStepsOfOptimizationTable"  Foreground="Black" Margin="0,37,287,229"/>
                                     <ComboBox Name="ComboBoxSortResultsType" HorizontalAlignment="Left" Margin="182,10,0,0" VerticalAlignment="Top" Width="214" Height="22"/>
                                     <Label Name="LabelSortBy" Content="Sort by" HorizontalAlignment="Left" Margin="28,10,0,0" VerticalAlignment="Top"/>
-                                    <ComboBox x:Name="ComboBoxSortResultsBotNumPercent" HorizontalAlignment="Left" Margin="407,10,0,0" VerticalAlignment="Top" Width="67" Height="22"/>
+                                    <ComboBox Name="ComboBoxSortResultsBotNumPercent" HorizontalAlignment="Left" Margin="407,10,0,0" VerticalAlignment="Top" Width="67" Height="22"/>
                                 </Grid>
                             </TabItem>
                         </TabControl>
@@ -74,7 +74,7 @@
                     </TransformGroup>
                 </Rectangle.RenderTransform>
             </Rectangle>
-            <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
+            <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" Margin="-29,0,0,85" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14" Height="28" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="80" Grid.Row="1">
                 <Label.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>

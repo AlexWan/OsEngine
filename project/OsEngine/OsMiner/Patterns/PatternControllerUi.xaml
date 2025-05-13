@@ -4,17 +4,17 @@
                Title="Setting and searching patterns" Height="502" MinHeight="520" Width="851" MinWidth="800" ResizeMode="CanResize" Style="{StaticResource WindowStyleNoResize}" Topmost="False" WindowStartupLocation="CenterScreen" Icon="/OsEngine;component/Images/OsLogo.ico">
     <Grid>
         <Rectangle Height="69" Margin="5,0,2,0" Stroke="Black" VerticalAlignment="Top"/>
-        <TabControl x:Name="TabControlPrime" Margin="5,61,2,2">
+        <TabControl Name="TabControlPrime" Margin="5,61,2,2">
             <TabItem Name="TabItemData" Header=" Data "   Margin="0,0,-4,0" >
                 <Grid >
-                    <WindowsFormsHost x:Name="HostSecurities" Foreground="Black" Margin="14,74,3,0" Height="128" VerticalAlignment="Top"/>
+                    <WindowsFormsHost Name="HostSecurities" Foreground="Black" Margin="14,74,3,0" Height="128" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxSets" Margin="0,14,3,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="331"/>
                     <Label Name="Label37" Content="Sets" HorizontalAlignment="Right" Margin="0,14,339,0" VerticalAlignment="Top" />
                     <Button Name="ButtonSetDataFromPath" Content="Indicate in the folder" Margin="14,44,0,0" VerticalAlignment="Top" Click="ButtonSetDataFromPath_Click" HorizontalAlignment="Left" Width="120"/>
                     <TextBox Name="TextBoxDataPath" Margin="139,44,3,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxDataSourseType" HorizontalAlignment="Left" Margin="92,14,0,0" VerticalAlignment="Top" Width="168"/>
                     <Label Name="Label35" Content="Source" HorizontalAlignment="Left" Margin="23,14,0,0" VerticalAlignment="Top"  />
-                    <WindowsFormsHost x:Name="HostLogDataServer" Margin="14,207,3,3"/>
+                    <WindowsFormsHost Name="HostLogDataServer" Margin="14,207,3,3"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemOpenPos" Header=" Opening deals "  >
@@ -37,17 +37,17 @@
                     <TextBox Name="TextBoxExitFromSomeCandlesValue" Height="23" Margin="0,0,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
                     <CheckBox Name="CheckBoxExitFromSomeCandlesIsOn"  Content="Through N candles" HorizontalAlignment="Right" Margin="0,0,204,0" VerticalAlignment="Top"/>
                     <Label Name="Label402" Content="Patterns" HorizontalAlignment="Left" Margin="14,56,0,0" VerticalAlignment="Top" />
-                    <WindowsFormsHost x:Name="HostGridPatternToClose" Margin="14,84,233,10"/>
+                    <WindowsFormsHost Name="HostGridPatternToClose" Margin="14,84,233,10"/>
                     <TextBox Name="TextBoxTreilingStopValue"  Height="23" Margin="0,28,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
                     <CheckBox Name="CheckBoxTrailingStopIsOn" Content="Trailing Stop %" HorizontalAlignment="Right" Margin="0,28,195,0" VerticalAlignment="Top"/>
-                    <WindowsFormsHost x:Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,84,5,10" Width="223"/>
+                    <WindowsFormsHost Name="HostSinglePatternToClose" HorizontalAlignment="Right" Margin="0,84,5,10" Width="223"/>
                     <TextBox Name="TextBoxWeightToExit" Height="23" Margin="0,56,45,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Right" Width="141"/>
                     <Label Name="Label50" Content="Weight for exit"  Margin="0,56,215,0" HorizontalAlignment="Right" VerticalAlignment="Top" />
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemSearch" Header="Pattern Search" Margin="-2,0">
                 <Grid >
-                    <TabControl x:Name="TabControlTypePatternsToFind" Margin="12,0,0,141" HorizontalAlignment="Left" Width="377">
+                    <TabControl Name="TabControlTypePatternsToFind" Margin="12,0,0,141" HorizontalAlignment="Left" Width="377">
                         <TabItem Name="TabItemCandlePatterns" Header="Candles">
                             <Grid >
                                 <TextBox Name="TextBoxCandlePatternLength" HorizontalAlignment="Left" Height="23" Margin="128,58,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="199"/>
@@ -81,12 +81,12 @@
                             </Grid>
                         </TabItem>
                     </TabControl>
-                    <ComboBox x:Name="ComboBoxPlaceToUsePattern" Margin="0,38,1,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="145"/>
+                    <ComboBox Name="ComboBoxPlaceToUsePattern" Margin="0,38,1,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="145"/>
                     <Label Name="Label53" Content="Use" HorizontalAlignment="Right" Margin="0,25,32,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
-                    <TextBox x:Name="TextBoxWeightToTempPattern" HorizontalAlignment="Right" Height="23" Margin="0,76,1,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="145"/>
+                    <TextBox Name="TextBoxWeightToTempPattern" HorizontalAlignment="Right" Height="23" Margin="0,76,1,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="145"/>
                     <Label Name="Label54" Content="Weight" HorizontalAlignment="Right" Margin="0,63,32,0" FontSize="13" Height="13" VerticalAlignment="Top"/>
                     <Button Name="ButtonReloadTempPattern" Content="Test" Margin="0,0,1,202" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="144" Click="ButtonReloadTempPattern_Click"/>
-                    <WindowsFormsHost x:Name="HostTempPattern" Margin="394,25,152,141"/>
+                    <WindowsFormsHost Name="HostTempPattern" Margin="394,25,152,141"/>
                     <Button Name="ButtonSaveTempPattern" Content="Save" HorizontalAlignment="Right" Margin="0,0,1,172" VerticalAlignment="Bottom" Width="144" Click="ButtonSaveTempPattern_Click"/>
                     <TextBox Name="TextBoxShortReportToTempPattern" Height="114" Margin="394,0,2,3" TextWrapping="Wrap" VerticalAlignment="Bottom"/>
                     <Label Name="Label57" Content="Short report" HorizontalAlignment="Left" Margin="394,0,0,116" VerticalAlignment="Bottom"/>
@@ -117,7 +117,7 @@
                 </TransformGroup>
             </Rectangle.RenderTransform>
         </Rectangle>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-24,0,0,95" VerticalAlignment="Bottom" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
+        <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-24,0,0,95" VerticalAlignment="Bottom" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>

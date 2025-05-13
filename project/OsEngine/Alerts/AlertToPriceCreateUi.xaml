@@ -7,26 +7,26 @@
         <Rectangle Margin="5,238,5,45" />
         <Rectangle Margin="5,85,5,0" Height="148" VerticalAlignment="Top"/>
         <Rectangle Margin="5,5,5,0" Height="75" VerticalAlignment="Top"/>
-        <Button x:Name="ButtonSave" Content="Accept" Margin="0,0,5,18" HorizontalAlignment="Right" Width="132" Height="22" VerticalAlignment="Bottom" Click="ButtonSave_Click" />
-        <CheckBox x:Name="CheckBoxOnOff" Content="On / Off" HorizontalAlignment="Left" Margin="21,23,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <CheckBox x:Name="CheckBoxWindow" Content="Popup window" HorizontalAlignment="Left" Margin="65,282,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxAlertMessage" Height="75" Margin="245,264,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+        <Button Name="ButtonSave" Content="Accept" Margin="0,0,5,18" HorizontalAlignment="Right" Width="132" Height="22" VerticalAlignment="Bottom" Click="ButtonSave_Click" />
+        <CheckBox Name="CheckBoxOnOff" Content="On / Off" HorizontalAlignment="Left" Margin="21,23,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
+        <CheckBox Name="CheckBoxWindow" Content="Popup window" HorizontalAlignment="Left" Margin="65,282,0,0" VerticalAlignment="Top" />
+        <TextBox Name="TextBoxAlertMessage" Height="75" Margin="245,264,9,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
         <Label Name="LabelReactionType" Content="Reaction" HorizontalAlignment="Left" Margin="52,119,0,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="142,120,0,0" VerticalAlignment="Top" Width="103"/>
-        <TextBox x:Name="TextBoxVolumeReaction" HorizontalAlignment="Right" Height="23" Margin="0,119,22,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
+        <ComboBox Name="ComboBoxSignalType" HorizontalAlignment="Left" Margin="142,120,0,0" VerticalAlignment="Top" Width="103"/>
+        <TextBox Name="TextBoxVolumeReaction" HorizontalAlignment="Right" Height="23" Margin="0,119,22,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
         <Label Name="LabelVolume" Content="Volume" HorizontalAlignment="Right" Margin="0,120,128,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="142,148,0,0" VerticalAlignment="Top" Width="103"/>
+        <ComboBox Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="142,148,0,0" VerticalAlignment="Top" Width="103"/>
         <Label Name="LabelOrderType" Content="Order Type" HorizontalAlignment="Left" Margin="52,147,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxSlippage" HorizontalAlignment="Right" Height="23" Margin="0,147,22,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
+        <TextBox Name="TextBoxSlippage" HorizontalAlignment="Right" Height="23" Margin="0,147,22,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="101"/>
         <Label Name="LabelSlippage" Content="Slippage" HorizontalAlignment="Right" Margin="0,148,128,0" VerticalAlignment="Top" RenderTransformOrigin="0.741,0.435" />
-        <TextBox x:Name="TextBoxClosePosition" HorizontalAlignment="Right" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="101" Margin="0,203,85,0"/>
+        <TextBox Name="TextBoxClosePosition" HorizontalAlignment="Right" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="101" Margin="0,203,85,0"/>
         <Label Name="LabelNumClosedPos" Content="Number of position to be closed" HorizontalAlignment="Right" Margin="0,203,191,0" VerticalAlignment="Top" />
         <Label Name="LabelTrade" Content="Trading" HorizontalAlignment="Left" Margin="21,85,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
         <Label Name="LabelFireworks" Content="Fireworks" HorizontalAlignment="Left" Margin="21,238,0,0" VerticalAlignment="Top" FontWeight="Bold" FontSize="18"/>
-        <ComboBox x:Name="ComboBoxActivationType" HorizontalAlignment="Left" Margin="282,23,0,0" VerticalAlignment="Top" Width="182"/>
+        <ComboBox Name="ComboBoxActivationType" HorizontalAlignment="Left" Margin="282,23,0,0" VerticalAlignment="Top" Width="182"/>
         <Label Name="LabelActivation" Content="Activation" HorizontalAlignment="Left" Margin="195,23,0,0" VerticalAlignment="Top" />
-        <TextBox x:Name="TextBoxPriceActivation" HorizontalAlignment="Left" Height="23" Margin="347,54,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="117"/>
-        <ComboBox x:Name="ComboBoxMusic" HorizontalAlignment="Left" Margin="124,313,0,0" VerticalAlignment="Top" Width="116"/>
+        <TextBox Name="TextBoxPriceActivation" HorizontalAlignment="Left" Height="23" Margin="347,54,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="117"/>
+        <ComboBox Name="ComboBoxMusic" HorizontalAlignment="Left" Margin="124,313,0,0" VerticalAlignment="Top" Width="116"/>
         <Rectangle Fill="#FCEE21" Height="147" Stroke="Black" StrokeThickness="0" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="20" RenderTransformOrigin="0.5,0.5" Margin="3,0,0,-1">
             <Rectangle.RenderTransform>
                 <TransformGroup>
@@ -38,7 +38,7 @@
             </Rectangle.RenderTransform>
         </Rectangle>
         <Label Name="CheckBoxMusicAlert" Content="Sound" HorizontalAlignment="Left" Margin="65,313,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-26,0,0,73" VerticalAlignment="Bottom" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
+        <Label Name="LabelOsa" Content="O-S-A.NET" Foreground="Black" HorizontalAlignment="Left" Margin="-26,0,0,73" VerticalAlignment="Bottom" FontWeight="Bold" RenderTransformOrigin="0.5,0.5" FontSize="14">
             <Label.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -48,8 +48,8 @@
                 </TransformGroup>
             </Label.RenderTransform>
         </Label>
-        <Label x:Name="LabelSlippageType" Content="Slippage type" HorizontalAlignment="Right" Margin="0,175,128,0" VerticalAlignment="Top" />
-        <ComboBox x:Name="ComboBoxSlippageType" Margin="0,175,22,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="101" />
-        <Label x:Name="LabelActivationPrice" Content="Activation Price" HorizontalAlignment="Center" Margin="0,54,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelSlippageType" Content="Slippage type" HorizontalAlignment="Right" Margin="0,175,128,0" VerticalAlignment="Top" />
+        <ComboBox Name="ComboBoxSlippageType" Margin="0,175,22,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="101" />
+        <Label Name="LabelActivationPrice" Content="Activation Price" HorizontalAlignment="Center" Margin="0,54,0,0" VerticalAlignment="Top" />
     </Grid>
 </Window>

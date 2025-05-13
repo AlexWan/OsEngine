@@ -90,12 +90,12 @@ namespace OsEngine.Robots
 
             Closed += BotCreateUi2_Closed;
 
-            ComboBoxLockation.Items.Add(BotCreationType.All.ToString());
-            ComboBoxLockation.Items.Add(BotCreationType.Include.ToString());
-            ComboBoxLockation.Items.Add(BotCreationType.Script.ToString());
-            ComboBoxLockation.SelectedItem = BotCreationType.All.ToString();
+            ComboBoxLocation.Items.Add(BotCreationType.All.ToString());
+            ComboBoxLocation.Items.Add(BotCreationType.Include.ToString());
+            ComboBoxLocation.Items.Add(BotCreationType.Script.ToString());
+            ComboBoxLocation.SelectedItem = BotCreationType.All.ToString();
 
-            ComboBoxLockation.SelectionChanged += ComboBoxLocation_SelectionChanged;
+            ComboBoxLocation.SelectionChanged += ComboBoxLocation_SelectionChanged;
 
             LabelLocation.Content = OsLocalization.Trader.Label295;
 
@@ -380,7 +380,7 @@ namespace OsEngine.Robots
 
                 _grid.Rows.Clear();
 
-                string lockation = ComboBoxLockation.SelectedItem.ToString();
+                string lockation = ComboBoxLocation.SelectedItem.ToString();
 
                 for (int i = 0; i < descriptions.Count; i++)
                 {

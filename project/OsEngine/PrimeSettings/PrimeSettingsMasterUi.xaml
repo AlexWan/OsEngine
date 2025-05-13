@@ -7,24 +7,24 @@
         mc:Ignorable="d"
         Title="Configuration" Style="{StaticResource WindowStyleNoResize}" Height="447" Width="404" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
-        <ComboBox x:Name="ComboBoxLocalization" Margin="183,28,56,0" VerticalAlignment="Top" Height="23"/>
+        <ComboBox Name="ComboBoxLocalization" Margin="183,28,56,0" VerticalAlignment="Top" Height="23"/>
         <Label Name="LanguageLabel"  Content="Language" HorizontalAlignment="Left" Margin="79,28,0,0" VerticalAlignment="Top"/>
         <Label Name="LabelHeader"  Content="Bot header" HorizontalAlignment="Left" Margin="79,112,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,140,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
         <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="79,140,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxExtraLogSound" Margin="0,168,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-        <Label x:Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="79,168,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxTransactionSound" Margin="0,196,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-        <Label x:Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="79,196,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxExtraLogSound" Margin="0,168,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <Label Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="79,168,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxTransactionSound" Margin="0,196,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <Label Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="79,196,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Center" Margin="0,280,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="97" />
         <TextBox Name="TextBoxBotHeader" HorizontalAlignment="Left" Margin="183,112,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="151"/>
-        <Label x:Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="79,223,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxRebootTradeUiLigth" Margin="0,223,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
-        <ComboBox x:Name="ComboBoxTimeFormat" Margin="183,56,56,0" VerticalAlignment="Top" Height="23"/>
-        <Label x:Name="LabelTimeFormat"  Content="Time format" HorizontalAlignment="Left" Margin="79,56,0,0" VerticalAlignment="Top"/>
-        <ComboBox x:Name="ComboBoxDateFormat" Margin="183,84,56,0" VerticalAlignment="Top" Height="23"/>
-        <Label x:Name="LabelDateFormat"  Content="Date format" HorizontalAlignment="Left" Margin="79,84,0,0" VerticalAlignment="Top"/>
-        <Label x:Name="LabelReportCriticalErrors" Content="Report critical errors" HorizontalAlignment="Left" Margin="79,251,0,0" VerticalAlignment="Top"/>
-        <CheckBox x:Name="CheckBoxReportCriticalErrors" Margin="0,251,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <Label Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="79,223,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxRebootTradeUiLigth" Margin="0,223,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
+        <ComboBox Name="ComboBoxTimeFormat" Margin="183,56,56,0" VerticalAlignment="Top" Height="23"/>
+        <Label Name="LabelTimeFormat"  Content="Time format" HorizontalAlignment="Left" Margin="79,56,0,0" VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxDateFormat" Margin="183,84,56,0" VerticalAlignment="Top" Height="23"/>
+        <Label Name="LabelDateFormat"  Content="Date format" HorizontalAlignment="Left" Margin="79,84,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelReportCriticalErrors" Content="Report critical errors" HorizontalAlignment="Left" Margin="79,251,0,0" VerticalAlignment="Top"/>
+        <CheckBox Name="CheckBoxReportCriticalErrors" Margin="0,251,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
     </Grid>
 </Window>
