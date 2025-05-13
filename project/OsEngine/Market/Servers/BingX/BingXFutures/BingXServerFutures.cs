@@ -11,12 +11,11 @@ using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Text;
-using WebSocketSharp;
 using System.Threading;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System.Globalization;
-
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.BingX.BingXFutures
 {
@@ -916,14 +915,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    webSocketPublicNew.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    webSocketPublicNew.SetProxy(_myProxy);
                 }
 
-                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.None
-                    | System.Security.Authentication.SslProtocols.Tls12
-                    | System.Security.Authentication.SslProtocols.Tls13;
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
@@ -961,14 +955,10 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                _webSocketPrivate.SetProxy(_myProxy);
             }
 
-            _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.None
-                | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
+            _webSocketPrivate.EmitOnPing = true;
             _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
@@ -1083,7 +1073,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             else
             {
                 SendLogMessage("WebSocket Public error" + e.ToString(), LogMessageType.Error);
-                CheckSocketsActivate();
             }
         }
 
