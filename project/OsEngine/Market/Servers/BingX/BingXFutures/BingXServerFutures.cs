@@ -1,24 +1,21 @@
-﻿using System;
-using System.IO;
-using System.IO.Compression;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Net; // For WebProxy
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using RestSharp; // RestSharp is still used for REST API calls
+using RestSharp;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO.Compression;
+using System.Net;
 using System.Net.Http;
+using System.Text;
+using WebSocketSharp;
+using System.Threading;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System.Globalization;
-using System.Linq; // For LINQ operations like FirstOrDefault
 
 
 namespace OsEngine.Market.Servers.BingX.BingXFutures
@@ -89,77 +86,44 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     {
                         Proxy = _myProxy
                     };
+
                     _httpPublicClient = new HttpClient(httpClientHandler);
                 }
 
                 HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/openApi/swap/v2/server/time").Result;
+
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
 
                 if (responseMessage.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"The server is not available. No internet. Status: {responseMessage.StatusCode}", LogMessageType.Error);
+                    SendLogMessage($"The server is not available. No internet", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
-                    return;
+                    DisconnectEvent();
                 }
-
-                try
+                else
                 {
-                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                    FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-
-                    Task privateConnectionTask = CreatePrivateWebSocketConnectAndReturnTask();
                     try
                     {
-                        // Block for initial private connection with timeout
-                        if (!privateConnectionTask.Wait(TimeSpan.FromSeconds(15))) // Increased timeout
-                        {
-                            SendLogMessage("Private WebSocket connection timed out during initial connect.", LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent?.Invoke();
-                            return;
-                        }
-                        if (privateConnectionTask.IsFaulted || (_webSocketPrivateWrapper != null && _webSocketPrivateWrapper.State != System.Net.WebSockets.WebSocketState.Open))
-                        {
-                            SendLogMessage($"Private WebSocket connection failed: {privateConnectionTask.Exception?.InnerExceptions.FirstOrDefault()?.Message}", LogMessageType.Error);
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent?.Invoke();
-                            return;
-                        }
+                        FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                        FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
+                        CreatePublicWebSocketConnect();
+                        CreatePrivateWebSocketConnect();
+                        CheckSocketsActivate();
+                        SetPositionMode();
                     }
-                    catch (AggregateException agEx)
+                    catch (Exception exception)
                     {
-                        SendLogMessage($"Private WebSocket connection failed: {agEx.InnerExceptions.FirstOrDefault()?.Message}", LogMessageType.Error);
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
+                        SendLogMessage("The connection cannot be opened. BingXFutures. Error Request", LogMessageType.Error);
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent?.Invoke();
-                        return;
+                        DisconnectEvent();
                     }
-                    catch (Exception ex) // Catch other potential exceptions from Wait() or property access
-                    {
-                        SendLogMessage($"Error during private WebSocket connection: {ex.Message}", LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent?.Invoke();
-                        return;
-                    }
-
-                    CheckSocketsActivate(); // This should reflect the private socket status
-                    SetPositionMode();
                 }
-                catch (Exception exception)
-                {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
-                    SendLogMessage("The connection cannot be opened. BingXFutures. Error Request", LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
-                }
-
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
                 SendLogMessage("The connection cannot be opened. BingXFutures. Error Request", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent?.Invoke();
             }
         }
 
@@ -167,7 +131,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             try
             {
-                UnsubscribeFromAllWebSockets(); // This now uses SendAsync fire-and-forget
+                UnsubscribeFromAllWebSockets();
                 _subscribledSecutiries.Clear();
                 DeleteWebSocketConnection();
             }
@@ -179,22 +143,21 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             FIFOListWebSocketPublicMessage = null;
             FIFOListWebSocketPrivateMessage = null;
 
-            Disconnect(); // Calls DisconnectEvent
+            Disconnect();
         }
 
         public void Disconnect()
         {
-            _httpPublicClient?.Dispose();
             _httpPublicClient = null;
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent?.Invoke();
+                DisconnectEvent();
             }
         }
 
-        private RateGate _positionModeRateGate = new RateGate(1, TimeSpan.FromMilliseconds(510));
+        private RateGate _positionModeRateGate = new RateGate(1, TimeSpan.FromMilliseconds(510)); // individual IP speed limit is 2 requests per 1 second 
 
         private void SetPositionMode()
         {
@@ -204,23 +167,42 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/swap/v1/positionSide/dual", Method.POST);
+
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                string parameters = $"dualSidePosition={_hedgeMode.ToString().ToLower()}&timestamp={timeStamp}"; // BingX expects true/false lowercase
+                string parameters = $"dualSidePosition={_hedgeMode}&timestamp={timeStamp}";
                 string sign = CalculateHmacSha256(parameters);
-                request.AddParameter("dualSidePosition", _hedgeMode.ToString().ToLower());
+
+                request.AddParameter("dualSidePosition", _hedgeMode);
                 request.AddParameter("timestamp", timeStamp);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
+
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingXMessage<PositionMode> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<PositionMode>>(json.Content);
-                    if (response.code == "0") {/* ignore */ }
-                    else SendLogMessage($"SetPositionMode> Http State Code: {response.code} - message: {response.msg}", LogMessageType.Error);
+
+                    if (response.code == "0")
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage($"SetPositionMode> Http State Code: {response.code} - message: {response.msg}", LogMessageType.Error);
+                    }
                 }
-                else SendLogMessage($"SetPositionMode> Http State Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                else
+                {
+                    SendLogMessage($"SetPositionMode> Http State Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception ex)
             {
@@ -228,40 +210,60 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        public ServerType ServerType => ServerType.BingXFutures;
+        public ServerType ServerType
+        {
+            get { return ServerType.BingXFutures; }
+        }
+
         public ServerConnectStatus ServerStatus { get; set; }
+
         public event Action ConnectEvent;
+
         public event Action DisconnectEvent;
 
         #endregion
 
         #region 2 Properties
+
         public List<IServerParameter> ServerParameters { get; set; }
-        private RateGate _generalRateGate1 = new RateGate(1, TimeSpan.FromMilliseconds(100));
-        private RateGate _generalRateGate2 = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
+        private RateGate _generalRateGate1 = new RateGate(1, TimeSpan.FromMilliseconds(130));
+
+        private RateGate _generalRateGate2 = new RateGate(1, TimeSpan.FromMilliseconds(110));
+
         private RateGate _generalRateGate3 = new RateGate(1, TimeSpan.FromMilliseconds(100));
+
         public string _publicKey;
+
         public string _secretKey;
+
         private bool _hedgeMode;
+
         #endregion
 
         #region 3 Securities
+
         public void GetSecurities()
         {
             _generalRateGate1.WaitToProceed();
+
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/swap/v2/quote/contracts", Method.GET);
+
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                // Per BingX docs, GET request query parameters should be alphabetically sorted for signature.
-                // However, for this specific endpoint, it seems timestamp only is fine, or their example is simplified.
-                // Let's stick to the original if it worked.
                 string parameters = $"timestamp={timeStamp}";
                 string sign = CalculateHmacSha256(parameters);
+
                 request.AddParameter("timestamp", timeStamp);
-                request.AddParameter("signature", sign); // Signature should be the last parameter in query string for some exchanges
+                request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
@@ -269,10 +271,25 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingX<BingXFuturesSymbols> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseFuturesBingX<BingXFuturesSymbols>());
-                    if (response.code == "0") UpdateSecurity(response.data);
-                    else SendLogMessage($"GetSecurities> Error Code: {response.code} | msg: {response.msg}", LogMessageType.Error);
+                    List<BingXFuturesSymbols> currencyPairs = new List<BingXFuturesSymbols>();
+
+                    if (response.code == "0")
+                    {
+                        for (int i = 0; i < response.data.Count; i++)
+                        {
+                            currencyPairs.Add(response.data[i]);
+                        }
+                        UpdateSecurity(currencyPairs);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetSecurities> Error Code: {response.code} | msg: {response.msg}", LogMessageType.Error);
+                    }
                 }
-                else SendLogMessage($"GetSecurities> Http State Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                else
+                {
+                    SendLogMessage($"GetSecurities> Http State Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception exception)
             {
@@ -283,621 +300,322 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         private void UpdateSecurity(List<BingXFuturesSymbols> currencyPairs)
         {
             List<Security> securities = new List<Security>();
-            foreach (var current in currencyPairs)
+
+            for (int i = 0; i < currencyPairs.Count; i++)
             {
+                BingXFuturesSymbols current = currencyPairs[i];
+
                 if (current.status == "1")
                 {
-                    if (current.symbol.EndsWith("USDC")) continue;
-                    Security security = new Security
+                    Security security = new Security();
+
+                    if (current.symbol.EndsWith("USDC"))
                     {
-                        Lot = 1,
-                        MinTradeAmount = current.size.ToDecimal(),
-                        Name = current.symbol,
-                        NameFull = current.symbol,
-                        NameClass = current.currency,
-                        NameId = current.contractId,
-                        Exchange = nameof(ServerType.BingXFutures),
-                        State = SecurityStateType.Activ,
-                        Decimals = Convert.ToInt32(current.pricePrecision),
-                        PriceStep = Convert.ToDecimal(Math.Pow(10, -Convert.ToInt32(current.pricePrecision))),
-                        SecurityType = SecurityType.CurrencyPair,
-                        DecimalsVolume = Convert.ToInt32(current.quantityPrecision),
-                        MinTradeAmountType = MinTradeAmountType.C_Currency,
-                        VolumeStep = current.size.ToDecimal()
-                    };
+                        continue;
+                    }
+
+                    security.Lot = 1;
+                    security.MinTradeAmount = current.size.ToDecimal();
+                    security.Name = current.symbol;
+                    security.NameFull = current.symbol;
+                    security.NameClass = current.currency;
+                    security.NameId = current.contractId;
+                    security.Exchange = nameof(ServerType.BingXFutures);
+                    security.State = SecurityStateType.Activ;
+                    security.Decimals = Convert.ToInt32(current.pricePrecision);
+                    security.PriceStep = security.Decimals.GetValueByDecimals();
                     security.PriceStepCost = security.PriceStep;
-                    security.MinTradeAmount = current.tradeMinUSDT.ToDecimal(); // Assuming tradeMinUSDT is what was intended
+                    security.SecurityType = SecurityType.CurrencyPair;
+                    security.DecimalsVolume = Convert.ToInt32(current.quantityPrecision);
+                    security.MinTradeAmount = current.tradeMinUSDT.ToDecimal();
+                    security.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                    security.VolumeStep = current.size.ToDecimal();
+
                     securities.Add(security);
                 }
             }
-            SecurityEvent?.Invoke(securities);
+
+            SecurityEvent(securities);
         }
+
         public event Action<List<Security>> SecurityEvent;
-        #endregion
-
-        // ... Other sections (4 Portfolios, 5 Data, 10 Trade, 11 Queries, 12 Log, 13 Helpers) are mostly unchanged ...
-        // ... except for WebSocket interaction points. I will modify relevant parts in section 6, 7, 8, 9.
-
-        #region 6 WebSocket creation
-
-        // Using List<WebSocketWrapper> for public sockets
-        private List<WebSocketWrapper> _webSocketPublicWrappers = new List<WebSocketWrapper>();
-        // Using a single WebSocketWrapper for private socket
-        private WebSocketWrapper _webSocketPrivateWrapper;
-
-        private const string _webSocketUrl = "wss://open-api-swap.bingx.com/swap-market";
-        private string _listenKey = "";
-
-        // Renamed for clarity that it returns a Task for Connect method to wait on
-        private Task CreatePrivateWebSocketConnectAndReturnTask()
-        {
-            if (_webSocketPrivateWrapper != null && _webSocketPrivateWrapper.State == System.Net.WebSockets.WebSocketState.Open)
-            {
-                return Task.CompletedTask;
-            }
-
-            _listenKey = CreateListenKey(); // Ensure _listenKey is fresh
-            if (string.IsNullOrEmpty(_listenKey))
-            {
-                SendLogMessage("Authorization error. Listen key is not created for private WebSocket.", LogMessageType.Error);
-                return Task.FromException(new InvalidOperationException("Failed to create listen key for private WebSocket."));
-            }
-
-            string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
-
-            _webSocketPrivateWrapper = new WebSocketWrapper(
-                onOpen: () => WebSocketPrivate_OnOpen(),
-                onMessage: (msg) => FIFOListWebSocketPrivateMessage.Enqueue(msg),
-                onClose: () => WebSocketPrivate_OnClose(),
-                onError: (ex) => WebSocketPrivate_OnError(ex),
-                decompressFunc: DecompressData // Changed name for clarity
-            );
-            _webSocketPrivateWrapper.SetUrl(urlStr); // Set URL for potential reconnections by wrapper
-
-            if (_myProxy != null)
-            {
-                _webSocketPrivateWrapper.SetProxy(_myProxy);
-            }
-
-            return _webSocketPrivateWrapper.ConnectAsync();
-        }
-
-        private void CreatePublicWebSocketConnect() // Called by Subscrible
-        {
-            try
-            {
-                if (FIFOListWebSocketPublicMessage == null)
-                {
-                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                }
-                // CreateNewPublicSocket now returns a wrapper and initiates connection
-                var newWrapper = CreateNewPublicSocketAndConnect();
-                if (newWrapper != null)
-                {
-                    _webSocketPublicWrappers.Add(newWrapper);
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        private WebSocketWrapper CreateNewPublicSocketAndConnect() // Renamed
-        {
-            try
-            {
-                // Public streams don't always need a listen key, depends on BingX specific stream
-                // The original code used a listenKey for public streams too, this might be a combined stream
-                // If public streams are truly public, they might not need listenKey.
-                // Re-checking BingX docs: their main market data streams are public and don't use listenKey.
-                // The provided URL `wss://open-api-swap.bingx.com/swap-market` without listenKey is for general market data.
-                // If `_listenKey` was intended for all, then BingX might multiplex user data over it.
-                // The original code uses _listenKey for public socket URL as well. Let's stick to that.
-
-                if (string.IsNullOrEmpty(_listenKey) && _webSocketPublicWrappers.Count == 0) // Only get listenKey if first public or no key
-                {
-                    _listenKey = CreateListenKey(); // This might be problematic if private already has one.
-                                                    // Let's assume one listenKey is fine for all.
-                }
-
-                // If public stream doesn't need listenKey, urlStr should be simpler.
-                // For now, assuming it's like private based on original code:
-                string urlStr = $"{_webSocketUrl}"; // Standard public endpoint
-                                                    // If listen key is needed for public data streams (unusual, but was in original code structure implicitly):
-                                                    // string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}"; 
-                                                    // Let's use the public endpoint without listen key, as is standard.
-                                                    // If issues arise, this might need to be changed to use listenKey.
-
-                var wrapper = new WebSocketWrapper(
-                    onOpen: () => WebSocketPublic_OnOpen(_webSocketPublicWrappers.LastOrDefault()), // Pass the specific wrapper
-                    onMessage: (msg) => FIFOListWebSocketPublicMessage.Enqueue(msg),
-                    onClose: () => WebSocketPublic_OnClose(_webSocketPublicWrappers.LastOrDefault()),
-                    onError: (ex) => WebSocketPublic_OnError(ex, _webSocketPublicWrappers.LastOrDefault()),
-                    decompressFunc: DecompressData
-                );
-                wrapper.SetUrl(urlStr);
-
-                if (_myProxy != null)
-                {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials; // Not used by ClientWebSocket.Options.Proxy directly
-                    wrapper.SetProxy(_myProxy);
-                }
-
-                // Fire-and-forget the connection. Status handled by callbacks.
-                _ = wrapper.ConnectAsync().ConfigureAwait(false);
-                return wrapper;
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-                return null;
-            }
-        }
-
-
-        private void DeleteWebSocketConnection()
-        {
-            if (_webSocketPublicWrappers != null)
-            {
-                foreach (var wrapper in _webSocketPublicWrappers)
-                {
-                    try
-                    {
-                        wrapper?.Dispose();
-                    }
-                    catch (Exception ex)
-                    {
-                        SendLogMessage($"Error disposing public websocket: {ex.Message}", LogMessageType.Error);
-                    }
-                }
-                _webSocketPublicWrappers.Clear();
-            }
-
-            if (_webSocketPrivateWrapper != null)
-            {
-                try
-                {
-                    _webSocketPrivateWrapper.Dispose();
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage($"Error disposing private websocket: {ex.Message}", LogMessageType.Error);
-                }
-                _webSocketPrivateWrapper = null;
-            }
-        }
-
-        private readonly object _socketActivateLocker = new object();
-
-        private void CheckSocketsActivate()
-        {
-            try
-            {
-                lock (_socketActivateLocker)
-                {
-                    bool privateConnected = _webSocketPrivateWrapper != null && _webSocketPrivateWrapper.State == System.Net.WebSockets.WebSocketState.Open;
-
-                    bool publicSocketsNeeded = _subscribledSecutiries.Count > 0;
-                    bool allPublicConnected = true;
-
-                    if (publicSocketsNeeded)
-                    {
-                        if (_webSocketPublicWrappers.Count == 0)
-                        {
-                            allPublicConnected = false;
-                        }
-                        else
-                        {
-                            foreach (var wrapper in _webSocketPublicWrappers)
-                            {
-                                if (wrapper == null || wrapper.State != System.Net.WebSockets.WebSocketState.Open)
-                                {
-                                    allPublicConnected = false;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-
-                    // If public sockets are needed but not all connected, or private not connected, then disconnect status
-                    if (!privateConnected || (publicSocketsNeeded && !allPublicConnected))
-                    {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            // Do not call Disconnect() here as it might be a temporary issue being resolved.
-                            // ServerStatus = ServerConnectStatus.Disconnect; // This might be too aggressive
-                            // DisconnectEvent?.Invoke();
-                            SendLogMessage("One or more WebSockets are not connected.", LogMessageType.System);
-                        }
-                    }
-                    else // All required sockets are connected
-                    {
-                        if (ServerStatus != ServerConnectStatus.Connect)
-                        {
-                            ServerStatus = ServerConnectStatus.Connect;
-                            ConnectEvent?.Invoke();
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage(ex.Message, LogMessageType.Error);
-            }
-        }
 
         #endregion
 
-        #region 7 WebSocket events (Now called by WebSocketWrapper callbacks)
-
-        // Methods to be called by WebSocketWrapper for public sockets
-        private void WebSocketPublic_OnOpen(WebSocketWrapper wrapper)
-        {
-            SendLogMessage("BingXFutures WebSocket Public connection open.", LogMessageType.System);
-            CheckSocketsActivate();
-        }
-        private void WebSocketPublic_OnClose(WebSocketWrapper wrapper)
-        {
-            SendLogMessage($"Public WebSocket connection closed. Wrapper: {wrapper?.GetHashCode()}", LogMessageType.Error);
-            // Optional: remove this specific wrapper from the list if it's permanently closed and not retrying
-            // _webSocketPublicWrappers.Remove(wrapper);
-            CheckSocketsActivate();
-        }
-        private void WebSocketPublic_OnError(Exception ex, WebSocketWrapper wrapper)
-        {
-            SendLogMessage($"Public WebSocket error: {ex.ToString()}. Wrapper: {wrapper?.GetHashCode()}", LogMessageType.Error);
-            CheckSocketsActivate();
-        }
-
-        // Methods to be called by WebSocketWrapper for private socket
-        private void WebSocketPrivate_OnOpen()
-        {
-            SendLogMessage("BingXFutures WebSocket Private connection open.", LogMessageType.System);
-            CheckSocketsActivate();
-        }
-        private void WebSocketPrivate_OnClose()
-        {
-            SendLogMessage($"Private WebSocket connection closed.", LogMessageType.Error);
-            CheckSocketsActivate();
-        }
-        private void WebSocketPrivate_OnError(Exception ex)
-        {
-            SendLogMessage($"Private WebSocket error: {ex.ToString()}", LogMessageType.Error);
-            CheckSocketsActivate();
-        }
-
-        // Original OnMessage handlers are effectively replaced by:
-        // 1. WebSocketWrapper's ReceiveLoopAsync handling decompression and application Ping/Pong.
-        // 2. The lambda `(msg) => FIFOListWebSocketPublicMessage.Enqueue(msg)` (or private equivalent)
-        //    passed to WebSocketWrapper constructor.
-        // So, the old WebSocketPublicNew_OnMessage and _webSocketPrivate_OnMessage methods are removed.
-
-        #endregion
-
-        #region 8 Security subscrible
-        private List<string> _subscribledSecutiries = new List<string>();
-
-        public void Subscrible(Security security)
-        {
-            try
-            {
-                CreateSubscribleSecurityMessageWebSocket(security);
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private async Task CreateSubscribleSecurityMessageWebSocket(Security security) // Made async for SendAsync
-        {
-            try
-            {
-                if (ServerStatus == ServerConnectStatus.Disconnect &&
-                    (_webSocketPrivateWrapper == null || _webSocketPrivateWrapper.State != System.Net.WebSockets.WebSocketState.Open))
-                { // Check private connection specifically for allowing subscriptions
-                    SendLogMessage("Cannot subscribe, server is not connected.", LogMessageType.Error);
-                    return;
-                }
-
-                if (_subscribledSecutiries.Contains(security.Name))
-                {
-                    return;
-                }
-                _subscribledSecutiries.Add(security.Name);
-
-                if (_webSocketPublicWrappers.Count == 0 ||
-                    _webSocketPublicWrappers.All(w => w.State != System.Net.WebSockets.WebSocketState.Open))
-                {
-                    SendLogMessage("No active public WebSocket for subscription. Creating new one.", LogMessageType.System);
-                    CreatePublicWebSocketConnect(); // This adds a new wrapper and starts its connection
-                                                    // Wait a bit for the connection to establish, or rely on subsequent calls
-                    await Task.Delay(2000); // Simplistic wait, could be improved with state check
-                }
-
-                WebSocketWrapper targetWrapper = _webSocketPublicWrappers.LastOrDefault(w => w.State == System.Net.WebSockets.WebSocketState.Open);
-
-                // Logic for managing multiple public sockets if one gets full (40 subs)
-                if (targetWrapper != null && _subscribledSecutiries.Count > 0 && _subscribledSecutiries.Count % 40 == 0)
-                {
-                    SendLogMessage("Public WebSocket subscription limit reached for current socket, creating new one.", LogMessageType.System);
-                    CreatePublicWebSocketConnect();
-                    await Task.Delay(2000); // Wait for new socket
-                    targetWrapper = _webSocketPublicWrappers.LastOrDefault(w => w.State == System.Net.WebSockets.WebSocketState.Open);
-                }
-
-
-                if (targetWrapper != null && targetWrapper.State == System.Net.WebSockets.WebSocketState.Open)
-                {
-                    // Using await now, or fire-and-forget with error handling if this method must remain synchronous
-                    await targetWrapper.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
-                    await targetWrapper.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\"}}");
-                    SendLogMessage($"Subscribed to {security.Name} on wrapper {targetWrapper.GetHashCode()}", LogMessageType.System);
-                }
-                else
-                {
-                    SendLogMessage($"Failed to subscribe to {security.Name}. No open public WebSocket found after attempt.", LogMessageType.Error);
-                    _subscribledSecutiries.Remove(security.Name); // Rollback subscription
-                }
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Subscription error for {security.Name}: {ex.Message}", LogMessageType.Error);
-                _subscribledSecutiries.Remove(security.Name); // Rollback
-            }
-        }
-
-        // Changed to fire-and-forget SendAsync
-        private void UnsubscribeFromAllWebSockets()
-        {
-            try
-            {
-                if (_subscribledSecutiries == null || _subscribledSecutiries.Count == 0) return;
-
-                foreach (var wrapper in _webSocketPublicWrappers)
-                {
-                    if (wrapper != null && wrapper.State == System.Net.WebSockets.WebSocketState.Open)
-                    {
-                        foreach (string name in _subscribledSecutiries)
-                        {
-                            _ = wrapper.SendAsync($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
-                            _ = wrapper.SendAsync($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
-                        }
-                    }
-                }
-                // _subscribledSecutiries.Clear(); // Clearing should happen after successful unsubscription confirmed or on dispose.
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        public bool SubscribeNews() => false;
-        public event Action<News> NewsEvent;
-        #endregion
-
-        #region 9 WebSocket parsing the messages
-        // Queues remain the same
-        private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-        private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-
-        // MessageReaderPublic and MessageReaderPrivate methods remain largely the same as they process from queues
-        // Their logic for parsing JSON based on content (e.g., "@trade", "ORDER_TRADE_UPDATE") is unchanged.
-        // ... (MessageReaderPublic, MessageReaderPrivate, UpdateTrade, UpdatePortfolio, UpdatePosition, UpdateOrder, UpdateMyTrade, GetExecuteVolumeInOrder, UpdateDepth)
-        // These methods are consumers of the queues and don't directly interact with WebSocketSharp objects.
-        // Their internal JSON parsing and event raising logic is assumed correct and untouched by the WebSocket library change.
-        #endregion
-
-        // ... (Section 10 Trade - REST calls, unchanged except for potential API key usage consistency) ...
-        // ... (Section 11 Queries - REST calls, CreateListenKey, RequestListenKey are unchanged) ...
-        // ... (Section 12 Log - SendLogMessage unchanged) ...
-
-        #region 13 Helpers
-
-        private string DecompressData(byte[] data) // Renamed from Decompress
-        {
-            try
-            {
-                using (System.IO.MemoryStream compressedStream = new System.IO.MemoryStream(data))
-                {
-                    // Important: Check if the first two bytes are GZip header (0x1F, 0x8B)
-                    // ClientWebSocket might sometimes pass uncompressed data if server sends it that way,
-                    // or if an intermediate proxy decompresses it.
-                    // Forcing GZip decompression on non-GZip data will fail.
-                    // However, original code assumed GZip, so let's keep it but be mindful.
-                    // byte[] header = new byte[2];
-                    // compressedStream.Read(header, 0, 2);
-                    // compressedStream.Position = 0; // Reset position
-                    // if (header[0] != 0x1f || header[1] != 0x8b) {
-                    //    SendLogMessage("Data is not GZip compressed, returning as UTF8 string.", LogMessageType.System);
-                    //    return Encoding.UTF8.GetString(data); // Fallback or error
-                    // }
-
-                    using (GZipStream decompressor = new GZipStream(compressedStream, CompressionMode.Decompress))
-                    {
-                        using (System.IO.MemoryStream resultStream = new System.IO.MemoryStream())
-                        {
-                            decompressor.CopyTo(resultStream);
-                            return Encoding.UTF8.GetString(resultStream.ToArray());
-                        }
-                    }
-                }
-            }
-            catch (Exception ex) // Catch specific InvalidDataException for GZip errors
-            {
-                SendLogMessage($"DecompressData error: {ex.Message}. Data might not be GZipped. Raw data (first 50 bytes): {BitConverter.ToString(data.Take(50).ToArray())}", LogMessageType.Error);
-                // Fallback: try to interpret as plain text if decompression fails.
-                // This might be noisy if data is truly binary and not text.
-                // return Encoding.UTF8.GetString(data); 
-                return null;
-            }
-        }
-
-        private string CalculateHmacSha256(string parametrs)
-        {
-            byte[] keyBytes = Encoding.UTF8.GetBytes(_secretKey);
-            byte[] inputBytes = Encoding.UTF8.GetBytes(parametrs);
-            using (HMACSHA256 hmac = new HMACSHA256(keyBytes))
-            {
-                byte[] hashBytes = hmac.ComputeHash(inputBytes);
-                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-            }
-        }
-
-        private string GenerateNewId() => Guid.NewGuid().ToString();
-
-        #endregion
-
-        // Ensure all previous event handlers for WebSocketSharp are removed or adapted.
-        // e.g., _webSocketPrivate_OnOpen, _webSocketPrivate_OnClose, etc. are now indirectly called
-        // by the lambdas passed to WebSocketWrapper.
-
-        // Sections 4, 5, 9, 10, 11, 12 need to be included from original if they were omitted for brevity above.
-        // I'm assuming methods like UpdateTrade, UpdatePortfolio, GetCandleHistory, etc., are present.
-        // The provided snippet was very long, so I focused on WebSocket parts.
-        // All methods from the original code that were not directly involved with WebSocketSharp client object handling
-        // (like REST API calls, data processing, logging) should largely remain the same.
-
-        // FULL SKELETON OF THE CLASS WITH ALL REGIONS:
         #region 4 Portfolios
+
         public List<Portfolio> Portfolios;
+
         public void GetPortfolios()
         {
-            if (Portfolios == null) GetNewPortfolio();
+            if (Portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
             CreateQueryPortfolio(true);
             CreateQueryPositions();
         }
+
         private void ThreadGetPortfolios()
         {
             while (true)
             {
-                if (ServerStatus != ServerConnectStatus.Connect) { Thread.Sleep(3000); continue; }
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
                 try
                 {
                     Thread.Sleep(20000);
-                    if (Portfolios == null) GetNewPortfolio();
+
+                    if (Portfolios == null)
+                    {
+                        GetNewPortfolio();
+                    }
+
                     CreateQueryPortfolio(false);
                     CreateQueryPositions();
                 }
-                catch (Exception ex) { SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error); }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
             }
         }
+
         private void GetNewPortfolio()
         {
-            Portfolios = new List<Portfolio> { new Portfolio { Number = "BingXFutures", ValueBegin = 1, ValueCurrent = 1, ValueBlocked = 0 } };
-            PortfolioEvent?.Invoke(Portfolios);
+            Portfolios = new List<Portfolio>();
+
+            Portfolio portfolioInitial = new Portfolio();
+            portfolioInitial.Number = "BingXFutures";
+            portfolioInitial.ValueBegin = 1;
+            portfolioInitial.ValueCurrent = 1;
+            portfolioInitial.ValueBlocked = 0;
+
+            Portfolios.Add(portfolioInitial);
+
+            PortfolioEvent(Portfolios);
         }
+
         private RateGate _positionsRateGate = new RateGate(1, TimeSpan.FromMilliseconds(250));
+
         private void CreateQueryPositions()
         {
             _positionsRateGate.WaitToProceed();
+
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/swap/v2/user/positions", Method.GET);
+
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
                 string parameters = $"timestamp={timeStamp}";
                 string sign = CalculateHmacSha256(parameters);
+
                 request.AddParameter("timestamp", timeStamp);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
+
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingX<PositionData> response = JsonConvert.DeserializeObject<ResponseFuturesBingX<PositionData>>(json.Content);
+
                     if (response.code == "0")
                     {
                         Portfolio portfolio = Portfolios[0];
-                        // Clear old positions not reported anymore (optional, depends on how SetNewPosition works)
-                        // var currentPositions = new HashSet<string>();
 
-                        foreach (var posData in response.data)
+                        List<PositionData> positionData = response.data;
+
+                        for (int i = 0; i < positionData.Count; i++)
                         {
-                            PositionOnBoard position = new PositionOnBoard { PortfolioName = "BingXFutures" };
-                            if (posData.OnlyOnePosition == "true") // Hedge mode off likely
+                            PositionOnBoard position = new PositionOnBoard();
+
+                            position.PortfolioName = "BingXFutures";
+
+                            if (positionData[i].OnlyOnePosition == "true")
                             {
-                                position.SecurityNameCode = posData.Symbol + "_BOTH";
-                                position.ValueCurrent = posData.PositionSide == "LONG" ? posData.PositionAmt.ToDecimal() : -posData.PositionAmt.ToDecimal();
+                                position.SecurityNameCode = positionData[i].Symbol + "_BOTH";
+
+                                if (positionData[i].PositionSide == "LONG")
+                                {
+                                    position.ValueCurrent = positionData[i].PositionAmt.ToDecimal();
+                                    position.ValueBegin = positionData[i].PositionAmt.ToDecimal();
+                                }
+                                else if (positionData[i].PositionSide == "SHORT")
+                                {
+                                    position.ValueCurrent = -(positionData[i].PositionAmt.ToDecimal());
+                                    position.ValueBegin = -(positionData[i].PositionAmt.ToDecimal());
+                                }
+
+                                position.UnrealizedPnl = positionData[i].UnrealizedProfit.ToDecimal();
+                                portfolio.SetNewPosition(position);
+                                continue;
                             }
-                            else // Hedge mode on
+                            else
                             {
-                                position.SecurityNameCode = posData.Symbol + "_" + posData.PositionSide;
-                                position.ValueCurrent = posData.PositionSide == "LONG" ? posData.PositionAmt.ToDecimal() : -posData.PositionAmt.ToDecimal();
+                                if (positionData[i].PositionSide == "LONG")
+                                {
+                                    position.SecurityNameCode = positionData[i].Symbol + "_LONG";
+                                    position.ValueCurrent = positionData[i].PositionAmt.ToDecimal();
+                                    position.ValueBegin = positionData[i].PositionAmt.ToDecimal();
+                                    position.UnrealizedPnl = positionData[i].UnrealizedProfit.ToDecimal();
+                                    portfolio.SetNewPosition(position);
+                                    continue;
+                                }
+                                else if (positionData[i].PositionSide == "SHORT")
+                                {
+                                    position.SecurityNameCode = positionData[i].Symbol + "_SHORT";
+                                    position.ValueCurrent = -(positionData[i].PositionAmt.ToDecimal());
+                                    position.ValueBegin = -(positionData[i].PositionAmt.ToDecimal());
+                                    position.UnrealizedPnl = positionData[i].UnrealizedProfit.ToDecimal();
+                                    portfolio.SetNewPosition(position);
+                                    continue;
+                                }
                             }
-                            position.ValueBegin = position.ValueCurrent; // Or track entry value differently if needed
-                            position.UnrealizedPnl = posData.UnrealizedProfit.ToDecimal();
-                            portfolio.SetNewPosition(position);
-                            // currentPositions.Add(position.SecurityNameCode);
                         }
-                        // portfolio.ClearPositionsNotInSet(currentPositions); // If positions can be fully removed
-                        PortfolioEvent?.Invoke(Portfolios);
+
+                        PortfolioEvent(Portfolios);
                     }
-                    else SendLogMessage($"CreateQueryPositions> Code: {response.code} - msg: {response.msg}", LogMessageType.Error);
+                    else
+                    {
+                        SendLogMessage($"CreateQueryPositions> Http State Code: {response.code} - message: {response.msg}", LogMessageType.Error);
+                    }
                 }
-                else if (!json.Content.StartsWith("<!DOCTYPE")) SendLogMessage($"CreateQueryPositions> HTTP Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                else
+                {
+                    if (json.Content.StartsWith("<!DOCTYPE"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage($"CreateQueryPositions> Http State Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                    }
+                }
             }
-            catch (Exception exception) { SendLogMessage(exception.ToString(), LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
+
         private RateGate _portfolioRateGate = new RateGate(1, TimeSpan.FromMilliseconds(250));
+
         private void CreateQueryPortfolio(bool IsUpdateValueBegin)
         {
             _portfolioRateGate.WaitToProceed();
+
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/swap/v2/user/balance", Method.GET);
+
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                string parameters = $"timestamp={timeStamp}&recvWindow=20000"; // Alphabetical: recvWindow, timestamp
+                string parameters = $"timestamp={timeStamp}&recvWindow=20000";
                 string sign = CalculateHmacSha256(parameters);
+
                 request.AddParameter("timestamp", timeStamp);
                 request.AddParameter("recvWindow", 20000);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
+
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingXMessage<Balance> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<Balance>>(json.Content);
+
                     if (response.code == "0")
                     {
                         Portfolio portfolio = Portfolios[0];
+
                         BalanceInfoBingXFutures asset = response.data.balance;
-                        PositionOnBoard newPortf = new PositionOnBoard
+
+                        PositionOnBoard newPortf = new PositionOnBoard();
+                        newPortf.SecurityNameCode = asset.asset;
+
+                        if (IsUpdateValueBegin)
                         {
-                            SecurityNameCode = asset.asset,
-                            ValueCurrent = asset.equity.ToDecimal(),
-                            ValueBlocked = asset.freezedMargin.ToDecimal() + asset.usedMargin.ToDecimal(),
-                            UnrealizedPnl = asset.unrealizedProfit.ToDecimal(),
-                            PortfolioName = "BingXFutures"
-                        };
-                        if (IsUpdateValueBegin) newPortf.ValueBegin = asset.balance.ToDecimal(); // This is total balance, not equity
+                            newPortf.ValueBegin = asset.balance.ToDecimal();
+                        }
 
-                        portfolio.SetNewPosition(newPortf); // This is for the USDT (or base currency) asset itself
+                        newPortf.ValueCurrent = asset.equity.ToDecimal();
+                        newPortf.ValueBlocked = asset.freezedMargin.ToDecimal() + asset.usedMargin.ToDecimal();
+                        newPortf.UnrealizedPnl = asset.unrealizedProfit.ToDecimal();
+                        newPortf.PortfolioName = "BingXFutures";
+                        portfolio.SetNewPosition(newPortf);
 
-                        if (IsUpdateValueBegin) portfolio.ValueBegin = newPortf.ValueCurrent; // ValueBegin should be equity at start
+
+                        if (IsUpdateValueBegin)
+                        {
+                            portfolio.ValueBegin = newPortf.ValueBegin;
+                        }
+
                         portfolio.ValueCurrent = newPortf.ValueCurrent;
                         portfolio.ValueBlocked = newPortf.ValueBlocked;
                         portfolio.UnrealizedPnl = newPortf.UnrealizedPnl;
-                        if (newPortf.ValueCurrent == 0) { portfolio.ValueBegin = 1; portfolio.ValueCurrent = 1; }
-                        PortfolioEvent?.Invoke(Portfolios);
+
+                        if (newPortf.ValueCurrent == 0)
+                        {
+                            portfolio.ValueBegin = 1;
+                            portfolio.ValueCurrent = 1;
+                        }
+
+                        PortfolioEvent(Portfolios);
                     }
-                    else SendLogMessage($"CreateQueryPortfolio> Code: {response.code} - msg: {response.msg}", LogMessageType.Error);
+                    else
+                    {
+                        SendLogMessage($"CreateQueryPortfolio> Http State Code: {response.code} - message: {response.msg}", LogMessageType.Error);
+                    }
                 }
-                else if (!json.Content.StartsWith("<!DOCTYPE")) SendLogMessage($"CreateQueryPortfolio> HTTP Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                else
+                {
+                    if (json.Content.StartsWith("<!DOCTYPE"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage($"CreateQueryPortfolio> Http State Code: {json.StatusCode} | msg: {json.Content}", LogMessageType.Error);
+                    }
+                }
             }
-            catch (Exception exception) { SendLogMessage(exception.ToString(), LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
+
         public event Action<List<Portfolio>> PortfolioEvent;
+
         #endregion
+
         #region 5 Data
+
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             string tf = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
-            return RequestCandleHistory(security.Name, tf, candleCount); // candleCount was limit in original
+            return RequestCandleHistory(security.Name, tf);
         }
+
         private List<Candle> RequestCandleHistory(string nameSec, string tameFrame, long limit = 500, long fromTimeStamp = 0, long toTimeStamp = 0)
         {
             _generalRateGate1.WaitToProceed();
@@ -984,917 +702,1715 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private List<Candle> ConvertCandles(List<CandlestickChartDataFutures> rawList)
         {
-            if (rawList == null) return new List<Candle>();
-            List<Candle> candles = new List<Candle>();
-            foreach (var current in rawList)
+            try
             {
-                Candle candle = new Candle
+                List<Candle> candles = new List<Candle>();
+
+                for (int i = 0; i < rawList.Count; i++)
                 {
-                    State = CandleState.Finished,
-                    TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(current.time)),
-                    Volume = current.volume.ToDecimal(),
-                    Close = current.close.ToDecimal(),
-                    High = current.high.ToDecimal(),
-                    Low = current.low.ToDecimal(),
-                    Open = current.open.ToDecimal()
-                };
-                if (candles.Count > 0 && candle.TimeStart == candles.Last().TimeStart) continue;
-                candles.Add(candle);
+                    CandlestickChartDataFutures current = rawList[i];
+
+                    Candle candle = new Candle();
+
+                    candle.State = CandleState.Finished;
+                    candle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(current.time));
+                    candle.Volume = current.volume.ToDecimal();
+                    candle.Close = current.close.ToDecimal();
+                    candle.High = current.high.ToDecimal();
+                    candle.Low = current.low.ToDecimal();
+                    candle.Open = current.open.ToDecimal();
+
+                    // We check that the list is not empty and the current candle does not duplicate the last one
+                    if (candles.Count > 0 && candle.TimeStart == candles[candles.Count - 1].TimeStart)
+                    {
+                        continue;
+                    }
+
+                    candles.Add(candle);
+                }
+
+                candles.Reverse();
+                return candles;
             }
-            // candles.Reverse(); // Data usually comes oldest first, so no reverse needed for Add. If newest first, then reverse.
-            // BingX klines are typically oldest first. So this reverse might be wrong.
-            // Original had reverse. Let's keep to see. If candles are backwards, remove this.
-            return candles;
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
         }
+
         private string GetInterval(TimeSpan timeFrame)
         {
-            if (timeFrame.TotalMinutes >= 1 && timeFrame.TotalDays < 1) return $"{(int)timeFrame.TotalMinutes}m";
-            if (timeFrame.TotalHours >= 1 && timeFrame.TotalDays < 1) return $"{(int)timeFrame.TotalHours}h";
-            if (timeFrame.TotalDays >= 1) return $"{(int)timeFrame.TotalDays}d";
-            return "1m"; // Fallback
+            if (timeFrame.Minutes != 0)
+            {
+                return $"{timeFrame.Minutes}m";
+            }
+            else if (timeFrame.Hours != 0)
+            {
+                return $"{timeFrame.Hours}h";
+            }
+            else
+            {
+                return $"{timeFrame.Days}d";
+            }
         }
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
+            DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            // This method's logic for chunking requests seems fine.
-            // Ensure startTime, endTime are handled correctly for timezones if not UTC.
-            // The original code uses DateTime.SpecifyKind(..., DateTimeKind.Utc)
-            // TimeManager.GetTimeStampMilliSecondsToDateTime expects UTC.
 
             startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
-            if (startTime >= endTime || startTime >= DateTime.UtcNow) return null;
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
+
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+
+            if (!CheckTf(tfTotalMinutes))
+            {
+                return null;
+            }
 
             List<Candle> allCandles = new List<Candle>();
             string interval = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
-            DateTime currentStartTime = startTime;
-            int maxCandlesPerRequest = 1000; // BingX limit often 500 or 1000
 
-            while (currentStartTime < endTime && currentStartTime < DateTime.UtcNow)
+            DateTime startTimeData = startTime;
+            DateTime partEndTime = startTimeData.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 1200);
+
+            do
             {
-                DateTime currentEndTimeChunk = currentStartTime.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * maxCandlesPerRequest);
-                if (currentEndTimeChunk > endTime) currentEndTimeChunk = endTime;
-                if (currentEndTimeChunk > DateTime.UtcNow) currentEndTimeChunk = DateTime.UtcNow.AddMinutes(-timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes); // Ensure not requesting current candle
+                List<Candle> candles = new List<Candle>();
 
-                long fromTs = TimeManager.GetTimeStampMilliSecondsToDateTime(currentStartTime);
-                long toTs = TimeManager.GetTimeStampMilliSecondsToDateTime(currentEndTimeChunk);
+                long from = TimeManager.GetTimeStampMilliSecondsToDateTime(startTimeData);
+                long to = TimeManager.GetTimeStampMilliSecondsToDateTime(partEndTime);
 
-                if (fromTs >= toTs) break; // Avoid issues if currentStartTime is too close to UtcNow
+                candles = RequestCandleHistory(security.Name, interval, 1200, from, to); // maximum 1440 candles
 
-                List<Candle> chunk = RequestCandleHistory(security.Name, interval, maxCandlesPerRequest, fromTs, toTs);
-                if (chunk == null || chunk.Count == 0) break;
-
-                allCandles.AddRange(chunk.Where(c => c.TimeStart >= currentStartTime && c.TimeStart < endTime));
-
-                if (chunk.Count < maxCandlesPerRequest || chunk.Last().TimeStart >= currentEndTimeChunk.AddSeconds(-1))
-                { // If fewer candles than limit returned, or last candle is at or after chunk end, assume no more data in this range
-                    currentStartTime = chunk.Last().TimeStart.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-                }
-                else // Should not happen if API returns up to 'limit' or up to 'endTime'
+                if (candles == null || candles.Count == 0)
                 {
-                    currentStartTime = chunk.Last().TimeStart.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
+                    break;
                 }
 
+                Candle last = candles[candles.Count - 1];
+                Candle first = candles[0];
 
-                if (allCandles.Count > 0 && allCandles.Last().TimeStart >= endTime) break;
-                Thread.Sleep(200); // Rate limit guard
+                // We check that the list is not empty and the current candle does not duplicate the last one
+                if (allCandles.Count > 0 && first.TimeStart == allCandles[allCandles.Count - 1].TimeStart)
+                {
+                    candles.RemoveAt(0);
+                }
+
+                if (last.TimeStart >= endTime)
+                {
+                    for (int i = 0; i < candles.Count; i++)
+                    {
+                        if (candles[i].TimeStart <= endTime)
+                        {
+                            allCandles.Add(candles[i]);
+                        }
+                    }
+                    break;
+                }
+
+                allCandles.AddRange(candles);
+
+                startTimeData = partEndTime;
+                partEndTime = startTimeData.AddMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * 1200);
+
+                if (startTimeData >= DateTime.UtcNow)
+                {
+                    break;
+                }
+
+                if (partEndTime > DateTime.UtcNow)
+                {
+                    partEndTime = DateTime.UtcNow;
+                }
             }
-            return allCandles.DistinctBy(c => c.TimeStart).OrderBy(c => c.TimeStart).ToList();
+            while (true);
+
+            return allCandles;
         }
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime) => null; // Not implemented
+
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if (startTime >= endTime ||
+                startTime >= DateTime.UtcNow ||
+                actualTime > endTime ||
+                actualTime > DateTime.UtcNow)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        private bool CheckTf(int timeFrameMinutes)
+        {
+            if (timeFrameMinutes == 1 ||
+                timeFrameMinutes == 5 ||
+                timeFrameMinutes == 15 ||
+                timeFrameMinutes == 30 ||
+                timeFrameMinutes == 60 ||
+                timeFrameMinutes == 120 ||
+                timeFrameMinutes == 240)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null;
+        }
+
         #endregion
-        #region 9 WebSocket parsing the messages (MessageReader methods and JSON deserialization)
-        // These methods (MessageReaderPublic, MessageReaderPrivate, UpdateTrade, UpdatePortfolio, UpdatePosition, UpdateOrder, UpdateMyTrade, GetExecuteVolumeInOrder, UpdateDepth)
-        // are mostly unchanged as they consume from queues.
-        // Make sure _myTrades list is initialized.
-        private List<MyTrade> _myTrades = new List<MyTrade>();
-        private DateTime _lastTimeMd; // For market depth timestamp uniqueness
+
+        #region 6 WebSocket creation
+
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
+
+        private WebSocket _webSocketPrivate;
+
+        private const string _webSocketUrl = "wss://open-api-swap.bingx.com/swap-market";
+
+        private string _listenKey = "";
+
+        private void CreatePublicWebSocketConnect()
+        {
+            try
+            {
+                if (FIFOListWebSocketPublicMessage == null)
+                {
+                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+                }
+
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private WebSocket CreateNewPublicSocket()
+        {
+            try
+            {
+                _listenKey = CreateListenKey();
+
+                if (_listenKey == null)
+                {
+                    SendLogMessage("Authorization error. Listen key is note created", LogMessageType.Error);
+                    return null;
+                }
+
+                string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
+
+                WebSocket webSocketPublicNew = new WebSocket(urlStr);
+
+                if (_myProxy != null)
+                {
+                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                    webSocketPublicNew.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                }
+
+                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
+                    = System.Security.Authentication.SslProtocols.None
+                    | System.Security.Authentication.SslProtocols.Tls12
+                    | System.Security.Authentication.SslProtocols.Tls13;
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
+                webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
+                webSocketPublicNew.OnMessage += WebSocketPublicNew_OnMessage;
+                webSocketPublicNew.OnError += WebSocketPublicNew_OnError;
+                webSocketPublicNew.Connect();
+
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void CreatePrivateWebSocketConnect()
+        {
+            if (_webSocketPrivate != null)
+            {
+                return;
+            }
+
+            _listenKey = CreateListenKey();
+
+            if (_listenKey == null)
+            {
+                SendLogMessage("Authorization error. Listen key is note created", LogMessageType.Error);
+                return;
+            }
+
+            string urlStr = $"{_webSocketUrl}?listenKey={_listenKey}";
+
+            _webSocketPrivate = new WebSocket(urlStr);
+
+            if (_myProxy != null)
+            {
+                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
+                _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+            }
+
+            _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                = System.Security.Authentication.SslProtocols.None
+                | System.Security.Authentication.SslProtocols.Tls12
+                | System.Security.Authentication.SslProtocols.Tls13;
+            _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
+            _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
+            _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
+            _webSocketPrivate.OnError += _webSocketPrivate_OnError;
+
+            _webSocketPrivate.Connect();
+        }
+
+        private void DeleteWebSocketConnection()
+        {
+            if (_webSocketPublic != null)
+            {
+                try
+                {
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= WebSocketPublicNew_OnOpen;
+                        webSocketPublic.OnClose -= WebSocketPublicNew_OnClose;
+                        webSocketPublic.OnMessage -= WebSocketPublicNew_OnMessage;
+                        webSocketPublic.OnError -= WebSocketPublicNew_OnError;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+                        webSocketPublic = null;
+                    }
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                _webSocketPublic.Clear();
+
+            }
+
+            if (_webSocketPrivate != null)
+            {
+                try
+                {
+                    _webSocketPrivate.OnOpen -= _webSocketPrivate_OnOpen;
+                    _webSocketPrivate.OnClose -= _webSocketPrivate_OnClose;
+                    _webSocketPrivate.OnMessage -= _webSocketPrivate_OnMessage;
+                    _webSocketPrivate.OnError -= _webSocketPrivate_OnError;
+                    _webSocketPrivate.CloseAsync();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                _webSocketPrivate = null;
+            }
+        }
+
+        private string _socketActivateLocker = "socketActivateLocker";
+
+        private void CheckSocketsActivate()
+        {
+            try
+            {
+                lock (_socketActivateLocker)
+                {
+                    if (_webSocketPrivate == null
+                       || _webSocketPrivate?.ReadyState != WebSocketState.Open)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (_webSocketPublic.Count == 0)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    WebSocket webSocketPublic = _webSocketPublic[0];
+
+                    if (webSocketPublic == null
+                        || webSocketPublic?.ReadyState != WebSocketState.Open)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Connect;
+                        ConnectEvent();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region 7 WebSocket events
+
+        private void WebSocketPublicNew_OnError(object sender, ErrorEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+            }
+            else
+            {
+                SendLogMessage("WebSocket Public error" + e.ToString(), LogMessageType.Error);
+                CheckSocketsActivate();
+            }
+        }
+
+        private void WebSocketPublicNew_OnMessage(object sender, MessageEventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e == null)
+                {
+                    return;
+                }
+
+                if (e.RawData == null
+                    || e.RawData.Length == 0)
+                {
+                    return;
+                }
+
+                if (FIFOListWebSocketPublicMessage == null)
+                {
+                    return;
+                }
+
+                string item = Decompress(e.RawData);
+
+                if (item.Contains("Ping")) // send immediately upon receipt.
+                {
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        _webSocketPublic[i].Send("Pong");
+                    }
+
+                    return;
+                }
+
+                FIFOListWebSocketPublicMessage.Enqueue(item);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketPublicNew_OnClose(object sender, CloseEventArgs e)
+        {
+            try
+            {
+                SendLogMessage($"Connection Closed by BingXFutures. {e.Code} {e.Reason}. WebSocket Public Closed Event", LogMessageType.Error);
+                CheckSocketsActivate();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void WebSocketPublicNew_OnOpen(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("BingXFutures WebSocket Public connection open", LogMessageType.System);
+                    CheckSocketsActivate();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
+        {
+            if (e.Exception != null)
+            {
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+            }
+            else
+            {
+                SendLogMessage("WebSocket Private error" + e.ToString(), LogMessageType.Error);
+                CheckSocketsActivate();
+            }
+        }
+
+        private void _webSocketPrivate_OnMessage(object sender, MessageEventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e == null)
+                {
+                    return;
+                }
+
+                if (e.RawData == null
+                    || e.RawData.Length == 0)
+                {
+                    return;
+                }
+
+                if (FIFOListWebSocketPrivateMessage == null)
+                {
+                    return;
+                }
+
+                string item = Decompress(e.RawData);
+
+                if (item.Contains("Ping")) // send immediately upon receipt. 
+                {
+                    _webSocketPrivate.Send("Pong");
+                    return;
+                }
+
+                FIFOListWebSocketPrivateMessage.Enqueue(item);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"Error message read. Error: {exception}", LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPrivate_OnClose(object sender, CloseEventArgs e)
+        {
+            try
+            {
+                SendLogMessage($"Connection Closed by BingXFutures. {e.Code} {e.Reason}. WWebSocket Private Closed Event", LogMessageType.Error);
+                CheckSocketsActivate();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void _webSocketPrivate_OnOpen(object sender, EventArgs e)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("BingXFutures WebSocket Private connection open", LogMessageType.System);
+                    CheckSocketsActivate();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region 8 Security subscrible
+
+        private List<string> _subscribledSecutiries = new List<string>();
+
+        public void Subscrible(Security security)
+        {
+            try
+            {
+                CreateSubscribleSecurityMessageWebSocket(security);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void CreateSubscribleSecurityMessageWebSocket(Security security)
+        {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                {
+                    if (_subscribledSecutiries[i].Equals(security.Name))
+                    {
+                        return;
+                    }
+                }
+
+                _subscribledSecutiries.Add(security.Name);
+
+                if (_webSocketPublic.Count == 0)
+                {
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                if (webSocketPublic.ReadyState == WebSocketState.Open
+                    && _subscribledSecutiries.Count != 0
+                    && _subscribledSecutiries.Count % 40 == 0)
+                {
+                    // creating a new socket
+                    WebSocket newSocket = CreateNewPublicSocket();
+
+                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                    while (newSocket.ReadyState != WebSocketState.Open)
+                    {
+                        Thread.Sleep(1000);
+
+                        if (timeEnd < DateTime.Now)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (newSocket.ReadyState == WebSocketState.Open)
+                    {
+                        _webSocketPublic.Add(newSocket);
+                        webSocketPublic = newSocket;
+                    }
+                }
+
+                if (webSocketPublic != null)
+                {
+                    webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
+                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\"}}");
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private void UnsubscribeFromAllWebSockets()
+        {
+            try
+            {
+                for (int i = 0; i < _webSocketPublic.Count; i++)
+                {
+                    WebSocket webSocketPublic = _webSocketPublic[i];
+
+                    try
+                    {
+                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        {
+                            if (_subscribledSecutiries != null)
+                            {
+                                for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
+                                {
+                                    string name = _subscribledSecutiries[i];
+
+                                    webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
+                                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
+        #endregion
+
+        #region 9 WebSocket parsing the messages
+
+        private ConcurrentQueue<string> FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
         private void MessageReaderPublic()
         {
             Thread.Sleep(5000);
+
             while (true)
             {
                 try
                 {
-                    if (FIFOListWebSocketPublicMessage == null || ServerStatus == ServerConnectStatus.Disconnect) { Thread.Sleep(1000); continue; }
-                    if (FIFOListWebSocketPublicMessage.IsEmpty) { Thread.Sleep(1); continue; }
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (FIFOListWebSocketPublicMessage.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     if (FIFOListWebSocketPublicMessage.TryDequeue(out string message))
                     {
-                        if (message.Contains("@trade")) UpdateTrade(message);
-                        else if (message.Contains("@depth")) UpdateDepth(message); // Changed to @depth from @depth20 for broader match
+                        if (message.Contains("@trade"))
+                        {
+                            UpdateTrade(message);
+                            continue;
+                        }
+                        else if (message.Contains("@depth20"))
+                        {
+                            UpdateDepth(message);
+                            continue;
+                        }
                     }
                 }
-                catch (Exception exception) { Thread.Sleep(1000); SendLogMessage(exception.ToString(), LogMessageType.Error); }
+                catch (Exception exception)
+                {
+                    Thread.Sleep(2000);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
             }
         }
+
         private void MessageReaderPrivate()
         {
             while (true)
             {
                 try
                 {
-                    if (FIFOListWebSocketPrivateMessage == null || ServerStatus == ServerConnectStatus.Disconnect) { Thread.Sleep(1000); continue; }
-                    if (FIFOListWebSocketPrivateMessage.IsEmpty) { Thread.Sleep(1); continue; }
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1000);
+                        continue;
+                    }
+
+                    if (FIFOListWebSocketPrivateMessage.IsEmpty)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     if (FIFOListWebSocketPrivateMessage.TryDequeue(out string message))
                     {
-                        if (message.Contains("ORDER_TRADE_UPDATE")) UpdateOrder(message);
-                        else if (message.Contains("ACCOUNT_UPDATE")) { UpdatePortfolio(message); UpdatePosition(message); }
+                        if (message.Contains("ORDER_TRADE_UPDATE"))
+                        {
+                            UpdateOrder(message);
+                            continue;
+                        }
+                        else if (message.Contains("ACCOUNT_UPDATE"))
+                        {
+                            UpdatePortfolio(message);
+                            UpdatePosition(message);
+                            continue;
+                        }
                     }
                 }
-                catch (Exception exception) { Thread.Sleep(1000); SendLogMessage(exception.ToString(), LogMessageType.Error); }
+                catch (Exception exception)
+                {
+                    Thread.Sleep(2000);
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                }
             }
         }
+
         private void UpdateTrade(string message)
         {
             try
             {
-                // Assuming SubscribeLatestTradeDetail is a generic wrapper for BingX trade stream
-                // BingX trade stream: {"dataType":"BTC-USDT@trade","data":[{"q":"0.0004","p":"29010.6","T":1690317477671,"s":"BTC-USDT","m":false}]}
-                // The original had SubscribeLatestTradeDetail<TradeDetails>, let's assume TradeDetails is a list from "data"
-                var tradeEvent = JsonConvert.DeserializeObject<BingXTradeEvent>(message); // Use a specific class for BingX structure
-                if (tradeEvent?.data == null) return;
+                SubscribeLatestTradeDetail<TradeDetails> response = JsonConvert.DeserializeObject<SubscribeLatestTradeDetail<TradeDetails>>(message);
 
-                foreach (var tradeData in tradeEvent.data)
+                Trade trade = new Trade();
+
+                for (int i = 0; i < response.data.Count; i++)
                 {
-                    Trade trade = new Trade
-                    {
-                        SecurityNameCode = tradeData.s,
-                        Price = tradeData.p.ToDecimal(),
-                        Time = TimeManager.GetDateTimeFromTimeStamp(tradeData.T),
-                        Volume = tradeData.q.ToDecimal(),
-                        Side = tradeData.m ? Side.Sell : Side.Buy // true for sell (maker=false, taker=true), false for buy
-                    };
-                    NewTradesEvent?.Invoke(trade);
+                    trade.SecurityNameCode = response.data[i].s;
+
+                    trade.Price = response.data[i].p.Replace('.', ',').ToDecimal();
+                    // trade.Id = // the exchange does not send trade id
+                    trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data[i].T));
+                    trade.Volume = response.data[i].q.Replace('.', ',').ToDecimal();
+                    if (response.data[i].m == "true")
+                        trade.Side = Side.Sell;
+                    else trade.Side = Side.Buy;
+
+                    NewTradesEvent(trade);
                 }
             }
-            catch (Exception exception) { SendLogMessage($"UpdateTrade Error: {exception} on msg: {message.Substring(0, Math.Min(message.Length, 100))}", LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
+
         private void UpdatePortfolio(string message)
         {
             try
             {
                 AccountUpdateEvent accountUpdate = JsonConvert.DeserializeObject<AccountUpdateEvent>(message);
-                if (accountUpdate?.a?.B == null || Portfolios == null || Portfolios.Count == 0) return;
 
                 Portfolio portfolio = Portfolios[0];
-                foreach (var balanceInfo in accountUpdate.a.B)
+
+                for (int i = 0; i < accountUpdate.a.B.Count; i++)
                 {
-                    PositionOnBoard pos = new PositionOnBoard
-                    {
-                        PortfolioName = "BingXFutures",
-                        SecurityNameCode = balanceInfo.a, // Asset name (e.g., USDT)
-                        ValueCurrent = balanceInfo.wb.ToDecimal() // Wallet Balance
-                                                                  // ValueBlocked could be derived from fr (frozen) or ma (margin) if available
-                    };
+                    PositionOnBoard pos = new PositionOnBoard();
+
+                    pos.PortfolioName = "BingXFutures";
+                    pos.SecurityNameCode = accountUpdate.a.B[i].a;
+                    pos.ValueCurrent = accountUpdate.a.B[i].wb.ToDecimal();
+
                     portfolio.SetNewPosition(pos);
+
+                    PortfolioEvent(Portfolios);
                 }
-                // Update overall portfolio metrics if ACCOUNT_UPDATE contains them (e.g. total equity)
-                // The current parsing focuses on individual asset balances from 'B' array.
-                PortfolioEvent?.Invoke(Portfolios);
             }
-            catch (Exception exception) { SendLogMessage($"UpdatePortfolio Error: {exception} on msg: {message.Substring(0, Math.Min(message.Length, 100))}", LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
+
         private void UpdatePosition(string message)
         {
             try
             {
                 AccountUpdateEvent accountUpdate = JsonConvert.DeserializeObject<AccountUpdateEvent>(message);
-                if (accountUpdate?.a?.P == null || Portfolios == null || Portfolios.Count == 0) return;
 
                 Portfolio portfolio = Portfolios[0];
-                foreach (var posData in accountUpdate.a.P)
+
+                PositionOnBoard position = new PositionOnBoard();
+
+                for (int i = 0; i < accountUpdate.a.P.Count; i++)
                 {
-                    PositionOnBoard position = new PositionOnBoard { PortfolioName = "BingXFutures" };
-                    // Hedge mode determination here is key, _hedgeMode is from server params
-                    if (!_hedgeMode) // Or check posData.mt == "cross" or "isolated" vs "both" logic
+                    position.PortfolioName = "BingXFutures";
+
+                    if (!_hedgeMode)
                     {
-                        position.SecurityNameCode = posData.s + "_BOTH";
-                        position.ValueCurrent = posData.ps == "LONG" ? posData.pa.ToDecimal() : -posData.pa.ToDecimal();
+                        position.SecurityNameCode = accountUpdate.a.P[i].s + "_BOTH";
+
+                        if (accountUpdate.a.P[i].ps.Equals("LONG"))
+                        {
+                            position.ValueCurrent = accountUpdate.a.P[i].pa.ToDecimal();
+                        }
+                        else if (accountUpdate.a.P[i].ps.Equals("SHORT"))
+                        {
+                            position.ValueCurrent = -(accountUpdate.a.P[i].pa.ToDecimal());
+                        }
+
+                        portfolio.SetNewPosition(position);
+
+                        PortfolioEvent(new List<Portfolio> { portfolio });
+
+                        continue;
                     }
-                    else
+
+                    if (accountUpdate.a.P[i].ps.Equals("LONG"))
                     {
-                        position.SecurityNameCode = posData.s + "_" + posData.ps; // LONG or SHORT
-                        position.ValueCurrent = posData.ps == "LONG" ? posData.pa.ToDecimal() : -posData.pa.ToDecimal();
+                        position.ValueCurrent = accountUpdate.a.P[i].pa.ToDecimal();
+                        position.SecurityNameCode = accountUpdate.a.P[i].s + "_LONG";
+
+                        portfolio.SetNewPosition(position);
                     }
-                    position.UnrealizedPnl = posData.up.ToDecimal();
-                    // Entry price (ep), leverage (l) etc. are also in posData if needed for more detail
-                    portfolio.SetNewPosition(position);
+                    else if (accountUpdate.a.P[i].ps.Equals("SHORT"))
+                    {
+                        position.ValueCurrent = -(accountUpdate.a.P[i].pa.ToDecimal());
+                        position.SecurityNameCode = accountUpdate.a.P[i].s + "_SHORT";
+
+                        portfolio.SetNewPosition(position);
+                    }
+
+                    position.UnrealizedPnl = accountUpdate.a.P[i].up.ToDecimal();
+
+                    PortfolioEvent(Portfolios);
                 }
-                PortfolioEvent?.Invoke(Portfolios);
             }
-            catch (Exception exception) { SendLogMessage($"UpdatePosition Error: {exception} on msg: {message.Substring(0, Math.Min(message.Length, 100))}", LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
+
         private void UpdateOrder(string message)
         {
             try
             {
-                TradeUpdateEvent responseOrderEvent = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
-                if (responseOrderEvent?.o == null) return;
-                var orderData = responseOrderEvent.o;
+                TradeUpdateEvent responseOrder = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
 
                 Order newOrder = new Order();
+
                 OrderStateType orderState = OrderStateType.None;
-                switch (orderData.X) // Execution Type. x is order status.
+
+                switch (responseOrder.o.X)
                 {
-                    case "NEW": orderState = OrderStateType.Active; break;
-                    case "PARTIALLY_FILLED": orderState = OrderStateType.Partial; break;
-                    case "FILLED": orderState = OrderStateType.Done; break;
-                    case "CANCELED": case "CANCELLED": orderState = OrderStateType.Cancel; break; // Handle both spellings
-                    case "REJECTED": case "EXPIRED": orderState = OrderStateType.Fail; break;
-                    default: orderState = OrderStateType.None; break; // PENDING, etc.
+                    case "FILLED":
+                        orderState = OrderStateType.Done;
+                        break;
+                    case "PARTIALLY_FILLED":
+                        orderState = OrderStateType.Partial;
+                        break;
+                    case "CANCELED":
+                        orderState = OrderStateType.Cancel;
+                        break;
+                    case "NEW":
+                        orderState = OrderStateType.Active;
+                        break;
+                    case "EXPIRED":
+                        orderState = OrderStateType.Fail;
+                        break;
+                    default:
+                        orderState = OrderStateType.None;
+                        break;
                 }
 
-                try { newOrder.NumberUser = Convert.ToInt32(orderData.c); } catch { /* ignore if not int or empty */ }
-                newOrder.NumberMarket = orderData.i.ToString();
-                newOrder.SecurityNameCode = orderData.s;
-                newOrder.SecurityClassCode = orderData.N; // Usually asset like USDT
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(responseOrder.o.c);
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                newOrder.NumberMarket = responseOrder.o.i.ToString();
+                newOrder.SecurityNameCode = responseOrder.o.s;
+                newOrder.SecurityClassCode = responseOrder.o.N;
                 newOrder.PortfolioNumber = "BingXFutures";
-                newOrder.Side = orderData.S == "BUY" ? Side.Buy : Side.Sell;
-                newOrder.Price = orderData.p.ToDecimal(); // Original price for limit orders
-                newOrder.Volume = orderData.q.ToDecimal(); // Original quantity
+                newOrder.Side = responseOrder.o.S.Equals("BUY") ? Side.Buy : Side.Sell;
+                newOrder.Price = responseOrder.o.p.Replace('.', ',').ToDecimal();
+                newOrder.Volume = responseOrder.o.q.Replace('.', ',').ToDecimal();
                 newOrder.State = orderState;
-                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(responseOrderEvent.E)); // Event Time
-                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(orderData.T));    // Transaction Time of order
-                newOrder.TypeOrder = orderData.o == "MARKET" ? OrderPriceType.Market : OrderPriceType.Limit;
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.E));
+                newOrder.TypeOrder = responseOrder.o.o.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
                 newOrder.ServerType = ServerType.BingXFutures;
 
-                MyOrderEvent?.Invoke(newOrder);
+                MyOrderEvent(newOrder);
 
-                // If execution type indicates a trade (FILLED, PARTIALLY_FILLED)
-                if (orderData.x == "TRADE") // Check execution type 'x' for actual trade fill
+                if (orderState == OrderStateType.Done
+                    || orderState == OrderStateType.Partial)
                 {
-                    UpdateMyTradeFromOrderEvent(responseOrderEvent); // Pass the whole event or just orderData.o
+                    UpdateMyTrade(message);
                 }
             }
-            catch (Exception exception) { SendLogMessage($"UpdateOrder Error: {exception} on msg: {message.Substring(0, Math.Min(message.Length, 100))}", LogMessageType.Error); }
-        }
-        private void UpdateMyTradeFromOrderEvent(TradeUpdateEvent tradeUpdateEvent) // New method
-        {
-            TradeOrderDetails orderData = tradeUpdateEvent.o;
-            MyTrade newTrade = new MyTrade
+            catch (Exception exception)
             {
-                Time = TimeManager.GetDateTimeFromTimeStamp(long.Parse(orderData.T)), // Trade time 't'
-                SecurityNameCode = orderData.s,
-                NumberOrderParent = orderData.i.ToString(),
-                Price = orderData.p.ToDecimal(),
-                Volume = orderData.q.ToDecimal(),
-                NumberTrade = orderData.T.ToString(), // Trade ID 't'
-                Side = orderData.S == "BUY" ? Side.Buy : Side.Sell,
-            };
-            MyTradeEvent?.Invoke(newTrade);
-            _myTrades.Add(newTrade);
-            while (_myTrades.Count > 1000) _myTrades.RemoveAt(0);
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
-        // Original UpdateMyTrade might be redundant if UpdateMyTradeFromOrderEvent handles it.
-        // If there's another source for MyTrade, keep it. For now, assuming order event is the source.
-        private decimal GetExecuteVolumeInOrder(string orderNumMarket) // Changed param to Market ID
+
+        private void UpdateMyTrade(string message)
         {
-            return _myTrades.Where(t => t.NumberOrderParent == orderNumMarket).Sum(t => t.Volume);
+            try
+            {
+                TradeUpdateEvent responseOrder = JsonConvert.DeserializeObject<TradeUpdateEvent>(message);
+                MyTrade newTrade = new MyTrade();
+
+                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseOrder.E));
+                newTrade.SecurityNameCode = responseOrder.o.s;
+                newTrade.NumberOrderParent = responseOrder.o.i;
+                newTrade.Price = responseOrder.o.ap.ToDecimal();
+                newTrade.NumberTrade = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now).ToString();
+                newTrade.Side = responseOrder.o.S.Contains("BUY") ? Side.Buy : Side.Sell;
+
+                decimal previousVolume = GetExecuteVolumeInOrder(newTrade.NumberOrderParent);
+
+                newTrade.Volume = responseOrder.o.z.ToDecimal() - previousVolume;
+
+                MyTradeEvent(newTrade);
+
+                _myTrades.Add(newTrade);
+
+                while (_myTrades.Count > 1000)
+                {
+                    _myTrades.RemoveAt(0);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
+
+        private decimal GetExecuteVolumeInOrder(string orderNum)
+        {
+            decimal result = 0;
+
+            for (int i = 0; i < _myTrades.Count; i++)
+            {
+                if (_myTrades[i].NumberOrderParent == orderNum)
+                {
+                    result += _myTrades[i].Volume;
+                }
+            }
+
+            return result;
+        }
+
+        private List<MyTrade> _myTrades = new List<MyTrade>();
+
+        private DateTime _lastTimeMd;
+
         private void UpdateDepth(string message)
         {
             try
             {
-                // BingX depth stream: {"dataType":"BTC-USDT@depth20@100ms","data":{"bids":[["29062.1","0.061"]...],"asks":...},"ts":1690318135711}
                 ResponseWSBingXFuturesMessage<MarketDepthDataMessage> responceDepths =
                     JsonConvert.DeserializeAnonymousType(message, new ResponseWSBingXFuturesMessage<MarketDepthDataMessage>());
-                if (responceDepths?.data == null) return;
 
-                MarketDepth depth = new MarketDepth
+                MarketDepth depth = new MarketDepth();
+
+                List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                depth.SecurityNameCode = responceDepths.dataType.Split('@')[0]; // from BTC-USDT@depth20@500ms we get BTC-USDT
+
+                for (int i = 0; i < responceDepths.data.asks.Count; i++)
                 {
-                    SecurityNameCode = responceDepths.dataType.Split('@')[0],
-                    Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceDepths.ts))
-                };
-                if (depth.Time <= _lastTimeMd) depth.Time = _lastTimeMd.AddTicks(1);
+                    MarketDepthLevel level = new MarketDepthLevel()
+                    {
+                        Price = responceDepths.data.asks[i][0].ToDecimal(),
+                        Ask = responceDepths.data.asks[i][1].ToDecimal()
+                    };
+
+                    ascs.Insert(0, level);
+                }
+
+                for (int i = 0; i < responceDepths.data.bids.Count; i++)
+                {
+                    bids.Add(new MarketDepthLevel()
+                    {
+                        Price = responceDepths.data.bids[i][0].ToDecimal(),
+                        Bid = responceDepths.data.bids[i][1].ToDecimal()
+                    });
+                }
+
+                depth.Asks = ascs;
+                depth.Bids = bids;
+
+                depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responceDepths.ts));
+
+                if (depth.Time <= _lastTimeMd)
+                {
+                    depth.Time = _lastTimeMd.AddTicks(1);
+                }
+
                 _lastTimeMd = depth.Time;
 
-                depth.Bids = responceDepths.data.bids.Select(b => new MarketDepthLevel { Price = b[0].ToDecimal(), Bid = b[1].ToDecimal() }).ToList();
-                depth.Asks = responceDepths.data.asks.Select(a => new MarketDepthLevel { Price = a[0].ToDecimal(), Ask = a[1].ToDecimal() }).OrderBy(a => a.Price).ToList(); // Asks should be ascending price
-
-                MarketDepthEvent?.Invoke(depth);
+                MarketDepthEvent(depth);
             }
-            catch (Exception exception) { SendLogMessage($"UpdateDepth Error: {exception} on msg: {message.Substring(0, Math.Min(message.Length, 100))}", LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
+
         public event Action<Order> MyOrderEvent;
+
         public event Action<MyTrade> MyTradeEvent;
+
         public event Action<Trade> NewTradesEvent;
+
         public event Action<MarketDepth> MarketDepthEvent;
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent; // Unused
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         #endregion
-        #region 10 Trade (REST API calls for orders)
-        // SendOrder, CancelOrder, etc. use RestSharp and are mostly unchanged.
-        // Ensure parameters for HMAC are correctly cased and ordered if API is strict.
-        private RateGate _sendOrderRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210));
+
+        #region 10 Trade
+
+        private RateGate _sendOrderRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
+
         public void SendOrder(Order order)
         {
             _generalRateGate3.WaitToProceed();
             _sendOrderRateGate.WaitToProceed();
+
             try
             {
-                _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value; // Refresh hedge mode
+                _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
+
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.POST);
 
                 string symbol = order.SecurityNameCode;
                 string side = order.Side == Side.Buy ? "BUY" : "SELL";
-                string positionSide = CheckPositionSide(order); // LONG, SHORT, BOTH
-                string typeOrder = order.TypeOrder == OrderPriceType.Market ? "MARKET" : "LIMIT";
-                string quantity = order.Volume.ToString(CultureInfo.InvariantCulture); // Use InvariantCulture for decimals
-                string price = order.TypeOrder == OrderPriceType.Limit ? order.Price.ToString(CultureInfo.InvariantCulture) : "";
-                string clientOrderId = order.NumberUser.ToString();
+
+                string positionSide = CheckPositionSide(order);
+
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string quantity = order.Volume.ToString().Replace(",", ".");
+                string typeOrder = "";
+                string parameters = "";
+                string price = "";
 
-                // Parameters for signature must be in alphabetical order
-                var paramDict = new Dictionary<string, string>
+                if (order.TypeOrder == OrderPriceType.Market)
                 {
-                    { "timestamp", timeStamp },
-                    { "symbol", symbol },
-                    { "side", side },
-                    { "positionSide", positionSide },
-                    { "type", typeOrder },
-                    { "quantity", quantity }
-                };
-                if (!string.IsNullOrEmpty(clientOrderId)) paramDict.Add("clientOrderID", clientOrderId);
-                if (typeOrder == "LIMIT") paramDict.Add("price", price);
-
-                string parameters = string.Join("&", paramDict.OrderBy(p => p.Key).Select(p => $"{p.Key}={p.Value}"));
+                    typeOrder = "MARKET";
+                    parameters = $"timestamp={timeStamp}&symbol={symbol}&side={side}&positionSide={positionSide}" +
+                        $"&type={typeOrder}&quantity={quantity}&clientOrderID={order.NumberUser}";
+                }
+                else if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    typeOrder = "LIMIT";
+                    price = order.Price.ToString().Replace(",", ".");
+                    parameters = $"timestamp={timeStamp}&symbol={symbol}&side={side}&positionSide={positionSide}" +
+                        $"&type={typeOrder}&quantity={quantity}&price={price}&clientOrderID={order.NumberUser}";
+                }
                 string sign = CalculateHmacSha256(parameters);
 
-                foreach (var p in paramDict) request.AddParameter(p.Key, p.Value);
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", symbol);
+                request.AddParameter("side", side);
+                request.AddParameter("positionSide", positionSide);
+                request.AddParameter("type", typeOrder);
+                request.AddParameter("quantity", quantity);
+
+                if (typeOrder == "LIMIT")
+                    request.AddParameter("price", price);
+
+                request.AddParameter("clientOrderID", order.NumberUser);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingXMessage<OrderData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OrderData>>(json.Content);
                     if (response.code == "0")
                     {
+                        order.State = OrderStateType.Active;
                         order.NumberMarket = response.data.order.orderId;
-                        order.State = OrderStateType.Active; // Assuming API call means it's at least pending/active
                     }
                     else
                     {
-                        order.State = OrderStateType.Fail;
-                        SendLogMessage($"Order execution error: {response.code} | {response.msg}", LogMessageType.Error);
+                        CreateOrderFail(order);
+                        SendLogMessage($"Order execution error: code - {response.code} | message - {response.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    order.State = OrderStateType.Fail;
-                    SendLogMessage($"SendOrder HTTP Error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                    CreateOrderFail(order);
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
-                MyOrderEvent?.Invoke(order);
+
+                MyOrderEvent.Invoke(order);
             }
-            catch (Exception exception) { SendLogMessage($"SendOrder Exception: {exception}", LogMessageType.Error); CreateOrderFail(order); MyOrderEvent?.Invoke(order); }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
+
         private string CheckPositionSide(Order order)
         {
-            // Original logic seems fine, just ensure _hedgeMode is current.
-            if (!_hedgeMode) return "BOTH";
-            if (order.PositionConditionType == OrderPositionConditionType.Close)
-                return order.Side == Side.Sell ? "LONG" : "SHORT"; // Closing a long is SELL LONG, closing short is BUY SHORT
-                                                                   // Open or None condition implies opening a new side
-            return order.Side == Side.Buy ? "LONG" : "SHORT";
+            try
+            {
+                string positionSide = "";
+
+                if (!_hedgeMode)
+                {
+                    positionSide = "BOTH";
+                    return positionSide;
+                }
+
+                if (order.PositionConditionType == OrderPositionConditionType.Close)
+                {
+                    // Combinations of opening/closing trades
+                    // open / buy LONG: side = BUY & positionSide = LONG
+                    // close / sell LONG: side = SELL & positionSide = LONG
+                    // open / sell SHORT: side = SELL & positionSide = SHORT
+                    // close / buy SHORT: side = BUY & positionSide = SHORT
+
+                    if (order.Side == Side.Sell)
+                    {
+                        positionSide = "LONG";
+                    }
+                    else if (order.Side == Side.Buy)
+                    {
+                        positionSide = "SHORT";
+                    }
+                }
+                else if (order.PositionConditionType == OrderPositionConditionType.Open || order.PositionConditionType == OrderPositionConditionType.None)
+                {
+                    positionSide = order.Side == Side.Buy ? "LONG" : "SHORT";
+                }
+
+                return positionSide;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+                return null;
+            }
         }
-        public void CancelAllOrders() { /* Needs implementation: fetch all active orders, then cancel one by one or use bulk cancel if API supports */ }
-        public void CancelAllOrdersToSecurity(Security security) { /* Needs implementation: fetch active orders for security, then cancel */ }
-        private RateGate _cancelOrderRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210));
+
+        public void CancelAllOrders()
+        {
+
+        }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+
+        }
+
+        private RateGate _cancelOrderRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
+
         public void CancelOrder(Order order)
         {
             _generalRateGate3.WaitToProceed();
             _cancelOrderRateGate.WaitToProceed();
+
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
-                // BingX uses DELETE for cancel by orderId or clientOrderId for a symbol
-                RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.DELETE);
-                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
-                var paramDict = new Dictionary<string, string>
+                if (_myProxy != null)
                 {
-                    { "timestamp", timeStamp },
-                    { "symbol", order.SecurityNameCode }
-                };
-                if (!string.IsNullOrEmpty(order.NumberMarket)) paramDict.Add("orderId", order.NumberMarket);
-                if (order.NumberUser != 0) paramDict.Add("clientOrderID", order.NumberUser.ToString());
+                    client.Proxy = _myProxy;
+                }
 
-                string parameters = string.Join("&", paramDict.OrderBy(p => p.Key).Select(p => $"{p.Key}={p.Value}"));
+                RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.DELETE);
+
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}&symbol={order.SecurityNameCode}&orderId={order.NumberMarket}&clientOrderID={order.NumberUser}";
                 string sign = CalculateHmacSha256(parameters);
 
-                foreach (var p in paramDict) request.AddParameter(p.Key, p.Value);
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", order.SecurityNameCode);
+                request.AddParameter("orderId", order.NumberMarket);
+                request.AddParameter("clientOrderID", order.NumberUser);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingXMessage<OrderData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OrderData>>(json.Content);
-                    // Successful cancel usually returns the cancelled order details.
-                    if (response.code == "0") { /* Order cancel request sent, WebSocket event will confirm */ }
-                    else SendLogMessage($"Order cancel error: {response.code} | {response.msg}", LogMessageType.Error);
+                    if (response.code == "0")
+                    {
+
+                    }
+                    else
+                    {
+                        GetOrderStatus(order);
+                        SendLogMessage($"Order cancel error: code - {response.code} | message - {response.msg}", LogMessageType.Error);
+                    }
                 }
-                else SendLogMessage($"CancelOrder HTTP Error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
-                // Order status will be updated via WebSocket. Optionally, call GetOrderStatus if immediate confirmation needed.
+                else
+                {
+                    GetOrderStatus(order);
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
             }
-            catch (Exception exception) { SendLogMessage($"CancelOrder Exception: {exception}", LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
-        public void ChangeOrderPrice(Order order, decimal newPrice) { /* Needs implementation: Cancel existing, Send new. BingX does not support modify. */ }
-        private void CreateOrderFail(Order order) { order.State = OrderStateType.Fail; /* MyOrderEvent already called in SendOrder */ }
-        private RateGate _getOpenOrdersRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210));
+
+        public void ChangeOrderPrice(Order order, decimal newPrice)
+        {
+
+        }
+
+        private void CreateOrderFail(Order order)
+        {
+            order.State = OrderStateType.Fail;
+
+            if (MyOrderEvent != null)
+            {
+                MyOrderEvent(order);
+            }
+        }
+
+        private RateGate _getOpenOrdersRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
+
         public void GetAllActivOrders()
         {
             _generalRateGate3.WaitToProceed();
             _getOpenOrdersRateGate.WaitToProceed();
+
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/swap/v2/trade/openOrders", Method.GET);
+
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                // Optional: add symbol to get for specific symbol
                 string parameters = $"timestamp={timeStamp}";
                 string sign = CalculateHmacSha256(parameters);
+
                 request.AddParameter("timestamp", timeStamp);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingXMessage<OpenOrdersData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OpenOrdersData>>(json.Content);
-                    if (response.code == "0" && response.data?.orders != null)
+                    if (response.code == "0")
                     {
-                        foreach (var orderData in response.data.orders)
+                        for (int i = 0; i < response.data.orders.Count; i++)
                         {
-                            Order openOrder = ConvertBingXOrderDataToOrder(orderData);
-                            MyOrderEvent?.Invoke(openOrder);
+                            Order openOrder = new Order();
+
+                            switch (response.data.orders[i].status)
+                            {
+                                case "FILLED":
+                                    openOrder.State = OrderStateType.Done;
+                                    break;
+                                case "PARTIALLY_FILLED":
+                                    openOrder.State = OrderStateType.Partial;
+                                    break;
+                                case "CANCELED":
+                                    openOrder.State = OrderStateType.Cancel;
+                                    break;
+                                case "NEW":
+                                    openOrder.State = OrderStateType.Active;
+                                    break;
+                                case "EXPIRED":
+                                    openOrder.State = OrderStateType.Fail;
+                                    break;
+                                case "PENDING":
+                                    openOrder.State = OrderStateType.Active;
+                                    break;
+                                default:
+                                    openOrder.State = OrderStateType.None;
+                                    break;
+                            }
+
+                            string numberUser = response.data.orders[i].clientOrderId;
+
+                            if (numberUser != "")
+                            {
+                                openOrder.NumberUser = Convert.ToInt32(response.data.orders[i].clientOrderId);
+                            }
+                            openOrder.NumberMarket = response.data.orders[i].orderId.ToString();
+                            openOrder.SecurityNameCode = response.data.orders[i].symbol;
+                            openOrder.SecurityClassCode = response.data.orders[i].symbol.Split('-')[1];
+                            openOrder.PortfolioNumber = "BingXFutures";
+                            openOrder.Side = response.data.orders[i].side.Equals("BUY") ? Side.Buy : Side.Sell;
+                            openOrder.Price = response.data.orders[i].price.Replace('.', ',').ToDecimal();
+                            openOrder.Volume = response.data.orders[i].origQty.Replace('.', ',').ToDecimal();
+                            openOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.orders[i].time));
+                            openOrder.TypeOrder = response.data.orders[i].type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                            openOrder.ServerType = ServerType.BingXFutures;
+
+                            if (MyOrderEvent != null)
+                            {
+                                MyOrderEvent(openOrder);
+                            }
                         }
                     }
-                    else SendLogMessage($"Get open orders error: {response.code} | {response.msg}", LogMessageType.Error);
+                    else
+                    {
+                        SendLogMessage($"Get open orders error: code - {response.code} | message - {response.msg}", LogMessageType.Error);
+                    }
                 }
-                else SendLogMessage($"GetAllActivOrders HTTP Error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                else
+                {
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
             }
-            catch (Exception exception) { SendLogMessage(exception.ToString(), LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
-        public void GetOrderStatus(Order order) { GetOrderStatusByRest(order); GetMyTradesByRest(order); } // Renamed
-        private RateGate _getMyTradesRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210));
-        private void GetMyTradesByRest(Order order) // Renamed, takes Order object
+
+        public void GetOrderStatus(Order order)
+        {
+            GetOrderStatusBySecurity(order);
+
+            GetMyTradesBySecurity(order);
+        }
+
+        private RateGate _getMyTradesRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
+
+        private void GetMyTradesBySecurity(Order order)
         {
             _generalRateGate2.WaitToProceed();
             _getMyTradesRateGate.WaitToProceed();
+
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
-                // Get user's trades for an order
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
                 RestRequest request = new RestRequest("/openApi/swap/v2/trade/allFillOrders", Method.GET);
+
+                string startTs = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now.AddDays(-1)).ToString();
+                string endTs = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now.AddDays(1)).ToString();
+
                 string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-
-                var paramDict = new Dictionary<string, string> { { "timestamp", timeStamp } };
-                if (!string.IsNullOrEmpty(order.NumberMarket)) paramDict.Add("orderId", order.NumberMarket);
-                // paramDict.Add("symbol", order.SecurityNameCode); // If API supports filtering by symbol too
-                // paramDict.Add("startTime", TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.UtcNow.AddDays(-7)).ToString()); // Example time range
-                // paramDict.Add("endTime", TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.UtcNow).ToString());
-
-                string parameters = string.Join("&", paramDict.OrderBy(p => p.Key).Select(p => $"{p.Key}={p.Value}"));
+                string parameters = $"timestamp={timeStamp}&orderId={order.NumberMarket}&tradingUnit=COIN&startTs={startTs}&endTs={endTs}";
                 string sign = CalculateHmacSha256(parameters);
 
-                foreach (var p in paramDict) request.AddParameter(p.Key, p.Value);
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("orderId", order.NumberMarket);
+                request.AddParameter("tradingUnit", "COIN");
+                request.AddParameter("startTs", startTs);
+                request.AddParameter("endTs", endTs);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingXMessage<FillOrdersData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<FillOrdersData>>(json.Content);
-                    if (response.code == "0" && response.data?.fill_orders != null)
-                    {
-                        foreach (FillOrder fill in response.data.fill_orders)
-                        {
-                            if (fill.orderId != order.NumberMarket && order.NumberUser.ToString() != fill.orderId /* some APIs might use clientID here */) continue;
 
-                            MyTrade newTrade = new MyTrade
+                    if (response.code == "0")
+                    {
+                        for (int i = 0; i < response.data.fill_orders.Count; i++)
+                        {
+                            if (response.data.fill_orders[i].orderId != order.NumberMarket)
                             {
-                                Time = TimeManager.GetDateTimeFromTimeStamp(long.Parse(fill.filledTime)), // fill.time is fill time
-                                SecurityNameCode = fill.symbol,
-                                NumberOrderParent = fill.orderId,
-                                Price = fill.price.ToDecimal(),
-                                Volume = fill.amount.ToDecimal(), // fill.qty or volume
-                                NumberTrade = fill.filledTime, // fill id (trade id)
-                                Side = fill.side == "BUY" ? Side.Buy : Side.Sell,
-                            };
-                            MyTradeEvent?.Invoke(newTrade);
+                                continue;
+                            }
+
+                            MyTrade newTrade = new MyTrade();
+
+                            newTrade.Time = Convert.ToDateTime(response.data.fill_orders[i].filledTime);
+                            newTrade.SecurityNameCode = response.data.fill_orders[i].symbol;
+                            newTrade.NumberOrderParent = response.data.fill_orders[i].orderId;
+                            newTrade.Price = response.data.fill_orders[i].price.ToDecimal();
+                            newTrade.NumberTrade = TimeManager.GetTimeStampMilliSecondsToDateTime(DateTime.Now).ToString();
+                            newTrade.Side = response.data.fill_orders[i].side.Contains("BUY") ? Side.Buy : Side.Sell;
+                            newTrade.Volume = response.data.fill_orders[i].volume.ToDecimal();
+
+                            if (MyTradeEvent != null)
+                            {
+                                MyTradeEvent(newTrade);
+                            }
                         }
                     }
                 }
-                else SendLogMessage($"GetMyTradesByRest HTTP Error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
             }
-            catch (Exception exception) { SendLogMessage(exception.ToString(), LogMessageType.Error); }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
-        private RateGate _getOrderStatusRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210));
-        private void GetOrderStatusByRest(Order orderToQuery) // Renamed
+
+        private RateGate _getOrderStatusRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
+
+        private void GetOrderStatusBySecurity(Order order)
         {
             _generalRateGate2.WaitToProceed();
             _getOrderStatusRateGate.WaitToProceed();
+
             try
             {
                 RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
-                RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.GET); // Query order endpoint
-                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
-                var paramDict = new Dictionary<string, string>
+                if (_myProxy != null)
                 {
-                    { "timestamp", timeStamp },
-                    { "symbol", orderToQuery.SecurityNameCode }
-                };
-                // Use orderId if available, else clientOrderId
-                if (!string.IsNullOrEmpty(orderToQuery.NumberMarket)) paramDict.Add("orderId", orderToQuery.NumberMarket);
-                else if (orderToQuery.NumberUser != 0) paramDict.Add("clientOrderID", orderToQuery.NumberUser.ToString());
-                else { SendLogMessage("Cannot get order status, no ID provided.", LogMessageType.Error); return; }
+                    client.Proxy = _myProxy;
+                }
 
+                RestRequest request = new RestRequest("/openApi/swap/v2/trade/order", Method.GET);
 
-                string parameters = string.Join("&", paramDict.OrderBy(p => p.Key).Select(p => $"{p.Key}={p.Value}"));
+                string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string parameters = $"timestamp={timeStamp}&symbol={order.SecurityNameCode}&orderId={order.NumberMarket}&clientOrderID={order.NumberUser}";
                 string sign = CalculateHmacSha256(parameters);
 
-                foreach (var p in paramDict) request.AddParameter(p.Key, p.Value);
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("symbol", order.SecurityNameCode);
+                request.AddParameter("orderId", order.NumberMarket);
+                request.AddParameter("clientOrderID", order.NumberUser);
                 request.AddParameter("signature", sign);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
 
                 IRestResponse json = client.Execute(request);
+
                 if (json.StatusCode == HttpStatusCode.OK)
                 {
                     ResponseFuturesBingXMessage<OrderData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OrderData>>(json.Content);
-                    if (response.code == "0" && response.data?.order != null)
+                    if (response.code == "0")
                     {
-                        Order updatedOrder = ConvertBingXOrderDataToOrder(response.data.order);
-                        MyOrderEvent?.Invoke(updatedOrder);
-                    }
-                    else SendLogMessage($"Get order status error: {response.code} | {response.msg}", LogMessageType.Error);
-                }
-                else SendLogMessage($"GetOrderStatusByRest HTTP Error: {json.StatusCode} - {json.Content}", LogMessageType.Error);
-            }
-            catch (Exception exception) { SendLogMessage(exception.ToString(), LogMessageType.Error); }
-        }
+                        Order openOrder = new Order();
 
-        // Helper to convert BingX order data to OsEngine.Order
-        private Order ConvertBingXOrderDataToOrder(OrderDetails orderData)
-        {
-            Order order = new Order();
-            OrderStateType orderState = OrderStateType.None;
-            switch (orderData.status) // This is order status 'status', not execution type 'X'
-            {
-                case "NEW": orderState = OrderStateType.Active; break;
-                case "PARTIALLY_FILLED": orderState = OrderStateType.Partial; break;
-                case "FILLED": orderState = OrderStateType.Done; break;
-                case "CANCELED": case "CANCELLED": orderState = OrderStateType.Cancel; break;
-                case "REJECTED": case "EXPIRED": orderState = OrderStateType.Fail; break;
-                case "PENDING": orderState = OrderStateType.Pending; break; // Or Active
-                default: orderState = OrderStateType.None; break;
+                        switch (response.data.order.status)
+                        {
+                            case "FILLED":
+                                openOrder.State = OrderStateType.Done;
+                                break;
+                            case "PARTIALLY_FILLED":
+                                openOrder.State = OrderStateType.Partial;
+                                break;
+                            case "CANCELLED":
+                                openOrder.State = OrderStateType.Cancel;
+                                break;
+                            case "NEW":
+                                openOrder.State = OrderStateType.Active;
+                                break;
+                            case "EXPIRED":
+                                openOrder.State = OrderStateType.Fail;
+                                break;
+                            case "PENDING":
+                                openOrder.State = OrderStateType.Active;
+                                break;
+                            default:
+                                openOrder.State = OrderStateType.None;
+                                break;
+                        }
+
+                        string numberUser = response.data.order.clientOrderId;
+
+                        if (numberUser != "")
+                        {
+                            openOrder.NumberUser = Convert.ToInt32(response.data.order.clientOrderId);
+                        }
+                        openOrder.NumberMarket = response.data.order.orderId.ToString();
+                        openOrder.SecurityNameCode = response.data.order.symbol;
+                        openOrder.SecurityClassCode = response.data.order.symbol.Split('-')[1];
+                        openOrder.PortfolioNumber = "BingXFutures";
+                        openOrder.Side = response.data.order.side.Equals("BUY") ? Side.Buy : Side.Sell;
+                        openOrder.Price = response.data.order.price.Replace('.', ',').ToDecimal();
+                        openOrder.Volume = response.data.order.origQty.Replace('.', ',').ToDecimal();
+                        openOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.order.time));
+                        openOrder.TypeOrder = response.data.order.type.Equals("MARKET") ? OrderPriceType.Market : OrderPriceType.Limit;
+                        openOrder.ServerType = ServerType.BingXFutures;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(openOrder);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get order status error: code - {response.code} | message - {response.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                }
             }
-            try { if (!string.IsNullOrEmpty(orderData.clientOrderId)) order.NumberUser = Convert.ToInt32(orderData.clientOrderId); } catch { /* ignore */ }
-            order.NumberMarket = orderData.orderId;
-            order.SecurityNameCode = orderData.symbol;
-            order.PortfolioNumber = "BingXFutures";
-            order.Side = orderData.side == "BUY" ? Side.Buy : Side.Sell;
-            order.Price = orderData.price.ToDecimal();
-            order.Volume = orderData.origQty.ToDecimal();
-            order.State = orderState;
-            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderData.updateTime)); // updateTime or time
-            order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderData.time)); // time is creation time
-            order.TypeOrder = orderData.type == "MARKET" ? OrderPriceType.Market : OrderPriceType.Limit;
-            order.ServerType = ServerType.BingXFutures;
-            // Add executed quantity and average price if available and needed
-            order.VolumeExecute = orderData.executedQty.ToDecimal();
-            // order.AveragePrice = orderData.avgPrice.ToDecimal(); // If avgPrice field exists
-            return order;
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion
-        #region 11 Queries (REST API for listen key)
+
+        #region 11 Queries
+
         private const string _baseUrl = "https://open-api.bingx.com";
-        private HttpClient _httpPublicClient; // Used for public REST calls if any, candles e.g.
+
+        private HttpClient _httpPublicClient;
+
         private string CreateListenKey()
         {
             _generalRateGate2.WaitToProceed();
+
             try
             {
-                RestClient client = new RestClient(_baseUrl);
-                if (_myProxy != null) client.Proxy = _myProxy;
-                RestRequest request = new RestRequest("/openApi/user/auth/userDataStream", Method.POST);
+                string endpoint = "/openApi/user/auth/userDataStream";
+
+                RestRequest request = new RestRequest(endpoint, Method.POST);
                 request.AddHeader("X-BX-APIKEY", _publicKey);
-                // This endpoint doesn't require timestamp or signature for POST according to BingX docs.
-                // If it fails, these might be needed.
-                IRestResponse response = client.Execute(request);
-                if (response.StatusCode == HttpStatusCode.OK)
+
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
                 {
-                    ListenKeyBingXFutures responseStr = JsonConvert.DeserializeObject<ListenKeyBingXFutures>(response.Content);
-                    if (!string.IsNullOrEmpty(responseStr.listenKey))
-                    {
-                        _timeLastUpdateListenKey = DateTime.Now;
-                        return responseStr.listenKey;
-                    }
-                    else SendLogMessage($"CreateListenKey: ListenKey was empty in response. Content: {response.Content}", LogMessageType.Error);
+                    client.Proxy = _myProxy;
                 }
-                else SendLogMessage($"CreateListenKey HTTP Error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+
+                string json = client.Execute(request).Content;
+
+                ListenKeyBingXFutures responseStr = JsonConvert.DeserializeObject<ListenKeyBingXFutures>(json);
+
+                _timeLastUpdateListenKey = DateTime.Now;
+
+                return responseStr.listenKey;
             }
-            catch (Exception exception) { SendLogMessage(exception.ToString(), LogMessageType.Error); }
-            return null;
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
         }
+
         private DateTime _timeLastUpdateListenKey = DateTime.MinValue;
-        private RateGate _requestListenKeyRateGate = new RateGate(10, TimeSpan.FromSeconds(1)); // Check BingX docs for this rate
-        private void RequestListenKey() // Keep-alive for listen key
+
+        private RateGate _requestListenKeyRateGate = new RateGate(10, TimeSpan.FromSeconds(1)); // индивидуальный лимит скорости IP составляет 100 запросов в 10 секунд
+
+        private void RequestListenKey()
         {
-            _timeLastUpdateListenKey = DateTime.Now; // Initialize to avoid immediate run if key just created
+            _timeLastUpdateListenKey = DateTime.Now;
+
             while (true)
             {
-                Thread.Sleep(TimeSpan.FromMinutes(10)); // Check every 10 mins
-                if (ServerStatus != ServerConnectStatus.Connect || string.IsNullOrEmpty(_listenKey))
+                if (ServerStatus != ServerConnectStatus.Connect)
                 {
+                    Thread.Sleep(5000);
                     continue;
                 }
-                if (_timeLastUpdateListenKey.AddMinutes(25) > DateTime.Now) // Refresh if older than 25 mins (key valid for 60 usually)
-                {
+
+                if (_timeLastUpdateListenKey.AddMinutes(30) > DateTime.Now)
+                {   // sleep for 30 minutes
+                    Thread.Sleep(10000);
                     continue;
                 }
+
                 try
                 {
+                    if (_listenKey == "")
+                    {
+                        continue;
+                    }
+
                     _generalRateGate2.WaitToProceed();
                     _requestListenKeyRateGate.WaitToProceed();
+
+                    string endpoint = "/openApi/user/auth/userDataStream";
+
                     RestClient client = new RestClient(_baseUrl);
-                    if (_myProxy != null) client.Proxy = _myProxy;
-                    RestRequest request = new RestRequest("/openApi/user/auth/userDataStream", Method.PUT);
-                    request.AddHeader("X-BX-APIKEY", _publicKey);
-                    request.AddQueryParameter("listenKey", _listenKey); // As query param for PUT
-                    IRestResponse response = client.Execute(request);
-                    if (response.StatusCode == HttpStatusCode.OK) // Expect 200 OK for successful keep-alive
+
+                    if (_myProxy != null)
                     {
-                        _timeLastUpdateListenKey = DateTime.Now;
-                        SendLogMessage("ListenKey refreshed.", LogMessageType.System);
+                        client.Proxy = _myProxy;
                     }
-                    else SendLogMessage($"RequestListenKey (Keep-Alive) HTTP Error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+
+                    RestRequest request = new RestRequest(endpoint, Method.PUT);
+
+                    request.AddQueryParameter("listenKey", _listenKey);
+
+                    IRestResponse response = client.Execute(request);
+
+                    _timeLastUpdateListenKey = DateTime.Now;
                 }
-                catch (Exception ex) { SendLogMessage($"RequestListenKey (Keep-Alive) Exception: {ex}", LogMessageType.Error); }
+                catch
+                {
+                    SendLogMessage("Request Listen Key Error", LogMessageType.Error);
+                }
             }
         }
+
         #endregion
+
         #region 12 Log
+
         public event Action<string, LogMessageType> LogMessageEvent;
+
         private void SendLogMessage(string message, LogMessageType messageType)
         {
-            LogMessageEvent?.Invoke($"BingXFutures: {message}", messageType);
+            if (LogMessageEvent != null)
+                LogMessageEvent(message, messageType);
         }
+
         #endregion
 
-    } // End of BingXServerFuturesRealization class
+        #region 13 Helpers
 
-    // Define helper classes for JSON deserialization if they are not already globally available
-    // These are based on the types used in JsonConvert.DeserializeObject calls
-    // Example for trade stream:
-    public class BingXTradeEventData
-    {
-        public string q { get; set; } // Quantity
-        public string p { get; set; } // Price
-        public long T { get; set; }   // Timestamp
-        public string s { get; set; } // Symbol
-        public bool m { get; set; }   // Is Buyer Maker (false for buyer as taker, true for seller as taker)
-    }
-    public class BingXTradeEvent
-    {
-        public string dataType { get; set; }
-        public List<BingXTradeEventData> data { get; set; }
-    }
-    // Other DTOs like AccountUpdateEvent, ResponseWSBingXFuturesMessage, MarketDepthDataMessage, etc.
-    // should be defined according to BingX WebSocket stream specifications.
-    // Helper class for managing ClientWebSocket instance and its receive loop
-
-    internal class WebSocketWrapper : IDisposable
-    {
-        public ClientWebSocket Client { get; }
-        private CancellationTokenSource _cts;
-        private Task _receiveTask;
-        private readonly Action _onOpen;
-        private readonly Action<string> _onMessage;
-        private readonly Action _onClose;
-        private readonly Action<Exception> _onError;
-        private readonly Func<byte[], string> _decompressFunc;
-
-        public WebSocketState State => Client?.State ?? WebSocketState.None;
-        private string _url;
-
-        public WebSocketWrapper(Action onOpen, Action<string> onMessage, Action onClose, Action<Exception> onError, Func<byte[], string> decompressFunc)
+        private string Decompress(byte[] data)
         {
-            Client = new ClientWebSocket();
-            _onOpen = onOpen;
-            _onMessage = onMessage;
-            _onClose = onClose;
-            _onError = onError;
-            _decompressFunc = decompressFunc;
-        }
-
-        public void SetProxy(WebProxy proxy)
-        {
-            if (proxy != null)
-            {
-                Client.Options.Proxy = proxy;
-            }
-        }
-
-        // Required for re-connection or initial connection by the wrapper itself
-        public void SetUrl(string url)
-        {
-            _url = url;
-        }
-
-        public async Task ConnectAsync(string url = null)
-        {
-            if (!string.IsNullOrEmpty(url))
-            {
-                _url = url;
-            }
-            if (string.IsNullOrEmpty(_url))
-            {
-                throw new InvalidOperationException("URL must be set before connecting.");
-            }
-
-            if (_cts != null) // If already tried to connect or is connected
-            {
-                _cts.Cancel();
-                _cts.Dispose();
-            }
-            _cts = new CancellationTokenSource();
-
             try
             {
-                // Set any other options if needed, e.g., KeepAliveInterval
-                // Client.Options.KeepAliveInterval = TimeSpan.FromSeconds(20);
-
-                await Client.ConnectAsync(new Uri(_url), _cts.Token);
-                _onOpen?.Invoke();
-                _receiveTask = Task.Run(() => ReceiveLoopAsync(_cts.Token));
-            }
-            catch (Exception ex)
-            {
-                _onError?.Invoke(ex);
-                throw; // Re-throw to allow caller to handle connection failure
-            }
-        }
-
-        private async Task ReceiveLoopAsync(CancellationToken token)
-        {
-            var buffer = new byte[8192 * 2]; // 16KB buffer, adjust as needed
-            try
-            {
-                while (Client.State == WebSocketState.Open && !token.IsCancellationRequested)
+                using (System.IO.MemoryStream compressedStream = new System.IO.MemoryStream(data))
                 {
-                    using (var ms = new MemoryStream())
+                    using (GZipStream decompressor = new GZipStream(compressedStream, CompressionMode.Decompress))
                     {
-                        WebSocketReceiveResult result;
-                        do
+                        using (System.IO.MemoryStream resultStream = new System.IO.MemoryStream())
                         {
-                            var segment = new ArraySegment<byte>(buffer);
-                            result = await Client.ReceiveAsync(segment, token);
+                            decompressor.CopyTo(resultStream);
 
-                            if (token.IsCancellationRequested) break;
-
-                            ms.Write(segment.Array, segment.Offset, result.Count);
-                        }
-                        while (!result.EndOfMessage);
-
-                        if (token.IsCancellationRequested) break;
-
-                        ms.Seek(0, SeekOrigin.Begin);
-                        byte[] receivedData = ms.ToArray();
-
-                        if (result.MessageType == WebSocketMessageType.Text)
-                        {
-                            var message = Encoding.UTF8.GetString(receivedData);
-                            if (message.Contains("\"ping\"") || message.Contains("Ping")) // Handle application-level ping
-                            {
-                                await SendAsync("Pong"); // Or specific pong structure if needed e.g. {"pong": timestamp}
-                            }
-                            else
-                            {
-                                _onMessage(message);
-                            }
-                        }
-                        else if (result.MessageType == WebSocketMessageType.Binary)
-                        {
-                            var decompressedMessage = _decompressFunc(receivedData);
-                            if (decompressedMessage != null)
-                            {
-                                if (decompressedMessage.Contains("\"ping\"") || decompressedMessage.Contains("Ping"))
-                                {
-                                    await SendAsync("Pong");
-                                }
-                                else
-                                {
-                                    _onMessage(decompressedMessage);
-                                }
-                            }
-                        }
-                        else if (result.MessageType == WebSocketMessageType.Close)
-                        {
-                            // If server initiates close, acknowledge it.
-                            if (Client.State == WebSocketState.CloseReceived)
-                            {
-                                await Client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client acknowledging close", CancellationToken.None);
-                            }
-                            _onClose?.Invoke();
-                            return;
+                            return Encoding.UTF8.GetString(resultStream.ToArray());
                         }
                     }
                 }
             }
-            catch (WebSocketException ex) when (ex.WebSocketErrorCode == WebSocketError.ConnectionClosedPrematurely || Client.State != WebSocketState.Open)
+            catch
             {
-                _onError?.Invoke(ex);
-            }
-            catch (OperationCanceledException)
-            {
-                // Expected when token is cancelled
-            }
-            catch (Exception ex)
-            {
-                _onError?.Invoke(ex);
-            }
-            finally
-            {
-                // Ensure onClose is called if the loop exits for any reason other than explicit dispose
-                if (!token.IsCancellationRequested || Client.State != WebSocketState.Aborted)
-                {
-                    _onClose?.Invoke();
-                }
+                SendLogMessage("Decompress error", LogMessageType.Error);
+                return null;
             }
         }
 
-        public async Task SendAsync(string message)
+        private string CalculateHmacSha256(string parametrs)
         {
-            if (Client.State == WebSocketState.Open && _cts != null && !_cts.IsCancellationRequested)
+            byte[] keyBytes = Encoding.UTF8.GetBytes(_secretKey);
+            byte[] inputBytes = Encoding.UTF8.GetBytes(parametrs);
+            using (HMACSHA256 hmac = new HMACSHA256(keyBytes))
             {
-                try
-                {
-                    var messageBuffer = Encoding.UTF8.GetBytes(message);
-                    await Client.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text, true, _cts.Token);
-                }
-                catch (Exception ex)
-                {
-                    _onError?.Invoke(ex); // Notify error on send failure
-                                          // Consider if this should trigger _onClose as well, depending on severity
-                }
+                byte[] hashBytes = hmac.ComputeHash(inputBytes);
+                return BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
             }
         }
 
-        public async Task CloseAsync()
+        private string GenerateNewId()
         {
-            if (_cts != null)
-            {
-                _cts.Cancel();
-            }
-
-            if (_receiveTask != null)
-            {
-                try
-                {
-                    // Give receive loop some time to exit gracefully
-                    await Task.WhenAny(_receiveTask, Task.Delay(TimeSpan.FromSeconds(2)));
-                }
-                catch { /* ignored */ }
-            }
-
-            if (Client.State == WebSocketState.Open || Client.State == WebSocketState.CloseSent)
-            {
-                try
-                {
-                    // Timeout for closing operation
-                    var closeCts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                    await Client.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client initiated close", closeCts.Token);
-                }
-                catch (Exception) { /* Ignore close errors, client might be disposed already or connection lost */ }
-            }
-
-            if (_cts != null)
-            {
-                _cts.Dispose();
-                _cts = null;
-            }
+            return Guid.NewGuid().ToString();
         }
 
-        public void Dispose()
-        {
-            // Synchronously wait for close with timeout
-            // Using .GetAwaiter().GetResult() for synchronous Dispose is generally okay if truly needed
-            try
-            {
-                CloseAsync().GetAwaiter().GetResult();
-            }
-            catch { /* ignored */ }
-
-            Client.Dispose();
-        }
+        #endregion
     }
 }
