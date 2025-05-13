@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
@@ -33,7 +32,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             sb.Append("452=").Append(PartyRole).Append('\u0001');
             sb.Append("1=").Append(Account).Append('\u0001');
 
-            if (!SecondaryClOrdID.IsNullOrEmpty())
+            if (!string.IsNullOrEmpty(SecondaryClOrdID))
             {
                 sb.Append("526=").Append(SecondaryClOrdID).Append('\u0001');
             }

@@ -53,6 +53,7 @@
     </ItemGroup>
   </Target>
   <ItemGroup>
+    <PackageReference Include="websocketsharp.core" Version="1.0.1" />
     <Reference Include="BytesRoad.Net.Ftp">
       <HintPath>bin\Debug\BytesRoad.Net.Ftp.dll</HintPath>
     </Reference>
@@ -81,11 +82,14 @@
     <Reference Include="RestSharp">
       <HintPath>bin\Debug\RestSharp.dll</HintPath>
     </Reference>
+    <Reference Include="SuperSocket.ClientEngine">
+      <HintPath>bin\Debug\SuperSocket.ClientEngine.dll</HintPath>
+    </Reference>
     <Reference Include="TInvestApi">
       <HintPath>..\..\related projects\TInvestApi\bin\Debug\TInvestApi.dll</HintPath>
     </Reference>
-    <Reference Include="websocket-sharp">
-      <HintPath>bin\Debug\websocket-sharp.dll</HintPath>
+    <Reference Include="WebSocket4Net">
+      <HintPath>bin\Debug\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Update="System.Runtime.Serialization">
       <Private>True</Private>
@@ -108,7 +112,6 @@
     <PackageReference Include="System.ServiceModel.NetTcp" Version="8.1.2" />
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.0" />
     <PackageReference Include="System.ServiceModel.Federation" Version="8.1.2" />
-    <PackageReference Include="WebSocket4Net" Version="0.15.2" />
     <PackageReference Include="WinForms.DataVisualization" Version="1.10.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Platform)' == 'AnyCPU' ">
