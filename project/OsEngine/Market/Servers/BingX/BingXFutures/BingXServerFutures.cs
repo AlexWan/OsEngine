@@ -106,7 +106,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     {
                         FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                         FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                        CreatePublicWebSocketConnect();
+                        //CreatePublicWebSocketConnect();
                         CreatePrivateWebSocketConnect();
                         CheckSocketsActivate();
                         SetPositionMode();
@@ -1042,19 +1042,23 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         return;
                     }
 
-                    if (_webSocketPublic.Count == 0)
+                    if (_subscribledSecutiries.Count > 0)
                     {
-                        Disconnect();
-                        return;
-                    }
+                        if (_webSocketPublic.Count == 0
+                            || _webSocketPublic == null)
+                        {
+                            //Disconnect();
+                            return;
+                        }
 
-                    WebSocket webSocketPublic = _webSocketPublic[0];
+                        WebSocket webSocketPublic = _webSocketPublic[0];
 
-                    if (webSocketPublic == null
-                        || webSocketPublic?.ReadyState != WebSocketState.Open)
-                    {
-                        Disconnect();
-                        return;
+                        if (webSocketPublic == null
+                            || webSocketPublic?.ReadyState != WebSocketState.Open)
+                        {
+                            Disconnect();
+                            return;
+                        }
                     }
 
                     if (ServerStatus != ServerConnectStatus.Connect)
@@ -1112,19 +1116,27 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     return;
                 }
 
-                string item = Decompress(e.RawData);
-
-                if (item.Contains("Ping")) // send immediately upon receipt.
+                if (e.IsBinary)
                 {
-                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    string item = Decompress(e.RawData);
+
+                    if (item.Contains("Ping")) // send immediately upon receipt.
                     {
-                        _webSocketPublic[i].Send("Pong");
+                        for (int i = 0; i < _webSocketPublic.Count; i++)
+                        {
+                            _webSocketPublic[i].Send("Pong");
+                        }
+
+                        return;
                     }
 
-                    return;
+                    FIFOListWebSocketPublicMessage.Enqueue(item);
                 }
 
-                FIFOListWebSocketPublicMessage.Enqueue(item);
+                if (e.IsText)
+                {
+                    FIFOListWebSocketPublicMessage.Enqueue(e.Data);
+                }
             }
             catch (Exception error)
             {
@@ -1199,15 +1211,23 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     return;
                 }
 
-                string item = Decompress(e.RawData);
-
-                if (item.Contains("Ping")) // send immediately upon receipt. 
+                if (e.IsBinary)
                 {
-                    _webSocketPrivate.Send("Pong");
-                    return;
+                    string item = Decompress(e.RawData);
+
+                    if (item.Contains("Ping")) // send immediately upon receipt. 
+                    {
+                        _webSocketPrivate.Send("Pong");
+                        return;
+                    }
+
+                    FIFOListWebSocketPrivateMessage.Enqueue(item);
                 }
 
-                FIFOListWebSocketPrivateMessage.Enqueue(item);
+                if (e.IsText)
+                {
+                    FIFOListWebSocketPrivateMessage.Enqueue(e.Data);
+                }
             }
             catch (Exception exception)
             {
@@ -1281,6 +1301,12 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 }
 
                 _subscribledSecutiries.Add(security.Name);
+
+                if (_subscribledSecutiries.Count > 0
+                    && _webSocketPublic.Count == 0)
+                {
+                    CreatePublicWebSocketConnect();
+                }
 
                 if (_webSocketPublic.Count == 0)
                 {
