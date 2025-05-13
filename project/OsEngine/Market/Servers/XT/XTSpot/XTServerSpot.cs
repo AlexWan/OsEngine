@@ -567,11 +567,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
                     _webSocketPrivate.EmitOnPing = true;
                     _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                        = System.Security.Authentication.SslProtocols.Ssl3
-                       | System.Security.Authentication.SslProtocols.Tls11
-                       | System.Security.Authentication.SslProtocols.Tls12
-                       | System.Security.Authentication.SslProtocols.Tls13
-                       | System.Security.Authentication.SslProtocols.Tls;
+                        = System.Security.Authentication.SslProtocols.Tls12
+                       | System.Security.Authentication.SslProtocols.Tls13;
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
@@ -586,11 +583,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     _webSocketPublicMarketDepths = new WebSocket(_webSocketPublicUrl);
                     _webSocketPublicMarketDepths.EmitOnPing = true;
                     _webSocketPublicMarketDepths.SslConfiguration.EnabledSslProtocols
-                        = System.Security.Authentication.SslProtocols.Ssl3
-                       | System.Security.Authentication.SslProtocols.Tls11
-                       | System.Security.Authentication.SslProtocols.Tls12
-                       | System.Security.Authentication.SslProtocols.Tls13
-                       | System.Security.Authentication.SslProtocols.Tls;
+                        = System.Security.Authentication.SslProtocols.Tls12
+                       | System.Security.Authentication.SslProtocols.Tls13;
 
                     _webSocketPublicMarketDepths.OnOpen += _webSocketPublicMarketDepths_OnOpen;
                     _webSocketPublicMarketDepths.OnClose += _webSocketPublicMarketDepths_OnClose;
@@ -606,11 +600,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     _webSocketPublicTrades = new WebSocket(_webSocketPublicUrl);
                     _webSocketPublicTrades.EmitOnPing = true;
                     _webSocketPublicTrades.SslConfiguration.EnabledSslProtocols
-                        = System.Security.Authentication.SslProtocols.Ssl3
-                       | System.Security.Authentication.SslProtocols.Tls11
-                       | System.Security.Authentication.SslProtocols.Tls12
-                       | System.Security.Authentication.SslProtocols.Tls13
-                       | System.Security.Authentication.SslProtocols.Tls;
+                        = System.Security.Authentication.SslProtocols.Tls12
+                       | System.Security.Authentication.SslProtocols.Tls13;
                     _webSocketPublicTrades.OnOpen += _webSocketPublicTrades_OnOpen;
                     _webSocketPublicTrades.OnClose += _webSocketPublicTrades_OnClose;
                     _webSocketPublicTrades.OnMessage += _webSocketPublicTrades_OnMessage;

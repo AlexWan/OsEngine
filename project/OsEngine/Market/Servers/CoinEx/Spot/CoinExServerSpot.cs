@@ -705,11 +705,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     _webSocketMessage = new ConcurrentQueue<string>();
                     _wsClient.EmitOnPing = true;
                     _wsClient.SslConfiguration.EnabledSslProtocols
-                     = System.Security.Authentication.SslProtocols.Ssl3
-                      | System.Security.Authentication.SslProtocols.Tls11
-                      | System.Security.Authentication.SslProtocols.Tls12
-                      | System.Security.Authentication.SslProtocols.Tls13
-                      | System.Security.Authentication.SslProtocols.Tls;
+                     =  System.Security.Authentication.SslProtocols.Tls12
+                      | System.Security.Authentication.SslProtocols.Tls13;
 
                     _wsClient.OnOpen += WebSocket_Opened;
                     _wsClient.OnClose += WebSocket_Closed;

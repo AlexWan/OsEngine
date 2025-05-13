@@ -926,12 +926,9 @@ namespace OsEngine.Market.Servers.BitMex
             }
             _webSocket = new WebSocket(_serverAdress);
             _webSocket.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Ssl3
-                | System.Security.Authentication.SslProtocols.Tls11
-                | System.Security.Authentication.SslProtocols.None
+                = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13
-                | System.Security.Authentication.SslProtocols.Tls;
+                | System.Security.Authentication.SslProtocols.Tls13;
             _webSocket.EmitOnPing = true;
 
             _webSocket.OnOpen += _webSocket_Opened;

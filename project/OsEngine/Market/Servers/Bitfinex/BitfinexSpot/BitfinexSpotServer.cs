@@ -962,12 +962,9 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 WebSocket webSocketPublicMarketDepthsNew = new WebSocket(_webSocketPublicUrl);
                 webSocketPublicMarketDepthsNew.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Ssl3
-                | System.Security.Authentication.SslProtocols.Tls11
-                | System.Security.Authentication.SslProtocols.None
+                = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13
-                | System.Security.Authentication.SslProtocols.Tls;
+                | System.Security.Authentication.SslProtocols.Tls13;
                 webSocketPublicMarketDepthsNew.EmitOnPing = true;
                 webSocketPublicMarketDepthsNew.OnOpen += WebSocketPublicMarketDepthsNew_OnOpen;
                 webSocketPublicMarketDepthsNew.OnClose += WebSocketPublicMarketDepthsNew_OnClose;
@@ -1007,12 +1004,9 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 WebSocket webSocketPublicTradesNew = new WebSocket(_webSocketPublicUrl);
                 webSocketPublicTradesNew.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Ssl3
-                | System.Security.Authentication.SslProtocols.Tls11
-                | System.Security.Authentication.SslProtocols.None
+                = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13
-                | System.Security.Authentication.SslProtocols.Tls;
+                | System.Security.Authentication.SslProtocols.Tls13;
                 webSocketPublicTradesNew.EmitOnPing = true;
                 webSocketPublicTradesNew.OnOpen += WebSocketPublicTradesNew_OnOpen;
                 webSocketPublicTradesNew.OnClose += WebSocketPublicTradesNew_OnClose;
@@ -1040,12 +1034,9 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
                 _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Ssl3
-                | System.Security.Authentication.SslProtocols.Tls11
-                | System.Security.Authentication.SslProtocols.None
+                = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13
-                | System.Security.Authentication.SslProtocols.Tls;
+                | System.Security.Authentication.SslProtocols.Tls13;
                 _webSocketPrivate.EmitOnPing = true;
                 _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;

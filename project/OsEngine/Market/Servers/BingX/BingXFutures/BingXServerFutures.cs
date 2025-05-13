@@ -921,12 +921,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 }
 
                 webSocketPublicNew.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.Ssl3
-                    | System.Security.Authentication.SslProtocols.Tls11
-                    | System.Security.Authentication.SslProtocols.None
+                    = System.Security.Authentication.SslProtocols.None
                     | System.Security.Authentication.SslProtocols.Tls12
-                    | System.Security.Authentication.SslProtocols.Tls13
-                    | System.Security.Authentication.SslProtocols.Tls;
+                    | System.Security.Authentication.SslProtocols.Tls13;
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
                 webSocketPublicNew.OnClose += WebSocketPublicNew_OnClose;
@@ -969,12 +966,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
 
             _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Ssl3
-                | System.Security.Authentication.SslProtocols.Tls11
-                | System.Security.Authentication.SslProtocols.None
+                = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13
-                | System.Security.Authentication.SslProtocols.Tls;
+                | System.Security.Authentication.SslProtocols.Tls13;
             _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
