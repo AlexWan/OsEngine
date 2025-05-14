@@ -20,6 +20,8 @@ using System.Windows; // For MessageBox
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Text;
+using System.Text;
 
 namespace OsEngine.Robots
 {
@@ -332,9 +334,21 @@ namespace OsEngine.Robots
                 }
             }
 
-            string sourceCode = File.ReadAllText(scriptPath);
-            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(sourceCode, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest));
+            SourceText sourceText;
+            using (var fileStream = new FileStream(scriptPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: false))
+            {
+                // Create SourceText from stream, specifying UTF-8 encoding.
+                // This will correctly handle UTF-8 files with or without BOM.
+                // canBeEmbedded: true is for #embed directive support.
+                sourceText = SourceText.From(fileStream, Encoding.UTF8, canBeEmbedded: true);
+            }
 
+            SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(
+                sourceText, // Use the SourceText object
+                options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
+                path: scriptPath // Provide the file path for diagnostics and PDB symbol information
+            );
+            
             string assemblyName = $"BotScript_{nameClass}_{Guid.NewGuid():N}";
             CSharpCompilationOptions compilationOptions = new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
