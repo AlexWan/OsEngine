@@ -17,7 +17,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.BloFin
@@ -602,10 +602,11 @@ namespace OsEngine.Market.Servers.BloFin
         private void CreateWebSocketConnection()
         {
             _webSocketPrivate = new WebSocket(_webSocketUrlPrivate);
-            _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Tls12;
-            _webSocketPrivate.EmitOnPing = true;
 
+            /*_webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                = System.Security.Authentication.SslProtocols.Tls12;*/
+
+            _webSocketPrivate.EmitOnPing = true;
             _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += _webSocketPrivate_OnError;
@@ -613,8 +614,8 @@ namespace OsEngine.Market.Servers.BloFin
             _webSocketPrivate.Connect();
 
             _webSocketPublic = new WebSocket(_webSocketUrlPublic);
-            _webSocketPublic.SslConfiguration.EnabledSslProtocols
-               = System.Security.Authentication.SslProtocols.Tls12;
+            /*_webSocketPublic.SslConfiguration.EnabledSslProtocols
+               = System.Security.Authentication.SslProtocols.Tls12;*/
             _webSocketPublic.EmitOnPing = true;
 
             _webSocketPublic.OnOpen += _webSocketPublic_OnOpen;

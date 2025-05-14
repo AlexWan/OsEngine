@@ -14,11 +14,10 @@ using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
-using OsEngine.Market.Servers.BitMart.Json;
 using OsEngine.Market.Servers.BitMex.BitMexEntity;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.BitMex
@@ -925,10 +924,11 @@ namespace OsEngine.Market.Servers.BitMex
                 return;
             }
             _webSocket = new WebSocket(_serverAdress);
-            _webSocket.SslConfiguration.EnabledSslProtocols
+            /*_webSocket.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
+                | System.Security.Authentication.SslProtocols.Tls13;*/
+
             _webSocket.EmitOnPing = true;
 
             _webSocket.OnOpen += _webSocket_Opened;
@@ -974,7 +974,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         #region 7 WebSocket events
 
-        private void _webSocket_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void _webSocket_Error(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -1015,7 +1015,7 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-        private void _webSocket_Closed(object sender, EventArgs e)
+        private void _webSocket_Closed(object sender, CloseEventArgs e)
         {
             if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
