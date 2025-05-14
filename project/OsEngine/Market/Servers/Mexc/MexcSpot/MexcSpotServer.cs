@@ -19,7 +19,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.Mexc
@@ -655,10 +655,10 @@ namespace OsEngine.Market.Servers.Mexc
                     }
 
                     WebSocket _webSocketPublic = new WebSocket(_ws);
-                    _webSocketPublic.SslConfiguration.EnabledSslProtocols
+                    /*_webSocketPublic.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.None
                     | System.Security.Authentication.SslProtocols.Tls12
-                    | System.Security.Authentication.SslProtocols.Tls13;
+                    | System.Security.Authentication.SslProtocols.Tls13;*/
                     _webSocketPublic.EmitOnPing = true;
                     _webSocketPublic.OnOpen += _webSocketPublic_OnOpen;
                     _webSocketPublic.OnClose += _webSocketPublic_OnClose;
@@ -695,10 +695,10 @@ namespace OsEngine.Market.Servers.Mexc
                     string uri = _wsPrivate + "?listenKey=" + _listenKey;
 
                     _webSocketPrivate = new WebSocket(uri);
-                    _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                    /*_webSocketPrivate.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.None
                    | System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;
+                   | System.Security.Authentication.SslProtocols.Tls13;*/
                     _webSocketPrivate.EmitOnPing = true;
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
@@ -926,15 +926,14 @@ namespace OsEngine.Market.Servers.Mexc
 
         #region 7 WebSocket events
 
-        private void _webSocketPublic_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void _webSocketPublic_OnError(object sender, ErrorEventArgs e)
         {
             try
             {
-                WebSocketSharp.ErrorEventArgs error = e;
 
-                if (error.Exception != null)
+                if (e.Exception != null)
                 {
-                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                    SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -1011,19 +1010,17 @@ namespace OsEngine.Market.Servers.Mexc
             CheckActivationSockets();
         }
 
-        private void _webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
         {
             try
             {
-                WebSocketSharp.ErrorEventArgs error = e;
-
-                if (error.Exception != null)
+                if (e.Exception != null)
                 {
-                    SendLogMessage("WebSocketPrivate Error" + error.Exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("WebSocketPrivate Error" + e.Exception.ToString(), LogMessageType.Error);
                 }
                 else
                 {
-                    SendLogMessage("WebSocketPrivate Error" + error.ToString(), LogMessageType.Error);
+                    SendLogMessage("WebSocketPrivate Error" + e.ToString(), LogMessageType.Error);
                 }
             }
             catch (Exception ex)
@@ -1211,6 +1208,17 @@ namespace OsEngine.Market.Servers.Mexc
                     && _webSocketPublicSpot.Count == 0)
                 {
                     WebSocket newSocket = CreateWebSocketPublicConnection();
+
+                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                    while (newSocket.ReadyState != WebSocketState.Open)
+                    {
+                        Thread.Sleep(1000);
+
+                        if (timeEnd < DateTime.Now)
+                        {
+                            break;
+                        }
+                    }
 
                     if (newSocket.ReadyState == WebSocketState.Open)
                     {
