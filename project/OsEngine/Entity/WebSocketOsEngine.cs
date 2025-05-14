@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Net.WebSockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,11 +46,16 @@ namespace OsEngine.Entity.WebSocketOsEngine
             }
         }
 
+        public void SetCertificate(X509Certificate2 certificate)
+        {
+            _client.Options.ClientCertificates = new X509CertificateCollection { certificate };
+            _client.Options.RemoteCertificateValidationCallback = (sender, cert, chain, errors) => true;
+        }
+
         public async Task Connect()
         {
             try
             {
-                
                 if (string.IsNullOrEmpty(_url))
                 {
                     throw new InvalidOperationException("URL must be set before connecting.");
