@@ -12,7 +12,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.XT.XTSpot
 {
@@ -566,9 +566,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
                     _webSocketPrivate.EmitOnPing = true;
-                    _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                        = System.Security.Authentication.SslProtocols.Tls12
-                       | System.Security.Authentication.SslProtocols.Tls13;
+
                     _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
                     _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                     _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
@@ -582,10 +580,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     _webSocketPublicMarketDepths = new WebSocket(_webSocketPublicUrl);
                     _webSocketPublicMarketDepths.EmitOnPing = true;
-                    _webSocketPublicMarketDepths.SslConfiguration.EnabledSslProtocols
-                        = System.Security.Authentication.SslProtocols.Tls12
-                       | System.Security.Authentication.SslProtocols.Tls13;
-
                     _webSocketPublicMarketDepths.OnOpen += _webSocketPublicMarketDepths_OnOpen;
                     _webSocketPublicMarketDepths.OnClose += _webSocketPublicMarketDepths_OnClose;
                     _webSocketPublicMarketDepths.OnMessage += _webSocketPublicMarketDepths_OnMessage;
@@ -599,9 +593,6 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
                     _webSocketPublicTrades = new WebSocket(_webSocketPublicUrl);
                     _webSocketPublicTrades.EmitOnPing = true;
-                    _webSocketPublicTrades.SslConfiguration.EnabledSslProtocols
-                        = System.Security.Authentication.SslProtocols.Tls12
-                       | System.Security.Authentication.SslProtocols.Tls13;
                     _webSocketPublicTrades.OnOpen += _webSocketPublicTrades_OnOpen;
                     _webSocketPublicTrades.OnClose += _webSocketPublicTrades_OnClose;
                     _webSocketPublicTrades.OnMessage += _webSocketPublicTrades_OnMessage;
@@ -719,11 +710,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private void _webSocketPublicTrades_OnError(object sender, ErrorEventArgs e)
             {
-                WebSocketSharp.ErrorEventArgs error = e;
-
-                if (error.Exception != null)
+                if (e.Exception != null)
                 {
-                    SendLogMessage("WebSocketPublicTrades Error: " + error.Exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("WebSocketPublicTrades Error: " + e.Exception.ToString(), LogMessageType.Error);
                 }
 
                 CheckFullActivation();
@@ -785,11 +774,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private void _webSocketPublicMarketDepths_OnError(object sender, ErrorEventArgs e)
             {
-                WebSocketSharp.ErrorEventArgs error = e;
-
-                if (error.Exception != null)
+                if (e.Exception != null)
                 {
-                    SendLogMessage("WebSocketPublic Error: " + error.Exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("WebSocketPublic Error: " + e.Exception.ToString(), LogMessageType.Error);
                 }
 
                 CheckFullActivation();
@@ -851,11 +838,9 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
             {
-                WebSocketSharp.ErrorEventArgs error = e;
-
-                if (error.Exception != null)
+                if (e.Exception != null)
                 {
-                    SendLogMessage("WebSocketPrivate Error" + error.Exception.ToString(), LogMessageType.Error);
+                    SendLogMessage("WebSocketPrivate Error" + e.Exception.ToString(), LogMessageType.Error);
                 }
 
                 CheckFullActivation();
