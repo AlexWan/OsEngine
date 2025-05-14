@@ -12,7 +12,7 @@ using System.Security.Cryptography;
 using System.Collections.Concurrent;
 using OsEngine.Market.Servers.KiteConnect.Json;
 using Newtonsoft.Json;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.KiteConnect
@@ -1107,12 +1107,12 @@ namespace OsEngine.Market.Servers.KiteConnect
 
                 _webSocket = new WebSocket(fullUrlWebSoket);
 
-                _webSocket.SslConfiguration.EnabledSslProtocols
+                /*_webSocket.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
-                _webSocket.EmitOnPing = true;
+                | System.Security.Authentication.SslProtocols.Tls13;*/
 
+                _webSocket.EmitOnPing = true;
                 _webSocket.OnOpen += _webSocket_OnOpen;
                 _webSocket.OnMessage += _webSocket_OnMessage;
                 _webSocket.OnError += _webSocket_OnError;
@@ -1166,7 +1166,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
 
-                SendLogMessage("Connection Closed by KiteConnect. WebSocket Data Closed Event", LogMessageType.System);
+                SendLogMessage("Connection Closed by KiteConnect. WebSocket Data Closed Event " + e.Code + " " + e.Reason, LogMessageType.System);
 
                 if (DisconnectEvent != null)
                 {
@@ -1175,9 +1175,9 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
-        private void _webSocket_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void _webSocket_OnError(object sender, ErrorEventArgs e)
         {
-            SendLogMessage("Error websocket :" + e.ToString(), LogMessageType.Error);
+            SendLogMessage("Error websocket :" + e.Exception.ToString(), LogMessageType.Error);
         }
 
         private void _webSocket_OnMessage(object sender, MessageEventArgs e)

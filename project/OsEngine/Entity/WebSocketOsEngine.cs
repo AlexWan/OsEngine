@@ -225,18 +225,12 @@ namespace OsEngine.Entity.WebSocketOsEngine
                         {
                             var message = Encoding.UTF8.GetString(receivedData);
 
-                            if (EmitOnPing == true 
+                            if (EmitOnPing == true
                                 &&
-                                (message.Contains("\"ping\"") || message.Contains("Ping")))
+                                (message.Contains("ping") 
+                                 || message.Contains("Ping")))
                             {
-                                if (message.Contains("ping"))
-                                {
-                                    await Send("pong");
-                                }
-                                else if (message.Contains("Ping"))
-                                {
-                                    await Send("Pong");
-                                }
+                                await Send("pong");
                             }
                             else
                             {
