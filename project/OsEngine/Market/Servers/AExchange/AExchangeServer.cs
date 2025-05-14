@@ -10,18 +10,19 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.AE.Json;
 using OsEngine.Market.Servers.Entity;
 using System;
+using System.IO;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Security.Authentication;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 using OptionType = OsEngine.Entity.OptionType;
 using Order = OsEngine.Entity.Order;
 using Position = OsEngine.Entity.Position;
 using System.Net;
+using System.Security.Cryptography;
 
 namespace OsEngine.Market.Servers.AE
 {
@@ -32,7 +33,7 @@ namespace OsEngine.Market.Servers.AE
             AExchangeServerRealization realization = new AExchangeServerRealization();
             ServerRealization = realization;
 
-            CreateParameterPath("Path to pfx key file"); //
+            CreateParameterPath("Path to PEM key file"); //
             CreateParameterPassword("Key file passphrase", ""); //
             CreateParameterString("User name", ""); //
         }
@@ -59,11 +60,11 @@ namespace OsEngine.Market.Servers.AE
 
                 SendLogMessage("Start AE Connection", LogMessageType.System);
 
-                _pathToKeyFile = ((ServerParameterPath)ServerParameters[0]).Value + "/trade.pfx";
+                _pathToKeyFile = ((ServerParameterPath)ServerParameters[0]).Value + "/TRADE.pem";
               
                 if (string.IsNullOrEmpty(_pathToKeyFile))
                 {
-                    SendLogMessage("Connection terminated. You must specify path to pfx file containing certificate. You can get pem certificate on the AE website and convert it to pfx format",
+                    SendLogMessage("Connection terminated. You must specify path to pem file containing certificate. You can get pem certificate on the AE website",
                         LogMessageType.Error);
                     return;
                 }
@@ -72,7 +73,7 @@ namespace OsEngine.Market.Servers.AE
 
                 if (string.IsNullOrEmpty(_keyFilePassphrase))
                 {
-                    SendLogMessage("Connection terminated. You must specify passphrase to pfx file containing certificate. You can get it on the AE website",
+                    SendLogMessage("Connection terminated. You must specify passphrase to pem file containing certificate. You can get it on the AE website",
                         LogMessageType.Error);
                     return;
                 }
@@ -129,8 +130,8 @@ namespace OsEngine.Market.Servers.AE
         #region 2 Properties
 
         private readonly string _apiHost = "213.219.228.50"; // prod
-        //private readonly int _apiPort = 21300; // prod
-         private readonly int _apiPort = 21513; // game  
+        private readonly int _apiPort = 21300; // prod
+        //private readonly int _apiPort = 21513; // game  
 
         private string _pathToKeyFile;
         private string _keyFilePassphrase;
@@ -196,7 +197,7 @@ namespace OsEngine.Market.Servers.AE
                 newSecurity.NameId = instrument.Ticker;
                 newSecurity.Name = instrument.Ticker;
                 newSecurity.NameClass = instrument.Type.ToString();
-                newSecurity.NameFull = instrument.FullName.IsNullOrEmpty() ? instrument.Ticker : instrument.FullName;
+                newSecurity.NameFull = string.IsNullOrEmpty(instrument.FullName) ? instrument.Ticker : instrument.FullName;
                 newSecurity.Exchange = "AE";
                 newSecurity.PriceStep = instrument.PriceStep ?? 1;
                 newSecurity.State = SecurityStateType.Activ;
@@ -651,48 +652,24 @@ namespace OsEngine.Market.Servers.AE
 
                     if (_certificate == null)
                     {
-                        _certificate = new X509Certificate2(_pathToKeyFile, _keyFilePassphrase,
-                            X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
+                        _certificate = LoadPemCertificate(_pathToKeyFile, _keyFilePassphrase);
                     }
 
                     _ws = new WebSocket($"wss://{_apiHost}:{_apiPort}/clientapi/v1");
-                    _ws.SslConfiguration.ClientCertificateSelectionCallback =
-                        (sender, targethost, localCertificates, remoteCertificate, acceptableIssuers) =>
-                        {
-                            return _certificate;
-                        };
 
-                    _ws.SslConfiguration.ClientCertificates = new X509CertificateCollection{_certificate};
-                    // Add client certificate
-                    //_ws.SslConfiguration.ClientCertificates.Add(_certificate);
-
-                    // Set SSL/TLS protocol (adjust as needed)
-                    _ws.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12;
-                    _ws.SslConfiguration.CheckCertificateRevocation = false;
+                    _ws.SetCertificate(_certificate);
 
                     _ws.EmitOnPing = true;
                     _ws.OnOpen += WebSocketData_Opened;
                     _ws.OnClose += WebSocketData_Closed;
                     _ws.OnMessage += WebSocketData_MessageReceived;
                     _ws.OnError += WebSocketData_Error;
-
-                    //_ws.OnClose += (sender, e) =>
-                    //{
-                    //    var sslProtocolHack = (System.Security.Authentication.SslProtocols)(SslProtocolsHack.Tls12 | SslProtocolsHack.Tls11 | SslProtocolsHack.Tls);
-                    //    //TlsHandshakeFailure
-                    //    if (e.Code == 1015 && _ws.SslConfiguration.EnabledSslProtocols != sslProtocolHack)
-                    //    {
-                    //        ws.SslConfiguration.EnabledSslProtocols = sslProtocolHack;
-                    //        ws.Connect();
-                    //    }
-                    //};
-
-
+                    
                     try
                     {
                         _ws.Connect();
                     }
-                    catch (WebSocketException ex)
+                    catch (Exception ex)
                     {
                         SendLogMessage(ex.ToString(), LogMessageType.Error);
                     }
@@ -712,7 +689,7 @@ namespace OsEngine.Market.Servers.AE
                 {
                     if (_ws != null)
                     {
-                        _ws.Close();
+                        _ws.CloseAsync();
                     }
                 }
             }
@@ -780,12 +757,10 @@ namespace OsEngine.Market.Servers.AE
 
         private void WebSocketData_Closed(object sender, CloseEventArgs e)
         {
-            var sslProtocolHack = (System.Security.Authentication.SslProtocols)(SslProtocolsHack.Tls12 | SslProtocolsHack.Tls11 | SslProtocolsHack.Tls);
             //TlsHandshakeFailure
-            if (e.Code == 1015) // && _ws.SslConfiguration.EnabledSslProtocols != sslProtocolHack)
+            if (e.Code == "1015")
             {
                 SendLogMessage($"Connection to AE closed unexpectedly Close code = {e.Code} with reason = {e.Reason}. Attempting reconnect.", LogMessageType.System);
-                _ws.SslConfiguration.EnabledSslProtocols = sslProtocolHack;
                 _ws.Connect();
                 return;
             }
@@ -800,8 +775,6 @@ namespace OsEngine.Market.Servers.AE
                     _ws.OnClose -= WebSocketData_Closed;
                     _ws.OnMessage -= WebSocketData_MessageReceived;
                     _ws.OnError -= WebSocketData_Error;
-                    _ws.SslConfiguration.ClientCertificates = null;
-                    _ws.SslConfiguration.ClientCertificateSelectionCallback = null;
 
                     _ws = null;
                 }
@@ -818,7 +791,7 @@ namespace OsEngine.Market.Servers.AE
             }
         }
 
-        private void WebSocketData_Error(object sender, WebSocketSharp.ErrorEventArgs error)
+        private void WebSocketData_Error(object sender, OsEngine.Entity.WebSocketOsEngine.ErrorEventArgs error)
         {
             try
             {
@@ -1143,6 +1116,34 @@ namespace OsEngine.Market.Servers.AE
         #endregion
 
         #region 12 Helpers
+        private static X509Certificate2 LoadPemCertificate(string pemFilePath, string pemPassphrase)
+        {
+            var pemContent = File.ReadAllText(pemFilePath);
+
+            var certStart = pemContent.IndexOf("-----BEGIN CERTIFICATE-----");
+            var certEnd = pemContent.IndexOf("-----END CERTIFICATE-----") + "-----END CERTIFICATE-----".Length;
+            var certPem = pemContent.Substring(certStart, certEnd - certStart);
+
+            var keyStart = pemContent.IndexOf("-----BEGIN ENCRYPTED PRIVATE KEY-----");
+            if (keyStart == -1) keyStart = pemContent.IndexOf("-----BEGIN PRIVATE KEY-----");
+
+            var keyEnd = pemContent.IndexOf("-----END ENCRYPTED PRIVATE KEY-----");
+            if (keyEnd == -1) keyEnd = pemContent.IndexOf("-----END PRIVATE KEY-----") + "-----END PRIVATE KEY-----".Length;
+            else keyEnd += "-----END ENCRYPTED PRIVATE KEY-----".Length;
+
+            var keyPem = pemContent.Substring(keyStart, keyEnd - keyStart);
+
+            var cert = X509Certificate2.CreateFromPem(certPem);
+            using var rsa = RSA.Create();
+
+            if (keyPem.Contains("ENCRYPTED"))
+                rsa.ImportFromEncryptedPem(keyPem, pemPassphrase);
+            else
+                rsa.ImportFromPem(keyPem);
+
+            var certWithKey = cert.CopyWithPrivateKey(rsa);
+            return new X509Certificate2(certWithKey.Export(X509ContentType.Pfx));
+        }
 
         #endregion
 
