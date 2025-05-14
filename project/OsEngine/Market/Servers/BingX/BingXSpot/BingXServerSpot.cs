@@ -9,14 +9,13 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
 using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.BinGxSpot
 {
@@ -711,12 +710,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    webSocketPublicNew.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    webSocketPublicNew.SetProxy(_myProxy);
                 }
-
-                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.None;
 
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += WebSocketPublicNew_OnOpen;
@@ -755,12 +750,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                _webSocketPrivate.SetProxy(_myProxy);
             }
 
             _webSocketPrivate.EmitOnPing = true;
-            _webSocketPrivate.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
             _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
             _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
@@ -869,7 +862,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 7 WebSocket events
 
-        private void WebSocketPublicNew_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPublicNew_OnError(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -965,7 +958,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        private void _webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -2174,11 +2167,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
         {
             try
             {
-                using (var compressedStream = new MemoryStream(data))
+                using (var compressedStream = new System.IO.MemoryStream(data))
                 {
                     using (var decompressor = new GZipStream(compressedStream, CompressionMode.Decompress))
                     {
-                        using (var resultStream = new MemoryStream())
+                        using (var resultStream = new System.IO.MemoryStream())
                         {
                             decompressor.CopyTo(resultStream);
 

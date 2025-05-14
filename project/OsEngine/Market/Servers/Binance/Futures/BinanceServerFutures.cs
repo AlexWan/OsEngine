@@ -18,7 +18,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 using TradeResponse = OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity.TradeResponse;
 using System.Net;
 
@@ -1324,12 +1324,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    _socketPrivateData.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    _socketPrivateData.SetProxy(_myProxy);
                 }
 
                 _socketPrivateData.EmitOnPing = true;
-                _socketPrivateData.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
                 _socketPrivateData.OnOpen += _socketClient_Opened;
                 _socketPrivateData.OnMessage += _socketClient_PrivateMessage;
                 _socketPrivateData.OnError += _socketClient_Error;
@@ -1426,13 +1424,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        private void _socketClient_Closed(object sender, EventArgs e)
+        private void _socketClient_Closed(object sender, CloseEventArgs e)
         {
             if (ServerStatus == ServerConnectStatus.Connect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
 
-                SendLogMessage("Websocket lost connection: " + e.ToString(), LogMessageType.Error);
+                SendLogMessage("Websocket lost connection: " + e.Code.ToString(), LogMessageType.Error);
 
                 if (DisconnectEvent != null)
                 {
@@ -1441,9 +1439,9 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        private void _socketClient_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void _socketClient_Error(object sender, ErrorEventArgs e)
         {
-            SendLogMessage("Error websocket :" + e.ToString(), LogMessageType.Error);
+            SendLogMessage("Error websocket :" + e.Exception.ToString(), LogMessageType.Error);
         }
 
         private void _socketClient_PrivateMessage(object sender, MessageEventArgs e)
@@ -1556,13 +1554,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                wsClientDepth.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                wsClientDepth.SetProxy(_myProxy);
             }
 
             wsClientDepth.EmitOnPing = true;
-            wsClientDepth.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
-
             wsClientDepth.OnMessage += _socket_PublicMessage;
             wsClientDepth.OnError += _socketClient_Error;
             wsClientDepth.OnClose += _socketClient_Closed;

@@ -19,7 +19,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 using TradeResponse = OsEngine.Market.Servers.Binance.Spot.BinanceSpotEntity.TradeResponse;
 
 namespace OsEngine.Market.Servers.Binance.Spot
@@ -1251,8 +1251,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 if(_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    client.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    client.SetProxy(_myProxy);
                 }
 
                 client.OnOpen += Client_Opened;
@@ -1284,13 +1283,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
-        private void Client_Closed(object sender, EventArgs e)
+        private void Client_Closed(object sender, CloseEventArgs e)
         {
             if (ServerStatus == ServerConnectStatus.Connect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
 
-                SendLogMessage("Websocket lost connection: " + e.ToString(), LogMessageType.Error);
+                SendLogMessage("Websocket lost connection: " + e.Code, LogMessageType.Error);
 
                 if (DisconnectEvent != null)
                 {
@@ -1299,9 +1298,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
-        private void Client_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void Client_Error(object sender, ErrorEventArgs e)
         {
-            SendLogMessage("Error websocket :" + e.ToString(), LogMessageType.Error);
+
+            SendLogMessage("Error websocket :" + e.Exception.ToString(), LogMessageType.Error);
         }
 
         #endregion
@@ -1441,12 +1441,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                _wsClient.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                _wsClient.SetProxy(_myProxy);
             }
 
             _wsClient.EmitOnPing = true;
-            _wsClient.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
 
             _wsClient.OnMessage += _publicSocketClient_RessageReceived;
             _wsClient.OnError += Client_Error;

@@ -228,6 +228,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                             {
                                 MessageEventArgs messageValue = new MessageEventArgs();
                                 messageValue.Data = message;
+                                messageValue.IsText = true;
                                 OnMessage?.Invoke(this, messageValue);
                             }
                         }
@@ -235,6 +236,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                         {
                             MessageEventArgs messageValue = new MessageEventArgs();
                             messageValue.RawData = receivedData;
+                            messageValue.IsBinary = true;
                             OnMessage?.Invoke(this, messageValue);
                         }
                         else if (result.MessageType == WebSocketMessageType.Close)
@@ -312,6 +314,10 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
     public class MessageEventArgs
     {
+        public bool IsBinary = false;
+
+        public bool IsText = false;
+
         public byte[] RawData;
 
         public string Data;
