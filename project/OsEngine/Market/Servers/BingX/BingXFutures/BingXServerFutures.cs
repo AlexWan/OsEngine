@@ -1128,7 +1128,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 if (DisconnectEvent != null
                     & ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("Connection Closed by BingX. WebSocket Closed Event", LogMessageType.System);
+                    SendLogMessage("Connection Closed by BingX. WebSocket Closed Event " + e.Code + " " + e.Reason, LogMessageType.System);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }

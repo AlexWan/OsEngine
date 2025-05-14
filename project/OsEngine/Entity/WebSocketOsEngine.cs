@@ -20,10 +20,9 @@ namespace OsEngine.Entity.WebSocketOsEngine
         public WebSocket(string url)
         {
             _client = new ClientWebSocket();
-            _client.Options.KeepAliveInterval = TimeSpan.FromDays(3);
+            //_client.Options.KeepAliveInterval = TimeSpan.FromDays(3);
             _url = url;
             ReadyState = WebSocketState.Closed;
-            
         }
 
         private string _url;
@@ -198,7 +197,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         private async Task ReceiveLoopAsync(CancellationToken token)
         {
-            var buffer = new byte[8192 * 10]; // 16KB buffer, adjust as needed
+            var buffer = new byte[8192 * 2]; // 16KB buffer, adjust as needed
             try
             {
                 while (_client.State == System.Net.WebSockets.WebSocketState.Open && !token.IsCancellationRequested)

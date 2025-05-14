@@ -10,7 +10,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.OKX.Entity;
 using OsEngine.Market.Servers.Entity;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 using System.Net.Http;
 using OsEngine.Language;
 using RestSharp;
@@ -860,14 +860,9 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    webSocketPublicNew.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    webSocketPublicNew.SetProxy(_myProxy);
                 }
 
-                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.None
-                    | System.Security.Authentication.SslProtocols.Tls12
-                    | System.Security.Authentication.SslProtocols.Tls13;
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += WebSocketPublic_Opened;
                 webSocketPublicNew.OnClose += WebSocketPublic_Closed;
@@ -904,14 +899,10 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    _webSocketPrivate.SetProxy(_myProxy);
                 }
 
-                _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.None
-                   | System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;
+
                 _webSocketPrivate.EmitOnPing = true;
                 _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
@@ -1090,14 +1081,14 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPublic_Closed(object sender, EventArgs e)
+        private void WebSocketPublic_Closed(object sender, CloseEventArgs e)
         {
             try
             {
                 if (DisconnectEvent != null
                  & ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("Connection Closed by OKX. WebSocket Public Closed Event", LogMessageType.System);
+                    SendLogMessage("Connection Closed by OKX. WebSocket Public Closed Event " + e.Code + " " + e.Reason, LogMessageType.System);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
@@ -1138,7 +1129,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPublic_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -1168,12 +1159,12 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPrivate_Closed(object sender, EventArgs e)
+        private void WebSocketPrivate_Closed(object sender, CloseEventArgs e)
         {
             if (DisconnectEvent != null
                 && ServerStatus != ServerConnectStatus.Disconnect)
             {
-                SendLogMessage("Connection Closed by OKX. WebSocket Private Closed Event", LogMessageType.System);
+                SendLogMessage("Connection Closed by OKX. WebSocket Private Closed Event " + e.Code + " " + e.Reason, LogMessageType.System);
                 ServerStatus = ServerConnectStatus.Disconnect;
                 DisconnectEvent();
             }
@@ -1214,7 +1205,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        private void WebSocketPrivate_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPrivate_Error(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
