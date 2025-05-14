@@ -12,7 +12,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 using System.Collections;
 
 namespace OsEngine.Market.Servers.TraderNet
@@ -448,7 +448,7 @@ namespace OsEngine.Market.Servers.TraderNet
                     }
                 }
 
-                if (allCandles[allCandles.Count - 1].TimeStart <= endTime)
+                if (allCandles[allCandles.Count - 1].TimeStart < endTime)
                 {
                     startTimeReq = TimeZoneInfo.ConvertTimeFromUtc(allCandles[allCandles.Count - 1].TimeStart, TimeZoneInfo.Local);
                     endTimeReq = startTimeReq.AddMinutes(tfTotalMinutes * 100000);
@@ -639,9 +639,10 @@ namespace OsEngine.Market.Servers.TraderNet
                 string url = _webSocketUrl + $"/?SID={_sid}";
                 
                 _webSocket = new WebSocket(url);
-                _webSocket.SslConfiguration.EnabledSslProtocols
+                
+                /*_webSocket.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;
+                   | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocket.EmitOnPing = true;
                 _webSocket.OnOpen += WebSocket_Opened;
                 _webSocket.OnClose += WebSocket_Closed;
@@ -707,7 +708,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private void WebSocket_Closed(object sender, EventArgs e)
+        private void WebSocket_Closed(object sender, CloseEventArgs e)
         {
             try
             {
@@ -755,7 +756,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        private void WebSocket_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocket_Error(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
