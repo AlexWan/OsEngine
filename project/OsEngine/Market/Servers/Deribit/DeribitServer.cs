@@ -13,7 +13,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
-using WebSocket4Net;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Market.Servers.Deribit.Entity;
 using System.Security.Cryptography;
 using System.Net;
@@ -517,12 +517,11 @@ namespace OsEngine.Market.Servers.Deribit
         private void CreateWebSocketConnection()
         {
             webSocket = new WebSocket(_webSocketUrl);            
-            webSocket.Opened += WebSocket_Opened;
-            webSocket.Closed += WebSocket_Closed;
-            webSocket.MessageReceived += WebSocket_MessageReceived;
-            webSocket.Error += WebSocket_Error;
-            webSocket.Open();
-
+            webSocket.OnOpen += WebSocket_Opened;
+            webSocket.OnClose += WebSocket_OnClose;
+            webSocket.OnMessage += WebSocket_OnMessage;
+            webSocket.OnError += WebSocket_OnError;
+            webSocket.Connect();
         }
 
         private void DeleteWebscoektConnection()
@@ -531,17 +530,17 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 try
                 {
-                    webSocket.Close();
+                    webSocket.CloseAsync();
                 }
                 catch
                 {
                     // ignore
                 }
 
-                webSocket.Opened -= WebSocket_Opened;
-                webSocket.Closed -= WebSocket_Closed;
-                webSocket.MessageReceived -= WebSocket_MessageReceived;
-                webSocket.Error -= WebSocket_Error;
+                webSocket.OnOpen -= WebSocket_Opened;
+                webSocket.OnClose -= WebSocket_OnClose; ;
+                webSocket.OnMessage -= WebSocket_OnMessage; ;
+                webSocket.OnError -= WebSocket_OnError;
                 webSocket = null;
             }
         }
@@ -550,16 +549,15 @@ namespace OsEngine.Market.Servers.Deribit
 
         #region 7 WebSocket events
 
-        private void WebSocket_Error(object sender, SuperSocket.ClientEngine.ErrorEventArgs e)
+        private void WebSocket_OnError(object arg1, ErrorEventArgs e)
         {
-            SuperSocket.ClientEngine.ErrorEventArgs error = (SuperSocket.ClientEngine.ErrorEventArgs)e;
-            if (error.Exception != null)
+            if (e.Exception == null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
-        private void WebSocket_MessageReceived(object sender, MessageReceivedEventArgs e)
+        private void WebSocket_OnMessage(object arg1, MessageEventArgs e)
         {
             try
             {
@@ -572,7 +570,7 @@ namespace OsEngine.Market.Servers.Deribit
                     return;
                 }
 
-                if (string.IsNullOrEmpty(e.Message))
+                if (string.IsNullOrEmpty(e.Data))
                 {
                     return;
                 }
@@ -582,7 +580,7 @@ namespace OsEngine.Market.Servers.Deribit
                     return;
                 }
 
-                FIFOListWebSocketMessage.Enqueue(e.Message);
+                FIFOListWebSocketMessage.Enqueue(e.Data);
             }
             catch (Exception error)
             {
@@ -590,7 +588,7 @@ namespace OsEngine.Market.Servers.Deribit
             }
         }
 
-        private void WebSocket_Closed(object sender, EventArgs e)
+        private void WebSocket_OnClose(object arg1, CloseEventArgs arg2)
         {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
