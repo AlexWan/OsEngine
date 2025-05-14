@@ -1125,8 +1125,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             try
             {
-                SendLogMessage($"Connection Closed by BingXFutures. {e.Code} {e.Reason}. WebSocket Public Closed Event", LogMessageType.Error);
-                CheckSocketsActivate();
+                if (DisconnectEvent != null
+                    & ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("Connection Closed by BingX. WebSocket Closed Event", LogMessageType.System);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
             catch (Exception ex)
             {
@@ -1209,8 +1214,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         {
             try
             {
-                SendLogMessage($"Connection Closed by BingXFutures. {e.Code} {e.Reason}. WWebSocket Private Closed Event", LogMessageType.Error);
-                CheckSocketsActivate();
+                if (DisconnectEvent != null
+                    & ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    SendLogMessage("Connection Closed by BingX. WebSocket Closed Event", LogMessageType.System);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
             catch (Exception ex)
             {

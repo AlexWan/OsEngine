@@ -18,7 +18,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.Bybit
 {
@@ -1394,12 +1394,10 @@ namespace OsEngine.Market.Servers.Bybit
         {
             WebSocket webSocketPublicSpot = new WebSocket(wsPublicUrl(Category.spot));
             webSocketPublicSpot.EmitOnPing = true;
-            webSocketPublicSpot.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                webSocketPublicSpot.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                webSocketPublicSpot.SetProxy(_myProxy);
             }
 
             webSocketPublicSpot.OnOpen += WebSocketPublic_Opened;
@@ -1416,12 +1414,10 @@ namespace OsEngine.Market.Servers.Bybit
         {
             WebSocket webSocketPublicLinear = new WebSocket(wsPublicUrl(Category.linear));
             webSocketPublicLinear.EmitOnPing = true;
-            webSocketPublicLinear.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                webSocketPublicLinear.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                webSocketPublicLinear.SetProxy(_myProxy);
             }
 
             webSocketPublicLinear.OnOpen += WebSocketPublic_Opened;
@@ -1438,12 +1434,11 @@ namespace OsEngine.Market.Servers.Bybit
         {
             WebSocket webSocketPublicInverse = new WebSocket(wsPublicUrl(Category.inverse));
             webSocketPublicInverse.EmitOnPing = true;
-            webSocketPublicInverse.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
 
             if (_myProxy != null)
             {
                 NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                webSocketPublicInverse.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                webSocketPublicInverse.SetProxy(_myProxy);
             }
 
             webSocketPublicInverse.OnOpen += WebSocketPublic_Opened;
@@ -1464,12 +1459,10 @@ namespace OsEngine.Market.Servers.Bybit
 
                 webSocketPrivate = new WebSocket(wsPrivateUrl);
                 webSocketPrivate.EmitOnPing = true;
-                webSocketPrivate.SslConfiguration.EnabledSslProtocols = System.Security.Authentication.SslProtocols.None;
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    webSocketPrivate.SetProxy(_myProxy);
                 }
 
                 webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
@@ -1524,7 +1517,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private void WebSocketPrivate_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPrivate_Error(object sender, ErrorEventArgs e)
         {
             try
             {
@@ -1542,15 +1535,14 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private void WebSocketPrivate_Closed(object sender, EventArgs e)
+        private void WebSocketPrivate_Closed(object sender, CloseEventArgs e)
         {
-            try
+            if (DisconnectEvent != null
+                & ServerStatus != ServerConnectStatus.Disconnect)
             {
-                CheckFullActivation();
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage("Connection Closed by ByBit. WebSocket Closed Event", LogMessageType.System);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
@@ -1606,21 +1598,20 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private void WebSocketPublic_Closed(object sender, EventArgs e)
+        private void WebSocketPublic_Closed(object sender, CloseEventArgs e)
         {
-            try
+            if (DisconnectEvent != null
+                & ServerStatus != ServerConnectStatus.Disconnect)
             {
-                CheckFullActivation();
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage("Connection Closed by ByBit. WebSocket Closed Event", LogMessageType.System);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
         DateTime SendLogMessageTime = DateTime.Now;
 
-        private void WebSocketPublic_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
             try
             {

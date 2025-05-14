@@ -14,10 +14,9 @@ using OsEngine.Logging;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity;
 using OsEngine.Market.Servers.CoinEx.Spot.Entity.Enums;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 using System.Collections.Concurrent;
 using System.IO.Compression;
-using System.IO;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
@@ -704,9 +703,9 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                 {
                     _webSocketMessage = new ConcurrentQueue<string>();
                     _wsClient.EmitOnPing = true;
-                    _wsClient.SslConfiguration.EnabledSslProtocols
+                    /*_wsClient.SslConfiguration.EnabledSslProtocols
                      =  System.Security.Authentication.SslProtocols.Tls12
-                      | System.Security.Authentication.SslProtocols.Tls13;
+                      | System.Security.Authentication.SslProtocols.Tls13;*/
 
                     _wsClient.OnOpen += WebSocket_Opened;
                     _wsClient.OnClose += WebSocket_Closed;
@@ -803,7 +802,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             SetDisconnected();
         }
 
-        private void WebSocketData_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketData_Error(object sender, ErrorEventArgs e)
         {
             try
             {
@@ -1827,8 +1826,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private static string Decompress(byte[] data)
         {
-            using (MemoryStream msi = new MemoryStream(data))
-            using (MemoryStream mso = new MemoryStream())
+            using (System.IO.MemoryStream msi = new System.IO.MemoryStream(data))
+            using (System.IO.MemoryStream mso = new System.IO.MemoryStream())
             {
                 //using DeflateStream decompressor = new DeflateStream(msi, CompressionMode.Decompress);
                 using GZipStream decompressor = new GZipStream(msi, CompressionMode.Decompress);

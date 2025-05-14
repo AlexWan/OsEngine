@@ -719,8 +719,13 @@ namespace OsEngine.Market.Servers.BloFin
 
         private void _webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            CheckActivationSockets();
-            SendLogMessage($"Connection Closed by BloFinFutures. WebSocket Private Closed Event. Code:{e.Code} msg: {e.Reason}", LogMessageType.System);
+            if (DisconnectEvent != null
+                & ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                SendLogMessage("Connection Closed by BloFin. WebSocket Closed Event", LogMessageType.System);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
+            }
         }
 
         private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
@@ -788,14 +793,12 @@ namespace OsEngine.Market.Servers.BloFin
 
         private void _webSocketPublic_OnClose(object sender, CloseEventArgs e)
         {
-            try
+            if (DisconnectEvent != null
+                & ServerStatus != ServerConnectStatus.Disconnect)
             {
-                CheckActivationSockets();
-                SendLogMessage($"Connection Closed by BloFinFutures. WebSocket Public Closed Event Code:{e.Code} msg: {e.Reason}", LogMessageType.System);
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                SendLogMessage("Connection Closed by BloFin. WebSocket Closed Event", LogMessageType.System);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
