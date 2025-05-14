@@ -13,7 +13,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 {
@@ -985,14 +985,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    _webSocketPublic.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    _webSocketPublic.SetProxy(_myProxy);
                 }
 
                 _webSocketPublic.EmitOnPing = true;
-                _webSocketPublic.SslConfiguration.EnabledSslProtocols
+                /*_webSocketPublic.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Tls12
-                    | System.Security.Authentication.SslProtocols.Tls13;
+                    | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocketPublic.OnOpen += WebSocketPublic_Opened;
                 _webSocketPublic.OnClose += WebSocketPublic_Closed;
                 _webSocketPublic.OnMessage += WebSocketPublic_MessageReceived;
@@ -1008,14 +1007,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (_myProxy != null)
                 {
-                    NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                    _webSocketPrivate.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                    _webSocketPrivate.SetProxy(_myProxy);
                 }
 
                 _webSocketPrivate.EmitOnPing = true;
-                _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+               /* _webSocketPrivate.SslConfiguration.EnabledSslProtocols
                     = System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;
+                   | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
@@ -1135,7 +1133,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPublic_Closed(object sender, EventArgs e)
+        private void WebSocketPublic_Closed(object sender, CloseEventArgs e)
         {
             try
             {
@@ -1185,7 +1183,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPublic_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -1208,7 +1206,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPrivate_Closed(object sender, EventArgs e)
+        private void WebSocketPrivate_Closed(object sender, CloseEventArgs e)
         {
             if (DisconnectEvent != null
                 && ServerStatus != ServerConnectStatus.Disconnect)
@@ -1256,7 +1254,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private void WebSocketPrivate_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocketPrivate_Error(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {

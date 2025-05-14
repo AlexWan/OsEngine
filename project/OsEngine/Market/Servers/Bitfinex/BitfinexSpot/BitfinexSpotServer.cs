@@ -9,7 +9,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Bitfinex.Json;
 using OsEngine.Market.Servers.Entity;
 using RestSharp;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -961,10 +961,10 @@ namespace OsEngine.Market.Servers.Bitfinex
             try
             {
                 WebSocket webSocketPublicMarketDepthsNew = new WebSocket(_webSocketPublicUrl);
-                webSocketPublicMarketDepthsNew.SslConfiguration.EnabledSslProtocols
+                /*webSocketPublicMarketDepthsNew.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
+                | System.Security.Authentication.SslProtocols.Tls13;*/
                 webSocketPublicMarketDepthsNew.EmitOnPing = true;
                 webSocketPublicMarketDepthsNew.OnOpen += WebSocketPublicMarketDepthsNew_OnOpen;
                 webSocketPublicMarketDepthsNew.OnClose += WebSocketPublicMarketDepthsNew_OnClose;
@@ -1003,10 +1003,10 @@ namespace OsEngine.Market.Servers.Bitfinex
             try
             {
                 WebSocket webSocketPublicTradesNew = new WebSocket(_webSocketPublicUrl);
-                webSocketPublicTradesNew.SslConfiguration.EnabledSslProtocols
+                /*webSocketPublicTradesNew.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
+                | System.Security.Authentication.SslProtocols.Tls13;*/
                 webSocketPublicTradesNew.EmitOnPing = true;
                 webSocketPublicTradesNew.OnOpen += WebSocketPublicTradesNew_OnOpen;
                 webSocketPublicTradesNew.OnClose += WebSocketPublicTradesNew_OnClose;
@@ -1033,10 +1033,10 @@ namespace OsEngine.Market.Servers.Bitfinex
                 }
 
                 _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
-                _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                /*_webSocketPrivate.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
+                | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocketPrivate.EmitOnPing = true;
                 _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
@@ -1136,9 +1136,9 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                if (!string.IsNullOrEmpty(e.Message))
+                if (e.Exception != null)
                 {
-                    SendLogMessage($"WebSocket MarketDepths Error: {e.Message}", LogMessageType.Error);
+                    SendLogMessage($"WebSocket MarketDepths Error: {e.Exception}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1213,9 +1213,9 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                if (!string.IsNullOrEmpty(e.Message))
+                if (e.Exception != null)
                 {
-                    SendLogMessage($"WebSocket Trades Error: {e.Message}", LogMessageType.Error);
+                    SendLogMessage($"WebSocket Trades Error: {e.Exception}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -1319,9 +1319,9 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                if (!string.IsNullOrEmpty(e.Message))
+                if (e.Exception != null)
                 {
-                    SendLogMessage($"WebSocket private Error: {e.Message}", LogMessageType.Error);
+                    SendLogMessage($"WebSocket private Error: {e.Exception}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
