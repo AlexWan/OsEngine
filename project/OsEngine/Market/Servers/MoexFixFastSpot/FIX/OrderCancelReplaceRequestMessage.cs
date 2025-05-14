@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using WebSocketSharp;
 
 namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
 {    
@@ -46,7 +45,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot.FIX
             sb.Append("44=").Append(Price).Append('\u0001');
             sb.Append("38=").Append(OrderQty).Append('\u0001');
             
-            if (!SecondaryClOrdID.IsNullOrEmpty())
+            if (string.IsNullOrEmpty(SecondaryClOrdID) == false)
             {
                 sb.Append("526=").Append(SecondaryClOrdID).Append('\u0001');
             }

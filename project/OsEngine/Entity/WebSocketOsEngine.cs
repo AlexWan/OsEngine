@@ -11,7 +11,6 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Helpers;
 
 namespace OsEngine.Entity.WebSocketOsEngine
 {
@@ -162,7 +161,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
                         string message = "ping";
 
                         var messageBuffer = Encoding.UTF8.GetBytes(message);
-                        _client.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text,true, _cts.Token).WaitForResult();
+                        _client.SendAsync(new ArraySegment<byte>(messageBuffer), WebSocketMessageType.Text,true, _cts.Token);
 
                         return true;
                     }

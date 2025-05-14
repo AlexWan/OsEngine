@@ -12,7 +12,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
@@ -414,8 +414,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                 _webSocketPublicUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
 
                 WebSocket webSocketPublicNew = new WebSocket(_webSocketPublicUrl);
-                webSocketPublicNew.SslConfiguration.EnabledSslProtocols
-                   = System.Security.Authentication.SslProtocols.Tls12;
+
                 webSocketPublicNew.EmitOnPing = true;
                 webSocketPublicNew.OnOpen += _webSocketPublic_OnOpen;
                 webSocketPublicNew.OnMessage += _webSocketPublic_OnMessage;
@@ -450,8 +449,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             // set dynamic server address ws
             _webSocketPrivateUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
             _webSocketPrivate = new WebSocket(_webSocketPrivateUrl);
-            _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.Tls12;
             _webSocketPrivate.EmitOnPing = true;
             _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
             _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
@@ -566,11 +563,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         private void _webSocketPublic_OnError(object sender, ErrorEventArgs e)
         {
-            WebSocketSharp.ErrorEventArgs error = e;
-
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -622,11 +617,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
         private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
         {
-            WebSocketSharp.ErrorEventArgs error = e;
-
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 

@@ -6,19 +6,14 @@
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Tester;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Windows;
 using System.Windows.Input;
 using OsEngine.Language;
-using MessageBox = System.Windows.MessageBox;
 using System.Windows.Forms;
 using OsEngine.Market.Connectors;
 using OsEngine.Market;
-using WebSocketSharp;
-using QuikSharp.DataStructures;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {

@@ -27,7 +27,6 @@
           "System.Text.Encoding.CodePages": "9.0.4",
           "System.Threading.Channels": "9.0.4",
           "WinForms.DataVisualization": "1.10.0",
-          "websocketsharp.core": "1.0.1",
           "BytesRoad.Net.Ftp": "2.0.0.0",
           "BytesRoad.Net.Sockets": "2.0.0.0",
           "cgate_net64": "5.10.0.36987",
@@ -564,14 +563,6 @@
           "System.Xml.ReaderWriter": "4.3.0"
         }
       },
-      "websocketsharp.core/1.0.1": {
-        "runtime": {
-          "lib/netstandard2.0/websocket-sharp-core.dll": {
-            "assemblyVersion": "1.0.1.0",
-            "fileVersion": "1.0.1.0"
-          }
-        }
-      },
       "WinForms.DataVisualization/1.10.0": {
         "runtime": {
           "lib/net6.0-windows7.0/WinForms.DataVisualization.Utilities.dll": {
@@ -1093,13 +1084,6 @@
       "sha512": "sha512-lJ8AxvkX7GQxpC6GFCeBj8ThYVyQczx2+f/cWHJU8tjS7YfI6Cv6bon70jVEgs2CiFbmmM8b9j1oZVx0dSI2Ww==",
       "path": "system.xml.xmldocument/4.3.0",
       "hashPath": "system.xml.xmldocument.4.3.0.nupkg.sha512"
-    },
-    "websocketsharp.core/1.0.1": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-hlO3sUqmLiTnS4jqi0qqrjTZakwax6DKKEgfuM5ufe8AS6NrD2+e+XPWV5ts3hTPOE2thXZNuAQD79HgWi1Ygw==",
-      "path": "websocketsharp.core/1.0.1",
-      "hashPath": "websocketsharp.core.1.0.1.nupkg.sha512"
     },
     "WinForms.DataVisualization/1.10.0": {
       "type": "package",
