@@ -20,6 +20,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
         public WebSocket(string url)
         {
             _client = new ClientWebSocket();
+            //_client.Options.KeepAliveInterval = TimeSpan.FromDays(3);
             _url = url;
             ReadyState = WebSocketState.Closed;
         }
@@ -36,7 +37,7 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
        // public SslConfiguration
 
-        public bool EmitOnPing = true;
+        public bool EmitOnPing = false;
 
         public void SetProxy(IWebProxy proxy)
         {
@@ -228,7 +229,14 @@ namespace OsEngine.Entity.WebSocketOsEngine
                                 &&
                                 (message.Contains("\"ping\"") || message.Contains("Ping")))
                             {
-                                await Send("Pong"); 
+                                if (message.Contains("ping"))
+                                {
+                                    await Send("pong");
+                                }
+                                else if (message.Contains("Ping"))
+                                {
+                                    await Send("Pong");
+                                }
                             }
                             else
                             {

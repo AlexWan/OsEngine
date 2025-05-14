@@ -8,13 +8,11 @@ using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
 using System.Net;
-using System.Security.Authentication;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.HTX.Futures
 {
@@ -581,8 +579,10 @@ namespace OsEngine.Market.Servers.HTX.Futures
              _publicSocketOpen = false;
              _privateSocketOpen = false;
 
-            _webSocketPublic = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");            
-            _webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+            _webSocketPublic = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");     
+            
+            //_webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+
             _webSocketPublic.OnOpen += webSocketPublic_OnOpen;
             _webSocketPublic.OnMessage += webSocketPublic_OnMessage;
             _webSocketPublic.OnError += webSocketPublic_OnError;
@@ -591,7 +591,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPublic.Connect();
 
             _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_webSocketPathPrivate}");
-            _webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+
+            //_webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
+
             _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
             _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
             _webSocketPrivate.OnError += webSocketPrivate_OnError;
@@ -666,12 +668,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         #region 7 WebSocket events
 
-        private void webSocketPublic_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void webSocketPublic_OnError(object sender, ErrorEventArgs e)
         {
-            WebSocketSharp.ErrorEventArgs error = e;
-            if (error.Exception != null)
+
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -727,12 +729,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             CheckSocketsActivate();
         }
 
-        private void webSocketPrivate_OnError(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void webSocketPrivate_OnError(object sender, ErrorEventArgs e)
         {
-            WebSocketSharp.ErrorEventArgs error = e;
-            if (error.Exception != null)
+            if (e.Exception != null)
             {
-                SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1849,7 +1850,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             portfolio.ValueBegin = 1;
             portfolio.ValueCurrent = 1;
 
-            for (int i = 0; i < item.Count; i++)
+            for (int i = 0; item != null && i < item.Count; i++)
             {
                 if (item[i].margin_balance == "0")
                 {
@@ -1899,12 +1900,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         public static string Decompress(byte[] input)
         {
-            using (GZipStream stream = new GZipStream(new MemoryStream(input), CompressionMode.Decompress))
+            using (GZipStream stream = new GZipStream(new System.IO.MemoryStream(input), CompressionMode.Decompress))
             {
                 const int size = 4096;
                 byte[] buffer = new byte[size];
 
-                using (MemoryStream memory = new MemoryStream())
+                using (System.IO.MemoryStream memory = new System.IO.MemoryStream())
                 {
                     int count = 0;
                     do
