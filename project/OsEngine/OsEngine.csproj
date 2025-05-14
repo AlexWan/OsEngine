@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <OutputType>WinExe</OutputType>
     <ExpressionBlendVersion>12.0.41002.1</ExpressionBlendVersion>
     <IsWebBootstrapper>false</IsWebBootstrapper>
@@ -95,16 +95,15 @@
     </Reference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
     <PackageReference Include="Google.Protobuf" Version="3.30.2" />
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
     <PackageReference Include="Grpc.Core.Api" Version="2.71.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="QUIKSharp" Version="2.0.0" />
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
-    <PackageReference Include="System.ServiceModel.Syndication" Version="9.0.4" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.4" />
-    <PackageReference Include="System.Threading.Channels" Version="9.0.4" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="9.0.5" />
+    <PackageReference Include="System.Text.Encoding.CodePages" Version="9.0.5" />
+    <PackageReference Include="System.Threading.Channels" Version="9.0.5" />
     <PackageReference Include="System.ServiceModel.Primitives" Version="8.1.2" />
     <PackageReference Include="System.ServiceModel.Http" Version="8.1.2" />
     <PackageReference Include="System.ServiceModel.Duplex" Version="6.0.0" />
