@@ -694,6 +694,9 @@ namespace OsEngine.Market
                 _attachedServers.Add(_lastClickServer);
                 SaveAttachedServers();
                 RePaintSourceGrid();
+
+                UpdateSearchResults();
+                UpdateSearchPanel();
             }
             catch (Exception ex)
             {
@@ -710,12 +713,15 @@ namespace OsEngine.Market
                     if (_attachedServers[i] == _lastClickServer)
                     {
                         _attachedServers.RemoveAt(i);
-                        break;
+                        i--;
                     }
                 }
 
                 SaveAttachedServers();
                 RePaintSourceGrid();
+
+                UpdateSearchResults();
+                UpdateSearchPanel();
             }
             catch (Exception ex)
             {

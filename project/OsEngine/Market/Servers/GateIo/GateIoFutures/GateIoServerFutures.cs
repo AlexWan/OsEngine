@@ -20,7 +20,7 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.GateIo.GateIoFutures
@@ -855,14 +855,14 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                _webSocket.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                _webSocket.SetProxy(_myProxy);
             }
 
-            _webSocket.SslConfiguration.EnabledSslProtocols
+           /* _webSocket.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
+                | System.Security.Authentication.SslProtocols.Tls13;*/
+
             _webSocket.EmitOnPing = true;
 
             _webSocket.OnOpen += WebSocket_Opened;
@@ -898,7 +898,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         #region 7 WebSocket events
 
-        private void WebSocket_Error(object sender, WebSocketSharp.ErrorEventArgs e)
+        private void WebSocket_Error(object sender, ErrorEventArgs e)
         {
             if (e.Exception != null)
             {
@@ -950,7 +950,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
         }
 
-        private void WebSocket_Closed(object sender, EventArgs e)
+        private void WebSocket_Closed(object sender, CloseEventArgs e)
         {
             if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {

@@ -19,7 +19,7 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using WebSocketSharp;
+using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 {
@@ -669,20 +669,19 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                _webSocket.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                _webSocket.SetProxy(_myProxy);
             }
 
-            _webSocket.SslConfiguration.EnabledSslProtocols
+           /* _webSocket.SslConfiguration.EnabledSslProtocols
                 = System.Security.Authentication.SslProtocols.None
                 | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;
+                | System.Security.Authentication.SslProtocols.Tls13;*/
+
             _webSocket.EmitOnPing = true;
 
             if (_myProxy != null)
             {
-                NetworkCredential credential = (NetworkCredential)_myProxy.Credentials;
-                _webSocket.SetProxy(_myProxy.Address.ToString(), credential.UserName, credential.Password);
+                _webSocket.SetProxy(_myProxy);
             }
 
             _webSocket.OnOpen += WebSocket_Opened;
@@ -758,7 +757,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             }
         }
 
-        private void WebSocket_Closed(object sender, EventArgs e)
+        private void WebSocket_Closed(object sender, CloseEventArgs e)
         {
             if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
             {
