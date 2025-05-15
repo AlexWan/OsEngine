@@ -67,13 +67,13 @@ namespace OsEngine.Market.Servers.TInvest
             worker3.Name = "PortfolioMessageReaderTInvest";
             worker3.Start();
 
-            Thread worker4 = new Thread(PositionsMessageReader);
-            worker4.Name = "PositionsMessageReaderTInvest";
-            worker4.Start();
+            //Thread worker4 = new Thread(PositionsMessageReader);
+            //worker4.Name = "PositionsMessageReaderTInvest";
+            //worker4.Start();
 
-            Thread worker5 = new Thread(MyTradesMessageReader);
-            worker5.Name = "MyTradesMessageReaderTInvest";
-            worker5.Start();
+            //Thread worker5 = new Thread(MyTradesMessageReader);
+            //worker5.Name = "MyTradesMessageReaderTInvest";
+            //worker5.Start();
 
             Thread worker6 = new Thread(LastPricesPoller);
             worker6.Start();
@@ -139,10 +139,10 @@ namespace OsEngine.Market.Servers.TInvest
                         shitHappenedWithStreams = true;
                     }
 
-                    if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.UtcNow)
-                    {
-                        shitHappenedWithStreams = true;
-                    }
+                    //if (_myTradesDataStream != null && _lastMyTradesDataTime.AddMinutes(3) < DateTime.UtcNow)
+                    //{
+                    //    shitHappenedWithStreams = true;
+                    //}
 
                     if (_myOrderStateDataStream != null && _lastMyOrderStateDataTime.AddMinutes(3) < DateTime.UtcNow)
                     {
@@ -199,6 +199,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    _marketDataStream.ResponseStream.ReadAllAsync();
                     _marketDataStream.Dispose();
                 }
                 catch (Exception ex)
@@ -211,6 +212,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    _portfolioDataStream.ResponseStream.ReadAllAsync();
                     _portfolioDataStream.Dispose();
                 }
                 catch (Exception ex)
@@ -223,6 +225,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    _positionsDataStream.ResponseStream.ReadAllAsync();
                     _positionsDataStream.Dispose();
                 }
                 catch (Exception ex)
@@ -235,6 +238,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    _myTradesDataStream.ResponseStream.ReadAllAsync();
                     _myTradesDataStream.Dispose();
                 }
                 catch (Exception ex)
@@ -247,6 +251,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    _myOrderStateDataStream.ResponseStream.ReadAllAsync();
                     _myOrderStateDataStream.Dispose();
                 }
                 catch (Exception ex)
@@ -255,13 +260,19 @@ namespace OsEngine.Market.Servers.TInvest
                 }
             }
 
+            if (_channel != null)
+            {
+                _channel.Dispose();
+                _channel = null;
+            }
+
             _marketDataStream = null;
             _portfolioDataStream = null;
             _positionsDataStream = null;
             _myTradesDataStream = null;
             _myOrderStateDataStream = null;
 
-            SendLogMessage("Connection Closed by T-Invest. Data streams Closed Event", LogMessageType.System);
+            SendLogMessage("Connection to T-Invest closed. Data streams Closed Event", LogMessageType.System);
 
             _subscribedSecurities.Clear();
             _myPortfolios.Clear();
@@ -938,8 +949,6 @@ namespace OsEngine.Market.Servers.TInvest
                     PortfolioEvent(_myPortfolios);
                 }
             }
-
-            ActivateCurrentPortfolioListening();
         }
 
         private void GetPortfolios(PortfolioResponse portfolioResponse)
@@ -1401,6 +1410,7 @@ namespace OsEngine.Market.Servers.TInvest
         //private readonly string _gRPCHost = "sandbox-invest-public-api.tinkoff.ru:443"; // sandbox 
         private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod 
         private Metadata _gRpcMetadata;
+        private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
         private WebProxy _proxy;
 
@@ -1413,6 +1423,37 @@ namespace OsEngine.Market.Servers.TInvest
         private OrdersService.OrdersServiceClient _ordersClient;
         private OrdersStreamService.OrdersStreamServiceClient _ordersStreamClient;
 
+        private void GetUserLimits()
+        {
+            GetUserTariffRequest request = new GetUserTariffRequest();
+            GetUserTariffResponse response = null;
+            try
+            {
+                response = _usersClient.GetUserTariff(request, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting user limits. Info: {message}", LogMessageType.Error);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+            if (response == null)
+                return;
+
+            string limits = "";
+            for (int i = 0; i < response.StreamLimits.Count; i++)
+            {
+                StreamLimit sl = response.StreamLimits[i];
+                limits += $"\n {sl.Open}/{sl.Limit}: {sl.Streams}";
+            }
+
+            SendLogMessage($"User stream limits: {limits}", LogMessageType.User);
+        }
+
         private void CreateStreamsConnection()
         {
             try
@@ -1424,26 +1465,28 @@ namespace OsEngine.Market.Servers.TInvest
 
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                GrpcChannel channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
+                _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.SecureSsl,
                     HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null })
                 });
 
-                _usersClient = new UsersService.UsersServiceClient(channel);
-                _operationsClient = new OperationsService.OperationsServiceClient(channel);
-                _operationsStreamClient = new OperationsStreamService.OperationsStreamServiceClient(channel);
-                _instrumentsClient = new InstrumentsService.InstrumentsServiceClient(channel);
-                _ordersClient = new OrdersService.OrdersServiceClient(channel);
-                _ordersStreamClient = new OrdersStreamService.OrdersStreamServiceClient(channel);
-                _marketDataServiceClient = new MarketDataService.MarketDataServiceClient(channel);
-                _marketDataStreamClient = new MarketDataStreamService.MarketDataStreamServiceClient(channel);
+                _usersClient = new UsersService.UsersServiceClient(_channel);
+                _operationsClient = new OperationsService.OperationsServiceClient(_channel);
+                _operationsStreamClient = new OperationsStreamService.OperationsStreamServiceClient(_channel);
+                _instrumentsClient = new InstrumentsService.InstrumentsServiceClient(_channel);
+                _ordersClient = new OrdersService.OrdersServiceClient(_channel);
+                _ordersStreamClient = new OrdersStreamService.OrdersStreamServiceClient(_channel);
+                _marketDataServiceClient = new MarketDataService.MarketDataServiceClient(_channel);
+                _marketDataStreamClient = new MarketDataStreamService.MarketDataStreamServiceClient(_channel);
 
                 try
                 {
                     SendLogMessage("All streams activated. Connect State", LogMessageType.System);
                     ServerStatus = ServerConnectStatus.Connect;
                     ConnectEvent();
+                    GetUserLimits();
+                    ReconnectGRPCStreams();
                 }
                 catch (Exception ex)
                 {
@@ -1458,16 +1501,18 @@ namespace OsEngine.Market.Servers.TInvest
 
         private void ReconnectGRPCStreams()
         {
+            SendLogMessage("Connecting GRPC streams", LogMessageType.Connect);
+
             RepeatedField<string> accountsList = new RepeatedField<string>();
             for (int i = 0; i < _myPortfolios.Count; i++)
             {
                 accountsList.Add(_myPortfolios[i].Number);
             }
 
-            _myTradesDataStream = _ordersStreamClient.TradesStream(new TradesStreamRequest
-            {
-                Accounts = { accountsList }
-            }, headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+            //_myTradesDataStream = _ordersStreamClient.TradesStream(new TradesStreamRequest
+            //{
+            //    Accounts = { accountsList }
+            //}, headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _myOrderStateDataStream = _ordersStreamClient.OrderStateStream(new OrderStateStreamRequest
             {
@@ -1478,9 +1523,9 @@ namespace OsEngine.Market.Servers.TInvest
                 _operationsStreamClient.PortfolioStream(new PortfolioStreamRequest { Accounts = { accountsList } },
                     headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
-            _positionsDataStream =
-                _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
-                    headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+            //_positionsDataStream =
+            //    _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
+            //        headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _lastMyTradesDataTime = DateTime.UtcNow;
             _lastPortfolioDataTime = DateTime.UtcNow;
@@ -1524,7 +1569,7 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                 }
 
-                if (_subscribedSecurities.Count == 300) // 300 - max marketdata subscriptions (600 = 300 trades + 300 orderbooks )
+                if (_subscribedSecurities.Count == 150) // 300 - max marketdata subscriptions (300 = 150 trades + 150 orderbooks )
                 {
                     _useStreamForMarketData = false;
                 }
@@ -1623,6 +1668,12 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     if (_marketDataStream == null)
                     {
                         Thread.Sleep(1);
@@ -1960,6 +2011,12 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     if (_portfolioDataStream == null)
                     {
                         Thread.Sleep(1);
@@ -2020,10 +2077,43 @@ namespace OsEngine.Market.Servers.TInvest
 
                         portf.UnrealizedPnl = GetValue(portfolioResponse.Portfolio.DailyYield);
 
-                        if (PortfolioEvent != null)
+                        for (int i = 0; i < portfolioResponse.Portfolio.Positions.Count; i++)
                         {
-                            PortfolioEvent(_myPortfolios);
+
+                            PortfolioPosition pos = portfolioResponse.Portfolio.Positions[i];
+
+                            InstrumentRequest instrumentRequest = new InstrumentRequest();
+                            instrumentRequest.Id = pos.InstrumentUid;
+                            instrumentRequest.IdType = InstrumentIdType.Uid;
+
+                            InstrumentResponse instrumentResponse = null;
+
+                            try
+                            {
+                                _rateGateInstruments.WaitToProceed();
+                                instrumentResponse = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                            }
+                            catch (RpcException ex)
+                            {
+                                string message = GetGRPCErrorMessage(ex);
+                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                            }
+                            catch (Exception ex)
+                            {
+                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
+                            }
+
+                            PositionOnBoard newPos = new PositionOnBoard();
+                            newPos.PortfolioName = portf.Number;
+                            newPos.ValueCurrent = GetValue(pos.Quantity)/instrumentResponse.Instrument.Lot;
+                            newPos.ValueBlocked = GetValue(pos.BlockedLots);
+                            newPos.UnrealizedPnl = GetValue(pos.ExpectedYield);
+                            newPos.SecurityNameCode = instrumentResponse.Instrument.Ticker;
+
+                            portf.SetNewPosition(newPos);
                         }
+
+                        PortfolioEvent!(_myPortfolios);
                     }
                 }
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
@@ -2035,7 +2125,12 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (RpcException exception)
                 {
-                    SendLogMessage("Portfolio data stream was disconnected. " + exception.ToString(), LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(exception);
+                    SendLogMessage($"Portfolio data stream was disconnected: {message}", LogMessageType.Error);
+                    if (message.Contains("limit"))
+                    {
+                        GetUserLimits();
+                    }
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2061,6 +2156,12 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     if (_positionsDataStream == null)
                     {
                         Thread.Sleep(1);
@@ -2237,7 +2338,8 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (RpcException exception)
                 {
-                    SendLogMessage("Positions data stream was disconnected. " + exception.ToString(), LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(exception);
+                    SendLogMessage($"Positions data stream was disconnected: {message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2263,6 +2365,13 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+
                     if (_myTradesDataStream == null)
                     {
                         Thread.Sleep(1);
@@ -2377,6 +2486,12 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 try
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
                     if (_myOrderStateDataStream == null)
                     {
                         Thread.Sleep(1);
@@ -2471,6 +2586,29 @@ namespace OsEngine.Market.Servers.TInvest
                             order.State = OrderStateType.Partial;
                         }
 
+                        if (orderStateResponse.OrderState.Trades != null)
+                        {
+                            for (int i = 0; i < orderStateResponse.OrderState.Trades.Count; i++)
+                            {
+                                OrderTrade orderTrade = orderStateResponse.OrderState.Trades[i];
+
+                                MyTrade trade = new MyTrade();
+                                trade.SecurityNameCode = security.Name;
+                                trade.Price = GetValue(orderTrade.Price);
+                                trade.Volume = orderTrade.Quantity / security.Lot;
+                                trade.NumberOrderParent = order.NumberMarket;
+                                trade.NumberTrade = orderTrade.TradeId;
+                                trade.Time = orderTrade.DateTime.ToDateTime()
+                                    .AddHours(3); // convert to MSK
+                                trade.Side = order.Side;
+
+                                if (MyTradeEvent != null)
+                                {
+                                    MyTradeEvent(trade);
+                                }
+                            }
+                        }
+
                         MyOrderEvent!(order);
                     }
                 }
@@ -2556,44 +2694,30 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"Error posting order. Info: {message}", LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent!(order);
 
                     return;
                 }
                 catch (Exception exception)
                 {
-                    SendLogMessage("Error on order Execution \n" + exception.Message, LogMessageType.Error);
+                    SendLogMessage($"Error on order execution: {exception.Message}" , LogMessageType.Error);
 
                     order.State = OrderStateType.Fail;
-                    if (MyOrderEvent != null)
-                    {
-                        MyOrderEvent(order);
-                    }
+                    MyOrderEvent!(order);
 
                     return;
                 }
 
-                if (response.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
-                {
-                    order.State = OrderStateType.Fail;
-                }
-                else
-                {
-                    order.State = OrderStateType.Active;
-                    order.NumberMarket = response.OrderId;
-                }
-
-                if (MyOrderEvent != null)
-                {
-                    MyOrderEvent(order);
-                }
+                //if (response.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
+                //{
+                //    order.NumberMarket = response.OrderId;
+                //    order.State = OrderStateType.Fail;
+                //    MyOrderEvent!(order);
+                //}
             }
             catch (Exception exception)
             {
-                SendLogMessage("Order send error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"Order send error {exception}", LogMessageType.Error);
             }
         }
 
