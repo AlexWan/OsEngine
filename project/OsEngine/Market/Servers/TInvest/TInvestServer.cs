@@ -82,6 +82,8 @@ namespace OsEngine.Market.Servers.TInvest
 
         public void Connect(WebProxy proxy)
         {
+            _proxy = proxy;
+
             try
             {
                 _myPortfolios.Clear();
@@ -1397,6 +1399,7 @@ namespace OsEngine.Market.Servers.TInvest
         private readonly string _gRPCHost = "invest-public-api.tinkoff.ru:443"; // prod 
         private Metadata _gRpcMetadata;
         private CancellationTokenSource _cancellationTokenSource;
+        private WebProxy _proxy;
 
         private UsersService.UsersServiceClient _usersClient;
         private OperationsService.OperationsServiceClient _operationsClient;
@@ -1534,7 +1537,7 @@ namespace OsEngine.Market.Servers.TInvest
 
                 if (_marketDataStream == null)
                 {
-                    _marketDataStream = _marketDataStreamClient.MarketDataStream(_gRpcMetadata,
+                    _marketDataStream = _marketDataStreamClient.MarketDataStream(headers: _gRpcMetadata,
                         cancellationToken: _cancellationTokenSource.Token);
                     SendLogMessage("Created market data stream", LogMessageType.System);
                 }
