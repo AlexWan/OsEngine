@@ -21,6 +21,7 @@ using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
 using System.Net;
+using System.Net.Http;
 using Grpc.Net.Client;
 using Grpc.Core;
 
@@ -1424,8 +1425,11 @@ namespace OsEngine.Market.Servers.TInvest
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 // подключаемся к потокам gRPC
-                //Channel channel = new Channel(_gRPCHost, ChannelCredentials.SecureSsl);
-                GrpcChannel channel = GrpcChannel.ForAddress(_gRPCHost);
+                GrpcChannel channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
+                {
+                    Credentials = ChannelCredentials.SecureSsl,
+                    HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null })
+                });
 
                 // инициализируем клиенты
                 _usersClient = new UsersService.UsersServiceClient(channel);
