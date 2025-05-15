@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Security.Cryptography;
@@ -75,23 +74,15 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
 
-                if (_myProxy == null)
-                {
-                    _httpPublicClient = new HttpClient();
-                }
-                else
-                {
-                    HttpClientHandler httpClientHandler = new HttpClientHandler
-                    {
-                        Proxy = _myProxy
-                    };
+                RestRequest requestRest = new RestRequest("/openApi/swap/v2/server/time", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
 
-                    _httpPublicClient = new HttpClient(httpClientHandler);
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
                 }
 
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/openApi/swap/v2/server/time").Result;
-
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                IRestResponse responseMessage = client.Execute(requestRest);
 
                 if (responseMessage.StatusCode != HttpStatusCode.OK)
                 {
@@ -105,7 +96,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     {
                         FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                         FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                        CreatePublicWebSocketConnect();
                         CreatePrivateWebSocketConnect();
                         CheckSocketsActivate();
                         SetPositionMode();
@@ -147,7 +137,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public void Disconnect()
         {
-            _httpPublicClient = null;
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
@@ -228,7 +217,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private RateGate _generalRateGate1 = new RateGate(1, TimeSpan.FromMilliseconds(130));
 
-        private RateGate _generalRateGate2 = new RateGate(1, TimeSpan.FromMilliseconds(110));
+        private RateGate _generalRateGate2 = new RateGate(100, TimeSpan.FromSeconds(10));
 
         private RateGate _generalRateGate3 = new RateGate(1, TimeSpan.FromMilliseconds(100));
 
@@ -617,7 +606,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private List<Candle> RequestCandleHistory(string nameSec, string tameFrame, long limit = 500, long fromTimeStamp = 0, long toTimeStamp = 0)
         {
-            _generalRateGate1.WaitToProceed();
+            _generalRateGate2.WaitToProceed();
 
             try
             {
@@ -635,35 +624,29 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 }
 
                 string sign = CalculateHmacSha256(parameters);
-                string requestUri = $"{_baseUrl}{endPoint}?{parameters}&signature{sign}";
+                string requestUri = $"{endPoint}?{parameters}"; // &signature={sign}
 
-                if (_httpPublicClient == null)
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
                 {
-                    if (_myProxy == null)
-                    {
-                        _httpPublicClient = new HttpClient();
-                    }
-                    else
-                    {
-                        HttpClientHandler httpClientHandler = new HttpClientHandler
-                        {
-                            Proxy = _myProxy
-                        };
-
-                        _httpPublicClient = new HttpClient(httpClientHandler);
-                    }
+                    client.Proxy = _myProxy;
                 }
 
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(requestUri).Result;
+                RestRequest request = new RestRequest(requestUri, Method.GET);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    string json = responseMessage.Content.ReadAsStringAsync().Result;
-
                     try
                     {
                         ResponseFuturesBingX<CandlestickChartDataFutures> response =
-                            JsonConvert.DeserializeAnonymousType(json, new ResponseFuturesBingX<CandlestickChartDataFutures>());
+                            JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseFuturesBingX<CandlestickChartDataFutures>());
 
                         // if the start and end date of the candles is incorrect, the exchange sends one last candle instead of an error
                         if (response.code == "0" && response.data.Count != 1)
@@ -681,14 +664,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     }
                     catch
                     {
-                        JsonErrorResponse responseError = JsonConvert.DeserializeAnonymousType(json, new JsonErrorResponse());
+                        JsonErrorResponse responseError = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new JsonErrorResponse());
                         SendLogMessage($"RequestCandleHistory> Http State Code: {responseError.code} - message: {responseError.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    string json = responseMessage.Content.ReadAsStringAsync().Result;
-                    SendLogMessage($"RequestCandleHistory> Http State Code: {responseMessage.StatusCode} - {json}", LogMessageType.Error);
+                    SendLogMessage($"RequestCandleHistory> Http State Code: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -880,23 +862,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private string _listenKey = "";
 
-        private void CreatePublicWebSocketConnect()
-        {
-            try
-            {
-                if (FIFOListWebSocketPublicMessage == null)
-                {
-                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                }
-
-                _webSocketPublic.Add(CreateNewPublicSocket());
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
         private WebSocket CreateNewPublicSocket()
         {
             try
@@ -1032,19 +997,23 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         return;
                     }
 
-                    if (_webSocketPublic.Count == 0)
+                    if (_subscribledSecutiries.Count > 0)
                     {
-                        Disconnect();
-                        return;
-                    }
+                        if (_webSocketPublic.Count == 0
+                            || _webSocketPublic == null)
+                        {
+                            //Disconnect();
+                            return;
+                        }
 
-                    WebSocket webSocketPublic = _webSocketPublic[0];
+                        WebSocket webSocketPublic = _webSocketPublic[0];
 
-                    if (webSocketPublic == null
-                        || webSocketPublic?.ReadyState != WebSocketState.Open)
-                    {
-                        Disconnect();
-                        return;
+                        if (webSocketPublic == null
+                            || webSocketPublic?.ReadyState != WebSocketState.Open)
+                        {
+                            Disconnect();
+                            return;
+                        }
                     }
 
                     if (ServerStatus != ServerConnectStatus.Connect)
@@ -1164,7 +1133,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             else
             {
                 SendLogMessage("WebSocket Private error" + e.ToString(), LogMessageType.Error);
-                CheckSocketsActivate();
             }
         }
 
@@ -1279,12 +1247,38 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     }
                 }
 
-                _subscribledSecutiries.Add(security.Name);
+                if (_webSocketPublic.Count == 0)
+                {
+                    WebSocket socket = CreateNewPublicSocket();
+
+                    if (socket == null)
+                    {
+                        return;
+                    }
+
+                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                    while (socket.ReadyState != WebSocketState.Open)
+                    {
+                        Thread.Sleep(1000);
+
+                        if (timeEnd < DateTime.Now)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (socket.ReadyState == WebSocketState.Open)
+                    {
+                        _webSocketPublic.Add(socket);
+                    }
+                }
 
                 if (_webSocketPublic.Count == 0)
                 {
                     return;
                 }
+
+                _subscribledSecutiries.Add(security.Name);
 
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
@@ -2262,8 +2256,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         #region 11 Queries
 
         private const string _baseUrl = "https://open-api.bingx.com";
-
-        private HttpClient _httpPublicClient;
 
         private string CreateListenKey()
         {
