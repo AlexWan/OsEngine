@@ -1393,7 +1393,6 @@ namespace OsEngine.Market.Servers.Bybit
         private WebSocket CreateNewSpotPublicSocket()
         {
             WebSocket webSocketPublicSpot = new WebSocket(wsPublicUrl(Category.spot));
-            webSocketPublicSpot.EmitOnPing = true;
 
             if (_myProxy != null)
             {
@@ -1413,7 +1412,6 @@ namespace OsEngine.Market.Servers.Bybit
         private WebSocket CreateNewLinearPublicSocket()
         {
             WebSocket webSocketPublicLinear = new WebSocket(wsPublicUrl(Category.linear));
-            webSocketPublicLinear.EmitOnPing = true;
 
             if (_myProxy != null)
             {
@@ -1433,7 +1431,6 @@ namespace OsEngine.Market.Servers.Bybit
         private WebSocket CreateNewInversePublicSocket()
         {
             WebSocket webSocketPublicInverse = new WebSocket(wsPublicUrl(Category.inverse));
-            webSocketPublicInverse.EmitOnPing = true;
 
             if (_myProxy != null)
             {
@@ -1458,7 +1455,6 @@ namespace OsEngine.Market.Servers.Bybit
                 if (concurrentQueueMessagePrivateWebSocket == null) concurrentQueueMessagePrivateWebSocket = new ConcurrentQueue<string>();
 
                 webSocketPrivate = new WebSocket(wsPrivateUrl);
-                webSocketPrivate.EmitOnPing = true;
 
                 if (_myProxy != null)
                 {

@@ -78,6 +78,11 @@ namespace OsEngine.OsTrader
         {
             try
             {
+                if (journal == null)
+                {
+                    return;
+                }
+
                 if (_journals == null)
                 {
                     return;
