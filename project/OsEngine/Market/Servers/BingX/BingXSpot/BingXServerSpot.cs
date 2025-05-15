@@ -75,23 +75,15 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
 
-                if (_myProxy == null)
-                {
-                    _httpPublicClient = new HttpClient();
-                }
-                else
-                {
-                    HttpClientHandler httpClientHandler = new HttpClientHandler
-                    {
-                        Proxy = _myProxy
-                    };
+                RestRequest requestRest = new RestRequest("/openApi/swap/v2/server/time", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
 
-                    _httpPublicClient = new HttpClient(httpClientHandler);
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
                 }
 
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/openApi/swap/v2/server/time").Result;
-                
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                IRestResponse responseMessage = client.Execute(requestRest);
 
                 if (responseMessage.StatusCode != HttpStatusCode.OK)
                 {
@@ -408,8 +400,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 5 Data
 
-        #region Candles
-
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             string tf = GetInterval(timeFrameBuilder.TimeFrameTimeSpan);
@@ -436,32 +426,26 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
 
                 string sign = CalculateHmacSha256(parameters);
-                string requestUri = $"{_baseUrl}{endPoint}?{parameters}&signature={sign}";
+                string requestUri = $"{endPoint}?{parameters}&signature={sign}";
 
-                if (_httpPublicClient == null)
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
                 {
-                    if (_myProxy == null)
-                    {
-                        _httpPublicClient = new HttpClient();
-                    }
-                    else
-                    {
-                        HttpClientHandler httpClientHandler = new HttpClientHandler
-                        {
-                            Proxy = _myProxy
-                        };
-
-                        _httpPublicClient = new HttpClient(httpClientHandler);
-                    }
+                    client.Proxy = _myProxy;
                 }
 
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(requestUri).Result;
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                RestRequest request = new RestRequest(requestUri, Method.GET);
+
+                request.AddParameter("timestamp", timeStamp);
+                request.AddParameter("signature", sign);
+                request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                IRestResponse responseMessage = client.Execute(request);
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-
-                    CandlestickChartData response = JsonConvert.DeserializeAnonymousType(json, new CandlestickChartData());
+                    CandlestickChartData response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new CandlestickChartData());
 
                     if (response.code == "0")
                     {
@@ -469,14 +453,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     }
                     else
                     {
-                        ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json, new ResponseErrorCode());
+                        ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseErrorCode());
                         SendLogMessage($"Http State Code: {responseError.code} - message: {responseError.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    json = responseMessage.Content.ReadAsStringAsync().Result;
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode} - {json}", LogMessageType.Error);
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -629,8 +612,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            if (/*endTime > DateTime.UtcNow ||*/
-                startTime >= endTime ||
+            if (startTime >= endTime ||
                 startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
                 actualTime > DateTime.UtcNow)
@@ -657,12 +639,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
             return false;
         }
 
-        #endregion
-
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
         }
+
         #endregion
 
         #region 6 WebSocket creation
@@ -854,7 +835,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
             else
             {
                 SendLogMessage("WebSocket Public error" + e.ToString(), LogMessageType.Error);
-                CheckSocketsActivate();
             }
         }
 
@@ -914,14 +894,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void WebSocketPublicNew_OnClose(object sender, CloseEventArgs e)
         {
-            try
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage($"Connection Closed by BingXSpot. {e.Code} {e.Reason}. WebSocket Public Closed Event", LogMessageType.Error);
-                CheckSocketsActivate();
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
@@ -950,7 +927,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
             else
             {
                 SendLogMessage("WebSocket Private error" + e.ToString(), LogMessageType.Error);
-                CheckSocketsActivate();
             }
         }
 
@@ -973,14 +949,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void _webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            try
+            if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 SendLogMessage($"Connection Closed by BingXSpot. {e.Code} {e.Reason}. WebSocket Private Closed Event", LogMessageType.Error);
-                CheckSocketsActivate();
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent();
             }
         }
 
@@ -2062,8 +2035,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
         #region 11 Queries
 
         private const string _baseUrl = "https://open-api.bingx.com";
-
-        private HttpClient _httpPublicClient;
 
         private string CreateListenKey()
         {
