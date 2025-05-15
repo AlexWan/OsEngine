@@ -29,8 +29,10 @@ namespace OsEngine.Market.Servers.TInvest
 {
     public class TInvestServer : AServer
     {
-        public TInvestServer()
+        public TInvestServer(int uniqueId)
         {
+            ServerNum = uniqueId;
+
             TInvestServerRealization realization = new TInvestServerRealization();
             ServerRealization = realization;
 
