@@ -326,6 +326,12 @@ namespace OsEngine.Market.Proxy
                         continue;
                     }
 
+                    if (Proxies == null
+                        || Proxies.Count == 0)
+                    {
+                        continue;
+                    }
+
                     if(AutoPingLastTime.AddMinutes(AutoPingMinutes) > DateTime.Now)
                     {
                         continue;
