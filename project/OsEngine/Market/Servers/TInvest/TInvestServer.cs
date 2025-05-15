@@ -13,7 +13,6 @@ using System.Linq;
 using System.Threading;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
-using Grpc.Core;
 using Tinkoff.InvestApi.V1;
 using Option = Tinkoff.InvestApi.V1.Option;
 using Candle = OsEngine.Entity.Candle;
@@ -22,6 +21,8 @@ using Trade = OsEngine.Entity.Trade;
 using Security = OsEngine.Entity.Security;
 using Portfolio = OsEngine.Entity.Portfolio;
 using System.Net;
+using Grpc.Net.Client;
+using Grpc.Core;
 
 namespace OsEngine.Market.Servers.TInvest
 {
@@ -1420,7 +1421,8 @@ namespace OsEngine.Market.Servers.TInvest
                 _cancellationTokenSource = new CancellationTokenSource();
 
                 // подключаемся к потокам gRPC
-                Channel channel = new Channel(_gRPCHost, ChannelCredentials.SecureSsl);
+                //Channel channel = new Channel(_gRPCHost, ChannelCredentials.SecureSsl);
+                GrpcChannel channel = GrpcChannel.ForAddress(_gRPCHost);
 
                 // инициализируем клиенты
                 _usersClient = new UsersService.UsersServiceClient(channel);
@@ -1460,20 +1462,20 @@ namespace OsEngine.Market.Servers.TInvest
             _myTradesDataStream = _ordersStreamClient.TradesStream(new TradesStreamRequest
             {
                 Accounts = { accountsList }
-            }, _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+            }, headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _myOrderStateDataStream = _ordersStreamClient.OrderStateStream(new OrderStateStreamRequest
             {
                 Accounts = { accountsList }
-            }, _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+            }, headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _portfolioDataStream =
                 _operationsStreamClient.PortfolioStream(new PortfolioStreamRequest { Accounts = { accountsList } },
-                    _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+                    headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _positionsDataStream =
                 _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
-                    _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+                    headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _lastMyTradesDataTime = DateTime.UtcNow;
             _lastPortfolioDataTime = DateTime.UtcNow;
