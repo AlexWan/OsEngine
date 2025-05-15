@@ -1756,7 +1756,8 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
                 {
                     // Handle the cancellation gracefully
-                    SendLogMessage("Market data stream was cancelled", LogMessageType.System);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Market data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
@@ -2028,7 +2029,8 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
                 {
                     // Handle the cancellation gracefully
-                    SendLogMessage("Portfolio data stream was cancelled", LogMessageType.System);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Portfolio data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
@@ -2229,7 +2231,8 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
                 {
                     // Handle the cancellation gracefully
-                    SendLogMessage("Positions data stream was cancelled", LogMessageType.System);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Positions data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
@@ -2342,7 +2345,8 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
                 {
                     // Handle the cancellation gracefully
-                    SendLogMessage("My trades data stream was cancelled", LogMessageType.System);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"My trades data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
                 catch (RpcException exception)
