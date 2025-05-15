@@ -2677,9 +2677,7 @@ namespace OsEngine.OsOptimizer
 
         private void UpdateHeaders()
         {
-
-
-            _gridResults.Columns[0].HeaderText = "Bot Name";
+            _gridResults.Columns[0].HeaderText = "Bot Name \n \n \n";
 
             if (_sortBotsType == SortBotsType.BotName)
             {
@@ -3147,6 +3145,14 @@ namespace OsEngine.OsOptimizer
             try
             {
                 if (_chartSeriesResult.ChartAreas[0].CursorX.Position == Double.NaN)
+                {
+                    return;
+                }
+
+                if (_chartSeriesResult.Series == null
+                    || _chartSeriesResult.Series.Count == 0
+                    || _chartSeriesResult.Series[0].Points == null
+                    || _chartSeriesResult.Series[0].Points.Count == 0)
                 {
                     return;
                 }

@@ -87,10 +87,10 @@
                         <TabControl  Name="TabControlResults" Margin="0,0,0,0">
                             <TabItem Name="TabControlResultsSeries"  Header="Series and Results">
                                 <Grid >
-                                    <WindowsFormsHost Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Height="207" Margin="0,22,538,0" VerticalAlignment="Top"/>
+                                    <WindowsFormsHost Name="WindowsFormsHostFazeNumOnTubResult"  Foreground="Black" Margin="0,22,538,0" Height="210" VerticalAlignment="Top"/>
                                     <Label Name="Label30" Content="Optimization series" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22"/>
                                     <WindowsFormsHost Name="WindowsFormsHostResults"  Foreground="Black" Margin="0,250,5,0"/>
-                                    <Label Name="Label31" Content="Result table" HorizontalAlignment="Left" VerticalAlignment="Center" Height="22"/>
+                                    <Label Name="Label31" Content="Result table" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Margin="0,227,0,0"/>
                                     <WindowsFormsHost Name="WindowsFormsHostResultsChart"  Foreground="Black" Height="207" Margin="533,22,5,0" VerticalAlignment="Top"/>
                                     <Label Name="LabelSeriesResultChart" Content="Series results chart" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Margin="532,0,0,0"/>
                                 </Grid>

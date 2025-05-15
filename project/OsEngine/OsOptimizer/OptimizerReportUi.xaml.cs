@@ -520,7 +520,7 @@ namespace OsEngine.OsOptimizer
         private void UpdateHeaders()
         {
 
-            _gridResults.Columns[0].HeaderText = "Bot Name";
+            _gridResults.Columns[0].HeaderText = "Bot Name \n \n \n";
 
             if (_sortBotsType == SortBotsType.BotName)
             {
@@ -598,6 +598,8 @@ namespace OsEngine.OsOptimizer
                 _gridResults.Columns[10].HeaderText += " vvv";
                 _gridResults.Columns[10].HeaderCell.Style.BackColor = cellColor;
             }
+
+            _gridResults.ColumnHeadersHeight = 50;
         }
 
         private void PaintTableResults()
