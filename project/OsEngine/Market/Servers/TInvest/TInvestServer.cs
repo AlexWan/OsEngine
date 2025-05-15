@@ -1399,7 +1399,7 @@ namespace OsEngine.Market.Servers.TInvest
         #region 6 gRPC streams creation
 
         //private readonly string _gRPCHost = "sandbox-invest-public-api.tinkoff.ru:443"; // sandbox 
-        private readonly string _gRPCHost = "invest-public-api.tinkoff.ru:443"; // prod 
+        private readonly string _gRPCHost = "https://invest-public-api.tinkoff.ru:443"; // prod 
         private Metadata _gRpcMetadata;
         private CancellationTokenSource _cancellationTokenSource;
         private WebProxy _proxy;
