@@ -8,11 +8,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
+using RestSharp;
 
 namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 {
@@ -63,37 +63,43 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public void Connect(WebProxy proxy)
         {
-            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
-            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-            _passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
-
-            HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/api/v1/timestamp").Result;
-
-            string json = responseMessage.Content.ReadAsStringAsync().Result;
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            try
             {
-                try
+                _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+                _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+                _passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
+
+                RestRequest requestRest = new RestRequest("/api/v1/timestamp", Method.GET);
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    _webSocketPublicMessages = new ConcurrentQueue<string>();
-                    _webSocketPrivateMessages = new ConcurrentQueue<string>();
-                    CreatePublicWebSocketConnect();
-                    CreatePrivateWebSocketConnect();
-                    CheckActivationSockets();
+                    try
+                    {
+                        _webSocketPublicMessages = new ConcurrentQueue<string>();
+                        _webSocketPrivateMessages = new ConcurrentQueue<string>();
+                        CreatePublicWebSocketConnect();
+                        CreatePrivateWebSocketConnect();
+                        CheckActivationSockets();
+                    }
+                    catch (Exception exception)
+                    {
+                        SendLogMessage(exception.ToString(), LogMessageType.Error);
+                        SendLogMessage("Connection cannot be open. KuCoinFutures. Error request", LogMessageType.Error);
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
                 }
-                catch (Exception exception)
+                else
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection cannot be open. KuCoinFutures. Error request", LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
             }
-            else
+            catch (Exception exception)
             {
-                SendLogMessage("Connection cannot be open. KuCoinFutures. Error request", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -168,17 +174,18 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             try
             {
                 // https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
-                HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + "/api/v1/contracts/active").Result;
 
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                string requestStr = $"/api/v1/contracts/active";
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
 
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     if (stateResponse.code.Equals("200000") == true)
                     {
-                        UpdateSecurity(json);
+                        UpdateSecurity(responseMessage.Content);
                     }
                     else
                     {
@@ -469,9 +476,16 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             try
             {
-                HttpResponseMessage responseMessage = _httpPublicClient.PostAsync(_baseUrl + "/api/v1/bullet-public", new StringContent(String.Empty, Encoding.UTF8, "application/json")).Result;
-                string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-                ResponsePrivateWebSocketConnection wsResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponsePrivateWebSocketConnection());
+                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/bullet-public", Method.POST, String.Empty);
+
+                if (responseMessage.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage("KuCoin public keys are wrong. Message from server: " + responseMessage.Content, LogMessageType.Error);
+                    return null;
+                }
+
+
+                ResponsePrivateWebSocketConnection wsResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponsePrivateWebSocketConnection());
 
                 // set dynamic server address ws
                 _webSocketPublicUrl = wsResponse.data.instanceServers[0].endpoint + "?token=" + wsResponse.data.token;
@@ -499,15 +513,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         private void CreatePrivateWebSocketConnect()
         {
             // 1. get websocket address
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/bullet-private", "POST", null, String.Empty);
+            IRestResponse responseMessage = CreatePrivateQuery("/api/v1/bullet-private", Method.POST, String.Empty);
 
-            if (responseMessage.IsSuccessStatusCode == false)
+            if (responseMessage.StatusCode != HttpStatusCode.OK)
             {
-                SendLogMessage("KuCoin keys are wrong. Message from server: " + responseMessage.Content.ReadAsStringAsync().Result, LogMessageType.Error);
+                SendLogMessage("KuCoin private keys are wrong. Message from server: " + responseMessage.Content, LogMessageType.Error);
                 return;
             }
 
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
+            string JsonResponse = responseMessage.Content;
 
             ResponsePrivateWebSocketConnection wsResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponsePrivateWebSocketConnection());
 
@@ -1063,188 +1077,230 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void UpdateTrade(string message)
         {
-            ResponseWebSocketMessageAction<ResponseWebSocketMessageTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketMessageTrade>());
-
-            if (responseTrade == null)
+            try
             {
-                return;
-            }
+                ResponseWebSocketMessageAction<ResponseWebSocketMessageTrade> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketMessageTrade>());
 
-            if (responseTrade.data == null)
+                if (responseTrade == null)
+                {
+                    return;
+                }
+
+                if (responseTrade.data == null)
+                {
+                    return;
+                }
+
+                Trade trade = new Trade();
+                trade.SecurityNameCode = responseTrade.data.symbol;
+                trade.Price = responseTrade.data.price.ToDecimal();
+                trade.Id = responseTrade.data.tradeId;
+                trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data.ts) / 1000000); // from nanoseconds to ms))
+                trade.Volume = responseTrade.data.size.ToDecimal();
+
+                if (responseTrade.data.side == "sell")
+                {
+                    trade.Side = Side.Sell;
+                }
+                else //(responseTrade.data.side == "buy")
+                {
+                    trade.Side = Side.Buy;
+                }
+
+                NewTradesEvent(trade);
+            }
+            catch (Exception ex)
             {
-                return;
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            Trade trade = new Trade();
-            trade.SecurityNameCode = responseTrade.data.symbol;
-            trade.Price = responseTrade.data.price.ToDecimal();
-            trade.Id = responseTrade.data.tradeId;
-            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseTrade.data.ts) / 1000000); // from nanoseconds to ms))
-            trade.Volume = responseTrade.data.size.ToDecimal();
-
-            if (responseTrade.data.side == "sell")
-            {
-                trade.Side = Side.Sell;
-            }
-            else //(responseTrade.data.side == "buy")
-            {
-                trade.Side = Side.Buy;
-            }
-
-            NewTradesEvent(trade);
         }
 
         private void UpdateDepth(string message)
         {
-            ResponseWebSocketMessageAction<ResponseWebSocketDepthItem> responseDepth = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketDepthItem>());
-
-            if (responseDepth.data == null)
+            try
             {
-                return;
+                ResponseWebSocketMessageAction<ResponseWebSocketDepthItem> responseDepth = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketDepthItem>());
+
+                if (responseDepth.data == null)
+                {
+                    return;
+                }
+
+                MarketDepth marketDepth = new MarketDepth();
+
+                List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                marketDepth.SecurityNameCode = responseDepth.topic.Split(':')[1];
+
+                for (int i = 0; i < responseDepth.data.asks.Count; i++)
+                {
+                    MarketDepthLevel newMDLevel = new MarketDepthLevel();
+                    newMDLevel.Ask = responseDepth.data.asks[i][1].ToDecimal();
+                    newMDLevel.Price = responseDepth.data.asks[i][0].ToDecimal();
+                    ascs.Add(newMDLevel);
+                }
+
+                for (int i = 0; i < responseDepth.data.bids.Count; i++)
+                {
+                    MarketDepthLevel newMDLevel = new MarketDepthLevel();
+                    newMDLevel.Bid = responseDepth.data.bids[i][1].ToDecimal();
+                    newMDLevel.Price = responseDepth.data.bids[i][0].ToDecimal();
+
+                    bids.Add(newMDLevel);
+                }
+
+                marketDepth.Asks = ascs;
+                marketDepth.Bids = bids;
+
+                marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.data.timestamp));
+
+                MarketDepthEvent(marketDepth);
             }
-
-            MarketDepth marketDepth = new MarketDepth();
-
-            List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-            List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-            marketDepth.SecurityNameCode = responseDepth.topic.Split(':')[1];
-
-            for (int i = 0; i < responseDepth.data.asks.Count; i++)
+            catch (Exception ex)
             {
-                MarketDepthLevel newMDLevel = new MarketDepthLevel();
-                newMDLevel.Ask = responseDepth.data.asks[i][1].ToDecimal();
-                newMDLevel.Price = responseDepth.data.asks[i][0].ToDecimal();
-                ascs.Add(newMDLevel);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            for (int i = 0; i < responseDepth.data.bids.Count; i++)
-            {
-                MarketDepthLevel newMDLevel = new MarketDepthLevel();
-                newMDLevel.Bid = responseDepth.data.bids[i][1].ToDecimal();
-                newMDLevel.Price = responseDepth.data.bids[i][0].ToDecimal();
-
-                bids.Add(newMDLevel);
-            }
-
-            marketDepth.Asks = ascs;
-            marketDepth.Bids = bids;
-
-            marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.data.timestamp));
-
-            MarketDepthEvent(marketDepth);
         }
 
         private void UpdateMytrade(string json)
         {
-            ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
-
-            for (int i = 0; i < responseMyTrades.data.items.Count; i++)
+            try
             {
-                ResponseMyTrade responseT = responseMyTrades.data.items[i];
+                ResponseMessageRest<ResponseMyTrades> responseMyTrades = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseMyTrades>());
 
-                MyTrade myTrade = new MyTrade();
+                for (int i = 0; i < responseMyTrades.data.items.Count; i++)
+                {
+                    ResponseMyTrade responseT = responseMyTrades.data.items[i];
 
-                myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseT.tradeTime) / 1000000); //from nanoseconds to ms
-                myTrade.NumberOrderParent = responseT.orderId;
-                myTrade.NumberTrade = responseT.tradeId;
-                myTrade.Price = responseT.price.ToDecimal();
-                myTrade.SecurityNameCode = responseT.symbol;
-                myTrade.Side = responseT.side.Equals("buy") ? Side.Buy : Side.Sell;
-                myTrade.Volume = responseT.size.ToDecimal();
+                    MyTrade myTrade = new MyTrade();
 
-                MyTradeEvent(myTrade);
+                    myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseT.tradeTime) / 1000000); //from nanoseconds to ms
+                    myTrade.NumberOrderParent = responseT.orderId;
+                    myTrade.NumberTrade = responseT.tradeId;
+                    myTrade.Price = responseT.price.ToDecimal();
+                    myTrade.SecurityNameCode = responseT.symbol;
+                    myTrade.Side = responseT.side.Equals("buy") ? Side.Buy : Side.Sell;
+                    myTrade.Volume = responseT.size.ToDecimal();
+
+                    MyTradeEvent(myTrade);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
         private void UpdatePortfolio(string message)
         {
-            ResponseWebSocketMessageAction<ResponseWebSocketPortfolio> Portfolio = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPortfolio>());
+            try
+            {
+                ResponseWebSocketMessageAction<ResponseWebSocketPortfolio> Portfolio = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPortfolio>());
 
-            Portfolio portfolio = Portfolios[0];
+                Portfolio portfolio = Portfolios[0];
 
-            PositionOnBoard pos = new PositionOnBoard();
+                PositionOnBoard pos = new PositionOnBoard();
 
-            pos.PortfolioName = "KuCoinFutures";
-            pos.SecurityNameCode = Portfolio.data.currency;
-            pos.ValueCurrent = Portfolio.data.walletBalance.ToDecimal();
+                pos.PortfolioName = "KuCoinFutures";
+                pos.SecurityNameCode = Portfolio.data.currency;
+                pos.ValueCurrent = Portfolio.data.walletBalance.ToDecimal();
 
-            portfolio.SetNewPosition(pos);
-            PortfolioEvent(Portfolios);
+                portfolio.SetNewPosition(pos);
+                PortfolioEvent(Portfolios);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void UpdatePosition(string message)
         {
-            ResponseWebSocketMessageAction<ResponseWebSocketPosition> posResponse = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPosition>());
+            try
+            {
+                ResponseWebSocketMessageAction<ResponseWebSocketPosition> posResponse = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketPosition>());
 
-            Portfolio portfolio = Portfolios[0];
+                Portfolio portfolio = Portfolios[0];
 
-            ResponseWebSocketPosition data = posResponse.data;
+                ResponseWebSocketPosition data = posResponse.data;
 
-            PositionOnBoard pos = new PositionOnBoard();
+                PositionOnBoard pos = new PositionOnBoard();
 
-            pos.PortfolioName = "KuCoinFutures";
-            pos.SecurityNameCode = data.symbol;
-            pos.ValueCurrent = data.currentQty.ToDecimal();
+                pos.PortfolioName = "KuCoinFutures";
+                pos.SecurityNameCode = data.symbol;
+                pos.ValueCurrent = data.currentQty.ToDecimal();
 
-            portfolio.SetNewPosition(pos);
-            PortfolioEvent(Portfolios);
+                portfolio.SetNewPosition(pos);
+                PortfolioEvent(Portfolios);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
         private void UpdateOrder(string message)
         {
-            ResponseWebSocketMessageAction<ResponseWebSocketOrder> Order = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketOrder>());
-
-            if (Order.data == null)
+            try
             {
-                return;
-            }
+                ResponseWebSocketMessageAction<ResponseWebSocketOrder> Order = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<ResponseWebSocketOrder>());
 
-            ResponseWebSocketOrder item = Order.data;
-
-            OrderStateType stateType = GetOrderState(item.status, item.type);
-
-            if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Active)
-            {
-                return;
-            }
-
-            Order newOrder = new Order();
-            newOrder.SecurityNameCode = item.symbol;
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000); //from nanoseconds to ms
-
-            if (item.clientOid != null)
-            {
-                try
+                if (Order.data == null)
                 {
-                    newOrder.NumberUser = Convert.ToInt32(item.clientOid);
-                }
-                catch
-                {
-                    SendLogMessage("Strange order num: " + item.clientOid, LogMessageType.Error);
                     return;
                 }
+
+                ResponseWebSocketOrder item = Order.data;
+
+                OrderStateType stateType = GetOrderState(item.status, item.type);
+
+                if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Active)
+                {
+                    return;
+                }
+
+                Order newOrder = new Order();
+                newOrder.SecurityNameCode = item.symbol;
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts) / 1000000); //from nanoseconds to ms
+
+                if (item.clientOid != null)
+                {
+                    try
+                    {
+                        newOrder.NumberUser = Convert.ToInt32(item.clientOid);
+                    }
+                    catch
+                    {
+                        SendLogMessage("Strange order num: " + item.clientOid, LogMessageType.Error);
+                        return;
+                    }
+                }
+
+                newOrder.NumberMarket = item.orderId;
+
+                OrderPriceType.TryParse(item.orderType, true, out newOrder.TypeOrder);
+                Side.TryParse(item.side, true, out newOrder.Side);
+
+                newOrder.State = stateType;
+                newOrder.Volume = item.size == null ? item.filledSize.Replace('.', ',').ToDecimal() : item.size.Replace('.', ',').ToDecimal();
+                newOrder.Price = item.price != null ? item.price.Replace('.', ',').ToDecimal() : 0;
+
+                newOrder.ServerType = ServerType.KuCoinFutures;
+                newOrder.PortfolioNumber = "KuCoinFutures";
+
+                if (stateType == OrderStateType.Done || (stateType == OrderStateType.Partial && item.size != item.filledSize))
+                {
+                    // as soon as an order is executed or partially executed, a trigger is sent to request my trade by the name of the security
+                    CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket);
+                }
+
+                MyOrderEvent(newOrder);
             }
-
-            newOrder.NumberMarket = item.orderId;
-
-            OrderPriceType.TryParse(item.orderType, true, out newOrder.TypeOrder);
-            Side.TryParse(item.side, true, out newOrder.Side);
-
-            newOrder.State = stateType;
-            newOrder.Volume = item.size == null ? item.filledSize.Replace('.', ',').ToDecimal() : item.size.Replace('.', ',').ToDecimal();
-            newOrder.Price = item.price != null ? item.price.Replace('.', ',').ToDecimal() : 0;
-
-            newOrder.ServerType = ServerType.KuCoinFutures;
-            newOrder.PortfolioNumber = "KuCoinFutures";
-
-            if (stateType == OrderStateType.Done || (stateType == OrderStateType.Partial && item.size != item.filledSize))
+            catch (Exception ex)
             {
-                // as soon as an order is executed or partially executed, a trigger is sent to request my trade by the name of the security
-                CreateQueryMyTrade(newOrder.SecurityNameCode, newOrder.NumberMarket);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            MyOrderEvent(newOrder);
         }
 
         private OrderStateType GetOrderState(string orderStatusResponse, string orderTypeResponse)
@@ -1296,58 +1352,65 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public void SendOrder(Order order)
         {
-            // https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
-            _rateGateSendOrder.WaitToProceed();
-
-            SendOrderRequestData data = new SendOrderRequestData();
-            data.clientOid = order.NumberUser.ToString();
-            data.symbol = order.SecurityNameCode;
-            data.side = order.Side.ToString().ToLower();
-            data.type = order.TypeOrder.ToString().ToLower();
-            data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
-            data.size = order.Volume.ToString().Replace(",", ".");
-            data.leverage = "10";
-
-            JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
-            dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// if it's a market order, then we ignore the price parameter
-
-            string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
-
-            // for the test you can use "/api/v1/orders/test"
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders", "POST", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<ResponsePlaceOrder>());
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            try
             {
-                if (stateResponse.code.Equals("200000") == true)
-                {
-                    SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
-                    order.State = OrderStateType.Active;
-                    order.NumberMarket = stateResponse.data.orderId;
 
-                    if (MyOrderEvent != null)
+                // https://www.kucoin.com/docs/rest/futures-trading/orders/place-order
+                _rateGateSendOrder.WaitToProceed();
+
+                SendOrderRequestData data = new SendOrderRequestData();
+                data.clientOid = order.NumberUser.ToString();
+                data.symbol = order.SecurityNameCode;
+                data.side = order.Side.ToString().ToLower();
+                data.type = order.TypeOrder.ToString().ToLower();
+                data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
+                data.size = order.Volume.ToString().Replace(",", ".");
+                data.leverage = "10";
+
+                JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
+                dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// if it's a market order, then we ignore the price parameter
+
+                string jsonRequest = JsonConvert.SerializeObject(data, dataSerializerSettings);
+
+                // for the test you can use "/api/v1/orders/test"
+                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/orders", Method.POST, jsonRequest);
+                ResponseMessageRest<ResponsePlaceOrder> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponsePlaceOrder>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    if (stateResponse.code.Equals("200000") == true)
                     {
-                        MyOrderEvent(order);
+                        SendLogMessage($"Order num {order.NumberUser} on exchange.", LogMessageType.Trade);
+                        order.State = OrderStateType.Active;
+                        order.NumberMarket = stateResponse.data.orderId;
+
+                        if (MyOrderEvent != null)
+                        {
+                            MyOrderEvent(order);
+                        }
+                    }
+                    else
+                    {
+                        CreateOrderFail(order);
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
                     CreateOrderFail(order);
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    SendLogMessage($"SendOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.code != null)
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                CreateOrderFail(order);
-                SendLogMessage($"SendOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1363,72 +1426,84 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-            _rateGateCancelOrder.WaitToProceed();
-
-            CancelAllOrdersRequestData data = new CancelAllOrdersRequestData();
-            data.symbol = security.Name;
-
-            string jsonRequest = JsonConvert.SerializeObject(data);
-
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders", "DELETE", null, jsonRequest);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            try
             {
-                if (stateResponse.code.Equals("200000") == true)
+                _rateGateCancelOrder.WaitToProceed();
+
+                CancelAllOrdersRequestData data = new CancelAllOrdersRequestData();
+                data.symbol = security.Name;
+
+                string jsonRequest = JsonConvert.SerializeObject(data);
+
+                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/orders", Method.DELETE, jsonRequest);
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    // ignore
+                    if (stateResponse.code.Equals("200000") == true)
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    SendLogMessage($"CancelAllOrdersToSecurity> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.code != null)
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                SendLogMessage($"CancelAllOrdersToSecurity> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
         public void CancelOrder(Order order)
         {
-            _rateGateCancelOrder.WaitToProceed();
-
-            HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders/" + order.NumberMarket, "DELETE", null, null);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            try
             {
-                if (stateResponse.code.Equals("200000") == true)
+                _rateGateCancelOrder.WaitToProceed();
+
+                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/orders/" + order.NumberMarket, Method.DELETE, null);
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    // ignore
+                    if (stateResponse.code.Equals("200000") == true)
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        GetOrderStatus(order);
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
                     GetOrderStatus(order);
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    SendLogMessage($"CancelOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.code != null)
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
             }
-            else
+            catch (Exception ex)
             {
-                GetOrderStatus(order);
-                SendLogMessage($"CancelOrder> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1478,15 +1553,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/orders", "GET", "status=active", null);
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                string path = $"/api/v1/orders";
+                string requestStr = $"{path}?status=active";
+
+                IRestResponse responseMessage = CreatePrivateQuery(requestStr, Method.GET, null);
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     if (stateResponse.code == "200000")
                     {
-                        ResponseMessageRest<ResponseAllOrders> order = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseAllOrders>());
+                        ResponseMessageRest<ResponseAllOrders> order = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseAllOrders>());
 
                         List<Order> orders = new List<Order>();
 
@@ -1545,6 +1622,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+
             return null;
         }
 
@@ -1612,15 +1690,14 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     return null;
                 }
 
-                HttpResponseMessage responseMessage = CreatePrivateQuery(path, "GET", null, null);
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                IRestResponse responseMessage = CreatePrivateQuery(path, Method.GET, null);
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     if (stateResponse.code == "200000")
                     {
-                        ResponseMessageRest<ResponseOrder> order = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<ResponseOrder>());
+                        ResponseMessageRest<ResponseOrder> order = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseOrder>());
 
                         Order newOrder = new Order();
 
@@ -1689,22 +1766,21 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private RateGate _rateGateGetMyTradeState = new RateGate(1, TimeSpan.FromMilliseconds(200));
 
-        HttpClient _httpPublicClient = new HttpClient();
-
         private void CreateQueryPortfolio(bool IsUpdateValueBegin, string currency = "USDT")
         {
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/account-overview", "GET", "currency=" + currency, null);
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                string path = $"/api/v1/account-overview";
+                string requestStr = $"{path}?currency={currency}";
 
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                IRestResponse responseMessage = CreatePrivateQuery(requestStr, Method.GET, null);
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     if (stateResponse.code == "200000")
                     {
-                        UpdatePortfolioREST(json, IsUpdateValueBegin);
+                        UpdatePortfolioREST(responseMessage.Content, IsUpdateValueBegin);
                     }
                     else
                     {
@@ -1755,16 +1831,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/positions", "GET", null, null);
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                IRestResponse responseMessage = CreatePrivateQuery("/api/v1/positions", Method.GET, null);
 
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     if (stateResponse.code == "200000")
                     {
-                        UpdatePositionsREST(json, IsUpdateValueBegin);
+                        UpdatePositionsREST(responseMessage.Content, IsUpdateValueBegin);
                     }
                     else
                     {
@@ -1820,6 +1895,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
             List<PositionOnBoard> positionOnBoard = Portfolios[0].GetPositionOnBoard();
 
+            if (positionOnBoard == null)
+            {
+                return;
+            }
+
             decimal positionInUSDT = 0;
             decimal sizeUSDT = 0;
 
@@ -1859,16 +1939,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         {
             try
             {
-                HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v1/ticker", "GET", "symbol=" + security, null);
-                string json = responseMessage.Content.ReadAsStringAsync().Result;
+                string path = $"/api/v1/ticker";
+                string requestStr = $"{path}?symbol={security}";
 
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<object>());
+                IRestResponse responseMessage = CreatePrivateQuery(requestStr, Method.GET, null);
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
                     if (stateResponse.code == "200000")
                     {
-                        ResponseMessageRest<Ticker> ticker = JsonConvert.DeserializeAnonymousType(json, new ResponseMessageRest<Ticker>());
+                        ResponseMessageRest<Ticker> ticker = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<Ticker>());
 
                         decimal priceSecurity = ticker.data.price.ToDecimal();
 
@@ -1899,124 +1980,133 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private void CreateQueryMyTrade(string nameSec, string OrdId)
         {
-            Thread.Sleep(2000);
-            _rateGateGetMyTradeState.WaitToProceed();
-
-            HttpResponseMessage responseMessage = CreatePrivateQuery(
-                "/api/v1/fills",
-                "GET",
-                "symbol=" + nameSec + "&orderId=" + OrdId,
-                null);
-            string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-
-            ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseMessageRest<object>());
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            try
             {
-                if (stateResponse.code.Equals("200000") == true)
+                Thread.Sleep(2000);
+                _rateGateGetMyTradeState.WaitToProceed();
+
+                string path = $"/api/v1/fills";
+                string requestStr = $"{path}?symbol={nameSec}&orderId={OrdId}";
+
+                IRestResponse responseMessage = CreatePrivateQuery(requestStr, Method.GET, null);
+                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    UpdateMytrade(JsonResponse);
+                    if (stateResponse.code.Equals("200000") == true)
+                    {
+                        UpdateMytrade(responseMessage.Content);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    SendLogMessage($"CreateQueryMyTrade> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+
+                    if (stateResponse != null && stateResponse.code != null)
+                    {
+                        SendLogMessage($"Code: {stateResponse.code}\n"
+                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                    }
                 }
             }
-            else
+            catch (Exception exception)
             {
-                SendLogMessage($"CreateQueryMyTrade> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                if (stateResponse != null && stateResponse.code != null)
-                {
-                    SendLogMessage($"Code: {stateResponse.code}\n"
-                        + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                }
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
         private List<Candle> CreateQueryCandles(string nameSec, string stringInterval, DateTime timeFrom, DateTime timeTo)
         {
-            _rateGateCandleHistory.WaitToProceed();
-
-            long from = TimeManager.GetTimeStampMilliSecondsToDateTime(timeFrom);
-            long to = TimeManager.GetTimeStampMilliSecondsToDateTime(timeTo);
-            HttpResponseMessage responseMessage = _httpPublicClient.GetAsync(_baseUrl + $"/api/v1/kline/query?symbol={nameSec}&granularity={stringInterval}&from={from}&to={to}").Result;
-            string content = responseMessage.Content.ReadAsStringAsync().Result;
-
-            if (responseMessage.StatusCode == HttpStatusCode.OK)
+            try
             {
-                ResponseMessageRest<List<List<string>>> symbols = JsonConvert.DeserializeAnonymousType(content, new ResponseMessageRest<List<List<string>>>());
+                _rateGateCandleHistory.WaitToProceed();
 
-                if (symbols.code.Equals("200000") == true)
+                long from = TimeManager.GetTimeStampMilliSecondsToDateTime(timeFrom);
+                long to = TimeManager.GetTimeStampMilliSecondsToDateTime(timeTo);
+                string requestStr = $"/api/v1/kline/query?symbol={nameSec}&granularity={stringInterval}&from={from}&to={to}";
+
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    List<Candle> candles = new List<Candle>();
+                    ResponseMessageRest<List<List<string>>> symbols = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<List<List<string>>>());
 
-                    for (int i = 0; i < symbols.data.Count; i++)
+                    if (symbols.code.Equals("200000") == true)
                     {
-                        List<string> item = symbols.data[i];
+                        List<Candle> candles = new List<Candle>();
 
-                        Candle newCandle = new Candle();
+                        for (int i = 0; i < symbols.data.Count; i++)
+                        {
+                            List<string> item = symbols.data[i];
 
-                        newCandle.Open = item[1].ToDecimal();
-                        newCandle.Close = item[4].ToDecimal();
-                        newCandle.High = item[2].ToDecimal();
-                        newCandle.Low = item[3].ToDecimal();
-                        newCandle.Volume = item[5].ToDecimal();
-                        newCandle.State = CandleState.Finished;
-                        newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[0]));
-                        candles.Add(newCandle);
+                            Candle newCandle = new Candle();
+
+                            newCandle.Open = item[1].ToDecimal();
+                            newCandle.Close = item[4].ToDecimal();
+                            newCandle.High = item[2].ToDecimal();
+                            newCandle.Low = item[3].ToDecimal();
+                            newCandle.Volume = item[5].ToDecimal();
+                            newCandle.State = CandleState.Finished;
+                            newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[0]));
+                            candles.Add(newCandle);
+                        }
+
+                        return candles;
                     }
-
-                    return candles;
+                    else
+                    {
+                        SendLogMessage($"Code: {symbols.code}\n"
+                            + $"Message: {symbols.msg}", LogMessageType.Error);
+                        return null;
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Code: {symbols.code}\n"
-                        + $"Message: {symbols.msg}", LogMessageType.Error);
+                    SendLogMessage($"CreateQueryCandles> State Code: {responseMessage.StatusCode}", LogMessageType.Error);
                     return null;
                 }
             }
-            else
+            catch (Exception exception)
             {
-                SendLogMessage($"CreateQueryCandles> State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
                 return null;
             }
         }
 
-        private HttpResponseMessage CreatePrivateQuery(string path, string method, string queryString, string body)
+        private IRestResponse CreatePrivateQuery(string path, Method method, string body)
         {
-            string requestPath = path;
-            string url = $"{_baseUrl}{requestPath}";
-            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-            string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, _secretKey);
-
-            HttpClient httpClient = new HttpClient();
-
-            httpClient.DefaultRequestHeaders.Add("KC-API-KEY", _publicKey);
-            httpClient.DefaultRequestHeaders.Add("KC-API-SIGN", signature);
-            httpClient.DefaultRequestHeaders.Add("KC-API-TIMESTAMP", timestamp);
-            httpClient.DefaultRequestHeaders.Add("KC-API-PASSPHRASE", SignHMACSHA256(_passphrase, _secretKey));
-            httpClient.DefaultRequestHeaders.Add("KC-API-KEY-VERSION", "2");
-
-            if (method.Equals("POST"))
+            try
             {
-                return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
-            }
-            else if (method.Equals("DELETE"))
-            {
-                HttpRequestMessage request = new HttpRequestMessage
+                string requestPath = path;
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string signature = GenerateSignature(timestamp, method.ToString(), path, body, _secretKey);
+
+                RestRequest requestRest = new RestRequest(path, method);
+                requestRest.AddHeader("KC-API-KEY", _publicKey);
+                requestRest.AddHeader("KC-API-SIGN", signature);
+                requestRest.AddHeader("KC-API-TIMESTAMP", timestamp);
+                requestRest.AddHeader("KC-API-PASSPHRASE", SignHMACSHA256(_passphrase, _secretKey));
+                requestRest.AddHeader("KC-API-KEY-VERSION", "2");
+
+                if (body != null)
                 {
-                    Method = HttpMethod.Delete,
-                    RequestUri = new Uri(url),
-                    Content = body != null ? new StringContent(body, Encoding.UTF8, "application/json") : null
-                };
+                    requestRest.AddParameter("application/json", body, ParameterType.RequestBody);
+                }
 
-                return httpClient.SendAsync(request).Result;
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                return response;
             }
-            else
+            catch (Exception ex)
             {
-                return httpClient.GetAsync(url + "?" + queryString).Result;
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
             }
         }
 
@@ -2030,13 +2120,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
-        private string GenerateSignature(string timestamp, string method, string requestPath, string queryString, string body, string secretKey)
+        private string GenerateSignature(string timestamp, string method, string requestPath, string body, string secretKey)
         {
             method = method.ToUpper();
             body = string.IsNullOrEmpty(body) ? string.Empty : body;
-            queryString = string.IsNullOrEmpty(queryString) ? string.Empty : "?" + queryString;
-
-            string preHash = timestamp + method + Uri.UnescapeDataString(requestPath + queryString) + body;
+            string preHash = timestamp + method + Uri.UnescapeDataString(requestPath) + body;
 
             return SignHMACSHA256(preHash, secretKey);
         }
