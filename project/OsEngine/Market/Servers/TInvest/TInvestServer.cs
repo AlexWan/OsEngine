@@ -175,7 +175,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error cancelling stream", LogMessageType.Error);
+                    SendLogMessage($"Error cancelling stream: {ex}", LogMessageType.Error);
                 }
 
                 SendLogMessage("Completed exchange with market data stream", LogMessageType.System);
@@ -189,7 +189,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {ex}", LogMessageType.Error);
                 }
             }
 
@@ -201,7 +201,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {ex}", LogMessageType.Error);
                 }
             }
 
@@ -213,7 +213,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {ex}", LogMessageType.Error);
                 }
             }
 
@@ -225,7 +225,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {ex}", LogMessageType.Error);
                 }
             }
 
@@ -237,7 +237,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {ex}", LogMessageType.Error);
                 }
             }
 
@@ -249,7 +249,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error disposing stream", LogMessageType.Error);
+                    SendLogMessage($"Error disposing stream: {ex}", LogMessageType.Error);
                 }
             }
 
@@ -329,7 +329,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
             catch (Exception ex)
             {
-                SendLogMessage("Error loading securities", LogMessageType.Error);
+                SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
             }
 
             UpdateCurrenciesFromServer(currenciesResponse);
@@ -349,7 +349,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
                 }
 
                 UpdateSharesFromServer(result);
@@ -370,7 +370,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
                 }
 
                 UpdateFuturesFromServer(result);
@@ -417,7 +417,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities:  {ex}", LogMessageType.Error);
                 }
 
                 UpdateBondsFromServer(result);
@@ -436,7 +436,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities:  {ex}", LogMessageType.Error);
                 }
 
                 UpdateEtfsFromServer(etfs);
@@ -455,7 +455,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error loading securities", LogMessageType.Error);
+                    SendLogMessage($"Error loading securities:  {ex}", LogMessageType.Error);
                 }
 
                 UpdateIndicativesFromServer(indicatives);
@@ -916,7 +916,7 @@ namespace OsEngine.Market.Servers.TInvest
                     }
                     catch (Exception ex)
                     {
-                        SendLogMessage("Error getting portfolio.", LogMessageType.Error);
+                        SendLogMessage($"Error getting portfolio: {ex.Message}", LogMessageType.Error);
                     }
 
                     GetPortfolios(portfolioResponse);
@@ -1287,7 +1287,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (Exception ex)
                 {
-                    SendLogMessage("Error fetching trading schedules", LogMessageType.Error);
+                    SendLogMessage($"Error fetching trading schedules: {ex}", LogMessageType.Error);
                 }
 
                 _tradingSchedules[DateTime.UtcNow.Date] = thisDaySchedules;
@@ -1415,23 +1415,19 @@ namespace OsEngine.Market.Servers.TInvest
         {
             try
             {
-                // заполняем метаданные (заголовок запроса)
                 _gRpcMetadata = new Metadata();
 
                 _gRpcMetadata.Add("Authorization", $"Bearer {_accessToken}");
                 _gRpcMetadata.Add("x-app-name", "OsEngine");
 
-                // создаем новый токен для отмены (отключения от потоков)
                 _cancellationTokenSource = new CancellationTokenSource();
 
-                // подключаемся к потокам gRPC
                 GrpcChannel channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
                 {
                     Credentials = ChannelCredentials.SecureSsl,
                     HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null })
                 });
 
-                // инициализируем клиенты
                 _usersClient = new UsersService.UsersServiceClient(channel);
                 _operationsClient = new OperationsService.OperationsServiceClient(channel);
                 _operationsStreamClient = new OperationsStreamService.OperationsStreamServiceClient(channel);
@@ -1763,7 +1759,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (RpcException exception)
                 {
-                    SendLogMessage("Market data stream was disconnected", LogMessageType.Error);
+                    SendLogMessage($"Market data stream was disconnected: {exception.Message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2349,7 +2345,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (RpcException exception)
                 {
-                    SendLogMessage("My trades data stream was disconnected", LogMessageType.Error);
+                    SendLogMessage($"My trades data stream was disconnected: {exception}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2480,7 +2476,7 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 catch (RpcException exception)
                 {
-                    SendLogMessage("Order state data stream was disconnected", LogMessageType.Error);
+                    SendLogMessage($"Order state data stream was disconnected: {exception}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
