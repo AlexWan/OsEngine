@@ -675,23 +675,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private string _listenKey = "";
 
-        private void CreatePublicWebSocketConnect()
-        {
-            try
-            {
-                if (FIFOListWebSocketPublicMessage == null)
-                {
-                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                }
-
-                _webSocketPublic.Add(CreateNewPublicSocket());
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
-            }
-        }
-
         private WebSocket CreateNewPublicSocket()
         {
             try
@@ -1084,18 +1067,38 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 }
             }
 
-            _subscribledSecutiries.Add(security.Name);
-
-            if (_subscribledSecutiries.Count > 0
-                    && _webSocketPublic.Count == 0)
+            if (_webSocketPublic.Count == 0)
             {
-                CreatePublicWebSocketConnect();
+                WebSocket socket = CreateNewPublicSocket();
+
+                if (socket == null)
+                {
+                    return;
+                }
+
+                DateTime timeEnd = DateTime.Now.AddSeconds(10);
+                while (socket.ReadyState != WebSocketState.Open)
+                {
+                    Thread.Sleep(1000);
+
+                    if (timeEnd < DateTime.Now)
+                    {
+                        break;
+                    }
+                }
+
+                if (socket.ReadyState == WebSocketState.Open)
+                {
+                    _webSocketPublic.Add(socket);
+                }
             }
 
             if (_webSocketPublic.Count == 0)
             {
                 return;
             }
+
+            _subscribledSecutiries.Add(security.Name);
 
             WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
