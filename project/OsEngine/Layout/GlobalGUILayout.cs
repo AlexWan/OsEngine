@@ -209,6 +209,11 @@ namespace OsEngine.Layout
             ui.Width = Convert.ToDouble(layout.Widht);
             ui.Left = Convert.ToDouble(layout.Left);
             ui.Top = Convert.ToDouble(layout.Top);
+
+            if (ui.Top < 0)
+            {
+                ui.Top = 0;
+            }
         }
 
         public static List<OpenWindow> UiOpenWindows = new List<OpenWindow>();
