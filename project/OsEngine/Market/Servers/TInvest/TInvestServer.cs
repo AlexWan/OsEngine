@@ -67,9 +67,9 @@ namespace OsEngine.Market.Servers.TInvest
             worker3.Name = "PortfolioMessageReaderTInvest";
             worker3.Start();
 
-            //Thread worker4 = new Thread(PositionsMessageReader);
-            //worker4.Name = "PositionsMessageReaderTInvest";
-            //worker4.Start();
+            Thread worker4 = new Thread(PositionsMessageReader);
+            worker4.Name = "PositionsMessageReaderTInvest";
+            worker4.Start();
 
             //Thread worker5 = new Thread(MyTradesMessageReader);
             //worker5.Name = "MyTradesMessageReaderTInvest";
@@ -1523,9 +1523,9 @@ namespace OsEngine.Market.Servers.TInvest
                 _operationsStreamClient.PortfolioStream(new PortfolioStreamRequest { Accounts = { accountsList } },
                     headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
-            //_positionsDataStream =
-            //    _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
-            //        headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
+            _positionsDataStream =
+                _operationsStreamClient.PositionsStream(new PositionsStreamRequest { Accounts = { accountsList } },
+                    headers: _gRpcMetadata, cancellationToken: _cancellationTokenSource.Token);
 
             _lastMyTradesDataTime = DateTime.UtcNow;
             _lastPortfolioDataTime = DateTime.UtcNow;
@@ -2077,41 +2077,41 @@ namespace OsEngine.Market.Servers.TInvest
 
                         portf.UnrealizedPnl = GetValue(portfolioResponse.Portfolio.DailyYield);
 
-                        for (int i = 0; i < portfolioResponse.Portfolio.Positions.Count; i++)
-                        {
+                        //for (int i = 0; i < portfolioResponse.Portfolio.Positions.Count; i++)
+                        //{
 
-                            PortfolioPosition pos = portfolioResponse.Portfolio.Positions[i];
+                        //    PortfolioPosition pos = portfolioResponse.Portfolio.Positions[i];
 
-                            InstrumentRequest instrumentRequest = new InstrumentRequest();
-                            instrumentRequest.Id = pos.InstrumentUid;
-                            instrumentRequest.IdType = InstrumentIdType.Uid;
+                        //    InstrumentRequest instrumentRequest = new InstrumentRequest();
+                        //    instrumentRequest.Id = pos.InstrumentUid;
+                        //    instrumentRequest.IdType = InstrumentIdType.Uid;
 
-                            InstrumentResponse instrumentResponse = null;
+                        //    InstrumentResponse instrumentResponse = null;
 
-                            try
-                            {
-                                _rateGateInstruments.WaitToProceed();
-                                instrumentResponse = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
-                            }
-                            catch (RpcException ex)
-                            {
-                                string message = GetGRPCErrorMessage(ex);
-                                SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
-                            }
-                            catch (Exception ex)
-                            {
-                                SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
-                            }
+                        //    try
+                        //    {
+                        //        _rateGateInstruments.WaitToProceed();
+                        //        instrumentResponse = _instrumentsClient.GetInstrumentBy(instrumentRequest, _gRpcMetadata);
+                        //    }
+                        //    catch (RpcException ex)
+                        //    {
+                        //        string message = GetGRPCErrorMessage(ex);
+                        //        SendLogMessage($"Error getting instrument data. Info: {message}", LogMessageType.Error);
+                        //    }
+                        //    catch (Exception ex)
+                        //    {
+                        //        SendLogMessage("Error getting instrument data for " + pos.Figi + " " + ex.ToString(), LogMessageType.Error);
+                        //    }
 
-                            PositionOnBoard newPos = new PositionOnBoard();
-                            newPos.PortfolioName = portf.Number;
-                            newPos.ValueCurrent = GetValue(pos.Quantity)/instrumentResponse.Instrument.Lot;
-                            newPos.ValueBlocked = GetValue(pos.BlockedLots);
-                            newPos.UnrealizedPnl = GetValue(pos.ExpectedYield);
-                            newPos.SecurityNameCode = instrumentResponse.Instrument.Ticker;
+                        //    PositionOnBoard newPos = new PositionOnBoard();
+                        //    newPos.PortfolioName = portf.Number;
+                        //    newPos.ValueCurrent = GetValue(pos.Quantity)/instrumentResponse.Instrument.Lot;
+                        //    newPos.ValueBlocked = GetValue(pos.BlockedLots);
+                        //    newPos.UnrealizedPnl = GetValue(pos.ExpectedYield);
+                        //    newPos.SecurityNameCode = instrumentResponse.Instrument.Ticker;
 
-                            portf.SetNewPosition(newPos);
-                        }
+                        //    portf.SetNewPosition(newPos);
+                        //}
 
                         PortfolioEvent!(_myPortfolios);
                     }
@@ -2708,12 +2708,17 @@ namespace OsEngine.Market.Servers.TInvest
                     return;
                 }
 
-                //if (response.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
-                //{
-                //    order.NumberMarket = response.OrderId;
-                //    order.State = OrderStateType.Fail;
-                //    MyOrderEvent!(order);
-                //}
+                if (response.ExecutionReportStatus == OrderExecutionReportStatus.ExecutionReportStatusRejected)
+                {
+                    order.State = OrderStateType.Fail;
+                }
+                else
+                {
+                    order.State = OrderStateType.Active;
+                    order.NumberMarket = response.OrderId;
+                }
+
+                MyOrderEvent!(order);
             }
             catch (Exception exception)
             {
