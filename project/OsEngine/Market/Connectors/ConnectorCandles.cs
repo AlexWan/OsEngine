@@ -360,6 +360,15 @@ namespace OsEngine.Market.Connectors
                     return false;
                 }
 
+                if (_myServer.GetType().BaseType == typeof(AServer))
+                {
+                    AServer aServer = (AServer)_myServer;
+                    if (aServer.LastStartServerTime.AddSeconds(aServer.WaitTimeToTradeAfterFirstStart) > DateTime.Now)
+                    {
+                        return false;
+                    }
+                }
+
                 return true;
             }
         }
