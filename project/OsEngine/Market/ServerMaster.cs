@@ -600,7 +600,7 @@ namespace OsEngine.Market
                 }
                 if (type == ServerType.TInvest)
                 {
-                    newServer = new TInvestServer();
+                    newServer = new TInvestServer(uniqueNum);
                 }
                 if (type == ServerType.Hitbtc)
                 {
