@@ -415,10 +415,9 @@ namespace OsEngine.Entity
         /// <param name="save">line with saved parameters</param>
         public void LoadParamFromString(string[] save)
         {
-            _valueDecimal = save[1].ToDecimal();
-
             try
             {
+                _valueDecimal = save[1].ToDecimal();
                 _valueDecimalDefolt = save[2].ToDecimal();
                 _valueDecimalStart = save[3].ToDecimal();
                 _valueDecimalStop = save[4].ToDecimal();
