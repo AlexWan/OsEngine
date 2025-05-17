@@ -9,7 +9,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
-using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -1011,9 +1010,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
 
                 _webSocketPrivate.EmitOnPing = true;
-               /* _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;*/
+                /* _webSocketPrivate.SslConfiguration.EnabledSslProtocols
+                     = System.Security.Authentication.SslProtocols.Tls12
+                    | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
@@ -2116,10 +2115,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                HttpResponseMessage responseMessage = CreatePrivateQueryOrders("/api/v2/mix/order/place-order", Method.POST.ToString(), null, jsonRequest);
-                string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-
-                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
+                IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/order/place-order", Method.POST, null, jsonRequest);
+                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
@@ -2166,10 +2163,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                HttpResponseMessage response = CreatePrivateQueryOrders("/api/v2/mix/order/cancel-order", Method.POST.ToString(), null, jsonRequest);
-                string JsonResponse = response.Content.ReadAsStringAsync().Result;
-
-                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
+                IRestResponse response = CreatePrivateQueryOrders("/api/v2/mix/order/cancel-order", Method.POST, null, jsonRequest);
+                ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<object>());
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -2343,7 +2338,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                CreatePrivateQueryOrders("/api/v2/mix/order/cancel-all-orders", Method.POST.ToString(), null, jsonRequest);
+                CreatePrivateQueryOrders("/api/v2/mix/order/cancel-all-orders", Method.POST, null, jsonRequest);
             }
             catch (Exception e)
             {
@@ -2364,7 +2359,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                     string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                    CreatePrivateQueryOrders("/api/v2/mix/order/cancel-all-orders", Method.POST.ToString(), null, jsonRequest);
+                    CreatePrivateQueryOrders("/api/v2/mix/order/cancel-all-orders", Method.POST, null, jsonRequest);
                 }
             }
             catch (Exception e)
@@ -2515,45 +2510,38 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private HttpResponseMessage CreatePrivateQueryOrders(string path, string method, string queryString, string body)
+        private IRestResponse CreatePrivateQueryOrders(string path, Method method, string queryString, string body)
         {
             try
             {
-                HttpClient httpClient = null;
-
-                if (_myProxy == null)
-                {
-                    httpClient = new HttpClient();
-                }
-                else
-                {
-                    HttpClientHandler httpClientHandler = new HttpClientHandler
-                    {
-                        Proxy = _myProxy
-                    };
-
-                    httpClient = new HttpClient(httpClientHandler);
-                }
+                RestRequest requestRest = new RestRequest(path, method);
 
                 string requestPath = path;
                 string url = $"{BaseUrl}{requestPath}";
                 string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                string signature = GenerateSignature(timestamp, method, requestPath, queryString, body, SeckretKey);
+                string signature = GenerateSignature(timestamp, method.ToString(), requestPath, queryString, body, SeckretKey);
 
-                httpClient.DefaultRequestHeaders.Add("ACCESS-KEY", PublicKey);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-SIGN", signature);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-TIMESTAMP", timestamp);
-                httpClient.DefaultRequestHeaders.Add("ACCESS-PASSPHRASE", Passphrase);
-                httpClient.DefaultRequestHeaders.Add("X-CHANNEL-API-CODE", "6yq7w");
+                requestRest.AddHeader("ACCESS-KEY", PublicKey);
+                requestRest.AddHeader("ACCESS-SIGN", signature);
+                requestRest.AddHeader("ACCESS-TIMESTAMP", timestamp);
+                requestRest.AddHeader("ACCESS-PASSPHRASE", Passphrase);
+                requestRest.AddHeader("X-CHANNEL-API-CODE", "6yq7w");
 
-                if (method.Equals("POST"))
+                if (method.ToString().Equals("POST"))
                 {
-                    return httpClient.PostAsync(url, new StringContent(body, Encoding.UTF8, "application/json")).Result;
+                    requestRest.AddParameter("application/json", body, ParameterType.RequestBody);
                 }
-                else
+
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
                 {
-                    return httpClient.GetAsync(url).Result;
+                    client.Proxy = _myProxy;
                 }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                return response;
             }
             catch (Exception ex)
             {
@@ -2591,10 +2579,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                     string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
-                    HttpResponseMessage responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-position-mode", Method.POST.ToString(), null, jsonRequest);
-                    string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
-
-                    ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(JsonResponse, new ResponseRestMessage<object>());
+                    IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-position-mode", Method.POST, null, jsonRequest);
+                    ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
