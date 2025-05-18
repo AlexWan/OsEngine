@@ -40,20 +40,24 @@ namespace OsEngine.Market.Servers.Transaq
             CreateParameterString(OsLocalization.Market.Label41, "tr1.finam.ru");
             CreateParameterString(OsLocalization.Market.Message90, "3900");
             CreateParameterString(OsLocalization.Market.Message100, "6:50/23:50");
-            CreateParameterBoolean(OsLocalization.Market.UseStock, true);
+            CreateParameterBoolean(OsLocalization.Market.UseMoexStock, true);
+            CreateParameterBoolean(OsLocalization.Market.UseFunds, false);
+            CreateParameterBoolean(OsLocalization.Market.UseOtcStock, false);
             CreateParameterBoolean(OsLocalization.Market.UseFutures, true);
-            CreateParameterBoolean(OsLocalization.Market.UseCurrency, true);
+            CreateParameterBoolean(OsLocalization.Market.UseCurrency, false);
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterBoolean(OsLocalization.Market.UseOther, false);
             CreateParameterButton(OsLocalization.Market.ButtonNameChangePassword);
 
             ServerParameters[4].Comment = OsLocalization.Market.Label160;
-            ServerParameters[5].Comment = OsLocalization.Market.Label107;
-            ServerParameters[6].Comment = OsLocalization.Market.Label107;
-            ServerParameters[7].Comment = OsLocalization.Market.Label107;
+            ServerParameters[5].Comment = OsLocalization.Market.Label193;
+            ServerParameters[6].Comment = OsLocalization.Market.Label194;
+            ServerParameters[7].Comment = OsLocalization.Market.Label195;
             ServerParameters[8].Comment = OsLocalization.Market.Label107;
             ServerParameters[9].Comment = OsLocalization.Market.Label107;
-            ServerParameters[10].Comment = OsLocalization.Market.Label105;
+            ServerParameters[10].Comment = OsLocalization.Market.Label107;
+            ServerParameters[11].Comment = OsLocalization.Market.Label107;
+            ServerParameters[12].Comment = OsLocalization.Market.Label105;
         }
     }
 
@@ -143,12 +147,14 @@ namespace OsEngine.Market.Servers.Transaq
             string serverIp = ((ServerParameterString)ServerParameters[2]).Value;
             string serverPort = ((ServerParameterString)ServerParameters[3]).Value;
 
-            _useStock = ((ServerParameterBool)ServerParameters[5]).Value;
-            _useFutures = ((ServerParameterBool)ServerParameters[6]).Value;
-            _useCurrency = ((ServerParameterBool)ServerParameters[7]).Value;
-            _useOptions = ((ServerParameterBool)ServerParameters[8]).Value;
-            _useOther = ((ServerParameterBool)ServerParameters[9]).Value;
-            ServerParameterButton btn = ((ServerParameterButton)ServerParameters[10]);
+            _useMoexStock = ((ServerParameterBool)ServerParameters[5]).Value;
+            _useFunds = ((ServerParameterBool)ServerParameters[6]).Value;
+            _useOtcStock = ((ServerParameterBool)ServerParameters[7]).Value;
+            _useFutures = ((ServerParameterBool)ServerParameters[8]).Value;
+            _useCurrency = ((ServerParameterBool)ServerParameters[9]).Value;
+            _useOptions = ((ServerParameterBool)ServerParameters[10]).Value;
+            _useOther = ((ServerParameterBool)ServerParameters[11]).Value;
+            ServerParameterButton btn = ((ServerParameterButton)ServerParameters[12]);
 
             btn.UserClickButton += () => { ButtonClickChangePasswordWindowShow(); };
 
@@ -380,7 +386,11 @@ namespace OsEngine.Market.Servers.Transaq
 
         #region 2 Properties
 
-        private bool _useStock = false;
+        private bool _useMoexStock = false;
+
+        private bool _useFunds = false;
+
+        private bool _useOtcStock = false;
 
         private bool _useFutures = false;
 
@@ -533,7 +543,10 @@ namespace OsEngine.Market.Servers.Transaq
                             continue;
                         }
 
-                        UpDateAllSpecifications();
+                        if (_useFutures == true)
+                        {
+                            UpDateAllSpecifications();
+                        }
 
                         SecurityEvent?.Invoke(_securities);
 
@@ -667,6 +680,7 @@ namespace OsEngine.Market.Servers.Transaq
                         security.NameId = securityData.Secid;
                         security.Decimals = Convert.ToInt32(securityData.Decimals);
                         security.Exchange = securityData.Board;
+                        security.VolumeStep = 1;
 
                         if (securityData.Sectype == "FUT")
                         {
@@ -830,10 +844,30 @@ namespace OsEngine.Market.Servers.Transaq
             {
                 if (security.Sectype == "SHARE")
                 {
-                    if (_useStock)
+                    if (security.Board == "TQTF" || security.Board == "TQIF") // Фонды
                     {
-                        return true;
+                        if (_useFunds)
+                        {
+                            return true;
+                        }
                     }
+
+                    if (security.Board == "MTQR" || security.Board == "SPFEQ") // другие внебиржевые акции
+                    {
+                        if (_useOtcStock)
+                        {
+                            return true;
+                        }
+                    }
+
+                    if (security.Board == "TQBR") // moex акции
+                    {
+                        if (_useMoexStock)
+                        {
+                            return true;
+                        }
+                    }
+
                     return false;
                 }
 
@@ -2394,6 +2428,11 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_securityInfoQueue.TryDequeue(out data))
                         {
+                            if (_useFutures == false)
+                            {
+                                continue;
+                            }
+
                             SecurityInfo newInfo =
                                 _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
                             UpdateSecurity(newInfo);
