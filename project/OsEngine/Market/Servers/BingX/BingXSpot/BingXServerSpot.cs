@@ -121,7 +121,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 UnsubscribeFromAllWebSockets();
                 _subscribledSecutiries.Clear();
-                DeleteWebscoektConnection();
+                DeleteWebSocketConnection();
             }
             catch (Exception exception)
             {
@@ -724,7 +724,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             _webSocketPrivate.Connect();
         }
 
-        private void DeleteWebscoektConnection()
+        private void DeleteWebSocketConnection()
         {
             if (_webSocketPublic != null)
             {
@@ -935,7 +935,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("BingXFutures WebSocket Private connection open", LogMessageType.System);
+                    SendLogMessage("BingXSpot WebSocket Private connection open", LogMessageType.System);
                     CheckSocketsActivate();
                     _webSocketPrivate.Send($"{{\"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"spot.executionReport\"}}"); // changing orders
                 }
