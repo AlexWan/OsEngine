@@ -505,6 +505,7 @@ namespace OsEngine.Market.Servers.Transaq
                         while (true)
                         {
                             Thread.Sleep(500);
+
                             if (_lastUpdateSecurityArrayTime == DateTime.MinValue)
                             {
                                 continue;
@@ -543,11 +544,6 @@ namespace OsEngine.Market.Servers.Transaq
                             continue;
                         }
 
-                        if (_useFutures == true)
-                        {
-                            UpDateAllSpecifications();
-                        }
-
                         SecurityEvent?.Invoke(_securities);
 
                         SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
@@ -563,8 +559,10 @@ namespace OsEngine.Market.Servers.Transaq
                             Subscrible(security);
                         }
                     }
-
-                    Thread.Sleep(10000);
+                    else
+                    {
+                        Thread.Sleep(1000);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -601,11 +599,20 @@ namespace OsEngine.Market.Servers.Transaq
                 return;
             }
 
-            UpDateAllSpecifications();
+            _needToUpdateSpecifications = true;
         }
+
+        private bool _needToUpdateSpecifications = false;
 
         private void UpDateAllSpecifications()
         {
+            if (_needToUpdateSpecifications == false)
+            {
+                return;
+            }
+
+            _needToUpdateSpecifications = false;
+
             if (_securities == null ||
                 _securities.Count == 0)
             {
@@ -821,7 +828,6 @@ namespace OsEngine.Market.Servers.Transaq
 
                         isChangedSecurity = true;
                         _securities.Add(security);
-
                     }
                     catch (Exception e)
                     {
@@ -2428,15 +2434,15 @@ namespace OsEngine.Market.Servers.Transaq
 
                         if (_securityInfoQueue.TryDequeue(out data))
                         {
-                            if (_useFutures == false)
-                            {
-                                continue;
-                            }
-
                             SecurityInfo newInfo =
-                                _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data }); ;
+                                _deserializer.Deserialize<SecurityInfo>(new RestResponse() { Content = data });
+
                             UpdateSecurity(newInfo);
                         }
+                    }
+                    else if (_needToUpdateSpecifications == true)
+                    {
+                        UpDateAllSpecifications();
                     }
                     else
                     {
