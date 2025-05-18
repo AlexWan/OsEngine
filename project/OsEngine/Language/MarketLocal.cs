@@ -805,6 +805,18 @@ namespace OsEngine.Language
           "Eng:The field is used when the proxy selection type is Manual. In the field you should insert the proxy number or IP address_" +
           "Ru:Поле используется при типе выбора прокси Manual. В поле надо вставить номер прокси или IP адрес_");
 
+        public string Label193 => OsLocalization.ConvertToLocString(
+          "Eng:Disables or enables the trading floor. Very much affects the connection speed. Trading mode TQBR_" +
+          "Ru:Отключает или включает площадку для торговли. Очень сильно влияет на скорость подключения. Режим торгов TQBR_");
+
+        public string Label194 => OsLocalization.ConvertToLocString(
+          "Eng:Disables or enables the trading floor. Very much affects the connection speed. Trading mode TQTF, TQIF_" +
+          "Ru:Отключает или включает площадку для торговли. Очень сильно влияет на скорость подключения. Режим торгов TQTF, TQIF_");
+
+        public string Label195 => OsLocalization.ConvertToLocString(
+          "Eng:Disables or enables the trading floor. Very much affects the connection speed. Trading mode MTQR, SPFEQ_" +
+          "Ru:Отключает или включает площадку для торговли. Очень сильно влияет на скорость подключения. Режим торгов MTQR, SPFEQ_");
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
@@ -1364,6 +1376,18 @@ namespace OsEngine.Language
         public string UseCurrency => OsLocalization.ConvertToLocString(
             "Eng:Currency_" +
             "Ru:Валюты_");
+
+        public string UseMoexStock => OsLocalization.ConvertToLocString(
+            "Eng:MOEX Stock_" +
+            "Ru:MOEX Акции_");
+
+        public string UseFunds => OsLocalization.ConvertToLocString(
+            "Eng:Funds_" +
+            "Ru:Фонды_");
+
+        public string UseOtcStock => OsLocalization.ConvertToLocString(
+            "Eng:OtcStock_" +
+            "Ru:ОТС Акции_");
 
         public string UseOther => OsLocalization.ConvertToLocString(
             "Eng:Other_" +
