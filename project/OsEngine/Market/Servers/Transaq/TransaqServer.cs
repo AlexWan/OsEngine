@@ -546,6 +546,8 @@ namespace OsEngine.Market.Servers.Transaq
 
                         SecurityEvent?.Invoke(_securities);
 
+                        _needToUpdateSpecifications = true;
+
                         SendLogMessage("Securities count: " + _securities.Count, LogMessageType.System);
                     }
                     else if (_unsignedSecurities.Count != 0)
@@ -1174,27 +1176,31 @@ namespace OsEngine.Market.Servers.Transaq
             // остатки по портфелю в валюте портфеля
 
             XmlNode currencyPortfolio = root.SelectSingleNode("portfolio_currency");
-            XmlNode balance = currencyPortfolio.SelectSingleNode("cover");
-            string cr = currencyPortfolio.Attributes[0].Value;
 
-            PositionOnBoard posCur = new PositionOnBoard();
-            posCur.SecurityNameCode = cr;
-            posCur.PortfolioName = portfolio.Number;
-
-            if (coverByAllPositions.Count > 0)
+            if(currencyPortfolio != null)
             {
-                decimal summCover = 0;
+                XmlNode balance = currencyPortfolio.SelectSingleNode("cover");
+                string cr = currencyPortfolio.Attributes[0].Value;
 
-                for (int i = 0; i < coverByAllPositions.Count; i++)
+                PositionOnBoard posCur = new PositionOnBoard();
+                posCur.SecurityNameCode = cr;
+                posCur.PortfolioName = portfolio.Number;
+
+                if (coverByAllPositions.Count > 0)
                 {
-                    summCover += coverByAllPositions[i];
+                    decimal summCover = 0;
+
+                    for (int i = 0; i < coverByAllPositions.Count; i++)
+                    {
+                        summCover += coverByAllPositions[i];
+                    }
+
+                    decimal allValue = equity.InnerText.ToDecimal();
+                    posCur.ValueCurrent = allValue - summCover;
                 }
 
-                decimal allValue = equity.InnerText.ToDecimal();
-                posCur.ValueCurrent = allValue - summCover;
+                portfolio.SetNewPosition(posCur);
             }
-
-            portfolio.SetNewPosition(posCur);
 
             return portfolio;
         }

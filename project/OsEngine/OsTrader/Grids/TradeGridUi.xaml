@@ -126,14 +126,12 @@
             </TabItem>
             <TabItem Header="Stop trading">
                 <Grid >
-                    <CheckBox Content="Stop by move up %" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="215,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
-                    <CheckBox Content="Stop by move down %" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="215,38,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
-
-                    <Label Content="* MarketMaking grid type only" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                    <CheckBox  Content="Stop by close positions count" HorizontalAlignment="Left" Margin="10,159,0,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="215,159,14,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStopGridByMoveUpIsOn" Content="Stop by move up %" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByMoveUpValuePercent" Margin="215,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStopGridByMoveDownIsOn" Content="Stop by move down %" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByMoveDownValuePercent" Margin="215,38,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStopGridByPositionsCountIsOn"  Content="Stop by close positions count *" HorizontalAlignment="Left" Margin="10,159,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByPositionsCountValue" Margin="215,159,14,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Stop and Profit">

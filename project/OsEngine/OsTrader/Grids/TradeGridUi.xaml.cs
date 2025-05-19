@@ -1,4 +1,5 @@
-﻿using OsEngine.Layout;
+﻿using OsEngine.Entity;
+using OsEngine.Layout;
 using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System;
 using System.Collections.Generic;
@@ -122,41 +123,47 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxNonTradePeriod5End.Text = tradeGrid.NonTradePeriod5End.ToString();
             TextBoxNonTradePeriod5End.TextChanged += TextBoxNonTradePeriod5End_TextChanged;
+
+            // trade days 
+
+            CheckBoxTradeInMonday.IsChecked = tradeGrid.TradeInMonday;
+            CheckBoxTradeInMonday.Checked += CheckBoxTradeInMonday_Checked;
+
+            CheckBoxTradeInTuesday.IsChecked = tradeGrid.TradeInTuesday;
+            CheckBoxTradeInTuesday.Checked += CheckBoxTradeInTuesday_Checked;
+
+            CheckBoxTradeInWednesday.IsChecked = tradeGrid.TradeInWednesday;
+            CheckBoxTradeInWednesday.Checked += CheckBoxTradeInWednesday_Checked;
+
+            CheckBoxTradeInThursday.IsChecked = tradeGrid.TradeInThursday;
+            CheckBoxTradeInThursday.Checked += CheckBoxTradeInThursday_Checked; 
+             
+            CheckBoxTradeInFriday.IsChecked = tradeGrid.TradeInFriday;
+            CheckBoxTradeInFriday.Checked += CheckBoxTradeInFriday_Checked;
+
+            CheckBoxTradeInSaturday.IsChecked = tradeGrid.TradeInSaturday;
+            CheckBoxTradeInSaturday.Checked += CheckBoxTradeInSaturday_Checked; 
+
+            CheckBoxTradeInSunday.IsChecked = tradeGrid.TradeInSunday;
+            CheckBoxTradeInSunday.Checked += CheckBoxTradeInSunday_Checked;
+
+            CheckBoxStopGridByMoveUpIsOn.IsChecked = tradeGrid.StopGridByMoveUpIsOn;
+            CheckBoxStopGridByMoveUpIsOn.Checked += CheckBoxStopGridByMoveUpIsOn_Checked;
+
+            TextBoxStopGridByMoveUpValuePercent.Text = tradeGrid.StopGridByMoveUpValuePercent.ToString();
+            TextBoxStopGridByMoveUpValuePercent.TextChanged += TextBoxStopGridByMoveUpValuePercent_TextChanged;
+
+
+
             /*
 
-             // non trade periods
-             result += NonTradePeriod1OnOff + "@";
-             result += NonTradePeriod1Start + "@";
-             result += NonTradePeriod1End + "@";
-             result += NonTradePeriod2OnOff + "@";
-             result += NonTradePeriod2Start + "@";
-             result += NonTradePeriod2End + "@";
-             result += NonTradePeriod3OnOff + "@";
-             result += NonTradePeriod3Start + "@";
-             result += NonTradePeriod3End + "@";
-             result += NonTradePeriod4OnOff + "@";
-             result += NonTradePeriod4Start + "@";
-             result += NonTradePeriod4End + "@";
-             result += NonTradePeriod5OnOff + "@";
-             result += NonTradePeriod5Start + "@";
-             result += NonTradePeriod5End + "@";
-
-             // trade days 
-             result += TradeInMonday + "@";
-             result += TradeInTuesday + "@";
-             result += TradeInWednesday + "@";
-             result += TradeInThursday + "@";
-             result += TradeInFriday + "@";
-             result += TradeInSaturday + "@";
-             result += TradeInSunday + "@";
-
              // stop grid by event
-             result += StopGridByPositionsCountIsOn + "@";
-             result += StopGridByPositionsCountValue + "@";
-             result += StopGridByProfitIsOn + "@";
-             result += StopGridByProfitValuePercent + "@";
-             result += StopGridByStopIsOn + "@";
-             result += StopGridByStopValuePercent + "@";
+            result += StopGridByPositionsCountIsOn + "@";
+            result += StopGridByPositionsCountValue + "@";
+            result += StopGridByMoveUpIsOn + "@";
+            result += StopGridByMoveUpValuePercent + "@";
+            result += StopGridByMoveDownIsOn + "@";
+            result += StopGridByMoveDownValuePercent + "@";
 
              // grid lines creation and storage
              result += GridSide + "@";
@@ -182,6 +189,132 @@ namespace OsEngine.OsTrader.Grids
              result += StopValue + "@";*/
 
         }
+
+        private void TextBoxStopGridByMoveUpValuePercent_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStopGridByMoveUpValuePercent.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.StopGridByMoveUpValuePercent = TextBoxNonTradePeriod1Start.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxStopGridByMoveUpIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.StopGridByMoveUpIsOn = CheckBoxStopGridByMoveUpIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #region Trade days 
+
+        private void CheckBoxTradeInMonday_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TradeInMonday = CheckBoxTradeInMonday.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTradeInTuesday_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TradeInTuesday = CheckBoxTradeInTuesday.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTradeInWednesday_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TradeInWednesday = CheckBoxTradeInWednesday.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTradeInThursday_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TradeInThursday = CheckBoxTradeInThursday.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTradeInFriday_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TradeInFriday = CheckBoxTradeInFriday.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTradeInSaturday_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TradeInSaturday = CheckBoxTradeInSaturday.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTradeInSunday_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TradeInSunday = CheckBoxTradeInSunday.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
 
         #region Non trade periods
 
@@ -271,8 +404,15 @@ namespace OsEngine.OsTrader.Grids
 
         private void CheckBoxNonTradePeriod3OnOff_Checked(object sender, RoutedEventArgs e)
         {
-            TradeGrid.NonTradePeriod3OnOff = CheckBoxNonTradePeriod3OnOff.IsChecked.Value;
-            TradeGrid.Save();
+            try
+            {
+                TradeGrid.NonTradePeriod3OnOff = CheckBoxNonTradePeriod3OnOff.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void TextBoxNonTradePeriod3Start_TextChanged(object sender, TextChangedEventArgs e)
@@ -313,8 +453,15 @@ namespace OsEngine.OsTrader.Grids
 
         private void CheckBoxNonTradePeriod4OnOff_Checked(object sender, RoutedEventArgs e)
         {
-            TradeGrid.NonTradePeriod4OnOff = CheckBoxNonTradePeriod4OnOff.IsChecked.Value;
-            TradeGrid.Save();
+            try
+            {
+                TradeGrid.NonTradePeriod4OnOff = CheckBoxNonTradePeriod4OnOff.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void TextBoxNonTradePeriod4Start_TextChanged(object sender, TextChangedEventArgs e)
@@ -355,8 +502,15 @@ namespace OsEngine.OsTrader.Grids
 
         private void CheckBoxNonTradePeriod5OnOff_Checked(object sender, RoutedEventArgs e)
         {
-            TradeGrid.NonTradePeriod5OnOff = CheckBoxNonTradePeriod5OnOff.IsChecked.Value;
-            TradeGrid.Save();
+            try
+            {
+                TradeGrid.NonTradePeriod5OnOff = CheckBoxNonTradePeriod5OnOff.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void TextBoxNonTradePeriod5Start_TextChanged(object sender, TextChangedEventArgs e)
@@ -531,6 +685,30 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxRegimeLogging.SelectionChanged -= ComboBoxRegimeLogging_SelectionChanged;
             ComboBoxAutoClearJournal.SelectionChanged -= ComboBoxAutoClearJournal_SelectionChanged;
             TextBoxMaxClosePositionsInJournal.TextChanged -= TextBoxMaxClosePositionsInJournal_TextChanged;
+
+            CheckBoxNonTradePeriod1OnOff.Checked -= CheckBoxNonTradePeriod1OnOff_Checked;
+            CheckBoxNonTradePeriod2OnOff.Checked -= CheckBoxNonTradePeriod2OnOff_Checked;
+            CheckBoxNonTradePeriod3OnOff.Checked -= CheckBoxNonTradePeriod3OnOff_Checked;
+            CheckBoxNonTradePeriod4OnOff.Checked -= CheckBoxNonTradePeriod4OnOff_Checked;
+            CheckBoxNonTradePeriod5OnOff.Checked -= CheckBoxNonTradePeriod5OnOff_Checked;
+            TextBoxNonTradePeriod1Start.TextChanged -= TextBoxNonTradePeriod1Start_TextChanged;
+            TextBoxNonTradePeriod2Start.TextChanged -= TextBoxNonTradePeriod2Start_TextChanged;
+            TextBoxNonTradePeriod3Start.TextChanged -= TextBoxNonTradePeriod3Start_TextChanged;
+            TextBoxNonTradePeriod4Start.TextChanged -= TextBoxNonTradePeriod4Start_TextChanged;
+            TextBoxNonTradePeriod5Start.TextChanged -= TextBoxNonTradePeriod5Start_TextChanged;
+            TextBoxNonTradePeriod1End.TextChanged -= TextBoxNonTradePeriod1End_TextChanged;
+            TextBoxNonTradePeriod2End.TextChanged -= TextBoxNonTradePeriod2End_TextChanged;
+            TextBoxNonTradePeriod3End.TextChanged -= TextBoxNonTradePeriod3End_TextChanged;
+            TextBoxNonTradePeriod4End.TextChanged -= TextBoxNonTradePeriod4End_TextChanged;
+            TextBoxNonTradePeriod5End.TextChanged -= TextBoxNonTradePeriod5End_TextChanged;
+
+            CheckBoxTradeInMonday.Checked -= CheckBoxTradeInMonday_Checked;
+            CheckBoxTradeInTuesday.Checked -= CheckBoxTradeInTuesday_Checked;
+            CheckBoxTradeInWednesday.Checked -= CheckBoxTradeInWednesday_Checked;
+            CheckBoxTradeInThursday.Checked -= CheckBoxTradeInThursday_Checked;
+            CheckBoxTradeInFriday.Checked -= CheckBoxTradeInFriday_Checked;
+            CheckBoxTradeInSaturday.Checked -= CheckBoxTradeInSaturday_Checked;
+            CheckBoxTradeInSunday.Checked -= CheckBoxTradeInSunday_Checked;
 
         }
 

@@ -95,10 +95,10 @@ namespace OsEngine.OsTrader.Grids
             // stop grid by event
             result += StopGridByPositionsCountIsOn + "@";
             result += StopGridByPositionsCountValue + "@";
-            result += StopGridByProfitIsOn + "@";
-            result += StopGridByProfitValuePercent + "@";
-            result += StopGridByStopIsOn + "@";
-            result += StopGridByStopValuePercent + "@";
+            result += StopGridByMoveUpIsOn + "@";
+            result += StopGridByMoveUpValuePercent + "@";
+            result += StopGridByMoveDownIsOn + "@";
+            result += StopGridByMoveDownValuePercent + "@";
 
             // grid lines creation and storage
             result += GridSide + "@";
@@ -346,13 +346,13 @@ namespace OsEngine.OsTrader.Grids
 
         public StrategyParameterInt StopGridByPositionsCountValue;
 
-        public bool StopGridByProfitIsOn;
+        public bool StopGridByMoveUpIsOn;
 
-        public decimal StopGridByProfitValuePercent;
+        public decimal StopGridByMoveUpValuePercent;
 
-        public bool StopGridByStopIsOn;
+        public bool StopGridByMoveDownIsOn;
 
-        public decimal StopGridByStopValuePercent;
+        public decimal StopGridByMoveDownValuePercent;
 
         public void TryStopGridByEvent()
         {
