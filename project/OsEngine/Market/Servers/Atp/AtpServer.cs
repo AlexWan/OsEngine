@@ -430,7 +430,10 @@ namespace OsEngine.Market.Servers.Atp
         {
             try
             {
+                CheckFolders();
+
                 ClearFolder("Atp_Router\\Files\\");
+
                 string[] folders = Directory.GetDirectories("Atp_Router\\Files\\");
 
                 for (int i = 0; i < folders.Length; i++)
@@ -442,6 +445,33 @@ namespace OsEngine.Market.Servers.Atp
             {
                 SendLogMessage(e.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void CheckFolders()
+        {
+            string path = "Atp_Router\\Files\\";
+
+            string[] folders = new string[] 
+            {
+                path, 
+                path + "MyTrades\\", 
+                path + "MyTrades2\\", 
+                path + "OrderAction2\\", 
+                path + "OrderActiv\\", 
+                path + "OrderFail1\\", 
+                path + "OrderFail2\\",
+                path + "OrderFail3\\",
+                path + "OrderFail4\\",
+                path + "OrderFail5\\",
+            };
+
+            for (int i = 0; i < folders.Length; i++)
+            {
+                if (!Directory.Exists(folders[i]))
+                {
+                    Directory.CreateDirectory(folders[i]);
+                }
+            }            
         }
 
         private void ClearFolder(string folderPath)
@@ -1087,7 +1117,7 @@ namespace OsEngine.Market.Servers.Atp
         private int _counterOrderAction2 = 0;
         private void TryLoadOrderAction2()
         {
-            if (Directory.Exists("Atp_Router\\Files\\MyTrades2\\") == false)
+            if (Directory.Exists("Atp_Router\\Files\\OrderAction2\\") == false)
             {
                 return;
             }
