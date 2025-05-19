@@ -232,6 +232,75 @@ namespace OsEngine.OsTrader.Grids
 
         }
 
+        private void TradeGridUi_Closed(object sender, EventArgs e)
+        {
+            TradeGrid = null;
+
+            ComboBoxGridType.SelectionChanged -= ComboBoxGridType_SelectionChanged;
+            TextBoxClosePositionNumber.TextChanged -= TextBoxClosePositionNumber_TextChanged;
+            ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
+            ComboBoxRegimeLogicEntry.SelectionChanged -= ComboBoxRegimeLogicEntry_SelectionChanged;
+            ComboBoxRegimeLogging.SelectionChanged -= ComboBoxRegimeLogging_SelectionChanged;
+            ComboBoxAutoClearJournal.SelectionChanged -= ComboBoxAutoClearJournal_SelectionChanged;
+            TextBoxMaxClosePositionsInJournal.TextChanged -= TextBoxMaxClosePositionsInJournal_TextChanged;
+
+            CheckBoxNonTradePeriod1OnOff.Checked -= CheckBoxNonTradePeriod1OnOff_Checked;
+            CheckBoxNonTradePeriod2OnOff.Checked -= CheckBoxNonTradePeriod2OnOff_Checked;
+            CheckBoxNonTradePeriod3OnOff.Checked -= CheckBoxNonTradePeriod3OnOff_Checked;
+            CheckBoxNonTradePeriod4OnOff.Checked -= CheckBoxNonTradePeriod4OnOff_Checked;
+            CheckBoxNonTradePeriod5OnOff.Checked -= CheckBoxNonTradePeriod5OnOff_Checked;
+            TextBoxNonTradePeriod1Start.TextChanged -= TextBoxNonTradePeriod1Start_TextChanged;
+            TextBoxNonTradePeriod2Start.TextChanged -= TextBoxNonTradePeriod2Start_TextChanged;
+            TextBoxNonTradePeriod3Start.TextChanged -= TextBoxNonTradePeriod3Start_TextChanged;
+            TextBoxNonTradePeriod4Start.TextChanged -= TextBoxNonTradePeriod4Start_TextChanged;
+            TextBoxNonTradePeriod5Start.TextChanged -= TextBoxNonTradePeriod5Start_TextChanged;
+            TextBoxNonTradePeriod1End.TextChanged -= TextBoxNonTradePeriod1End_TextChanged;
+            TextBoxNonTradePeriod2End.TextChanged -= TextBoxNonTradePeriod2End_TextChanged;
+            TextBoxNonTradePeriod3End.TextChanged -= TextBoxNonTradePeriod3End_TextChanged;
+            TextBoxNonTradePeriod4End.TextChanged -= TextBoxNonTradePeriod4End_TextChanged;
+            TextBoxNonTradePeriod5End.TextChanged -= TextBoxNonTradePeriod5End_TextChanged;
+
+            CheckBoxTradeInMonday.Checked -= CheckBoxTradeInMonday_Checked;
+            CheckBoxTradeInTuesday.Checked -= CheckBoxTradeInTuesday_Checked;
+            CheckBoxTradeInWednesday.Checked -= CheckBoxTradeInWednesday_Checked;
+            CheckBoxTradeInThursday.Checked -= CheckBoxTradeInThursday_Checked;
+            CheckBoxTradeInFriday.Checked -= CheckBoxTradeInFriday_Checked;
+            CheckBoxTradeInSaturday.Checked -= CheckBoxTradeInSaturday_Checked;
+            CheckBoxTradeInSunday.Checked -= CheckBoxTradeInSunday_Checked;
+
+            CheckBoxStopGridByMoveUpIsOn.Checked -= CheckBoxStopGridByMoveUpIsOn_Checked;
+            TextBoxStopGridByMoveUpValuePercent.TextChanged -= TextBoxStopGridByMoveUpValuePercent_TextChanged;
+            CheckBoxStopGridByMoveDownIsOn.Checked -= CheckBoxStopGridByMoveDownIsOn_Checked;
+            TextBoxStopGridByMoveDownValuePercent.TextChanged -= TextBoxStopGridByMoveDownValuePercent_TextChanged;
+            CheckBoxStopGridByPositionsCountIsOn.Checked -= CheckBoxStopGridByPositionsCountIsOn_Checked;
+            TextBoxStopGridByPositionsCountValue.TextChanged -= TextBoxStopGridByPositionsCountValue_TextChanged;
+
+            ComboBoxGridSide.SelectionChanged -= ComboBoxGridSide_SelectionChanged;
+            TextBoxFirstPrice.TextChanged -= TextBoxFirstPrice_TextChanged;
+            TextBoxLineCountStart.TextChanged -= TextBoxLineCountStart_TextChanged;
+            TextBoxMaxOrdersInMarket.TextChanged -= TextBoxMaxOrdersInMarket_TextChanged;
+            ComboBoxTypeStep.SelectionChanged -= ComboBoxTypeStep_SelectionChanged;
+            TextBoxLineStep.TextChanged -= TextBoxLineStep_TextChanged;
+            TextBoxStepMultiplicator.TextChanged -= TextBoxStepMultiplicator_TextChanged;
+            ComboBoxTypeProfit.SelectionChanged -= ComboBoxTypeProfit_SelectionChanged;
+            TextBoxProfitStep.TextChanged -= TextBoxProfitStep_TextChanged;
+            TextBoxProfitMultiplicator.TextChanged -= TextBoxProfitMultiplicator_TextChanged;
+            TextBoxMartingaleMultiplicator.TextChanged -= TextBoxMartingaleMultiplicator_TextChanged;
+            TextBoxTradeAssetInPortfolio.TextChanged -= TextBoxTradeAssetInPortfolio_TextChanged;
+
+            ComboBoxProfitRegime.SelectionChanged -= ComboBoxProfitRegime_SelectionChanged;
+            ComboBoxProfitValueType.SelectionChanged -= ComboBoxProfitValueType_SelectionChanged;
+            TextBoxProfitValue.TextChanged -= TextBoxProfitValue_TextChanged;
+            ComboBoxStopRegime.SelectionChanged -= ComboBoxStopRegime_SelectionChanged;
+            ComboBoxStopValueType.SelectionChanged -= ComboBoxStopValueType_SelectionChanged;
+            TextBoxStopValue.TextChanged -= TextBoxStopValue_TextChanged;
+
+        }
+
+        public TradeGrid TradeGrid;
+
+        public int Number;
+
         #region Stop and profit 
 
         private void ComboBoxProfitRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -1098,55 +1167,5 @@ namespace OsEngine.OsTrader.Grids
         }
 
         #endregion
-
-        private void TradeGridUi_Closed(object sender, EventArgs e)
-        {
-            TradeGrid = null;
-
-            ComboBoxGridType.SelectionChanged -= ComboBoxGridType_SelectionChanged;
-            TextBoxClosePositionNumber.TextChanged -= TextBoxClosePositionNumber_TextChanged;
-            ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
-            ComboBoxRegimeLogicEntry.SelectionChanged -= ComboBoxRegimeLogicEntry_SelectionChanged;
-            ComboBoxRegimeLogging.SelectionChanged -= ComboBoxRegimeLogging_SelectionChanged;
-            ComboBoxAutoClearJournal.SelectionChanged -= ComboBoxAutoClearJournal_SelectionChanged;
-            TextBoxMaxClosePositionsInJournal.TextChanged -= TextBoxMaxClosePositionsInJournal_TextChanged;
-
-            CheckBoxNonTradePeriod1OnOff.Checked -= CheckBoxNonTradePeriod1OnOff_Checked;
-            CheckBoxNonTradePeriod2OnOff.Checked -= CheckBoxNonTradePeriod2OnOff_Checked;
-            CheckBoxNonTradePeriod3OnOff.Checked -= CheckBoxNonTradePeriod3OnOff_Checked;
-            CheckBoxNonTradePeriod4OnOff.Checked -= CheckBoxNonTradePeriod4OnOff_Checked;
-            CheckBoxNonTradePeriod5OnOff.Checked -= CheckBoxNonTradePeriod5OnOff_Checked;
-            TextBoxNonTradePeriod1Start.TextChanged -= TextBoxNonTradePeriod1Start_TextChanged;
-            TextBoxNonTradePeriod2Start.TextChanged -= TextBoxNonTradePeriod2Start_TextChanged;
-            TextBoxNonTradePeriod3Start.TextChanged -= TextBoxNonTradePeriod3Start_TextChanged;
-            TextBoxNonTradePeriod4Start.TextChanged -= TextBoxNonTradePeriod4Start_TextChanged;
-            TextBoxNonTradePeriod5Start.TextChanged -= TextBoxNonTradePeriod5Start_TextChanged;
-            TextBoxNonTradePeriod1End.TextChanged -= TextBoxNonTradePeriod1End_TextChanged;
-            TextBoxNonTradePeriod2End.TextChanged -= TextBoxNonTradePeriod2End_TextChanged;
-            TextBoxNonTradePeriod3End.TextChanged -= TextBoxNonTradePeriod3End_TextChanged;
-            TextBoxNonTradePeriod4End.TextChanged -= TextBoxNonTradePeriod4End_TextChanged;
-            TextBoxNonTradePeriod5End.TextChanged -= TextBoxNonTradePeriod5End_TextChanged;
-
-            CheckBoxTradeInMonday.Checked -= CheckBoxTradeInMonday_Checked;
-            CheckBoxTradeInTuesday.Checked -= CheckBoxTradeInTuesday_Checked;
-            CheckBoxTradeInWednesday.Checked -= CheckBoxTradeInWednesday_Checked;
-            CheckBoxTradeInThursday.Checked -= CheckBoxTradeInThursday_Checked;
-            CheckBoxTradeInFriday.Checked -= CheckBoxTradeInFriday_Checked;
-            CheckBoxTradeInSaturday.Checked -= CheckBoxTradeInSaturday_Checked;
-            CheckBoxTradeInSunday.Checked -= CheckBoxTradeInSunday_Checked;
-
-            CheckBoxStopGridByMoveUpIsOn.Checked -= CheckBoxStopGridByMoveUpIsOn_Checked;
-            TextBoxStopGridByMoveUpValuePercent.TextChanged -= TextBoxStopGridByMoveUpValuePercent_TextChanged;
-            CheckBoxStopGridByMoveDownIsOn.Checked -= CheckBoxStopGridByMoveDownIsOn_Checked;
-            TextBoxStopGridByMoveDownValuePercent.TextChanged -= TextBoxStopGridByMoveDownValuePercent_TextChanged;
-            CheckBoxStopGridByPositionsCountIsOn.Checked -= CheckBoxStopGridByPositionsCountIsOn_Checked;
-            TextBoxStopGridByPositionsCountValue.TextChanged -= TextBoxStopGridByPositionsCountValue_TextChanged;
-
-        }
-
-        public TradeGrid TradeGrid;
-
-        public int Number;
-
     }
 }

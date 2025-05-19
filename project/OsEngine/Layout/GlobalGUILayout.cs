@@ -19,6 +19,11 @@ namespace OsEngine.Layout
                     _isFirstTime = false;
                     Load();
 
+                    for (int i = 0; i < UiOpenWindows.Count; i++)
+                    {
+                        UiOpenWindows[i].UiLocationChangeEvent += UiLocationChangeEvent;
+                    }
+
                     if(ScreenSettingsIsAllRight() == false)
                     {
                         UiOpenWindows = new List<OpenWindow>();
@@ -36,8 +41,7 @@ namespace OsEngine.Layout
                     SetLayoutInWindow(ui, UiOpenWindows[i].Layout);
                     UiOpenWindows[i].WindowCreateTime = DateTime.Now;
                     UiOpenWindows[i].IsActivate = false;
-
-                    SubscribeEvents(ui, name);
+                    UiOpenWindows[i].Ui = ui;
                     return;
                 }
             }
@@ -46,58 +50,20 @@ namespace OsEngine.Layout
             window.Name = name;
             window.WindowCreateTime = DateTime.Now;
             window.Layout = new OpenWindowLayout();
+            window.Ui = ui;
+            window.UiLocationChangeEvent += UiLocationChangeEvent;
 
             SetLayoutFromWindow(ui, window);
 
             lock(_lockerArrayWithWindows)
             {
                 UiOpenWindows.Add(window);
-                if(_isFirstTime == true)
-                {
-                    _isFirstTime = false;
-                    Load();
-                }
                 _needToSave = true;
             }
-
-            SubscribeEvents(ui, name);           
+      
         }
 
         private static string _lockerArrayWithWindows = "openUiLocker";
-
-        private static void SubscribeEvents(System.Windows.Window ui, string name)
-        {
-            ui.LocationChanged += (o, e) =>
-            {
-                UiLocationChangeEvent(ui, name);
-            };
-            ui.SizeChanged += (o, e) =>
-            {
-                UiLocationChangeEvent(ui, name);
-            };
-            ui.Closed += (o, e) =>
-            {
-                UiClosedEvent(ui, name);
-            };
-        }
-
-        private static void UiClosedEvent(System.Windows.Window ui, string name)
-        {
-            ui.LocationChanged -= (o, e) =>
-            {
-                UiLocationChangeEvent(ui, name);
-            };
-            ui.SizeChanged -= (o, e) =>
-            {
-                UiLocationChangeEvent(ui, name);
-            };
-            ui.Closed -= (o, e) =>
-            {
-                UiClosedEvent(ui, name);
-            };
-
-          
-        }
 
         private static void UiLocationChangeEvent(System.Windows.Window ui, string name)
         {
@@ -385,6 +351,52 @@ namespace OsEngine.Layout
 
     public class OpenWindow
     {
+        public System.Windows.Window Ui
+        {
+            get
+            {
+                return _ui;
+            }
+            set
+            {
+                if(_ui != null)
+                {
+                    _ui.LocationChanged -= _ui_LocationChanged;
+                    _ui.SizeChanged -= _ui_SizeChanged;
+                    _ui.Closed -= _ui_Closed;
+                }
+
+                _ui = value;
+
+                if(_ui != null)
+                {
+                    _ui.LocationChanged += _ui_LocationChanged;
+                    _ui.SizeChanged += _ui_SizeChanged;
+                    _ui.Closed += _ui_Closed;
+                }
+            }
+        }
+
+        private void _ui_Closed(object sender, EventArgs e)
+        {
+            _ui.LocationChanged -= _ui_LocationChanged;
+            _ui.SizeChanged -= _ui_SizeChanged;
+            _ui.Closed -= _ui_Closed;
+            _ui = null;
+        }
+
+        private void _ui_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        {
+            UiLocationChangeEvent(_ui, Name);
+        }
+
+        private void _ui_LocationChanged(object sender, EventArgs e)
+        {
+            UiLocationChangeEvent(_ui, Name);
+        }
+
+        private System.Windows.Window _ui;
+
         public OpenWindowLayout Layout;
 
         public string Name;
@@ -420,6 +432,8 @@ namespace OsEngine.Layout
             Layout.Widht = strLayout[3].ToDecimal();
             Layout.IsExpand = Convert.ToBoolean(strLayout[4]);
         }
+
+        public event Action<System.Windows.Window, string> UiLocationChangeEvent;
     }
 
     public class OpenWindowLayout
