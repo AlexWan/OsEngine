@@ -1,20 +1,14 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Layout;
-using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -147,59 +141,135 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxTradeInSunday.IsChecked = tradeGrid.TradeInSunday;
             CheckBoxTradeInSunday.Checked += CheckBoxTradeInSunday_Checked;
 
+            // stop grid by event
+
             CheckBoxStopGridByMoveUpIsOn.IsChecked = tradeGrid.StopGridByMoveUpIsOn;
             CheckBoxStopGridByMoveUpIsOn.Checked += CheckBoxStopGridByMoveUpIsOn_Checked;
-
             TextBoxStopGridByMoveUpValuePercent.Text = tradeGrid.StopGridByMoveUpValuePercent.ToString();
             TextBoxStopGridByMoveUpValuePercent.TextChanged += TextBoxStopGridByMoveUpValuePercent_TextChanged;
 
+            CheckBoxStopGridByMoveDownIsOn.IsChecked = tradeGrid.StopGridByMoveDownIsOn;
+            CheckBoxStopGridByMoveDownIsOn.Checked += CheckBoxStopGridByMoveDownIsOn_Checked;
+            TextBoxStopGridByMoveDownValuePercent.Text = tradeGrid.StopGridByMoveDownValuePercent.ToString();
+            TextBoxStopGridByMoveDownValuePercent.TextChanged += TextBoxStopGridByMoveDownValuePercent_TextChanged;
 
+            CheckBoxStopGridByPositionsCountIsOn.IsChecked = tradeGrid.StopGridByPositionsCountIsOn;
+            CheckBoxStopGridByPositionsCountIsOn.Checked += CheckBoxStopGridByPositionsCountIsOn_Checked;
+            TextBoxStopGridByPositionsCountValue.Text = tradeGrid.StopGridByPositionsCountValue.ToString();
+            TextBoxStopGridByPositionsCountValue.TextChanged += TextBoxStopGridByPositionsCountValue_TextChanged;
 
-            /*
+            // grid lines creation
 
-             // stop grid by event
-            result += StopGridByPositionsCountIsOn + "@";
-            result += StopGridByPositionsCountValue + "@";
-            result += StopGridByMoveUpIsOn + "@";
-            result += StopGridByMoveUpValuePercent + "@";
-            result += StopGridByMoveDownIsOn + "@";
-            result += StopGridByMoveDownValuePercent + "@";
+            ComboBoxGridSide.Items.Add(Side.Buy.ToString());
+            ComboBoxGridSide.Items.Add(Side.Sell.ToString());
+            ComboBoxGridSide.SelectedItem = tradeGrid.GridSide.ToString();
+            ComboBoxGridSide.SelectionChanged += ComboBoxGridSide_SelectionChanged;
 
-             // grid lines creation and storage
-             result += GridSide + "@";
-             result += FirstPrice + "@";
-             result += LineCountStart + "@";
-             result += LineStep + "@";
-             result += TypeVolume + "@";
-             result += TypeProfit + "@";
-             result += TypeStep + "@";
-             result += StartVolume + "@";
-             result += TradeAssetInPortfolio + "@";
-             result += ProfitStep + "@";
-             result += ProfitMultiplicator + "@";
-             result += StepMultiplicator + "@";
-             result += MartingaleMultiplicator + "@";
+            TextBoxFirstPrice.Text = tradeGrid.FirstPrice.ToString();
+            TextBoxFirstPrice.TextChanged += TextBoxFirstPrice_TextChanged;
 
-             // stop and profit 
-             result += ProfitRegime + "@";
-             result += ProfitValueType + "@";
-             result += ProfitValue + "@";
-             result += StopRegime + "@";
-             result += StopValueType + "@";
-             result += StopValue + "@";*/
+            TextBoxLineCountStart.Text = tradeGrid.LineCountStart.ToString();
+            TextBoxLineCountStart.TextChanged += TextBoxLineCountStart_TextChanged;
+
+            TextBoxMaxOrdersInMarket.Text = tradeGrid.MaxOrdersInMarket.ToString();
+            TextBoxMaxOrdersInMarket.TextChanged += TextBoxMaxOrdersInMarket_TextChanged;
+
+            ComboBoxTypeStep.Items.Add(TradeGridValueType.Percent.ToString());
+            ComboBoxTypeStep.Items.Add(TradeGridValueType.Absolute.ToString());
+            ComboBoxTypeStep.SelectedItem = tradeGrid.TypeStep.ToString();
+            ComboBoxTypeStep.SelectionChanged += ComboBoxTypeStep_SelectionChanged;
+
+            TextBoxLineStep.Text = tradeGrid.LineStep.ToString();
+            TextBoxLineStep.TextChanged += TextBoxLineStep_TextChanged;
+
+            TextBoxStepMultiplicator.Text = tradeGrid.StepMultiplicator.ToString();
+            TextBoxStepMultiplicator.TextChanged += TextBoxStepMultiplicator_TextChanged;
+
+            ComboBoxTypeProfit.Items.Add(TradeGridValueType.Percent.ToString());
+            ComboBoxTypeProfit.Items.Add(TradeGridValueType.Absolute.ToString());
+            ComboBoxTypeProfit.SelectedItem = tradeGrid.TypeProfit.ToString();
+            ComboBoxTypeProfit.SelectionChanged += ComboBoxTypeProfit_SelectionChanged;
+
+            TextBoxProfitStep.Text = tradeGrid.ProfitStep.ToString();
+            TextBoxProfitStep.TextChanged += TextBoxProfitStep_TextChanged;
+
+            TextBoxProfitMultiplicator.Text = tradeGrid.ProfitMultiplicator.ToString();
+            TextBoxProfitMultiplicator.TextChanged += TextBoxProfitMultiplicator_TextChanged;
+
+            TextBoxMartingaleMultiplicator.Text = tradeGrid.ProfitMultiplicator.ToString();
+            TextBoxMartingaleMultiplicator.TextChanged += TextBoxMartingaleMultiplicator_TextChanged;
+
+            TextBoxTradeAssetInPortfolio.Text = tradeGrid.TradeAssetInPortfolio;
+            TextBoxTradeAssetInPortfolio.TextChanged += TextBoxTradeAssetInPortfolio_TextChanged;
+
+            // stop and profit 
+
+            ComboBoxProfitRegime.Items.Add(TradeGridStopRegime.Off.ToString());
+            ComboBoxProfitRegime.Items.Add(TradeGridStopRegime.On.ToString());
+            ComboBoxProfitRegime.SelectedItem = tradeGrid.ProfitRegime.ToString();
+            ComboBoxProfitRegime.SelectionChanged += ComboBoxProfitRegime_SelectionChanged;
+
+            ComboBoxProfitValueType.Items.Add(TradeGridValueType.Percent.ToString());
+            ComboBoxProfitValueType.Items.Add(TradeGridValueType.Absolute.ToString());
+            ComboBoxProfitValueType.SelectedItem = tradeGrid.ProfitValueType.ToString();
+            ComboBoxProfitValueType.SelectionChanged += ComboBoxProfitValueType_SelectionChanged;
+
+            TextBoxProfitValue.Text = tradeGrid.ProfitValue.ToString();
+            TextBoxProfitValue.TextChanged += TextBoxProfitValue_TextChanged;
+
+            ComboBoxStopRegime.Items.Add(TradeGridStopRegime.Off.ToString());
+            ComboBoxStopRegime.Items.Add(TradeGridStopRegime.On.ToString());
+            ComboBoxStopRegime.SelectedItem = tradeGrid.StopRegime.ToString();
+            ComboBoxStopRegime.SelectionChanged += ComboBoxStopRegime_SelectionChanged;
+
+            ComboBoxStopValueType.Items.Add(TradeGridValueType.Percent.ToString());
+            ComboBoxStopValueType.Items.Add(TradeGridValueType.Absolute.ToString());
+            ComboBoxStopValueType.SelectedItem = tradeGrid.StopValueType.ToString();
+            ComboBoxStopValueType.SelectionChanged += ComboBoxStopValueType_SelectionChanged;
+
+            TextBoxStopValue.Text = tradeGrid.StopValue.ToString();
+            TextBoxStopValue.TextChanged += TextBoxStopValue_TextChanged;
 
         }
 
-        private void TextBoxStopGridByMoveUpValuePercent_TextChanged(object sender, TextChangedEventArgs e)
+        #region Stop and profit 
+
+        private void ComboBoxProfitRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxStopGridByMoveUpValuePercent.Text))
+                Enum.TryParse(ComboBoxProfitRegime.SelectedItem.ToString(), out TradeGrid.ProfitRegime);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxProfitValueType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxProfitValueType.SelectedItem.ToString(), out TradeGrid.ProfitValueType);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxProfitValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxProfitValue.Text))
                 {
                     return;
                 }
 
-                TradeGrid.StopGridByMoveUpValuePercent = TextBoxNonTradePeriod1Start.Text.ToDecimal();
+                TradeGrid.ProfitValue = TextBoxProfitValue.Text.ToDecimal();
                 TradeGrid.Save();
             }
             catch
@@ -207,6 +277,279 @@ namespace OsEngine.OsTrader.Grids
                 // ignore
             }
         }
+
+        private void ComboBoxStopRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxStopRegime.SelectedItem.ToString(), out TradeGrid.StopRegime);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxStopValueType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxStopValueType.SelectedItem.ToString(), out TradeGrid.StopValueType);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxStopValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStopValue.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.StopValue = TextBoxStopValue.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
+        #region Grid lines creation
+
+        private void ComboBoxGridSide_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxGridSide.SelectedItem.ToString(), out TradeGrid.GridSide);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxFirstPrice_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxFirstPrice.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.FirstPrice = TextBoxFirstPrice.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxLineCountStart_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxLineCountStart.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.LineCountStart = Convert.ToInt32(TextBoxLineCountStart.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxMaxOrdersInMarket_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxMaxOrdersInMarket.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.MaxOrdersInMarket = Convert.ToInt32(TextBoxMaxOrdersInMarket.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxTypeStep_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxTypeStep.SelectedItem.ToString(), out TradeGrid.TypeStep);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxLineStep_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxLineStep.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.LineStep = Convert.ToInt32(TextBoxLineStep.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxStepMultiplicator_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStepMultiplicator.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.StepMultiplicator = TextBoxStepMultiplicator.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxTypeProfit_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxTypeProfit.SelectedItem.ToString(), out TradeGrid.TypeProfit);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxProfitStep_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxProfitStep.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.ProfitStep = TextBoxProfitStep.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxProfitMultiplicator_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxProfitMultiplicator.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.ProfitMultiplicator = TextBoxProfitMultiplicator.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxMartingaleMultiplicator_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxMartingaleMultiplicator.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.MartingaleMultiplicator = TextBoxMartingaleMultiplicator.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxTradeAssetInPortfolio_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxTradeAssetInPortfolio.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.TradeAssetInPortfolio = TextBoxTradeAssetInPortfolio.Text;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ButtonCreateGrid_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonDeleteGrid_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonNewLevel_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonRemoveSelected_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        #endregion
+
+        #region Stop grid by event
 
         private void CheckBoxStopGridByMoveUpIsOn_Checked(object sender, RoutedEventArgs e)
         {
@@ -220,6 +563,88 @@ namespace OsEngine.OsTrader.Grids
                 // ignore
             }
         }
+
+        private void TextBoxStopGridByMoveUpValuePercent_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStopGridByMoveUpValuePercent.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.StopGridByMoveUpValuePercent = TextBoxStopGridByMoveUpValuePercent.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxStopGridByMoveDownIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.StopGridByMoveDownIsOn = CheckBoxStopGridByMoveDownIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxStopGridByMoveDownValuePercent_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStopGridByMoveDownValuePercent.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.StopGridByMoveDownValuePercent = TextBoxStopGridByMoveDownValuePercent.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxStopGridByPositionsCountIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.StopGridByPositionsCountIsOn = CheckBoxStopGridByPositionsCountIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxStopGridByPositionsCountValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStopGridByPositionsCountValue.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.StopGridByPositionsCountValue = Convert.ToInt32(TextBoxStopGridByPositionsCountValue.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
 
         #region Trade days 
 
@@ -709,6 +1134,13 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxTradeInFriday.Checked -= CheckBoxTradeInFriday_Checked;
             CheckBoxTradeInSaturday.Checked -= CheckBoxTradeInSaturday_Checked;
             CheckBoxTradeInSunday.Checked -= CheckBoxTradeInSunday_Checked;
+
+            CheckBoxStopGridByMoveUpIsOn.Checked -= CheckBoxStopGridByMoveUpIsOn_Checked;
+            TextBoxStopGridByMoveUpValuePercent.TextChanged -= TextBoxStopGridByMoveUpValuePercent_TextChanged;
+            CheckBoxStopGridByMoveDownIsOn.Checked -= CheckBoxStopGridByMoveDownIsOn_Checked;
+            TextBoxStopGridByMoveDownValuePercent.TextChanged -= TextBoxStopGridByMoveDownValuePercent_TextChanged;
+            CheckBoxStopGridByPositionsCountIsOn.Checked -= CheckBoxStopGridByPositionsCountIsOn_Checked;
+            TextBoxStopGridByPositionsCountValue.TextChanged -= TextBoxStopGridByPositionsCountValue_TextChanged;
 
         }
 

@@ -51,41 +51,40 @@
             <TabItem Header="Grid creation">
                 <Grid >
                     <Label Content="Direction" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Margin="164,10,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxGridSide" Margin="164,10,14,0" VerticalAlignment="Top"/>
 
                     <Label Content="First price" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="164,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
-                    <Label Content="Orders count" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="164,66,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFirstPrice" Margin="164,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
+                    <Label Content="Lines count" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxLineCountStart" Margin="164,66,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
                     <Label Content="Max orders in market" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxMaxOrdersInMarket" Text="5" Margin="164,94,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
                     <Label Content="Step" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="68,122,0,0" VerticalAlignment="Top" Width="102"/>
-                    <TextBox Margin="195,122,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="76"/>
-                    <TextBox Margin="296,122,14,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxTypeStep" HorizontalAlignment="Left" Margin="68,122,0,0" VerticalAlignment="Top" Width="102"/>
+                    <TextBox Name="TextBoxLineStep" Margin="195,122,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="76"/>
+                    <TextBox Name="TextBoxStepMultiplicator" Margin="296,122,14,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
+
                     <Label Content="Profit*" HorizontalAlignment="Left" Margin="10,150,0,0" VerticalAlignment="Top"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="68,150,0,0" VerticalAlignment="Top" Width="102"/>
-                    <TextBox Margin="195,150,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="76"/>
-                    <TextBox Margin="296,150,14,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxTypeProfit" HorizontalAlignment="Left" Margin="68,150,0,0" VerticalAlignment="Top" Width="102"/>
+                    <TextBox Name="TextBoxProfitStep" Margin="195,150,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="76"/>
+                    <TextBox Name="TextBoxProfitMultiplicator" Margin="296,150,14,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
+
                     <Label Content="Volume" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
-                    <ComboBox HorizontalAlignment="Left" Margin="68,178,0,0" VerticalAlignment="Top" Width="102"/>
-                    <TextBox Margin="195,178,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="76"/>
-                    <TextBox Margin="296,178,14,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxTypeVolume" HorizontalAlignment="Left" Margin="68,178,0,0" VerticalAlignment="Top" Width="102"/>
+                    <TextBox Name="TextBoxStartVolume" Margin="195,178,0,0" TextWrapping="Wrap" Text="0.1" VerticalAlignment="Top" HorizontalAlignment="Left" Width="76"/>
+                    <TextBox Name="TextBoxMartingaleMultiplicator" Margin="296,178,14,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top"/>
                     <Label Content="Asset" HorizontalAlignment="Left" Margin="10,206,0,0" VerticalAlignment="Top"/>
-                    <TextBox HorizontalAlignment="Left" Margin="68,206,0,0" TextWrapping="Wrap" Text="Prime" VerticalAlignment="Top" Width="102"/>
+                    <TextBox Name="TextBoxTradeAssetInPortfolio" HorizontalAlignment="Left" Margin="68,206,0,0" TextWrapping="Wrap" Text="Prime" VerticalAlignment="Top" Width="102"/>
 
                     <Label Content="m_" HorizontalAlignment="Left" Margin="280,188,0,0" VerticalAlignment="Top" FontSize="8" FontWeight="Bold" Height="13" Width="16"/>
                     <Label Content="m_" HorizontalAlignment="Left" Margin="280,160,0,0" VerticalAlignment="Top" FontSize="8" FontWeight="Bold" Height="13" Width="16"/>
                     <Label Content="m_" HorizontalAlignment="Left" Margin="280,132,0,0" VerticalAlignment="Top" FontSize="8" FontWeight="Bold" Height="13" Width="16"/>
-                    <Button Content="Create grid" HorizontalAlignment="Left" Margin="10,0,0,38" VerticalAlignment="Bottom" Width="124" Height="23"/>
-                    <Button Content="Delete grid" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="124" Height="23"/>
 
-                    <Button Content="New level" HorizontalAlignment="Right" Margin="0,0,14,38" VerticalAlignment="Bottom" Width="124" Height="23"/>
-                    <Button Content="Remove " HorizontalAlignment="Right" Margin="0,0,14,10" VerticalAlignment="Bottom" Width="124" Height="23"/>
-
-
-
+                    <Button Name="ButtonCreateGrid" Content="Create grid" HorizontalAlignment="Left" Margin="10,0,0,38" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonCreateGrid_Click"/>
+                    <Button Name="ButtonDeleteGrid" Content="Delete grid" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonDeleteGrid_Click"/>
+                    <Button Name="ButtonNewLevel" Content="New level" HorizontalAlignment="Right" Margin="0,0,14,38" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonNewLevel_Click"/>
+                    <Button Name="ButtonRemoveSelected" Content="Remove selected" HorizontalAlignment="Right" Margin="0,0,14,10" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonRemoveSelected_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>
@@ -138,20 +137,20 @@
                 <Grid >
 
                     <Label Content="Profit regime" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Margin="143,10,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxProfitRegime" Margin="143,10,14,0" VerticalAlignment="Top"/>
                     <Label Content="Value type" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Margin="143,38,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxProfitValueType" Margin="143,38,14,0" VerticalAlignment="Top"/>
                     <Label Content="Value " HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="143,66,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxProfitValue" Margin="143,66,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
                     <Label Content="Stop-Loss regime" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Margin="143,122,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopRegime" Margin="143,122,14,0" VerticalAlignment="Top"/>
                     <Label Content="Value type" HorizontalAlignment="Left" Margin="10,150,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Margin="143,150,14,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopValueType" Margin="143,150,14,0" VerticalAlignment="Top"/>
                     <Label Content="Value " HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
-                    <TextBox Margin="143,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopValue" Margin="143,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <Label Content="* Open position grid type only" HorizontalAlignment="Left" Margin="10,257,0,0" VerticalAlignment="Top" Width="359"/>
+                    <Label Content="* Open position grid type only" HorizontalAlignment="Left" Margin="10,257,0,0" VerticalAlignment="Top" Width="290"/>
                 </Grid>
             </TabItem>
 

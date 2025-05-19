@@ -48,6 +48,27 @@ namespace OsEngine.OsTrader.Grids
         {
             Tab = tab;
 
+            NonTradePeriod1Start = new TimeOfDay();
+
+            NonTradePeriod1End = new TimeOfDay() { Hour = 7, Minute = 0 };
+
+            NonTradePeriod2Start = new TimeOfDay() { Hour = 9, Minute = 0 };
+            NonTradePeriod2End = new TimeOfDay() { Hour = 10, Minute = 5 };
+
+            NonTradePeriod3Start = new TimeOfDay() { Hour = 13, Minute = 54 };
+            NonTradePeriod3End = new TimeOfDay() { Hour = 14, Minute = 6 };
+
+            NonTradePeriod4Start = new TimeOfDay() { Hour = 18, Minute = 40 };
+            NonTradePeriod4End = new TimeOfDay() { Hour = 19, Minute = 5 };
+
+            NonTradePeriod5Start = new TimeOfDay() { Hour = 23, Minute = 40 };
+            NonTradePeriod5End = new TimeOfDay() { Hour = 23, Minute = 59 };
+
+            GridSide = Side.Buy;
+
+            ProfitRegime = TradeGridStopRegime.Off;
+            StopRegime = TradeGridStopRegime.Off;
+
         }
 
         public int Number;
@@ -104,16 +125,17 @@ namespace OsEngine.OsTrader.Grids
             result += GridSide + "@";
             result += FirstPrice + "@";
             result += LineCountStart + "@";
-            result += LineStep + "@";
-            result += TypeVolume + "@";
-            result += TypeProfit + "@";
+            result += MaxOrdersInMarket + "@";
             result += TypeStep + "@";
-            result += StartVolume + "@";
-            result += TradeAssetInPortfolio + "@";
+            result += LineStep + "@";
+            result += StepMultiplicator + "@";
+            result += TypeProfit + "@";
             result += ProfitStep + "@";
             result += ProfitMultiplicator + "@";
-            result += StepMultiplicator + "@";
+            result += TypeVolume + "@";
+            result += StartVolume + "@";
             result += MartingaleMultiplicator + "@";
+            result += TradeAssetInPortfolio + "@";
 
             // stop and profit 
             result += ProfitRegime + "@";
@@ -344,7 +366,7 @@ namespace OsEngine.OsTrader.Grids
 
         public bool StopGridByPositionsCountIsOn;
 
-        public StrategyParameterInt StopGridByPositionsCountValue;
+        public int StopGridByPositionsCountValue;
 
         public bool StopGridByMoveUpIsOn;
 
@@ -449,23 +471,25 @@ namespace OsEngine.OsTrader.Grids
 
         public int LineCountStart;
 
-        public decimal LineStep;
-
-        public TradeGridVolumeType TypeVolume;
-
-        public TradeGridValueType TypeProfit;
+        public int MaxOrdersInMarket;
 
         public TradeGridValueType TypeStep;
 
-        public decimal StartVolume = 1;
+        public decimal LineStep;
 
-        public string TradeAssetInPortfolio = "Prime";
+        public decimal StepMultiplicator = 1;
+
+        public TradeGridValueType TypeProfit;
 
         public decimal ProfitStep;
 
         public decimal ProfitMultiplicator = 1;
 
-        public decimal StepMultiplicator = 1;
+        public TradeGridVolumeType TypeVolume;
+
+        public decimal StartVolume = 1;
+
+        public string TradeAssetInPortfolio = "Prime";
 
         public decimal MartingaleMultiplicator = 1;
 
