@@ -69,6 +69,8 @@ namespace OsEngine.OsTrader.Grids
         public void CreateNewTradeGrid()
         {
             TradeGrid newGrid = new TradeGrid(_startProgram, _tab);
+            newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
+            newGrid.LogMessageEvent += SendNewLogMessage;
 
             int gridNum = 0;
 
@@ -84,6 +86,11 @@ namespace OsEngine.OsTrader.Grids
 
             TradeGrids.Add(newGrid);
 
+            SaveGrids();
+        }
+
+        private void NewGrid_NeedToSaveEvent()
+        {
             SaveGrids();
         }
 
@@ -111,7 +118,11 @@ namespace OsEngine.OsTrader.Grids
                             uiGrid.Close();
                         }
                     }
+
+                    TradeGrids[i].NeedToSaveEvent -= NewGrid_NeedToSaveEvent;
+                    TradeGrids[i].LogMessageEvent -= SendNewLogMessage;
                     TradeGrids.RemoveAt(i);
+                    
                     break;
                 }
             }
@@ -239,6 +250,10 @@ namespace OsEngine.OsTrader.Grids
                         }
 
                         TradeGrid newGrid = new TradeGrid(_startProgram, _tab);
+
+                        newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
+                        newGrid.LogMessageEvent += SendNewLogMessage;
+
                         newGrid.LoadFromString(settings);
                         TradeGrids.Add(newGrid);
                     }
@@ -403,10 +418,9 @@ namespace OsEngine.OsTrader.Grids
 
         private void _gridViewInstances_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            return;
             try
             {
-
+                return;
                 int row = e.RowIndex;
                 int column = e.ColumnIndex;
 

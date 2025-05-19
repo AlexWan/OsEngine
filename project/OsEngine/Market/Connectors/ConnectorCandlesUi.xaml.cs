@@ -143,6 +143,8 @@ namespace OsEngine.Market.Connectors
                 ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
                 ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
                 ComboBoxCommissionType.SelectedItem = _connectorBot.CommissionType.ToString();
+                ComboBoxCommissionType.SelectionChanged += ComboBoxCommissionType_SelectionChanged;
+                ComboBoxCommissionType_SelectionChanged(null, null);
 
                 TextBoxCommissionValue.Text = _connectorBot.CommissionValue.ToString();
 
@@ -219,6 +221,7 @@ namespace OsEngine.Market.Connectors
                 ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
                 TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+                ComboBoxCommissionType.SelectionChanged -= ComboBoxCommissionType_SelectionChanged;
 
                 DeleteGridSecurities();
                 DeleteCandleRealizationGrid();
@@ -407,6 +410,28 @@ namespace OsEngine.Market.Connectors
                         CheckBoxSaveTradeArrayInCandle.IsEnabled = true;
                         CheckBoxSaveTradeArrayInCandle.IsChecked = _connectorBot.SaveTradesInCandles;
                     }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxCommissionType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                CommissionType typeCommission;
+                Enum.TryParse(ComboBoxCommissionType.SelectedValue.ToString(), true, out typeCommission);
+
+                if (typeCommission == CommissionType.None)
+                {
+                    TextBoxCommissionValue.IsEnabled = false;
+                }
+                else
+                {
+                    TextBoxCommissionValue.IsEnabled = true;
                 }
             }
             catch (Exception error)

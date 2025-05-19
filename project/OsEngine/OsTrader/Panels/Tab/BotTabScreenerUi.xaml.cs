@@ -131,6 +131,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ComboBoxCommissionType.Items.Add(CommissionType.OneLotFix.ToString());
                 ComboBoxCommissionType.Items.Add(CommissionType.Percent.ToString());
                 ComboBoxCommissionType.SelectedItem = _screener.CommissionType.ToString();
+                ComboBoxCommissionType.SelectionChanged += ComboBoxCommissionType_SelectionChanged;
+                ComboBoxCommissionType_SelectionChanged(null, null);
 
                 TextBoxCommissionValue.Text = _screener.CommissionValue.ToString();
 
@@ -215,6 +217,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
                 ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
                 TextBoxSearchSecurity.KeyDown -= TextBoxSearchSecurity_KeyDown;
+                ComboBoxCommissionType.SelectionChanged -= ComboBoxCommissionType_SelectionChanged;
                 Closed -= BotTabScreenerUi_Closed;
 
                 DeleteCandleRealizationGrid();
@@ -464,6 +467,28 @@ namespace OsEngine.OsTrader.Panels.Tab
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxCommissionType_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                CommissionType typeCommission;
+                Enum.TryParse(ComboBoxCommissionType.SelectedValue.ToString(), true, out typeCommission);
+
+                if(typeCommission == CommissionType.None)
+                {
+                    TextBoxCommissionValue.IsEnabled = false;
+                }
+                else
+                {
+                    TextBoxCommissionValue.IsEnabled = true;
+                }
+            }
+            catch(Exception error)
+            {
+                _screener.SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
