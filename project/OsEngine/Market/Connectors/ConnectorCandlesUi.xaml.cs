@@ -225,7 +225,6 @@ namespace OsEngine.Market.Connectors
 
                 DeleteGridSecurities();
                 DeleteCandleRealizationGrid();
-
             }
             catch
             {

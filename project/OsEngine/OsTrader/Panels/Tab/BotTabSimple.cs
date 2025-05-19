@@ -1312,6 +1312,8 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 DialogClosed();
             }
+
+            _journal.Save();
         }
 
         public event Action DialogClosed;
