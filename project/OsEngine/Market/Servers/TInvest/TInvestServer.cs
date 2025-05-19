@@ -2598,14 +2598,19 @@ namespace OsEngine.Market.Servers.TInvest
                                 trade.Volume = orderTrade.Quantity / security.Lot;
                                 trade.NumberOrderParent = order.NumberMarket;
                                 trade.NumberTrade = orderTrade.TradeId;
-                                trade.Time = orderTrade.DateTime.ToDateTime()
-                                    .AddHours(3); // convert to MSK
+                                trade.Time = orderTrade.DateTime.ToDateTime().AddHours(3); // convert to MSK
+
+                                if (trade.Time == DateTime.Parse("01.01.1970 03:00:00"))
+                                {
+                                    DateTime tTime = orderTrade.DateTime.ToDateTime();
+                                    SendLogMessage($"TInvest sent trade with time == {tTime} for trade Id {orderTrade.TradeId}", LogMessageType.Error);
+
+                                    trade.Time = DateTime.UtcNow.AddHours(3); // fix trade time
+                                }
+
                                 trade.Side = order.Side;
 
-                                if (MyTradeEvent != null)
-                                {
-                                    MyTradeEvent(trade);
-                                }
+                                MyTradeEvent!(trade);
                             }
                         }
 
