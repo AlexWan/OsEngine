@@ -66,8 +66,8 @@ namespace OsEngine.OsTrader.Grids
 
             GridSide = Side.Buy;
 
-            ProfitRegime = TradeGridStopRegime.Off;
-            StopRegime = TradeGridStopRegime.Off;
+            ProfitRegime = OnOffRegime.Off;
+            StopRegime = OnOffRegime.Off;
 
         }
 
@@ -114,12 +114,16 @@ namespace OsEngine.OsTrader.Grids
             result += TradeInSunday + "@";
 
             // stop grid by event
-            result += StopGridByPositionsCountIsOn + "@";
-            result += StopGridByPositionsCountValue + "@";
+
             result += StopGridByMoveUpIsOn + "@";
             result += StopGridByMoveUpValuePercent + "@";
+            result += StopGridByMoveUpReaction + "@";
             result += StopGridByMoveDownIsOn + "@";
             result += StopGridByMoveDownValuePercent + "@";
+            result += StopGridByMoveDownReaction + "@";
+            result += StopGridByPositionsCountIsOn + "@";
+            result += StopGridByPositionsCountValue + "@";
+            result += StopGridByPositionsCountReaction + "@";
 
             // grid lines creation and storage
             result += GridSide + "@";
@@ -144,6 +148,12 @@ namespace OsEngine.OsTrader.Grids
             result += StopRegime + "@";
             result += StopValueType + "@";
             result += StopValue + "@";
+
+            // trailing up / down
+            result += TrailingUpIsOn + "@";
+            result += TrailingUpLimitValue + "@";
+            result += TrailingDownIsOn + "@";
+            result += TrailingDownLimitValue + "@";
 
             return result;
         }
@@ -364,17 +374,23 @@ namespace OsEngine.OsTrader.Grids
 
         #region Stop Grid by Event
 
-        public bool StopGridByPositionsCountIsOn;
-
-        public int StopGridByPositionsCountValue;
-
         public bool StopGridByMoveUpIsOn;
 
         public decimal StopGridByMoveUpValuePercent;
 
+        public TradeGridRegime StopGridByMoveUpReaction = TradeGridRegime.CloseForced;
+
         public bool StopGridByMoveDownIsOn;
 
         public decimal StopGridByMoveDownValuePercent;
+
+        public TradeGridRegime StopGridByMoveDownReaction = TradeGridRegime.CloseForced;
+
+        public bool StopGridByPositionsCountIsOn;
+
+        public int StopGridByPositionsCountValue;
+
+        public TradeGridRegime StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
 
         public void TryStopGridByEvent()
         {
@@ -499,17 +515,29 @@ namespace OsEngine.OsTrader.Grids
 
         #region Stop and Profit. OpenPosition regime
 
-        public TradeGridStopRegime ProfitRegime;
+        public OnOffRegime ProfitRegime;
 
         public TradeGridValueType ProfitValueType;
 
         public decimal ProfitValue;
 
-        public TradeGridStopRegime StopRegime;
+        public OnOffRegime StopRegime;
 
         public TradeGridValueType StopValueType;
 
         public decimal StopValue;
+
+        #endregion
+
+        #region Trailing Up / Down
+
+        public bool TrailingUpIsOn;
+
+        public decimal TrailingUpLimitValue;
+
+        public bool TrailingDownIsOn;
+
+        public decimal TrailingDownLimitValue;
 
         #endregion
 
@@ -577,7 +605,7 @@ namespace OsEngine.OsTrader.Grids
         Debug
     }
 
-    public enum TradeGridStopRegime
+    public enum OnOffRegime
     {
         On,
         Off

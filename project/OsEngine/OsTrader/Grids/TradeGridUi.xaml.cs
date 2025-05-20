@@ -147,16 +147,28 @@ namespace OsEngine.OsTrader.Grids
             CheckBoxStopGridByMoveUpIsOn.Checked += CheckBoxStopGridByMoveUpIsOn_Checked;
             TextBoxStopGridByMoveUpValuePercent.Text = tradeGrid.StopGridByMoveUpValuePercent.ToString();
             TextBoxStopGridByMoveUpValuePercent.TextChanged += TextBoxStopGridByMoveUpValuePercent_TextChanged;
+            ComboBoxStopGridByMoveUpReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxStopGridByMoveUpReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByMoveUpReaction.SelectedItem = tradeGrid.StopGridByMoveUpReaction.ToString();
+            ComboBoxStopGridByMoveUpReaction.SelectionChanged += ComboBoxStopGridByMoveUpReaction_SelectionChanged;
 
             CheckBoxStopGridByMoveDownIsOn.IsChecked = tradeGrid.StopGridByMoveDownIsOn;
             CheckBoxStopGridByMoveDownIsOn.Checked += CheckBoxStopGridByMoveDownIsOn_Checked;
             TextBoxStopGridByMoveDownValuePercent.Text = tradeGrid.StopGridByMoveDownValuePercent.ToString();
             TextBoxStopGridByMoveDownValuePercent.TextChanged += TextBoxStopGridByMoveDownValuePercent_TextChanged;
+            ComboBoxStopGridByMoveDownReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxStopGridByMoveDownReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByMoveDownReaction.SelectedItem = tradeGrid.StopGridByMoveDownReaction.ToString();
+            ComboBoxStopGridByMoveDownReaction.SelectionChanged += ComboBoxStopGridByMoveDownReaction_SelectionChanged;
 
             CheckBoxStopGridByPositionsCountIsOn.IsChecked = tradeGrid.StopGridByPositionsCountIsOn;
             CheckBoxStopGridByPositionsCountIsOn.Checked += CheckBoxStopGridByPositionsCountIsOn_Checked;
             TextBoxStopGridByPositionsCountValue.Text = tradeGrid.StopGridByPositionsCountValue.ToString();
             TextBoxStopGridByPositionsCountValue.TextChanged += TextBoxStopGridByPositionsCountValue_TextChanged;
+            ComboBoxStopGridByPositionsCountReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxStopGridByPositionsCountReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxStopGridByPositionsCountReaction.SelectedItem = tradeGrid.StopGridByPositionsCountReaction.ToString();
+            ComboBoxStopGridByPositionsCountReaction.SelectionChanged += ComboBoxStopGridByPositionsCountReaction_SelectionChanged;
 
             // grid lines creation
 
@@ -204,8 +216,8 @@ namespace OsEngine.OsTrader.Grids
 
             // stop and profit 
 
-            ComboBoxProfitRegime.Items.Add(TradeGridStopRegime.Off.ToString());
-            ComboBoxProfitRegime.Items.Add(TradeGridStopRegime.On.ToString());
+            ComboBoxProfitRegime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxProfitRegime.Items.Add(TradeGridRegime.On.ToString());
             ComboBoxProfitRegime.SelectedItem = tradeGrid.ProfitRegime.ToString();
             ComboBoxProfitRegime.SelectionChanged += ComboBoxProfitRegime_SelectionChanged;
 
@@ -217,8 +229,8 @@ namespace OsEngine.OsTrader.Grids
             TextBoxProfitValue.Text = tradeGrid.ProfitValue.ToString();
             TextBoxProfitValue.TextChanged += TextBoxProfitValue_TextChanged;
 
-            ComboBoxStopRegime.Items.Add(TradeGridStopRegime.Off.ToString());
-            ComboBoxStopRegime.Items.Add(TradeGridStopRegime.On.ToString());
+            ComboBoxStopRegime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxStopRegime.Items.Add(TradeGridRegime.On.ToString());
             ComboBoxStopRegime.SelectedItem = tradeGrid.StopRegime.ToString();
             ComboBoxStopRegime.SelectionChanged += ComboBoxStopRegime_SelectionChanged;
 
@@ -229,6 +241,18 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxStopValue.Text = tradeGrid.StopValue.ToString();
             TextBoxStopValue.TextChanged += TextBoxStopValue_TextChanged;
+
+            // trailing up / down
+
+            CheckBoxTrailingUpIsOn.IsChecked = tradeGrid.TrailingUpIsOn;
+            CheckBoxTrailingUpIsOn.Checked += CheckBoxTrailingUpIsOn_Checked;
+            TextBoxTrailingUpLimitValue.Text = tradeGrid.TrailingUpLimitValue.ToString();
+            TextBoxTrailingUpLimitValue.TextChanged += TextBoxTrailingUpLimitValue_TextChanged;
+
+            CheckBoxTrailingDownIsOn.IsChecked = tradeGrid.TrailingDownIsOn;
+            CheckBoxTrailingDownIsOn.Checked += CheckBoxTrailingDownIsOn_Checked;
+            TextBoxTrailingDownLimitValue.Text = tradeGrid.TrailingDownLimitValue.ToString();
+            TextBoxTrailingDownLimitValue.TextChanged += TextBoxTrailingDownLimitValue_TextChanged;
 
         }
 
@@ -300,6 +324,72 @@ namespace OsEngine.OsTrader.Grids
         public TradeGrid TradeGrid;
 
         public int Number;
+
+        #region Trailing up / down
+
+        private void CheckBoxTrailingUpIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TrailingUpIsOn = CheckBoxTrailingUpIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxTrailingUpLimitValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxTrailingUpLimitValue.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUpLimitValue = TextBoxTrailingUpLimitValue.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTrailingDownIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TrailingDownIsOn = CheckBoxTrailingDownIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxTrailingDownLimitValue_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxTrailingDownLimitValue.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingDownLimitValue = TextBoxTrailingDownLimitValue.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
 
         #region Stop and profit 
 
@@ -651,6 +741,19 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void ComboBoxStopGridByMoveUpReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxStopGridByMoveUpReaction.SelectedItem.ToString(), out TradeGrid.StopGridByMoveUpReaction);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void CheckBoxStopGridByMoveDownIsOn_Checked(object sender, RoutedEventArgs e)
         {
             try
@@ -682,6 +785,19 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void ComboBoxStopGridByMoveDownReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxStopGridByMoveDownReaction.SelectedItem.ToString(), out TradeGrid.StopGridByMoveDownReaction);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void CheckBoxStopGridByPositionsCountIsOn_Checked(object sender, RoutedEventArgs e)
         {
             try
@@ -710,6 +826,19 @@ namespace OsEngine.OsTrader.Grids
             catch
             {
                 // ignore
+            }
+        }
+
+        private void ComboBoxStopGridByPositionsCountReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxStopGridByPositionsCountReaction.SelectedItem.ToString(), out TradeGrid.StopGridByPositionsCountReaction);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1069,7 +1198,7 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
-                Enum.TryParse(ComboBoxAutoClearJournal.SelectedItem.ToString(), out TradeGrid.AutoClearJournalIsOn);
+                TradeGrid.AutoClearJournalIsOn = Convert.ToBoolean(ComboBoxAutoClearJournal.SelectedItem.ToString());
                 TradeGrid.Save();
             }
             catch (Exception ex)

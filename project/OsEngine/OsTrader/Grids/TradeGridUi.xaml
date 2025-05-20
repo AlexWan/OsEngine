@@ -87,6 +87,17 @@
                     <Button Name="ButtonRemoveSelected" Content="Remove selected" HorizontalAlignment="Right" Margin="0,0,14,10" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonRemoveSelected_Click"/>
                 </Grid>
             </TabItem>
+            <TabItem Header="Traling Up / Down">
+                <Grid >
+                    <CheckBox Name="CheckBoxTrailingUpIsOn" Content="Trailing Up" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <Label Content="Limit" HorizontalAlignment="Left" Margin="133,11,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxTrailingUpLimitValue" Margin="0,11,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
+
+                    <CheckBox Name="CheckBoxTrailingDownIsOn" Content="Trailing Down" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+                    <Label Content="Limit" HorizontalAlignment="Left" Margin="133,66,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxTrailingDownLimitValue" Margin="0,66,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
+                </Grid>
+            </TabItem>
         </TabControl>
         <TabControl Grid.Column="1">
             <TabItem Header="Trade days">
@@ -126,11 +137,19 @@
             <TabItem Header="Stop trading">
                 <Grid >
                     <CheckBox Name="CheckBoxStopGridByMoveUpIsOn" Content="Stop by move up %" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByMoveUpValuePercent" Margin="215,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
-                    <CheckBox Name="CheckBoxStopGridByMoveDownIsOn" Content="Stop by move down %" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByMoveDownValuePercent" Margin="215,38,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
-                    <CheckBox Name="CheckBoxStopGridByPositionsCountIsOn"  Content="Stop by close positions count *" HorizontalAlignment="Left" Margin="10,159,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByPositionsCountValue" Margin="215,159,14,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByMoveUpValuePercent" Margin="162,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
+                    <Label Content="Reaction" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByMoveUpReaction" Margin="162,38,14,0" VerticalAlignment="Top"/>
+                    
+                    <CheckBox Name="CheckBoxStopGridByMoveDownIsOn" Content="Stop by move down %" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByMoveDownValuePercent" Margin="162,94,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
+                    <Label Content="Reaction" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByMoveDownReaction" Margin="162,122,14,0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxStopGridByPositionsCountIsOn"  Content="Stop by close positions count *" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByPositionsCountValue" Margin="215,178,14,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Top"/>
+                     <Label Content="Reaction" HorizontalAlignment="Left" Margin="10,206,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByPositionsCountReaction" Margin="162,206,14,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Stop and Profit">
