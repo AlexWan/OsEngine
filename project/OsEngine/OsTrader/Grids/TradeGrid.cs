@@ -118,9 +118,11 @@ namespace OsEngine.OsTrader.Grids
             result += StopGridByMoveUpIsOn + "@";
             result += StopGridByMoveUpValuePercent + "@";
             result += StopGridByMoveUpReaction + "@";
+
             result += StopGridByMoveDownIsOn + "@";
             result += StopGridByMoveDownValuePercent + "@";
             result += StopGridByMoveDownReaction + "@";
+
             result += StopGridByPositionsCountIsOn + "@";
             result += StopGridByPositionsCountValue + "@";
             result += StopGridByPositionsCountReaction + "@";
@@ -160,12 +162,98 @@ namespace OsEngine.OsTrader.Grids
 
         public void LoadFromString(string value)
         {
-            string[] values = value.Split('@');
+            try
+            {
+                string[] values = value.Split('@');
 
-            Number = Convert.ToInt32(values[0]);
-            Enum.TryParse(values[1], out GridType);
-            Enum.TryParse(values[1], out Regime);
+                // settings prime
+                Number = Convert.ToInt32(values[0]);
+                Enum.TryParse(values[1], out GridType);
+                Enum.TryParse(values[2], out Regime);
+                ClosePositionNumber = Convert.ToInt32(values[3]);
+                Enum.TryParse(values[4], out RegimeLogicEntry);
+                Enum.TryParse(values[5], out RegimeLogging);
+                AutoClearJournalIsOn = Convert.ToBoolean(values[6]);
+                MaxClosePositionsInJournal = Convert.ToInt32(values[7]);
 
+                // non trade periods
+                NonTradePeriod1OnOff = Convert.ToBoolean(values[8]);
+                NonTradePeriod1Start.LoadFromString(values[9]);
+                NonTradePeriod1End.LoadFromString(values[10]);
+
+                NonTradePeriod2OnOff = Convert.ToBoolean(values[11]);
+                NonTradePeriod2Start.LoadFromString(values[12]);
+                NonTradePeriod2End.LoadFromString(values[13]);
+
+                NonTradePeriod3OnOff = Convert.ToBoolean(values[14]);
+                NonTradePeriod3Start.LoadFromString(values[15]);
+                NonTradePeriod3End.LoadFromString(values[16]);
+
+                NonTradePeriod4OnOff = Convert.ToBoolean(values[17]);
+                NonTradePeriod4Start.LoadFromString(values[18]);
+                NonTradePeriod4End.LoadFromString(values[19]);
+
+                NonTradePeriod5OnOff = Convert.ToBoolean(values[20]);
+                NonTradePeriod5Start.LoadFromString(values[21]);
+                NonTradePeriod5End.LoadFromString(values[22]);
+
+                TradeInMonday = Convert.ToBoolean(values[23]);
+                TradeInTuesday = Convert.ToBoolean(values[24]);
+                TradeInWednesday = Convert.ToBoolean(values[25]);
+                TradeInThursday = Convert.ToBoolean(values[26]);
+                TradeInFriday = Convert.ToBoolean(values[27]);
+                TradeInSaturday = Convert.ToBoolean(values[28]);
+                TradeInSunday = Convert.ToBoolean(values[29]);
+
+                // stop grid by event
+
+                StopGridByMoveUpIsOn = Convert.ToBoolean(values[30]);
+                StopGridByMoveUpValuePercent = values[31].ToDecimal();
+                Enum.TryParse(values[32], out StopGridByMoveUpReaction);
+
+                StopGridByMoveDownIsOn = Convert.ToBoolean(values[33]);
+                StopGridByMoveDownValuePercent = values[34].ToDecimal();
+                Enum.TryParse(values[35], out StopGridByMoveDownReaction);
+
+                StopGridByPositionsCountIsOn = Convert.ToBoolean(values[36]);
+                StopGridByPositionsCountValue = Convert.ToInt32(values[37]);
+                Enum.TryParse(values[38], out StopGridByPositionsCountReaction);
+
+                // grid lines creation and storage
+                Enum.TryParse(values[39], out GridSide);
+                FirstPrice = values[40].ToDecimal();
+                LineCountStart = Convert.ToInt32(values[41]);
+                MaxOrdersInMarket = Convert.ToInt32(values[42]);
+                Enum.TryParse(values[43], out TypeStep);
+                LineStep = values[44].ToDecimal();
+                StepMultiplicator = values[45].ToDecimal();
+                Enum.TryParse(values[46], out TypeProfit);
+                ProfitStep = values[47].ToDecimal();
+                ProfitMultiplicator = values[48].ToDecimal();
+                Enum.TryParse(values[49], out TypeVolume);
+                StartVolume = values[50].ToDecimal();
+                MartingaleMultiplicator = values[51].ToDecimal();
+                TradeAssetInPortfolio = values[52];
+
+                // stop and profit 
+                Enum.TryParse(values[53], out ProfitRegime);
+                Enum.TryParse(values[54], out ProfitValueType);
+                ProfitValue = values[55].ToDecimal();
+
+                Enum.TryParse(values[56], out StopRegime);
+                Enum.TryParse(values[57], out StopValueType);
+                StopValue = values[58].ToDecimal();
+
+                // trailing up / down
+                TrailingUpIsOn = Convert.ToBoolean(values[59]);
+                TrailingUpLimitValue = values[60].ToDecimal();
+                TrailingDownIsOn = Convert.ToBoolean(values[61]);
+                TrailingDownLimitValue = values[62].ToDecimal(); ;
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(),LogMessageType.Error);
+            }
         }
 
         public void Delete()
@@ -225,13 +313,13 @@ namespace OsEngine.OsTrader.Grids
         public TimeOfDay NonTradePeriod5Start;
         public TimeOfDay NonTradePeriod5End;
 
-        public bool TradeInMonday;
-        public bool TradeInTuesday;
-        public bool TradeInWednesday;
-        public bool TradeInThursday;
-        public bool TradeInFriday;
-        public bool TradeInSaturday;
-        public bool TradeInSunday;
+        public bool TradeInMonday = true;
+        public bool TradeInTuesday = true;
+        public bool TradeInWednesday = true;
+        public bool TradeInThursday = true;
+        public bool TradeInFriday = true;
+        public bool TradeInSaturday = false;
+        public bool TradeInSunday = false;
 
         public bool IsBlockNonTradePeriods(DateTime curTime)
         {
@@ -545,10 +633,11 @@ namespace OsEngine.OsTrader.Grids
 
 
 
+
+
+
+
         #endregion
-
-
-
 
         #region Log
 
