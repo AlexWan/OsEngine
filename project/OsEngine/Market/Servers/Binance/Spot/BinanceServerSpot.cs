@@ -1285,23 +1285,51 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         private void Client_Closed(object sender, CloseEventArgs e)
         {
-            if (ServerStatus == ServerConnectStatus.Connect)
+            try
             {
-                ServerStatus = ServerConnectStatus.Disconnect;
-
-                SendLogMessage("Websocket lost connection: " + e.Code, LogMessageType.Error);
-
-                if (DisconnectEvent != null)
+                if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void Client_Error(object sender, ErrorEventArgs e)
         {
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
 
-            SendLogMessage("Error websocket :" + e.Exception.ToString(), LogMessageType.Error);
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
+            }
         }
 
         #endregion

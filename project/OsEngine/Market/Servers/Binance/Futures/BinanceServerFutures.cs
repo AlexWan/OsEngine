@@ -1426,22 +1426,51 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private void _socketClient_Closed(object sender, CloseEventArgs e)
         {
-            if (ServerStatus == ServerConnectStatus.Connect)
+            try
             {
-                ServerStatus = ServerConnectStatus.Disconnect;
-
-                SendLogMessage("Websocket lost connection: " + e.Code.ToString(), LogMessageType.Error);
-
-                if (DisconnectEvent != null)
+                if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
         private void _socketClient_Error(object sender, ErrorEventArgs e)
         {
-            SendLogMessage("Error websocket :" + e.Exception.ToString(), LogMessageType.Error);
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void _socketClient_PrivateMessage(object sender, MessageEventArgs e)
