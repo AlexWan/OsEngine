@@ -1249,6 +1249,14 @@ namespace OsEngine.Language
             "Eng:Connector operating time_" +
             "Ru:Время работы коннектора_");
 
+        public string Message101 => OsLocalization.ConvertToLocString(
+            "Eng:. Connection closed by remote party. WebSocket disable_" +
+            "Ru:. Соединение закрыто удаленной стороной. WebSocket отключен_");
+
+        public string Message102 => OsLocalization.ConvertToLocString(
+            "Eng:The program automatically went into reconnect mode. _" +
+            "Ru:Программа автоматически перешла в режим повторного подключения. _");
+
         public string TitleTester => OsLocalization.ConvertToLocString(
             "Eng:Exchange emulator_" +
             "Ru:Эмулятор биржи_");
@@ -1404,12 +1412,12 @@ namespace OsEngine.Language
         public string Exchange => OsLocalization.ConvertToLocString(
             "Eng:Exchange_" +
             "Ru:Биржа_"
-
-
         );
         public string IgnoreMorningAuctionTrades => OsLocalization.ConvertToLocString(
             "Eng:Ignore morning auction trades_" +
             "Ru:Игнорировать сделки утреннего аукциона_");
+
+
 
 
     }
