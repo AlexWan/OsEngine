@@ -157,6 +157,10 @@ namespace OsEngine.OsTrader.Grids
             result += TrailingDownIsOn + "@";
             result += TrailingDownLimitValue + "@";
 
+            // auto start
+            result += AutoStartRegime + "@";
+            result += AutoStartPrice + "@";
+
             return result;
         }
 
@@ -235,7 +239,7 @@ namespace OsEngine.OsTrader.Grids
                 MartingaleMultiplicator = values[51].ToDecimal();
                 TradeAssetInPortfolio = values[52];
 
-                // stop and profit 
+                // stop and profit
                 Enum.TryParse(values[53], out ProfitRegime);
                 Enum.TryParse(values[54], out ProfitValueType);
                 ProfitValue = values[55].ToDecimal();
@@ -248,7 +252,11 @@ namespace OsEngine.OsTrader.Grids
                 TrailingUpIsOn = Convert.ToBoolean(values[59]);
                 TrailingUpLimitValue = values[60].ToDecimal();
                 TrailingDownIsOn = Convert.ToBoolean(values[61]);
-                TrailingDownLimitValue = values[62].ToDecimal(); ;
+                TrailingDownLimitValue = values[62].ToDecimal();
+
+                // auto start
+                Enum.TryParse(values[63], out AutoStartRegime);
+                AutoStartPrice = values[64].ToDecimal();
             }
             catch (Exception e)
             {
@@ -629,6 +637,16 @@ namespace OsEngine.OsTrader.Grids
 
         #endregion
 
+        #region Auto start
+
+        public TradeGridAutoStartRegime AutoStartRegime;
+
+        public decimal AutoStartPrice;
+
+        #endregion
+
+
+
         #region Trade logic
 
 
@@ -708,7 +726,15 @@ namespace OsEngine.OsTrader.Grids
 
     public enum TradeGridVolumeType
     {
-        Absolute,
-        Percent,
+        Contracts,
+        ContractCurrency,
+        DepositPercent
+    }
+
+    public enum TradeGridAutoStartRegime
+    {
+        Off,
+        HigherOrEqual,
+        LowerOrEqual
     }
 }

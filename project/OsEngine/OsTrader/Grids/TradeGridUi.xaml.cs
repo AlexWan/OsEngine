@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Layout;
 using System;
 using System.Windows;
@@ -25,8 +26,6 @@ namespace OsEngine.OsTrader.Grids
 
             TradeGrid = tradeGrid;
             Number = TradeGrid.Number;
-
-            Title = Title += " Grid " + tradeGrid.Number;
 
             Closed += TradeGridUi_Closed;
 
@@ -208,6 +207,13 @@ namespace OsEngine.OsTrader.Grids
             TextBoxProfitMultiplicator.Text = tradeGrid.ProfitMultiplicator.ToString();
             TextBoxProfitMultiplicator.TextChanged += TextBoxProfitMultiplicator_TextChanged;
 
+            ComboBoxTypeVolume.Items.Add(TradeGridVolumeType.Contracts.ToString());
+            ComboBoxTypeVolume.Items.Add(TradeGridVolumeType.ContractCurrency.ToString());
+            ComboBoxTypeVolume.Items.Add(TradeGridVolumeType.DepositPercent.ToString());
+            ComboBoxTypeVolume.SelectedItem = tradeGrid.TypeVolume.ToString();
+            ComboBoxTypeVolume.SelectionChanged += ComboBoxTypeVolume_SelectionChanged;
+
+
             TextBoxMartingaleMultiplicator.Text = tradeGrid.ProfitMultiplicator.ToString();
             TextBoxMartingaleMultiplicator.TextChanged += TextBoxMartingaleMultiplicator_TextChanged;
 
@@ -254,6 +260,117 @@ namespace OsEngine.OsTrader.Grids
             TextBoxTrailingDownLimitValue.Text = tradeGrid.TrailingDownLimitValue.ToString();
             TextBoxTrailingDownLimitValue.TextChanged += TextBoxTrailingDownLimitValue_TextChanged;
 
+            // auto start
+
+            ComboBoxAutoStartRegime.Items.Add(TradeGridAutoStartRegime.Off.ToString());
+            ComboBoxAutoStartRegime.Items.Add(TradeGridAutoStartRegime.LowerOrEqual.ToString());
+            ComboBoxAutoStartRegime.Items.Add(TradeGridAutoStartRegime.HigherOrEqual.ToString());
+            ComboBoxAutoStartRegime.SelectedItem = tradeGrid.AutoStartRegime.ToString();
+            ComboBoxAutoStartRegime.SelectionChanged += ComboBoxAutoStartRegime_SelectionChanged;
+
+            TextBoxAutoStartPrice.Text = tradeGrid.AutoStartPrice.ToString();
+            TextBoxAutoStartPrice.TextChanged += TextBoxAutoStartPrice_TextChanged;
+
+            Localization();
+
+        }
+
+        private void Localization()
+        {
+            Title = OsLocalization.Trader.Label444 + " # " + TradeGrid.Number ;
+
+            // settings prime
+
+            LabelGridType.Content = OsLocalization.Trader.Label445;
+            LabelClosePositionNumber.Content = OsLocalization.Trader.Label446;
+            ButtonSelectPositionToClose.Content = OsLocalization.Trader.Label447;
+            LabelRegime.Content = OsLocalization.Trader.Label448;
+            LabelRegimeLogicEntry.Content = OsLocalization.Trader.Label449;
+            LabelRegimeLogging.Content = OsLocalization.Trader.Label450;
+            LabelAutoClearJournal.Content = OsLocalization.Trader.Label451;
+            LabelMaxClosePositionsInJournal.Content = OsLocalization.Trader.Label452;
+            ButtonLoad.Content = OsLocalization.Trader.Label453;
+            ButtonSave.Content = OsLocalization.Trader.Label454;
+            ButtonStart.Content = OsLocalization.Trader.Label455;
+            ButtonStop.Content = OsLocalization.Trader.Label456;
+            ButtonClose.Content = OsLocalization.Trader.Label457;
+
+            // tab controls
+
+            TabItemBaseSettings.Header = OsLocalization.Trader.Label458;
+            TabItemGridCreation.Header = OsLocalization.Trader.Label459;
+            TabItemTrailing.Header = OsLocalization.Trader.Label460;
+            TabItemTradeDays.Header = OsLocalization.Trader.Label461;
+            TabItemNonTradePeriods.Header = OsLocalization.Trader.Label462;
+            TabItemStopTrading.Header = OsLocalization.Trader.Label463;
+            TabItemStopAndProfit.Header = OsLocalization.Trader.Label464;
+            TabItemGridLinesTable.Header = OsLocalization.Trader.Label465;
+            TabItemGridLinesOnChart.Header = OsLocalization.Trader.Label466;
+            TabItemAutoStart.Header = OsLocalization.Trader.Label472;
+
+            // non trade periods
+
+            CheckBoxNonTradePeriod1OnOff.Content = OsLocalization.Trader.Label473 + " 1";
+            CheckBoxNonTradePeriod2OnOff.Content = OsLocalization.Trader.Label473 + " 2";
+            CheckBoxNonTradePeriod3OnOff.Content = OsLocalization.Trader.Label473 + " 3";
+            CheckBoxNonTradePeriod4OnOff.Content = OsLocalization.Trader.Label473 + " 4";
+            CheckBoxNonTradePeriod5OnOff.Content = OsLocalization.Trader.Label473 + " 5";
+
+            // trade days 
+
+            CheckBoxTradeInMonday.Content = OsLocalization.Trader.Label474;
+            CheckBoxTradeInTuesday.Content = OsLocalization.Trader.Label475;
+            CheckBoxTradeInWednesday.Content = OsLocalization.Trader.Label476;
+            CheckBoxTradeInThursday.Content = OsLocalization.Trader.Label477;
+            CheckBoxTradeInFriday.Content = OsLocalization.Trader.Label478;
+            CheckBoxTradeInSaturday.Content = OsLocalization.Trader.Label479;
+            CheckBoxTradeInSunday.Content = OsLocalization.Trader.Label480;
+
+            // stop grid by event
+            CheckBoxStopGridByMoveUpIsOn.Content = OsLocalization.Trader.Label481;
+            LabelStopGridByMoveUpValuePercentReaction.Content = OsLocalization.Trader.Label484;
+            CheckBoxStopGridByMoveDownIsOn.Content = OsLocalization.Trader.Label482;
+            LabelStopGridByMoveDownValuePercentReaction.Content = OsLocalization.Trader.Label484;
+            CheckBoxStopGridByPositionsCountIsOn.Content = OsLocalization.Trader.Label483;
+            LabelStopGridByPositionsCountIsOnReaction.Content = OsLocalization.Trader.Label484;
+
+            // grid lines creation
+
+            LabelGridSide.Content = OsLocalization.Trader.Label485;
+            LabelFirstPrice.Content = OsLocalization.Trader.Label486;
+            LabelLinesCount.Content = OsLocalization.Trader.Label487;
+            LabelMaxOrdersInMarket.Content = OsLocalization.Trader.Label488;
+            LabelStep.Content = OsLocalization.Trader.Label489;
+            LabelProfit.Content = OsLocalization.Trader.Label490;
+            LabelVolume.Content = OsLocalization.Trader.Label491;
+            LabelAsset.Content = OsLocalization.Trader.Label492;
+
+            ButtonCreateGrid.Content = OsLocalization.Trader.Label493;
+            ButtonDeleteGrid.Content = OsLocalization.Trader.Label494;
+            ButtonNewLevel.Content = OsLocalization.Trader.Label495;
+            ButtonRemoveSelected.Content = OsLocalization.Trader.Label496;
+
+            // stop and profit 
+
+            LabelProfitRegime.Content = OsLocalization.Trader.Label497;
+            LabelProfitValueType.Content = OsLocalization.Trader.Label498;
+            LabelProfitValue.Content = OsLocalization.Trader.Label499;
+
+            LabelStopRegime.Content = OsLocalization.Trader.Label500;
+            LabelStopValueType.Content = OsLocalization.Trader.Label498;
+            LabelStopValue.Content = OsLocalization.Trader.Label499;
+
+            // trailing up / down
+
+            CheckBoxTrailingUpIsOn.Content = OsLocalization.Trader.Label501;
+            CheckBoxTrailingDownIsOn.Content = OsLocalization.Trader.Label502;
+            LabelTrailingUpLimitValue.Content = OsLocalization.Trader.Label503;
+            LabelTrailingDownLimitValue.Content = OsLocalization.Trader.Label503;
+
+            // auto start
+
+            LabelAutoStartRegime.Content = OsLocalization.Trader.Label504;
+            LabelAutoStartPrice.Content = OsLocalization.Trader.Label505;
         }
 
         private void TradeGridUi_Closed(object sender, EventArgs e)
@@ -319,6 +436,8 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxStopValueType.SelectionChanged -= ComboBoxStopValueType_SelectionChanged;
             TextBoxStopValue.TextChanged -= TextBoxStopValue_TextChanged;
 
+            ComboBoxAutoStartRegime.SelectionChanged -= ComboBoxAutoStartRegime_SelectionChanged;
+            TextBoxAutoStartPrice.TextChanged -= TextBoxAutoStartPrice_TextChanged;
         }
 
         public TradeGrid TradeGrid;
@@ -650,6 +769,19 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void ComboBoxTypeVolume_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxTypeVolume.SelectedItem.ToString(), out TradeGrid.TypeVolume);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void TextBoxMartingaleMultiplicator_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -934,6 +1066,41 @@ namespace OsEngine.OsTrader.Grids
             catch
             {
                 // ignore
+            }
+        }
+
+        #endregion
+
+        #region Auto start
+
+        private void TextBoxAutoStartPrice_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxAutoStartPrice.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.AutoStartPrice = TextBoxAutoStartPrice.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxAutoStartRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxAutoStartRegime.SelectedItem.ToString(), out TradeGrid.AutoStartRegime);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1291,6 +1458,11 @@ namespace OsEngine.OsTrader.Grids
         }
 
         private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonSelectPositionToClose_Click(object sender, RoutedEventArgs e)
         {
 
         }
