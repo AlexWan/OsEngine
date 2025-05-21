@@ -79,6 +79,7 @@ namespace OsEngine.Robots
                 || startProgram == StartProgram.IsTester)
             {
                 TextBoxName.Text = "MyNewBot";
+                TextBoxName.TextChanged += TextBoxName_TextChanged;
             }
 
             Title = OsLocalization.Trader.Label59;
@@ -119,6 +120,21 @@ namespace OsEngine.Robots
 
         }
 
+        private void TextBoxName_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if(TextBoxName.Text.Length > 20)
+                {
+                    TextBoxName.Text = TextBoxName.Text.Substring(0, 20);
+                }
+            }
+            catch
+            {
+               // ignore
+            }
+        }
+
         private void ComboBoxLocation_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UpdateTable();
@@ -141,6 +157,7 @@ namespace OsEngine.Robots
             TextBoxSearchSecurity.LostKeyboardFocus -= TextBoxSearchSecurity_LostKeyboardFocus;
             ButtonRightInSearchResults.Click -= ButtonRightInSearchResults_Click;
             ButtonLeftInSearchResults.Click -= ButtonLeftInSearchResults_Click;
+            TextBoxName.TextChanged -= TextBoxName_TextChanged;
         }
 
         private List<string> _botsIncluded;
