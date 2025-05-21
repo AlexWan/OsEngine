@@ -1272,16 +1272,24 @@ namespace OsEngine.Entity
 
             if (CommissionType != CommissionType.None && CommissionValue != 0)
             {
+                decimal volume = MaxVolume;
+
+                if(Lots != 0 
+                    && IsLotServer())
+                {
+                    volume = volume * Lots;
+                }
+
                 if (CommissionType == CommissionType.Percent)
                 {
                     if (EntryPrice != 0 && ClosePrice == 0)
                     {
-                        commissionTotal = MaxVolume * EntryPrice * (CommissionValue / 100);
+                        commissionTotal = volume * EntryPrice * (CommissionValue / 100);
                     }
                     else if (EntryPrice != 0 && ClosePrice != 0)
                     {
-                        commissionTotal = MaxVolume * EntryPrice * (CommissionValue / 100) +
-                                          MaxVolume * ClosePrice * (CommissionValue / 100);
+                        commissionTotal = volume * EntryPrice * (CommissionValue / 100) +
+                                          volume * ClosePrice * (CommissionValue / 100);
                     }
                 }
 
@@ -1289,11 +1297,11 @@ namespace OsEngine.Entity
                 {
                     if (EntryPrice != 0 && ClosePrice == 0)
                     {
-                        commissionTotal = MaxVolume * CommissionValue;
+                        commissionTotal = volume * CommissionValue;
                     }
                     else if (EntryPrice != 0 && ClosePrice != 0)
                     {
-                        commissionTotal = MaxVolume * CommissionValue * 2;
+                        commissionTotal = volume * CommissionValue * 2;
                     }
                 }
             }
