@@ -1852,8 +1852,8 @@ namespace OsEngine.Language
           "Ru:Количество линий_");
 
         public string Label488 => OsLocalization.ConvertToLocString(
-          "Eng:Max orders in market_" +
-          "Ru:Макс. ордеров в рынке_");
+          "Eng:Max orders_" +
+          "Ru:Макс. ордеров_");
 
         public string Label489 => OsLocalization.ConvertToLocString(
           "Eng:Step_" +
@@ -1922,5 +1922,22 @@ namespace OsEngine.Language
         public string Label505 => OsLocalization.ConvertToLocString(
          "Eng:Price_" +
          "Ru:Цена_");
+
+        public string Label506 => OsLocalization.ConvertToLocString(
+         "Eng:Regime on a non-trading day_" +
+         "Ru:Режим в не торговый день_");
+
+        public string Label507 => OsLocalization.ConvertToLocString(
+         "Eng:Open:_" +
+         "Ru:Открытие:_");
+
+        public string Label508 => OsLocalization.ConvertToLocString(
+         "Eng:Open_" +
+         "Ru:Открытие_");
+
+        public string Label509 => OsLocalization.ConvertToLocString(
+         "Eng:Close_" +
+         "Ru:Закрытие_");
+
     }
 }

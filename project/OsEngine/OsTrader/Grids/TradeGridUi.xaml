@@ -48,11 +48,20 @@
                     <Label Name="LabelMaxClosePositionsInJournal" Content="Max close positions in journal" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxMaxClosePositionsInJournal" Margin="234,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
+                    <Label Name="LabelMaxOrdersInMarket" Content="Max orders" HorizontalAlignment="Left" Margin="10,206,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMaxOpenOrdersInMarket" Text="5" Margin="173,206,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="40"/>
+                    <TextBox Name="TextBoxMaxCloseOrdersInMarket" Text="5" Margin="284,206,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+
+                    <Label Name="LabelMaxOpenOrdersInMarket" Content="Open:" HorizontalAlignment="Left" Margin="109,206,0,0" VerticalAlignment="Top" Width="68"/>
+                    <Label Name="LabelMaxCloseOrdersInMarket" Content="Close:" HorizontalAlignment="Left" Margin="220,206,0,0" VerticalAlignment="Top" Width="64"/>
+
+
                     <Button Name="ButtonLoad" Content="Load" Margin="10,0,0,38" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="124" Click="ButtonLoad_Click"/>
                     <Button Name="ButtonSave" Content="Save" Margin="10,0,0,10" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="124" Click="ButtonSave_Click"/>
                     <Button Name="ButtonStart" Content="Start" Margin="139,0,143,10" Height="51" VerticalAlignment="Bottom" Click="ButtonStart_Click"/>
                     <Button Name="ButtonStop" Content="Stop" Margin="0,0,14,38" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonStop_Click"/>
                     <Button Name="ButtonClose" Content="Close" Margin="0,0,14,10" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonClose_Click"/>
+
 
                 </Grid>
             </TabItem>
@@ -65,8 +74,6 @@
                     <TextBox Name="TextBoxFirstPrice" Margin="164,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
                     <Label Name="LabelLinesCount" Content="Lines count" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxLineCountStart" Margin="164,66,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
-                    <Label Name="LabelMaxOrdersInMarket" Content="Max orders in market" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxMaxOrdersInMarket" Text="5" Margin="164,94,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
                     <Label Name="LabelStep" Content="Step" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxTypeStep" HorizontalAlignment="Left" Margin="68,122,0,0" VerticalAlignment="Top" Width="131"/>
@@ -132,36 +139,49 @@
         <TabControl Grid.Column="1">
             <TabItem Name="TabItemTradeDays" Header="Trade days">
                 <Grid >
-                    <CheckBox Name="CheckBoxTradeInMonday" Content="Trade in Monday" Margin="10,10,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
-                    <CheckBox Name="CheckBoxTradeInTuesday" Content="Trade in Tuesday" Margin="10,38,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
-                    <CheckBox Name="CheckBoxTradeInWednesday" Content="Trade in Wednesday" Margin="10,66,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
-                    <CheckBox Name="CheckBoxTradeInThursday" Content="Trade in Thursday" Margin="10,94,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
-                    <CheckBox Name="CheckBoxTradeInFriday" Content="Trade in Friday" Margin="10,122,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
-                    <CheckBox Name="CheckBoxTradeInSaturday" Content="Trade in Saturday" Margin="10,150,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
-                    <CheckBox Name="CheckBoxTradeInSunday" Content="Trade in Sunday" Margin="10,178,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+                    <Label Name="LabelNonTradeDaysRegime" Content="Regime on a non-trading day" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxNonTradeDaysRegime" Margin="186,10,14,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxTradeInMonday" Content="Trade in Monday" Margin="10,38,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInTuesday" Content="Trade in Tuesday" Margin="10,66,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInWednesday" Content="Trade in Wednesday" Margin="10,94,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInThursday" Content="Trade in Thursday" Margin="10,122,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInFriday" Content="Trade in Friday" Margin="10,150,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInSaturday" Content="Trade in Saturday" Margin="10,178,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
+                    <CheckBox Name="CheckBoxTradeInSunday" Content="Trade in Sunday" Margin="10,206,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemNonTradePeriods" Header="Non-trade periods">
                 <Grid >
                     <CheckBox Name="CheckBoxNonTradePeriod1OnOff" Content="No trade period 1" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxNonTradePeriod1Start" HorizontalAlignment="Left" Margin="163,10,0,0" TextWrapping="Wrap" Text="0:0:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod1End" Margin="242,10,14,0" TextWrapping="Wrap" Text="7:0:0:0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod1End" Margin="242,10,15,0" TextWrapping="Wrap" Text="7:0:0:0" VerticalAlignment="Top"/>
+                    <Label Name="LabelNoTradePeriod1Regime" Content="Regime" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxNonTradePeriod1Regime" Margin="162,33,14,0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxNonTradePeriod2OnOff" Content="No trade period 2" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxNonTradePeriod2Start" HorizontalAlignment="Left" Margin="163,38,0,0" TextWrapping="Wrap" Text="9:0:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod2End" Margin="242,38,14,0" TextWrapping="Wrap" Text="10:5:0:0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxNonTradePeriod2OnOff" Content="No trade period 2" HorizontalAlignment="Left" Margin="10,61,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod2Start" HorizontalAlignment="Left" Margin="163,61,0,0" TextWrapping="Wrap" Text="9:0:0:0" VerticalAlignment="Top" Width="60"/>
+                    <TextBox Name="TextBoxNonTradePeriod2End" Margin="242,61,15,0" TextWrapping="Wrap" Text="10:5:0:0" VerticalAlignment="Top"/>
+                    <Label Name="LabelNoTradePeriod2Regime" Content="Regime" HorizontalAlignment="Left" Margin="10,84,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxNonTradePeriod2Regime" Margin="162,84,14,0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxNonTradePeriod3OnOff" Content="No trade period 3" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxNonTradePeriod3Start" HorizontalAlignment="Left" Margin="163,66,0,0" TextWrapping="Wrap" Text="13:54:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod3End" Margin="242,66,14,0" TextWrapping="Wrap" Text="14:6:0:0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxNonTradePeriod3OnOff" Content="No trade period 3" HorizontalAlignment="Left" Margin="10,112,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod3Start" HorizontalAlignment="Left" Margin="163,112,0,0" TextWrapping="Wrap" Text="13:54:0:0" VerticalAlignment="Top" Width="60"/>
+                    <TextBox Name="TextBoxNonTradePeriod3End" Margin="242,112,15,0" TextWrapping="Wrap" Text="14:6:0:0" VerticalAlignment="Top"/>
+                    <Label Name="LabelNoTradePeriod3Regime" Content="Regime" HorizontalAlignment="Left" Margin="9,135,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxNonTradePeriod3Regime" Margin="162,135,15,0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxNonTradePeriod4OnOff" Content="No trade period 4" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxNonTradePeriod4Start" HorizontalAlignment="Left" Margin="163,94,0,0" TextWrapping="Wrap" Text="18:40:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod4End" Margin="242,94,14,0" TextWrapping="Wrap" Text="19:5:0:0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxNonTradePeriod4OnOff" Content="No trade period 4" HorizontalAlignment="Left" Margin="9,163,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod4Start" HorizontalAlignment="Left" Margin="162,163,0,0" TextWrapping="Wrap" Text="18:40:0:0" VerticalAlignment="Top" Width="60"/>
+                    <TextBox Name="TextBoxNonTradePeriod4End" Margin="241,163,15,0" TextWrapping="Wrap" Text="19:5:0:0" VerticalAlignment="Top"/>
+                    <Label Name="LabelNoTradePeriod4Regime" Content="Regime" HorizontalAlignment="Left" Margin="10,186,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxNonTradePeriod4Regime" Margin="161,186,14,0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxNonTradePeriod5OnOff" Content="No trade period 5" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxNonTradePeriod5Start" HorizontalAlignment="Left" Margin="163,122,0,0" TextWrapping="Wrap" Text="23:40:0:0" VerticalAlignment="Top" Width="60"/>
-                    <TextBox Name="TextBoxNonTradePeriod5End" Margin="242,122,14,0" TextWrapping="Wrap" Text="23:59:0:0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxNonTradePeriod5OnOff" Content="No trade period 5" HorizontalAlignment="Left" Margin="10,214,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxNonTradePeriod5Start" HorizontalAlignment="Left" Margin="162,214,0,0" TextWrapping="Wrap" Text="23:40:0:0" VerticalAlignment="Top" Width="61"/>
+                    <TextBox Name="TextBoxNonTradePeriod5End" Margin="242,214,15,0" TextWrapping="Wrap" Text="23:59:0:0" VerticalAlignment="Top"/>
+                    <Label Name="LabelNoTradePeriod5Regime" Content="Regime" HorizontalAlignment="Left" Margin="10,237,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxNonTradePeriod5Regime" Margin="161,237,14,0" VerticalAlignment="Top"/>
+
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemStopAndProfit" Header="Stop and Profit">
