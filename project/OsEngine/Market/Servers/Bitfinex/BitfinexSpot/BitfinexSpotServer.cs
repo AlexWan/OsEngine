@@ -262,7 +262,6 @@ namespace OsEngine.Market.Servers.Bitfinex
                         newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
                         newSecurity.VolumeStep = newSecurity.DecimalsVolume.GetValueByDecimals();
                         securities.Add(newSecurity);
-
                     }
 
                     if (SecurityEvent != null)
@@ -651,7 +650,6 @@ namespace OsEngine.Market.Servers.Bitfinex
             return GetCandleHistory(security.NameFull, timeFrameBuilder.TimeFrameTimeSpan, true, countNeedToLoad, endTime);
         }
 
-
         public List<Candle> GetCandleHistory(string nameSec, TimeSpan tf, bool isOsData, int countToLoad, DateTime timeEnd)
         {
             int limit = 9990;
@@ -754,6 +752,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             {
                 return true;
             }
+
             return false;
         }
 
@@ -1136,14 +1135,28 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (e.Exception != null)
                 {
-                    SendLogMessage($"WebSocket MarketDepths Error: {e.Exception}", LogMessageType.Error);
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage("Data socket MarketDepths exception: " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1185,13 +1198,20 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                Disconnect();
+                if (DisconnectEvent != null
+                    & ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
 
-                SendLogMessage($"Public MarketDeptns WebSocket closed by Bitfinex. Code:{e.Code}", LogMessageType.Error);
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1213,14 +1233,28 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (e.Exception != null)
                 {
-                    SendLogMessage($"WebSocket Trades Error: {e.Exception}", LogMessageType.Error);
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage("Data socket Trades exception: " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1262,13 +1296,20 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                Disconnect();
+                if (DisconnectEvent != null
+                    & ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
 
-                SendLogMessage($"Public Trades WebSocket closed by Bitfinex. Code: {e.Code}", LogMessageType.Error);
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1305,28 +1346,48 @@ namespace OsEngine.Market.Servers.Bitfinex
         {
             try
             {
-                Disconnect();
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
 
-            SendLogMessage($"Connection Closed by Bitfinex. WebSocket Private closed. Code: {e.Code}", LogMessageType.Error);
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void WebSocketPrivate_Error(object sender, ErrorEventArgs e)
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (e.Exception != null)
                 {
-                    SendLogMessage($"WebSocket private Error: {e.Exception}", LogMessageType.Error);
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
