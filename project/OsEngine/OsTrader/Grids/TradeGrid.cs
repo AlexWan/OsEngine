@@ -69,6 +69,7 @@ namespace OsEngine.OsTrader.Grids
             GridCreator = new TradeGridCreator();
             GridCreator.LogMessageEvent += SendNewLogMessage;
 
+            SendNewLogMessage("Error", LogMessageType.Error);
         }
 
         public int Number;
@@ -269,11 +270,6 @@ namespace OsEngine.OsTrader.Grids
         public int MaxCloseOrdersInMarket;
 
         #endregion
-
-
-
-
-
 
         #region Log
 
