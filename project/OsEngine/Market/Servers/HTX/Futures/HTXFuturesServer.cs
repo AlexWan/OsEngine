@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
+using OsEngine.Language;
 
 namespace OsEngine.Market.Servers.HTX.Futures
 {
@@ -25,7 +26,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             ServerRealization = realization;
 
             CreateParameterString("Access Key", "");
-            CreateParameterString("Secret Key", "");            
+            CreateParameterString("Secret Key", "");
         }
     }
 
@@ -54,12 +55,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
         {
             _accessKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterString)ServerParameters[1]).Value;
-            
-            if(string.IsNullOrEmpty(_accessKey) ||
+
+            if (string.IsNullOrEmpty(_accessKey) ||
                 string.IsNullOrEmpty(_secretKey))
             {
                 SendLogMessage("Connection can be open. No keys", LogMessageType.Error);
-                if(ServerStatus != ServerConnectStatus.Disconnect)
+                if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
@@ -72,7 +73,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             RestRequest request = new RestRequest(Method.GET);
 
             IRestResponse responseMessage = client.Execute(request);
-  
+
             if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
             {
                 try
@@ -88,7 +89,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                     SendLogMessage("Connection can be open. HTXFutures. Error request", LogMessageType.Error);
-                    
+
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
@@ -99,7 +100,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             else
             {
                 SendLogMessage("Connection can be open. HTXFutures. Error request", LogMessageType.Error);
-                
+
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
@@ -128,7 +129,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _subscribledSecurities.Clear();
             _arrayPrivateChannels.Clear();
             _arrayPublicChannels.Clear();
-            
+
             try
             {
                 DeleteWebscoektConnection();
@@ -140,7 +141,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                       
+
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -172,11 +173,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
         private string _baseUrl = "api.hbdm.com";
 
         private string _webSocketPathPublic = "/ws";
-               
+
         private string _webSocketPathPrivate = "/notification";
 
         private int _limitCandles = 1990;
-               
+
         private List<string> _arrayPrivateChannels = new List<string>();
 
         private List<string> _arrayPublicChannels = new List<string>();
@@ -193,14 +194,14 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         #region 3 Securities
 
-        public void GetSecurities() 
+        public void GetSecurities()
         {
             try
-            {      
+            {
                 string url = $"https://{_baseUrl}/api/v1/contract_contract_info";
                 RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.GET);                
-                IRestResponse responseMessage = client.Execute(request);                
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
                 string JsonResponse = responseMessage.Content;
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
@@ -210,7 +211,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 else
                 {
                     SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
-                }               
+                }
             }
             catch (Exception exception)
             {
@@ -319,10 +320,10 @@ namespace OsEngine.Market.Servers.HTX.Futures
         #region 4 Portfolios
 
         private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(200));
-     
+
         public void GetPortfolios()
-        {          
-            CreateQueryPortfolio(true);           
+        {
+            CreateQueryPortfolio(true);
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -398,7 +399,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     }
                     break;
                 }
-                
+
                 allCandles.AddRange(candles);
 
                 startTimeData = endTimeData;
@@ -434,7 +435,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private bool CheckTf(int timeFrameMinutes)
         {
-            if (timeFrameMinutes == 1 ||                
+            if (timeFrameMinutes == 1 ||
                 timeFrameMinutes == 5 ||
                 timeFrameMinutes == 15 ||
                 timeFrameMinutes == 30 ||
@@ -467,11 +468,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     return "1day";
                 default:
                     return null;
-            }           
+            }
         }
 
         private readonly RateGate _rgCandleData = new RateGate(1, TimeSpan.FromMilliseconds(100));
-               
+
         private List<Candle> RequestCandleHistory(string security, string interval, long fromTimeStamp, long toTimeStamp)
         {
             _rgCandleData.WaitToProceed();
@@ -479,7 +480,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             try
             {
                 string queryParam = $"symbol={security}&";
-                queryParam += $"period={interval}&";                
+                queryParam += $"period={interval}&";
                 queryParam += $"from={fromTimeStamp}&";
                 queryParam += $"to={toTimeStamp}";
 
@@ -529,7 +530,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     continue;
                 }
-                
+
                 Candle candle = new Candle();
 
                 candle.State = CandleState.Finished;
@@ -576,11 +577,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void CreateWebSocketConnection()
         {
-             _publicSocketOpen = false;
-             _privateSocketOpen = false;
+            _publicSocketOpen = false;
+            _privateSocketOpen = false;
 
-            _webSocketPublic = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");     
-            
+            _webSocketPublic = new WebSocket($"wss://{_baseUrl}{_webSocketPathPublic}");
+
             //_webSocketPublic.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
 
             _webSocketPublic.OnOpen += webSocketPublic_OnOpen;
@@ -644,7 +645,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void CheckSocketsActivate()
         {
-            lock(_socketAcvateLocker)
+            lock (_socketAcvateLocker)
             {
                 if (_publicSocketOpen
                     && _privateSocketOpen
@@ -670,10 +671,30 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPublic_OnError(object sender, ErrorEventArgs e)
         {
-
-            if (e.Exception != null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -689,7 +710,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 if (e == null)
                 {
                     return;
-                }                               
+                }
                 if (_FIFOListWebSocketPublicMessage == null)
                 {
                     return;
@@ -703,7 +724,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     _FIFOListWebSocketPublicMessage.Enqueue(e.Data);
                 }
-                                
+
             }
             catch (Exception error)
             {
@@ -713,12 +734,21 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPublic_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null 
-                & ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by HTXSpot. WebSocket Public Closed Event", LogMessageType.System);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -731,9 +761,30 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPrivate_OnError(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -774,12 +825,21 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null 
-                && ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by HTXFutures. WebSocket Private Closed Event", LogMessageType.System);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -795,7 +855,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                 CheckSocketsActivate();
             }
-            catch(Exception error)
+            catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
             }
@@ -867,7 +927,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     try
                     {
                         if (message.Contains("ping"))
-                        {                            
+                        {
                             CreatePingMessageWebSocketPublic(message);
                             continue;
                         }
@@ -932,16 +992,16 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     {
                         if (message.Contains("ping"))
                         {
-                            CreatePingMessageWebSocketPrivate(message);                            
+                            CreatePingMessageWebSocketPrivate(message);
                             continue;
                         }
 
                         if (message.Contains("auth"))
-                        {                            
+                        {
                             SendSubscriblePrivate();
                             continue;
                         }
-                        
+
                         if (message.Contains("orders."))
                         {
                             UpdateOrder(message);
@@ -976,7 +1036,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
         private void UpdateTrade(string message)
         {
             ResponseChannelTrades responseTrade = JsonConvert.DeserializeObject<ResponseChannelTrades>(message);
-           
+
             if (responseTrade == null)
             {
                 return;
@@ -985,11 +1045,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             if (responseTrade.tick == null)
             {
                 return;
-            }                      
+            }
 
             List<ResponseChannelTrades.Data> item = responseTrade.tick.data;
-                
-            for (int i = 0;  i < item.Count; i++)
+
+            for (int i = 0; i < item.Count; i++)
             {
                 Trade trade = new Trade();
                 trade.SecurityNameCode = GetSecurityName(responseTrade.ch);
@@ -1109,9 +1169,9 @@ namespace OsEngine.Market.Servers.HTX.Futures
             string[] strings = ch.Split('.');
             return strings[1];
         }
-       
+
         private void UpdateMyTrade(ResponseChannelUpdateOrder response)
-        {           
+        {
             for (int i = 0; i < response.trade.Count; i++)
             {
                 MyTrade myTrade = new MyTrade();
@@ -1120,18 +1180,18 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 myTrade.NumberOrderParent = response.order_id;
                 myTrade.NumberTrade = response.trade[i].id;
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
-                myTrade.SecurityNameCode = JoinSecurityName(response.symbol, response.contract_type); 
+                myTrade.SecurityNameCode = JoinSecurityName(response.symbol, response.contract_type);
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
                 myTrade.Volume = response.trade[i].trade_volume.ToDecimal();
 
                 MyTradeEvent(myTrade);
-            }            
+            }
         }
 
         private void UpdateOrder(string message)
         {
             ResponseChannelUpdateOrder response = JsonConvert.DeserializeObject<ResponseChannelUpdateOrder>(message);
-         
+
             if (response == null)
             {
                 return;
@@ -1171,8 +1231,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
             if (response.trade != null)
             {
                 UpdateMyTrade(response);
-            }           
-        }               
+            }
+        }
 
         private OrderStateType GetOrderState(string orderStateResponse)
         {
@@ -1185,7 +1245,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     break;
                 case ("2"):
                     stateType = OrderStateType.Pending;
-                    break;                
+                    break;
                 case ("3"):
                     stateType = OrderStateType.Active;
                     break;
@@ -1196,7 +1256,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     stateType = OrderStateType.Cancel;
                     break;
                 case ("6"):
-                    stateType = OrderStateType.Done; 
+                    stateType = OrderStateType.Done;
                     break;
                 case ("7"):
                     stateType = OrderStateType.Cancel;
@@ -1224,7 +1284,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             portfolio.ValueBegin = 1;
             portfolio.ValueCurrent = 1;
 
-            if (item.Count != 0) 
+            if (item.Count != 0)
             {
                 for (int i = 0; i < item.Count; i++)
                 {
@@ -1333,12 +1393,12 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 jsonContent.Add("order_price_type", "limit");
 
                 string url = _privateUriBuilder.Build("POST", "/api/v1/contract_order");
-                          
+
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.POST);
                 request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
-                                
+
                 PlaceOrderResponse orderResponse = JsonConvert.DeserializeObject<PlaceOrderResponse>(responseMessage.Content);
 
                 if (responseMessage.Content.Contains("error"))
@@ -1361,7 +1421,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
-        {            
+        {
         }
 
         public void CancelOrder(Order order)
@@ -1406,11 +1466,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
         }
 
         public void CancelAllOrders()
-        {           
+        {
         }
 
         public void CancelAllOrdersToSecurity(Security security)
-        {            
+        {
         }
 
         public void GetAllActivOrders()
@@ -1445,11 +1505,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
             List<Order> orders = new List<Order>();
 
             try
-            {               
+            {
                 string url = _privateUriBuilder.Build("POST", "/api/v1/contract_openorders");
 
                 RestClient client = new RestClient(url);
-                RestRequest request = new RestRequest(Method.POST);                        
+                RestRequest request = new RestRequest(Method.POST);
                 IRestResponse responseMessage = client.Execute(request);
 
                 ResponseMessageAllOrders response = JsonConvert.DeserializeObject<ResponseMessageAllOrders>(responseMessage.Content);
@@ -1493,7 +1553,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                             orders.Add(newOrder);
                         }
                     }
-                }                               
+                }
             }
             catch (Exception exception)
             {
@@ -1517,15 +1577,15 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 && orderFromExchange.NumberUser != 0
                 && orderFromExchange.NumberUser == order.NumberUser)
             {
-                orderOnMarket = orderFromExchange;                    
+                orderOnMarket = orderFromExchange;
             }
 
             if (string.IsNullOrEmpty(order.NumberMarket) == false
                 && order.NumberMarket == orderFromExchange.NumberMarket)
             {
-                orderOnMarket = orderFromExchange;                   
+                orderOnMarket = orderFromExchange;
             }
-            
+
             if (orderOnMarket == null)
             {
                 return;
@@ -1575,7 +1635,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             try
             {
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
-                
+
                 jsonContent.Add("order_id", numberMarket);
                 jsonContent.Add("symbol", securityNameCode.Split('_')[0]);
 
@@ -1597,7 +1657,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 else
                 {
                     if (item != null && item.Count > 0)
-                    { 
+                    {
                         newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[0].created_at));
                         newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[0].created_at));
                         newOrder.ServerType = ServerType.HTXFutures;
@@ -1607,7 +1667,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                         newOrder.Side = item[0].direction.Equals("buy") ? Side.Buy : Side.Sell;
                         newOrder.State = GetOrderState(item[0].status);
 
-                        if(newOrder.State == OrderStateType.Done)
+                        if (newOrder.State == OrderStateType.Done)
                         {
                             newOrder.TimeDone = newOrder.TimeCreate;
                         }
@@ -1648,10 +1708,10 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
 
-                string respString = responseMessage.Content;                
+                string respString = responseMessage.Content;
 
                 if (!respString.Contains("error"))
-                {                      
+                {
                     ResponseMessageGetMyTradesBySecurity orderResponse = JsonConvert.DeserializeObject<ResponseMessageGetMyTradesBySecurity>(respString);
 
                     List<MyTrade> osEngineOrders = new List<MyTrade>();
@@ -1711,7 +1771,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
         private void CreateSubscribleSecurityMessageWebSocket(Security security)
         {
-           
+
             if (_webSocketPublic == null)
             {
                 return;
@@ -1733,11 +1793,11 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
             topic = $"market.{security.Name}.trade.detail";
             _webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
-            _arrayPublicChannels.Add(topic);                        
+            _arrayPublicChannels.Add(topic);
         }
 
         private void SendSubscriblePrivate()
-        {          
+        {
             string clientId = "";
             string channelOrders = "orders.*";
             string channelAccounts = "accounts.*";
@@ -1747,7 +1807,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"{channelPositions}\", \"cid\": \"{clientId}\" }}");
             _arrayPrivateChannels.Add(channelAccounts);
             _arrayPrivateChannels.Add(channelOrders);
-            _arrayPrivateChannels.Add(channelPositions);           
+            _arrayPrivateChannels.Add(channelPositions);
         }
 
         private void CreatePingMessageWebSocketPublic(string message)
@@ -1761,7 +1821,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
             else
             {
                 _webSocketPublic.Send($"{{\"pong\": \"{response.ping}\"}}");
-            }            
+            }
         }
 
         private void CreatePingMessageWebSocketPrivate(string message)
@@ -1773,7 +1833,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 return;
             }
             else
-            {                
+            {
                 _webSocketPrivate.Send($"{{\"pong\": \"{response.ts}\"}}");
             }
         }
@@ -1827,7 +1887,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    UpdatePorfolio(JsonResponse, IsUpdateValueBegin);                   
+                    UpdatePorfolio(JsonResponse, IsUpdateValueBegin);
                 }
                 else
                 {
@@ -1885,7 +1945,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                     pos.PortfolioName = "HTXFuturesPortfolio";
                     pos.SecurityNameCode = itemPosition[j].symbol;
-                    pos.ValueBlocked = itemPosition[j].frozen.ToDecimal(); 
+                    pos.ValueBlocked = itemPosition[j].frozen.ToDecimal();
                     pos.ValueCurrent = itemPosition[j].volume.ToDecimal();
 
                     if (IsUpdateValueBegin)
@@ -1894,7 +1954,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     }
                     portfolio.SetNewPosition(pos);
                 }
-                PortfolioEvent(new List<Portfolio> { portfolio });                      
+                PortfolioEvent(new List<Portfolio> { portfolio });
             }
         }
 
@@ -1934,14 +1994,14 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
             string signature = _signer.Sign("GET", _baseUrl, _webSocketPathPrivate, request.BuildParams());
 
-            WebSocketAuthenticationRequestFutures auth = new WebSocketAuthenticationRequestFutures();            
+            WebSocketAuthenticationRequestFutures auth = new WebSocketAuthenticationRequestFutures();
             auth.AccessKeyId = _accessKey;
             auth.Signature = signature;
             auth.Timestamp = strDateTime;
-            
+
             return JsonConvert.SerializeObject(auth);
         }
-        
+
         #endregion
 
         #region 13 Log
