@@ -858,10 +858,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 _webSocket.SetProxy(_myProxy);
             }
 
-           /* _webSocket.SslConfiguration.EnabledSslProtocols
-                = System.Security.Authentication.SslProtocols.None
-                | System.Security.Authentication.SslProtocols.Tls12
-                | System.Security.Authentication.SslProtocols.Tls13;*/
+            /* _webSocket.SslConfiguration.EnabledSslProtocols
+                 = System.Security.Authentication.SslProtocols.None
+                 | System.Security.Authentication.SslProtocols.Tls12
+                 | System.Security.Authentication.SslProtocols.Tls13;*/
 
             _webSocket.EmitOnPing = true;
 
@@ -900,9 +900,30 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private void WebSocket_Error(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -952,11 +973,21 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private void WebSocket_Closed(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null && ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by GateIo. WebSocket Closed Event", LogMessageType.Connect);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
