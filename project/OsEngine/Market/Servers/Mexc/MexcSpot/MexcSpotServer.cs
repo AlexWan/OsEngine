@@ -930,15 +930,28 @@ namespace OsEngine.Market.Servers.Mexc
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
 
                 if (e.Exception != null)
                 {
-                    SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage("Public socket error" + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -990,10 +1003,12 @@ namespace OsEngine.Market.Servers.Mexc
         {
             try
             {
-                SendLogMessage("Connection Closed by MexcSpot. WebSocket Public Closed Event", LogMessageType.Error);
-
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
@@ -1014,18 +1029,28 @@ namespace OsEngine.Market.Servers.Mexc
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (e.Exception != null)
                 {
-                    SendLogMessage("WebSocketPrivate Error" + e.Exception.ToString(), LogMessageType.Error);
-                }
-                else
-                {
-                    SendLogMessage("WebSocketPrivate Error" + e.ToString(), LogMessageType.Error);
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage("Private socket error" + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1072,10 +1097,12 @@ namespace OsEngine.Market.Servers.Mexc
         {
             try
             {
-                SendLogMessage("Connection Closed by MexcSpot. WebSocket Private Closed Event", LogMessageType.Error);
-
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }

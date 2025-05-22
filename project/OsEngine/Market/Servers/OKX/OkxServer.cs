@@ -29,7 +29,7 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParamPassword, "");
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
-            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });            
+            CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterEnum("Demo Mode", "Off", new List<string> { "Off", "On" });
         }
@@ -870,7 +870,7 @@ namespace OsEngine.Market.Servers.OKX
                 webSocketPublicNew.OnError += WebSocketPublic_Error;
                 webSocketPublicNew.Connect();
 
-                return webSocketPublicNew;               
+                return webSocketPublicNew;
             }
             catch (Exception exception)
             {
@@ -1085,10 +1085,12 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                if (DisconnectEvent != null
-                 & ServerStatus != ServerConnectStatus.Disconnect)
+                if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage("Connection Closed by OKX. WebSocket Public Closed Event " + e.Code + " " + e.Reason, LogMessageType.System);
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
@@ -1131,17 +1133,30 @@ namespace OsEngine.Market.Servers.OKX
 
         private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                string exception = e.Exception.ToString();
-
-                if (exception.Contains("0x80004005")
-                    || exception.Contains("no address was supplied"))
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
 
-                SendLogMessage(exception, LogMessageType.Error);
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1149,9 +1164,9 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
+                CreateAuthMessageWebSockets();
                 SendLogMessage("OKX WebSocket Private connection open", LogMessageType.System);
                 CheckSocketsActivate();
-                CreateAuthMessageWebSockets();
             }
             catch (Exception error)
             {
@@ -1161,12 +1176,21 @@ namespace OsEngine.Market.Servers.OKX
 
         private void WebSocketPrivate_Closed(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null
-                && ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by OKX. WebSocket Private Closed Event " + e.Code + " " + e.Reason, LogMessageType.System);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1207,17 +1231,30 @@ namespace OsEngine.Market.Servers.OKX
 
         private void WebSocketPrivate_Error(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                string exception = e.Exception.ToString();
-
-                if (exception.Contains("0x80004005")
-                    || exception.Contains("no address was supplied"))
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     return;
                 }
 
-                SendLogMessage(exception, LogMessageType.Error);
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
