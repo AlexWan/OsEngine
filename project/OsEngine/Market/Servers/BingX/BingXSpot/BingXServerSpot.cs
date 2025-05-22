@@ -827,13 +827,30 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void WebSocketPublicNew_OnError(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                SendLogMessage("WebSocket Public error" + e.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -893,11 +910,21 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void WebSocketPublicNew_OnClose(object sender, CloseEventArgs e)
         {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage($"Connection Closed by BingXSpot. {e.Code} {e.Reason}. WebSocket Public Closed Event", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -919,13 +946,30 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void _webSocketPrivate_OnError(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
             }
-            else
+            catch (Exception ex)
             {
-                SendLogMessage("WebSocket Private error" + e.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -948,11 +992,21 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private void _webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage($"Connection Closed by BingXSpot. {e.Code} {e.Reason}. WebSocket Private Closed Event", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
