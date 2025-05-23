@@ -2248,7 +2248,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 if (!HedgeMode && order.PositionConditionType == OrderPositionConditionType.Close)
                 {
-                    param.Add("&reduceOnly=", "true");
+                    param.Add("&reduceOnly=", "false");
                 }
 
                 if (order.TypeOrder == OrderPriceType.Limit)
