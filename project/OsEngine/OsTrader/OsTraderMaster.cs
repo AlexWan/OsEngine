@@ -12,9 +12,11 @@ using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.OsTrader.MemoryRH;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.RiskManager;
+using OsEngine.PrimeSettings;
 using OsEngine.Robots;
 using System;
 using System.Collections.Generic;
@@ -80,6 +82,17 @@ namespace OsEngine.OsTrader
             {
                 ServerMaster.ActivateAutoConnection();
                 ServerMaster.ActivateProxy();
+
+                if(PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.At5Minutes)
+                {
+                    _memoryCleaner = new MemoryCleaner(5);
+                    _memoryCleaner.LogMessageEvent += SendNewLogMessage;
+                }
+                else if(PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.At30Minutes)
+                {
+                    _memoryCleaner = new MemoryCleaner(30);
+                    _memoryCleaner.LogMessageEvent += SendNewLogMessage;
+                }
             }
 
             //ServerMaster.LogMessageEvent += SendNewLogMessage;
@@ -921,6 +934,12 @@ namespace OsEngine.OsTrader
 
             return sec;
         }
+
+        #endregion
+
+        #region Memory cleaner
+
+        private MemoryCleaner _memoryCleaner;
 
         #endregion
 
