@@ -963,7 +963,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                                 {
                                     for (int i2 = 0; i2 < _subscribedSecurities.Count; i2++)
                                     {
-                                        string securityName = _subscribedSecurities[i];
+                                        string securityName = _subscribedSecurities[i2];
 
                                         webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/tickerV2:{securityName}\"}}"); // transactions
                                         webSocketPublic.Send($"{{\"type\": \"unsubscribe\",\"topic\": \"/contractMarket/level2Depth5:{securityName}\"}}"); // marketDepth

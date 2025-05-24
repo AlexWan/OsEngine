@@ -114,7 +114,15 @@ namespace OsEngine.Market.Servers.OKX
                     SecurityProtocolType.Tls13 |
                     SecurityProtocolType.SystemDefault;
 
-                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/time").Result;
+                RestRequest requestRest = new RestRequest("/api/v5/public/time", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
@@ -251,16 +259,22 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SWAP").Result;
+                RestRequest requestRest = new RestRequest("/api/v5/public/instruments?instType=SWAP", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
 
-                string json = response.Content.ReadAsStringAsync().Result;
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetFuturesSecurities - {json}", LogMessageType.Error);
+                    SendLogMessage($"GetFuturesSecurities - {response.Content}", LogMessageType.Error);
                 }
 
-                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityResponse());
 
                 return securityResponse;
             }
@@ -276,16 +290,26 @@ namespace OsEngine.Market.Servers.OKX
             try
             {
                 //get list of possible options
-                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/underlying?instType=OPTION").Result;
+                //HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/underlying?instType=OPTION").Result;
 
-                string json = response.Content.ReadAsStringAsync().Result;
+                RestRequest requestRest = new RestRequest("/api/v5/public/underlying?instType=OPTION", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                //string json = response.Content.ReadAsStringAsync().Result;
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetOptionSecurities - {json}", LogMessageType.Error);
+                    SendLogMessage($"GetOptionSecurities - {response.Content}", LogMessageType.Error);
                 }
 
-                SecurityUnderlyingResponse baseSecuritiesResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityUnderlyingResponse());
+                SecurityUnderlyingResponse baseSecuritiesResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityUnderlyingResponse());
 
                 if (baseSecuritiesResponse == null ||
                     baseSecuritiesResponse.data == null ||
@@ -316,16 +340,26 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     string baseSecurity = baseSecurities[k];
 
-                    HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=OPTION&uly=" + baseSecurity).Result;
+                    //HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=OPTION&uly=" + baseSecurity).Result;
 
-                    string json = response.Content.ReadAsStringAsync().Result;
+                    RestRequest requestRest = new RestRequest("/api/v5/public/instruments?instType=OPTION&uly=" + baseSecurity, Method.GET);
+                    RestClient client = new RestClient(_baseUrl);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
+                    IRestResponse response = client.Execute(requestRest);
+
+                    //string json = response.Content.ReadAsStringAsync().Result;
 
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        SendLogMessage($"GetOptionSecurities - {json}", LogMessageType.Error);
+                        SendLogMessage($"GetOptionSecurities - {response.Content}", LogMessageType.Error);
                     }
 
-                    SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+                    SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityResponse());
 
                     if (ret == null)
                     {
@@ -350,15 +384,22 @@ namespace OsEngine.Market.Servers.OKX
         {
             try
             {
-                HttpResponseMessage response = _httpClient.GetAsync(_baseUrl + "/api/v5/public/instruments?instType=SPOT").Result;
-                string json = response.Content.ReadAsStringAsync().Result;
+                RestRequest requestRest = new RestRequest("/api/v5/public/instruments?instType=SPOT", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetSpotSecurities - {json}", LogMessageType.Error);
+                    SendLogMessage($"GetSpotSecurities - {response.Content}", LogMessageType.Error);
                 }
 
-                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(json, new SecurityResponse());
+                SecurityResponse securityResponse = JsonConvert.DeserializeAnonymousType(response.Content, new SecurityResponse());
 
                 return securityResponse;
             }
@@ -390,8 +431,15 @@ namespace OsEngine.Market.Servers.OKX
                     securityType = SecurityType.Option;
                 }
 
-                security.Lot = item.lotSz.ToDecimal();
+                security.Name = item.instId;
+                security.NameFull = item.instId;
 
+                if (item.lotSz == string.Empty)
+                {
+                    continue;
+                }
+
+                security.Lot = item.lotSz.ToDecimal();
                 string volStep = item.minSz.Replace(',', '.');
 
                 if (volStep != null
@@ -404,8 +452,7 @@ namespace OsEngine.Market.Servers.OKX
                 security.MinTradeAmountType = MinTradeAmountType.Contract;
                 security.MinTradeAmount = item.minSz.ToDecimal();
                 security.VolumeStep = item.lotSz.ToDecimal();
-                security.Name = item.instId;
-                security.NameFull = item.instId;
+
 
                 if (securityType == SecurityType.CurrencyPair)
                 {
