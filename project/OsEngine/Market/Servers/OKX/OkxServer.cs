@@ -650,13 +650,11 @@ namespace OsEngine.Market.Servers.OKX
 
         private int GetCountCandlesToLoad()
         {
-            AServer server = (AServer)ServerMaster.GetServers().Find(server => server.ServerType == ServerType.OKX);
-
-            for (int i = 0; i < server.ServerParameters.Count; i++)
+            for (int i = 0; i < ServerParameters.Count; i++)
             {
-                if (server.ServerParameters[i].Name.Equals("Candles to load"))
+                if (ServerParameters[i].Name.Equals("Candles to load"))
                 {
-                    ServerParameterInt Param = (ServerParameterInt)server.ServerParameters[i];
+                    ServerParameterInt Param = (ServerParameterInt)ServerParameters[i];
                     return Param.Value;
                 }
             }

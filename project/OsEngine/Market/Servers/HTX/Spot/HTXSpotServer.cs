@@ -611,22 +611,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private int GetCountCandlesToLoad()
         {
-            AServer server = null;
-
-            for (int i = 0; i < ServerMaster.GetServers().Count; i++)
+            for (int i = 0; i < ServerParameters.Count; i++)
             {
-                if (ServerMaster.GetServers()[i].ServerType == ServerType.HTXSpot)
+                if (ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
                 {
-                    server = (AServer)ServerMaster.GetServers()[i];
-                    break;
-                }
-            }
-
-            for (int i = 0; i < server.ServerParameters.Count; i++)
-            {
-                if (server.ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
-                {
-                    ServerParameterInt Param = (ServerParameterInt)server.ServerParameters[i];
+                    ServerParameterInt Param = (ServerParameterInt)ServerParameters[i];
                     return Param.Value;
                 }
             }
