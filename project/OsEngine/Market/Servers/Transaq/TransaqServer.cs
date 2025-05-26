@@ -972,11 +972,11 @@ namespace OsEngine.Market.Servers.Transaq
                         {
                             if (!string.IsNullOrEmpty(client.Union))
                             {
-                                command = $"<command id=\"get_mc_portfolio\" union=\"{client.Union}\" />";
+                                command = $"<command id=\"get_mc_portfolio\" union=\"{client.Union}\"/>";
                             }
                             else
                             {
-                                command = $"<command id=\"get_mc_portfolio\" client=\"{client.Id}\" />";
+                                command = $"<command id=\"get_mc_portfolio\" client=\"{client.Id}\"/>";
                             }
 
                             string res = ConnectorSendCommand(command);
