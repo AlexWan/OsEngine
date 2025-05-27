@@ -383,6 +383,10 @@ namespace OsEngine.Market.Servers.TelegramNews
 
                 try
                 {
+                    if(chatElements.Item1 == null)
+                    {
+                        return;
+                    }
                     // Mark the channel as read
                     bool readChannel = await _client.Channels_ReadHistory(chatElements.Item1 as Channel);
                 }
