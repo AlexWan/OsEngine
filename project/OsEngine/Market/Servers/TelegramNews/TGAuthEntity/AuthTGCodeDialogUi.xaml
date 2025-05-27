@@ -12,7 +12,7 @@
         </Grid.ColumnDefinitions>
         <Rectangle Margin="5,5,5,37"/>
         <TextBox Name="TextBoxCode" HorizontalAlignment="Center" Margin="0,50,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="114"/>
-        <Label Name="Label41" Content="Enter authentication code:" HorizontalAlignment="Left" Margin="67,14,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelCode" Content="Authorization code" HorizontalAlignment="Left" Margin="94,17,0,0" VerticalAlignment="Top"/>
         <Button Name="ButtonSend" Content="Send" HorizontalAlignment="Right" Margin="0,0,160,10" VerticalAlignment="Bottom" Width="120" Click="ButtonSendCode_Click"/>
         <Button Name="ButtonCancel" Content="Cancel" Margin="0,0,10,10" VerticalAlignment="Bottom" Click="ButtonCancel_Click" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="41,138,0,0" VerticalAlignment="Top"/>

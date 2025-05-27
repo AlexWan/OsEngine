@@ -1,5 +1,4 @@
-﻿using Grpc.Core;
-using OsEngine.Entity;
+﻿using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.TelegramNews.TGAuthEntity;
@@ -41,7 +40,7 @@ namespace OsEngine.Market.Servers.TelegramNews
             string logDir = @"Engine\Log\TelegramLogs";
             Directory.CreateDirectory(logDir);
 
-            var logFile = new FileInfo(Path.Combine(logDir, "wteleg.log"));
+            FileInfo logFile = new FileInfo(Path.Combine(logDir, "wteleg.log"));
 
             if (logFile.Exists && logFile.Length > 1024 * 1024)
                 File.WriteAllText(logFile.FullName, "");
@@ -181,7 +180,7 @@ namespace OsEngine.Market.Servers.TelegramNews
             try
             {
                 // 1. Checking the authorization
-                var my = await _client.LoginUserIfNeeded();
+                User my = await _client.LoginUserIfNeeded();
 
                 if (my == null)
                 {
@@ -192,7 +191,7 @@ namespace OsEngine.Market.Servers.TelegramNews
                 SendLogMessage($"Successful login! ID: {my.id}, Name: {my.first_name}", LogMessageType.Connect);
 
                 // 2. Checking API availability
-                var config = await _client.Help_GetConfig();
+                Config config = await _client.Help_GetConfig();
                 SendLogMessage($"Current DC: {config.this_dc}", LogMessageType.Connect);
 
                 return true;
@@ -385,7 +384,7 @@ namespace OsEngine.Market.Servers.TelegramNews
                 try
                 {
                     // Mark the channel as read
-                    var readChannel = await _client.Channels_ReadHistory(chatElements.Item1 as Channel);
+                    bool readChannel = await _client.Channels_ReadHistory(chatElements.Item1 as Channel);
                 }
                 catch (RpcException ex) when (ex.Code == 420)
                 {
@@ -470,7 +469,7 @@ namespace OsEngine.Market.Servers.TelegramNews
         private int ExtractWaitTime(string errorMessage)
         {
             // Пример ошибки: "FLOOD_WAIT_3" → вернет 3
-            var match = Regex.Match(errorMessage, @"FLOOD_WAIT_(\d+)");
+            Match match = Regex.Match(errorMessage, @"FLOOD_WAIT_(\d+)");
             return match.Success ? int.Parse(match.Groups[1].Value) : 10; // Дефолт: 10 сек
         }
 

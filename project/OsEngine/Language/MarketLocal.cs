@@ -1417,8 +1417,16 @@ namespace OsEngine.Language
             "Eng:Ignore morning auction trades_" +
             "Ru:Игнорировать сделки утреннего аукциона_");
 
+        public string AuthorizationCode => OsLocalization.ConvertToLocString(
+            "Eng:Authorization code_" +
+            "Ru:Код авторизации_");
 
+        public string SendButton => OsLocalization.ConvertToLocString(
+           "Eng:Send_" +
+           "Ru:Отправить_");
 
-
+        public string TelegramAuthTitle => OsLocalization.ConvertToLocString(
+             "Eng:Telegram authorization_" +
+             "Ru:Telegram авторизация_");
     }
 }

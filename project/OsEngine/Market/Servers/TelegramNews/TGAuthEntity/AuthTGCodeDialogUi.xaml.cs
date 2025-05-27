@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using OsEngine.Language;
+using System.Windows;
 
 namespace OsEngine.Market.Servers.TelegramNews.TGAuthEntity
 {
@@ -14,6 +15,12 @@ namespace OsEngine.Market.Servers.TelegramNews.TGAuthEntity
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+
+            Title = OsLocalization.Market.TelegramAuthTitle;
+            LabelCode.Content = OsLocalization.Market.AuthorizationCode + ":";
+            ButtonSend.Content = OsLocalization.Market.SendButton;
+            ButtonCancel.Content = OsLocalization.Entity.ButtonCancel1;
+
             this.Activate();
             this.Focus();
         }
