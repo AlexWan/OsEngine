@@ -110,6 +110,7 @@
     <PackageReference Include="System.ServiceModel.Security" Version="6.0.0" />
     <PackageReference Include="System.ServiceModel.Federation" Version="8.1.2" />
     <PackageReference Include="WinForms.DataVisualization" Version="1.10.0" />
+    <PackageReference Include="WTelegramClient" Version="4.3.4" />
   </ItemGroup>
   <ItemGroup Condition=" '$(Platform)' == 'AnyCPU' ">
     <Content Include="bin\$(Configuration)\libcrypto-3-x64.dll">
