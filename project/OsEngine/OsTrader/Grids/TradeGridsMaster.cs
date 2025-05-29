@@ -13,7 +13,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -72,7 +71,7 @@ namespace OsEngine.OsTrader.Grids
             newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
             newGrid.LogMessageEvent += SendNewLogMessage;
 
-            int gridNum = 0;
+            int gridNum = 1;
 
             for(int i = 0;i < TradeGrids.Count;i++)
             {
@@ -265,7 +264,6 @@ namespace OsEngine.OsTrader.Grids
             {
                 // ignore
             }
-
         }
 
         #endregion
@@ -319,7 +317,7 @@ namespace OsEngine.OsTrader.Grids
 
             DataGridViewColumn column2 = new DataGridViewColumn();
             column2.CellTemplate = cell0;
-            column2.HeaderText = "Type";
+            column2.HeaderText = OsLocalization.Trader.Label467;
             column2.ReadOnly = true;
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
 
@@ -327,7 +325,7 @@ namespace OsEngine.OsTrader.Grids
 
             DataGridViewColumn column3 = new DataGridViewColumn();
             column3.CellTemplate = cell0;
-            column3.HeaderText = "Regime";
+            column3.HeaderText = OsLocalization.Trader.Label468;
             column3.ReadOnly = true;
             column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridViewInstances.Columns.Add(column3);
@@ -343,7 +341,7 @@ namespace OsEngine.OsTrader.Grids
             column5.CellTemplate = cell0;
             //column4.HeaderText = "Delete";
             column5.ReadOnly = true;
-            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             _gridViewInstances.Columns.Add(column5);
             _gridViewInstances.CellClick += _gridViewInstances_CellClick;
         }
@@ -394,10 +392,10 @@ namespace OsEngine.OsTrader.Grids
             row.Cells[row.Cells.Count - 1].Value = tradeGrid.Regime.ToString();
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[row.Cells.Count - 1].Value = "Settings";
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Trader.Label469;
 
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[row.Cells.Count - 1].Value = "Delete";
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Trader.Label470;
 
             return row;
         }
@@ -411,7 +409,7 @@ namespace OsEngine.OsTrader.Grids
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells.Add(new DataGridViewTextBoxCell());
             row.Cells.Add(new DataGridViewButtonCell());
-            row.Cells[row.Cells.Count - 1].Value = "Add new";
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Trader.Label471;
 
             return row;
         }

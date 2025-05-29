@@ -27,7 +27,6 @@ namespace OsEngine.PrimeSettings
                 Save();
             }
         }
-
         private static bool _errorLogMessageBoxIsActive = true;
 
         public static bool ErrorLogBeepIsActive
@@ -42,7 +41,6 @@ namespace OsEngine.PrimeSettings
             }
             set { _errorLogBeepIsActive = value; Save(); }
         }
-
         private static bool _errorLogBeepIsActive = true;
 
         public static bool TransactionBeepIsActive
@@ -61,7 +59,6 @@ namespace OsEngine.PrimeSettings
                 Save();
             }
         }
-
         private static bool _transactionBeepIsActive;
 
         public static bool RebootTradeUiLight
@@ -80,7 +77,6 @@ namespace OsEngine.PrimeSettings
                 Save();
             }
         }
-
         private static bool _rebootTradeUiLight;
 
         public static bool ReportCriticalErrors
@@ -99,7 +95,6 @@ namespace OsEngine.PrimeSettings
                 Save();
             }
         }
-
         private static bool _reportCriticalErrors = true;
 
         public static string LabelInHeaderBotStation
@@ -118,8 +113,29 @@ namespace OsEngine.PrimeSettings
                 Save();
             }
         }
-
         private static string _labelInHeaderBotStation;
+
+        public static MemoryCleanerRegime MemoryCleanerRegime
+        {
+            get
+            {
+                if (_isLoad == false)
+                {
+                    Load();
+                }
+                return _memoryCleanerRegime;
+            }
+            set
+            {
+                if(_memoryCleanerRegime == value)
+                {
+                    return;
+                }
+                _memoryCleanerRegime = value;
+                Save();
+            }
+        }
+        public static MemoryCleanerRegime _memoryCleanerRegime;
 
         public static void Save()
         {
@@ -133,6 +149,7 @@ namespace OsEngine.PrimeSettings
                     writer.WriteLine(_labelInHeaderBotStation);
                     writer.WriteLine(_rebootTradeUiLight);
                     writer.WriteLine(_reportCriticalErrors);
+                    writer.WriteLine(_memoryCleanerRegime);
 
                     writer.Close();
                 }
@@ -171,6 +188,8 @@ namespace OsEngine.PrimeSettings
                     _rebootTradeUiLight = Convert.ToBoolean(reader.ReadLine());
                     _reportCriticalErrors = Convert.ToBoolean(reader.ReadLine());
 
+                    Enum.TryParse(reader.ReadLine(), out _memoryCleanerRegime);
+
                     reader.Close();
                 }
             }
@@ -180,5 +199,12 @@ namespace OsEngine.PrimeSettings
                 // ignore
             }
         }
+    }
+
+    public enum MemoryCleanerRegime
+    {
+        Disable,
+        At5Minutes,
+        At30Minutes
     }
 }

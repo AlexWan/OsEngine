@@ -58,6 +58,12 @@ namespace OsEngine.PrimeSettings
                 Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
             };
 
+            ComboBoxMemoryCleanUp.Items.Add(MemoryCleanerRegime.Disable.ToString());
+            ComboBoxMemoryCleanUp.Items.Add(MemoryCleanerRegime.At5Minutes.ToString());
+            ComboBoxMemoryCleanUp.Items.Add(MemoryCleanerRegime.At30Minutes.ToString());
+            ComboBoxMemoryCleanUp.SelectedItem = PrimeSettingsMaster.MemoryCleanerRegime.ToString();
+            ComboBoxMemoryCleanUp.SelectionChanged += ComboBoxMemoryCleanUp_SelectionChanged;
+
             CheckBoxExtraLogWindow.IsChecked = PrimeSettingsMaster.ErrorLogMessageBoxIsActive;
             CheckBoxExtraLogSound.IsChecked = PrimeSettingsMaster.ErrorLogBeepIsActive;
             CheckBoxTransactionSound.IsChecked = PrimeSettingsMaster.TransactionBeepIsActive;
@@ -88,10 +94,20 @@ namespace OsEngine.PrimeSettings
             ExtraLogSound.Content = OsLocalization.PrimeSettings.ExtraLogSoundLabel;
             TransactionSoundLabel.Content = OsLocalization.PrimeSettings.TransactionSoundLabel;
             TextBoxMessageToUsers.Text = OsLocalization.PrimeSettings.TextBoxMessageToUsers;
-
+            LabelMemoryCleanUp.Content = OsLocalization.PrimeSettings.LabelMemoryClearingRegime;
             LabelHeader.Content = OsLocalization.PrimeSettings.LabelBotHeader;
             LabelRebootTradeUiLigth.Content = OsLocalization.PrimeSettings.LabelLightReboot;
             LabelReportCriticalErrors.Content = OsLocalization.PrimeSettings.ReportErrorsOnServer;
+        }
+
+        private void ComboBoxMemoryCleanUp_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            MemoryCleanerRegime newRegime = new MemoryCleanerRegime();
+
+            if(Enum.TryParse(ComboBoxMemoryCleanUp.SelectedItem.ToString(), out newRegime))
+            {
+                PrimeSettingsMaster.MemoryCleanerRegime = newRegime;
+            }
         }
 
         private void TextBoxBotHeader_TextChanged(object sender, TextChangedEventArgs e)

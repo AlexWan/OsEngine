@@ -501,9 +501,6 @@ positionOpener.LifeTimeType
 
         // messages in log
 
-        /// <summary>
-        /// Send a new message to the top
-        /// </summary>
         private void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -516,9 +513,6 @@ positionOpener.LifeTimeType
             }
         }
 
-        /// <summary>
-        /// Outgoing message for log
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
     }
 }

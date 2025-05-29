@@ -93,5 +93,9 @@ namespace OsEngine.Language
         public string ReportErrorsOnServer => OsLocalization.ConvertToLocString(
            "Eng:Report critical errors" +
            "_Ru:Высылать критические ошибки_");
+
+        public string LabelMemoryClearingRegime => OsLocalization.ConvertToLocString(
+          "Eng:Memory clean up" +
+          "_Ru:Очистка памяти_");
     }
 }

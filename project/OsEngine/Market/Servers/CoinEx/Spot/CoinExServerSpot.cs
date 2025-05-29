@@ -798,26 +798,50 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
 
         private void WebSocket_Closed(Object sender, CloseEventArgs e)
         {
-            SendLogMessage($"Close reason: {e.Code} {e.Reason}", LogMessageType.Connect);
-            SetDisconnected();
+            try
+            {
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void WebSocketData_Error(object sender, ErrorEventArgs e)
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (e.Exception != null)
                 {
-                    SendLogMessage("Web Socket Error: " + e.Exception.ToString(), LogMessageType.Error);
-                }
-                else
-                {
-                    SendLogMessage("Web Socket Error: " + e.ToString(), LogMessageType.Error);
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage("Web socket error: " + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 

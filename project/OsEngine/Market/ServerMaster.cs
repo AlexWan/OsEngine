@@ -77,6 +77,7 @@ using OsEngine.Market.Servers.AE;
 using OsEngine.Market.Proxy;
 using System.Net;
 using OsEngine.Market.Servers.BloFin;
+using OsEngine.Market.Servers.TelegramNews;
 
 
 namespace OsEngine.Market
@@ -321,6 +322,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.SmartLabNews);
                 serverTypes.Add(ServerType.AExchange);
                 serverTypes.Add(ServerType.BloFinFutures);
+                serverTypes.Add(ServerType.TelegramNews);
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
@@ -518,6 +520,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.TelegramNews)
+                {
+                    newServer = new TelegramNewsServer();
+                }
                 if (type == ServerType.AExchange)
                 {
                     newServer = new AExchangeServer();
@@ -1495,6 +1501,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new BloFinFuturesServerPermission();
                 }
+                else if (type == ServerType.TelegramNews)
+                {
+                    serverPermission = new TelegramNewsServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2057,5 +2067,11 @@ namespace OsEngine.Market
         /// BloFinFutures exchange
         /// </summary>
         BloFinFutures,
+
+        /// <summary>
+        /// Reading news from Telegram channels
+        /// Чтение новостей с Telegram каналов
+        /// </summary>
+        TelegramNews,
     }
 }

@@ -17,6 +17,7 @@ using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Market.Servers.Deribit.Entity;
 using System.Security.Cryptography;
 using System.Net;
+using OsEngine.Language;
 
 // API doc - https://docs.deribit.com/
 
@@ -146,7 +147,7 @@ namespace OsEngine.Market.Servers.Deribit
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketMessage = new ConcurrentQueue<string>();            
+            FIFOListWebSocketMessage = new ConcurrentQueue<string>();
         }
 
         public ServerType ServerType
@@ -288,9 +289,9 @@ namespace OsEngine.Market.Servers.Deribit
         #region 4 Portfolios
 
         private RateGate _rateGatePortfolio = new RateGate(1, TimeSpan.FromMilliseconds(200));
-        
+
         private RateGate _rateGatePositions = new RateGate(1, TimeSpan.FromMilliseconds(200));
-        
+
         public void GetPortfolios()
         {
             for (int i = 0; i < _listCurrency.Count; i++)
@@ -516,7 +517,7 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void CreateWebSocketConnection()
         {
-            webSocket = new WebSocket(_webSocketUrl);            
+            webSocket = new WebSocket(_webSocketUrl);
             webSocket.OnOpen += WebSocket_Opened;
             webSocket.OnClose += WebSocket_OnClose;
             webSocket.OnMessage += WebSocket_OnMessage;
@@ -551,9 +552,30 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void WebSocket_OnError(object arg1, ErrorEventArgs e)
         {
-            if (e.Exception == null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -590,11 +612,21 @@ namespace OsEngine.Market.Servers.Deribit
 
         private void WebSocket_OnClose(object arg1, CloseEventArgs arg2)
         {
-            if (ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by Deribit. WebSocket Closed Event", LogMessageType.Error);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -634,7 +666,7 @@ namespace OsEngine.Market.Servers.Deribit
                         jsonRequest.id = 0;
                         jsonRequest.method = "public/test";
                         jsonRequest.@params = new JsonRequest.Params();
-                        
+
                         string json = JsonConvert.SerializeObject(jsonRequest);
 
                         webSocket.Send(json);
@@ -876,7 +908,7 @@ namespace OsEngine.Market.Servers.Deribit
                     MarketDepthLevel level = new MarketDepthLevel();
                     level.Ask = item.asks[i][1].ToString().ToDecimal();
                     level.Price = item.asks[i][0].ToString().ToDecimal();
-                    ascs.Add(level);                                        
+                    ascs.Add(level);
                 }
             }
 
@@ -979,7 +1011,7 @@ namespace OsEngine.Market.Servers.Deribit
                 newOrder.SecurityNameCode = item[i].instrument_name;
                 newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].creation_timestamp));
                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].creation_timestamp));
-               
+
                 if (string.IsNullOrEmpty(item[i].label))
                 {
                     continue;
@@ -1116,16 +1148,16 @@ namespace OsEngine.Market.Servers.Deribit
 
             if (order.TypeOrder == OrderPriceType.Limit)
             {
-                jsonRequest.@params.type = "limit";                
+                jsonRequest.@params.type = "limit";
                 jsonRequest.@params.post_only = _postOnly;
             }
             else
             {
                 jsonRequest.@params.type = "market";
-            }            
+            }
 
             string json = JsonConvert.SerializeObject(jsonRequest);
-           
+
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
             string JsonResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
@@ -1148,7 +1180,7 @@ namespace OsEngine.Market.Servers.Deribit
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
             _rateGateSendOrder.WaitToProceed();
-          
+
             JsonRequest jsonRequest = new JsonRequest();
             jsonRequest.id = 21;
             jsonRequest.method = "private/edit";
@@ -1176,7 +1208,7 @@ namespace OsEngine.Market.Servers.Deribit
             jsonRequest.id = 52;
             jsonRequest.method = "private/cancel_all";
             jsonRequest.@params = new JsonRequest.Params();
-            
+
             string json = JsonConvert.SerializeObject(jsonRequest);
 
             HttpResponseMessage responseMessage = CreatePrivateQuery("/api/v2/", "POST", json);
@@ -1304,7 +1336,7 @@ namespace OsEngine.Market.Servers.Deribit
                                 catch
                                 {
                                     // ignore
-                                }                    
+                                }
                                 newOrder.NumberMarket = item[j].order_id.ToString();
                                 newOrder.Side = item[j].direction.Equals("buy") ? Side.Buy : Side.Sell;
                                 newOrder.State = GetOrderState(item[j].order_state);
@@ -1314,13 +1346,13 @@ namespace OsEngine.Market.Servers.Deribit
 
                                 orders.Add(newOrder);
                             }
-                        }                        
+                        }
                     }
                     else
                     {
                         SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
                     }
-                }               
+                }
             }
             catch (Exception exception)
             {
@@ -1444,7 +1476,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 HttpResponseMessage responseMessage = CreatePrivateQuery(stringPositionRequests, "GET", null);
                 string json = responseMessage.Content.ReadAsStringAsync().Result;
-                                
+
                 if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
                 {
                     ResponseMessageGetMyTradesBySecurity orderResponse = JsonConvert.DeserializeObject<ResponseMessageGetMyTradesBySecurity>(json);
@@ -1477,7 +1509,7 @@ namespace OsEngine.Market.Servers.Deribit
                         }
                     }
                     return osEngineOrders;
-                }               
+                }
                 else
                 {
                     SendLogMessage("Get all orders request error. ", LogMessageType.Error);
@@ -1584,7 +1616,7 @@ namespace OsEngine.Market.Servers.Deribit
             jsonRequest.id = 6;
             jsonRequest.method = "public/unsubscribe_all";
             jsonRequest.@params = new JsonRequest.Params();
-           
+
             string json = JsonConvert.SerializeObject(jsonRequest);
 
             webSocket.Send(json);

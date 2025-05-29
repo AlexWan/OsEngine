@@ -24,6 +24,7 @@
           "System.ServiceModel.Syndication": "9.0.5",
           "System.Text.Encoding.CodePages": "9.0.5",
           "System.Threading.Channels": "9.0.5",
+          "WTelegramClient": "4.3.4",
           "WinForms.DataVisualization": "1.10.0",
           "BytesRoad.Net.Ftp": "2.0.0.0",
           "BytesRoad.Net.Sockets": "2.0.0.0",
@@ -517,6 +518,14 @@
           "lib/net9.0-windows7.0/WinForms.DataVisualization.dll": {
             "assemblyVersion": "1.0.0.0",
             "fileVersion": "1.10.0.0"
+          }
+        }
+      },
+      "WTelegramClient/4.3.4": {
+        "runtime": {
+          "lib/net8.0/WTelegramClient.dll": {
+            "assemblyVersion": "4.3.4.0",
+            "fileVersion": "4.3.4.0"
           }
         }
       },
@@ -1036,6 +1045,13 @@
       "sha512": "sha512-QKFQUf6xnsseiRsWfIeKvbWRJWvOKOvkoec/pWxEjwYrr4Vix4xmAWmvTpJGxoeWRXOzV7Pprm5SCFqzXzBA4g==",
       "path": "winforms.datavisualization/1.10.0",
       "hashPath": "winforms.datavisualization.1.10.0.nupkg.sha512"
+    },
+    "WTelegramClient/4.3.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-CSLZoHxb2Z12TVf1MrKrD7wim1xGMo6JpD6cst8LboyNdgKSNRmpO+uq40JiI74q+Ctrai7EfMPEbC4/zien9g==",
+      "path": "wtelegramclient/4.3.4",
+      "hashPath": "wtelegramclient.4.3.4.nupkg.sha512"
     },
     "BytesRoad.Net.Ftp/2.0.0.0": {
       "type": "reference",

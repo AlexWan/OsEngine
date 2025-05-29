@@ -1,0 +1,16 @@
+
+RU
+Программы на .NET не очищают память автоматически, пока в системе есть место. 
+Поэтому не видно настоящей памяти, которую занимает приложение OsEngine.
+
+Эта программа загружает оперативную память и закрывается. Что вынуждает основную программу уменьшать размер занимаемой памяти.
+
+Она запускается автоматически через определённое время, если включить её в главном меню настроек OsEngine.
+
+ENG
+.NET programs do not automatically clear memory as long as there is space on the system. 
+Therefore, you cannot see the actual memory that the OsEngine application occupies.
+
+This program loads RAM and closes. Which forces the main program to reduce the size of the memory it occupies.
+
+It starts automatically after a certain time if you enable it in the main settings menu of OsEngine. 

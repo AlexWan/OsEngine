@@ -48,17 +48,54 @@ namespace OsEngine.OsTrader.Grids
         {
             Tab = tab;
 
+            NonTradePeriods = new TradeGridNonTradePeriods();
+            NonTradePeriods.LogMessageEvent += SendNewLogMessage;
+
+            NonTradeDays = new TradeGridNonTradeDays();
+            NonTradeDays.LogMessageEvent += SendNewLogMessage;
+
+            StopBy = new TradeGridStopBy();
+            StopBy.LogMessageEvent += SendNewLogMessage;
+
+            StopAndProfit = new TradeGridStopAndProfit();
+            StopAndProfit.LogMessageEvent += SendNewLogMessage;
+
+            AutoStarter = new TradeGridAutoStarter();
+            AutoStarter.LogMessageEvent += SendNewLogMessage;
+
+            Trailing = new TradeGridTrailing();
+            Trailing.LogMessageEvent += SendNewLogMessage;
+
+            GridCreator = new TradeGridCreator();
+            GridCreator.LogMessageEvent += SendNewLogMessage;
+
+            SendNewLogMessage("Error", LogMessageType.Error);
         }
 
         public int Number;
 
         public BotTabSimple Tab;
 
+        public TradeGridNonTradePeriods NonTradePeriods;
+
+        public TradeGridNonTradeDays NonTradeDays;
+
+        public TradeGridStopBy StopBy;
+
+        public TradeGridStopAndProfit StopAndProfit;
+
+        public TradeGridAutoStarter AutoStarter;
+
+        public TradeGridTrailing Trailing;
+
+        public TradeGridCreator GridCreator;
+
         public string GetSaveString()
         {
             string result = "";
 
             // settings prime
+
             result += Number + "@";
             result += GridType + "@";
             result += Regime + "@";
@@ -67,78 +104,137 @@ namespace OsEngine.OsTrader.Grids
             result += RegimeLogging + "@";
             result += AutoClearJournalIsOn + "@";
             result += MaxClosePositionsInJournal + "@";
+            result += MaxOpenOrdersInMarket + "@";
+            result += MaxCloseOrdersInMarket + "@";
+
+            result += "%";
 
             // non trade periods
-            result += NonTradePeriod1OnOff + "@";
-            result += NonTradePeriod1Start + "@";
-            result += NonTradePeriod1End + "@";
-            result += NonTradePeriod2OnOff + "@";
-            result += NonTradePeriod2Start + "@";
-            result += NonTradePeriod2End + "@";
-            result += NonTradePeriod3OnOff + "@";
-            result += NonTradePeriod3Start + "@";
-            result += NonTradePeriod3End + "@";
-            result += NonTradePeriod4OnOff + "@";
-            result += NonTradePeriod4Start + "@";
-            result += NonTradePeriod4End + "@";
-            result += NonTradePeriod5OnOff + "@";
-            result += NonTradePeriod5Start + "@";
-            result += NonTradePeriod5End + "@";
-            result += TradeInMonday + "@";
-            result += TradeInTuesday + "@";
-            result += TradeInWednesday + "@";
-            result += TradeInThursday + "@";
-            result += TradeInFriday + "@";
-            result += TradeInSaturday + "@";
-            result += TradeInSunday + "@";
+            result += NonTradePeriods.GetSaveString();
+            result += "%";
+
+            // trade days
+            result += NonTradeDays.GetSaveString();
+            result += "%";
 
             // stop grid by event
-            result += StopGridByPositionsCountIsOn + "@";
-            result += StopGridByPositionsCountValue + "@";
-            result += StopGridByMoveUpIsOn + "@";
-            result += StopGridByMoveUpValuePercent + "@";
-            result += StopGridByMoveDownIsOn + "@";
-            result += StopGridByMoveDownValuePercent + "@";
+            result += StopBy.GetSaveString();
+            result += "%";
 
             // grid lines creation and storage
-            result += GridSide + "@";
-            result += FirstPrice + "@";
-            result += LineCountStart + "@";
-            result += LineStep + "@";
-            result += TypeVolume + "@";
-            result += TypeProfit + "@";
-            result += TypeStep + "@";
-            result += StartVolume + "@";
-            result += TradeAssetInPortfolio + "@";
-            result += ProfitStep + "@";
-            result += ProfitMultiplicator + "@";
-            result += StepMultiplicator + "@";
-            result += MartingaleMultiplicator + "@";
+            result += GridCreator.GetSaveString();
+            result += "%";
 
             // stop and profit 
-            result += ProfitRegime + "@";
-            result += ProfitValueType + "@";
-            result += ProfitValue + "@";
-            result += StopRegime + "@";
-            result += StopValueType + "@";
-            result += StopValue + "@";
+            result += StopAndProfit.GetSaveString();
+            result += "%";
+
+            // trailing up / down
+            result += Trailing.GetSaveString();
+            result += "%";
+
+            // auto start
+            result += AutoStarter.GetSaveString();
+            result += "%";
 
             return result;
         }
 
         public void LoadFromString(string value)
         {
-            string[] values = value.Split('@');
+            try
+            {
+                string[] array = value.Split('%');
 
-            Number = Convert.ToInt32(values[0]);
-            Enum.TryParse(values[1], out GridType);
-            Enum.TryParse(values[1], out Regime);
+                string[] values = array[0].Split('@');
 
+                // settings prime
+                
+                Number = Convert.ToInt32(values[0]);
+                Enum.TryParse(values[1], out GridType);
+                Enum.TryParse(values[2], out Regime);
+                ClosePositionNumber = Convert.ToInt32(values[3]);
+                Enum.TryParse(values[4], out RegimeLogicEntry);
+                Enum.TryParse(values[5], out RegimeLogging);
+                AutoClearJournalIsOn = Convert.ToBoolean(values[6]);
+                MaxClosePositionsInJournal = Convert.ToInt32(values[7]);
+                MaxOpenOrdersInMarket = Convert.ToInt32(values[8]);
+                MaxCloseOrdersInMarket = Convert.ToInt32(values[9]);
+
+                // non trade periods
+                NonTradePeriods.LoadFromString(array[1]);
+
+                // trade days
+                NonTradeDays.LoadFromString(array[2]);
+
+                // stop grid by event
+                StopBy.LoadFromString(array[3]);
+
+                // grid lines creation and storage
+                GridCreator.LoadFromString(array[4]);
+
+                // stop and profit 
+                StopAndProfit.LoadFromString(array[5]);
+
+                // trailing up / down
+                Trailing.LoadFromString(array[6]);
+
+                // auto start
+                AutoStarter.LoadFromString(array[7]);
+
+            }
+            catch (Exception e)
+            {
+                //SendNewLogMessage(e.ToString(),LogMessageType.Error);
+            }
         }
 
         public void Delete()
         {
             Tab = null;
+
+            if (NonTradePeriods != null)
+            {
+                NonTradePeriods.LogMessageEvent -= SendNewLogMessage;
+                NonTradePeriods = null;
+            }
+
+            if (NonTradeDays != null)
+            {
+                NonTradeDays.LogMessageEvent -= SendNewLogMessage;
+                NonTradeDays = null;
+            }
+
+            if (StopBy != null)
+            {
+                StopBy.LogMessageEvent -= SendNewLogMessage;
+                StopBy = null;
+            }
+
+            if (StopAndProfit != null)
+            {
+                StopAndProfit.LogMessageEvent -= SendNewLogMessage;
+                StopAndProfit = null;
+            }
+
+            if (AutoStarter != null)
+            {
+                AutoStarter.LogMessageEvent -= SendNewLogMessage;
+                AutoStarter = null;
+            }
+
+            if(Trailing != null)
+            {
+                Trailing.LogMessageEvent -= SendNewLogMessage;
+                Trailing = null;
+            }
+
+            if(GridCreator != null)
+            {
+                GridCreator.LogMessageEvent -= SendNewLogMessage;
+                GridCreator = null;
+            }
+
         }
 
         public void Save()
@@ -169,334 +265,11 @@ namespace OsEngine.OsTrader.Grids
 
         public int MaxClosePositionsInJournal;
 
-        #endregion
+        public int MaxOpenOrdersInMarket;
 
-        #region Non trade periods
-
-        public bool NonTradePeriod1OnOff;
-        public TimeOfDay NonTradePeriod1Start;
-        public TimeOfDay NonTradePeriod1End;
-
-        public bool NonTradePeriod2OnOff;
-        public TimeOfDay NonTradePeriod2Start;
-        public TimeOfDay NonTradePeriod2End;
-
-        public bool NonTradePeriod3OnOff;
-        public TimeOfDay NonTradePeriod3Start;
-        public TimeOfDay NonTradePeriod3End;
-
-        public bool NonTradePeriod4OnOff;
-        public TimeOfDay NonTradePeriod4Start;
-        public TimeOfDay NonTradePeriod4End;
-
-        public bool NonTradePeriod5OnOff;
-        public TimeOfDay NonTradePeriod5Start;
-        public TimeOfDay NonTradePeriod5End;
-
-        public bool TradeInMonday;
-        public bool TradeInTuesday;
-        public bool TradeInWednesday;
-        public bool TradeInThursday;
-        public bool TradeInFriday;
-        public bool TradeInSaturday;
-        public bool TradeInSunday;
-
-        public bool IsBlockNonTradePeriods(DateTime curTime)
-        {
-            if (NonTradePeriod1OnOff == true)
-            {
-                if (NonTradePeriod1Start < curTime
-                 && NonTradePeriod1End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod1Start > NonTradePeriod1End)
-                { // overnight transfer
-                    if (NonTradePeriod1Start > curTime
-                        || NonTradePeriod1End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod2OnOff == true)
-            {
-                if (NonTradePeriod2Start < curTime
-                 && NonTradePeriod2End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod2Start > NonTradePeriod2End)
-                { // overnight transfer
-                    if (NonTradePeriod2Start > curTime
-                        || NonTradePeriod2End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod3OnOff == true)
-            {
-                if (NonTradePeriod3Start < curTime
-                 && NonTradePeriod3End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod3Start > NonTradePeriod3End)
-                { // overnight transfer
-                    if (NonTradePeriod3Start > curTime
-                        || NonTradePeriod3End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod4OnOff == true)
-            {
-                if (NonTradePeriod4Start < curTime
-                 && NonTradePeriod4End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod4Start > NonTradePeriod4End)
-                { // overnight transfer
-                    if (NonTradePeriod4Start > curTime
-                        || NonTradePeriod4End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod5OnOff == true)
-            {
-                if (NonTradePeriod5Start < curTime
-                 && NonTradePeriod5End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod5Start > NonTradePeriod5End)
-                { // overnight transfer
-                    if (NonTradePeriod5Start > curTime
-                        || NonTradePeriod5End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (TradeInMonday == false
-                && curTime.DayOfWeek == DayOfWeek.Monday)
-            {
-                return true;
-            }
-
-            if (TradeInTuesday == false
-                && curTime.DayOfWeek == DayOfWeek.Tuesday)
-            {
-                return true;
-            }
-
-            if (TradeInWednesday == false
-                && curTime.DayOfWeek == DayOfWeek.Wednesday)
-            {
-                return true;
-            }
-
-            if (TradeInThursday == false
-                && curTime.DayOfWeek == DayOfWeek.Thursday)
-            {
-                return true;
-            }
-
-            if (TradeInFriday == false
-                && curTime.DayOfWeek == DayOfWeek.Friday)
-            {
-                return true;
-            }
-
-            if (TradeInSaturday == false
-                && curTime.DayOfWeek == DayOfWeek.Saturday)
-            {
-                return true;
-            }
-
-            if (TradeInSunday == false
-                && curTime.DayOfWeek == DayOfWeek.Sunday)
-            {
-                return true;
-            }
-
-            return false;
-        }
+        public int MaxCloseOrdersInMarket;
 
         #endregion
-
-        #region Stop Grid by Event
-
-        public bool StopGridByPositionsCountIsOn;
-
-        public StrategyParameterInt StopGridByPositionsCountValue;
-
-        public bool StopGridByMoveUpIsOn;
-
-        public decimal StopGridByMoveUpValuePercent;
-
-        public bool StopGridByMoveDownIsOn;
-
-        public decimal StopGridByMoveDownValuePercent;
-
-        public void TryStopGridByEvent()
-        {
-            /*if (Regime != TradeGridRegime.On)
-            {
-                return;
-            }
-
-            if (StopGridByPositionsCountIsOn.ValueBool == true)
-            {
-                if (_lastGridOpenPositions > StopGridByPositionsCountValue.ValueInt)
-                { // Останавливаем сетку по кол-ву уже открытых позиций с последнего создания сетки
-                    Regime.ValueString = "Only Close";
-
-                    SendNewLogMessage(
-                        "Grid stopped by open positions count. Open positions: " + _lastGridOpenPositions,
-                        OsEngine.Logging.LogMessageType.System);
-
-                    return;
-                }
-            }
-
-            if (StopGridByProfitIsOn.ValueBool == true
-                || StopGridByStopIsOn.ValueBool == true)
-            {
-                decimal lastPrice = _tab.PriceBestAsk;
-
-                if (lastPrice == 0)
-                {
-                    return;
-                }
-
-                if (StopGridByProfitIsOn.ValueBool == true)
-                {
-                    decimal profitMove = 0;
-
-                    if (GridSide == Side.Buy)
-                    {
-                        profitMove = (lastPrice - FirstPrice) / (FirstPrice / 100);
-                    }
-                    else if (GridSide == Side.Sell)
-                    {
-                        profitMove = (FirstPrice - lastPrice) / (FirstPrice / 100);
-                    }
-
-                    if (profitMove > StopGridByProfitValuePercent.ValueDecimal)
-                    {
-                        // Останавливаем сетку по движению вверх от первой цены сетки
-                        Regime.ValueString = "Only Close";
-
-                        SendNewLogMessage(
-                            "Grid stopped by move in Profit. Open positions: " + _lastGridOpenPositions,
-                            OsEngine.Logging.LogMessageType.System);
-
-                        return;
-                    }
-                }
-
-                if (StopGridByStopIsOn.ValueBool == true)
-                {
-                    decimal lossMove = 0;
-
-                    if (GridSide == Side.Buy)
-                    {
-                        lossMove = (FirstPrice - lastPrice) / (FirstPrice / 100);
-                    }
-                    else if (GridSide == Side.Sell)
-                    {
-                        lossMove = (lastPrice - FirstPrice) / (FirstPrice / 100);
-                    }
-
-                    if (lossMove > StopGridByProfitValuePercent.ValueDecimal)
-                    {
-                        // Останавливаем сетку по движению вверх от первой цены сетки
-                        Regime.ValueString = "Only Close";
-
-                        SendNewLogMessage(
-                            "Grid stopped by move in Loss. Open positions: " + _lastGridOpenPositions,
-                            OsEngine.Logging.LogMessageType.System);
-
-                        return;
-                    }
-                }
-            }*/
-        }
-
-        #endregion
-
-        #region Grid lines creation and storage
-
-        public Side GridSide;
-
-        public decimal FirstPrice;
-
-        public int LineCountStart;
-
-        public decimal LineStep;
-
-        public TradeGridVolumeType TypeVolume;
-
-        public TradeGridValueType TypeProfit;
-
-        public TradeGridValueType TypeStep;
-
-        public decimal StartVolume = 1;
-
-        public string TradeAssetInPortfolio = "Prime";
-
-        public decimal ProfitStep;
-
-        public decimal ProfitMultiplicator = 1;
-
-        public decimal StepMultiplicator = 1;
-
-        public decimal MartingaleMultiplicator = 1;
-
-        public List<GridBotClassicLine> Lines = new List<GridBotClassicLine>();
-
-        #endregion
-
-        #region Stop and Profit. OpenPosition regime
-
-        public TradeGridStopRegime ProfitRegime;
-
-        public TradeGridValueType ProfitValueType;
-
-        public decimal ProfitValue;
-
-        public TradeGridStopRegime StopRegime;
-
-        public TradeGridValueType StopValueType;
-
-        public decimal StopValue;
-
-        #endregion
-
-        #region Trade logic
-
-
-
-        #endregion
-
-
-
 
         #region Log
 
@@ -553,7 +326,7 @@ namespace OsEngine.OsTrader.Grids
         Debug
     }
 
-    public enum TradeGridStopRegime
+    public enum OnOffRegime
     {
         On,
         Off
@@ -567,7 +340,15 @@ namespace OsEngine.OsTrader.Grids
 
     public enum TradeGridVolumeType
     {
-        Absolute,
-        Percent,
+        Contracts,
+        ContractCurrency,
+        DepositPercent
+    }
+
+    public enum TradeGridAutoStartRegime
+    {
+        Off,
+        HigherOrEqual,
+        LowerOrEqual
     }
 }

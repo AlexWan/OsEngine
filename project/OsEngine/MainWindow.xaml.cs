@@ -149,6 +149,8 @@ namespace OsEngine
             }
 
             ChangeText();
+
+            this.ContentRendered += MainWindow_ContentRendered;
         }
 
         #region Block and Unblock interface
@@ -297,8 +299,31 @@ namespace OsEngine
             _awaitUiBotsInfoLoading.Dispose();
         }
 
+        private void MainWindow_ContentRendered(object sender, EventArgs e)
+        {
+            Task.Run(() =>
+            {
+                Thread.Sleep(1000);
+                try
+                {
+                    ChangeText();
+                }
+                catch
+                {
+                    // ignore
+                }
+            });
+        }
+
         private void ChangeText()
         {
+
+            if (ImageGear.Dispatcher.CheckAccess() == false)
+            {
+                ImageGear.Dispatcher.Invoke(new Action(ChangeText));
+                return;
+            }
+
             Title = OsLocalization.MainWindow.Title;
             BlockDataLabel.Content = OsLocalization.MainWindow.BlockDataLabel;
             BlockTestingLabel.Content = OsLocalization.MainWindow.BlockTestingLabel;

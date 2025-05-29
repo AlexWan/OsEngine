@@ -187,8 +187,6 @@ namespace OsEngine.Market.Servers.Alor
 
             DeleteWebSocketConnection();
 
-            SendLogMessage("Connection Closed by Alor. WebSocket Data Closed Event", LogMessageType.System);
-
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -1346,10 +1344,12 @@ namespace OsEngine.Market.Servers.Alor
         {
             try
             {
-                SendLogMessage("Connection Closed by Alor. WebSocket Data Closed Event", LogMessageType.Error);
-
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
@@ -1364,11 +1364,23 @@ namespace OsEngine.Market.Servers.Alor
         {
             try
             {
-                var error = e;
-
-                if (error.Exception != null)
+                if(ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if(message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }  
                 }
             }
             catch (Exception ex)
@@ -1428,10 +1440,12 @@ namespace OsEngine.Market.Servers.Alor
         {
             try
             {
-                SendLogMessage("Connection Closed by Alor. WebSocket Portfolio Closed Event", LogMessageType.Error);
-
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
                     ServerStatus = ServerConnectStatus.Disconnect;
                     DisconnectEvent();
                 }
@@ -1446,16 +1460,28 @@ namespace OsEngine.Market.Servers.Alor
         {
             try
             {
-                var error = e;
-
-                if (error.Exception != null)
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(error.Exception.ToString(), LogMessageType.Error);
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                SendLogMessage("Portfolio socket error" + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 

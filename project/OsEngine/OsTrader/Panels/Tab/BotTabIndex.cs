@@ -497,6 +497,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
+            Tabs[Tabs.Count - 1].LogMessageEvent += SendNewLogMessage;
         }
 
         /// <summary>
@@ -508,6 +509,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             connector.SaveTradesInCandles = false;
             Tabs.Add(connector);
             Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
+            Tabs[Tabs.Count - 1].LogMessageEvent += SendNewLogMessage;
         }
 
         /// <summary>
@@ -520,6 +522,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return;
             }
             Tabs[index].NewCandlesChangeEvent -= BotTabIndex_NewCandlesChangeEvent;
+            Tabs[index].LogMessageEvent -= SendNewLogMessage;
             Tabs[index].Delete();
             Tabs.RemoveAt(index);
 
@@ -591,6 +594,7 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                         Tabs.Add(newConnector);
                         Tabs[Tabs.Count - 1].NewCandlesChangeEvent += BotTabIndex_NewCandlesChangeEvent;
+                        Tabs[Tabs.Count - 1].LogMessageEvent += SendNewLogMessage;
                     }
 
                     UserFormula = reader.ReadLine();
@@ -804,7 +808,14 @@ namespace OsEngine.OsTrader.Panels.Tab
 
                     if (SpreadChangeEvent != null && EventsIsOn == true)
                     {
-                        SpreadChangeEvent(Candles);
+                        try
+                        {
+                            SpreadChangeEvent(Candles);
+                        }
+                        catch (Exception ex)
+                        {
+                            SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                        }
                     }
                 }
             }

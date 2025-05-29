@@ -611,22 +611,11 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private int GetCountCandlesToLoad()
         {
-            AServer server = null;
-
-            for (int i = 0; i < ServerMaster.GetServers().Count; i++)
+            for (int i = 0; i < ServerParameters.Count; i++)
             {
-                if (ServerMaster.GetServers()[i].ServerType == ServerType.HTXSpot)
+                if (ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
                 {
-                    server = (AServer)ServerMaster.GetServers()[i];
-                    break;
-                }
-            }
-
-            for (int i = 0; i < server.ServerParameters.Count; i++)
-            {
-                if (server.ServerParameters[i].Name.Equals(OsLocalization.Market.ServerParam6))
-                {
-                    ServerParameterInt Param = (ServerParameterInt)server.ServerParameters[i];
+                    ServerParameterInt Param = (ServerParameterInt)ServerParameters[i];
                     return Param.Value;
                 }
             }
@@ -876,9 +865,30 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPublic_OnError(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -918,13 +928,22 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPublic_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null
-                && ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by HTXSpot. WebSocket Public Closed Event " + e.Code + e.Reason, LogMessageType.System);
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
-            ServerStatus = ServerConnectStatus.Disconnect;
-            DisconnectEvent();
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
         }
 
         private void webSocketPublic_OnOpen(object sender, EventArgs e)
@@ -936,9 +955,30 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPrivate_OnError(object sender, ErrorEventArgs e)
         {
-            if (e.Exception != null)
+            try
             {
-                SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                if (e.Exception != null)
+                {
+                    string message = e.Exception.ToString();
+
+                    if (message.Contains("The remote party closed the WebSocket connection"))
+                    {
+                        // ignore
+                    }
+                    else
+                    {
+                        SendLogMessage(e.Exception.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -978,12 +1018,21 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
         private void webSocketPrivate_OnClose(object sender, CloseEventArgs e)
         {
-            if (DisconnectEvent != null
-                & ServerStatus != ServerConnectStatus.Disconnect)
+            try
             {
-                SendLogMessage("Connection Closed by HTXSpot. WebSocket Private Closed Event " + e.Code + e.Reason, LogMessageType.System);
-                ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    string message = this.GetType().Name + OsLocalization.Market.Message101 + "\n";
+                    message += OsLocalization.Market.Message102;
+
+                    SendLogMessage(message, LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1290,7 +1339,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     decimal bid = item.bids[i][1].ToString().ToDecimal();
                     decimal price = item.bids[i][0].ToString().ToDecimal();
 
-                    if (bid == 0 
+                    if (bid == 0
                         || price == 0)
                     {
                         continue;
@@ -1303,7 +1352,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
             }
 
-            if (asks.Count == 0 
+            if (asks.Count == 0
                 || bids.Count == 0)
             {
                 return;

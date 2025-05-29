@@ -1048,6 +1048,8 @@ namespace OsEngine.Logging
             }
         }
 
+        private static DateTime _lastTimeShowErrorLog = DateTime.Now;
+
         public static void ShowErrorLogUi()
         {
             try
@@ -1056,6 +1058,15 @@ namespace OsEngine.Logging
                 {
                     MainWindow.GetDispatcher.Invoke(new Action(ShowErrorLogUi));
                     return;
+                }
+                else
+                {
+                    if (_lastTimeShowErrorLog.AddSeconds(1) < DateTime.Now)
+                    {
+                        _lastTimeShowErrorLog = DateTime.Now;
+                        Task.Run(ShowErrorLogUi);
+                        return;
+                    }
                 }
 
                 if (_logErrorUi == null)
