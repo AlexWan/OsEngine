@@ -17,7 +17,9 @@
         </Grid.RowDefinitions>
         <TabControl Grid.Row="1" Grid.ColumnSpan="2">
             <TabItem Name="TabItemGridLinesTable" Header="Grid lines table">
-                <Grid Background="#FFE5E5E5"/>
+                <Grid >
+                    <WindowsFormsHost Name="HostGridTable" Margin="0,0,0,0"/>
+                </Grid>
             </TabItem>
             <TabItem Name="TabItemGridLinesOnChart" Header="Grid lines on chart">
                 <Grid Background="#FFE5E5E5"/>

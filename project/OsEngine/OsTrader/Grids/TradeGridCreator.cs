@@ -8,11 +8,14 @@ using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridCreator
     {
+        #region Settings
+
         public Side GridSide = Side.Buy;
 
         public decimal FirstPrice;
@@ -39,8 +42,6 @@ namespace OsEngine.OsTrader.Grids
 
         public decimal MartingaleMultiplicator = 1;
 
-        public List<GridBotClassicLine> Lines = new List<GridBotClassicLine>();
-
         public string GetSaveString()
         {
             string result = "";
@@ -58,7 +59,7 @@ namespace OsEngine.OsTrader.Grids
             result += StartVolume + "@";
             result += MartingaleMultiplicator + "@";
             result += TradeAssetInPortfolio + "@";
-            result += "@";
+            result += GetSaveLinesString() + "@";
             result += "@";
             result += "@";
             result += "@";
@@ -86,15 +87,216 @@ namespace OsEngine.OsTrader.Grids
                 StartVolume = values[10].ToDecimal();
                 MartingaleMultiplicator = values[11].ToDecimal();
                 TradeAssetInPortfolio = values[12];
-
+                LoadLines(values[13]);
 
             }
             catch (Exception e)
             {
-                //SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
 
+        #endregion
+
+        #region Grid lines creation and storage
+
+        public List<TradeGridLine> Lines = new List<TradeGridLine>();
+
+        public void CreateNewGrid(BotTabSimple tab, TradeGridPrimeType gridType)
+        {
+            if(gridType == TradeGridPrimeType.MarketMaking)
+            {
+                CreateMarketMakingGrid(tab);
+            }
+        }
+
+        private void CreateMarketMakingGrid(BotTabSimple tab)
+        {
+            Lines.Clear();
+
+            decimal priceCurrent = FirstPrice;
+
+            decimal volumeCurrent = StartVolume;
+
+            decimal curStep = LineStep;
+
+            decimal profitStep = ProfitStep;
+
+            if (TypeStep == TradeGridValueType.Percent)
+            {
+                curStep = priceCurrent * (curStep / 100);
+
+                if (tab.Security != null)
+                {
+                    curStep = Math.Round(curStep, tab.Security.Decimals);
+                }
+            }
+
+            for (int i = 0; i < LineCountStart; i++)
+            {
+                if (curStep > FirstPrice)
+                {
+                    break;
+                }
+
+                if (priceCurrent <= 0)
+                {
+                    break;
+                }
+
+                if (priceCurrent / FirstPrice > 3)
+                {
+                    break;
+                }
+
+                TradeGridLine newLine = new TradeGridLine();
+                newLine.PriceEnter = priceCurrent;
+
+                if (tab.Security != null)
+                {
+                    newLine.PriceEnter = tab.RoundPrice(newLine.PriceEnter, tab.Security, GridSide);
+                }
+
+                newLine.Side = GridSide;
+                newLine.IsOn = true;
+                newLine.Volume = volumeCurrent;
+
+                if (tab.Security != null
+                   && tab.Security.DecimalsVolume >= 0
+                   && TypeVolume == TradeGridVolumeType.Contracts)
+                {
+                    newLine.Volume = Math.Round(volumeCurrent, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    newLine.Volume = Math.Round(volumeCurrent, 4);
+                }
+
+                if (newLine.Volume <= 0)
+                {
+                    break;
+                }
+
+                Lines.Add(newLine);
+
+                if (GridSide == Side.Buy)
+                {
+                    if (TypeProfit == TradeGridValueType.Percent)
+                    {
+                        newLine.PriceExit = newLine.PriceEnter + (newLine.PriceEnter * profitStep / 100);
+                    }
+                    else if (TypeProfit == TradeGridValueType.Absolute)
+                    {
+                        newLine.PriceExit = newLine.PriceEnter + profitStep;
+                    }
+
+                    if (tab.Security != null)
+                    {
+                        newLine.PriceExit = tab.RoundPrice(newLine.PriceExit, tab.Security, Side.Sell);
+                    }
+
+                    priceCurrent -= curStep;
+
+                }
+                else if (GridSide == Side.Sell)
+                {
+                    if (TypeProfit == TradeGridValueType.Percent)
+                    {
+                        newLine.PriceExit = newLine.PriceEnter - (newLine.PriceEnter * profitStep / 100);
+                    }
+                    else if (TypeProfit == TradeGridValueType.Absolute)
+                    {
+                        newLine.PriceExit = newLine.PriceEnter - profitStep;
+                    }
+
+                    if (tab.Security != null)
+                    {
+                        newLine.PriceExit = tab.RoundPrice(newLine.PriceExit, tab.Security, Side.Buy);
+                    }
+
+                    priceCurrent += curStep;
+                }
+
+                if (StepMultiplicator != 1
+                    && StepMultiplicator != 0)
+                {
+                    curStep = curStep * StepMultiplicator;
+                }
+
+                if (ProfitMultiplicator != 1
+                    && ProfitMultiplicator != 0)
+                {
+                    profitStep = profitStep * ProfitMultiplicator;
+                }
+
+                if (MartingaleMultiplicator != 0
+                    && MartingaleMultiplicator != 1)
+                {
+                    volumeCurrent = volumeCurrent * MartingaleMultiplicator;
+                }
+            }
+        }
+
+        public string GetSaveLinesString()
+        {
+            try
+            {
+                string lines = "";
+
+                for (int i = 0; i < Lines.Count; i++)
+                {
+                    lines += Lines[i].GetSaveStr() + "^";
+                }
+                 
+                return lines;
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                return "";
+            }
+        }
+
+        public void LoadLines(string str)
+        {
+            if(string.IsNullOrEmpty(str))
+            {
+                return;
+            }
+
+            try
+            {
+                string[] linesInStr = str.Split('^');
+
+                for(int i = 0;i < linesInStr.Length;i++)
+                {
+                    string line = linesInStr[i];
+
+                    if(string.IsNullOrEmpty(line))
+                    {
+                        continue;
+                    }
+
+                    TradeGridLine newLine = new TradeGridLine();
+                    newLine.SetFromStr(line);
+                    Lines.Add(newLine);
+                }
+            }
+            catch (Exception e)
+            {
+               SendNewLogMessage(e.ToString(),LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        public bool HaveOpenPositionsByGrid
+        {
+            get
+            {
+                return false;
+            }
+        }
 
         #region Log
 
@@ -113,6 +315,42 @@ namespace OsEngine.OsTrader.Grids
         public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
+    }
 
+    public class TradeGridLine
+    {
+        public bool IsOn;
+
+        public decimal PriceEnter;
+
+        public decimal Volume;
+
+        public Side Side;
+
+        public decimal PriceExit;
+
+        public string GetSaveStr()
+        {
+            string result = "";
+
+            result += IsOn + "|";
+            result += PriceEnter + "|";
+            result += Volume + "|";
+            result += Side + "|";
+            result += PriceExit + "|";
+
+            return result;
+        }
+
+        public void SetFromStr(string str)
+        {
+            string[] saveArray = str.Split('|');
+
+            IsOn = Convert.ToBoolean(saveArray[0]);
+            PriceEnter = saveArray[1].ToDecimal();
+            Volume = saveArray[2].ToDecimal();
+            Enum.TryParse(saveArray[3], out Side);
+            PriceExit = saveArray[4].ToDecimal();
+        }
     }
 }

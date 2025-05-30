@@ -4,15 +4,11 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 // Разные базовые сути сеток:
 // 1) По каждому открытию отдельный выход. Как маркет-мейкинг инструмента в одну сторону.     // MarketMaking
@@ -48,6 +44,8 @@ namespace OsEngine.OsTrader.Grids
         {
             Tab = tab;
 
+            StartProgram = startProgram;
+
             NonTradePeriods = new TradeGridNonTradePeriods();
             NonTradePeriods.LogMessageEvent += SendNewLogMessage;
 
@@ -68,9 +66,9 @@ namespace OsEngine.OsTrader.Grids
 
             GridCreator = new TradeGridCreator();
             GridCreator.LogMessageEvent += SendNewLogMessage;
-
-            SendNewLogMessage("Error", LogMessageType.Error);
         }
+
+        public StartProgram StartProgram;
 
         public int Number;
 
@@ -185,7 +183,7 @@ namespace OsEngine.OsTrader.Grids
             }
             catch (Exception e)
             {
-                //SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
 
@@ -263,13 +261,130 @@ namespace OsEngine.OsTrader.Grids
 
         public bool AutoClearJournalIsOn;
 
-        public int MaxClosePositionsInJournal;
+        public int MaxClosePositionsInJournal = 100;
 
-        public int MaxOpenOrdersInMarket;
+        public int MaxOpenOrdersInMarket = 5;
 
-        public int MaxCloseOrdersInMarket;
+        public int MaxCloseOrdersInMarket = 5;
 
         #endregion
+
+        public void CreateNewGridSafe()
+        {
+            try
+            {
+                if (Regime != TradeGridRegime.Off &&
+                    GridCreator.Lines != null
+                    && GridCreator.Lines.Count > 0)
+                {
+                    // Сетка включена. Есть линии. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label510);
+                    ui.Show();
+                    return;
+                }
+                if (GridCreator.HaveOpenPositionsByGrid == true)
+                {
+                    // По сетке есть открытые позиции. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label511);
+                    ui.Show();
+                    return;
+                }
+
+                if (Tab.IsConnected == false
+                    || Tab.IsReadyToTrade == false)
+                {
+                    // По сетке не подключены данные. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label512);
+                    ui.Show();
+                    return;
+                }
+
+                if(GridCreator.FirstPrice <= 0)
+                {
+                    // Первая цена не установлена. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label513);
+                    ui.Show();
+                    return;
+                }
+
+                if (GridCreator.LineCountStart <= 0)
+                {
+                    // Количество линий в сетке не установлено. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label514);
+                    ui.Show();
+                    return;
+                }
+
+                if (GridCreator.LineStep <= 0)
+                {
+                    // Шаг сетки не указан. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label515);
+                    ui.Show();
+                    return;
+                }
+
+                if(GridType == TradeGridPrimeType.MarketMaking
+                    && GridCreator.ProfitStep <= 0)
+                {
+                    // Шаг сетки для профита не указан. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label516);
+                    ui.Show();
+                    return;
+                }
+
+                if (GridCreator.StartVolume <= 0)
+                {
+                    // Стартовый объём не указан. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label517);
+                    ui.Show();
+                    return;
+                }
+
+                if (GridCreator.StepMultiplicator <= 0)
+                {
+                    // Мультипликатор шага ноль. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label518);
+                    ui.Show();
+                    return;
+                }
+
+                if (GridType == TradeGridPrimeType.MarketMaking
+                    && GridCreator.ProfitMultiplicator <= 0)
+                {
+                    // Мультипликатор профита ноль. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label519);
+                    ui.Show();
+                    return;
+                }
+
+                if (GridCreator.MartingaleMultiplicator <= 0)
+                {
+                    // Мультипликатор объёма ноль. Запрет
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label520);
+                    ui.Show();
+                    return;
+                }
+
+                if(GridCreator.Lines.Count > 0)
+                {
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label522);
+
+                    ui.ShowDialog();
+
+                    if (ui.UserAcceptAction == false)
+                    {
+                        return;
+                    }
+                }
+
+                GridCreator.CreateNewGrid(Tab, GridType);
+                Save();
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(),LogMessageType.Error);
+            }
+        }
 
         #region Log
 

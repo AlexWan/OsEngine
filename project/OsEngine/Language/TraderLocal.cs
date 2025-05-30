@@ -1939,5 +1939,56 @@ namespace OsEngine.Language
          "Eng:Close_" +
          "Ru:Закрытие_");
 
+        public string Label510 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. The old grid is ON. There are lines. First we need to turn off the grid_" +
+          "Ru:Запрет на создание новой сетки. Старая сетка включена. Есть линии. Сначала надо выключить сетку_");
+
+        public string Label511 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. There are open positions on the old grid. Close them first_" +
+          "Ru:Запрет на создание новой сетки. Есть открытые позиции по старой. Сначала закройте их_");
+
+        public string Label512 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. Data is not connected. Configure the source first_" +
+          "Ru:Запрет на создание новой сетки. Данные не подключены. Сначала настройте источник_");
+
+        public string Label513 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. No starting price specified_" +
+          "Ru:Запрет на создание новой сетки. Не указана стартовая цена_");
+
+        public string Label514 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. The number of lines for the grid is not specified_" +
+          "Ru:Запрет на создание новой сетки. Не указано кол-во линий для сетки");
+
+        public string Label515 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. Line spacing is not specified_" +
+          "Ru:Запрет на создание новой сетки. Не указан шаг между линиями");
+
+        public string Label516 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. The distance to closing positions is not specified_" +
+          "Ru:Запрет на создание новой сетки. Не указано расстояние до закрытия позиций");
+
+        public string Label517 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. Not specified starting volume for levels_" +
+          "Ru:Запрет на создание новой сетки. Не указан стартовый объём для уровней");
+
+        public string Label518=> OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. The step multiplier cannot be zero_" +
+          "Ru:Запрет на создание новой сетки. Мультипликатор шага не может быть ноль");
+
+        public string Label519 => OsLocalization.ConvertToLocString(
+          "Eng:Error on creating a new grid. The profit multiplier cannot be zero_" +
+          "Ru:Запрет на создание новой сетки. Мультипликатор профита не может быть ноль");
+
+        public string Label520 => OsLocalization.ConvertToLocString(
+         "Eng:Error on creating a new grid. The volume multiplier cannot be zero_" +
+         "Ru:Запрет на создание новой сетки. Мультипликатор объёма не может быть ноль");
+
+        public string Label521 => OsLocalization.ConvertToLocString(
+         "Eng:Error on creating a new grid. The volume multiplier cannot be zero_" +
+         "Ru:Запрет на создание новой сетки. Мультипликатор объёма не может быть ноль");
+
+        public string Label522 => OsLocalization.ConvertToLocString(
+         "Eng:The previous grid will be destroyed. Shall I continue?_" +
+         "Ru:Предыдущая сетка будет уничтожена. Продолжить?");
     }
 }

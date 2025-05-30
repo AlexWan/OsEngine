@@ -3034,15 +3034,15 @@ namespace OsEngine.Market.Servers
             {
                 try
                 {
-                    if (LastStartServerTime.AddSeconds(WaitTimeToTradeAfterFirstStart) > DateTime.Now)
-                    {
-                        await Task.Delay(1000);
-                        continue;
-                    }
-
                     if (_ordersToExecute.IsEmpty == true)
                     {
                         await Task.Delay(1);
+                        continue;
+                    }
+
+                    if (LastStartServerTime.AddSeconds(WaitTimeToTradeAfterFirstStart) > DateTime.Now)
+                    {
+                        await Task.Delay(1000);
                         continue;
                     }
 

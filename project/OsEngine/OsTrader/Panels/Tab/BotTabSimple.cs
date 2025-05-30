@@ -4857,7 +4857,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <param name="price">the current price at which the high-level interface wanted to close the position</param>
         /// <param name="security">security</param>
         /// <param name="side">side</param>
-        private decimal RoundPrice(decimal price, Security security, Side side)
+        public decimal RoundPrice(decimal price, Security security, Side side)
         {
             try
             {

@@ -967,7 +967,6 @@ public class GridBotClassic : BotPanel
             rowLine.Cells[6].ReadOnly = false;
 
             _gridDataGrid.Rows.Add(rowLine);
-          
         }
     }
 
@@ -2352,6 +2351,20 @@ public class GridBotClassic : BotPanel
     #endregion
 }
 
+
+public enum Type_VolumeGrid
+{
+    Contracts,
+    Currency,
+    DepoPercent
+}
+
+public enum Type_ProfitGrid
+{
+    Absolute,
+    Percent,
+}
+
 public class GridBotClassicLine
 {
     public bool IsOn;
@@ -2389,17 +2402,4 @@ public class GridBotClassicLine
         Enum.TryParse(saveArray[3], out Side);
         PriceExit = saveArray[4].ToDecimal();
     }
-}
-
-public enum Type_VolumeGrid
-{
-    Contracts,
-    Currency,
-    DepoPercent
-}
-
-public enum Type_ProfitGrid
-{
-    Absolute,
-    Percent,
 }

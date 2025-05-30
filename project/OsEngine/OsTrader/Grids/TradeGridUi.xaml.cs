@@ -6,9 +6,12 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
+using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace OsEngine.OsTrader.Grids
@@ -16,7 +19,7 @@ namespace OsEngine.OsTrader.Grids
     /// <summary>
     /// Interaction logic for TradeGridUi.xaml
     /// </summary>
-    public partial class TradeGridUi : Window
+    public partial class TradeGridUi : System.Windows.Window
     {
         public TradeGridUi(TradeGrid tradeGrid)
         {
@@ -55,6 +58,12 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxRegimeLogicEntry.Items.Add(TradeGridLogicEntryRegime.OnTrade.ToString());
             ComboBoxRegimeLogicEntry.Items.Add(TradeGridLogicEntryRegime.OncePerSecond.ToString());
             ComboBoxRegimeLogicEntry.SelectedItem = tradeGrid.RegimeLogicEntry.ToString();
+            if (tradeGrid.StartProgram == StartProgram.IsTester
+               || tradeGrid.StartProgram == StartProgram.IsOsOptimizer)
+            {
+                ComboBoxRegimeLogicEntry.SelectedItem = TradeGridLogicEntryRegime.OnTrade.ToString();
+                ComboBoxRegimeLogicEntry.IsEnabled = false;
+            }
             ComboBoxRegimeLogicEntry.SelectionChanged += ComboBoxRegimeLogicEntry_SelectionChanged;
 
             ComboBoxRegimeLogging.Items.Add(TradeGridLoggingRegime.Standard.ToString());
@@ -65,6 +74,15 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxAutoClearJournal.Items.Add("True");
             ComboBoxAutoClearJournal.Items.Add("False");
             ComboBoxAutoClearJournal.SelectedItem = tradeGrid.AutoClearJournalIsOn.ToString();
+
+            if (tradeGrid.StartProgram == StartProgram.IsTester
+             || tradeGrid.StartProgram == StartProgram.IsOsOptimizer)
+            {
+                ComboBoxAutoClearJournal.SelectedItem = "False";
+                ComboBoxAutoClearJournal.IsEnabled = false;
+            }
+
+
             ComboBoxAutoClearJournal.SelectionChanged += ComboBoxAutoClearJournal_SelectionChanged;
 
             TextBoxMaxClosePositionsInJournal.Text = tradeGrid.MaxClosePositionsInJournal.ToString();
@@ -116,8 +134,6 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxNonTradePeriod5End.Text = tradeGrid.NonTradePeriods.NonTradePeriod5End.ToString();
             TextBoxNonTradePeriod5End.TextChanged += TextBoxNonTradePeriod5End_TextChanged;
-
-            //CheckBoxNonTradePeriod1OnOff.Items
 
             // trade days 
 
@@ -224,8 +240,10 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxTypeVolume.SelectedItem = tradeGrid.GridCreator.TypeVolume.ToString();
             ComboBoxTypeVolume.SelectionChanged += ComboBoxTypeVolume_SelectionChanged;
 
+            TextBoxStartVolume.Text = tradeGrid.GridCreator.StartVolume.ToString();
+            TextBoxStartVolume.TextChanged += TextBoxStartVolume_TextChanged;
 
-            TextBoxMartingaleMultiplicator.Text = tradeGrid.GridCreator.ProfitMultiplicator.ToString();
+            TextBoxMartingaleMultiplicator.Text = tradeGrid.GridCreator.MartingaleMultiplicator.ToString();
             TextBoxMartingaleMultiplicator.TextChanged += TextBoxMartingaleMultiplicator_TextChanged;
 
             TextBoxTradeAssetInPortfolio.Text = tradeGrid.GridCreator.TradeAssetInPortfolio;
@@ -284,6 +302,10 @@ namespace OsEngine.OsTrader.Grids
 
             Localization();
 
+            // grid table
+
+            CreateGridTable();
+            UpdateGridTable();
         }
 
         private void Localization()
@@ -391,68 +413,94 @@ namespace OsEngine.OsTrader.Grids
         {
             TradeGrid = null;
 
-            ComboBoxGridType.SelectionChanged -= ComboBoxGridType_SelectionChanged;
-            TextBoxClosePositionNumber.TextChanged -= TextBoxClosePositionNumber_TextChanged;
-            ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
-            ComboBoxRegimeLogicEntry.SelectionChanged -= ComboBoxRegimeLogicEntry_SelectionChanged;
-            ComboBoxRegimeLogging.SelectionChanged -= ComboBoxRegimeLogging_SelectionChanged;
-            ComboBoxAutoClearJournal.SelectionChanged -= ComboBoxAutoClearJournal_SelectionChanged;
-            TextBoxMaxClosePositionsInJournal.TextChanged -= TextBoxMaxClosePositionsInJournal_TextChanged;
-            TextBoxMaxOpenOrdersInMarket.TextChanged -= TextBoxMaxOrdersInMarket_TextChanged;
-            TextBoxMaxCloseOrdersInMarket.TextChanged -= TextBoxMaxCloseOrdersInMarket_TextChanged;
-            
-            CheckBoxNonTradePeriod1OnOff.Checked -= CheckBoxNonTradePeriod1OnOff_Checked;
-            CheckBoxNonTradePeriod2OnOff.Checked -= CheckBoxNonTradePeriod2OnOff_Checked;
-            CheckBoxNonTradePeriod3OnOff.Checked -= CheckBoxNonTradePeriod3OnOff_Checked;
-            CheckBoxNonTradePeriod4OnOff.Checked -= CheckBoxNonTradePeriod4OnOff_Checked;
-            CheckBoxNonTradePeriod5OnOff.Checked -= CheckBoxNonTradePeriod5OnOff_Checked;
-            TextBoxNonTradePeriod1Start.TextChanged -= TextBoxNonTradePeriod1Start_TextChanged;
-            TextBoxNonTradePeriod2Start.TextChanged -= TextBoxNonTradePeriod2Start_TextChanged;
-            TextBoxNonTradePeriod3Start.TextChanged -= TextBoxNonTradePeriod3Start_TextChanged;
-            TextBoxNonTradePeriod4Start.TextChanged -= TextBoxNonTradePeriod4Start_TextChanged;
-            TextBoxNonTradePeriod5Start.TextChanged -= TextBoxNonTradePeriod5Start_TextChanged;
-            TextBoxNonTradePeriod1End.TextChanged -= TextBoxNonTradePeriod1End_TextChanged;
-            TextBoxNonTradePeriod2End.TextChanged -= TextBoxNonTradePeriod2End_TextChanged;
-            TextBoxNonTradePeriod3End.TextChanged -= TextBoxNonTradePeriod3End_TextChanged;
-            TextBoxNonTradePeriod4End.TextChanged -= TextBoxNonTradePeriod4End_TextChanged;
-            TextBoxNonTradePeriod5End.TextChanged -= TextBoxNonTradePeriod5End_TextChanged;
+            try
+            {
+                ComboBoxGridType.SelectionChanged -= ComboBoxGridType_SelectionChanged;
+                TextBoxClosePositionNumber.TextChanged -= TextBoxClosePositionNumber_TextChanged;
+                ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
+                ComboBoxRegimeLogicEntry.SelectionChanged -= ComboBoxRegimeLogicEntry_SelectionChanged;
+                ComboBoxRegimeLogging.SelectionChanged -= ComboBoxRegimeLogging_SelectionChanged;
+                ComboBoxAutoClearJournal.SelectionChanged -= ComboBoxAutoClearJournal_SelectionChanged;
+                TextBoxMaxClosePositionsInJournal.TextChanged -= TextBoxMaxClosePositionsInJournal_TextChanged;
+                TextBoxMaxOpenOrdersInMarket.TextChanged -= TextBoxMaxOrdersInMarket_TextChanged;
+                TextBoxMaxCloseOrdersInMarket.TextChanged -= TextBoxMaxCloseOrdersInMarket_TextChanged;
 
-            CheckBoxTradeInMonday.Checked -= CheckBoxTradeInMonday_Checked;
-            CheckBoxTradeInTuesday.Checked -= CheckBoxTradeInTuesday_Checked;
-            CheckBoxTradeInWednesday.Checked -= CheckBoxTradeInWednesday_Checked;
-            CheckBoxTradeInThursday.Checked -= CheckBoxTradeInThursday_Checked;
-            CheckBoxTradeInFriday.Checked -= CheckBoxTradeInFriday_Checked;
-            CheckBoxTradeInSaturday.Checked -= CheckBoxTradeInSaturday_Checked;
-            CheckBoxTradeInSunday.Checked -= CheckBoxTradeInSunday_Checked;
+                CheckBoxNonTradePeriod1OnOff.Checked -= CheckBoxNonTradePeriod1OnOff_Checked;
+                CheckBoxNonTradePeriod2OnOff.Checked -= CheckBoxNonTradePeriod2OnOff_Checked;
+                CheckBoxNonTradePeriod3OnOff.Checked -= CheckBoxNonTradePeriod3OnOff_Checked;
+                CheckBoxNonTradePeriod4OnOff.Checked -= CheckBoxNonTradePeriod4OnOff_Checked;
+                CheckBoxNonTradePeriod5OnOff.Checked -= CheckBoxNonTradePeriod5OnOff_Checked;
+                TextBoxNonTradePeriod1Start.TextChanged -= TextBoxNonTradePeriod1Start_TextChanged;
+                TextBoxNonTradePeriod2Start.TextChanged -= TextBoxNonTradePeriod2Start_TextChanged;
+                TextBoxNonTradePeriod3Start.TextChanged -= TextBoxNonTradePeriod3Start_TextChanged;
+                TextBoxNonTradePeriod4Start.TextChanged -= TextBoxNonTradePeriod4Start_TextChanged;
+                TextBoxNonTradePeriod5Start.TextChanged -= TextBoxNonTradePeriod5Start_TextChanged;
+                TextBoxNonTradePeriod1End.TextChanged -= TextBoxNonTradePeriod1End_TextChanged;
+                TextBoxNonTradePeriod2End.TextChanged -= TextBoxNonTradePeriod2End_TextChanged;
+                TextBoxNonTradePeriod3End.TextChanged -= TextBoxNonTradePeriod3End_TextChanged;
+                TextBoxNonTradePeriod4End.TextChanged -= TextBoxNonTradePeriod4End_TextChanged;
+                TextBoxNonTradePeriod5End.TextChanged -= TextBoxNonTradePeriod5End_TextChanged;
 
-            CheckBoxStopGridByMoveUpIsOn.Checked -= CheckBoxStopGridByMoveUpIsOn_Checked;
-            TextBoxStopGridByMoveUpValuePercent.TextChanged -= TextBoxStopGridByMoveUpValuePercent_TextChanged;
-            CheckBoxStopGridByMoveDownIsOn.Checked -= CheckBoxStopGridByMoveDownIsOn_Checked;
-            TextBoxStopGridByMoveDownValuePercent.TextChanged -= TextBoxStopGridByMoveDownValuePercent_TextChanged;
-            CheckBoxStopGridByPositionsCountIsOn.Checked -= CheckBoxStopGridByPositionsCountIsOn_Checked;
-            TextBoxStopGridByPositionsCountValue.TextChanged -= TextBoxStopGridByPositionsCountValue_TextChanged;
-            ComboBoxGridSide.SelectionChanged -= ComboBoxGridSide_SelectionChanged;
-            TextBoxFirstPrice.TextChanged -= TextBoxFirstPrice_TextChanged;
-            TextBoxLineCountStart.TextChanged -= TextBoxLineCountStart_TextChanged;
+                CheckBoxTradeInMonday.Checked -= CheckBoxTradeInMonday_Checked;
+                CheckBoxTradeInTuesday.Checked -= CheckBoxTradeInTuesday_Checked;
+                CheckBoxTradeInWednesday.Checked -= CheckBoxTradeInWednesday_Checked;
+                CheckBoxTradeInThursday.Checked -= CheckBoxTradeInThursday_Checked;
+                CheckBoxTradeInFriday.Checked -= CheckBoxTradeInFriday_Checked;
+                CheckBoxTradeInSaturday.Checked -= CheckBoxTradeInSaturday_Checked;
+                CheckBoxTradeInSunday.Checked -= CheckBoxTradeInSunday_Checked;
 
-            ComboBoxTypeStep.SelectionChanged -= ComboBoxTypeStep_SelectionChanged;
-            TextBoxLineStep.TextChanged -= TextBoxLineStep_TextChanged;
-            TextBoxStepMultiplicator.TextChanged -= TextBoxStepMultiplicator_TextChanged;
-            ComboBoxTypeProfit.SelectionChanged -= ComboBoxTypeProfit_SelectionChanged;
-            TextBoxProfitStep.TextChanged -= TextBoxProfitStep_TextChanged;
-            TextBoxProfitMultiplicator.TextChanged -= TextBoxProfitMultiplicator_TextChanged;
-            TextBoxMartingaleMultiplicator.TextChanged -= TextBoxMartingaleMultiplicator_TextChanged;
-            TextBoxTradeAssetInPortfolio.TextChanged -= TextBoxTradeAssetInPortfolio_TextChanged;
+                CheckBoxStopGridByMoveUpIsOn.Checked -= CheckBoxStopGridByMoveUpIsOn_Checked;
+                TextBoxStopGridByMoveUpValuePercent.TextChanged -= TextBoxStopGridByMoveUpValuePercent_TextChanged;
+                CheckBoxStopGridByMoveDownIsOn.Checked -= CheckBoxStopGridByMoveDownIsOn_Checked;
+                TextBoxStopGridByMoveDownValuePercent.TextChanged -= TextBoxStopGridByMoveDownValuePercent_TextChanged;
+                CheckBoxStopGridByPositionsCountIsOn.Checked -= CheckBoxStopGridByPositionsCountIsOn_Checked;
+                TextBoxStopGridByPositionsCountValue.TextChanged -= TextBoxStopGridByPositionsCountValue_TextChanged;
+                ComboBoxGridSide.SelectionChanged -= ComboBoxGridSide_SelectionChanged;
+                TextBoxFirstPrice.TextChanged -= TextBoxFirstPrice_TextChanged;
+                TextBoxLineCountStart.TextChanged -= TextBoxLineCountStart_TextChanged;
 
-            ComboBoxProfitRegime.SelectionChanged -= ComboBoxProfitRegime_SelectionChanged;
-            ComboBoxProfitValueType.SelectionChanged -= ComboBoxProfitValueType_SelectionChanged;
-            TextBoxProfitValue.TextChanged -= TextBoxProfitValue_TextChanged;
-            ComboBoxStopRegime.SelectionChanged -= ComboBoxStopRegime_SelectionChanged;
-            ComboBoxStopValueType.SelectionChanged -= ComboBoxStopValueType_SelectionChanged;
-            TextBoxStopValue.TextChanged -= TextBoxStopValue_TextChanged;
+                ComboBoxTypeStep.SelectionChanged -= ComboBoxTypeStep_SelectionChanged;
+                TextBoxLineStep.TextChanged -= TextBoxLineStep_TextChanged;
+                TextBoxStepMultiplicator.TextChanged -= TextBoxStepMultiplicator_TextChanged;
+                ComboBoxTypeProfit.SelectionChanged -= ComboBoxTypeProfit_SelectionChanged;
+                TextBoxProfitStep.TextChanged -= TextBoxProfitStep_TextChanged;
+                TextBoxProfitMultiplicator.TextChanged -= TextBoxProfitMultiplicator_TextChanged;
+                TextBoxMartingaleMultiplicator.TextChanged -= TextBoxMartingaleMultiplicator_TextChanged;
+                TextBoxTradeAssetInPortfolio.TextChanged -= TextBoxTradeAssetInPortfolio_TextChanged;
 
-            ComboBoxAutoStartRegime.SelectionChanged -= ComboBoxAutoStartRegime_SelectionChanged;
-            TextBoxAutoStartPrice.TextChanged -= TextBoxAutoStartPrice_TextChanged;
+                ComboBoxProfitRegime.SelectionChanged -= ComboBoxProfitRegime_SelectionChanged;
+                ComboBoxProfitValueType.SelectionChanged -= ComboBoxProfitValueType_SelectionChanged;
+                TextBoxProfitValue.TextChanged -= TextBoxProfitValue_TextChanged;
+                ComboBoxStopRegime.SelectionChanged -= ComboBoxStopRegime_SelectionChanged;
+                ComboBoxStopValueType.SelectionChanged -= ComboBoxStopValueType_SelectionChanged;
+                TextBoxStopValue.TextChanged -= TextBoxStopValue_TextChanged;
+
+                ComboBoxAutoStartRegime.SelectionChanged -= ComboBoxAutoStartRegime_SelectionChanged;
+                TextBoxAutoStartPrice.TextChanged -= TextBoxAutoStartPrice_TextChanged;
+            }
+            catch
+            {
+                // ignore
+            }
+
+            try
+            {
+                if (_gridDataGrid != null)
+                {
+                    HostGridTable.Child = null;
+
+                    DataGridFactory.ClearLinks(_gridDataGrid);
+                    _gridDataGrid.DataError -= _gridDataGrid_DataError;
+                    _gridDataGrid.CellValueChanged -= EventChangeValueInTable;
+                    _gridDataGrid.Rows.Clear();
+                    _gridDataGrid = null;
+                    HostGridTable = null;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         public TradeGrid TradeGrid;
@@ -668,7 +716,6 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-
         private void ComboBoxTypeStep_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             try
@@ -691,7 +738,7 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                TradeGrid.GridCreator.LineStep = Convert.ToInt32(TextBoxLineStep.Text);
+                TradeGrid.GridCreator.LineStep = TextBoxLineStep.Text.ToDecimal();
                 TradeGrid.Save();
             }
             catch
@@ -780,6 +827,24 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void TextBoxStartVolume_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxStartVolume.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.GridCreator.StartVolume = TextBoxStartVolume.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         private void TextBoxMartingaleMultiplicator_TextChanged(object sender, TextChangedEventArgs e)
         {
             try
@@ -818,7 +883,15 @@ namespace OsEngine.OsTrader.Grids
 
         private void ButtonCreateGrid_Click(object sender, RoutedEventArgs e)
         {
-
+            try
+            {
+                TradeGrid.CreateNewGridSafe();
+                UpdateGridTable();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonDeleteGrid_Click(object sender, RoutedEventArgs e)
@@ -834,6 +907,255 @@ namespace OsEngine.OsTrader.Grids
         private void ButtonRemoveSelected_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        #endregion
+
+        #region Grid paint in table
+
+        private DataGridView _gridDataGrid;
+
+        private void CreateGridTable()
+        {
+            try
+            {
+                if (MainWindow.GetDispatcher.CheckAccess() == false)
+                {
+                    MainWindow.GetDispatcher.Invoke(new Action(CreateGridTable));
+                    return;
+                }
+
+                _gridDataGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
+                       DataGridViewAutoSizeRowsMode.AllCellsExceptHeaders);
+                _gridDataGrid.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+                _gridDataGrid.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                _gridDataGrid.RowsDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                _gridDataGrid.ScrollBars = ScrollBars.Vertical;
+
+                DataGridViewTextBoxCell cellParam0 = new DataGridViewTextBoxCell();
+                cellParam0.Style = _gridDataGrid.DefaultCellStyle;
+                cellParam0.Style.WrapMode = DataGridViewTriState.True;
+
+                DataGridViewColumn newColumn0 = new DataGridViewColumn();
+                newColumn0.CellTemplate = cellParam0;
+                newColumn0.HeaderText = "Number";
+                _gridDataGrid.Columns.Add(newColumn0);
+                newColumn0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn1 = new DataGridViewColumn();
+                newColumn1.CellTemplate = cellParam0;
+                newColumn1.HeaderText = "Is ON";
+                _gridDataGrid.Columns.Add(newColumn1);
+                newColumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn2 = new DataGridViewColumn();
+                newColumn2.CellTemplate = cellParam0;
+                newColumn2.HeaderText = "Entry price";
+                _gridDataGrid.Columns.Add(newColumn2);
+                newColumn2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn3 = new DataGridViewColumn();
+                newColumn3.CellTemplate = cellParam0;
+                newColumn3.HeaderText = "Exit price";
+                _gridDataGrid.Columns.Add(newColumn3);
+                newColumn3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn4 = new DataGridViewColumn();
+                newColumn4.CellTemplate = cellParam0;
+                newColumn4.HeaderText = "Volume";
+                _gridDataGrid.Columns.Add(newColumn4);
+                newColumn4.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn5 = new DataGridViewColumn();
+                newColumn5.CellTemplate = cellParam0;
+                newColumn5.HeaderText = "Direction";
+                _gridDataGrid.Columns.Add(newColumn5);
+                newColumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn6 = new DataGridViewColumn();
+                newColumn6.CellTemplate = cellParam0;
+                newColumn6.HeaderText = "Select";
+                _gridDataGrid.Columns.Add(newColumn6);
+                newColumn6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                HostGridTable.Child = _gridDataGrid;
+
+                _gridDataGrid.DataError += _gridDataGrid_DataError;
+                _gridDataGrid.CellValueChanged += EventChangeValueInTable;
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void UpdateGridTable()
+        {
+            try
+            {
+                if (_gridDataGrid.InvokeRequired)
+                {
+                    _gridDataGrid.Invoke(new Action(UpdateGridTable));
+                    return;
+                }
+
+                _gridDataGrid.CellValueChanged -= EventChangeValueInTable;
+                _gridDataGrid.Rows.Clear();
+
+                for (int i = 0; i < TradeGrid.GridCreator.Lines.Count; i++)
+                {
+                    TradeGridLine curLine = TradeGrid.GridCreator.Lines[i];
+
+                    DataGridViewRow rowLine = new DataGridViewRow();
+
+                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                    rowLine.Cells[0].Value = i + 1;
+                    rowLine.Cells[0].ReadOnly = true;
+
+                    DataGridViewComboBoxCell cell1 = new DataGridViewComboBoxCell();
+                    cell1.Items.Add(true.ToString());
+                    cell1.Items.Add(false.ToString());
+                    cell1.Value = curLine.IsOn.ToString();
+                    cell1.ReadOnly = false;
+                    rowLine.Cells.Add(cell1);
+
+                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                    rowLine.Cells[2].Value = Math.Round(curLine.PriceEnter, 10);
+                    rowLine.Cells[2].ReadOnly = false;
+
+                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                    rowLine.Cells[3].Value = Math.Round(curLine.PriceExit, 10);
+                    rowLine.Cells[3].ReadOnly = false;
+
+                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                    rowLine.Cells[4].Value = Math.Round(curLine.Volume, 10);
+                    rowLine.Cells[4].ReadOnly = false;
+
+                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                    rowLine.Cells[5].Value = curLine.Side;
+                    rowLine.Cells[5].ReadOnly = true;
+
+                    rowLine.Cells.Add(new DataGridViewCheckBoxCell());
+                    rowLine.Cells[6].Value = CheckState.Unchecked;
+                    rowLine.Cells[6].ReadOnly = false;
+
+                    _gridDataGrid.Rows.Add(rowLine);
+                }
+
+                _gridDataGrid.CellValueChanged += EventChangeValueInTable;
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+        }
+
+        private void EventChangeValueInTable(object sender, DataGridViewCellEventArgs e)
+        {
+           /* try
+            {
+                LineIsOn = Convert.ToBoolean(_gridDataGrid.Rows[0].Cells[0].Value.ToString());
+
+                Enum.TryParse(_gridDataGrid.Rows[0].Cells[1].Value.ToString(), out GridSide);
+
+                FirstPrice = GetDecimal(FirstPrice, _gridDataGrid.Rows[0].Cells[2]);
+
+                if (_tab.Security != null
+                    && FirstPrice % _tab.Security.PriceStep != 0)
+                {
+                    FirstPrice = Math.Round(FirstPrice, _tab.Security.Decimals);
+                    _gridDataGrid.Rows[0].Cells[2].Value = FirstPrice.ToString();
+                }
+
+                LineCountStart = GetInt(LineCountStart, _gridDataGrid.Rows[0].Cells[3]);
+
+                Enum.TryParse(_gridDataGrid.Rows[0].Cells[4].Value.ToString(), out TypeStep);
+
+                LineStep = GetDecimal(LineStep, _gridDataGrid.Rows[0].Cells[5]);
+
+                StepMultiplicator = GetDecimal(StepMultiplicator, _gridDataGrid.Rows[3].Cells[5]);
+
+                if (_tab.Security != null
+                    && LineStep < _tab.Security.PriceStep)
+                {
+                    LineStep = _tab.Security.PriceStep;
+                    _gridDataGrid.Rows[0].Cells[5].Value = LineStep.ToString();
+                }
+
+                if (_tab.Security != null
+                    && LineStep % _tab.Security.PriceStep != 0)
+                {
+                    LineStep = Math.Round(LineStep, _tab.Security.Decimals);
+                    _gridDataGrid.Rows[0].Cells[5].Value = LineStep.ToString();
+                }
+
+                Enum.TryParse(_gridDataGrid.Rows[0].Cells[6].Value.ToString(), out TypeProfit);
+
+                ProfitStep = GetDecimal(ProfitStep, _gridDataGrid.Rows[0].Cells[7]);
+
+                if (TypeProfit == Type_ProfitGrid.Absolute
+                    && _tab.Security != null
+                    && ProfitStep % _tab.Security.PriceStep != 0)
+                {
+                    ProfitStep = Math.Round(ProfitStep, _tab.Security.Decimals);
+                    _gridDataGrid.Rows[0].Cells[7].Value = ProfitStep.ToString();
+                }
+
+                if (TypeProfit == Type_ProfitGrid.Absolute
+                    && _tab.Security != null
+                   && ProfitStep < _tab.Security.PriceStep)
+                {
+                    ProfitStep = _tab.Security.PriceStep;
+                    _gridDataGrid.Rows[0].Cells[7].Value = ProfitStep.ToString();
+                }
+
+                ProfitMultiplicator = GetDecimal(ProfitMultiplicator, _gridDataGrid.Rows[3].Cells[7]);
+
+                Enum.TryParse(_gridDataGrid.Rows[0].Cells[8].Value.ToString(), out TypeVolume);
+
+                StartVolume = GetDecimal(StartVolume, _gridDataGrid.Rows[0].Cells[9]);
+
+                TradeAssetInPortfolio = _gridDataGrid.Rows[3].Cells[8].Value.ToString();
+
+                MartingaleMultiplicator = GetDecimal(MartingaleMultiplicator, _gridDataGrid.Rows[3].Cells[9]);
+
+                SaveSettings();
+
+                try
+                {
+                    for (int i = 8; i < Lines.Count; i++)
+                    {
+                        Lines[i].IsOn = Convert.ToBoolean(_gridDataGrid.Rows[i].Cells[1].Value.ToString().ToLower());
+                        Lines[i].PriceEnter = _gridDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
+                        Lines[i].PriceExit = _gridDataGrid.Rows[i].Cells[3].Value.ToString().ToDecimal();
+                        Lines[i].Volume = _gridDataGrid.Rows[i].Cells[4].Value.ToString().ToDecimal();
+
+                        if (_gridDataGrid.Rows[i].Cells[6].Value.ToString() == "Checked"
+                            || _gridDataGrid.Rows[i].Cells[6].Value.ToString() == "True")
+                        {
+                            Lines[i].checkStateLine = CheckState.Checked;
+                        }
+                        else
+                        {
+                            Lines[i].checkStateLine = CheckState.Unchecked;
+                        }
+                    }
+                    SaveLines();
+                }
+                catch (Exception ex)
+                {
+                    _tab.SetNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                _tab.SetNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }*/
+        }
+
+        private void _gridDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            TradeGrid.SendNewLogMessage(e.Exception.ToString(), OsEngine.Logging.LogMessageType.Error);
         }
 
         #endregion
