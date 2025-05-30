@@ -9,6 +9,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -107,6 +108,40 @@ namespace OsEngine.OsTrader.Grids
             if(gridType == TradeGridPrimeType.MarketMaking)
             {
                 CreateMarketMakingGrid(tab);
+            }
+        }
+
+        public void DeleteGrid()
+        {
+            if(Lines.Count > 0)
+            {
+                Lines.Clear();
+            }
+        }
+
+        public void CreateNewLine()
+        {
+            TradeGridLine newLine = new TradeGridLine();
+            newLine.PriceEnter = 0;
+            newLine.Side = GridSide;
+            newLine.IsOn = true;
+            newLine.Volume = 0;
+            Lines.Add(newLine);
+
+        }
+
+        public void RemoveSelected(List<int> numbers)
+        {
+            for(int i = numbers.Count-1; i > -1; i--)
+            {
+                int curNumber = numbers[i];
+
+                if(curNumber >= Lines.Count)
+                {
+                    continue;
+                }
+
+                Lines.RemoveAt(curNumber);
             }
         }
 

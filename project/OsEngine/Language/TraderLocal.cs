@@ -1990,5 +1990,13 @@ namespace OsEngine.Language
         public string Label522 => OsLocalization.ConvertToLocString(
          "Eng:The previous grid will be destroyed. Shall I continue?_" +
          "Ru:Предыдущая сетка будет уничтожена. Продолжить?");
+
+        public string Label523 => OsLocalization.ConvertToLocString(
+         "Eng:The previous grid will be destroyed. Shall I continue?_" +
+         "Ru:Предыдущая сетка будет уничтожена. Продолжить?");
+
+        public string Label524 => OsLocalization.ConvertToLocString(
+         "Eng:It is impossible to delete a grid. There are open positions on it_" +
+         "Ru:Невозможно удалить сетку. По ней есть открытые позиции");
     }
 }

@@ -5008,9 +5008,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        if (position.StopIsMarket == false
-                            || StartProgram == StartProgram.IsTester
-                            || StartProgram == StartProgram.IsOsOptimizer)
+                        if (position.StopIsMarket == false)
                         {
                             CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
@@ -5040,9 +5038,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        if (position.StopIsMarket == false
-                           || StartProgram == StartProgram.IsTester
-                           || StartProgram == StartProgram.IsOsOptimizer)
+                        if (position.StopIsMarket == false)
                         {
                             CloseDeal(position, OrderPriceType.Limit, position.StopOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
@@ -5075,9 +5071,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        if (position.ProfitIsMarket == false
-                            || StartProgram == StartProgram.IsTester
-                            || StartProgram == StartProgram.IsOsOptimizer)
+                        if (position.ProfitIsMarket == false)
                         {
                             CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }
@@ -5107,9 +5101,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                             + " LastMarketPrice: " + lastTrade,
                             LogMessageType.System);
 
-                        if (position.ProfitIsMarket == false
-                           || StartProgram == StartProgram.IsTester
-                           || StartProgram == StartProgram.IsOsOptimizer)
+                        if (position.ProfitIsMarket == false)
                         {
                             CloseDeal(position, OrderPriceType.Limit, position.ProfitOrderPrice, ManualPositionSupport.SecondToClose, true, true);
                         }

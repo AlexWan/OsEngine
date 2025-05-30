@@ -9,6 +9,8 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
+using System.Collections.Generic;
+
 
 // Разные базовые сути сеток:
 // 1) По каждому открытию отдельный выход. Как маркет-мейкинг инструмента в одну сторону.     // MarketMaking
@@ -32,7 +34,6 @@ using System;
 
 // Переход сетки в режим выключена
 // 0) При отсутствии позиции в режиме "только закрытии". По умолчанию
-
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -385,6 +386,61 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
+
+        public void DeleteGrid()
+        {
+            try
+            {
+                if (GridCreator.HaveOpenPositionsByGrid == true)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label524);
+                    ui.Show();
+                    return;
+                }
+
+                GridCreator.DeleteGrid();
+                Save();
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void CreateNewLine()
+        {
+            try
+            {
+                GridCreator.CreateNewLine();
+
+                Save();
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void RemoveSelected(List<int> numbers)
+        {
+            try
+            {
+                GridCreator.RemoveSelected(numbers);
+                Save();
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #region Trade logic
+
+
+
+
+
+        #endregion
 
         #region Log
 

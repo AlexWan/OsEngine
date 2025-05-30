@@ -8,6 +8,7 @@ using OsEngine.Language;
 using OsEngine.Layout;
 using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -896,17 +897,56 @@ namespace OsEngine.OsTrader.Grids
 
         private void ButtonDeleteGrid_Click(object sender, RoutedEventArgs e)
         {
-
+            try
+            {
+                TradeGrid.DeleteGrid();
+                UpdateGridTable();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonNewLevel_Click(object sender, RoutedEventArgs e)
         {
-
+            try
+            {
+                TradeGrid.CreateNewLine();
+                UpdateGridTable();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonRemoveSelected_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                List<int> numbers = new List<int>();
 
+                for (int i = 0; i < _gridDataGrid.Rows.Count; i++)
+                {
+                    if (_gridDataGrid.Rows[i].Cells[6].Value.ToString() != "Unchecked")
+                    {
+                        numbers.Add(i);
+                    }
+                }
+
+                if (numbers.Count == 0)
+                {
+                    return;
+                }
+
+                TradeGrid.RemoveSelected(numbers);
+                UpdateGridTable();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1052,105 +1092,24 @@ namespace OsEngine.OsTrader.Grids
 
         private void EventChangeValueInTable(object sender, DataGridViewCellEventArgs e)
         {
-           /* try
+            try
             {
-                LineIsOn = Convert.ToBoolean(_gridDataGrid.Rows[0].Cells[0].Value.ToString());
+                List<TradeGridLine> Lines = TradeGrid.GridCreator.Lines;
 
-                Enum.TryParse(_gridDataGrid.Rows[0].Cells[1].Value.ToString(), out GridSide);
-
-                FirstPrice = GetDecimal(FirstPrice, _gridDataGrid.Rows[0].Cells[2]);
-
-                if (_tab.Security != null
-                    && FirstPrice % _tab.Security.PriceStep != 0)
+                for (int i = 0; i < Lines.Count; i++)
                 {
-                    FirstPrice = Math.Round(FirstPrice, _tab.Security.Decimals);
-                    _gridDataGrid.Rows[0].Cells[2].Value = FirstPrice.ToString();
-                }
-
-                LineCountStart = GetInt(LineCountStart, _gridDataGrid.Rows[0].Cells[3]);
-
-                Enum.TryParse(_gridDataGrid.Rows[0].Cells[4].Value.ToString(), out TypeStep);
-
-                LineStep = GetDecimal(LineStep, _gridDataGrid.Rows[0].Cells[5]);
-
-                StepMultiplicator = GetDecimal(StepMultiplicator, _gridDataGrid.Rows[3].Cells[5]);
-
-                if (_tab.Security != null
-                    && LineStep < _tab.Security.PriceStep)
-                {
-                    LineStep = _tab.Security.PriceStep;
-                    _gridDataGrid.Rows[0].Cells[5].Value = LineStep.ToString();
-                }
-
-                if (_tab.Security != null
-                    && LineStep % _tab.Security.PriceStep != 0)
-                {
-                    LineStep = Math.Round(LineStep, _tab.Security.Decimals);
-                    _gridDataGrid.Rows[0].Cells[5].Value = LineStep.ToString();
-                }
-
-                Enum.TryParse(_gridDataGrid.Rows[0].Cells[6].Value.ToString(), out TypeProfit);
-
-                ProfitStep = GetDecimal(ProfitStep, _gridDataGrid.Rows[0].Cells[7]);
-
-                if (TypeProfit == Type_ProfitGrid.Absolute
-                    && _tab.Security != null
-                    && ProfitStep % _tab.Security.PriceStep != 0)
-                {
-                    ProfitStep = Math.Round(ProfitStep, _tab.Security.Decimals);
-                    _gridDataGrid.Rows[0].Cells[7].Value = ProfitStep.ToString();
-                }
-
-                if (TypeProfit == Type_ProfitGrid.Absolute
-                    && _tab.Security != null
-                   && ProfitStep < _tab.Security.PriceStep)
-                {
-                    ProfitStep = _tab.Security.PriceStep;
-                    _gridDataGrid.Rows[0].Cells[7].Value = ProfitStep.ToString();
-                }
-
-                ProfitMultiplicator = GetDecimal(ProfitMultiplicator, _gridDataGrid.Rows[3].Cells[7]);
-
-                Enum.TryParse(_gridDataGrid.Rows[0].Cells[8].Value.ToString(), out TypeVolume);
-
-                StartVolume = GetDecimal(StartVolume, _gridDataGrid.Rows[0].Cells[9]);
-
-                TradeAssetInPortfolio = _gridDataGrid.Rows[3].Cells[8].Value.ToString();
-
-                MartingaleMultiplicator = GetDecimal(MartingaleMultiplicator, _gridDataGrid.Rows[3].Cells[9]);
-
-                SaveSettings();
-
-                try
-                {
-                    for (int i = 8; i < Lines.Count; i++)
-                    {
-                        Lines[i].IsOn = Convert.ToBoolean(_gridDataGrid.Rows[i].Cells[1].Value.ToString().ToLower());
-                        Lines[i].PriceEnter = _gridDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
-                        Lines[i].PriceExit = _gridDataGrid.Rows[i].Cells[3].Value.ToString().ToDecimal();
-                        Lines[i].Volume = _gridDataGrid.Rows[i].Cells[4].Value.ToString().ToDecimal();
-
-                        if (_gridDataGrid.Rows[i].Cells[6].Value.ToString() == "Checked"
-                            || _gridDataGrid.Rows[i].Cells[6].Value.ToString() == "True")
-                        {
-                            Lines[i].checkStateLine = CheckState.Checked;
-                        }
-                        else
-                        {
-                            Lines[i].checkStateLine = CheckState.Unchecked;
-                        }
-                    }
-                    SaveLines();
-                }
-                catch (Exception ex)
-                {
-                    _tab.SetNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+                    Lines[i].IsOn = Convert.ToBoolean(_gridDataGrid.Rows[i].Cells[1].Value.ToString().ToLower());
+                    Lines[i].PriceEnter = _gridDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
+                    Lines[i].PriceExit = _gridDataGrid.Rows[i].Cells[3].Value.ToString().ToDecimal();
+                    Lines[i].Volume = _gridDataGrid.Rows[i].Cells[4].Value.ToString().ToDecimal();
                 }
             }
             catch (Exception ex)
             {
-                _tab.SetNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
-            }*/
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+
+            TradeGrid.Save();
         }
 
         private void _gridDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
