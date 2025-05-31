@@ -18,6 +18,8 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(alor);
 
+            // TODO Добавить Finam gRPC
+
             SupportConnection quikDDE = new SupportConnection()
             {
                 ServerType = ServerType.QuikDde,

@@ -87,6 +87,9 @@
     <Reference Include="TInvestApi">
       <HintPath>..\..\related projects\TInvestApi\bin\Debug\TInvestApi.dll</HintPath>
     </Reference>
+    <Reference Include="FinamApi">
+      <HintPath>..\..\related projects\FinamApi\bin\Debug\net9.0\FinamApi.dll</HintPath>
+    </Reference>
     <Reference Include="WebSocket4Net">
       <HintPath>bin\Debug\WebSocket4Net.dll</HintPath>
     </Reference>

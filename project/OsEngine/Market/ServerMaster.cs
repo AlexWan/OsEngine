@@ -78,6 +78,7 @@ using OsEngine.Market.Proxy;
 using System.Net;
 using OsEngine.Market.Servers.BloFin;
 using OsEngine.Market.Servers.TelegramNews;
+using OsEngine.Market.Servers.FinamGrpc;
 
 
 namespace OsEngine.Market
@@ -269,6 +270,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Transaq);
                 serverTypes.Add(ServerType.TInvest);
                 serverTypes.Add(ServerType.Finam);
+                serverTypes.Add(ServerType.FinamGrpc);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
                 serverTypes.Add(ServerType.MoexAlgopack);
@@ -400,6 +402,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.Alor);
                 serverTypes.Add(ServerType.Finam);
+                serverTypes.Add(ServerType.FinamGrpc);
                 serverTypes.Add(ServerType.MoexDataServer);
                 serverTypes.Add(ServerType.MfdWeb);
                 serverTypes.Add(ServerType.MoexAlgopack);
@@ -699,6 +702,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.Finam)
                 {
                     newServer = new FinamServer();
+                }
+                else if (type == ServerType.FinamGrpc)
+                {
+                    newServer = new FinamGrpcServer(uniqueNum);
                 }
                 else if (type == ServerType.Deribit)
                 {
@@ -1389,6 +1396,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new FinamServerPermission();
                 }
+                else if (type == ServerType.FinamGrpc)
+                {
+                    serverPermission = new FinamGrpcServerPermission();
+                }
                 else if (type == ServerType.TInvest)
                 {
                     serverPermission = new TInvestServerPermission();
@@ -1873,6 +1884,12 @@ namespace OsEngine.Market
         /// Финам
         /// </summary>
         Finam,
+
+        /// <summary>
+        /// Finam gRPC
+        /// Финам gRPC
+        /// </summary>
+        FinamGrpc,
 
         /// <summary>
         /// AstsBridge, he is also the gateway or TEAP
