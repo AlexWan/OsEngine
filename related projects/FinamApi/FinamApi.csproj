@@ -5,7 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <GoogleApiCommonProtosDir>$(NuGetPackageRoot)google.api.commonprotos\2.17.0\content\protos</GoogleApiCommonProtosDir>
+    <GoogleApiCommonProtosDir>$(NuGetPackageRoot)google.api.commonprotos\2.16.0\content\protos</GoogleApiCommonProtosDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,13 +16,13 @@
     <Protobuf Include="proto\grpc\tradeapi\v1\marketdata\*.proto" GrpcServices="Client" ProtoRoot="proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
     <Protobuf Include="proto\grpc\tradeapi\v1\orders\*.proto" GrpcServices="Client" ProtoRoot="proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
     
-    <PackageReference Include="Google.Protobuf" Version="3.31.1" />
+    <PackageReference Include="Google.Protobuf" Version="3.31.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageReference Include="Grpc.Tools" Version="2.72.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Google.Api.CommonProtos" Version="2.17.0" />
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
   </ItemGroup>
 
 </Project>
