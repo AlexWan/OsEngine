@@ -1,0 +1,262 @@
+syntax = "proto3";
+
+package grpc.tradeapi.v1.orders;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
+import "google/type/interval.proto";
+import "google/type/money.proto";
+import "grpc/tradeapi/v1/side.proto";
+
+option csharp_namespace = "FinamApi.TradeApi.V1.Orders";
+option go_package = "trade_api/v1/orders/orders_service";
+option java_multiple_files = true;
+
+// Сервис ордеров
+service OrdersService {
+  // Выставление биржевой заявки
+  // Пример HTTP запроса:
+  // POST /v1/accounts/A12345/orders
+  // Content-Type: application/json
+  // Authorization: <token>
+  //
+  // {
+  //   "symbol": "SBER@MISX",
+  //   "quantity": "10",
+  //   "side": "SIDE_BUY",
+  //   "type": "ORDER_TYPE_LIMIT",
+  //   "time_in_force": "TIME_IN_FORCE_DAY",
+  //   "limit_price": "150.50"
+  // }
+  //
+  // Поле account_id берется из URL-пути, остальные поля передаются в теле запроса
+  rpc PlaceOrder(Order) returns (OrderState) {
+    option (google.api.http) = {
+      post: "/v1/accounts/{account_id}/orders"
+      body: "*"
+    };
+  }
+
+  // Отмена биржевой заявки
+  // Пример HTTP запроса:
+  // DELETE /v1/accounts/A12345/orders/ORD789012
+  // Authorization: <token>
+  rpc CancelOrder(CancelOrderRequest) returns (OrderState) {
+    option (google.api.http) = {delete: "/v1/accounts/{account_id}/orders/{order_id}"};
+  }
+
+  // Получение списка активных заявок для аккаунта
+  // Пример HTTP запроса:
+  // GET /v1/accounts/A12345/orders
+  // Authorization: <token>
+  rpc GetOrders(OrdersRequest) returns (OrdersResponse) {
+    option (google.api.http) = {get: "/v1/accounts/{account_id}/orders"};
+  }
+
+  // Получение информации о конкретном ордере
+  // Пример HTTP запроса:
+  // GET /v1/accounts/A12345/orders/ORD789012
+  // Authorization: <token>
+  rpc GetOrder(GetOrderRequest) returns (OrderState) {
+    option (google.api.http) = {get: "/v1/accounts/{account_id}/orders/{order_id}"};
+  }
+}
+
+// Запрос на получение конкретного ордера
+message GetOrderRequest {
+  // Идентификатор аккаунта 
+  string account_id = 1;
+  // Идентификатор заявки
+  string order_id = 2;
+}
+
+// Тип заявки
+enum OrderType {
+  // Значение не указано
+  ORDER_TYPE_UNSPECIFIED = 0;
+  // Рыночная
+  ORDER_TYPE_MARKET = 1;
+  // Лимитная
+  ORDER_TYPE_LIMIT = 2;
+  // Стоп заявка рыночная
+  ORDER_TYPE_STOP = 3;
+  // Стоп заявка лимитная
+  ORDER_TYPE_STOP_LIMIT = 4;
+  // Мульти лег заявка
+  ORDER_TYPE_MULTI_LEG = 5;
+}
+
+// Срок действия заявки
+enum TimeInForce {
+  // Значение не указано
+  TIME_IN_FORCE_UNSPECIFIED = 0;
+  // До конца дня
+  TIME_IN_FORCE_DAY = 1;
+  // Good till cancel
+  TIME_IN_FORCE_GOOD_TILL_CANCEL = 2;
+  // Good till crossing
+  TIME_IN_FORCE_GOOD_TILL_CROSSING = 3;
+  // Extended hours
+  TIME_IN_FORCE_EXT = 4;
+  // На открытии биржи
+  TIME_IN_FORCE_ON_OPEN = 5;
+  // На закрытии биржи 
+  TIME_IN_FORCE_ON_CLOSE = 6;
+   // Immediate or Cancel
+  TIME_IN_FORCE_IOC = 7; 
+  // Fill or Kill
+  TIME_IN_FORCE_FOK = 8; 
+}
+
+// Условие срабатывания стоп заявки
+enum StopCondition {
+  // Значение не указано
+  STOP_CONDITION_UNSPECIFIED = 0;
+  // Цена срабатывания больше текущей цены
+  STOP_CONDITION_LAST_UP = 1;
+  //Цена срабатывания меньше текущей цены 
+  STOP_CONDITION_LAST_DOWN = 2;
+}
+
+// Информация о заявке
+message Order {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Символ инструмента
+  string symbol = 2;
+  // Количество в шт.
+  google.type.Decimal quantity = 3;
+  //  Сторона (long или short)
+  Side side = 4;
+   // Тип заявки
+  OrderType type = 5;
+  // Срок действия заявки
+  TimeInForce time_in_force = 6;
+
+  // Необходимо для лимитной и стоп лимитной заявки
+  google.type.Decimal limit_price = 7;
+
+  // Необходимо для стоп рыночной и стоп лимитной заявки
+  google.type.Decimal stop_price = 8;
+
+  // Необходимо для стоп рыночной и стоп лимитной заявки
+  StopCondition stop_condition = 9;
+
+  // Необходимо для мульти лег заявки
+  repeated Leg legs = 10;
+
+  // Уникальный идентификатор заявки. Автоматически генерируется, если не отправлен. (максимум 20 символов)
+  string client_order_id = 11;
+}
+
+// Лег
+message Leg {
+  // Символ инструмента
+  string symbol = 1;
+  // Количество
+  google.type.Decimal quantity = 2;
+  // Сторона
+  grpc.tradeapi.v1.Side side = 3;
+}
+
+// Статус заявки
+enum OrderStatus {
+  // Неопределенное значение
+  ORDER_STATUS_UNSPECIFIED = 0; 
+  // NEW
+  ORDER_STATUS_NEW = 1; 
+  // PARTIALLY_FILLED
+  ORDER_STATUS_PARTIALLY_FILLED = 2; 
+  // FILLED
+  ORDER_STATUS_FILLED = 3;
+  // DONE_FOR_DAY 
+  ORDER_STATUS_DONE_FOR_DAY = 4;
+  // CANCELED 
+  ORDER_STATUS_CANCELED = 5; 
+  // REPLACED
+  ORDER_STATUS_REPLACED = 6; 
+  // PENDING_CANCEL
+  ORDER_STATUS_PENDING_CANCEL = 7; 
+  // REJECTED
+  ORDER_STATUS_REJECTED = 9; 
+  // SUSPENDED
+  ORDER_STATUS_SUSPENDED = 10; 
+  // PENDING_NEW
+  ORDER_STATUS_PENDING_NEW = 11; 
+  // EXPIRED
+  ORDER_STATUS_EXPIRED = 13; 
+  // FAILED
+  ORDER_STATUS_FAILED = 16; 
+  // FORWARDING
+  ORDER_STATUS_FORWARDING = 17; 
+  // WAIT
+  ORDER_STATUS_WAIT = 18; 
+  // DENIED_BY_BROKER
+  ORDER_STATUS_DENIED_BY_BROKER = 19; 
+  // REJECTED_BY_EXCHANGE
+  ORDER_STATUS_REJECTED_BY_EXCHANGE = 20; 
+  // WATCHING
+  ORDER_STATUS_WATCHING = 21; 
+  // EXECUTED
+  ORDER_STATUS_EXECUTED = 22; 
+  // DISABLED
+  ORDER_STATUS_DISABLED = 23; 
+  // LINK_WAIT
+  ORDER_STATUS_LINK_WAIT = 24; 
+  // SL_GUARD_TIME
+  ORDER_STATUS_SL_GUARD_TIME = 27; 
+  // SL_EXECUTED
+  ORDER_STATUS_SL_EXECUTED = 28; 
+  // SL_FORWARDING
+  ORDER_STATUS_SL_FORWARDING = 29; 
+  // TP_GUARD_TIME
+  ORDER_STATUS_TP_GUARD_TIME = 30; 
+  // TP_EXECUTED
+  ORDER_STATUS_TP_EXECUTED = 31; 
+  // TP_CORRECTION
+  ORDER_STATUS_TP_CORRECTION = 32; 
+  // TP_FORWARDING
+  ORDER_STATUS_TP_FORWARDING = 33; 
+  // TP_CORR_GUARD_TIME
+  ORDER_STATUS_TP_CORR_GUARD_TIME = 34; 
+
+}
+
+// Состояние заявки
+message OrderState {
+  // Идентификатор заявки
+  string order_id = 1;
+  // Идентификатор исполнения
+  string exec_id = 2;
+  // Статус заявки
+  OrderStatus status = 3;
+   // Заявка
+  Order order = 4;
+  // Дата и время выставления заявки
+  google.protobuf.Timestamp transact_at = 5;
+  // Дата и время принятия заявки
+  google.protobuf.Timestamp accept_at = 6;
+  // Дата и время  отмены заявки
+  google.protobuf.Timestamp withdraw_at = 7;
+}
+
+// Запрос получения списка активных торговых заявок
+message OrdersRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+}
+
+// Список активных торговых заявок
+message OrdersResponse {
+  // Заявки
+  repeated OrderState orders = 1;
+}
+
+// Запрос отмены торговой заявки
+message CancelOrderRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Идентификатор заявки
+  string order_id = 2;
+}

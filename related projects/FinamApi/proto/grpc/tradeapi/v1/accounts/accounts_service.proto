@@ -1,0 +1,164 @@
+syntax = "proto3";
+
+package grpc.tradeapi.v1.accounts;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "google/type/decimal.proto";
+import "google/type/interval.proto";
+import "google/type/money.proto";
+import "grpc/tradeapi/v1/side.proto";
+
+option csharp_namespace = "FinamApi.TradeApi.V1.Accounts";
+option go_package = "trade_api/v1/accounts/accounts_service";
+option java_multiple_files = true;
+
+// Сервис аккаунтов
+service AccountsService {
+  // Получение информации по конкретному аккаунту
+  // Пример HTTP запроса:
+  // GET /v1/accounts/A12345
+  // Authorization: <token>
+  rpc GetAccount(GetAccountRequest) returns (GetAccountResponse) {
+    option (google.api.http) = {
+      get: "/v1/accounts/{account_id}"
+    };
+  };
+
+  // Получение истории по сделкам аккаунта
+  // Пример HTTP запроса:
+  // GET /v1/accounts/A12345/trades?limit=50&interval.start_time=2023-01-01T00:00:00Z&interval.end_time=2023-01-31T23:59:59Z
+  // Authorization: <token>
+  //
+  // Параметры:
+  // - account_id - передается в URL пути
+  // - limit и interval - передаются как query-параметры
+  rpc Trades(TradesRequest) returns (TradesResponse) {
+    option (google.api.http) = {
+      get: "/v1/accounts/{account_id}/trades"
+    };
+  };
+
+  // Получение списка транзакций аккаунта
+  // Пример HTTP запроса:
+  // GET /v1/accounts/A12345/transactions?limit=50&interval.start_time=2023-01-01T00:00:00Z&interval.end_time=2023-01-31T23:59:59Z
+  // Authorization: <token>
+  //
+  // Параметры:
+  // - account_id - передается в URL пути
+  // - limit и interval - передаются как query-параметры
+  rpc Transactions(TransactionsRequest) returns (TransactionsResponse) {
+    option (google.api.http) = {
+      get: "/v1/accounts/{account_id}/transactions"
+    };
+  };
+}
+
+// Запрос получения информации по конкретному аккаунту
+message GetAccountRequest {
+  string account_id = 1; // Идентификатор аккаунта
+}
+
+// Информация о конкретном аккаунте
+message GetAccountResponse {
+  // Идентификатор аккаунта
+  string account_id = 1; 
+  // Тип аккаунта
+  string type = 2;
+  // Статус аккаунта
+  string status = 3;
+  // Доступные средства плюс стоимость открытых позиций
+  google.type.Decimal equity = 4;
+  // Нереализованная прибыль
+  google.type.Decimal unrealized_profit = 5;
+  // Позиции. Открытые, плюс теоретические (по неисполненным активным заявкам)
+  repeated Position positions = 6;
+  // Доступные средства
+  repeated google.type.Money cash = 7;
+}
+
+// Запрос получения истории по сделкам
+message TradesRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Лимит количества сделок
+  int32 limit = 2;
+  // Начало и окончание запрашиваемого периода, Unix epoch time
+  google.type.Interval interval = 3;
+}
+
+// История по сделкам
+message TradesResponse {
+  // Сделки по аккаунту
+  repeated AccountTrade trades = 1;
+}
+
+// Запрос получения списка транзакций
+message TransactionsRequest {
+  // Идентификатор аккаунта
+  string account_id = 1;
+  // Лимит количества транзакций
+  int32 limit = 2;
+  // Начало и окончание запрашиваемого периода, Unix epoch time
+  google.type.Interval interval = 3;
+}
+
+// Список транзакций
+message TransactionsResponse {
+  // Транзакции по аккаунту
+  repeated Transaction transactions = 1;
+}
+
+// Информация о позиции
+message Position {
+  // Символ инструмента
+  string symbol = 1;
+  // Количество в шт., значение со знаком определяющее (long-short)
+  google.type.Decimal quantity = 2;
+  // Средняя цена
+  google.type.Decimal average_price = 3;
+  // Текущая цена
+  google.type.Decimal current_price = 4;
+}
+
+// Информация о сделке
+message AccountTrade {
+  // Идентификатор сделки
+  string trade_id = 1;
+  // Символ инструмента
+  string symbol = 2;
+  // Цена исполнения
+  google.type.Decimal price = 3;
+  // Размер в шт.
+  google.type.Decimal size = 4;
+  // Сторона сделки (long или short)
+  grpc.tradeapi.v1.Side side = 5;
+  // Метка времени
+  google.protobuf.Timestamp timestamp = 6;
+}
+
+// Информация о транзакции
+message Transaction {
+  // Объект заполняется для торговых типов транзакций
+  message Trade {
+    // Количество в шт.
+    google.type.Decimal size = 1;
+    // Цена сделки за штуку. Цена исполнения/Размер премии по опциону. Это цена заключения, значение берется из сделки.
+    google.type.Decimal price = 2;
+    // НКД. Заполнено если в сделке есть НКД
+    google.type.Decimal accrued_interest = 3;
+  }
+
+  // Идентификатор транзакции
+  string id = 1;
+  // Тип транзакции из TransactionCategory
+  string category = 2;
+  // Метка времени
+  google.protobuf.Timestamp timestamp = 4;
+  // Символ инструмента
+  string symbol = 5;
+  // Изменение в деньгах
+  google.type.Money change = 6;
+  // Информация о сделке
+  Trade trade = 7;
+}
