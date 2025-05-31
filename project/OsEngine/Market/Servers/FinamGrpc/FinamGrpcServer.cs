@@ -8,6 +8,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.MoexAlgopack.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,7 +49,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         {
             try
             {
-                SendLogMessage("Start Finam Trade Connection", LogMessageType.System);
+                SendLogMessage("Start Finam gRPC Connection", LogMessageType.System);
 
                 _proxy = proxy;
                 _accessToken = ((ServerParameterPassword)ServerParameters[0]).Value;
@@ -56,7 +57,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                 if (string.IsNullOrEmpty(_accessToken))
                 {
-                    SendLogMessage("Connection terminated. You must specify the api token. You can get it on the T-Invest website",
+                    SendLogMessage("Finam gRPC connection terminated. You must specify the api token. You can get it on the Finam website [ https://tradeapi.finam.ru/docs/tokens ]",
                         LogMessageType.Error);
                     return;
                 }
@@ -76,8 +77,18 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            SendLogMessage("Connection to Finam gRPC closed. Data streams Closed Event", LogMessageType.System);
+
+            if (ServerStatus != ServerConnectStatus.Disconnect)
+            {
+                ServerStatus = ServerConnectStatus.Disconnect;
+                DisconnectEvent?.Invoke();
+            }
         }
+
+        public List<IServerParameter> ServerParameters { get; set; }
+        public event Action ConnectEvent;
+        public event Action DisconnectEvent;
 
         public ServerType ServerType => ServerType.FinamGrpc;
         public DateTime ServerTime { get; set; }
@@ -94,6 +105,38 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         //private RateGate _rateGateInstruments = new RateGate(200, TimeSpan.FromMinutes(1));
 
+        #endregion
+
+        #region 3 Securities
+        public void GetSecurities()
+        {
+            _rateGateInstruments.WaitToProceed();
+
+            if (_securities.Count > 0)
+            {
+                SendLogMessage("Securities loaded. Count: " + _securities.Count, LogMessageType.System);
+
+                SecurityEvent?.Invoke(_securities);
+            }
+        }
+
+        private List<Security> _securities = new List<Security>();
+
+        public event Action<List<Security>> SecurityEvent;
+
+        // TODO fix rategate value
+        private RateGate _rateGateInstruments = new RateGate(200, TimeSpan.FromMinutes(1));
+        #endregion
+
+        #region 4 Portfolios
+        public void GetPortfolios()
+        {
+            PortfolioEvent?.Invoke(_myPortfolios);
+        }
+
+        public event Action<List<Portfolio>> PortfolioEvent;
+
+        private List<Portfolio> _myPortfolios = new List<Portfolio>();
         #endregion
 
         #region 6 gRPC streams creation
@@ -129,9 +172,12 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                     _jwtToken = auth.Token;
                 }
-                catch (Exception ex)
+                catch (RpcException ex)
                 {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error while auth. Info: {message}", LogMessageType.Error);
+                    return;
+                    //SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
 
                 try
@@ -151,7 +197,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
-        private readonly string _gRPCHost = "ftrr01.finam.ru:443";
+        private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
         private Metadata _gRpcMetadata;
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
@@ -160,6 +206,50 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private AuthService.AuthServiceClient _authClient;
         #endregion
 
+        #region 9 Trade
+
+        public void GetAllActivOrders()
+        {
+            List<Order> orders = null;
+
+            for (int i = 0; orders != null && i < orders.Count; i++)
+            {
+                MyOrderEvent?.Invoke(orders[i]);
+            }
+        }
+
+        public event Action<Order> MyOrderEvent;
+        private RateGate _rateGateOrders = new RateGate(100, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
+        #endregion
+
+        #region 10 Helpers
+
+        private string GetGRPCErrorMessage(RpcException ex)
+        {
+            string message = string.Format("{0}: {1}", ex.Status.StatusCode, ex.Status.Detail);
+            //string trackingId = "";
+
+            //if (exception.Trailers == null)
+            //    return message;
+
+            //for (int i = 0; i < exception.Trailers.Count; i++)
+            //{
+            //    if (exception.Trailers[i].Key == "x-tracking-id")
+            //        trackingId = exception.Trailers[i].Value;
+
+            //    if (exception.Trailers[i].Key == "message")
+            //        message = exception.Trailers[i].Value;
+            //}
+
+            //if (trackingId.Length > 0)
+            //{
+            //    message = "Tracking id: " + trackingId + "; Message: " + message;
+            //}
+
+
+            return message;
+        }
+        #endregion
 
         #region 11 Log
 
@@ -172,16 +262,11 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         #endregion
 
-        public List<IServerParameter> ServerParameters { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public event Action ConnectEvent;
-        public event Action DisconnectEvent;
-        public event Action<List<Security>> SecurityEvent;
-        public event Action<List<Portfolio>> PortfolioEvent;
         public event Action<News> NewsEvent;
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<Trade> NewTradesEvent;
-        public event Action<Order> MyOrderEvent;
+
         public event Action<MyTrade> MyTradeEvent;
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
@@ -205,13 +290,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
             throw new NotImplementedException();
         }
 
-
-
-        public void GetAllActivOrders()
-        {
-            throw new NotImplementedException();
-        }
-
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             throw new NotImplementedException();
@@ -223,16 +301,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
 
         public void GetOrderStatus(Order order)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void GetPortfolios()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void GetSecurities()
         {
             throw new NotImplementedException();
         }
