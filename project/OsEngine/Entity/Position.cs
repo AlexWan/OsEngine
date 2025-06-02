@@ -726,6 +726,11 @@ namespace OsEngine.Entity
                 {
                     Order curOrdOpen = _openOrders[i];
 
+                    if(curOrdOpen == null)
+                    {
+                        continue;
+                    }
+
                     if (curOrdOpen.NumberMarket == trade.NumberOrderParent
                         && curOrdOpen.SecurityNameCode == trade.SecurityNameCode)
                     {
@@ -752,6 +757,11 @@ namespace OsEngine.Entity
                 for (int i = 0; i < _closeOrders.Count; i++)
                 {
                     Order curOrdClose = _closeOrders[i];
+
+                    if(curOrdClose == null)
+                    {
+                        continue;
+                    }
 
                     if (curOrdClose.NumberMarket == trade.NumberOrderParent
                         && curOrdClose.SecurityNameCode == trade.SecurityNameCode)
