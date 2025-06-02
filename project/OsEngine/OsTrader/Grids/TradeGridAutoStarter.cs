@@ -6,7 +6,9 @@
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.OsTrader.Panels.Tab;
 using System;
+using System.Collections.Generic;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -52,6 +54,54 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        public bool HaveEventToStart(TradeGrid grid, BotTabSimple tab)
+        {
+            if(AutoStartRegime == TradeGridAutoStartRegime.Off)
+            {
+                return false;
+            }
+
+            List<Candle> candles = tab.CandlesAll;
+
+            if(candles == null 
+                || candles.Count == 0)
+            {
+                return false;
+            }
+
+            decimal price = candles[candles.Count - 1].Close;
+
+            if(price == 0)
+            {
+                return false;
+            }
+
+            if(AutoStartRegime == TradeGridAutoStartRegime.HigherOrEqual
+                && price >= AutoStartPrice)
+            {
+                string message = "Auto-start grid. \n";
+                message += "Auto-starter regime: " + AutoStartRegime.ToString() + "\n";
+                message += "Auto-starter price: " + AutoStartPrice + "\n";
+                message += "Market price: " + price;
+
+                SendNewLogMessage(message, LogMessageType.Signal);
+                return true;
+            }
+            else if(AutoStartRegime == TradeGridAutoStartRegime.LowerOrEqual
+                && price <= AutoStartPrice)
+            {
+                string message = "Auto-start grid. \n";
+                message += "Auto-starter regime: " + AutoStartRegime.ToString() + "\n";
+                message += "Auto-starter price: " + AutoStartPrice + "\n";
+                message += "Market price: " + price;
+                SendNewLogMessage(message, LogMessageType.Signal);
+
+                return true;
+            }
+
+            return false;
+        }
+
         #region Log
 
         public void SendNewLogMessage(string message, LogMessageType type)
@@ -70,5 +120,12 @@ namespace OsEngine.OsTrader.Grids
 
         #endregion
 
+    }
+
+    public enum TradeGridAutoStartRegime
+    {
+        Off,
+        HigherOrEqual,
+        LowerOrEqual
     }
 }

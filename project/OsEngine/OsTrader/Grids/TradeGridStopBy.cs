@@ -3,10 +3,13 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using Jayrock.Json.Conversion.Converters;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.OsTrader.Panels.Tab;
 using System;
+using System.Collections.Generic;
 
 
 namespace OsEngine.OsTrader.Grids
@@ -15,21 +18,21 @@ namespace OsEngine.OsTrader.Grids
     {
         public bool StopGridByMoveUpIsOn;
 
-        public decimal StopGridByMoveUpValuePercent;
+        public decimal StopGridByMoveUpValuePercent = 2.5m;
 
         public TradeGridRegime StopGridByMoveUpReaction = TradeGridRegime.CloseForced;
 
         public bool StopGridByMoveDownIsOn;
 
-        public decimal StopGridByMoveDownValuePercent;
+        public decimal StopGridByMoveDownValuePercent = 2.5m;
 
         public TradeGridRegime StopGridByMoveDownReaction = TradeGridRegime.CloseForced;
 
         public bool StopGridByPositionsCountIsOn;
 
-        public int StopGridByPositionsCountValue;
+        public int StopGridByPositionsCountValue = 200;
 
-        public TradeGridRegime StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
+        public TradeGridRegime StopGridByPositionsCountReaction = TradeGridRegime.CloseOnly;
 
         public void TryStopGridByEvent()
         {
@@ -116,7 +119,6 @@ namespace OsEngine.OsTrader.Grids
             }*/
         }
 
-
         public string GetSaveString()
         {
             string result = "";
@@ -166,6 +168,87 @@ namespace OsEngine.OsTrader.Grids
             {
                 SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
+        }
+
+        public TradeGridRegime GetRegime(TradeGrid grid, BotTabSimple tab)
+        {
+            if(StopGridByMoveUpIsOn == false
+                &&  StopGridByMoveDownIsOn == false
+                && StopGridByPositionsCountIsOn == false)
+            {
+                return TradeGridRegime.On;
+            }
+
+            if (StopGridByPositionsCountIsOn == true)
+            {
+                int openPositionsCount = grid.GridCreator.OpenPositionsCount;
+
+                if(openPositionsCount >= StopGridByPositionsCountValue)
+                {
+                    string message = "Auto-stop grid by positions count. \n";
+                    message += "Open positions in grid: " + openPositionsCount + "\n";
+                    message += "Max open positions: " + StopGridByPositionsCountValue + "\n";
+                    message += "New regime: " + StopGridByPositionsCountReaction;
+                    SendNewLogMessage(message, LogMessageType.Signal);
+
+                    return StopGridByPositionsCountReaction;
+                }
+            }
+
+            if (StopGridByMoveUpIsOn == true 
+                || StopGridByMoveDownIsOn == true)
+            {
+                List<Candle> candles = tab.CandlesAll;
+
+                if(candles.Count == 0)
+                {
+                    return TradeGridRegime.On;
+                }
+
+                decimal lastSecurityPrice = candles[candles.Count - 1].Close;
+
+                decimal firstGridPrice = grid.GridCreator.FirstPriceReal;
+
+                if(lastSecurityPrice != 0 
+                    && firstGridPrice != 0)
+                {
+                    if (StopGridByMoveUpIsOn)
+                    {
+                        decimal upLimit = firstGridPrice + firstGridPrice * (StopGridByMoveUpValuePercent / 100);
+
+                        if(lastSecurityPrice >= upLimit)
+                        {
+                            string message = "Auto-stop grid by move Up. \n";
+                            message += "First real price in grid: " + firstGridPrice + "\n";
+                            message += "Up limit in %: " + StopGridByMoveUpValuePercent + "\n";
+                            message += "Price limit: " + upLimit + "\n";
+                            message += "New regime: " + StopGridByMoveUpReaction;
+                            SendNewLogMessage(message, LogMessageType.Signal);
+
+                            return StopGridByMoveUpReaction;
+                        }
+                    }
+
+                    if (StopGridByMoveDownIsOn)
+                    {
+                        decimal downLimit = firstGridPrice - firstGridPrice * (StopGridByMoveDownValuePercent / 100);
+
+                        if (lastSecurityPrice >= downLimit)
+                        {
+                            string message = "Auto-stop grid by move Down. \n";
+                            message += "First real price in grid: " + firstGridPrice + "\n";
+                            message += "Down limit in %: " + StopGridByMoveDownValuePercent + "\n";
+                            message += "Price limit: " + downLimit + "\n";
+                            message += "New regime: " + StopGridByMoveDownReaction;
+                            SendNewLogMessage(message, LogMessageType.Signal);
+
+                            return StopGridByMoveDownReaction;
+                        }
+                    }
+                }
+            }
+             
+            return TradeGridRegime.On;
         }
 
 

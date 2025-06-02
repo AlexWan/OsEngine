@@ -57,14 +57,14 @@ namespace OsEngine.OsTrader.Grids
         public TimeOfDay NonTradePeriod5End;
         public TradeGridRegime NonTradePeriod5Regime;
 
-        public bool IsBlockNonTradePeriods(DateTime curTime)
+        public TradeGridRegime GetNonTradePeriodsRegime(DateTime curTime)
         {
             if (NonTradePeriod1OnOff == true)
             {
                 if (NonTradePeriod1Start < curTime
                  && NonTradePeriod1End > curTime)
                 {
-                    return true;
+                    return NonTradePeriod1Regime;
                 }
 
                 if (NonTradePeriod1Start > NonTradePeriod1End)
@@ -72,7 +72,7 @@ namespace OsEngine.OsTrader.Grids
                     if (NonTradePeriod1Start > curTime
                         || NonTradePeriod1End < curTime)
                     {
-                        return true;
+                        return NonTradePeriod1Regime;
                     }
                 }
             }
@@ -82,7 +82,7 @@ namespace OsEngine.OsTrader.Grids
                 if (NonTradePeriod2Start < curTime
                  && NonTradePeriod2End > curTime)
                 {
-                    return true;
+                    return NonTradePeriod2Regime;
                 }
 
                 if (NonTradePeriod2Start > NonTradePeriod2End)
@@ -90,7 +90,7 @@ namespace OsEngine.OsTrader.Grids
                     if (NonTradePeriod2Start > curTime
                         || NonTradePeriod2End < curTime)
                     {
-                        return true;
+                        return NonTradePeriod2Regime;
                     }
                 }
             }
@@ -100,7 +100,7 @@ namespace OsEngine.OsTrader.Grids
                 if (NonTradePeriod3Start < curTime
                  && NonTradePeriod3End > curTime)
                 {
-                    return true;
+                    return NonTradePeriod3Regime;
                 }
 
                 if (NonTradePeriod3Start > NonTradePeriod3End)
@@ -108,7 +108,7 @@ namespace OsEngine.OsTrader.Grids
                     if (NonTradePeriod3Start > curTime
                         || NonTradePeriod3End < curTime)
                     {
-                        return true;
+                        return NonTradePeriod3Regime;
                     }
                 }
             }
@@ -118,7 +118,7 @@ namespace OsEngine.OsTrader.Grids
                 if (NonTradePeriod4Start < curTime
                  && NonTradePeriod4End > curTime)
                 {
-                    return true;
+                    return NonTradePeriod4Regime;
                 }
 
                 if (NonTradePeriod4Start > NonTradePeriod4End)
@@ -126,7 +126,7 @@ namespace OsEngine.OsTrader.Grids
                     if (NonTradePeriod4Start > curTime
                         || NonTradePeriod4End < curTime)
                     {
-                        return true;
+                        return NonTradePeriod4Regime;
                     }
                 }
             }
@@ -136,7 +136,7 @@ namespace OsEngine.OsTrader.Grids
                 if (NonTradePeriod5Start < curTime
                  && NonTradePeriod5End > curTime)
                 {
-                    return true;
+                    return NonTradePeriod5Regime;
                 }
 
                 if (NonTradePeriod5Start > NonTradePeriod5End)
@@ -144,12 +144,12 @@ namespace OsEngine.OsTrader.Grids
                     if (NonTradePeriod5Start > curTime
                         || NonTradePeriod5End < curTime)
                     {
-                        return true;
+                        return NonTradePeriod5Regime;
                     }
                 }
             }
 
-            return false;
+            return TradeGridRegime.On;
         }
 
         public string GetSaveString()

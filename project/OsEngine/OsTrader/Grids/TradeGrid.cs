@@ -10,12 +10,12 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 
 // Разные базовые сути сеток:
 // 1) По каждому открытию отдельный выход. Как маркет-мейкинг инструмента в одну сторону.     // MarketMaking
 // 2) Как способ открытия позиции. Возможен выход по всей сетке через общий профит и стоп.    // OpenPosition
-// 3) Как способ закрытия позиции                                                             // ClosePosition
 
 // Какие бывают общие настройки у сеток
 // Объём: Мартингейл / Равномерно
@@ -44,7 +44,7 @@ namespace OsEngine.OsTrader.Grids
         public TradeGrid(StartProgram startProgram, BotTabSimple tab)
         {
             Tab = tab;
-
+            Tab.NewTickEvent += Tab_NewTickEvent;
             StartProgram = startProgram;
 
             NonTradePeriods = new TradeGridNonTradePeriods();
@@ -67,6 +67,12 @@ namespace OsEngine.OsTrader.Grids
 
             GridCreator = new TradeGridCreator();
             GridCreator.LogMessageEvent += SendNewLogMessage;
+
+            if(StartProgram == StartProgram.IsOsTrader)
+            {
+                Thread worker = new Thread(ThreadWorkerPlace);
+                worker.Start();
+            }
         }
 
         public StartProgram StartProgram;
@@ -100,7 +106,6 @@ namespace OsEngine.OsTrader.Grids
             result += Regime + "@";
             result += ClosePositionNumber + "@";
             result += RegimeLogicEntry + "@";
-            result += RegimeLogging + "@";
             result += AutoClearJournalIsOn + "@";
             result += MaxClosePositionsInJournal + "@";
             result += MaxOpenOrdersInMarket + "@";
@@ -154,11 +159,10 @@ namespace OsEngine.OsTrader.Grids
                 Enum.TryParse(values[2], out Regime);
                 ClosePositionNumber = Convert.ToInt32(values[3]);
                 Enum.TryParse(values[4], out RegimeLogicEntry);
-                Enum.TryParse(values[5], out RegimeLogging);
-                AutoClearJournalIsOn = Convert.ToBoolean(values[6]);
-                MaxClosePositionsInJournal = Convert.ToInt32(values[7]);
-                MaxOpenOrdersInMarket = Convert.ToInt32(values[8]);
-                MaxCloseOrdersInMarket = Convert.ToInt32(values[9]);
+                AutoClearJournalIsOn = Convert.ToBoolean(values[5]);
+                MaxClosePositionsInJournal = Convert.ToInt32(values[6]);
+                MaxOpenOrdersInMarket = Convert.ToInt32(values[7]);
+                MaxCloseOrdersInMarket = Convert.ToInt32(values[8]);
 
                 // non trade periods
                 NonTradePeriods.LoadFromString(array[1]);
@@ -257,8 +261,6 @@ namespace OsEngine.OsTrader.Grids
         public int ClosePositionNumber;
 
         public TradeGridLogicEntryRegime RegimeLogicEntry;
-
-        public TradeGridLoggingRegime RegimeLogging;
 
         public bool AutoClearJournalIsOn;
 
@@ -434,11 +436,122 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        #region Trade logic
+        #region Trade logic. Entry in logic
+
+        private void Tab_NewTickEvent(Trade trade)
+        {
+            if(RegimeLogicEntry == TradeGridLogicEntryRegime.OnTrade)
+            {
+                Process();
+            }
+        }
+
+        private void ThreadWorkerPlace()
+        {
+            while(true)
+            {
+                try
+                {
+                    Thread.Sleep(1000);
+
+                    if(RegimeLogicEntry == TradeGridLogicEntryRegime.OncePerSecond)
+                    {
+                        Process();
+                    }
+                }
+                catch(Exception e)
+                {
+                    SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                }
+            }
+        }
+
+        #endregion
+
+        #region Trade logic. Main logic tree
+
+        private void Process()
+        {
+            TradeGridRegime baseRegime = Regime;
+
+            // 1 Авто-старт сетки, если выключено
+            if (baseRegime == TradeGridRegime.Off)
+            {
+                if(AutoStarter.AutoStartRegime == TradeGridAutoStartRegime.Off)
+                {
+                    return;
+                }
+
+                DateTime serverTime = Tab.TimeServerCurrent;
+
+                TradeGridRegime tradeDaysRegime = NonTradeDays.GetNonTradeDaysRegime(serverTime);
+                TradeGridRegime nonTradePeriodsRegime = NonTradePeriods.GetNonTradePeriodsRegime(serverTime);
+
+                if(tradeDaysRegime != TradeGridRegime.On 
+                    || nonTradePeriodsRegime != TradeGridRegime.On)
+                { // авто-старт не может быть включен, если сейчас не торговый период
+                    return;
+                }
+
+                if (AutoStarter.HaveEventToStart(this,Tab))
+                {
+                    baseRegime = TradeGridRegime.On;
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            // 2 попытка смены режима если блокировано по времени или по дням
+
+            if(baseRegime == TradeGridRegime.On)
+            {
+                DateTime serverTime = Tab.TimeServerCurrent;
+
+                TradeGridRegime tradeDaysRegime = NonTradeDays.GetNonTradeDaysRegime(serverTime);
+                TradeGridRegime nonTradePeriodsRegime = NonTradePeriods.GetNonTradePeriodsRegime(serverTime);
+
+                if(nonTradePeriodsRegime != TradeGridRegime.On)
+                {
+                    baseRegime = nonTradePeriodsRegime;
+                }
+                if(tradeDaysRegime != TradeGridRegime.On)
+                {
+                    baseRegime = tradeDaysRegime;
+                }
+            }
+
+            // 3 попытка смены режима по остановке торгов
+
+            if (baseRegime == TradeGridRegime.On)
+            {
+                TradeGridRegime stopByRegime = StopBy.GetRegime(this, Tab);
+
+                if(stopByRegime != TradeGridRegime.On)
+                {
+                    baseRegime = stopByRegime;
+                    Regime = stopByRegime;
+                }
+            }
 
 
+            if(baseRegime == TradeGridRegime.CloseOnly)
+            {
+                // закрываем позиции штатно
+            }
+            else if(baseRegime == TradeGridRegime.CloseForced)
+            {
+                // закрываем позиции насильно
+            }
+            else if(baseRegime == TradeGridRegime.On)
+            {
+                // 1 проверяем выставлены ли ордера на открытие
+                // 2 проверяем выставлены ли закрытия
 
 
+            }
+        }
 
         #endregion
 
@@ -464,8 +577,7 @@ namespace OsEngine.OsTrader.Grids
     public enum TradeGridPrimeType
     {
         MarketMaking,
-        OpenPosition,
-        ClosePosition,
+        OpenPosition
     }
 
     public enum TradeGridCloseType
@@ -491,12 +603,6 @@ namespace OsEngine.OsTrader.Grids
         OncePerSecond
     }
 
-    public enum TradeGridLoggingRegime
-    {
-        Standard,
-        Debug
-    }
-
     public enum OnOffRegime
     {
         On,
@@ -516,10 +622,5 @@ namespace OsEngine.OsTrader.Grids
         DepositPercent
     }
 
-    public enum TradeGridAutoStartRegime
-    {
-        Off,
-        HigherOrEqual,
-        LowerOrEqual
-    }
+
 }

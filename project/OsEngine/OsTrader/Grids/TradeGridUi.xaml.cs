@@ -42,7 +42,6 @@ namespace OsEngine.OsTrader.Grids
 
             ComboBoxGridType.Items.Add(TradeGridPrimeType.MarketMaking.ToString());
             ComboBoxGridType.Items.Add(TradeGridPrimeType.OpenPosition.ToString());
-            ComboBoxGridType.Items.Add(TradeGridPrimeType.ClosePosition.ToString());
             ComboBoxGridType.SelectedItem = tradeGrid.GridType.ToString();
             ComboBoxGridType.SelectionChanged += ComboBoxGridType_SelectionChanged;
 
@@ -67,11 +66,6 @@ namespace OsEngine.OsTrader.Grids
             }
             ComboBoxRegimeLogicEntry.SelectionChanged += ComboBoxRegimeLogicEntry_SelectionChanged;
 
-            ComboBoxRegimeLogging.Items.Add(TradeGridLoggingRegime.Standard.ToString());
-            ComboBoxRegimeLogging.Items.Add(TradeGridLoggingRegime.Debug.ToString());
-            ComboBoxRegimeLogging.SelectedItem = tradeGrid.RegimeLogging.ToString();
-            ComboBoxRegimeLogging.SelectionChanged += ComboBoxRegimeLogging_SelectionChanged;
-
             ComboBoxAutoClearJournal.Items.Add("True");
             ComboBoxAutoClearJournal.Items.Add("False");
             ComboBoxAutoClearJournal.SelectedItem = tradeGrid.AutoClearJournalIsOn.ToString();
@@ -82,7 +76,6 @@ namespace OsEngine.OsTrader.Grids
                 ComboBoxAutoClearJournal.SelectedItem = "False";
                 ComboBoxAutoClearJournal.IsEnabled = false;
             }
-
 
             ComboBoxAutoClearJournal.SelectionChanged += ComboBoxAutoClearJournal_SelectionChanged;
 
@@ -320,7 +313,6 @@ namespace OsEngine.OsTrader.Grids
             ButtonSelectPositionToClose.Content = OsLocalization.Trader.Label447;
             LabelRegime.Content = OsLocalization.Trader.Label448;
             LabelRegimeLogicEntry.Content = OsLocalization.Trader.Label449;
-            LabelRegimeLogging.Content = OsLocalization.Trader.Label450;
             LabelAutoClearJournal.Content = OsLocalization.Trader.Label451;
             LabelMaxClosePositionsInJournal.Content = OsLocalization.Trader.Label452;
             ButtonLoad.Content = OsLocalization.Trader.Label453;
@@ -420,7 +412,6 @@ namespace OsEngine.OsTrader.Grids
                 TextBoxClosePositionNumber.TextChanged -= TextBoxClosePositionNumber_TextChanged;
                 ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
                 ComboBoxRegimeLogicEntry.SelectionChanged -= ComboBoxRegimeLogicEntry_SelectionChanged;
-                ComboBoxRegimeLogging.SelectionChanged -= ComboBoxRegimeLogging_SelectionChanged;
                 ComboBoxAutoClearJournal.SelectionChanged -= ComboBoxAutoClearJournal_SelectionChanged;
                 TextBoxMaxClosePositionsInJournal.TextChanged -= TextBoxMaxClosePositionsInJournal_TextChanged;
                 TextBoxMaxOpenOrdersInMarket.TextChanged -= TextBoxMaxOrdersInMarket_TextChanged;
@@ -1658,19 +1649,6 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 TradeGrid.AutoClearJournalIsOn = Convert.ToBoolean(ComboBoxAutoClearJournal.SelectedItem.ToString());
-                TradeGrid.Save();
-            }
-            catch (Exception ex)
-            {
-                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void ComboBoxRegimeLogging_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                Enum.TryParse(ComboBoxRegimeLogging.SelectedItem.ToString(), out TradeGrid.RegimeLogging);
                 TradeGrid.Save();
             }
             catch (Exception ex)

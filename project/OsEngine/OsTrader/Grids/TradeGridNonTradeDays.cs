@@ -23,51 +23,51 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridRegime NonTradeDaysRegime;
 
-        public bool IsBlockNonTradePeriods(DateTime curTime)
+        public TradeGridRegime GetNonTradeDaysRegime(DateTime curTime)
         {
             if (TradeInMonday == false
                 && curTime.DayOfWeek == DayOfWeek.Monday)
             {
-                return true;
+                return NonTradeDaysRegime;
             }
 
             if (TradeInTuesday == false
                 && curTime.DayOfWeek == DayOfWeek.Tuesday)
             {
-                return true;
+                return NonTradeDaysRegime;
             }
 
             if (TradeInWednesday == false
                 && curTime.DayOfWeek == DayOfWeek.Wednesday)
             {
-                return true;
+                return NonTradeDaysRegime;
             }
 
             if (TradeInThursday == false
                 && curTime.DayOfWeek == DayOfWeek.Thursday)
             {
-                return true;
+                return NonTradeDaysRegime;
             }
 
             if (TradeInFriday == false
                 && curTime.DayOfWeek == DayOfWeek.Friday)
             {
-                return true;
+                return NonTradeDaysRegime;
             }
 
             if (TradeInSaturday == false
                 && curTime.DayOfWeek == DayOfWeek.Saturday)
             {
-                return true;
+                return NonTradeDaysRegime;
             }
 
             if (TradeInSunday == false
                 && curTime.DayOfWeek == DayOfWeek.Sunday)
             {
-                return true;
+                return NonTradeDaysRegime;
             }
 
-            return false;
+            return TradeGridRegime.On;
         }
 
         public string GetSaveString()

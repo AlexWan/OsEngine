@@ -333,6 +333,23 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        public decimal FirstPriceReal
+        {
+            get
+            {
+                return FirstPrice;
+            }
+
+        }
+
+        public int OpenPositionsCount
+        {
+            get
+            {
+                return 0;
+            }
+        }
+
         #region Log
 
         public void SendNewLogMessage(string message, LogMessageType type)
