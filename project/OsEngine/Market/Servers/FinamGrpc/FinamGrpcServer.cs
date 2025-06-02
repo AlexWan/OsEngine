@@ -4,6 +4,7 @@ using FinamApi.TradeApi.V1.Assets;
 using FinamApi.TradeApi.V1.Auth;
 using FinamApi.TradeApi.V1.MarketData;
 using FinamApi.TradeApi.V1.Orders;
+using Google.Protobuf.Collections;
 using Grpc.Core;
 using Grpc.Net.Client;
 using OsEngine.Entity;
@@ -105,12 +106,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         private string _accessToken;
         private string _accountId;
-        //private string _jwtToken;
 
         //private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
-
-        //private RateGate _rateGateInstruments = new RateGate(200, TimeSpan.FromMinutes(1));
-
         #endregion
 
         #region 3 Securities
@@ -158,7 +155,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     Asset item = assetsResponse.Assets[i];
 
                     Security newSecurity = new Security();
-                    newSecurity.Name = item.Name; // item.Ticker;
+                    newSecurity.Name = string.IsNullOrEmpty(item.Name) ? item.Symbol : item.Name; // item.Ticker;
                     newSecurity.NameId = item.Symbol;
                     newSecurity.NameFull = item.Symbol;
                     newSecurity.Exchange = item.Mic;
@@ -250,9 +247,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
             {
                 myPortfolio = new Portfolio();
                 myPortfolio.Number = getAccountResponse.AccountId;
-                myPortfolio.ValueCurrent = Convert.ToDecimal(getAccountResponse.Equity?.Value);
+                myPortfolio.ValueCurrent = getAccountResponse.Equity.Value.ToDecimal();
                 myPortfolio.ValueBegin = myPortfolio.ValueCurrent;
-                myPortfolio.UnrealizedPnl = Convert.ToDecimal(getAccountResponse.UnrealizedProfit.Value);
+                myPortfolio.UnrealizedPnl = getAccountResponse.UnrealizedProfit.Value.ToDecimal();
                 _myPortfolios.Add(myPortfolio);
             }
 
@@ -277,9 +274,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                 newPos.PortfolioName = myPortfolio.Number;
                 newPos.SecurityNameCode = pos.Symbol;
-                newPos.ValueCurrent = Convert.ToDecimal(pos.Quantity.Value) * Convert.ToDecimal(pos.CurrentPrice.Value);
+                newPos.ValueCurrent = pos.Quantity.Value.ToDecimal() * pos.CurrentPrice.Value.ToDecimal();
                 //newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
-                newPos.ValueBegin = Convert.ToDecimal(pos.Quantity.Value) * Convert.ToDecimal(pos.AveragePrice.Value);
+                newPos.ValueBegin = pos.Quantity.Value.ToDecimal() * pos.AveragePrice.Value.ToDecimal();
 
                 myPortfolio.SetNewPosition(newPos);
             }
@@ -327,8 +324,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
             catch (RpcException ex)
             {
-                string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"Error while auth. Info: {message}", LogMessageType.Error);
+                string msg = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error while auth. Info: {msg}", LogMessageType.Error);
                 return;
             }
             catch (Exception ex)
@@ -341,17 +338,77 @@ namespace OsEngine.Market.Servers.FinamGrpc
             ConnectEvent?.Invoke();
         }
 
+        private void ReconnectGRPCStreams()
+        {
+            SendLogMessage("Connecting GRPC streams", LogMessageType.Connect);
+
+            SubscribeQuoteRequest quoteRequest = new SubscribeQuoteRequest();
+            for (int i = 0; i < _subscribedSecurities.Count; i++)
+            {
+                quoteRequest.Symbols.Add(_subscribedSecurities[i].NameId);
+
+                _rateGateSubscribeOrderBook.WaitToProceed();
+                _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = _subscribedSecurities[i].NameId }, _gRpcMetadata);
+                _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = _subscribedSecurities[i].NameId }, _gRpcMetadata);
+            }
+            //_rateGateSubscribeSubscribeQuote.WaitToProceed(); // Ограничение не сработает никогда
+            _marketDataClient.SubscribeQuote(quoteRequest, _gRpcMetadata);
+
+            _lastMarketDataTime = DateTime.UtcNow;
+        }
+
         private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
         private Metadata _gRpcMetadata;
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
         private WebProxy _proxy;
 
+        //private SubscribeQuote<MarketDataRequest, MarketDataResponse> _marketDataStream;
+        private DateTime _lastMarketDataTime = DateTime.MinValue;
+
         private AuthService.AuthServiceClient _authClient;
         private AssetsService.AssetsServiceClient _assetsClient;
         private AccountsService.AccountsServiceClient _accountsClient;
         private OrdersService.OrdersServiceClient _ordersClient;
         private MarketDataService.MarketDataServiceClient _marketDataClient;
+        #endregion
+
+        #region 7 Security subscribe
+        public void Subscrible(Security security)
+        {
+            if (security == null)
+            {
+                return;
+            }
+
+            try
+            {
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    if (_subscribedSecurities[i].Name == security.Name)
+                    {
+                        return;
+                    }
+                }
+
+                _subscribedSecurities.Add(security);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
+        public event Action<News> NewsEvent;
+
+        private RateGate _rateGateSubscribeOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateSubscribeLatestTrades = new RateGate(60, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateSubscribeSubscribeQuote = new RateGate(60, TimeSpan.FromMinutes(1));
+        List<Security> _subscribedSecurities = new List<Security>();
         #endregion
 
         #region 9 Trade
@@ -404,7 +461,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         #endregion
 
 
-        public event Action<News> NewsEvent;
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<Trade> NewTradesEvent;
 
@@ -452,16 +508,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
 
         public void SendOrder(Order order)
-        {
-            throw new NotImplementedException();
-        }
-
-        public bool SubscribeNews()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Subscrible(Security security)
         {
             throw new NotImplementedException();
         }
