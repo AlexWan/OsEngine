@@ -96,6 +96,7 @@
     <Reference Update="System.Runtime.Serialization">
       <Private>True</Private>
     </Reference>
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />

@@ -8,6 +8,7 @@
     ".NETCoreApp,Version=v9.0": {
       "OsEngine/1.0.0": {
         "dependencies": {
+          "Google.Api.CommonProtos": "2.16.0",
           "Google.Protobuf": "3.31.0",
           "Grpc.Net.Client": "2.71.0",
           "Microsoft.CSharp": "4.7.0",
@@ -42,6 +43,17 @@
         },
         "runtime": {
           "OsEngine.dll": {}
+        }
+      },
+      "Google.Api.CommonProtos/2.16.0": {
+        "dependencies": {
+          "Google.Protobuf": "3.31.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Google.Api.CommonProtos.dll": {
+            "assemblyVersion": "2.16.0.0",
+            "fileVersion": "2.16.0.0"
+          }
         }
       },
       "Google.Protobuf/3.31.0": {
@@ -641,6 +653,13 @@
       "type": "project",
       "serviceable": false,
       "sha512": ""
+    },
+    "Google.Api.CommonProtos/2.16.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-37MuZrE9AAqHAdYgFLoTHydAiXDRriQZGVKEg6fr6ASnrY5GtauYXnQrGk5x2K3NmYzEXe+wkpaPVmxjb3NKjg==",
+      "path": "google.api.commonprotos/2.16.0",
+      "hashPath": "google.api.commonprotos.2.16.0.nupkg.sha512"
     },
     "Google.Protobuf/3.31.0": {
       "type": "package",

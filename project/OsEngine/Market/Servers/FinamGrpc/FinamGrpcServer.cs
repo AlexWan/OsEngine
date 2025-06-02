@@ -2,13 +2,14 @@
 using FinamApi.TradeApi.V1.Accounts;
 using FinamApi.TradeApi.V1.Assets;
 using FinamApi.TradeApi.V1.Auth;
+using FinamApi.TradeApi.V1.MarketData;
+using FinamApi.TradeApi.V1.Orders;
 using Grpc.Core;
 using Grpc.Net.Client;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
-using OsEngine.Market.Servers.MoexAlgopack.Entity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,11 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Candle = OsEngine.Entity.Candle;
+using Order = OsEngine.Entity.Order;
+using Portfolio = OsEngine.Entity.Portfolio;
+using Security = OsEngine.Entity.Security;
+using Trade = OsEngine.Entity.Trade;
 
 namespace OsEngine.Market.Servers.FinamGrpc
 {
@@ -99,7 +105,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         private string _accessToken;
         private string _accountId;
-        private string _jwtToken;
+        //private string _jwtToken;
 
         //private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
 
@@ -110,7 +116,24 @@ namespace OsEngine.Market.Servers.FinamGrpc
         #region 3 Securities
         public void GetSecurities()
         {
-            _rateGateInstruments.WaitToProceed();
+            _rateGateAssetsAsset.WaitToProceed();
+
+            AssetsResponse assetsResponse = null;
+            try
+            {
+                assetsResponse = _assetsClient.Assets(new AssetsRequest(), headers: _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string msg = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error loading securities. Info: {msg}", LogMessageType.Error);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
+            }
+
+            UpdateSecuritiesFromServer(assetsResponse);
 
             if (_securities.Count > 0)
             {
@@ -120,19 +143,150 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
+        private void UpdateSecuritiesFromServer(AssetsResponse assetsResponse)
+        {
+            if (assetsResponse == null ||
+                assetsResponse.Assets.Count == 0)
+            {
+                return;
+            }
+
+            try
+            {
+                for (int i = 0; i < assetsResponse.Assets.Count; i++)
+                {
+                    Asset item = assetsResponse.Assets[i];
+
+                    Security newSecurity = new Security();
+                    newSecurity.Name = item.Name; // item.Ticker;
+                    newSecurity.NameId = item.Symbol;
+                    newSecurity.NameFull = item.Symbol;
+                    newSecurity.Exchange = item.Mic;
+                    newSecurity.NameClass = item.Type;
+                    newSecurity.SecurityType = item.Type.ToLower() switch
+                    {
+                        "funds" => SecurityType.Fund,
+                        "equities" => SecurityType.Stock,
+                        "futures" => SecurityType.Futures,
+                        "bonds" => SecurityType.Bond,
+                        "spreads" => SecurityType.Futures, // TODO may be other type
+                        "currencies" => SecurityType.CurrencyPair,
+                        "indices" => SecurityType.Index,
+                        //"swaps" => SecurityType.None,
+                        //"other" => SecurityType.None,
+                        _ => SecurityType.None,
+                    };
+                    newSecurity.PriceStep = 1; // Нет данных
+                    newSecurity.PriceStepCost = newSecurity.PriceStep;
+                    newSecurity.VolumeStep = 1;
+                    newSecurity.MinTradeAmount = 1;
+                    newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+
+                    // Не получаем доп инфо по тикеру (лимит 60 запросов в минуту)
+                    //GetAssetParamsResponse assetParamsResponse = null;
+                    //try
+                    //{
+                    //    assetParamsResponse = _assetsClient.GetAssetParams(
+                    //        new GetAssetParamsRequest { AccountId = _accountId, Symbol = item.Symbol },
+                    //        headers: _gRpcMetadata);
+                    //}
+                    //catch (RpcException ex)
+                    //{
+                    //    string message = GetGRPCErrorMessage(ex);
+                    //    SendLogMessage($"Error loading securities. Info: {message}", LogMessageType.Error);
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
+                    //}
+                    //newSecurity.State = ...
+
+                    newSecurity.State = SecurityStateType.Activ;
+                    _securities.Add(newSecurity);
+                }
+
+            }
+            catch (Exception e)
+            {
+                SendLogMessage($"Error loading currency pairs: {e.Message}", LogMessageType.Error);
+            }
+        }
+
         private List<Security> _securities = new List<Security>();
 
         public event Action<List<Security>> SecurityEvent;
 
-        // TODO fix rategate value
-        private RateGate _rateGateInstruments = new RateGate(200, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateAssetsAsset = new RateGate(60, TimeSpan.FromMinutes(1));
         #endregion
 
         #region 4 Portfolios
         public void GetPortfolios()
         {
+            GetAccountResponse getAccountResponse = null;
+            try
+            {
+                getAccountResponse = _accountsClient.GetAccount(new GetAccountRequest { AccountId = _accountId }, headers: _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string msg = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error loading portfolios. Info: {msg}", LogMessageType.Error);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error loading portfolios: {ex}", LogMessageType.Error);
+            }
+
+            GetPortfolios(getAccountResponse);
+
             PortfolioEvent?.Invoke(_myPortfolios);
         }
+
+        private void GetPortfolios(GetAccountResponse getAccountResponse)
+        {
+            Portfolio myPortfolio = _myPortfolios.Find(p => p.Number == getAccountResponse.AccountId);
+
+            if (myPortfolio == null)
+            {
+                myPortfolio = new Portfolio();
+                myPortfolio.Number = getAccountResponse.AccountId;
+                myPortfolio.ValueCurrent = Convert.ToDecimal(getAccountResponse.Equity?.Value);
+                myPortfolio.ValueBegin = myPortfolio.ValueCurrent;
+                myPortfolio.UnrealizedPnl = Convert.ToDecimal(getAccountResponse.UnrealizedProfit.Value);
+                _myPortfolios.Add(myPortfolio);
+            }
+
+            //for (int i = 0; i < getAccountResponse.Cash.Count; i++)
+            //{
+            //    GoogleType.Money pos = getAccountResponse.Cash[i];
+            //    PositionOnBoard newPos = new PositionOnBoard();
+
+            //    newPos.PortfolioName = myPortfolio.Number;
+            //    newPos.SecurityNameCode = pos.CurrencyCode;
+            //    newPos.ValueCurrent = GetValue(pos);
+            //    //newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+            //    newPos.ValueBegin = newPos.ValueCurrent;
+
+            //    myPortfolio.SetNewPosition(newPos);
+            //}
+
+            for (int i = 0; i < getAccountResponse.Positions.Count; i++)
+            {
+                FinamApi.TradeApi.V1.Accounts.Position pos = getAccountResponse.Positions[i];
+                PositionOnBoard newPos = new PositionOnBoard();
+
+                newPos.PortfolioName = myPortfolio.Number;
+                newPos.SecurityNameCode = pos.Symbol;
+                newPos.ValueCurrent = Convert.ToDecimal(pos.Quantity.Value) * Convert.ToDecimal(pos.CurrentPrice.Value);
+                //newPos.ValueBlocked = pos.Blocked / instrument.Instrument.Lot;
+                newPos.ValueBegin = Convert.ToDecimal(pos.Quantity.Value) * Convert.ToDecimal(pos.AveragePrice.Value);
+
+                myPortfolio.SetNewPosition(newPos);
+            }
+
+        }
+
+        private RateGate _rateGateGetAccount = new RateGate(60, TimeSpan.FromMinutes(1));
 
         public event Action<List<Portfolio>> PortfolioEvent;
 
@@ -142,59 +296,49 @@ namespace OsEngine.Market.Servers.FinamGrpc
         #region 6 gRPC streams creation
         private void CreateStreamsConnection()
         {
+            _cancellationTokenSource = new CancellationTokenSource();
+
+            _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
+            {
+                Credentials = ChannelCredentials.SecureSsl,
+                HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null })
+            });
+
+            _authClient = new AuthService.AuthServiceClient(_channel);
+            _assetsClient = new AssetsService.AssetsServiceClient(_channel);
+            _accountsClient = new AccountsService.AccountsServiceClient(_channel);
+            _ordersClient = new OrdersService.OrdersServiceClient(_channel);
+            _marketDataClient = new MarketDataService.MarketDataServiceClient(_channel);
+
             try
             {
-                _gRpcMetadata = new Metadata();
-
-                _gRpcMetadata.Add("Authorization", $"Bearer {_accessToken}");
-                _gRpcMetadata.Add("x-app-name", "OsEngine");
-
-                _cancellationTokenSource = new CancellationTokenSource();
-
-                _channel = GrpcChannel.ForAddress(_gRPCHost, new GrpcChannelOptions
+                // Получаем gwt токен
+                AuthResponse auth = _authClient.Auth(new AuthRequest { Secret = _accessToken });
+                if (auth?.Token == null)
                 {
-                    Credentials = ChannelCredentials.SecureSsl,
-                    HttpClient = new HttpClient(new HttpClientHandler { Proxy = _proxy, UseProxy = _proxy != null })
-                });
-
-                _authClient = new AuthService.AuthServiceClient(_channel);
-
-                try
-                {
-                    // Получаем gwt токен
-                    AuthResponse auth = _authClient.Auth(new AuthRequest { Secret = _accessToken });
-                    if (auth?.Token == null)
-                    {
-                        //string errorMessage = string.Join(", ", testResponse.Errors.Select(e => $"{e.Code}: {e.Message}"));
-                        SendLogMessage($"Authentication failed.", LogMessageType.Error);
-                        return;
-                    }
-
-                    _jwtToken = auth.Token;
-                }
-                catch (RpcException ex)
-                {
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Error while auth. Info: {message}", LogMessageType.Error);
+                    //string errorMessage = string.Join(", ", testResponse.Errors.Select(e => $"{e.Code}: {e.Message}"));
+                    SendLogMessage($"Authentication failed. Wrong token?", LogMessageType.Error);
                     return;
-                    //SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
 
-                try
-                {
-                    SendLogMessage("All streams activated. Connect State", LogMessageType.System);
-                    ServerStatus = ServerConnectStatus.Connect;
-                    ConnectEvent?.Invoke();
-                }
-                catch (Exception ex)
-                {
-                    SendLogMessage(ex.ToString(), LogMessageType.Error);
-                }
+                _gRpcMetadata = new Metadata();
+                _gRpcMetadata.Add("x-app-name", "OsEngine");
+                _gRpcMetadata.Add("Authorization", auth.Token);
             }
-            catch (Exception exception)
+            catch (RpcException ex)
             {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error while auth. Info: {message}", LogMessageType.Error);
+                return;
             }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error while auth. Info: {ex}", LogMessageType.Error);
+            }
+
+            SendLogMessage("All streams activated. Connect State", LogMessageType.System);
+            ServerStatus = ServerConnectStatus.Connect;
+            ConnectEvent?.Invoke();
         }
 
         private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
@@ -204,6 +348,10 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private WebProxy _proxy;
 
         private AuthService.AuthServiceClient _authClient;
+        private AssetsService.AssetsServiceClient _assetsClient;
+        private AccountsService.AccountsServiceClient _accountsClient;
+        private OrdersService.OrdersServiceClient _ordersClient;
+        private MarketDataService.MarketDataServiceClient _marketDataClient;
         #endregion
 
         #region 9 Trade
@@ -226,29 +374,22 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         private string GetGRPCErrorMessage(RpcException ex)
         {
-            string message = string.Format("{0}: {1}", ex.Status.StatusCode, ex.Status.Detail);
-            //string trackingId = "";
-
-            //if (exception.Trailers == null)
-            //    return message;
-
-            //for (int i = 0; i < exception.Trailers.Count; i++)
-            //{
-            //    if (exception.Trailers[i].Key == "x-tracking-id")
-            //        trackingId = exception.Trailers[i].Value;
-
-            //    if (exception.Trailers[i].Key == "message")
-            //        message = exception.Trailers[i].Value;
-            //}
-
-            //if (trackingId.Length > 0)
-            //{
-            //    message = "Tracking id: " + trackingId + "; Message: " + message;
-            //}
-
-
-            return message;
+            return string.Format("{0}: {1}", ex.Status.StatusCode, ex.Status.Detail);
         }
+
+        //public decimal GetValue(GoogleType.Money moneyValue)
+        //{
+        //    if (moneyValue == null)
+        //        return 0.0m;
+
+        //    if (moneyValue.Units == 0 && moneyValue.Nanos == 0)
+        //        return 0.0m;
+
+        //    decimal bigDecimal = Convert.ToDecimal(moneyValue.Units);
+        //    bigDecimal += Convert.ToDecimal(moneyValue.Nanos) / 10000000; // У Финама nano = 10-7
+
+        //    return bigDecimal;
+        //}
         #endregion
 
         #region 11 Log
