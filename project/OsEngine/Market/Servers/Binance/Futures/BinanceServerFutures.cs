@@ -43,7 +43,15 @@ namespace OsEngine.Market.Servers.Binance.Futures
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterEnum("Futures Type", "USDT-M", new List<string> { "USDT-M", "COIN-M" });
             CreateParameterBoolean("HedgeMode", false);
+            ServerParameters[3].ValueChange += BinanceServerFutures_ValueChange;
             CreateParameterBoolean("Demo Account", false);
+
+            
+        }
+
+        private void BinanceServerFutures_ValueChange()
+        {
+            ((BinanceServerFuturesRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
         }
     }
 
@@ -73,6 +81,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
             worker4.IsBackground = true;
             worker4.Name = "BinanceFutThread_ConverterUserData";
             worker4.Start();
+
+            
         }
 
         private WebProxy _myProxy;
@@ -95,9 +105,21 @@ namespace OsEngine.Market.Servers.Binance.Futures
             Uri uri = new Uri(_baseUrl + "/" + type_str_selector + "/v1/time");
             try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
-                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                RestRequest requestRest = new RestRequest("/" + type_str_selector + "/v1/time", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage("Can`t run Binance Futures connector. No internet connection", LogMessageType.Error);
+
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                        return;
+                    }
+                }
             }
             catch
             {
@@ -135,7 +157,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
 
             ActivateSockets();
-            //SetPositionMode();
+            SetPositionMode();
         }
 
         public void Dispose()
@@ -198,7 +220,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     return;
                 }
                 _hedgeMode = value;
-                //SetPositionMode();
+
+                SetPositionMode();
             }
         }
 
@@ -231,7 +254,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
 
             }
-
         }
 
         #endregion
