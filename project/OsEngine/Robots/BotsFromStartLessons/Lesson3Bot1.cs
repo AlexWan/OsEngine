@@ -1,19 +1,31 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+
+/* Description
+Robot-example from the course of lectures "C# for algotreader".
+the robot is called when the candle is closed.
+Buy: When the second to last and last candle grew
+Sell: Trailing Stop by Low-value second to last candle.
+ */
 
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     [Bot("Lesson3Bot1")]
     public class Lesson3Bot1 : BotPanel
     {
-        BotTabSimple _tabToTrade;
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterString _regime;
+        private StrategyParameterString _mode;
 
-        StrategyParameterDecimal _volume;
+        private StrategyParameterDecimal _volume;
 
         public Lesson3Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -21,17 +33,19 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _tabToTrade = TabsSimple[0];
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
             _volume = CreateParameter("Volume", 10m, 1, 10, 1);
 
-
+            Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
+                "the robot is called when the candle is closed." +
+                "Buy: When the second to last and last candle grew" +
+                "Sell: Trailing Stop by Low-value second to last candle.";
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
 
-            if (_regime.ValueString == "Off")
+            if (_mode.ValueString == "Off")
             {
                 return;
             }
@@ -44,25 +58,25 @@ namespace OsEngine.Robots.BotsFromStartLessons
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
             if (positions.Count == 0)
-            {// открытие позиции
+            {// position opening
 
-                Candle lastCandle = candles[candles.Count - 1]; // берём последнюю свечу
-                Candle prevCandle = candles[candles.Count - 2]; // берём предпоследнюю свечу
+                Candle lastCandle = candles[candles.Count - 1]; // take the last candle
+                Candle prevCandle = candles[candles.Count - 2]; // take the  second to last candle
 
                 if (lastCandle.IsUp == true
                     && prevCandle.IsUp == true)
-                { // покупаем. Обе свечи растут
+                { // buy. Two candles grow
                     _tabToTrade.BuyAtMarket(_volume.ValueDecimal);
                 }
             }
             else
-            { // закрытие позиции
+            { // closing the position
 
-                Candle prevCandle = candles[candles.Count - 2]; // берём предпоследнюю свечу
+                Candle prevCandle = candles[candles.Count - 2]; // take the  second to last candle
 
-                decimal lowCandle = prevCandle.Low; // взяли у свечи нижнее значение
+                decimal lowCandle = prevCandle.Low; // took the lowest value from this candle
 
-                Position position = positions[0]; // берём позицию из массива
+                Position position = positions[0]; // take position from the array
 
                 _tabToTrade.CloseAtTrailingStopMarket(position, lowCandle);
             }

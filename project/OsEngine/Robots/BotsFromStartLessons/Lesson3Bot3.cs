@@ -4,21 +4,26 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-
+/* Description
+Robot-example from the course of lectures "C# for algotreader".
+the robot is called when the candle is closed.
+Buy: SmaFast > SmaSlow. Buy At Market.
+Sell: SmaFast < SmaSlow. Close At Market.
+ */
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     [Bot("Lesson3Bot3")]
     public class Lesson3Bot3 : BotPanel
     {
-        BotTabSimple _tabToTrade;
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterString _regime;
-        StrategyParameterDecimal _volume;
-        StrategyParameterInt _smaLenFast;
-        StrategyParameterInt _smaLenSlow;
+        private StrategyParameterString _Mode;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterInt _smaLenFast;
+        private StrategyParameterInt _smaLenSlow;
 
-        Aindicator _smaFast;
-        Aindicator _smaSlow;
+        private Aindicator _smaFast;
+        private Aindicator _smaSlow;
 
         public Lesson3Bot3(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -26,7 +31,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _tabToTrade = TabsSimple[0];
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _Mode = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             _volume = CreateParameter("Volume", 10m, 1, 10, 1);
 
             _smaLenFast = CreateParameter("Sma fast len", 15, 1, 10, 1);
@@ -41,6 +46,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _smaSlow.ParametersDigit[0].Value = _smaLenSlow.ValueInt;
 
             ParametrsChangeByUser += Lesson3Bot3_ParametrsChangeByUser;
+            Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
+                "the robot is called when the candle is closed." +
+                "Buy: SmaFast > SmaSlow. Buy At Market." +
+                "Sell: SmaFast < SmaSlow. Close At Market.";
         }
 
         private void Lesson3Bot3_ParametrsChangeByUser()
@@ -56,9 +65,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
+            // called on each new candle
 
-            if (_regime.ValueString == "Off")
+            if (_Mode.ValueString == "Off")
             {
                 return;
             }
@@ -71,7 +80,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
             if (positions.Count == 0)
-            {// открытие позиции
+            {// position opening
                 decimal smaFastLast = _smaFast.DataSeries[0].Last;
 
                 if (smaFastLast == 0)
@@ -92,7 +101,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 }
             }
             else
-            { // закрытие позиции
+            { // closing the position
                 decimal smaFastLast = _smaFast.DataSeries[0].Last;
 
                 if (smaFastLast == 0)
@@ -109,7 +118,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                 if (smaFastLast < smaSlowLast)
                 {
-                    Position position = positions[0]; // берём позицию из массива
+                    Position position = positions[0]; // take position from the array
 
                     if (position.State == PositionStateType.Open)
                     {
