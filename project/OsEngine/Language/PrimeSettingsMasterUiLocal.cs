@@ -97,5 +97,14 @@ namespace OsEngine.Language
         public string LabelMemoryClearingRegime => OsLocalization.ConvertToLocString(
           "Eng:Memory clean up" +
           "_Ru:Очистка памяти_");
+
+        public string LabelSupportGroup => OsLocalization.ConvertToLocString(
+           "Eng:Support group" +
+           "_Ru:Группа поддержки_");
+
+
+        public string LabelSupportGroupButtonLabel => OsLocalization.ConvertToLocString(
+           "Eng:Go to" +
+           "_Ru:Перейти_");
     }
 }
