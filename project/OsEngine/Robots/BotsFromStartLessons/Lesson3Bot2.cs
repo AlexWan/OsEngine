@@ -24,36 +24,39 @@ namespace OsEngine.Robots.BotsFromStartLessons
     {
         private BotTabSimple _tabToTrade;
 
+        // Basic setting
         private StrategyParameterString _mode;
-
         private StrategyParameterDecimal _volume;
-
         private StrategyParameterDecimal _slippage;
 
+        // Indicator
         private Aindicator _sma;
 
         public Lesson3Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
+            // Basic setting
             _mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
             _volume = CreateParameter("Volume", 10m, 1, 10, 1);
             _slippage = CreateParameter("Slippage percent", 0.1m, 0, 10, 1);
 
+            // Indicator Sma
             _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma", false);
             _sma = (Aindicator)_tabToTrade.CreateCandleIndicator(_sma, "Prime");
+
             Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
                 "the robot is called when the candle is closed." +
                 "Buy: if low-value from Last Candle < Sma and close-value from Last Candle > Sma. Buy At Limit." +
                 "Sell: position is open and close-value from Last Candle < sma. Close At Market.";
+            
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
             // called on each new candle
-
             if (_mode.ValueString == "Off")
             {
                 return;

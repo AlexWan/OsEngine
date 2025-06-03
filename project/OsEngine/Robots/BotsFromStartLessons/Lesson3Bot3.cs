@@ -17,11 +17,15 @@ namespace OsEngine.Robots.BotsFromStartLessons
     {
         private BotTabSimple _tabToTrade;
 
+        // Basic setting
         private StrategyParameterString _Mode;
         private StrategyParameterDecimal _volume;
+
+        // Indicator setting
         private StrategyParameterInt _smaLenFast;
         private StrategyParameterInt _smaLenSlow;
 
+        // Indicator
         private Aindicator _smaFast;
         private Aindicator _smaSlow;
 
@@ -31,25 +35,30 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _tabToTrade = TabsSimple[0];
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
+            // Basic setting
             _Mode = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             _volume = CreateParameter("Volume", 10m, 1, 10, 1);
 
+            // Indicator setting
             _smaLenFast = CreateParameter("Sma fast len", 15, 1, 10, 1);
             _smaLenSlow = CreateParameter("Sma slow len", 100, 1, 10, 1);
 
+            // Indicator SmaFast
             _smaFast = IndicatorsFactory.CreateIndicatorByName("Sma", name + "SmaFast", false);
             _smaFast = (Aindicator)_tabToTrade.CreateCandleIndicator(_smaFast, "Prime");
             _smaFast.ParametersDigit[0].Value = _smaLenFast.ValueInt;
 
+            // Indicator SmaSlow
             _smaSlow = IndicatorsFactory.CreateIndicatorByName("Sma", name + "SmaSlow", false);
             _smaSlow = (Aindicator)_tabToTrade.CreateCandleIndicator(_smaSlow, "Prime");
             _smaSlow.ParametersDigit[0].Value = _smaLenSlow.ValueInt;
 
-            ParametrsChangeByUser += Lesson3Bot3_ParametrsChangeByUser;
             Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
                 "the robot is called when the candle is closed." +
                 "Buy: SmaFast > SmaSlow. Buy At Market." +
                 "Sell: SmaFast < SmaSlow. Close At Market.";
+            
+            ParametrsChangeByUser += Lesson3Bot3_ParametrsChangeByUser;
         }
 
         private void Lesson3Bot3_ParametrsChangeByUser()
