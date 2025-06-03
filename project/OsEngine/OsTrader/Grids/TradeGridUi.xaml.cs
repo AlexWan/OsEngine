@@ -6,13 +6,11 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
-using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System;
 using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 namespace OsEngine.OsTrader.Grids

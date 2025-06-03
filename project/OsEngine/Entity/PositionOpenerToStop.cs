@@ -92,6 +92,11 @@ namespace OsEngine.Entity
         /// </summary>
         public DateTime TimeCreate;
 
+        /// <summary>
+        /// Position to add new order
+        /// </summary>
+        public int PositionNumber;
+
         public string GetSaveString()
         {
             string saveStr = "";
@@ -110,7 +115,8 @@ namespace OsEngine.Entity
             saveStr += LastCandleTime.ToString(CultureInfo) + "&";
             saveStr += SignalType + "&";
             saveStr += TimeCreate.ToString(CultureInfo) + "&";
-            saveStr += OrderPriceType;
+            saveStr += OrderPriceType +"&";
+            saveStr += PositionNumber ;
 
             return saveStr;
         }
@@ -137,6 +143,11 @@ namespace OsEngine.Entity
             if(savStr.Length > 14)
             {
                 Enum.TryParse(savStr[14], out OrderPriceType);
+            }
+
+            if (savStr.Length > 15)
+            {
+                PositionNumber = Convert.ToInt32(savStr[15]);
             }
         }
 

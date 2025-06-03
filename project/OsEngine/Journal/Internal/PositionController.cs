@@ -810,8 +810,6 @@ namespace OsEngine.Journal.Internal
 
             _needToSaveStopLimit = false;
 
-
-
             try
             {
                 if (_actualStopLimits == null

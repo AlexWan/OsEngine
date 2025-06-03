@@ -154,16 +154,28 @@ namespace OsEngine.PrimeSettings
 
         private void ButtonGoInRuSupport_Click(object sender, RoutedEventArgs e)
         {
-            string link = "https://t.me/osengine_official_support";
-
-            Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+            try
+            {
+                string link = "https://t.me/osengine_official_support";
+                Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+            }
+            catch
+            {
+                // ignore
+            }
         }
 
         private void ButtonGoInEngSupport_Click(object sender, RoutedEventArgs e)
         {
-            string link = "https://t.me/osengine_support_english";
-
-            Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+            try
+            {
+                string link = "https://t.me/osengine_support_english";
+                Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 }
