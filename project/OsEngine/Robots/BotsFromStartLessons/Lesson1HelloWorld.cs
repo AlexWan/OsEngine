@@ -2,6 +2,11 @@
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
+/* Description
+Robot-example from the course of lectures "C# for algotreader".
+This script creates a button in the parameters of the robot. When you press the button, the Log error with the text "Hello world!"
+ */
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     [Bot("Lesson1HelloWorld")]
