@@ -12,70 +12,85 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/*Discription
+Trading robot for osengine.
+
+Buy:
+1. The last candle opened and closed in the upper third of the high-low range.
+2. Price is above the SMA.
+
+Sell:
+1. The last candle opened and closed in the lower third of the high-low range.
+2. Price is below the SMA.
+
+Exit: Positions exit on trailing stop.
+*/
+
 namespace OsEngine.Robots.Screeners
 {
-    [Bot("PinBarScreener")]
+    [Bot("PinBarScreener")]//We create an attribute so that we don't write anything in the Boot factory
     public class PinBarScreener : BotPanel
     {
-        public PinBarScreener(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabScreener _tabScreener;
+
+        // Basic Settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _maxPositions;
+        private StrategyParameterDecimal _slippage;
+
+        // GetVolume Parameter 
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Height candles parameter
+        private StrategyParameterDecimal _minHeightCandlesPercent;
+        private StrategyParameterDecimal _maxHeightCandlesPercent;
+
+        // Sma
+        private StrategyParameterInt _smaPeriod;
+
+        // Close setting
+        private StrategyParameterDecimal _trailStop;
+
+        public PinBarScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
 
+            // Basic Setting
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _maxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            _slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
+
+            // GetVolume Parameter
+            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Height candles parameter
+            _maxHeightCandlesPercent = CreateParameter("Max height candles percent", 1.1m, 0, 20, 1m);
+            _minHeightCandlesPercent = CreateParameter("Min height candles percent", 0.5m, 0, 20, 1m);
+
+            // Sma
+            _smaPeriod = CreateParameter("Sma Period", 100, 10, 50, 500);
+            
+            // Close setting
+            _trailStop = CreateParameter("Trail stop %", 0.5m, 0, 20, 1m);
+
+            // Subscribe to the candle completion event
             _tabScreener.CandleFinishedEvent += _tab_CandleFinishedEvent1;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-
-            MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
-
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
-
-            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
-
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
-            Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-
-            MaxHeightCandlesPercent = CreateParameter("Max height candles percent", 1.1m, 0, 20, 1m);
-            MinHeightCandlesPercent = CreateParameter("Min height candles percent", 0.5m, 0, 20, 1m);
-            
-            TrailStop = CreateParameter("Trail stop %", 0.5m, 0, 20, 1m);
-
-            SmaPeriod = CreateParameter("Sma Period", 100, 10, 50, 500);
+            Description = "Buy:" +
+                "1. The last candle opened and closed in the upper third of the high-low range." +
+                "2. Price is above the SMA. " +
+                "Sell: " +
+                "1. The last candle opened and closed in the lower third of the high-low range. " +
+                "2. Price is below the SMA. " +
+                "Exit: Positions exit on trailing stop.";
         }
 
-        public override string GetNameStrategyType()
-        {
-            return "PinBarScreener";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-
-        }
-
-        private BotTabScreener _tabScreener;
-
-        // settings
-
-        public StrategyParameterString Regime;
-        public StrategyParameterInt MaxPositions;
-        public StrategyParameterDecimal ProcHeightTake;
-        public StrategyParameterDecimal ProcHeightStop;
-        public StrategyParameterDecimal Slippage;
-        public StrategyParameterString VolumeType;
-        public StrategyParameterDecimal Volume;
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterDecimal MinHeightCandlesPercent;
-        public StrategyParameterDecimal MaxHeightCandlesPercent;
-
-        public StrategyParameterInt SmaPeriod;
-        public StrategyParameterDecimal TrailStop;
-
-        // logic
-
+        // Candle Completion Event
         private void _tab_CandleFinishedEvent1(List<Candle> candles, BotTabSimple tab)
         {
             Logic(candles, tab);
@@ -83,7 +98,7 @@ namespace OsEngine.Robots.Screeners
 
         private void Logic(List<Candle> candles, BotTabSimple tab)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -97,7 +112,7 @@ namespace OsEngine.Robots.Screeners
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -109,9 +124,10 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles, BotTabSimple tab)
         {
-            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
+            if (_tabScreener.PositionsOpenAll.Count >= _maxPositions.ValueInt)
             {
                 return;
             }
@@ -120,30 +136,31 @@ namespace OsEngine.Robots.Screeners
             decimal lastOpen = candles[candles.Count - 1].Open;
             decimal lastHigh = candles[candles.Count - 1].High;
             decimal lastLow = candles[candles.Count - 1].Low;
-            decimal lastSma = Sma(candles, SmaPeriod.ValueInt, candles.Count - 1);
+            decimal lastSma = Sma(candles, _smaPeriod.ValueInt, candles.Count - 1);
 
             decimal lenCandlePercent = (lastHigh - lastLow) / (lastLow / 100);
 
-            if(lenCandlePercent > MaxHeightCandlesPercent.ValueDecimal ||
-                lenCandlePercent < MinHeightCandlesPercent.ValueDecimal)
+            if(lenCandlePercent > _maxHeightCandlesPercent.ValueDecimal ||
+                lenCandlePercent < _minHeightCandlesPercent.ValueDecimal)
             {
                 return;
             }
 
             if (lastClose >= lastHigh - ((lastHigh - lastLow) / 3) && lastOpen >= lastHigh - ((lastHigh - lastLow) / 3)
                 && lastSma < lastClose
-                && Regime.ValueString != "OnlyShort")
+                && _regime.ValueString != "OnlyShort")
             {
-                tab.BuyAtLimit(GetVolume(tab), lastClose + lastClose * (Slippage.ValueDecimal / 100));
+                tab.BuyAtLimit(GetVolume(tab), lastClose + lastClose * (_slippage.ValueDecimal / 100));
             }
             if (lastClose <= lastLow + ((lastHigh - lastLow) / 3) && lastOpen <= lastLow + ((lastHigh - lastLow) / 3)
                 && lastSma > lastClose
-            && Regime.ValueString != "OnlyLong")
+            && _regime.ValueString != "OnlyLong")
             {
-                tab.SellAtLimit(GetVolume(tab), lastClose - lastClose * (Slippage.ValueDecimal / 100));
+                tab.SellAtLimit(GetVolume(tab), lastClose - lastClose * (_slippage.ValueDecimal / 100));
             }
         }
 
+        // Closing position logic
         private void LogicClosePosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
             if (position.State != PositionStateType.Open
@@ -162,30 +179,42 @@ namespace OsEngine.Robots.Screeners
 
             if (position.Direction == Side.Buy)
             {
-                stop = lastClose - lastClose * (TrailStop.ValueDecimal / 100);
-                stopWithSlippage = stop - stop * (Slippage.ValueDecimal / 100);
+                stop = lastClose - lastClose * (_trailStop.ValueDecimal / 100);
+                stopWithSlippage = stop - stop * (_slippage.ValueDecimal / 100);
             }
             else //if (position.Direction == Side.Sell)
             {
-                stop = lastClose + lastClose * (TrailStop.ValueDecimal / 100);
-                stopWithSlippage = stop + stop * (Slippage.ValueDecimal / 100);
+                stop = lastClose + lastClose * (_trailStop.ValueDecimal / 100);
+                stopWithSlippage = stop + stop * (_slippage.ValueDecimal / 100);
             }
 
             tab.CloseAtTrailingStop(position, stop, stopWithSlippage);
         }
 
+        // The name of the robot in OsEngin
+        public override string GetNameStrategyType()
+        {
+            return "PinBarScreener";
+        }
+
+        public override void ShowIndividualSettingsDialog()
+        {
+
+        }
+
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -196,7 +225,7 @@ namespace OsEngine.Robots.Screeners
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -206,7 +235,7 @@ namespace OsEngine.Robots.Screeners
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -217,7 +246,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -232,7 +261,7 @@ namespace OsEngine.Robots.Screeners
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -242,11 +271,11 @@ namespace OsEngine.Robots.Screeners
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
@@ -265,6 +294,7 @@ namespace OsEngine.Robots.Screeners
             return volume;
         }
 
+        // Method for calculating Sma
         private decimal Sma(List<Candle> candles, int len, int index)
         {
             if (candles.Count == 0
