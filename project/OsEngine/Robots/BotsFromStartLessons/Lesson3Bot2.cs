@@ -36,6 +36,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
             // Basic setting
             _mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
@@ -50,8 +51,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 "the robot is called when the candle is closed." +
                 "Buy: if low-value from Last Candle < Sma and close-value from Last Candle > Sma. Buy At Limit." +
                 "Sell: position is open and close-value from Last Candle < sma. Close At Market.";
-            
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
