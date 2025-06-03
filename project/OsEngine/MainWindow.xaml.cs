@@ -340,17 +340,17 @@ namespace OsEngine
             ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLightName;
             ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLightName;
 
-            if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
-            {
-                this.Height = 415;
-                ImageAlor.Visibility = Visibility.Visible;
-            }
-            else
-            {
+           // if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+          //  {
+          //      this.Height = 415;
+           //     ImageAlor.Visibility = Visibility.Visible;
+            //}
+            //else
+            //{
                 this.Height = 315;
                 ImageAlor.Visibility = Visibility.Collapsed;
                 ImageAlor2.Visibility = Visibility.Collapsed;
-            }
+           // }
         }
 
         /// <summary>

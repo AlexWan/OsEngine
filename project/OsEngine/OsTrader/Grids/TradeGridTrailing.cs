@@ -20,7 +20,6 @@ namespace OsEngine.OsTrader.Grids
 
         public decimal TrailingDownLimitValue;
 
-
         public string GetSaveString()
         {
             string result = "";
@@ -55,6 +54,12 @@ namespace OsEngine.OsTrader.Grids
             {
                 SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
+        }
+
+        public void TryMoveGrid(TradeGrid grid)
+        {
+
+
         }
 
         #region Log

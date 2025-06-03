@@ -9,7 +9,6 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -124,7 +123,6 @@ namespace OsEngine.OsTrader.Grids
             TradeGridLine newLine = new TradeGridLine();
             newLine.PriceEnter = 0;
             newLine.Side = GridSide;
-            newLine.IsOn = true;
             newLine.Volume = 0;
             Lines.Add(newLine);
 
@@ -193,7 +191,6 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 newLine.Side = GridSide;
-                newLine.IsOn = true;
                 newLine.Volume = volumeCurrent;
 
                 if (tab.Security != null
@@ -371,25 +368,27 @@ namespace OsEngine.OsTrader.Grids
 
     public class TradeGridLine
     {
-        public bool IsOn;
-
         public decimal PriceEnter;
+
+        public decimal PriceExit;
 
         public decimal Volume;
 
         public Side Side;
 
-        public decimal PriceExit;
+        public int PositionNum = -1;
+
+        public Position Position;
 
         public string GetSaveStr()
         {
             string result = "";
 
-            result += IsOn + "|";
             result += PriceEnter + "|";
             result += Volume + "|";
             result += Side + "|";
             result += PriceExit + "|";
+            result += PositionNum + "|";
 
             return result;
         }
@@ -398,11 +397,11 @@ namespace OsEngine.OsTrader.Grids
         {
             string[] saveArray = str.Split('|');
 
-            IsOn = Convert.ToBoolean(saveArray[0]);
-            PriceEnter = saveArray[1].ToDecimal();
-            Volume = saveArray[2].ToDecimal();
-            Enum.TryParse(saveArray[3], out Side);
-            PriceExit = saveArray[4].ToDecimal();
+            PriceEnter = saveArray[0].ToDecimal();
+            Volume = saveArray[1].ToDecimal();
+            Enum.TryParse(saveArray[2], out Side);
+            PriceExit = saveArray[3].ToDecimal();
+            PositionNum = Convert.ToInt32(saveArray[4]);
         }
     }
 }

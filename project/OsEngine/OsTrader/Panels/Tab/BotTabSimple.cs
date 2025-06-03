@@ -61,9 +61,6 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.SecuritySubscribeEvent += _connector_SecuritySubscribeEvent;
                 _connector.DialogClosed += _connector_DialogClosed;
 
-                _gridsMaster = new TradeGridsMaster(startProgram, name, this);
-                _gridsMaster.LogMessageEvent += SetNewLogMessage;
-
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
                     _marketDepthPainter = new MarketDepthPainter(TabName);
@@ -98,6 +95,9 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ManualPositionSupport = new BotManualControl(TabName, this, startProgram);
                 ManualPositionSupport.LogMessageEvent += SetNewLogMessage;
                 ManualPositionSupport.DontOpenOrderDetectedEvent += _dealOpeningWatcher_DontOpenOrderDetectedEvent;
+
+                _gridsMaster = new TradeGridsMaster(startProgram, name, this);
+                _gridsMaster.LogMessageEvent += SetNewLogMessage;
 
                 _icebergMaker = new IcebergMaker();
                 _icebergMaker.NewOrderNeedToExecute += _icebergMaker_NewOrderNeedToExecute;

@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using Jayrock.Json.Conversion.Converters;
 using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
@@ -250,7 +249,6 @@ namespace OsEngine.OsTrader.Grids
              
             return TradeGridRegime.On;
         }
-
 
         #region Log
 

@@ -300,6 +300,8 @@ namespace OsEngine.OsTrader.Grids
 
             CreateGridTable();
             UpdateGridTable();
+
+            CheckEnabledItems();
         }
 
         private void Localization()
@@ -400,6 +402,42 @@ namespace OsEngine.OsTrader.Grids
 
             LabelAutoStartRegime.Content = OsLocalization.Trader.Label504;
             LabelAutoStartPrice.Content = OsLocalization.Trader.Label505;
+        }
+
+        private void CheckEnabledItems()
+        {
+            if (TradeGrid.Regime != TradeGridRegime.Off)
+            {
+                ComboBoxGridType.IsEnabled = false;
+                ComboBoxRegimeLogicEntry.IsEnabled = false;
+            }
+            else
+            {
+                ComboBoxGridType.IsEnabled = true;
+                ComboBoxRegimeLogicEntry.IsEnabled = true;
+            }
+
+            if(TradeGrid.GridType == TradeGridPrimeType.MarketMaking)
+            {
+                TabItemStopAndProfit.IsEnabled = false;
+
+                if(TabControlSecond.SelectedIndex == 2)
+                {
+                    TabControlSecond.SelectedIndex = 0;
+                }
+
+                CheckBoxStopGridByPositionsCountIsOn.IsEnabled = true;
+                TextBoxStopGridByPositionsCountValue.IsEnabled = true;
+                ComboBoxStopGridByPositionsCountReaction.IsEnabled = true;
+            }
+            else if(TradeGrid.GridType == TradeGridPrimeType.OpenPosition)
+            {
+                TabItemStopAndProfit.IsEnabled = true;
+
+                CheckBoxStopGridByPositionsCountIsOn.IsEnabled = false;
+                TextBoxStopGridByPositionsCountValue.IsEnabled = false;
+                ComboBoxStopGridByPositionsCountReaction.IsEnabled = false;
+            }
         }
 
         private void TradeGridUi_Closed(object sender, EventArgs e)
@@ -975,7 +1013,7 @@ namespace OsEngine.OsTrader.Grids
 
                 DataGridViewColumn newColumn1 = new DataGridViewColumn();
                 newColumn1.CellTemplate = cellParam0;
-                newColumn1.HeaderText = "Is ON";
+                newColumn1.HeaderText = "Pos number";
                 _gridDataGrid.Columns.Add(newColumn1);
                 newColumn1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
@@ -1043,12 +1081,9 @@ namespace OsEngine.OsTrader.Grids
                     rowLine.Cells[0].Value = i + 1;
                     rowLine.Cells[0].ReadOnly = true;
 
-                    DataGridViewComboBoxCell cell1 = new DataGridViewComboBoxCell();
-                    cell1.Items.Add(true.ToString());
-                    cell1.Items.Add(false.ToString());
-                    cell1.Value = curLine.IsOn.ToString();
-                    cell1.ReadOnly = false;
-                    rowLine.Cells.Add(cell1);
+                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                    rowLine.Cells[1].Value = curLine.PositionNum;
+                    rowLine.Cells[1].ReadOnly = true;
 
                     rowLine.Cells.Add(new DataGridViewTextBoxCell());
                     rowLine.Cells[2].Value = Math.Round(curLine.PriceEnter, 10);
@@ -1089,7 +1124,6 @@ namespace OsEngine.OsTrader.Grids
 
                 for (int i = 0; i < Lines.Count; i++)
                 {
-                    Lines[i].IsOn = Convert.ToBoolean(_gridDataGrid.Rows[i].Cells[1].Value.ToString().ToLower());
                     Lines[i].PriceEnter = _gridDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
                     Lines[i].PriceExit = _gridDataGrid.Rows[i].Cells[3].Value.ToString().ToDecimal();
                     Lines[i].Volume = _gridDataGrid.Rows[i].Cells[4].Value.ToString().ToDecimal();
@@ -1676,6 +1710,8 @@ namespace OsEngine.OsTrader.Grids
             {
                 Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(), out TradeGrid.Regime);
                 TradeGrid.Save();
+
+                CheckEnabledItems();
             }
             catch (Exception ex)
             {
@@ -1705,6 +1741,8 @@ namespace OsEngine.OsTrader.Grids
         {
             Enum.TryParse(ComboBoxGridType.SelectedItem.ToString(),out TradeGrid.GridType);
             TradeGrid.Save();
+
+            CheckEnabledItems();
         }
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)

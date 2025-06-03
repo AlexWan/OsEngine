@@ -135,7 +135,7 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <TabControl Grid.Column="1">
+        <TabControl Name="TabControlSecond" Grid.Column="1">
             <TabItem Name="TabItemTradeDays" Header="Trade days">
                 <Grid >
                     <Label Name="LabelNonTradeDaysRegime" Content="Regime on a non-trading day" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
@@ -199,8 +199,6 @@
                     <ComboBox Name="ComboBoxStopValueType" Margin="143,150,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelStopValue" Content="Value" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxStopValue" Margin="143,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-
-                    <Label Content="* Open position grid type only" HorizontalAlignment="Left" Margin="10,257,0,0" VerticalAlignment="Top" Width="290"/>
                 </Grid>
             </TabItem>
 

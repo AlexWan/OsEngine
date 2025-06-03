@@ -11,6 +11,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 // Разные базовые сути сеток:
@@ -44,6 +45,11 @@ namespace OsEngine.OsTrader.Grids
         public TradeGrid(StartProgram startProgram, BotTabSimple tab)
         {
             Tab = tab;
+            if(Tab.ManualPositionSupport != null)
+            {
+                Tab.ManualPositionSupport.DisableManualSupport();
+            }
+           
             Tab.NewTickEvent += Tab_NewTickEvent;
             StartProgram = startProgram;
 
@@ -470,8 +476,28 @@ namespace OsEngine.OsTrader.Grids
 
         #region Trade logic. Main logic tree
 
+        private DateTime _vacationTime;
+
         private void Process()
         {
+            if (Tab.IsConnected == false 
+                || Tab.IsReadyToTrade == false)
+            {
+                return;
+            }
+
+            if(Tab.CandlesAll == null
+                || Tab.CandlesAll.Count == 0)
+            {
+                return;
+            }
+
+            if(GridCreator.Lines == null 
+                || GridCreator.Lines.Count == 0)
+            {
+                return;
+            }
+
             TradeGridRegime baseRegime = Regime;
 
             // 1 Авто-старт сетки, если выключено
@@ -503,9 +529,29 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            // 2 попытка смены режима если блокировано по времени или по дням
+            // 2 проверяем ожидание в бою. Только что были отозваны или выставлены N кол-во ордеров
 
-            if(baseRegime == TradeGridRegime.On)
+            if(StartProgram == StartProgram.IsOsTrader)
+            {
+                if(_vacationTime > DateTime.Now)
+                {
+                    return;
+                }
+            }
+
+            // 3 проверяем наличие ордеров без номеров в маркете. Для медленных подключений
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                if (HaveOrdersWithNoMarketOrders())
+                {
+                    return;
+                }
+            }
+
+            // 4 попытка смены режима если блокировано по времени или по дням
+
+            if (baseRegime == TradeGridRegime.On)
             {
                 DateTime serverTime = Tab.TimeServerCurrent;
 
@@ -522,7 +568,7 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            // 3 попытка смены режима по остановке торгов
+            // 5 попытка смены режима по остановке торгов
 
             if (baseRegime == TradeGridRegime.On)
             {
@@ -535,22 +581,165 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
+            // 6 попробовать сдвинуть сетку по Trailing
 
-            if(baseRegime == TradeGridRegime.CloseOnly)
+            if (baseRegime == TradeGridRegime.On)
+            {
+                Trailing.TryMoveGrid(this);
+            }
+
+            // 7 сверям позиции в журнале и в сетке
+
+            CheckPositionsAndLines();
+
+            // 8 удаляем ордера стоящие не на своём месте
+
+            int countRejectOrders = TryRemoveWrongOrders();
+
+            if (countRejectOrders > 0)
+            {
+                _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                return;
+            }
+
+            // 9 торговая логика 
+
+            if (baseRegime == TradeGridRegime.CloseOnly)
             {
                 // закрываем позиции штатно
+                TrySetCloseOrders();
             }
             else if(baseRegime == TradeGridRegime.CloseForced)
             {
                 // закрываем позиции насильно
+                TryForcedCloseGrid();
             }
             else if(baseRegime == TradeGridRegime.On)
             {
                 // 1 проверяем выставлены ли ордера на открытие
                 // 2 проверяем выставлены ли закрытия
 
+                TrySetOpenOrders();
+                TrySetCloseOrders();
+            }
+        }
+
+        private void CheckPositionsAndLines()
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            List<Position> positions = Tab.PositionsAll;
+
+            for(int i = 0;i < lines.Count;i++)
+            {
+                TradeGridLine line = lines[i];
+
+                // проблема 1. Номер позиции есть - самой позиции нет. 
+                // произошёл перезапуск терминала. Ищем позу в журнале
+                if(line.PositionNum != -1 
+                    && line.Position == null)
+                {
+                    bool isInArray = false;
+
+                    for(int j = 0;j < positions.Count;j++)
+                    {
+                        if (positions[j].Number == line.PositionNum)
+                        {
+                            isInArray = true;
+                            line.Position = positions[j];
+                            break;
+                        }
+                    }
+
+                    if(isInArray == false)
+                    {
+                        line.Position = null;
+                        line.PositionNum = -1;
+                    }
+                }
+
+                if(GridType == TradeGridPrimeType.MarketMaking 
+                    && line.Position != null)
+                {// если мы маркетим
+                 // проблема 2. Позиция была закрыта
+                 // проблема 3. Открывающий ордер был отозван
+                    if (line.Position.State == PositionStateType.Done
+                        || 
+                        (line.Position.State == PositionStateType.OpeningFail 
+                        && line.Position.OpenActive == false))
+                    {
+                        line.Position = null;
+                        line.PositionNum = -1;
+                    }
+                }
+            }
+        }
+
+        private int TryRemoveWrongOrders()
+        {
+            // 1 смотрим линии с позициями
+            // 2 смотрим совпадение цен у ордера на открытие с ценой открытия линии
+            // 3 смотрим совпадиние цен у ордера на закрытие с ценой закрытия линии
+            // 4 смотрим пропуски в сетке
+            // 5 смотрим чтобы не было ордеров больше чем указал пользователь
+
+
+            return 0;
+        }
+
+        private void TrySetOpenOrders()
+        {
+            List<Candle> candles = Tab.CandlesAll;
+
+            if(candles == null|| candles.Count == 0) 
+            { 
+                return; 
+            }
+
+            decimal lastPrice = candles[candles.Count - 1].Close;
+
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            List<TradeGridLine> linesWithPositionFact = new List<TradeGridLine>();
+
+            if(GridCreator.GridSide == Side.Buy)
+            {
+                for(int i = 0;i < linesAll.Count;i++)
+                {
+                    if (linesAll[i].Position != null)
+                    {
+                        linesWithPositionFact.Add(linesAll[i]);
+                    }
+                }
+            }
+            else if(GridCreator.GridSide == Side.Sell)
+            {
+
+
 
             }
+
+
+
+
+        }
+
+        private void TrySetCloseOrders()
+        {
+
+
+        }
+
+        private void TryForcedCloseGrid()
+        {
+
+
+        }
+
+        private bool HaveOrdersWithNoMarketOrders()
+        {
+
+            return false;
         }
 
         #endregion
@@ -621,6 +810,4 @@ namespace OsEngine.OsTrader.Grids
         ContractCurrency,
         DepositPercent
     }
-
-
 }
