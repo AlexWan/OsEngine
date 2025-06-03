@@ -342,17 +342,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         {
             SendLogMessage("Connecting GRPC streams", LogMessageType.Connect);
 
-            SubscribeQuoteRequest quoteRequest = new SubscribeQuoteRequest();
-            for (int i = 0; i < _subscribedSecurities.Count; i++)
-            {
-                quoteRequest.Symbols.Add(_subscribedSecurities[i].NameId);
 
-                _rateGateSubscribeOrderBook.WaitToProceed();
-                _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = _subscribedSecurities[i].NameId }, _gRpcMetadata);
-                _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = _subscribedSecurities[i].NameId }, _gRpcMetadata);
-            }
-            //_rateGateSubscribeSubscribeQuote.WaitToProceed(); // Ограничение не сработает никогда
-            _marketDataClient.SubscribeQuote(quoteRequest, _gRpcMetadata);
 
             _lastMarketDataTime = DateTime.UtcNow;
         }
@@ -392,6 +382,23 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 }
 
                 _subscribedSecurities.Add(security);
+
+                SubscribeQuoteRequest quoteRequest = new SubscribeQuoteRequest();
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
+                {
+                    quoteRequest.Symbols.Add(_subscribedSecurities[i].NameId);
+                }
+                _rateGateSubscribeSubscribeQuote.WaitToProceed();
+                quoteStream = 
+                    _marketDataClient.SubscribeQuote(quoteRequest, _gRpcMetadata, null, _cancellationTokenSource.Token);
+                //quoteResponse.ResponseStream.ReadAllAsync(); //.ConfigureAwait(false);
+
+                _rateGateSubscribeOrderBook.WaitToProceed();
+                // TODO Проверить, что предыдущие подписки активны и данные по ним поступают
+                orderBookStream = 
+                    _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
+                latestTradesStream =
+                    _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
             }
             catch (Exception ex)
             {
@@ -404,6 +411,11 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
 
         public event Action<News> NewsEvent;
+
+        //private AsyncDuplexStreamingCall<SubscribeQuoteRequest, SubscribeQuoteResponse> _marketDataStream;
+        AsyncServerStreamingCall<SubscribeQuoteResponse> quoteStream;
+        AsyncServerStreamingCall<SubscribeOrderBookResponse> orderBookStream;
+        AsyncServerStreamingCall<SubscribeLatestTradesResponse> latestTradesStream;
 
         private RateGate _rateGateSubscribeOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateSubscribeLatestTrades = new RateGate(60, TimeSpan.FromMinutes(1));
