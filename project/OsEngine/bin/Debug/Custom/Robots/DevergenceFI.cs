@@ -10,6 +10,8 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -23,7 +25,6 @@ Sell: the highs on the chart are rising, and on the indicator they are decreasin
 Exit: stop and profit in % of the entry price. 
  */
 
-
 namespace OsEngine.Robots.AO
 {
     [Bot("DevergenceFI")] // We create an attribute so that we don't write anything to the BotFactory
@@ -32,24 +33,27 @@ namespace OsEngine.Robots.AO
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
+
+        // GetVolume Parameter
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator setting 
-        private StrategyParameterInt PeriodZigZag;
-        private StrategyParameterInt PeriodFI;
+        private StrategyParameterInt _periodZigZag;
+        private StrategyParameterInt _periodFI;
 
         // Indicator
-        Aindicator _ZigZag;
-        Aindicator _ZigZagFI;
+        private Aindicator _zigZag;
+        private Aindicator _zigZagFI;
 
         // Exit
-        private StrategyParameterInt StopValue;
-        private StrategyParameterInt ProfitValue;
+        private StrategyParameterInt _stopValue;
+        private StrategyParameterInt _profitValue;
 
         public DevergenceFI(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -57,33 +61,36 @@ namespace OsEngine.Robots.AO
             _tab = TabsSimple[0];
 
             // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+
+            // GetVolume Parameter
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator setting
-            PeriodZigZag = CreateParameter("Period ZigZag", 10, 10, 300, 10, "Indicator");
-            PeriodFI = CreateParameter("Period FI", 10, 10, 300, 10, "Indicator");
+            _periodZigZag = CreateParameter("Period ZigZag", 10, 10, 300, 10, "Indicator");
+            _periodFI = CreateParameter("Period FI", 10, 10, 300, 10, "Indicator");
 
             // Create indicator ZigZag
-            _ZigZag = IndicatorsFactory.CreateIndicatorByName("ZigZag", name + "ZigZag", false);
-            _ZigZag = (Aindicator)_tab.CreateCandleIndicator(_ZigZag, "Prime");
-            ((IndicatorParameterInt)_ZigZag.Parameters[0]).ValueInt = PeriodZigZag.ValueInt;
-            _ZigZag.Save();
+            _zigZag = IndicatorsFactory.CreateIndicatorByName("ZigZag", name + "ZigZag", false);
+            _zigZag = (Aindicator)_tab.CreateCandleIndicator(_zigZag, "Prime");
+            ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
+            _zigZag.Save();
 
             // Create indicator ZigZag CCI
-            _ZigZagFI = IndicatorsFactory.CreateIndicatorByName("ZigZagFI", name + "ZigZagFI", false);
-            _ZigZagFI = (Aindicator)_tab.CreateCandleIndicator(_ZigZagFI, "NewArea");
-            ((IndicatorParameterInt)_ZigZagFI.Parameters[0]).ValueInt = PeriodFI.ValueInt;
-            ((IndicatorParameterInt)_ZigZagFI.Parameters[1]).ValueInt = PeriodZigZag.ValueInt;
-            _ZigZagFI.Save();
+            _zigZagFI = IndicatorsFactory.CreateIndicatorByName("ZigZagFI", name + "ZigZagFI", false);
+            _zigZagFI = (Aindicator)_tab.CreateCandleIndicator(_zigZagFI, "NewArea");
+            ((IndicatorParameterInt)_zigZagFI.Parameters[0]).ValueInt = _periodFI.ValueInt;
+            ((IndicatorParameterInt)_zigZagFI.Parameters[1]).ValueInt = _periodZigZag.ValueInt;
+            _zigZagFI.Save();
 
-            // Exit
-            StopValue = CreateParameter("Stop Value", 1, 5, 200, 5, "Exit");
-            ProfitValue = CreateParameter("Profit Value", 1, 5, 200, 5, "Exit");
+            // Exit setting
+            _stopValue = CreateParameter("Stop Value", 1, 5, 200, 5, "Exit");
+            _profitValue = CreateParameter("Profit Value", 1, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += DevergenceFI_ParametrsChangeByUser; ;
@@ -99,13 +106,13 @@ namespace OsEngine.Robots.AO
 
         private void DevergenceFI_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_ZigZag.Parameters[0]).ValueInt = PeriodZigZag.ValueInt;
-            _ZigZag.Save();
-            _ZigZag.Reload();
-            ((IndicatorParameterInt)_ZigZagFI.Parameters[0]).ValueInt = PeriodFI.ValueInt;
-            ((IndicatorParameterInt)_ZigZagFI.Parameters[1]).ValueInt = PeriodZigZag.ValueInt;
-            _ZigZagFI.Save();
-            _ZigZagFI.Reload();
+            ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
+            _zigZag.Save();
+            _zigZag.Reload();
+            ((IndicatorParameterInt)_zigZagFI.Parameters[0]).ValueInt = _periodFI.ValueInt;
+            ((IndicatorParameterInt)_zigZagFI.Parameters[1]).ValueInt = _periodZigZag.ValueInt;
+            _zigZagFI.Save();
+            _zigZagFI.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -122,20 +129,20 @@ namespace OsEngine.Robots.AO
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodFI.ValueInt || candles.Count < PeriodZigZag.ValueInt)
+            if (candles.Count < _periodFI.ValueInt || candles.Count < _periodZigZag.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -149,10 +156,11 @@ namespace OsEngine.Robots.AO
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -167,33 +175,32 @@ namespace OsEngine.Robots.AO
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                List<decimal> zzHigh = _ZigZag.DataSeries[2].Values;
-                List<decimal> zzLow = _ZigZag.DataSeries[3].Values;
+                List<decimal> zzHigh = _zigZag.DataSeries[2].Values;
+                List<decimal> zzLow = _zigZag.DataSeries[3].Values;
 
-                List<decimal> zzAOLow = _ZigZagFI.DataSeries[4].Values;
-                List<decimal> zzAOHigh = _ZigZagFI.DataSeries[3].Values;
+                List<decimal> zzAOLow = _zigZagFI.DataSeries[4].Values;
+                List<decimal> zzAOHigh = _zigZagFI.DataSeries[3].Values;
 
                 decimal lastPrice = candles[candles.Count - 1].Close;
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (DevirgenceBuy(zzLow, zzAOLow, zzAOHigh) == true)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
                     if (DevirgenceSell(zzHigh, zzAOHigh, zzAOLow) == true)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -204,7 +211,7 @@ namespace OsEngine.Robots.AO
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
            
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -219,21 +226,20 @@ namespace OsEngine.Robots.AO
 
                 if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * ProfitValue.ValueInt / 100;
-                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * StopValue.ValueInt / 100;
+                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * _profitValue.ValueInt / 100;
+                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * _stopValue.ValueInt / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
                 }
                 else // If the direction of the position is sale
                 {
-                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * ProfitValue.ValueInt / 100;
-                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * StopValue.ValueInt / 100;
+                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * _profitValue.ValueInt / 100;
+                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * _stopValue.ValueInt / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);
                 }
-
             }
         }
 
@@ -265,13 +271,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzLow.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzLow[i] != 0 && zzLowOne == 0)
                 {
@@ -290,13 +294,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzAOLow.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzAOLow[i] != 0 && zzAOLowOne == 0)
                 {
@@ -315,7 +317,6 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             decimal cntLow = 0;
@@ -323,6 +324,7 @@ namespace OsEngine.Robots.AO
             {
                 cntLow++;
             }
+
             if (zzAOLowOne > zzAOLowTwo && zzAOLowOne != 0)
             {
                 cntLow++;
@@ -339,7 +341,6 @@ namespace OsEngine.Robots.AO
         // Method for finding divergence
         private bool DevirgenceSell(List<decimal> zzHigh, List<decimal> zzAOHigh, List<decimal> zzAOLow)
         {
-
             decimal zzHighOne = 0;
             decimal zzHighTwo = 0;
             decimal zzAOHighOne = 0;
@@ -365,13 +366,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzHigh.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzHigh[i] != 0 && zzHighOne == 0)
                 {
@@ -390,13 +389,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzAOHigh.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzAOHigh[i] != 0 && zzAOHighOne == 0)
                 {
@@ -415,7 +412,6 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             decimal cntHigh = 0;
@@ -423,6 +419,7 @@ namespace OsEngine.Robots.AO
             {
                 cntHigh++;
             }
+
             if (zzAOHighOne < zzAOHighTwo && zzAOHighOne != 0)
             {
                 cntHigh++;
@@ -437,29 +434,94 @@ namespace OsEngine.Robots.AO
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
