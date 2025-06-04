@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -19,7 +24,6 @@ Buy: the price is above the upper LR line.
 Sell: the price is below the lower LR line.
 
 Exit: the reverse side of the channel.
-
  */
 
 
@@ -41,7 +45,7 @@ namespace OsEngine.Robots.AO
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator setting 
+        // Indicator settings
         private StrategyParameterInt _periodLR;
         private StrategyParameterDecimal _upDeviation;
         private StrategyParameterDecimal _downDeviation;
@@ -58,7 +62,7 @@ namespace OsEngine.Robots.AO
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
@@ -69,8 +73,8 @@ namespace OsEngine.Robots.AO
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator setting
-            _periodLR = CreateParameter("PeriodLR", 1, 1, 50, 1, "Indicator");
+            // Indicator settings
+            _periodLR = CreateParameter("PeriodLR", 100, 1, 500, 1, "Indicator");
             _upDeviation = CreateParameter("UpDeviation", 1.0m, 1, 50, 1, "Indicator");
             _downDeviation = CreateParameter("DownDeviation", 2.0m, 1, 50, 1, "Indicator");
 
@@ -82,8 +86,8 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterDecimal)_channelLR.Parameters[3]).ValueDecimal = _downDeviation.ValueDecimal;
             _channelLR.Save();
 
-            // Subscribe to the indicator update event
-            ParametrsChangeByUser += BreakLRChannel_ParametrsChangeByUser; ;
+            // Subscribe to the indicator update event 
+            ParametrsChangeByUser += BreakLRChannel_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
