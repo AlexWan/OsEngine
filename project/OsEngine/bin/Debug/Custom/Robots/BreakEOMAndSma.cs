@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing;
@@ -28,7 +33,7 @@ Sell:
 2. Candle closed below Sma.
 
 Exit: on the opposite signal.
- */
+*/
 
 namespace OsEngine.Robots.AO
 {
@@ -43,12 +48,12 @@ namespace OsEngine.Robots.AO
         private StrategyParameterTimeOfDay _startTradeTime;
         private StrategyParameterTimeOfDay _endTradeTime;
 
-        // GetVolume Parameter
+        // GetVolume settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator setting 
+        // Indicator settings
         private StrategyParameterInt _lengthEom;
         private StrategyParameterInt _periodSma;
 
@@ -60,7 +65,7 @@ namespace OsEngine.Robots.AO
         private decimal _lastEOM;
         private decimal _lastSma;
 
-        // The prev value of the indicator
+        // The previous value of the indicator
         private decimal _prevEOM;
 
         public BreakEOMAndSma(string name, StartProgram startProgram) : base(name, startProgram)
@@ -74,7 +79,7 @@ namespace OsEngine.Robots.AO
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // GetVolume Parameter
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
