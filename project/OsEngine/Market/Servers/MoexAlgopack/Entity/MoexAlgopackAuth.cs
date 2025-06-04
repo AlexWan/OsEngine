@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace OsEngine.Market.Servers.MoexAlgopack.Entity
 {
     public class MoexAlgopackAuth
     {
-        private string _urlAuth = "https://passport.moex.com/authenticate";
-        private string _urlUri = "https://www.moex.com";
-        private string _username;
-        private string _password;
-        public HttpStatusCode last_status;
-        public string last_status_text;
-        public Cookie Passport = new Cookie();
-        
+        private readonly string _urlAuth = "https://passport.moex.com/authenticate";
+        private readonly string _urlUri = "https://www.moex.com";
+        private readonly string _username;
+        private readonly string _password;
+
+        public HttpStatusCode LastStatus { get; private set; }
+        public string LastStatusText { get; private set; } = string.Empty;
+        public Cookie Passport { get; private set; } = new Cookie();
+
         public MoexAlgopackAuth(string user_name, string passwd)
         {
             _username = user_name;
@@ -24,54 +27,48 @@ namespace OsEngine.Market.Servers.MoexAlgopack.Entity
         {
             try
             {
-                HttpWebRequest authReq = (HttpWebRequest)WebRequest.Create(_urlAuth);
-                HttpWebResponse authResponse;
-                authReq.CookieContainer = new CookieContainer();
+                HttpClientHandler handler = new HttpClientHandler();
+
+                handler.UseCookies = true;
+                handler.CookieContainer = new CookieContainer();
+
+                using HttpClient httpClient = new HttpClient(handler);
 
                 byte[] binData;
                 binData = System.Text.Encoding.UTF8.GetBytes(_username + ":" + _password);
-                string sAuth64 = Convert.ToBase64String(binData, Base64FormattingOptions.None);
-                authReq.Headers.Add(HttpRequestHeader.Authorization, "Basic " + sAuth64);
 
-                authResponse = (HttpWebResponse)authReq.GetResponse();
-                authResponse.Close();
-                last_status = authResponse.StatusCode;
+                httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Basic", Convert.ToBase64String(binData));
 
-                CookieContainer cookiejar = new CookieContainer();
-                cookiejar.Add(authResponse.Cookies);
+                HttpResponseMessage response = httpClient.GetAsync(_urlAuth).GetAwaiter().GetResult();
+                LastStatus = response.StatusCode;
 
-                // find the Passport cookie for a given domain URI
-                Uri myuri = new Uri(_urlUri);
-                CookieCollection cookies = cookiejar.GetCookies(myuri);
+                CookieCollection cookies = handler.CookieContainer.GetCookies(new Uri(_urlUri));
+                Cookie passportCookie = null;
 
                 for (int i = 0; i < cookies.Count; i++)
                 {
                     Cookie cook = cookies[i];
+
                     if (cook.Name == "MicexPassportCert")
                     {
-                        Passport = cook;
+                        passportCookie = cook;
                         break;
                     }
                 }
-                last_status_text = Passport.Name != "MicexPassportCert" ? "Passport cookie not found" : "OK";
+
+                Passport = passportCookie ?? new Cookie();
+                LastStatusText = passportCookie != null ? "OK" : "Passport cookie not found";
             }
-            catch (WebException e)
+            catch (HttpRequestException e) when (e.StatusCode != null)
             {
-                if (e.Status == WebExceptionStatus.ProtocolError)
-                {
-                    last_status = ((HttpWebResponse)e.Response).StatusCode;
-                    last_status_text = ((HttpWebResponse)e.Response).StatusDescription;
-                }
-                else
-                {
-                    last_status = HttpStatusCode.BadRequest;
-                    last_status_text = e.Message;
-                }
+                LastStatus = e.StatusCode.Value;
+                LastStatusText = e.Message;
             }
             catch (Exception e)
             {
-                last_status = HttpStatusCode.BadRequest;
-                last_status_text = e.Message;
+                LastStatus = HttpStatusCode.BadRequest;
+                LastStatusText = e.Message;
             }
         }
 
@@ -86,7 +83,7 @@ namespace OsEngine.Market.Servers.MoexAlgopack.Entity
             {
                 return true;
             }
-            
+
             return false;
         }
     }

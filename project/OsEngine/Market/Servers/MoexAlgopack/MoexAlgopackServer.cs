@@ -53,11 +53,11 @@ namespace OsEngine.Market.Servers.MoexAlgopack
             {
                 _username = ((ServerParameterString)ServerParameters[0]).Value;
                 _password = ((ServerParameterPassword)ServerParameters[1]).Value;
-                _isPaidSubscription = true; //((ServerParameterBool)ServerParameters[2]).Value;
+                _isPaidSubscription = true;
                 
                 MoexAlgopackAuth auth = new MoexAlgopackAuth(_username, _password);
                 
-                SendLogMessage($"Authorization: status code : {auth.last_status}, status message : {auth.last_status_text}", LogMessageType.Connect);
+                SendLogMessage($"Authorization: status code : {auth.LastStatus}, status message : {auth.LastStatusText}", LogMessageType.Connect);
                 
                 if (auth == null || !auth.IsRealTime())
                 {
