@@ -3,6 +3,7 @@ using FinamApi.TradeApi.V1.Accounts;
 using FinamApi.TradeApi.V1.Assets;
 using FinamApi.TradeApi.V1.Auth;
 using FinamApi.TradeApi.V1.MarketData;
+using FTrade = FinamApi.TradeApi.V1.MarketData.Trade;
 using FinamApi.TradeApi.V1.Orders;
 using Google.Protobuf.Collections;
 using Grpc.Core;
@@ -50,6 +51,10 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public FinamGrpcServerRealization()
         {
             ServerTime = DateTime.UtcNow;
+
+            Thread worker2 = new Thread(DataMessageReader);
+            worker2.Name = "DataMessageReaderTInvest";
+            worker2.Start();
         }
 
         public void Connect(WebProxy proxy)
@@ -344,7 +349,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
 
 
-            _lastMarketDataTime = DateTime.UtcNow;
+            _lastLatestTradesTime = DateTime.UtcNow;
         }
 
         private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
@@ -354,7 +359,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private WebProxy _proxy;
 
         //private SubscribeQuote<MarketDataRequest, MarketDataResponse> _marketDataStream;
-        private DateTime _lastMarketDataTime = DateTime.MinValue;
+        private DateTime _lastQuoteTime = DateTime.MinValue;
+        private DateTime _lastLatestTradesTime = DateTime.MinValue;
 
         private AuthService.AuthServiceClient _authClient;
         private AssetsService.AssetsServiceClient _assetsClient;
@@ -389,15 +395,15 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     quoteRequest.Symbols.Add(_subscribedSecurities[i].NameId);
                 }
                 _rateGateSubscribeSubscribeQuote.WaitToProceed();
-                quoteStream = 
+                _quoteStream =
                     _marketDataClient.SubscribeQuote(quoteRequest, _gRpcMetadata, null, _cancellationTokenSource.Token);
                 //quoteResponse.ResponseStream.ReadAllAsync(); //.ConfigureAwait(false);
 
                 _rateGateSubscribeOrderBook.WaitToProceed();
                 // TODO Проверить, что предыдущие подписки активны и данные по ним поступают
-                orderBookStream = 
+                _orderBookStream =
                     _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
-                latestTradesStream =
+                _latestTradesStream =
                     _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
             }
             catch (Exception ex)
@@ -413,14 +419,196 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public event Action<News> NewsEvent;
 
         //private AsyncDuplexStreamingCall<SubscribeQuoteRequest, SubscribeQuoteResponse> _marketDataStream;
-        AsyncServerStreamingCall<SubscribeQuoteResponse> quoteStream;
-        AsyncServerStreamingCall<SubscribeOrderBookResponse> orderBookStream;
-        AsyncServerStreamingCall<SubscribeLatestTradesResponse> latestTradesStream;
+        private AsyncServerStreamingCall<SubscribeQuoteResponse> _quoteStream;
+        private AsyncServerStreamingCall<SubscribeOrderBookResponse> _orderBookStream;
+        private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _latestTradesStream;
 
         private RateGate _rateGateSubscribeOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateSubscribeLatestTrades = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateSubscribeSubscribeQuote = new RateGate(60, TimeSpan.FromMinutes(1));
         List<Security> _subscribedSecurities = new List<Security>();
+        #endregion
+
+        #region 8 Reading messages from data streams
+
+        private async void DataMessageReader()
+        {
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (_latestTradesStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (await _latestTradesStream.ResponseStream.MoveNext() == false)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    //if (quoteStream == null)
+                    //{
+                    //    Thread.Sleep(1);
+                    //    continue;
+                    //}
+
+                    SubscribeLatestTradesResponse latestTradesResponse = _latestTradesStream.ResponseStream.Current;
+
+                    if (latestTradesResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    _lastLatestTradesTime = DateTime.UtcNow;
+
+                    //if (quoteResponse.Ping != null)
+                    //{
+                    //    Thread.Sleep(1);
+                    //    continue;
+                    //}
+
+                    if (latestTradesResponse.Trades != null && latestTradesResponse.Trades.Count > 0)
+                    {
+                        Security security = GetSecurity(latestTradesResponse.Symbol);
+                        if (security == null) { continue; }
+                        for (int i = 0; i < latestTradesResponse.Trades.Count; i++)
+                        {
+                            FTrade newTrade = latestTradesResponse.Trades[i];
+
+                            Trade trade = new Trade();
+                            trade.SecurityNameCode = security.Name;
+                            //trade.Price = GetValue(newTrade.Price);
+                            trade.Price = newTrade.Price.Value.ToString().ToDecimal();
+                            trade.Time = newTrade.Timestamp.ToDateTime().AddHours(3); // convert to MSK
+                            trade.Id = newTrade.TradeId;
+                            //trade.Side = quoteResponse.Trade.Direction == TradeDirection.Buy ? Side.Buy : Side.Sell;
+                            // TODO В документации нет направления сделки
+                            trade.Volume = newTrade.Size.Value.ToString().ToDecimal();
+                        }
+
+                    }
+
+                    //    if (_filterOutNonMarketData)
+                    //    {
+                    //        if (isTodayATradingDayForSecurity(security) == false)
+                    //            continue;
+                    //    }
+
+
+                    //    if (_ignoreMorningAuctionTrades && trade.Time.Hour < 9) // process only mornings
+                    //    {
+                    //        if (security.SecurityType == SecurityType.Futures)
+                    //        {
+                    //            if (trade.Time < trade.Time.Date.AddHours(9))
+                    //            {
+                    //                continue;
+                    //            }
+                    //        }
+                    //        else
+                    //        {
+                    //            if (trade.Time < trade.Time.Date.AddHours(7))
+                    //            {
+                    //                continue;
+                    //            }
+                    //        }
+                    //    }
+
+                    //    if (NewTradesEvent != null)
+                    //    {
+                    //        NewTradesEvent(trade);
+                    //    }
+                    //}
+
+                    //if (quoteResponse.LastPrice != null)
+                    //{
+                    //    ProcessLastPrice(quoteResponse.LastPrice);
+                    //}
+
+                    //if (quoteResponse.Orderbook != null)
+                    //{
+                    //    Security security = GetSecurity(quoteResponse.Orderbook.InstrumentUid);
+                    //    if (security == null)
+                    //        continue;
+
+                    //    if (_filterOutNonMarketData)
+                    //    {
+                    //        if (isTodayATradingDayForSecurity(security) == false)
+                    //            continue;
+                    //    }
+
+                    //    MarketDepth depth = new MarketDepth();
+                    //    depth.SecurityNameCode = security.Name;
+                    //    depth.Time = quoteResponse.Orderbook.Time.ToDateTime().AddHours(3);// convert to MSK
+
+
+                    //    for (int i = 0; i < marketDataResponse.Orderbook.Bids.Count; i++)
+                    //    {
+                    //        MarketDepthLevel newBid = new MarketDepthLevel();
+                    //        newBid.Price = GetValue(marketDataResponse.Orderbook.Bids[i].Price);
+                    //        newBid.Bid = marketDataResponse.Orderbook.Bids[i].Quantity;
+                    //        depth.Bids.Add(newBid);
+                    //    }
+
+                    //    for (int i = 0; i < marketDataResponse.Orderbook.Asks.Count; i++)
+                    //    {
+                    //        MarketDepthLevel newAsk = new MarketDepthLevel();
+                    //        newAsk.Price = GetValue(marketDataResponse.Orderbook.Asks[i].Price);
+                    //        newAsk.Ask = marketDataResponse.Orderbook.Asks[i].Quantity;
+                    //        depth.Asks.Add(newAsk);
+                    //    }
+
+                    //    if (_lastMdTime != DateTime.MinValue &&
+                    //        _lastMdTime >= depth.Time)
+                    //    {
+                    //        depth.Time = _lastMdTime.AddMilliseconds(1);
+                    //    }
+
+                    //    _lastMdTime = depth.Time;
+
+                    //    if (MarketDepthEvent != null)
+                    //    {
+                    //        MarketDepthEvent(depth);
+                    //    }
+                    //}
+                }
+                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+                {
+                    // Handle the cancellation gracefully
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Market data stream was cancelled: {message}", LogMessageType.System);
+                    Thread.Sleep(5000);
+                }
+                catch (RpcException exception)
+                {
+                    SendLogMessage($"Market data stream was disconnected: {exception.Message}", LogMessageType.Error);
+
+                    // need to reconnect everything
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                    Thread.Sleep(5000);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
         #endregion
 
         #region 9 Trade
@@ -444,6 +632,19 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private string GetGRPCErrorMessage(RpcException ex)
         {
             return string.Format("{0}: {1}", ex.Status.StatusCode, ex.Status.Detail);
+        }
+
+        private Security GetSecurity(string symbol)
+        {
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].NameId == symbol)
+                {
+                    return _securities[i];
+                }
+            }
+
+            return null;
         }
 
         //public decimal GetValue(GoogleType.Money moneyValue)
