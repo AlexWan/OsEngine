@@ -9,6 +9,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -347,6 +348,78 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        public decimal GetVolume(TradeGridLine line, BotTabSimple tab)
+        {
+            decimal volume = 0;
+            decimal volumeFromLine = line.Volume;
+            decimal priceEnterForLine = line.PriceEnter;
+
+            if (TypeVolume == TradeGridVolumeType.ContractCurrency) // "Валюта контракта"
+            {
+                decimal contractPrice = priceEnterForLine;
+                volume = Math.Round(volumeFromLine / contractPrice, tab.Security.DecimalsVolume);
+                return volume;
+            }
+            else if (TypeVolume == TradeGridVolumeType.Contracts) // кол-во контрактов
+            {
+                return line.Volume;
+            }
+            else // if (TypeVolume == Type_Volume.DepoPercent) // процент депозита
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0
+                    || portfolioPrimeAsset == 1)
+                {
+                    SendNewLogMessage("Can`t found portfolio in Deposit Percent volume mode " + TradeAssetInPortfolio, OsEngine.Logging.LogMessageType.Error);
+                    return 0;
+                }
+                decimal moneyOnPosition = portfolioPrimeAsset * (volumeFromLine / 100);
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+        }
+
         #region Log
 
         public void SendNewLogMessage(string message, LogMessageType type)
@@ -403,5 +476,6 @@ namespace OsEngine.OsTrader.Grids
             PriceExit = saveArray[3].ToDecimal();
             PositionNum = Convert.ToInt32(saveArray[4]);
         }
+
     }
 }

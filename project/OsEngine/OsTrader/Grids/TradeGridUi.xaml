@@ -31,28 +31,24 @@
                     <ComboBox Name="ComboBoxGridType" Margin="164,10,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelGridType" Content="Grid type" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelClosePositionNumber" Content="Close positions number *" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxClosePositionNumber" Margin="200,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="69"/>
-                    <Button Name="ButtonSelectPositionToClose" Content="Select" Margin="274,38,14,0" VerticalAlignment="Top" Height="23" Click="ButtonSelectPositionToClose_Click"/>
+                    <ComboBox Name="ComboBoxRegime" Margin="164,38,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelRegime" Content="Work regime" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
 
-                    <ComboBox Name="ComboBoxRegime" Margin="164,66,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelRegime" Content="Work regime" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxRegimeLogicEntry" Margin="164,66,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelRegimeLogicEntry" Content="Regime logic entry" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
 
-                    <ComboBox Name="ComboBoxRegimeLogicEntry" Margin="164,94,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelRegimeLogicEntry" Content="Regime logic entry" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxAutoClearJournal" Margin="164,94,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelAutoClearJournal" Content="Auto clear journal is on" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
 
-                    <ComboBox Name="ComboBoxAutoClearJournal" Margin="164,122,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelAutoClearJournal" Content="Auto clear journal is on" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelMaxClosePositionsInJournal" Content="Max close positions in journal" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMaxClosePositionsInJournal" Margin="234,122,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelMaxClosePositionsInJournal" Content="Max close positions in journal" HorizontalAlignment="Left" Margin="10,150,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxMaxClosePositionsInJournal" Margin="234,150,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <Label Name="LabelMaxOrdersInMarket" Content="Max orders" HorizontalAlignment="Left" Margin="10,150,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxMaxOpenOrdersInMarket" Text="5" Margin="173,150,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="40"/>
+                    <TextBox Name="TextBoxMaxCloseOrdersInMarket" Text="5" Margin="284,150,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelMaxOrdersInMarket" Content="Max orders" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxMaxOpenOrdersInMarket" Text="5" Margin="173,178,0,0" TextWrapping="Wrap" VerticalAlignment="Top" HorizontalAlignment="Left" Width="40"/>
-                    <TextBox Name="TextBoxMaxCloseOrdersInMarket" Text="5" Margin="284,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
-
-                    <Label Name="LabelMaxOpenOrdersInMarket" Content="Open:" HorizontalAlignment="Left" Margin="109,178,0,0" VerticalAlignment="Top" Width="68"/>
-                    <Label Name="LabelMaxCloseOrdersInMarket" Content="Close:" HorizontalAlignment="Left" Margin="220,178,0,0" VerticalAlignment="Top" Width="64"/>
+                    <Label Name="LabelMaxOpenOrdersInMarket" Content="Open:" HorizontalAlignment="Left" Margin="109,150,0,0" VerticalAlignment="Top" Width="68"/>
+                    <Label Name="LabelMaxCloseOrdersInMarket" Content="Close:" HorizontalAlignment="Left" Margin="220,150,0,0" VerticalAlignment="Top" Width="64"/>
 
 
                     <Button Name="ButtonLoad" Content="Load" Margin="10,0,0,38" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="124" Click="ButtonLoad_Click"/>

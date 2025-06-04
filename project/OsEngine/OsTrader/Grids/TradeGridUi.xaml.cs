@@ -6,8 +6,10 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
+using OsEngine.Market.Servers.TraderNet.Entity;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -43,9 +45,6 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxGridType.SelectedItem = tradeGrid.GridType.ToString();
             ComboBoxGridType.SelectionChanged += ComboBoxGridType_SelectionChanged;
 
-            TextBoxClosePositionNumber.Text = tradeGrid.ClosePositionNumber.ToString();
-            TextBoxClosePositionNumber.TextChanged += TextBoxClosePositionNumber_TextChanged;
-
             ComboBoxRegime.Items.Add(TradeGridRegime.Off.ToString());
             ComboBoxRegime.Items.Add(TradeGridRegime.On.ToString());
             ComboBoxRegime.Items.Add(TradeGridRegime.CloseOnly.ToString());
@@ -79,6 +78,12 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxMaxClosePositionsInJournal.Text = tradeGrid.MaxClosePositionsInJournal.ToString();
             TextBoxMaxClosePositionsInJournal.TextChanged += TextBoxMaxClosePositionsInJournal_TextChanged;
+
+            TextBoxMaxOpenOrdersInMarket.Text = tradeGrid.MaxOpenOrdersInMarket.ToString();
+            TextBoxMaxOpenOrdersInMarket.TextChanged += TextBoxMaxOrdersInMarket_TextChanged;
+
+            TextBoxMaxCloseOrdersInMarket.Text = tradeGrid.MaxCloseOrdersInMarket.ToString();
+            TextBoxMaxCloseOrdersInMarket.TextChanged += TextBoxMaxCloseOrdersInMarket_TextChanged;
 
             // non trade periods
 
@@ -127,6 +132,35 @@ namespace OsEngine.OsTrader.Grids
             TextBoxNonTradePeriod5End.Text = tradeGrid.NonTradePeriods.NonTradePeriod5End.ToString();
             TextBoxNonTradePeriod5End.TextChanged += TextBoxNonTradePeriod5End_TextChanged;
 
+            ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxNonTradePeriod1Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxNonTradePeriod1Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod1Regime.ToString();
+            ComboBoxNonTradePeriod1Regime.SelectionChanged += ComboBoxNonTradePeriod1Regime_SelectionChanged;
+
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxNonTradePeriod2Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxNonTradePeriod2Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod2Regime.ToString();
+            ComboBoxNonTradePeriod2Regime.SelectionChanged += ComboBoxNonTradePeriod2Regime_SelectionChanged;
+
+            ComboBoxNonTradePeriod3Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod3Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxNonTradePeriod3Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxNonTradePeriod3Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod3Regime.ToString();
+            ComboBoxNonTradePeriod3Regime.SelectionChanged += ComboBoxNonTradePeriod3Regime_SelectionChanged;
+
+            ComboBoxNonTradePeriod4Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod4Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxNonTradePeriod4Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxNonTradePeriod4Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod4Regime.ToString();
+            ComboBoxNonTradePeriod4Regime.SelectionChanged += ComboBoxNonTradePeriod4Regime_SelectionChanged;
+
+            ComboBoxNonTradePeriod5Regime.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxNonTradePeriod5Regime.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxNonTradePeriod5Regime.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxNonTradePeriod5Regime.SelectedItem = tradeGrid.NonTradePeriods.NonTradePeriod5Regime.ToString();
+            ComboBoxNonTradePeriod5Regime.SelectionChanged += ComboBoxNonTradePeriod5Regime_SelectionChanged;
             // trade days 
 
             ComboBoxNonTradeDaysRegime.Items.Add(TradeGridRegime.Off.ToString());
@@ -197,12 +231,6 @@ namespace OsEngine.OsTrader.Grids
 
             TextBoxLineCountStart.Text = tradeGrid.GridCreator.LineCountStart.ToString();
             TextBoxLineCountStart.TextChanged += TextBoxLineCountStart_TextChanged;
-
-            TextBoxMaxOpenOrdersInMarket.Text = tradeGrid.MaxOpenOrdersInMarket.ToString();
-            TextBoxMaxOpenOrdersInMarket.TextChanged += TextBoxMaxOrdersInMarket_TextChanged;
-
-            TextBoxMaxCloseOrdersInMarket.Text = tradeGrid.MaxCloseOrdersInMarket.ToString();
-            TextBoxMaxCloseOrdersInMarket.TextChanged += TextBoxMaxCloseOrdersInMarket_TextChanged;
 
             ComboBoxTypeStep.Items.Add(TradeGridValueType.Percent.ToString());
             ComboBoxTypeStep.Items.Add(TradeGridValueType.Absolute.ToString());
@@ -297,9 +325,12 @@ namespace OsEngine.OsTrader.Grids
             // grid table
 
             CreateGridTable();
-            UpdateGridTable();
+            RePaintGridTable();
 
             CheckEnabledItems();
+
+            Thread worker = new Thread(TableUpdateThread);
+            worker.Start();
         }
 
         private void Localization()
@@ -309,8 +340,6 @@ namespace OsEngine.OsTrader.Grids
             // settings prime
 
             LabelGridType.Content = OsLocalization.Trader.Label445;
-            LabelClosePositionNumber.Content = OsLocalization.Trader.Label446;
-            ButtonSelectPositionToClose.Content = OsLocalization.Trader.Label447;
             LabelRegime.Content = OsLocalization.Trader.Label448;
             LabelRegimeLogicEntry.Content = OsLocalization.Trader.Label449;
             LabelAutoClearJournal.Content = OsLocalization.Trader.Label451;
@@ -440,12 +469,13 @@ namespace OsEngine.OsTrader.Grids
 
         private void TradeGridUi_Closed(object sender, EventArgs e)
         {
+            _guiIsClosed = true;
+
             TradeGrid = null;
 
             try
             {
                 ComboBoxGridType.SelectionChanged -= ComboBoxGridType_SelectionChanged;
-                TextBoxClosePositionNumber.TextChanged -= TextBoxClosePositionNumber_TextChanged;
                 ComboBoxRegime.SelectionChanged -= ComboBoxRegime_SelectionChanged;
                 ComboBoxRegimeLogicEntry.SelectionChanged -= ComboBoxRegimeLogicEntry_SelectionChanged;
                 ComboBoxAutoClearJournal.SelectionChanged -= ComboBoxAutoClearJournal_SelectionChanged;
@@ -520,6 +550,7 @@ namespace OsEngine.OsTrader.Grids
                     DataGridFactory.ClearLinks(_gridDataGrid);
                     _gridDataGrid.DataError -= _gridDataGrid_DataError;
                     _gridDataGrid.CellValueChanged -= EventChangeValueInTable;
+                    _gridDataGrid.CellClick -= _gridDataGrid_CellClick;
                     _gridDataGrid.Rows.Clear();
                     _gridDataGrid = null;
                     HostGridTable = null;
@@ -530,6 +561,8 @@ namespace OsEngine.OsTrader.Grids
                 // ignore
             }
         }
+
+        private bool _guiIsClosed;
 
         public TradeGrid TradeGrid;
 
@@ -914,7 +947,7 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 TradeGrid.CreateNewGridSafe();
-                UpdateGridTable();
+                RePaintGridTable();
             }
             catch (Exception ex)
             {
@@ -927,7 +960,7 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 TradeGrid.DeleteGrid();
-                UpdateGridTable();
+                RePaintGridTable();
             }
             catch (Exception ex)
             {
@@ -940,7 +973,7 @@ namespace OsEngine.OsTrader.Grids
             try
             {
                 TradeGrid.CreateNewLine();
-                UpdateGridTable();
+                RePaintGridTable();
             }
             catch (Exception ex)
             {
@@ -968,7 +1001,7 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 TradeGrid.RemoveSelected(numbers);
-                UpdateGridTable();
+                RePaintGridTable();
             }
             catch (Exception ex)
             {
@@ -981,6 +1014,23 @@ namespace OsEngine.OsTrader.Grids
         #region Grid paint in table
 
         private DataGridView _gridDataGrid;
+
+        private void TableUpdateThread()
+        {
+            while(true)
+            {
+                try
+                {
+                    Thread.Sleep(1000);
+                    TryUpdateGridTable();
+
+                }
+                catch (Exception ex)
+                {
+                    TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
+            }
+        }
 
         private void CreateGridTable()
         {
@@ -1035,20 +1085,27 @@ namespace OsEngine.OsTrader.Grids
 
                 DataGridViewColumn newColumn5 = new DataGridViewColumn();
                 newColumn5.CellTemplate = cellParam0;
-                newColumn5.HeaderText = "Direction";
+                newColumn5.HeaderText = "Volume real";
                 _gridDataGrid.Columns.Add(newColumn5);
                 newColumn5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 DataGridViewColumn newColumn6 = new DataGridViewColumn();
                 newColumn6.CellTemplate = cellParam0;
-                newColumn6.HeaderText = "Select";
+                newColumn6.HeaderText = "Direction";
                 _gridDataGrid.Columns.Add(newColumn6);
                 newColumn6.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+                DataGridViewColumn newColumn7 = new DataGridViewColumn();
+                newColumn7.CellTemplate = cellParam0;
+                newColumn7.HeaderText = "Select";
+                _gridDataGrid.Columns.Add(newColumn7);
+                newColumn7.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
 
                 HostGridTable.Child = _gridDataGrid;
 
                 _gridDataGrid.DataError += _gridDataGrid_DataError;
                 _gridDataGrid.CellValueChanged += EventChangeValueInTable;
+                _gridDataGrid.CellClick += _gridDataGrid_CellClick;
             }
             catch (Exception ex)
             {
@@ -1056,15 +1113,22 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        private void UpdateGridTable()
+        private void RePaintGridTable()
         {
             try
             {
-                if (_gridDataGrid.InvokeRequired)
+                if(_gridDataGrid == null)
                 {
-                    _gridDataGrid.Invoke(new Action(UpdateGridTable));
                     return;
                 }
+
+                if (_gridDataGrid.InvokeRequired)
+                {
+                    _gridDataGrid.Invoke(new Action(RePaintGridTable));
+                    return;
+                }
+
+                _tableIsRePainted = true;
 
                 _gridDataGrid.CellValueChanged -= EventChangeValueInTable;
                 _gridDataGrid.Rows.Clear();
@@ -1079,9 +1143,18 @@ namespace OsEngine.OsTrader.Grids
                     rowLine.Cells[0].Value = i + 1;
                     rowLine.Cells[0].ReadOnly = true;
 
-                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
-                    rowLine.Cells[1].Value = curLine.PositionNum;
-                    rowLine.Cells[1].ReadOnly = true;
+                    if(curLine.PositionNum == -1)
+                    {
+                        rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                        rowLine.Cells[1].Value = "_";
+                        rowLine.Cells[1].ReadOnly = true;
+                    }
+                    else
+                    {
+                        DataGridViewButtonCell buttonCell = new DataGridViewButtonCell();
+                        buttonCell.Value = curLine.PositionNum;
+                        rowLine.Cells.Add(buttonCell);
+                    }
 
                     rowLine.Cells.Add(new DataGridViewTextBoxCell());
                     rowLine.Cells[2].Value = Math.Round(curLine.PriceEnter, 10);
@@ -1096,17 +1169,108 @@ namespace OsEngine.OsTrader.Grids
                     rowLine.Cells[4].ReadOnly = false;
 
                     rowLine.Cells.Add(new DataGridViewTextBoxCell());
-                    rowLine.Cells[5].Value = curLine.Side;
+
+                    if(curLine.Position != null)
+                    {
+                        rowLine.Cells[5].Value = curLine.Position.OpenVolume;
+                    }
+                    else
+                    {
+                        rowLine.Cells[5].Value = "0";
+                    }
+
                     rowLine.Cells[5].ReadOnly = true;
 
+                    rowLine.Cells.Add(new DataGridViewTextBoxCell());
+                    rowLine.Cells[6].Value = curLine.Side;
+                    rowLine.Cells[6].ReadOnly = true;
+
                     rowLine.Cells.Add(new DataGridViewCheckBoxCell());
-                    rowLine.Cells[6].Value = CheckState.Unchecked;
-                    rowLine.Cells[6].ReadOnly = false;
+                    rowLine.Cells[7].Value = CheckState.Unchecked;
+                    rowLine.Cells[7].ReadOnly = false;
 
                     _gridDataGrid.Rows.Add(rowLine);
                 }
 
                 _gridDataGrid.CellValueChanged += EventChangeValueInTable;
+                
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
+            _tableIsRePainted = false;
+        }
+
+        private bool _tableIsRePainted = false;
+
+        private void TryUpdateGridTable()
+        {
+            try
+            {
+                if (_tableIsRePainted)
+                {
+                    return;
+                }
+
+                if (_gridDataGrid == null)
+                {
+                    return;
+                }
+
+
+                if (_gridDataGrid.InvokeRequired)
+                {
+                    _gridDataGrid.Invoke(new Action(TryUpdateGridTable));
+                    return;
+                }
+
+                List<TradeGridLine> lines = TradeGrid.GridCreator.Lines;
+
+                if (lines.Count != _gridDataGrid.Rows.Count)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < lines.Count; i++)
+                {
+                    TradeGridLine curLine = lines[i];
+
+                    DataGridViewRow rowLine = _gridDataGrid.Rows[i];
+
+                    if (curLine.Position == null)
+                    {
+                        if (rowLine.Cells[1].Value.ToString() != "_")
+                        {
+                            rowLine.Cells[1] = new DataGridViewTextBoxCell();
+                            rowLine.Cells[1].Value = "_";
+                        }
+                    }
+                    else
+                    {
+                        if (rowLine.Cells[1].Value.ToString() != curLine.PositionNum.ToString())
+                        {
+                            rowLine.Cells[1] = new DataGridViewButtonCell();
+                            
+                            rowLine.Cells[1].Value = curLine.PositionNum.ToString();
+                        }
+                    }
+
+                    if (curLine.Position == null)
+                    {
+                        if (rowLine.Cells[5].Value.ToString() != "0")
+                        {
+                            rowLine.Cells[5].Value = "0";
+                        }
+                    }
+                    else
+                    {
+                        if (rowLine.Cells[5].Value.ToString() != curLine.Position.OpenVolume.ToString())
+                        {
+                            rowLine.Cells[5].Value = curLine.Position.OpenVolume.ToString();
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1120,11 +1284,38 @@ namespace OsEngine.OsTrader.Grids
             {
                 List<TradeGridLine> Lines = TradeGrid.GridCreator.Lines;
 
+                bool needToSave = false;
+
                 for (int i = 0; i < Lines.Count; i++)
                 {
-                    Lines[i].PriceEnter = _gridDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
-                    Lines[i].PriceExit = _gridDataGrid.Rows[i].Cells[3].Value.ToString().ToDecimal();
-                    Lines[i].Volume = _gridDataGrid.Rows[i].Cells[4].Value.ToString().ToDecimal();
+                    decimal priceEntry = _gridDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
+
+                    if(Lines[i].PriceEnter != priceEntry)
+                    {
+                        Lines[i].PriceEnter = priceEntry;
+                        needToSave = true;
+                    }
+                    
+                    decimal priceExit = _gridDataGrid.Rows[i].Cells[3].Value.ToString().ToDecimal();
+
+                    if(Lines[i].PriceExit != priceExit)
+                    {
+                        Lines[i].PriceExit = priceExit;
+                        needToSave = true;
+                    }
+                   
+                    decimal volume = _gridDataGrid.Rows[i].Cells[4].Value.ToString().ToDecimal();
+
+                    if(Lines[i].Volume != volume)
+                    {
+                        Lines[i].Volume = volume;
+                        needToSave = true;
+                    }
+                }
+
+                if(needToSave == true)
+                {
+                    TradeGrid.Save();
                 }
             }
             catch (Exception ex)
@@ -1138,6 +1329,43 @@ namespace OsEngine.OsTrader.Grids
         private void _gridDataGrid_DataError(object sender, DataGridViewDataErrorEventArgs e)
         {
             TradeGrid.SendNewLogMessage(e.Exception.ToString(), OsEngine.Logging.LogMessageType.Error);
+        }
+
+        private void _gridDataGrid_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
+
+                if(row >= _gridDataGrid.Rows.Count)
+                {
+                    return;
+                }
+
+                if (column == 1)
+                {
+                    if (_gridDataGrid.Rows[row].Cells[column].Value == null)
+                    {
+                        return;
+                    }
+
+                    int number = Convert.ToInt32(_gridDataGrid.Rows[row].Cells[column].Value.ToString());
+
+                    Position pos = TradeGrid.Tab._journal.GetPositionForNumber(number);
+
+                    if (pos != null)
+                    {
+                        PositionUi ui = new PositionUi(pos, TradeGrid.StartProgram);
+                        ui.ShowDialog();
+                        return;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), OsEngine.Logging.LogMessageType.Error);
+            }
         }
 
         #endregion
@@ -1465,6 +1693,19 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void ComboBoxNonTradePeriod1Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxNonTradePeriod1Regime.SelectedItem.ToString(), out TradeGrid.NonTradePeriods.NonTradePeriod1Regime);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void CheckBoxNonTradePeriod2OnOff_Checked(object sender, RoutedEventArgs e)
         {
             TradeGrid.NonTradePeriods.NonTradePeriod2OnOff = CheckBoxNonTradePeriod2OnOff.IsChecked.Value;
@@ -1504,6 +1745,21 @@ namespace OsEngine.OsTrader.Grids
             catch
             {
                 // ignore
+            }
+        }
+
+        private void ComboBoxNonTradePeriod2Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxNonTradePeriod2Regime.SelectedItem.ToString(), 
+                    out TradeGrid.NonTradePeriods.NonTradePeriod2Regime);
+
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1556,6 +1812,21 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void ComboBoxNonTradePeriod3Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxNonTradePeriod3Regime.SelectedItem.ToString(),
+                    out TradeGrid.NonTradePeriods.NonTradePeriod3Regime);
+
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void CheckBoxNonTradePeriod4OnOff_Checked(object sender, RoutedEventArgs e)
         {
             try
@@ -1605,6 +1876,21 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void ComboBoxNonTradePeriod4Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxNonTradePeriod4Regime.SelectedItem.ToString(),
+                    out TradeGrid.NonTradePeriods.NonTradePeriod4Regime);
+
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void CheckBoxNonTradePeriod5OnOff_Checked(object sender, RoutedEventArgs e)
         {
             try
@@ -1651,6 +1937,21 @@ namespace OsEngine.OsTrader.Grids
             catch
             {
                 // ignore
+            }
+        }
+
+        private void ComboBoxNonTradePeriod5Regime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxNonTradePeriod5Regime.SelectedItem.ToString(),
+                    out TradeGrid.NonTradePeriods.NonTradePeriod5Regime);
+
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 
@@ -1708,30 +2009,13 @@ namespace OsEngine.OsTrader.Grids
             {
                 Enum.TryParse(ComboBoxRegime.SelectedItem.ToString(), out TradeGrid.Regime);
                 TradeGrid.Save();
+                TradeGrid.RePaintMainGrid();
 
                 CheckEnabledItems();
             }
             catch (Exception ex)
             {
                 TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void TextBoxClosePositionNumber_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            try
-            {
-                if(string.IsNullOrEmpty(TextBoxClosePositionNumber.Text)) 
-                { 
-                    return; 
-                }
-
-                TradeGrid.ClosePositionNumber = Convert.ToInt32(TextBoxClosePositionNumber.Text);
-                TradeGrid.Save();
-            }
-            catch
-            {
-                // ignore
             }
         }
 
@@ -1745,17 +2029,62 @@ namespace OsEngine.OsTrader.Grids
 
         private void ButtonStart_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                if(TradeGrid.Regime != TradeGridRegime.On)
+                {
+                    TradeGrid.SendNewLogMessage("User start grid manually. Regime ON", Logging.LogMessageType.User);
 
+                    TradeGrid.Regime = TradeGridRegime.On;
+                    TradeGrid.Save();
+                    TradeGrid.RePaintMainGrid();
+                    CheckEnabledItems();
+                }
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonStop_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                if (TradeGrid.Regime != TradeGridRegime.Off)
+                {
+                    TradeGrid.SendNewLogMessage("User stop grid manually. Regime Off", Logging.LogMessageType.User);
 
+                    TradeGrid.Regime = TradeGridRegime.Off;
+                    TradeGrid.Save();
+                    TradeGrid.RePaintMainGrid();
+                    CheckEnabledItems();
+                }
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonClose_Click(object sender, RoutedEventArgs e)
         {
+            try
+            {
+                if (TradeGrid.Regime != TradeGridRegime.CloseForced)
+                {
+                    TradeGrid.SendNewLogMessage("User close grid manually. Regime CloseForced", Logging.LogMessageType.User);
 
+                    TradeGrid.Regime = TradeGridRegime.CloseForced;
+                    TradeGrid.Save();
+                    TradeGrid.RePaintMainGrid();
+                    CheckEnabledItems();
+                }
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void ButtonLoad_Click(object sender, RoutedEventArgs e)
@@ -1800,7 +2129,7 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                TradeGrid.MaxOpenOrdersInMarket = Convert.ToInt32(TextBoxMaxCloseOrdersInMarket.Text);
+                TradeGrid.MaxCloseOrdersInMarket = Convert.ToInt32(TextBoxMaxCloseOrdersInMarket.Text);
                 TradeGrid.Save();
             }
             catch

@@ -35,7 +35,7 @@ namespace OsEngine.OsTrader.Grids
         public bool NonTradePeriod1OnOff;
         public TimeOfDay NonTradePeriod1Start;
         public TimeOfDay NonTradePeriod1End;
-        public TradeGridRegime NonTradePeriod1Regime;
+        public TradeGridRegime NonTradePeriod1Regime; 
 
         public bool NonTradePeriod2OnOff;
         public TimeOfDay NonTradePeriod2Start;
