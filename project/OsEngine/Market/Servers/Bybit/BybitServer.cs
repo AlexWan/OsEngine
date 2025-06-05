@@ -35,6 +35,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum(OsLocalization.Market.Label1, Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(), Net_type.Demo.ToString() });
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
+            CreateParameterString("Leverage", "");
         }
     }
 
@@ -117,6 +118,8 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     _hedgeMode = false;
                 }
+
+                _leverage = ((ServerParameterString)ServerParameters[5]).Value.Replace(",", ".");
 
                 if (!CheckApiKeyInformation(PublicKey))
                 {
@@ -327,6 +330,8 @@ namespace OsEngine.Market.Servers.Bybit
         private MarginMode margineMode;
 
         private bool _hedgeMode;
+
+        private string _leverage;
 
         private List<string> _listLinearCurrency = new List<string>() { "USDC", "USDT" };
 
@@ -2016,6 +2021,8 @@ namespace OsEngine.Market.Servers.Bybit
                             SubscribeSecurityLinear.Add(security.Name);
                         }
                     }
+
+                    SetLeverage(security);
                 }
                 else if (security.Name.EndsWith(".I"))
                 {
@@ -4023,6 +4030,30 @@ namespace OsEngine.Market.Servers.Bybit
             byte[] signature = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
 
             return BitConverter.ToString(signature).Replace("-", "").ToLower();
+        }
+
+        private void SetLeverage(Security security)
+        {
+            try
+            {
+                if (_leverage == "")
+                {
+                    return;
+                }
+
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs.Clear();
+                parametrs["category"] = Category.linear.ToString();
+                parametrs["symbol"] = security.Name.Split(".")[0];
+                parametrs["buyLeverage"] = _leverage;
+                parametrs["sellLeverage"] = _leverage;
+
+                CreatePrivateQuery(parametrs, HttpMethod.Post, "/v5/position/set-leverage");
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"SetLeverage: {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
         #endregion 12
