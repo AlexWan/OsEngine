@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Market.Servers;
@@ -7,54 +12,85 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+
+Buy:
+Three growing candles in a row.
+Sma does not fall.
+Volatility of three candles > HeightSoldiers.
+Volatility of each candle > MinHeightOneSoldier.
+
+Exit:
+Close at trailing stop: stop price = Close last candle - TrailingStopReal.
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     [Bot("Lesson7Bot1")]
     public class Lesson7Bot1 : BotPanel
     {
-        StrategyParameterString _regime;
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterTimeOfDay _startTradeTime;
-        StrategyParameterTimeOfDay _endTradeTime;
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        StrategyParameterInt _daysVolatilityAdaptive;
-        StrategyParameterDecimal _commonHeightSoldiers;
-        StrategyParameterDecimal _oneHeightSoldier;
-        StrategyParameterDecimal _trailingStopMult;
-        StrategyParameterInt _smaLen;
-        StrategyParameterDecimal HeightSoldiers;
-        StrategyParameterDecimal MinHeightOneSoldier;
-        StrategyParameterDecimal TrailingStopReal;
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        BotTabSimple _tabToTrade;
+        // variables that are needed to calculate volatility and variables
+        private StrategyParameterInt _daysVolatilityAdaptive;
+        private StrategyParameterDecimal _commonHeightSoldiers;
+        private StrategyParameterDecimal _oneHeightSoldier;
+        private StrategyParameterDecimal _trailingStopMult;
+
+        //Sma settings
+        private StrategyParameterInt _smaLen;
+
+        // service fields for values.
+        private StrategyParameterDecimal HeightSoldiers;
+        private StrategyParameterDecimal MinHeightOneSoldier;
+        private StrategyParameterDecimal TrailingStopReal;
 
         public Lesson7Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
-
+           
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-            _smaLen = CreateParameter("Sma len", 150, 20, 300, 5);
             _startTradeTime = CreateParameterTimeOfDay("Start trade time", 11, 0, 0, 0);
             _endTradeTime = CreateParameterTimeOfDay("End trade time", 18, 0, 0, 0);
 
-            // переменные которые нужны для расчёта волатильности и переменных
-            _daysVolatilityAdaptive = CreateParameter("Volatility days average", 4, 2, 8, 1);
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            //Sma settings
+            _smaLen = CreateParameter("Sma len", 150, 20, 300, 5);
+
+            // variables that are needed to calculate volatility and variables
+            _daysVolatilityAdaptive = CreateParameter("Volatility days average", 4, 2, 8, 1); // number of days we count volatility
             _commonHeightSoldiers = CreateParameter("Height all soldiers", 60m, 10, 80, 5);
             _oneHeightSoldier = CreateParameter("Height one soldier", 10m, 10, 80, 5);
             _trailingStopMult = CreateParameter("Trail stop mult", 140m, 10, 180, 5);
 
-            // сервисные поля для значений.
+            // service fields for values.
             HeightSoldiers = CreateParameter("Height soldiers", 1, 0, 20, 1m);
             MinHeightOneSoldier = CreateParameter("Min height one soldier", 0.2m, 0, 20, 1m);
             TrailingStopReal = CreateParameter("Trail stop real", 0.2m, 0, 20, 1m);
+
+            // Subscribe to the candle finished event
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy: Three growing candles in a row. Sma does not fall. Volatility of three candles > HeightSoldiers. Volatility of each candle > MinHeightOneSoldier." +
+                "Exit: Close at trailing stop: stop price = Close last candle - TrailingStopReal.";
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
@@ -71,7 +107,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             if (_startTradeTime.Value > candles[candles.Count - 1].TimeStart
                 ||
                  _endTradeTime.Value < candles[candles.Count - 1].TimeStart)
-            {// ограничивает время работы алгоритма
+            {// limits the algorithm’s uptime
                 return;
             }
 
@@ -85,15 +121,15 @@ namespace OsEngine.Robots.BotsFromStartLessons
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
             if (positions.Count == 0)
-            { // проверяем условия для открытия
+            { // check the opening conditions
 
                 Candle candleFirst = candles[candles.Count - 1];
                 Candle candleSecond = candles[candles.Count - 2];
-                Candle candleFird = candles[candles.Count - 3];
+                Candle candleThird = candles[candles.Count - 3];
 
                 if (candleFirst.IsDown
                     || candleSecond.IsDown
-                    || candleFird.IsDown)
+                    || candleThird.IsDown)
                 {
                     return;
                 }
@@ -106,39 +142,39 @@ namespace OsEngine.Robots.BotsFromStartLessons
                     return;
                 }
 
-                decimal _lastPrice = candles[candles.Count - 1].Close;
+                decimal _lastPrice = candleFirst.Close;
 
-                if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 1].Close)
-                    / (candles[candles.Count - 1].Close / 100) < HeightSoldiers.ValueDecimal)
+                if (Math.Abs(candleThird.Open - candleFirst.Close)
+                    / (candleFirst.Close / 100) < HeightSoldiers.ValueDecimal)
                 {
                     return;
                 }
 
-                if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 3].Close)
-                    / (candles[candles.Count - 3].Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                if (Math.Abs(candleThird.Open - candleThird.Close)
+                    / (candleThird.Close / 100) < MinHeightOneSoldier.ValueDecimal)
                 {
                     return;
                 }
 
-                if (Math.Abs(candles[candles.Count - 2].Open - candles[candles.Count - 2].Close)
-                    / (candles[candles.Count - 2].Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                if (Math.Abs(candleSecond.Open - candleSecond.Close)
+                    / (candleSecond.Close / 100) < MinHeightOneSoldier.ValueDecimal)
                 {
                     return;
                 }
 
-                if (Math.Abs(candles[candles.Count - 1].Open - candles[candles.Count - 1].Close)
-                    / (candles[candles.Count - 1].Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                if (Math.Abs(candleFirst.Open - candleFirst.Close)
+                    / (candleFirst.Close / 100) < MinHeightOneSoldier.ValueDecimal)
                 {
                     return;
                 }
 
-                // здесь надо покупать. Все фильтры пройдены
-
+                // you need to buy here. All filters passed
+                
                 decimal volume = GetVolume(_tabToTrade);
                 _tabToTrade.BuyAtMarket(volume);
             }
             else
-            { // выставляем трейлинг стоп
+            { // Close At Trailing Stop
 
                 decimal stopPrice = candles[candles.Count - 1].Close - TrailingStopReal.ValueDecimal;
                 _tabToTrade.CloseAtTrailingStopMarket(positions[0], stopPrice);
@@ -152,7 +188,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            // 1 рассчитываем движение от хая до лоя внутри N дней
+            // 1) calculate the movement from high to low within N days
 
             decimal minValueInDay = decimal.MaxValue;
             decimal maxValueInDay = decimal.MinValue;
@@ -211,7 +247,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            // 2 усредняем это движение. Нужна усреднённая волатильность. процент
+            // 2) averaging this movement. Average volatility is needed. Percent
 
             decimal volaPercentSma = 0;
 
@@ -222,7 +258,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             volaPercentSma = volaPercentSma / volaInDaysPercent.Count;
 
-            // 3 считаем размер свечей с учётом этой волатильности
+            // 3) we calculate the size of the candles taking into account this volatility
 
             decimal allSoldiersHeight = volaPercentSma * (_commonHeightSoldiers.ValueDecimal / 100);
             decimal oneSoldiersHeight = volaPercentSma * (_oneHeightSoldier.ValueDecimal / 100);
