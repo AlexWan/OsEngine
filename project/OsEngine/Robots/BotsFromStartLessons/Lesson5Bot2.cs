@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -8,72 +13,97 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+
+Buy:
+if alligator lips > teeth > jaw (lips - fast, teeth - medium, jaw - slow),
+additional open if last value AO > previous value AO and previous value AO > previous previous value AO.
+
+Exit: Close At Trailing Stop Market.
+*/
 
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     [Bot("Lesson5Bot2")]
     public class Lesson5Bot2 : BotPanel
     {
-        BotTabSimple _tabToTrade;
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterString _regime;
+        // Basic settings
+        private StrategyParameterString _mode;
 
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        StrategyParameterInt _lengthJaw;
-        StrategyParameterInt _lengthTeeth;
-        StrategyParameterInt _lengthLips;
+        // Indicator alligator settings
+        private StrategyParameterInt _lengthJaw;
+        private StrategyParameterInt _lengthTeeth;
+        private StrategyParameterInt _lengthLips;
 
-        StrategyParameterInt _lengthPriceChannel;
+        // Indicator priceChannel setting
+        private StrategyParameterInt _lengthPriceChannel;
 
-        StrategyParameterInt _lengthFastLineAO;
-        StrategyParameterInt _lengthSlowLineAO;
+        // Indicator AO lengthFastLine and lengthSlowLine settings
+        private StrategyParameterInt _lengthFastLineAO;
+        private StrategyParameterInt _lengthSlowLineAO;
 
-        Aindicator _alligator;
-        Aindicator _priceChannel;
-        Aindicator _aO;
+        // Indicators
+        private Aindicator _alligator;
+        private Aindicator _priceChannel;
+        private Aindicator _aO;
 
         public Lesson5Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            // Basic settings
+            _mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
 
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Alligator settings
             _lengthJaw = CreateParameter("Alligator Jaw", 13, 10, 100, 2);
             _lengthTeeth = CreateParameter("Alligator Teeth", 8, 8, 100, 2);
             _lengthLips = CreateParameter("Alligator Lips", 5, 10, 100, 2);
 
+            // lengthPrice setting
             _lengthPriceChannel = CreateParameter("Length price channel", 21, 10, 100, 2);
 
+            // AO settings
             _lengthFastLineAO = CreateParameter("AO fast line", 5, 10, 100, 2);
             _lengthSlowLineAO = CreateParameter("AO slow line", 32, 10, 100, 2);
 
+            // Create indicator Alligator
             _alligator = IndicatorsFactory.CreateIndicatorByName("Alligator", name + "Alligator", false);
             _alligator = (Aindicator)_tabToTrade.CreateCandleIndicator(_alligator, "Prime");
             _alligator.ParametersDigit[0].Value = _lengthJaw.ValueInt;
             _alligator.ParametersDigit[1].Value = _lengthTeeth.ValueInt;
             _alligator.ParametersDigit[2].Value = _lengthLips.ValueInt;
 
+            // Create indicator PriceChannel
             _priceChannel = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
             _priceChannel = (Aindicator)_tabToTrade.CreateCandleIndicator(_priceChannel, "Prime");
             _priceChannel.ParametersDigit[0].Value = _lengthPriceChannel.ValueInt;
             _priceChannel.ParametersDigit[1].Value = _lengthPriceChannel.ValueInt;
 
+            // Create indicator AO
             _aO = IndicatorsFactory.CreateIndicatorByName("AO", name + "AO", false);
             _aO = (Aindicator)_tabToTrade.CreateCandleIndicator(_aO, "AreaAO");
             _aO.ParametersDigit[0].Value = _lengthFastLineAO.ValueInt;
             _aO.ParametersDigit[1].Value = _lengthSlowLineAO.ValueInt;
-
+            
+            // Subscribe handler to track robot parameter changes
             ParametrsChangeByUser += Lesson5Bot2_ParametrsChangeByUser;
 
+            // Subscribe to the candle finished event
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
         }
 
         private void Lesson5Bot2_ParametrsChangeByUser()
@@ -97,9 +127,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
+            // called on each new candle
 
-            if (_regime.ValueString == "Off")
+            if (_mode.ValueString == "Off")
             {
                 return;
             }
@@ -111,32 +141,32 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
-            if (positions.Count == 0) // позиций нет. Правда!
-            { // логика открытия позиции
+            if (positions.Count == 0) // no positions. True!
+            { // opening position
 
-                decimal jaw = _alligator.DataSeries[0].Last;   // Длинная
-                decimal teeth = _alligator.DataSeries[1].Last; // Средняя
-                decimal lips = _alligator.DataSeries[2].Last;  // Короткая
+                decimal jaw = _alligator.DataSeries[0].Last;   // Long
+                decimal teeth = _alligator.DataSeries[1].Last; // Medium
+                decimal lips = _alligator.DataSeries[2].Last;  // Short
 
                 if (jaw == 0
-                    || // Оператор ИЛИ
+                    || // Operator OR
                     teeth == 0
                     || lips == 0)
-                {// Если что-то одно правда - выходим из метода. Индикатор не готов
+                {// If something is true - exit the method. Indicator not ready
                     return;
                 }
 
                 if (lips > teeth
-                    && // Оператор И
+                    && // Operator AND
                     teeth > jaw)
-                {// Если оба выражения правда - входим в позицию
+                {// If both expressions are true, enter the position
 
                     decimal volume = GetVolume(_tabToTrade);
                     _tabToTrade.BuyAtMarket(volume);
                 }
             }
-            else if (positions[0].OpenOrders.Count == 1) // ордер на открытие только один. Правда!
-            { // дооткрытие
+            else if (positions[0].OpenOrders.Count == 1) // order to open only one. True!
+            { // additional open
 
                 decimal lastAO = _aO.DataSeries[0].Values[_aO.DataSeries[0].Values.Count - 1];
                 decimal prevAO = _aO.DataSeries[0].Values[_aO.DataSeries[0].Values.Count - 2];
@@ -157,9 +187,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 }
             }
 
-            if (positions.Count == 1) // есть открытая позиция
+            if (positions.Count == 1) // position is open
             {
-                // подтягиваем трейлинг стоп
+                // use trailling stop
 
                 decimal pcLow = _priceChannel.DataSeries[1].Last;
 

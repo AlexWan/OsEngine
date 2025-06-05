@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -8,57 +13,93 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+
+Buy:
+1) Buy At Stop when the price breaks the upper Bollinger Band.
+2) Add a second position: Buy At Stop at EntryPrice + ATR × MultOne.
+3) Add a third position: Buy At Stop at EntryPrice + ATR × MultTwo.
+
+Sell:
+Close all positions using a Trailing Stop along the lower Bollinger Band.
+*/
+
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     [Bot("Lesson6Bot1")]
     public class Lesson6Bot1 : BotPanel
     {
-        BotTabSimple _tabToTrade;
+        private BotTabSimple _tabToTrade;
+        
+        // Basic settings
+        private StrategyParameterString _regime;
 
-        StrategyParameterString _regime;
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
+        // Indicator Bollinger settings
+        private StrategyParameterInt _lengthBollinger;
+        private StrategyParameterDecimal _bollingerDeviation;
 
-        StrategyParameterInt _lengthBollinger;
-        StrategyParameterDecimal _bollingerDeviation;
-        StrategyParameterInt _atrLength;
+        // Indicator atr settings
+        private StrategyParameterInt _atrLength;
 
-        StrategyParameterDecimal _multOne;
-        StrategyParameterDecimal _multTwo;
+        // Indicator Bollinger settings
+        private StrategyParameterDecimal _multOne;
+        private StrategyParameterDecimal _multTwo;
 
-        Aindicator _bollinger;
-        Aindicator _atr;
+        // Indicators
+        private Aindicator _bollinger;
+        private Aindicator _atr;
 
         public Lesson6Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
-
+            
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
             _multOne = CreateParameter("Mult 1", 0.5m, 1.0m, 50, 4);
             _multTwo = CreateParameter("Mult 2", 1, 1.0m, 50, 4);
 
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Indicator Bollinger settings
             _lengthBollinger = CreateParameter("Bollinger len", 21, 10, 100, 2);
             _bollingerDeviation = CreateParameter("Bollinger deviation", 1.5m, 10, 100, 2);
 
+            // Indicator atr settings
             _atrLength = CreateParameter("Length ATR", 14, 10, 100, 2);
 
+            // Create indicator Bollinger 
             _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
             _bollinger = (Aindicator)_tabToTrade.CreateCandleIndicator(_bollinger, "Prime");
             _bollinger.ParametersDigit[0].Value = _lengthBollinger.ValueInt;
             _bollinger.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
 
+            // Create indicator atr 
             _atr = IndicatorsFactory.CreateIndicatorByName("ATR", name + "ATR", false);
             _atr = (Aindicator)_tabToTrade.CreateCandleIndicator(_atr, "Atr Area");
             _atr.ParametersDigit[0].Value = _atrLength.ValueInt;
 
-            this.ParametrsChangeByUser += Lesson6Bot1_ParametrsChangeByUser;
+            // Subscribe handler to track robot parameter changes
+            ParametrsChangeByUser += Lesson6Bot1_ParametrsChangeByUser;
+
+            // Subscribe to the candle finished event
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy:1) Buy At Stop when the price breaks the upper Bollinger Band." +
+                "2) Add a second position: Buy At Stop at EntryPrice + ATR × MultOne." +
+                "3) Add a third position: Buy At Stop at EntryPrice + ATR × MultTwo." +
+                "Sell:Close all positions using a Trailing Stop along the lower Bollinger Band.";
         }
 
         private void Lesson6Bot1_ParametrsChangeByUser()
@@ -75,7 +116,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
+            // called on each new candle
 
             if (_regime.ValueString == "Off")
             {
@@ -89,8 +130,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
-            if (positions.Count == 0) // позиций нет. Правда!
-            { // логика открытия первой позиции
+            if (positions.Count == 0) // no positions. True!
+            { // opening the first position
 
                 decimal bollingerUpLine = _bollinger.DataSeries[0].Last;
 
@@ -104,7 +145,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 _tabToTrade.BuyAtStop(volume, bollingerUpLine, bollingerUpLine, StopActivateType.HigherOrEqual);
             }
             else if (positions.Count == 1)
-            { // логика открытия второй позиции
+            { // opening the second position
                 decimal entryPriceFirstPosition = positions[0].EntryPrice;
 
                 decimal atrValue = _atr.DataSeries[0].Last;
@@ -121,7 +162,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 _tabToTrade.BuyAtStop(volume, newEntryPrice, newEntryPrice, StopActivateType.HigherOrEqual);
             }
             else if (positions.Count == 2)
-            { // логика открытия третей позиции
+            { // opening third position
                 decimal entryPriceFirstPosition = positions[0].EntryPrice;
 
                 decimal atrValue = _atr.DataSeries[0].Last;
@@ -139,7 +180,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             }
 
             if (positions.Count > 0)
-            { // уставливаем трейлинг стоп на все позиции
+            { // We arrange the trailing stop on all positions
 
                 decimal bollingerDownLine = _bollinger.DataSeries[1].Last;
 

@@ -20,12 +20,18 @@ trading robot for osengine
 
 The trend robot on Devergence Rsi.
 
-Buy:
-1. The lows on the chart are decreasing, but on the indicator they are growing.
-Sell:
-1. The highs on the chart are rising, and on the indicator they are decreasing.
+Buy conditions:
+1. Price forms lower lows on the chart (zzLowOne < zzLowTwo),
+2. RSI forms higher lows (zzRsiLowOne > zzRsiLowTwo),
+3. Divergence occurs before the last RSI high (indexTwo < indexHigh).
 
-Exit: after a certain number of candles.
+Sell conditions:
+1. Price forms higher highs on the chart (zzHighOne > zzHighTwo),
+2. RSI forms lower highs (zzRsiHighOne < zzRsiHighTwo),
+3. Divergence occurs before the last RSI low (indexTwo < indexLow).
+
+Exit:
+The robot exits the position after a predefined number of candles.
 */
 
 namespace OsEngine.Robots.AO
@@ -75,7 +81,7 @@ namespace OsEngine.Robots.AO
 
             // Indicator Settings
             _periodZigZag = CreateParameter("Period ZigZag", 10, 10, 300, 10, "Indicator");
-            _periodRsi = CreateParameter("Period CCI", 10, 10, 300, 10, "Indicator");
+            _periodRsi = CreateParameter("Period RSI", 10, 10, 300, 10, "Indicator");
 
             // Create indicator ZigZag
             _zigZag = IndicatorsFactory.CreateIndicatorByName("ZigZag", name + "ZigZag", false);
@@ -99,12 +105,14 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Devergence Rsi. " +
-                "Buy: " +
-                "1. The lows on the chart are decreasing, but on the indicator they are growing. " +
-                "Sell: " +
-                "1. The highs on the chart are rising, and on the indicator they are decreasing. " +
-                "Exit: after a certain number of candles.";
+            Description = "The trend robot on Devergence Rsi." +
+                "Buy conditions:1. Price forms lower lows on the chart (zzLowOne < zzLowTwo)," +
+                "2. RSI forms higher lows (zzRsiLowOne > zzRsiLowTwo)," +
+                "3. Divergence occurs before the last RSI high (indexTwo < indexHigh)." +
+                "Sell conditions:1. Price forms higher highs on the chart (zzHighOne > zzHighTwo)," +
+                "2. RSI forms lower highs (zzRsiHighOne < zzRsiHighTwo)," +
+                "3. Divergence occurs before the last RSI low (indexTwo < indexLow)." +
+                "Exit:The robot exits the position after a predefined number of candles.";
         }
 
         private void DevergenceRsi_ParametrsChangeByUser()
@@ -237,11 +245,11 @@ namespace OsEngine.Robots.AO
                     continue;
                 }
 
-                if (position.Direction == Side.Buy) // If the direction of the position is purchase
+                if (position.Direction == Side.Buy) // If the direction of the position is long
                 {
                     _tab.CloseAtLimit(position, lastPrice - _slippage, position.OpenVolume);
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     _tab.CloseAtLimit(position, lastPrice + _slippage, position.OpenVolume);
                 }
