@@ -1676,8 +1676,8 @@ namespace OsEngine.Language
           "Ru:Сетка будет удалена. Все данные потеряны. Вы уверены?_");
 
         public string Label444 => OsLocalization.ConvertToLocString(
-          "Eng:Trade grid settings_" +
-          "Ru:Настройки торговой сетки_");
+          "Eng:Grid_" +
+          "Ru:Сетка_");
 
         public string Label445 => OsLocalization.ConvertToLocString(
           "Eng:Grid type_" +
@@ -1998,5 +1998,30 @@ namespace OsEngine.Language
         public string Label524 => OsLocalization.ConvertToLocString(
          "Eng:It is impossible to delete a grid. There are open positions on it_" +
          "Ru:Невозможно удалить сетку. По ней есть открытые позиции");
+
+        public string Label525 => OsLocalization.ConvertToLocString(
+         "Eng:Stop by life time. Seconds_" +
+         "Ru:По кол-ву секунд с включения");
+
+        public string Label526 => OsLocalization.ConvertToLocString(
+         "Eng:Stop by time of day_" +
+         "Ru:По времени дня");
+
+        public string Label527 => OsLocalization.ConvertToLocString(
+         "Eng:H_" +
+         "Ru:Ч");
+
+        public string Label528 => OsLocalization.ConvertToLocString(
+         "Eng:M_" +
+         "Ru:М");
+
+        public string Label529 => OsLocalization.ConvertToLocString(
+         "Eng:S_" +
+         "Ru:С");
+
+
+        public string Label530 => OsLocalization.ConvertToLocString(
+         "Eng:Trade regime OFF, to use_" +
+         "Ru:Торговый режим OFF, для использования");
     }
 }

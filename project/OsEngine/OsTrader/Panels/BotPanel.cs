@@ -977,7 +977,8 @@ position => position.State != PositionStateType.OpeningFail
             if (_parameters == null ||
                 _parameters.Count == 0)
             {
-                MessageBox.Show(OsLocalization.Trader.Label51);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label51);
+                ui.ShowDialog();
                 return;
             }
 

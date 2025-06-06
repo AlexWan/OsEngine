@@ -339,7 +339,7 @@ namespace OsEngine.Market.Servers.Bybit
         {
             get
             {
-                if (((ServerParameterBool)ServerParameters[12]).Value)
+                if (((ServerParameterBool)ServerParameters[13]).Value)
                 {
                     return 50;
                 }

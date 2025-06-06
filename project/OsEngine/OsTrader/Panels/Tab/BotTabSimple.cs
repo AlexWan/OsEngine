@@ -6714,6 +6714,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 OrderUpdateEvent(orderInJournal);
             }
+            _chartMaster.SetPosition(PositionsAll);
         }
 
         /// <summary>

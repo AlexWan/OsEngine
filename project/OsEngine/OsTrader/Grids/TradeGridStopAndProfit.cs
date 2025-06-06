@@ -7,7 +7,7 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using System;
-
+using System.Collections.Generic;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -64,6 +64,41 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        public void Process(TradeGrid grid)
+        {
+            if(ProfitRegime == OnOffRegime.Off
+                && StopRegime == OnOffRegime.Off)
+            {
+                return;
+            }
+
+            List<TradeGridLine> linesWithOpenPositions = grid.GetLinesWithOpenPosition();
+
+            // 1 если уже есть позиции со статусом Done. Ничего не делаем
+
+            for(int i = 0;i < linesWithOpenPositions.Count;i++)
+            {
+
+
+
+            }
+
+            // 2 считаем среднюю цену входа
+
+            decimal middleEntryPrice = 0;
+            decimal allVolume = 0;
+
+            for(int i = 0;i < linesWithOpenPositions.Count;i++)
+            {
+              
+
+
+
+            }
+
+            decimal profitPrice = 0;
+            decimal stopPrice = 0;
+        }
 
         #region Log
 

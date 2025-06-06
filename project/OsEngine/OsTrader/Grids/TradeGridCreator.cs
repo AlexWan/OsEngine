@@ -9,7 +9,6 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -138,6 +137,13 @@ namespace OsEngine.OsTrader.Grids
                 if(curNumber >= Lines.Count)
                 {
                     continue;
+                }
+
+                TradeGridLine line = Lines[curNumber];
+
+                if(line.Position != null)
+                {
+                    SendNewLogMessage("User remove line with Position!!! \n !!!!! \n !!!!!! \n Grid is broken!!!", LogMessageType.Error);
                 }
 
                 Lines.RemoveAt(curNumber);
@@ -322,31 +328,6 @@ namespace OsEngine.OsTrader.Grids
         }
 
         #endregion
-
-        public bool HaveOpenPositionsByGrid
-        {
-            get
-            {
-                return false;
-            }
-        }
-
-        public decimal FirstPriceReal
-        {
-            get
-            {
-                return FirstPrice;
-            }
-
-        }
-
-        public int OpenPositionsCount
-        {
-            get
-            {
-                return 0;
-            }
-        }
 
         public decimal GetVolume(TradeGridLine line, BotTabSimple tab)
         {

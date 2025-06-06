@@ -21,9 +21,6 @@
                     <WindowsFormsHost Name="HostGridTable" Margin="0,0,0,0"/>
                 </Grid>
             </TabItem>
-            <TabItem Name="TabItemGridLinesOnChart" Header="Grid lines on chart">
-                <Grid Background="#FFE5E5E5"/>
-            </TabItem>
         </TabControl>
         <TabControl Margin="0,0,1,0">
             <TabItem Name="TabItemBaseSettings" Header="Base">
@@ -91,35 +88,44 @@
                     <Button Name="ButtonDeleteGrid" Content="Delete grid" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonDeleteGrid_Click"/>
                     <Button Name="ButtonNewLevel" Content="New level" HorizontalAlignment="Right" Margin="0,0,14,38" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonNewLevel_Click"/>
                     <Button Name="ButtonRemoveSelected" Content="Remove selected" HorizontalAlignment="Right" Margin="0,0,14,10" VerticalAlignment="Bottom" Width="124" Height="23" Click="ButtonRemoveSelected_Click"/>
-                </Grid>
-            </TabItem>
-            <TabItem Name="TabItemTrailing"  Header="Traling">
-                <Grid >
-                    <CheckBox Name="CheckBoxTrailingUpIsOn" Content="Trailing Up" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelTrailingUpLimitValue" Content="Limit" HorizontalAlignment="Center" Margin="0,11,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxTrailingUpLimitValue" Margin="0,11,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
-
-                    <CheckBox Name="CheckBoxTrailingDownIsOn" Content="Trailing Down" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelTrailingDownLimitValue" Content="Limit" HorizontalAlignment="Center" Margin="0,66,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxTrailingDownLimitValue" Margin="0,66,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="122"/>
+                    <Label Name="LabelSelectOffToUse" Content="Trade regime OFF, to use" HorizontalAlignment="Left" Margin="14,94,0,0" VerticalAlignment="Top" Width="324" Height="28" FontWeight="Bold" FontSize="15"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemStopTrading" Header="Stop trading">
                 <Grid >
                     <CheckBox Name="CheckBoxStopGridByMoveUpIsOn" Content="Stop by move up %" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxStopGridByMoveUpValuePercent" Margin="162,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
-                    <Label Name="LabelStopGridByMoveUpValuePercentReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxStopGridByMoveUpReaction" Margin="162,38,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopGridByMoveUpValuePercentReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByMoveUpReaction" Margin="162,33,14,0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxStopGridByMoveDownIsOn" Content="Stop by move down %" HorizontalAlignment="Left" Margin="10,94,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByMoveDownValuePercent" Margin="162,94,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
-                    <Label Name="LabelStopGridByMoveDownValuePercentReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxStopGridByMoveDownReaction" Margin="162,122,14,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStopGridByMoveDownIsOn" Content="Stop by move down %" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByMoveDownValuePercent" Margin="162,66,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopGridByMoveDownValuePercentReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,89,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByMoveDownReaction" Margin="162,89,14,0" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxStopGridByPositionsCountIsOn"  Content="Stop by close positions count *" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByPositionsCountValue" Margin="215,178,14,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Top"/>
-                    <Label Name="LabelStopGridByPositionsCountIsOnReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,206,0,0" VerticalAlignment="Top"/>
-                    <ComboBox Name="ComboBoxStopGridByPositionsCountReaction" Margin="162,206,14,0" VerticalAlignment="Top"/>
+                    <CheckBox Name="CheckBoxStopGridByPositionsCountIsOn"  Content="Stop by close positions count *" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByPositionsCountValue" Margin="215,122,14,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopGridByPositionsCountIsOnReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,145,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByPositionsCountReaction" Margin="162,145,14,0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxStopGridByLifeTimeIsOn"  Content="Stop by life time. Seconds" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByLifeTimeSecondsToLife" Margin="215,178,14,0" TextWrapping="Wrap" Text="600" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopGridByLifeTimeOnReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,201,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByLifeTimeReaction" Margin="162,201,14,0" VerticalAlignment="Top"/>
+
+                    <CheckBox Name="CheckBoxStopGridByTimeOfDayIsOn"  Content="Stop by time" HorizontalAlignment="Left" Margin="10,234,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopGridByTimeOfDayHour" Margin="208,234,0,0" TextWrapping="Wrap" Text="14" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23"/>
+                    <Label Name="LabelStopGridByTimeOfDayHour" Content="H:" HorizontalAlignment="Left" Margin="188,234,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopGridByTimeOfDayMinute" Margin="253,234,0,0" TextWrapping="Wrap" Text="15" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23"/>
+                    <Label Name="LabelStopGridByTimeOfDayMinute" Content="M:" HorizontalAlignment="Left" Margin="231,234,0,0" VerticalAlignment="Top"/>
+
+                    <TextBox Name="TextBoxStopGridByTimeOfDaySecond" Margin="298,234,17,0" TextWrapping="Wrap" Text="00" VerticalAlignment="Top"/>
+                    <Label Name="LabelStopGridByTimeOfDaySecond" Content="S:" HorizontalAlignment="Left" Margin="280,234,0,0" VerticalAlignment="Top"/>
+
+                    <Label Name="LabelStopGridByTimeOfDayReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,258,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxStopGridByTimeOfDayReaction" Margin="162,258,14,0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemAutoStart" Header="Auto start">

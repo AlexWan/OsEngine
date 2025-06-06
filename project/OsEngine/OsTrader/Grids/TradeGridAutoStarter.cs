@@ -85,6 +85,7 @@ namespace OsEngine.OsTrader.Grids
                 message += "Market price: " + price;
 
                 SendNewLogMessage(message, LogMessageType.Signal);
+                AutoStartRegime = TradeGridAutoStartRegime.Off;
                 return true;
             }
             else if(AutoStartRegime == TradeGridAutoStartRegime.LowerOrEqual
@@ -95,6 +96,7 @@ namespace OsEngine.OsTrader.Grids
                 message += "Auto-starter price: " + AutoStartPrice + "\n";
                 message += "Market price: " + price;
                 SendNewLogMessage(message, LogMessageType.Signal);
+                AutoStartRegime = TradeGridAutoStartRegime.Off;
 
                 return true;
             }
