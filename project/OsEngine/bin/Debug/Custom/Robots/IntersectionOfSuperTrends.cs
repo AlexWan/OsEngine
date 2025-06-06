@@ -1,11 +1,18 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
+using System.Drawing;
 
 /* Description
 trading robot for osengine
@@ -29,64 +36,71 @@ namespace OsEngine.Robots.MyBots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Indicator setting 
-        private StrategyParameterInt LengthFastSP;
-        private StrategyParameterString TypeFastPrice;
-        private StrategyParameterDecimal FastSPDeviation;
-        private StrategyParameterInt LengthSlowSP;
-        private StrategyParameterString TypeSlowPrice;
-        private StrategyParameterDecimal SlowSPDeviation;
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _lengthFastSP;
+        private StrategyParameterString _typeFastPrice;
+        private StrategyParameterDecimal _fastSPDeviation;
+        private StrategyParameterInt _lengthSlowSP;
+        private StrategyParameterString _typeSlowPrice;
+        private StrategyParameterDecimal _slowSPDeviation;
 
         // Indicator
-        private Aindicator _FastSP;
-        private Aindicator _SlowSP;
+        private Aindicator _fastSP;
+        private Aindicator _slowSP;
+
         public IntersectionOfSuperTrends(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Indicator setting
-            LengthFastSP = CreateParameter("Length Fast SP", 10, 10, 200, 10, "Indicator");
-            FastSPDeviation = CreateParameter("Fast SP Deviation", 1, 1m, 10, 1, "Indicator");
-            TypeFastPrice = CreateParameter("Type Fast Price", "Median", new[] { "Median", "Typical" }, "Indicator");
-            LengthSlowSP = CreateParameter("Length Slow SP", 50, 50, 300, 10, "Indicator");
-            SlowSPDeviation = CreateParameter("Slow SP Deviation", 1, 1m, 10, 1, "Indicator");
-            TypeSlowPrice = CreateParameter("Type Slow Price", "Median", new[] { "Median", "Typical" }, "Indicator");
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Create indicator SuperTrend
-            _FastSP = IndicatorsFactory.CreateIndicatorByName("SuperTrend_indicator", name + "SuperTrendFast", false);
-            _FastSP = (Aindicator)_tab.CreateCandleIndicator(_FastSP, "Prime");
-            ((IndicatorParameterInt)_FastSP.Parameters[0]).ValueInt = LengthFastSP.ValueInt;
-            ((IndicatorParameterDecimal)_FastSP.Parameters[1]).ValueDecimal = FastSPDeviation.ValueDecimal;
-            ((IndicatorParameterString)_FastSP.Parameters[2]).ValueString = TypeFastPrice.ValueString;
-            ((IndicatorParameterBool)_FastSP.Parameters[3]).ValueBool = false;
-            _FastSP.DataSeries[2].Color = Color.Red;
-            _FastSP.Save();
+            // Indicator settings
+            _lengthFastSP = CreateParameter("Length Fast SP", 10, 10, 200, 10, "Indicator");
+            _fastSPDeviation = CreateParameter("Fast SP Deviation", 1, 1m, 10, 1, "Indicator");
+            _typeFastPrice = CreateParameter("Type Fast Price", "Median", new[] { "Median", "Typical" }, "Indicator");
+            _lengthSlowSP = CreateParameter("Length Slow SP", 50, 50, 300, 10, "Indicator");
+            _slowSPDeviation = CreateParameter("Slow SP Deviation", 1, 1m, 10, 1, "Indicator");
+            _typeSlowPrice = CreateParameter("Type Slow Price", "Median", new[] { "Median", "Typical" }, "Indicator");
 
-            // Create indicator SuperTrend
-            _SlowSP = IndicatorsFactory.CreateIndicatorByName("SuperTrend_indicator", name + "SuperTrendSlow", false);
-            _SlowSP = (Aindicator)_tab.CreateCandleIndicator(_SlowSP, "Prime");
-            ((IndicatorParameterInt)_SlowSP.Parameters[0]).ValueInt = LengthSlowSP.ValueInt;
-            ((IndicatorParameterDecimal)_SlowSP.Parameters[1]).ValueDecimal = SlowSPDeviation.ValueDecimal;
-            ((IndicatorParameterString)_SlowSP.Parameters[2]).ValueString = TypeSlowPrice.ValueString;
-            ((IndicatorParameterBool)_SlowSP.Parameters[3]).ValueBool = false;
-            _SlowSP.DataSeries[2].Color = Color.Green;
-            _SlowSP.Save();
+            // Create indicator SuperTrendFast
+            _fastSP = IndicatorsFactory.CreateIndicatorByName("SuperTrend_indicator", name + "SuperTrendFast", false);
+            _fastSP = (Aindicator)_tab.CreateCandleIndicator(_fastSP, "Prime");
+            ((IndicatorParameterInt)_fastSP.Parameters[0]).ValueInt = _lengthFastSP.ValueInt;
+            ((IndicatorParameterDecimal)_fastSP.Parameters[1]).ValueDecimal = _fastSPDeviation.ValueDecimal;
+            ((IndicatorParameterString)_fastSP.Parameters[2]).ValueString = _typeFastPrice.ValueString;
+            ((IndicatorParameterBool)_fastSP.Parameters[3]).ValueBool = false;
+            _fastSP.DataSeries[2].Color = Color.Red;
+            _fastSP.Save();
+
+            // Create indicator SuperTrendSlow
+            _slowSP = IndicatorsFactory.CreateIndicatorByName("SuperTrend_indicator", name + "SuperTrendSlow", false);
+            _slowSP = (Aindicator)_tab.CreateCandleIndicator(_slowSP, "Prime");
+            ((IndicatorParameterInt)_slowSP.Parameters[0]).ValueInt = _lengthSlowSP.ValueInt;
+            ((IndicatorParameterDecimal)_slowSP.Parameters[1]).ValueDecimal = _slowSPDeviation.ValueDecimal;
+            ((IndicatorParameterString)_slowSP.Parameters[2]).ValueString = _typeSlowPrice.ValueString;
+            ((IndicatorParameterBool)_slowSP.Parameters[3]).ValueBool = false;
+            _slowSP.DataSeries[2].Color = Color.Green;
+            _slowSP.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += IntersectionOfSuperTrends_ParametrsChangeByUser;
@@ -103,49 +117,47 @@ namespace OsEngine.Robots.MyBots
 
         private void IntersectionOfSuperTrends_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_FastSP.Parameters[0]).ValueInt = LengthFastSP.ValueInt;
-            ((IndicatorParameterDecimal)_FastSP.Parameters[1]).ValueDecimal = FastSPDeviation.ValueDecimal;
-            ((IndicatorParameterString)_FastSP.Parameters[2]).ValueString = TypeFastPrice.ValueString;
-            ((IndicatorParameterBool)_FastSP.Parameters[3]).ValueBool = false;
-            _FastSP.Save();
-            _FastSP.Reload();
+            ((IndicatorParameterInt)_fastSP.Parameters[0]).ValueInt = _lengthFastSP.ValueInt;
+            ((IndicatorParameterDecimal)_fastSP.Parameters[1]).ValueDecimal = _fastSPDeviation.ValueDecimal;
+            ((IndicatorParameterString)_fastSP.Parameters[2]).ValueString = _typeFastPrice.ValueString;
+            ((IndicatorParameterBool)_fastSP.Parameters[3]).ValueBool = false;
+            _fastSP.Save();
+            _fastSP.Reload();
 
-            ((IndicatorParameterInt)_SlowSP.Parameters[0]).ValueInt = LengthSlowSP.ValueInt;
-            ((IndicatorParameterDecimal)_SlowSP.Parameters[1]).ValueDecimal = SlowSPDeviation.ValueDecimal;
-            ((IndicatorParameterString)_SlowSP.Parameters[2]).ValueString = TypeSlowPrice.ValueString;
-            ((IndicatorParameterBool)_SlowSP.Parameters[3]).ValueBool = false;
-            _SlowSP.Save();
-            _SlowSP.Reload();
+            ((IndicatorParameterInt)_slowSP.Parameters[0]).ValueInt = _lengthSlowSP.ValueInt;
+            ((IndicatorParameterDecimal)_slowSP.Parameters[1]).ValueDecimal = _slowSPDeviation.ValueDecimal;
+            ((IndicatorParameterString)_slowSP.Parameters[2]).ValueString = _typeSlowPrice.ValueString;
+            ((IndicatorParameterBool)_slowSP.Parameters[3]).ValueBool = false;
+            _slowSP.Save();
+            _slowSP.Reload();
         }
 
         public override string GetNameStrategyType()
         {
             return "IntersectionOfSuperTrends";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
         }
 
-        // Logic
         // Candle Finished Event
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthSlowSP.ValueInt + 10 || candles.Count < LengthFastSP.ValueInt + 10)
+            if (candles.Count < _lengthSlowSP.ValueInt + 10 || candles.Count < _lengthFastSP.ValueInt + 10)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -159,10 +171,11 @@ namespace OsEngine.Robots.MyBots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -176,31 +189,31 @@ namespace OsEngine.Robots.MyBots
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             // The last value of the indicator
-            decimal lastFastSp = _FastSP.DataSeries[2].Last;
-            decimal lastSlowSp = _SlowSP.DataSeries[2].Last;
+            decimal lastFastSp = _fastSP.DataSeries[2].Last;
+            decimal lastSlowSp = _slowSP.DataSeries[2].Last;
 
             if (openPositions == null || openPositions.Count == 0)
             {
                 decimal lastPrice = candles[candles.Count - 1].Close;
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (lastPrice > lastFastSp && lastFastSp > lastSlowSp)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (lastPrice < lastFastSp && lastFastSp < lastSlowSp)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -212,11 +225,11 @@ namespace OsEngine.Robots.MyBots
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             // The last value of the indicator
-            decimal lastFastSp = _FastSP.DataSeries[2].Last;
-            decimal lastSlowSp = _SlowSP.DataSeries[2].Last;
+            decimal lastFastSp = _fastSP.DataSeries[2].Last;
+            decimal lastSlowSp = _slowSP.DataSeries[2].Last;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -227,14 +240,14 @@ namespace OsEngine.Robots.MyBots
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
                     if (lastFastSp < lastSlowSp)
                     {
                         _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                     }
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     if (lastFastSp > lastSlowSp)
                     {
@@ -245,29 +258,94 @@ namespace OsEngine.Robots.MyBots
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
