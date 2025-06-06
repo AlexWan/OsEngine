@@ -421,8 +421,6 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
-                return;
-
                 int row = e.RowIndex;
                 int column = e.ColumnIndex;
 

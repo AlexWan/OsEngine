@@ -104,10 +104,7 @@ namespace OsEngine.OsTrader.Grids
 
         public void CreateNewGrid(BotTabSimple tab, TradeGridPrimeType gridType)
         {
-            if(gridType == TradeGridPrimeType.MarketMaking)
-            {
-                CreateMarketMakingGrid(tab);
-            }
+            CreateMarketMakingGrid(tab);
         }
 
         public void DeleteGrid()

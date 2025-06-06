@@ -2019,9 +2019,16 @@ namespace OsEngine.Language
          "Eng:S_" +
          "Ru:С");
 
-
         public string Label530 => OsLocalization.ConvertToLocString(
          "Eng:Trade regime OFF, to use_" +
          "Ru:Торговый режим OFF, для использования");
+
+        public string Label531 => OsLocalization.ConvertToLocString(
+         "Eng:Trail-stop regime_" +
+         "Ru:Trail-stop режим_");
+
+        public string Label532 => OsLocalization.ConvertToLocString(
+         "Eng:Middle entry price_" +
+         "Ru:Средняя цена входа_");
     }
 }
