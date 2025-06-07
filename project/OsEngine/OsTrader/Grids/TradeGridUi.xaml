@@ -63,9 +63,9 @@
                     <ComboBox Name="ComboBoxGridSide" Margin="164,10,14,0" VerticalAlignment="Top"/>
 
                     <Label Name="LabelFirstPrice" Content="First price" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxFirstPrice" Margin="164,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFirstPrice" Margin="165,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
                     <Label Name="LabelLinesCount" Content="Lines count" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxLineCountStart" Margin="164,66,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxLineCountStart" Margin="165,66,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
 
                     <Label Name="LabelStep" Content="Step" HorizontalAlignment="Left" Margin="10,122,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxTypeStep" HorizontalAlignment="Left" Margin="68,122,0,0" VerticalAlignment="Top" Width="131"/>
@@ -94,12 +94,12 @@
             <TabItem Name="TabItemStopTrading" Header="Stop trading">
                 <Grid >
                     <CheckBox Name="CheckBoxStopGridByMoveUpIsOn" Content="Stop by move up %" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByMoveUpValuePercent" Margin="162,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByMoveUpValuePercent" Margin="164,10,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
                     <Label Name="LabelStopGridByMoveUpValuePercentReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,33,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxStopGridByMoveUpReaction" Margin="162,33,14,0" VerticalAlignment="Top"/>
 
                     <CheckBox Name="CheckBoxStopGridByMoveDownIsOn" Content="Stop by move down %" HorizontalAlignment="Left" Margin="10,66,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxStopGridByMoveDownValuePercent" Margin="162,66,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxStopGridByMoveDownValuePercent" Margin="164,66,14,0" TextWrapping="Wrap" Text="0.7" VerticalAlignment="Top"/>
                     <Label Name="LabelStopGridByMoveDownValuePercentReaction" Content="Reaction" HorizontalAlignment="Left" Margin="10,89,0,0" VerticalAlignment="Top"/>
                     <ComboBox Name="ComboBoxStopGridByMoveDownReaction" Margin="162,89,14,0" VerticalAlignment="Top"/>
 
@@ -133,7 +133,12 @@
                     <Label Name="LabelAutoStartRegime" Content="Auto start regime" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="134"/>
                     <ComboBox Name="ComboBoxAutoStartRegime" Margin="164,10,14,0" VerticalAlignment="Top"/>
                     <Label Name="LabelAutoStartPrice" Content="Price" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" Width="134"/>
-                    <TextBox Name="TextBoxAutoStartPrice" Margin="164,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxAutoStartPrice" Margin="165,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
+                    
+                    <Label Name="LabelRebuildGridRegime" Content="Rebuild grid on start" HorizontalAlignment="Left" Margin="10,98,0,0" VerticalAlignment="Top" Width="134"/>
+                    <ComboBox Name="ComboBoxRebuildGridRegime" Margin="164,98,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelShiftFirstPrice" Content="Shift first price %" HorizontalAlignment="Left" Margin="10,126,0,0" VerticalAlignment="Top" Width="134"/>
+                    <TextBox Name="TextBoxShiftFirstPrice" Margin="165,126,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
         </TabControl>

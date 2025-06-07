@@ -7,13 +7,11 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
-using OsEngine.Market.Servers.TraderNet.Entity;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 
 // Разные базовые сути сеток:
@@ -267,9 +265,19 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        public void FullRePaintGrid()
+        {
+            if(FullRePaintGridEvent != null)
+            {
+                FullRePaintGridEvent();
+            }
+        }
+
         public event Action NeedToSaveEvent;
 
         public event Action RePaintSettingsEvent;
+
+        public event Action FullRePaintGridEvent;
 
         #endregion
 
@@ -537,7 +545,6 @@ namespace OsEngine.OsTrader.Grids
             // 1 Авто-старт сетки, если выключено
             if (baseRegime == TradeGridRegime.Off)
             {
-
                 if (_openPositionsBySession != 0)
                 {
                     _openPositionsBySession = 0;
@@ -578,8 +585,21 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                if (AutoStarter.HaveEventToStart(this,Tab))
+                if (AutoStarter.HaveEventToStart(this))
                 {
+                    if(AutoStarter.RebuildGridRegime == OnOffRegime.On)
+                    {// пересобираем сетку
+                        decimal newPriceStart = AutoStarter.GetNewGridPriceStart(this);
+                        
+                        if(newPriceStart != 0)
+                        {
+                            GridCreator.FirstPrice = newPriceStart;
+                            GridCreator.CreateNewGrid(Tab, GridType);
+                            Save();
+                            FullRePaintGrid();
+                        }
+                    }
+
                     baseRegime = TradeGridRegime.On;
                     Regime = TradeGridRegime.On;
                     Save();
@@ -664,6 +684,7 @@ namespace OsEngine.OsTrader.Grids
             // 1 сверям позиции в журнале и в сетке
 
             TryFindPositionsInJournalAfterReconnect();
+            TryDeleteOpeningFailPositions();
 
             // 2 удаляем ордера стоящие не на своём месте
 
@@ -688,7 +709,7 @@ namespace OsEngine.OsTrader.Grids
                     TrySetOpenOrders();
 
                     // 3 проверяем выставлены ли закрытия
-                    TrySetClosingOrders();
+                    TrySetStopAndProfit();
                 }
                 else if(_firstStopIsActivate == true)
                 {
@@ -768,6 +789,32 @@ namespace OsEngine.OsTrader.Grids
             }
 
             StopAndProfit.Process(this);
+        }
+
+        private void TryDeleteOpeningFailPositions()
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            if (lines == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if (line.Position != null)
+                {
+                    // Открывающий ордер был отозван
+                    if (line.Position.State == PositionStateType.OpeningFail
+                        && line.Position.OpenActive == false)
+                    {
+                        line.Position = null;
+                        line.PositionNum = -1;
+                    }
+                }
+            }
         }
 
         private bool _firstStopIsActivate = false;

@@ -31,6 +31,7 @@ namespace OsEngine.OsTrader.Grids
 
             TradeGrid = tradeGrid;
             TradeGrid.RePaintSettingsEvent += TradeGrid_RePaintSettingsEvent;
+            TradeGrid.FullRePaintGridEvent += TradeGrid_FullRePaintGridEvent;
             Number = TradeGrid.Number;
 
             Closed += TradeGridUi_Closed;
@@ -361,9 +362,17 @@ namespace OsEngine.OsTrader.Grids
             ComboBoxAutoStartRegime.Items.Add(TradeGridAutoStartRegime.HigherOrEqual.ToString());
             ComboBoxAutoStartRegime.SelectedItem = tradeGrid.AutoStarter.AutoStartRegime.ToString();
             ComboBoxAutoStartRegime.SelectionChanged += ComboBoxAutoStartRegime_SelectionChanged;
-
             TextBoxAutoStartPrice.Text = tradeGrid.AutoStarter.AutoStartPrice.ToString();
             TextBoxAutoStartPrice.TextChanged += TextBoxAutoStartPrice_TextChanged;
+
+            ComboBoxRebuildGridRegime.Items.Add(OnOffRegime.Off.ToString());
+            ComboBoxRebuildGridRegime.Items.Add(OnOffRegime.On.ToString());
+            ComboBoxRebuildGridRegime.SelectedItem = tradeGrid.AutoStarter.RebuildGridRegime.ToString();
+            ComboBoxRebuildGridRegime.SelectionChanged += ComboBoxRebuildGridRegime_SelectionChanged;
+            TextBoxShiftFirstPrice.Text = tradeGrid.AutoStarter.ShiftFirstPrice.ToString();
+            TextBoxShiftFirstPrice.TextChanged += TextBoxShiftFirstPrice_TextChanged;
+
+
 
             Localization();
 
@@ -479,7 +488,8 @@ namespace OsEngine.OsTrader.Grids
 
             LabelAutoStartRegime.Content = OsLocalization.Trader.Label504;
             LabelAutoStartPrice.Content = OsLocalization.Trader.Label505;
-
+            LabelRebuildGridRegime.Content = OsLocalization.Trader.Label535;
+            LabelShiftFirstPrice.Content = OsLocalization.Trader.Label536;
         }
 
         private void CheckEnabledItems()
@@ -563,6 +573,7 @@ namespace OsEngine.OsTrader.Grids
             _guiIsClosed = true;
 
             TradeGrid.RePaintSettingsEvent -= TradeGrid_RePaintSettingsEvent;
+            TradeGrid.FullRePaintGridEvent -= TradeGrid_FullRePaintGridEvent;
             TradeGrid = null;
 
             try
@@ -688,6 +699,11 @@ namespace OsEngine.OsTrader.Grids
             {
                 TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
             }
+        }
+
+        private void TradeGrid_FullRePaintGridEvent()
+        {
+            RePaintGridTable();
         }
 
         private bool _guiIsClosed;
@@ -1952,6 +1968,40 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private void TextBoxShiftFirstPrice_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxShiftFirstPrice.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.AutoStarter.ShiftFirstPrice = TextBoxShiftFirstPrice.Text.ToDecimal();
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxRebuildGridRegime_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                if (ComboBoxRebuildGridRegime.SelectedItem.ToString() != TradeGrid.AutoStarter.RebuildGridRegime.ToString())
+                {
+                    Enum.TryParse(ComboBoxRebuildGridRegime.SelectedItem.ToString(), out TradeGrid.AutoStarter.RebuildGridRegime);
+                    TradeGrid.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         #endregion
 
         #region Non trade periods
@@ -2301,6 +2351,14 @@ namespace OsEngine.OsTrader.Grids
             {
                 Enum.TryParse(ComboBoxRegimeLogicEntry.SelectedItem.ToString(), out TradeGrid.RegimeLogicEntry);
                 TradeGrid.Save();
+
+                if(TradeGrid.StartProgram == StartProgram.IsOsTrader
+                    && TradeGrid.RegimeLogicEntry == TradeGridLogicEntryRegime.OnTrade)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label534);
+                    ui.ShowDialog();
+
+                }
             }
             catch (Exception ex)
             {

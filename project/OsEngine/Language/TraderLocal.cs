@@ -2030,5 +2030,21 @@ namespace OsEngine.Language
         public string Label532 => OsLocalization.ConvertToLocString(
          "Eng:Middle entry price_" +
          "Ru:Средняя цена входа_");
+
+        public string Label533 => OsLocalization.ConvertToLocString(
+         "Eng:Middle entry price_" +
+         "Ru:Средняя цена входа_");
+
+        public string Label534 => OsLocalization.ConvertToLocString(
+         "Eng:Regime ONTRADE involves processing robot logic much more frequently than once per second. If you have a weak PC, this will cause errors. You will experience freezes and lose money._" +
+         "Ru:Regime ONTRADE предполагает обработку логики робота гораздо чаще чем 1 раз в секунду. Если у Вас слабый ПК, это приведёт к ошибкам. Вы столкнётесь с зависаниями и потеряете деньги._");
+
+        public string Label535 => OsLocalization.ConvertToLocString(
+         "Eng:Rebuild grid on start_" +
+         "Ru:Сдвинуть сетку на старте_");
+
+        public string Label536 => OsLocalization.ConvertToLocString(
+         "Eng:Shift first price %_" +
+         "Ru:Сдвиг первой цены %_");
     }
 }

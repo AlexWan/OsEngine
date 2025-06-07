@@ -18,12 +18,18 @@ namespace OsEngine.OsTrader.Grids
 
         public decimal AutoStartPrice;
 
+        public OnOffRegime RebuildGridRegime;
+
+        public decimal ShiftFirstPrice;
+
         public string GetSaveString()
         {
             string result = "";
 
             result += AutoStartRegime + "@";
             result += AutoStartPrice + "@";
+            result += RebuildGridRegime + "@";
+            result += ShiftFirstPrice + "@";
             result += "@";
             result += "@";
             result += "@";
@@ -43,9 +49,8 @@ namespace OsEngine.OsTrader.Grids
                 Enum.TryParse(values[0], out AutoStartRegime);
                 AutoStartPrice = values[1].ToDecimal();
 
-                // other
-
-               
+                Enum.TryParse(values[2], out RebuildGridRegime);
+                ShiftFirstPrice = values[3].ToDecimal();
 
             }
             catch (Exception e)
@@ -54,14 +59,14 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        public bool HaveEventToStart(TradeGrid grid, BotTabSimple tab)
+        public bool HaveEventToStart(TradeGrid grid)
         {
             if(AutoStartRegime == TradeGridAutoStartRegime.Off)
             {
                 return false;
             }
 
-            List<Candle> candles = tab.CandlesAll;
+            List<Candle> candles = grid.Tab.CandlesAll;
 
             if(candles == null 
                 || candles.Count == 0)
@@ -102,6 +107,37 @@ namespace OsEngine.OsTrader.Grids
             }
 
             return false;
+        }
+
+        public decimal GetNewGridPriceStart(TradeGrid grid)
+        {
+            BotTabSimple tab = grid.Tab;
+
+            List<Candle> candles = tab.CandlesAll;
+
+            if(candles == null 
+                || candles.Count == 0)
+            {
+                return 0;
+            }
+
+            decimal lastPrice = candles[^1].Close;
+
+            if(lastPrice == 0)
+            {
+                return 0;
+            }
+
+            decimal result = lastPrice;
+
+            if(ShiftFirstPrice != 0)
+            {
+                result = result + result * (ShiftFirstPrice / 100);
+
+                result = tab.RoundPrice(result,tab.Security,grid.GridCreator.GridSide);
+            }
+
+            return result;
         }
 
         #region Log
