@@ -1,0 +1,3 @@
+[submodule "related projects/FinamApi/finam-trade-api"]
+	path = related projects/FinamApi/finam-trade-api
+	url = https://github.com/FinamWeb/finam-trade-api.git
