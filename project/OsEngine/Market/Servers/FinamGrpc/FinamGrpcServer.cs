@@ -1,10 +1,11 @@
-﻿using FinamApi.TradeApi.V1;
-using FinamApi.TradeApi.V1.Accounts;
-using FinamApi.TradeApi.V1.Assets;
-using FinamApi.TradeApi.V1.Auth;
-using FinamApi.TradeApi.V1.MarketData;
-using FTrade = FinamApi.TradeApi.V1.MarketData.Trade;
-using FinamApi.TradeApi.V1.Orders;
+﻿using Grpc.Tradeapi.V1;
+using Grpc.Tradeapi.V1.Accounts;
+using FPosition = Grpc.Tradeapi.V1.Accounts.Position;
+using Grpc.Tradeapi.V1.Assets;
+using Grpc.Tradeapi.V1.Auth;
+using Grpc.Tradeapi.V1.Marketdata;
+using FTrade = Grpc.Tradeapi.V1.Marketdata.Trade;
+using Grpc.Tradeapi.V1.Orders;
 using Google.Protobuf.Collections;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -14,7 +15,6 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -274,7 +274,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
             for (int i = 0; i < getAccountResponse.Positions.Count; i++)
             {
-                FinamApi.TradeApi.V1.Accounts.Position pos = getAccountResponse.Positions[i];
+                FPosition pos = getAccountResponse.Positions[i];
                 PositionOnBoard newPos = new PositionOnBoard();
 
                 newPos.PortfolioName = myPortfolio.Number;
