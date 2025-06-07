@@ -8,13 +8,13 @@ using System.Collections.Generic;
 namespace OsEngine.Market.Servers.BitMartFutures.Json
 {
     public class SoketBaseMessage
-    { 
-       public string group;
+    {
+        public string group;
 
-       public object data;
+        public object data;
     }
 
-    public class MarketTrades: List<MarketTrade>
+    public class MarketTrades : List<MarketTrade>
     {
 
     }

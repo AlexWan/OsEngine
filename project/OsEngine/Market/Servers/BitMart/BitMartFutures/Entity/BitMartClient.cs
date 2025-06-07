@@ -80,7 +80,7 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         /// <returns></returns>
         public static string GetTimestamp()
         {
-            return DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+            return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
         }
 
         public static string GenerateSignature(string timestamp, string body, string apiMemo, string apiSecret)
@@ -91,21 +91,21 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
 
-        public static WSRequestAuth.AuthArgs GetWSAuthArgs(string apiKey, string secretKey, string memo)
-        {
-            WSRequestAuth.AuthArgs args = new WSRequestAuth.AuthArgs();
+        //public static WSRequestAuth.AuthArgs GetWSAuthArgs(string apiKey, string secretKey, string memo)
+        //{
+        //    WSRequestAuth.AuthArgs args = new WSRequestAuth.AuthArgs();
 
-            var timeStamp = GetTimestamp();
+        //    var timeStamp = GetTimestamp();
 
-            args.apiKey = apiKey;
-            args.timestamp = timeStamp;
+        //    args.apiKey = apiKey;
+        //    args.timestamp = timeStamp;
 
-            string signature = BitMartEncriptor.GenerateSignature(timeStamp, "bitmart.WebSocket", memo, secretKey);
+        //    string signature = BitMartEncriptor.GenerateSignature(timeStamp, "bitmart.WebSocket", memo, secretKey);
 
-            args.sign = signature;
+        //    args.sign = signature;
 
-            return args;
-        }
+        //    return args;
+        //}
     }
 
 }

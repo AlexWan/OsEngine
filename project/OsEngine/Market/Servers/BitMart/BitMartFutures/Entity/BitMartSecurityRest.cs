@@ -55,7 +55,7 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
 
     }
 
-    public class BitMartCandlesHistory: List<BitMartCandle>
+    public class BitMartCandlesHistory : List<BitMartCandle>
     {
 
     }

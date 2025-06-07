@@ -4,12 +4,11 @@
 */
 
 using System.Collections.Generic;
-using System.Windows.Documents;
 
 namespace OsEngine.Market.Servers.BitMartFutures.Json
 {
 
-    public class BitMartFuturesPortfolioItems : List<BitMartFuturesPortfolioItem> 
+    public class BitMartFuturesPortfolioItems : List<BitMartFuturesPortfolioItem>
     { }
 
     public class BitMartFuturesPortfolioItem
