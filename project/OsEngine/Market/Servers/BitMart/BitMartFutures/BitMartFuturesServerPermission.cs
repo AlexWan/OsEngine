@@ -201,7 +201,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 {
                     "USDT",
                     "BTC",
-                    "ETH"
+                    "ETH",
+                    "USDC"
                 };
 
                 return values;

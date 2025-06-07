@@ -3,12 +3,10 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Market.Servers.BitMart.Json;
 using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.BitMartFutures.Json
 {
-
     public class LastTrade
     {
         public ulong lastTradeID { get; set; }
