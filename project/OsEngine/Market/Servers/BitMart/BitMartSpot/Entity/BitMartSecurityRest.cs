@@ -35,20 +35,16 @@ namespace OsEngine.Market.Servers.BitMart.Json
 
     }
 
-    public class BitMartCandlesHistory: List<BitMartCandle>
+    public class BitMartCandlesHistory : List<BitMartCandle>
     {
 
     }
 
     public class BitMartCandle
     {
-        public ulong timestamp;
-        public string open;
-        public string high;
-        public string low;
-        public string close;
-        public string last_price;
-        public string volume;
-        public string qoute_volume;
+        public string code { get; set; }
+        public string trace { get; set; }
+        public string message { get; set; }
+        public List<List<string>> data { get; set; }
     }
 }

@@ -54,7 +54,6 @@ namespace OsEngine.Market.Servers.BitMart.Json
 
     }
 
-
     public class BitMartOrder
     {
         public string symbol { get; set; }
