@@ -3,16 +3,15 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using Jayrock.Json;
 using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.BitMart.Json
 {
     public class SoketBaseMessage
-    { 
-       public string table;
+    {
+        public string table;
 
-       public object data;
+        public object data;
     }
 
     public class MarketQuotesMessage

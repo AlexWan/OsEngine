@@ -5,11 +5,11 @@
 
 namespace OsEngine.Market.Servers.BitMart
 {
-    class BitMartServerPermission : IServerPermission
+    class BitMartSpotServerPermission : IServerPermission
     {
         public ServerType ServerType
         {
-            get { return ServerType.BitMart; }
+            get { return ServerType.BitMartSpot; }
         }
 
         #region DataFeedPermissions
@@ -71,7 +71,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         public bool DataFeedTf5MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf10MinuteCanLoad
@@ -81,27 +81,27 @@ namespace OsEngine.Market.Servers.BitMart
 
         public bool DataFeedTf15MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf30MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf1HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf2HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf4HourCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTfDayCanLoad
@@ -151,13 +151,13 @@ namespace OsEngine.Market.Servers.BitMart
         private TimeFramePermission _tradeTimeFramePermission
             = new TimeFramePermission()
             {
-                TimeFrameSec1IsOn = false,
-                TimeFrameSec2IsOn = false,
-                TimeFrameSec5IsOn = false,
-                TimeFrameSec10IsOn = false,
-                TimeFrameSec15IsOn = false,
-                TimeFrameSec20IsOn = false,
-                TimeFrameSec30IsOn = false,
+                TimeFrameSec1IsOn = true,
+                TimeFrameSec2IsOn = true,
+                TimeFrameSec5IsOn = true,
+                TimeFrameSec10IsOn = true,
+                TimeFrameSec15IsOn = true,
+                TimeFrameSec20IsOn = true,
+                TimeFrameSec30IsOn = true,
                 TimeFrameMin1IsOn = true,
                 TimeFrameMin2IsOn = false,
                 TimeFrameMin3IsOn = true,
@@ -166,11 +166,11 @@ namespace OsEngine.Market.Servers.BitMart
                 TimeFrameMin15IsOn = true,
                 TimeFrameMin20IsOn = false,
                 TimeFrameMin30IsOn = true,
-                TimeFrameMin45IsOn = true,
+                TimeFrameMin45IsOn = false,
                 TimeFrameHour1IsOn = true,
-                TimeFrameHour2IsOn = true,
-                TimeFrameHour4IsOn = true,
-                TimeFrameDayIsOn = true
+                TimeFrameHour2IsOn = false,
+                TimeFrameHour4IsOn = false,
+                TimeFrameDayIsOn = false
             };
 
         public bool ManuallyClosePositionOnBoard_IsOn
@@ -185,7 +185,15 @@ namespace OsEngine.Market.Servers.BitMart
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect

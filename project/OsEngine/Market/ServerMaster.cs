@@ -312,7 +312,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Woo);
 
                 serverTypes.Add(ServerType.Lmax);
-                serverTypes.Add(ServerType.BitMart);
+                serverTypes.Add(ServerType.BitMartSpot);
                 serverTypes.Add(ServerType.BitMartFutures);
                 serverTypes.Add(ServerType.MoexFixFastCurrency);
                 serverTypes.Add(ServerType.MoexFixFastTwimeFutures);
@@ -731,9 +731,9 @@ namespace OsEngine.Market
                 {
                     newServer = new HTXSwapServer(uniqueNum);
                 }
-                else if (type == ServerType.BitMart)
+                else if (type == ServerType.BitMartSpot)
                 {
-                    newServer = new BitMartServer();
+                    newServer = new BitMartSpotServer();
                 }
                 else if (type == ServerType.BitMartFutures)
                 {
@@ -1448,9 +1448,9 @@ namespace OsEngine.Market
                 {
                     serverPermission = new PlazaServerPermission();
                 }
-                else if (type == ServerType.BitMart)
+                else if (type == ServerType.BitMartSpot)
                 {
-                    serverPermission = new BitMartServerPermission();
+                    serverPermission = new BitMartSpotServerPermission();
                 }
                 else if (type == ServerType.BitMartFutures)
                 {
@@ -2002,11 +2002,11 @@ namespace OsEngine.Market
         /// </summary>
         MoexFixFastSpot,
 
-        /// BitMart Spot exchange
+        /// BitMartSpot Spot exchange
         /// </summary>
-        BitMart,
+        BitMartSpot,
 
-        /// BitMart Futures exchange
+        /// BitMartSpot Futures exchange
         /// </summary>
         BitMartFutures,
 

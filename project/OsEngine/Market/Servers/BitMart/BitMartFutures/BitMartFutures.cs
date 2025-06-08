@@ -44,15 +44,15 @@ namespace OsEngine.Market.Servers.BitMartFutures
         public BitMartFuturesServerRealization()
         {
             Thread worker = new Thread(ConnectionCheckThread);
-            worker.Name = "CheckAliveBitMart";
+            worker.Name = "CheckAliveBitMartFutures";
             worker.Start();
 
             Thread worker2 = new Thread(DataMessageReader);
-            worker2.Name = "DataMessageReaderBitMart";
+            worker2.Name = "DataMessageReaderBitMartFutures";
             worker2.Start();
 
             Thread worker3 = new Thread(PortfolioMessageReader);
-            worker3.Name = "PortfolioMessageReaderBitMart";
+            worker3.Name = "PortfolioMessageReaderBitMartFutures";
             worker3.Start();
         }
 
@@ -68,7 +68,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     || string.IsNullOrEmpty(_secretKey)
                     || string.IsNullOrEmpty(_memo))
                 {
-                    SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the BitMart website",
+                    SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the BitMartFutures website",
                         LogMessageType.Error);
                     return;
                 }
@@ -77,7 +77,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 if (CheckConnection() == false)
                 {
-                    SendLogMessage("Authorization Error. Probably an invalid keys are specified. You can see it on the BitMart website.",
+                    SendLogMessage("Authorization Error. Probably an invalid keys are specified. You can see it on the BitMartFutures website.",
                     LogMessageType.Error);
                     return;
                 }
@@ -108,7 +108,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 DeleteWebSocketConnection();
 
-                SendLogMessage("Dispose. Connection Closed by BitMart. WebSocket Closed Event", LogMessageType.System);
+                SendLogMessage("Dispose. Connection Closed by BitMartFutures. WebSocket Closed Event", LogMessageType.System);
             }
             catch (Exception ex)
             {
@@ -1324,11 +1324,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                     if (baseMessage.group.Contains("/depth"))
                     {
-                        UpDateMarketDepth(baseMessage.data.ToString());
+                        UpdateMarketDepth(baseMessage.data.ToString());
                     }
                     else if (baseMessage.group.Contains("/trade"))
                     {
-                        UpDateTrade(baseMessage.data.ToString());
+                        UpdateTrade(baseMessage.data.ToString());
                     }
                     else
                     {
@@ -1344,7 +1344,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
         }
 
-        private void UpDateTrade(string data)
+        private void UpdateTrade(string data)
         {
             MarketTrades baseTrades =
                 JsonConvert.DeserializeAnonymousType(data, new MarketTrades());
@@ -1382,7 +1382,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
         private readonly object _lastMarketDepthLock = new object();
         Dictionary<string, MarketDepth> _lastMarketDepth = new Dictionary<string, MarketDepth>();
 
-        private void UpDateMarketDepth(string data)
+        private void UpdateMarketDepth(string data)
         {
             MarketDepthBitMart baseDepth =
                 JsonConvert.DeserializeAnonymousType(data, new MarketDepthBitMart());
@@ -1432,7 +1432,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             if (_lastMdTime != DateTime.MinValue &&
                 _lastMdTime >= depth.Time)
             {
-                depth.Time = _lastMdTime.AddMilliseconds(1);
+                depth.Time = _lastMdTime.AddTicks(1);
             }
 
             _lastMdTime = depth.Time;
@@ -1537,17 +1537,17 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                     if (baseMessage.group.Contains("futures/asset"))
                     {
-                        UpDateMyPortfolio(baseMessage.data.ToString());
+                        UpdateMyPortfolio(baseMessage.data.ToString());
 
                     }
                     else if (baseMessage.group.Contains("futures/position"))
                     {
-                        UpDateMyPositions(baseMessage.data.ToString());
+                        UpdateMyPositions(baseMessage.data.ToString());
 
                     }
                     else if (baseMessage.group.Contains("futures/order"))
                     {
-                        UpDateMyOrder(baseMessage.data.ToString());
+                        UpdateMyOrder(baseMessage.data.ToString());
                     }
                     else
                     {
@@ -1581,7 +1581,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
         }
 
-        private void UpDateMyOrder(string data)
+        private void UpdateMyOrder(string data)
         {
             //SendLogMessage("UpDateMyOrder: " + data, LogMessageType.Connect);
 
@@ -1703,7 +1703,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             return order;
         }
 
-        private void UpDateMyPortfolio(string data)
+        private void UpdateMyPortfolio(string data)
         {
             BitMartBalanceDetail balanceDetail =
                 JsonConvert.DeserializeAnonymousType(data, new BitMartBalanceDetail());
@@ -1742,7 +1742,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
         }
 
-        private void UpDateMyPositions(string data)
+        private void UpdateMyPositions(string data)
         {
             BitMartPositions basePositions =
                 JsonConvert.DeserializeAnonymousType(data, new BitMartPositions());
@@ -1989,7 +1989,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     }
                     else
                     {
-                        CreateOrderFail(order);
+                        GetOrderStatus(order);
                         SendLogMessage($"Cancel order, answer is wrong: {content}", LogMessageType.Error);
                     }
                 }
@@ -2004,7 +2004,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     SendLogMessage("Cancel order failed. Status: "
                         + response.StatusCode + "  " + order.SecurityNameCode + ", " + message, LogMessageType.Error);
 
-                    CreateOrderFail(order);
+                    GetOrderStatus(order);
                 }
 
             }

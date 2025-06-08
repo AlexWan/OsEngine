@@ -366,9 +366,9 @@ namespace OsEngine.Market.SupportTable
 
             SupportConnection bitMart = new SupportConnection()
             {
-                ServerType = ServerType.BitMart,
+                ServerType = ServerType.BitMartSpot,
                 SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
+                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMartSpot.png",
                 LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en", 
                 Discount = 40
             };
@@ -378,7 +378,7 @@ namespace OsEngine.Market.SupportTable
             {
                 ServerType = ServerType.BitMartFutures,
                 SupportType = SupportServerType.Prime,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMart.png",
+                LinqToLogo = "\\Images\\Connections\\Crypto\\BitMartFutures.png",
                 LingSiteUrl = "https://www.bitmart.com/invite/cNtynY/en",
                 Discount = 30
             };

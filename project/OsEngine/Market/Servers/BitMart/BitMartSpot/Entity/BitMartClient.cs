@@ -73,11 +73,6 @@ namespace OsEngine.Market.Servers.BitMart.Json
     public class BitMartEncriptor
     {
 
-        /// <summary>
-        /// take milisecond time from 01.01.1970
-        /// взять время в милисекундах, прошедшее с 1970, 1, 1 года
-        /// </summary>
-        /// <returns></returns>
         public static string GetTimestamp()
         {
             return DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
@@ -90,22 +85,5 @@ namespace OsEngine.Market.Servers.BitMart.Json
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
-
-        public static WSRequestAuth.AuthArgs GetWSAuthArgs(string apiKey, string secretKey, string memo)
-        {
-            WSRequestAuth.AuthArgs args = new WSRequestAuth.AuthArgs();
-
-            var timeStamp = GetTimestamp();
-
-            args.apiKey = apiKey;
-            args.timestamp = timeStamp;
-
-            string signature = BitMartEncriptor.GenerateSignature(timeStamp, "bitmart.WebSocket", memo, secretKey);
-
-            args.sign = signature;
-
-            return args;
-        }
     }
-
 }
