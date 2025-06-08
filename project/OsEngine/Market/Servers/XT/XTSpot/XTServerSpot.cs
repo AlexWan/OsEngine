@@ -1974,7 +1974,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            public void CancelOrder(Order order)
+            public bool CancelOrder(Order order)
             {
                 _rateGateCancelOrder.WaitToProceed();
 
@@ -1991,6 +1991,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
                             SendLogMessage($"Successfully canceled the order, order Id: {stateResponse.result.cancelId}", LogMessageType.Trade);
+                            return true;
                         }
                         else
                         {
@@ -2015,6 +2016,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     SendLogMessage("CancelOrder error: " + exception.ToString(), LogMessageType.Error);
                 }
+
+                return false;
             }
 
             private void CreateOrderFail(Order order)

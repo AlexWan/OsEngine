@@ -2991,7 +2991,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3014,7 +3014,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                return false;
             }
+            return true;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

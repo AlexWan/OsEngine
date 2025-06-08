@@ -260,7 +260,7 @@ namespace OsEngine.Market.Servers.BitMax
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             var guid = Guid.NewGuid().ToString().Replace('-', '0');
 
@@ -278,6 +278,7 @@ namespace OsEngine.Market.Servers.BitMax
             }
 
             _client.CancelOrder(order, needId);
+            return true;
         }
 
         /// <summary>

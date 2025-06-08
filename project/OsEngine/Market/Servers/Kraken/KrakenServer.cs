@@ -238,9 +238,10 @@ namespace OsEngine.Market.Servers.Kraken
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             KrakenApi.CancelOrder(order);
+            return true;
         }
 
         /// <summary>

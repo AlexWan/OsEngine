@@ -176,7 +176,7 @@ namespace OsEngine.Market.Servers
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        void CancelOrder(Order order);
+        bool CancelOrder(Order order);
 
         /// <summary>
         /// cancel all orders from trading system

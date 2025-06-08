@@ -1529,7 +1529,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1542,6 +1542,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 {
                     if (stateResponse.code.Equals("200000") == true)
                     {
+                        return true;
                         // ignore
                     }
                     else
@@ -1567,6 +1568,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+            return false;
         }
 
         public void ResearchTradesToOrders(List<Order> orders)

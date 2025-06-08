@@ -1643,7 +1643,7 @@ namespace OsEngine.Market.Servers.QuikLua
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1668,11 +1668,12 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     long res = QuikLua.Orders.KillOrder(qOrder).Result;
                 }
-
+                return true;
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
+                return false;
             }
         }
 

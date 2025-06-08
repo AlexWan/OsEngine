@@ -1954,12 +1954,13 @@ namespace OsEngine.Market.Servers.BitMartFutures
             //unsupported by API
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             string order_id = GetServerOrderId(order);
+
             if (string.IsNullOrEmpty(order_id))
             {
-                return;
+                return false;
             }
 
             _rateGateCancelOrder.WaitToProceed();
@@ -1986,6 +1987,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     if (parsed != null && parsed.data != null)
                     {
                         //Everything is OK - do nothing
+                        return true;
                     }
                     else
                     {
@@ -2012,7 +2014,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 SendLogMessage("Cancel order error." + exception.ToString(), LogMessageType.Error);
             }
-
+            return false;
         }
 
         public void GetOrdersState(List<Order> orders)

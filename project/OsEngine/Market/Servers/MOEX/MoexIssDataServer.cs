@@ -721,9 +721,9 @@ namespace OsEngine.Market.Servers.MOEX
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
-
+            return false;
         }
 
         public void CancelAllOrders()

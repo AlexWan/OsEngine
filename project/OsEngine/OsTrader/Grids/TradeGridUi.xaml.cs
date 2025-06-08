@@ -354,7 +354,6 @@ namespace OsEngine.OsTrader.Grids
             TextBoxTrailStopValue.Text = tradeGrid.StopAndProfit.TrailStopValue.ToString(); 
             TextBoxTrailStopValue.TextChanged += TextBoxTrailStopValue_TextChanged;
 
-
             // auto start
 
             ComboBoxAutoStartRegime.Items.Add(TradeGridAutoStartRegime.Off.ToString());
@@ -372,7 +371,33 @@ namespace OsEngine.OsTrader.Grids
             TextBoxShiftFirstPrice.Text = tradeGrid.AutoStarter.ShiftFirstPrice.ToString();
             TextBoxShiftFirstPrice.TextChanged += TextBoxShiftFirstPrice_TextChanged;
 
+            // error reaction
 
+            CheckBoxFailOpenOrdersReactionIsOn.IsChecked = tradeGrid.ErrorsReaction.FailOpenOrdersReactionIsOn;
+            CheckBoxFailOpenOrdersReactionIsOn.Checked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
+            CheckBoxFailOpenOrdersReactionIsOn.Unchecked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
+            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.On.ToString());
+            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.CloseForced.ToString());
+            ComboBoxFailOpenOrdersReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxFailOpenOrdersReaction.SelectedItem = tradeGrid.ErrorsReaction.FailOpenOrdersReaction.ToString();
+            ComboBoxFailOpenOrdersReaction.SelectionChanged += ComboBoxFailOpenOrdersReaction_SelectionChanged;
+            TextBoxFailOpenOrdersCountToReaction.Text = tradeGrid.ErrorsReaction.FailOpenOrdersCountToReaction.ToString();
+            TextBoxFailOpenOrdersCountToReaction.TextChanged += TextBoxFailOpenOrdersCountToReaction_TextChanged;
+            TextBoxFailOpenOrdersCountFact.Text = tradeGrid.ErrorsReaction.FailOpenOrdersCountFact.ToString();
+
+            CheckBoxFailCancelOrdersReactionIsOn.IsChecked = tradeGrid.ErrorsReaction.FailCancelOrdersReactionIsOn;
+            CheckBoxFailCancelOrdersReactionIsOn.Checked += CheckBoxFailCancelOrdersReactionIsOn_Checked;
+            CheckBoxFailCancelOrdersReactionIsOn.Unchecked += CheckBoxFailCancelOrdersReactionIsOn_Checked;
+            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.Off.ToString());
+            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.On.ToString());
+            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.CloseForced.ToString()); 
+            ComboBoxFailCancelOrdersReaction.Items.Add(TradeGridRegime.CloseOnly.ToString());
+            ComboBoxFailCancelOrdersReaction.SelectedItem = tradeGrid.ErrorsReaction.FailCancelOrdersReaction.ToString();
+            ComboBoxFailCancelOrdersReaction.SelectionChanged += ComboBoxFailCancelOrdersReaction_SelectionChanged;
+            TextBoxFailCancelOrdersCountToReaction.Text = tradeGrid.ErrorsReaction.FailCancelOrdersCountToReaction.ToString();
+            TextBoxFailCancelOrdersCountToReaction.TextChanged += TextBoxFailCancelOrdersCountToReaction_TextChanged;
+            TextBoxFailCancelOrdersCountFact.Text = tradeGrid.ErrorsReaction.FailCancelOrdersCountFact.ToString();
 
             Localization();
 
@@ -417,6 +442,7 @@ namespace OsEngine.OsTrader.Grids
             TabItemStopAndProfit.Header = OsLocalization.Trader.Label464;
             TabItemGridLinesTable.Header = OsLocalization.Trader.Label465;
             TabItemAutoStart.Header = OsLocalization.Trader.Label472;
+            TabItemError.Header = OsLocalization.Trader.Label537;
 
             // non trade periods
 
@@ -490,6 +516,20 @@ namespace OsEngine.OsTrader.Grids
             LabelAutoStartPrice.Content = OsLocalization.Trader.Label505;
             LabelRebuildGridRegime.Content = OsLocalization.Trader.Label535;
             LabelShiftFirstPrice.Content = OsLocalization.Trader.Label536;
+
+            // errors
+
+            CheckBoxFailOpenOrdersReactionIsOn.Content = OsLocalization.Trader.Label538; 
+            LabelFailOpenOrdersReaction.Content = OsLocalization.Trader.Label99;
+            LabelFailOpenOrdersCountToReaction.Content = OsLocalization.Trader.Label539;
+            LabelFailOpenOrdersCountFact.Content = OsLocalization.Trader.Label540;
+
+            CheckBoxFailCancelOrdersReactionIsOn.Content = OsLocalization.Trader.Label541;
+            LabelFailCancelOrdersReaction.Content = OsLocalization.Trader.Label99;
+            LabelFailCancelOrdersCountToReaction.Content = OsLocalization.Trader.Label542;
+            LabelFailCancelOrdersCountFact.Content = OsLocalization.Trader.Label543;
+
+
         }
 
         private void CheckEnabledItems()
@@ -648,6 +688,15 @@ namespace OsEngine.OsTrader.Grids
 
                 ComboBoxAutoStartRegime.SelectionChanged -= ComboBoxAutoStartRegime_SelectionChanged;
                 TextBoxAutoStartPrice.TextChanged -= TextBoxAutoStartPrice_TextChanged;
+
+                CheckBoxFailOpenOrdersReactionIsOn.Checked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
+                CheckBoxFailOpenOrdersReactionIsOn.Unchecked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
+                ComboBoxFailOpenOrdersReaction.SelectionChanged -= ComboBoxFailOpenOrdersReaction_SelectionChanged;
+                TextBoxFailOpenOrdersCountToReaction.TextChanged -= TextBoxFailOpenOrdersCountToReaction_TextChanged;
+                CheckBoxFailCancelOrdersReactionIsOn.Checked -= CheckBoxFailCancelOrdersReactionIsOn_Checked;
+                CheckBoxFailCancelOrdersReactionIsOn.Unchecked -= CheckBoxFailCancelOrdersReactionIsOn_Checked;
+                ComboBoxFailCancelOrdersReaction.SelectionChanged -= ComboBoxFailCancelOrdersReaction_SelectionChanged;
+                TextBoxFailCancelOrdersCountToReaction.TextChanged -= TextBoxFailCancelOrdersCountToReaction_TextChanged;
             }
             catch
             {
@@ -711,6 +760,98 @@ namespace OsEngine.OsTrader.Grids
         public TradeGrid TradeGrid;
 
         public int Number;
+
+        #region Errors reaction
+
+        private void CheckBoxFailOpenOrdersReactionIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.ErrorsReaction.FailOpenOrdersReactionIsOn = CheckBoxFailOpenOrdersReactionIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxFailOpenOrdersReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxFailOpenOrdersReaction.SelectedItem.ToString(), out TradeGrid.ErrorsReaction.FailOpenOrdersReaction);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxFailOpenOrdersCountToReaction_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxFailOpenOrdersCountToReaction.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.ErrorsReaction.FailOpenOrdersCountToReaction = Convert.ToInt32(TextBoxFailOpenOrdersCountToReaction.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxFailCancelOrdersReactionIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.ErrorsReaction.FailCancelOrdersReactionIsOn = CheckBoxFailCancelOrdersReactionIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxFailCancelOrdersReaction_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            try
+            {
+                Enum.TryParse(ComboBoxFailCancelOrdersReaction.SelectedItem.ToString(), out TradeGrid.ErrorsReaction.FailCancelOrdersReaction);
+                TradeGrid.Save();
+            }
+            catch (Exception ex)
+            {
+                TradeGrid.SendNewLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxFailCancelOrdersCountToReaction_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxFailCancelOrdersCountToReaction.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.ErrorsReaction.FailCancelOrdersCountToReaction = Convert.ToInt32(TextBoxFailCancelOrdersCountToReaction.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
 
         #region Stop and profit 
 
@@ -1377,7 +1518,11 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                if(TradeGrid.GridType == TradeGridPrimeType.OpenPosition)
+                TextBoxFailOpenOrdersCountFact.Text = TradeGrid.ErrorsReaction.FailOpenOrdersCountFact.ToString();
+                TextBoxFailCancelOrdersCountFact.Text = TradeGrid.ErrorsReaction.FailCancelOrdersCountFact.ToString();
+
+
+                if (TradeGrid.GridType == TradeGridPrimeType.OpenPosition)
                 {
                     if(TradeGrid.Regime != TradeGridRegime.Off)
                     {

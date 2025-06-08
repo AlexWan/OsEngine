@@ -2218,7 +2218,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             lock (_lockOrder)
             {
@@ -2237,7 +2237,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 MyOrderEvent(order);
                             }
-                            return;
+                            return true;
                         }
                         else if (onBoard.State == OrderStateType.Cancel)
                         {
@@ -2247,7 +2247,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 MyOrderEvent(order);
                             }
-                            return;
+                            return true;
                         }
                         else if (onBoard.State == OrderStateType.Fail)
                         {
@@ -2257,7 +2257,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 MyOrderEvent(order);
                             }
-                            return;
+                            return true;
                         }
 
                         order.NumberMarket = onBoard.NumberMarket;
@@ -2287,6 +2287,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
+                return true;
             }
         }
 

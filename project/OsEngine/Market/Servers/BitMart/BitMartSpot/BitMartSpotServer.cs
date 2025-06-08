@@ -1816,7 +1816,7 @@ namespace OsEngine.Market.Servers.BitMart
             //unsupported by API
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1843,6 +1843,7 @@ namespace OsEngine.Market.Servers.BitMart
                     if (parsed != null && parsed.data != null && parsed.data.ContainsKey("result"))
                     {
                         //Everything is OK - do nothing
+                        return true;
                     }
                     else
                     {
@@ -1869,7 +1870,7 @@ namespace OsEngine.Market.Servers.BitMart
             {
                 SendLogMessage("Cancel order error." + exception.ToString(), LogMessageType.Error);
             }
-
+            return false;
         }
 
         public void GetOrdersState(List<Order> orders)

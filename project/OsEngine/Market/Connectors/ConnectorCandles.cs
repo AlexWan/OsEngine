@@ -51,6 +51,7 @@ namespace OsEngine.Market.Connectors
                 _emulator = new OrderExecutionEmulator();
                 _emulator.MyTradeEvent += ConnectorBot_NewMyTradeEvent;
                 _emulator.OrderChangeEvent += ConnectorBot_NewOrderIncomeEvent;
+
             }
 
             if (!string.IsNullOrWhiteSpace(SecurityName))
@@ -217,6 +218,7 @@ namespace OsEngine.Market.Connectors
                 _myServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
                 _myServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
                 _myServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
+                _myServer.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
                 _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
                 _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
                 _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
@@ -1027,6 +1029,7 @@ namespace OsEngine.Market.Connectors
         {
             server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
+            server.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
             server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
             server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
@@ -1041,6 +1044,7 @@ namespace OsEngine.Market.Connectors
             server.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
             server.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
             server.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
+            server.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
             server.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
             server.NewTradeEvent -= ConnectorBot_NewTradeEvent;
             server.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
@@ -1056,6 +1060,7 @@ namespace OsEngine.Market.Connectors
                 server.TimeServerChangeEvent += myServer_TimeServerChangeEvent;
                 server.NewMyTradeEvent += ConnectorBot_NewMyTradeEvent;
                 server.NewOrderIncomeEvent += ConnectorBot_NewOrderIncomeEvent;
+                server.CancelOrderFailEvent += _myServer_CancelOrderFailEvent;
                 server.PortfoliosChangeEvent += Server_PortfoliosChangeEvent;
                 server.NewAdditionalMarketDataEvent += Server_NewAdditionalMarketDataEvent;
             }
@@ -1181,6 +1186,29 @@ namespace OsEngine.Market.Connectors
                 }
 
                 ServerMaster.InsertOrder(order);
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void _myServer_CancelOrderFailEvent(Order order)
+        {
+            try
+            {
+                if (StartProgram != StartProgram.IsOsTrader)
+                {// tester or optimizer
+                    if (order.SecurityNameCode != this.SecurityName)
+                    {
+                        return;
+                    }
+                }
+
+                if (CancelOrderFailEvent != null)
+                {
+                    CancelOrderFailEvent(order);
+                }
             }
             catch (Exception error)
             {
@@ -1651,7 +1679,6 @@ namespace OsEngine.Market.Connectors
                     order.PortfolioNumber = PortfolioName;
                 }
 
-
                 if (_myServer.ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     SendNewLogMessage(OsLocalization.Market.Message99, LogMessageType.Error);
@@ -1775,6 +1802,11 @@ namespace OsEngine.Market.Connectors
         /// order are changed
         /// </summary>
         public event Action<Order> OrderChangeEvent;
+
+        /// <summary>
+        /// an attempt to revoke the order ended in an error
+        /// </summary>
+        public event Action<Order> CancelOrderFailEvent;
 
         /// <summary>
         /// another candle has closed

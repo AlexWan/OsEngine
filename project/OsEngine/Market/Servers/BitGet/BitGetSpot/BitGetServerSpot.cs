@@ -1700,7 +1700,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1720,6 +1720,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 {
                     if (stateResponse.code.Equals("00000") == true)
                     {
+                        return true;
                         // ignore
                     }
                     else
@@ -1745,6 +1746,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrdersToSecurity(Security security)

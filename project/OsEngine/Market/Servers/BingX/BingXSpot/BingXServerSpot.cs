@@ -1674,7 +1674,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1708,7 +1708,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                     if (response.code == "0")
                     {
-
+                        return true;
                     }
                     else
                     {
@@ -1727,6 +1727,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 SendLogMessage(exception.Message, LogMessageType.Error);
             }
+            return false;
         }
 
         private void CreateOrderFail(Order order)

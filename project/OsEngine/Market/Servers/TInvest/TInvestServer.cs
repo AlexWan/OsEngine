@@ -2833,7 +2833,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         List<string> _cancelOrderNums = new List<string>();
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateOrders.WaitToProceed();
 
@@ -2852,7 +2852,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (countTryRevokeOrder >= 2)
                 {
                     SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
-                    return;
+                    return false;
                 }
 
                 _cancelOrderNums.Add(order.NumberMarket);
@@ -2891,12 +2891,18 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         MyOrderEvent(order);
                     }
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()

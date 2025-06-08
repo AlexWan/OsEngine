@@ -1749,7 +1749,7 @@ namespace OsEngine.Language
 
         public string Label462 => OsLocalization.ConvertToLocString(
           "Eng:Non-trade periods_" +
-          "Ru:Не торговые периоды_");
+          "Ru:Не торговое время_");
 
         public string Label463 => OsLocalization.ConvertToLocString(
           "Eng:Stop trading_" +
@@ -2046,5 +2046,33 @@ namespace OsEngine.Language
         public string Label536 => OsLocalization.ConvertToLocString(
          "Eng:Shift first price %_" +
          "Ru:Сдвиг первой цены %_");
+
+        public string Label537 => OsLocalization.ConvertToLocString(
+         "Eng:Errors_" +
+         "Ru:Ошибки_");
+
+        public string Label538 => OsLocalization.ConvertToLocString(
+         "Eng:Check open orders stream_" +
+         "Ru:Проверять ошибки выставления ордеров_");
+
+        public string Label539 => OsLocalization.ConvertToLocString(
+         "Eng:Max fail open orders_" +
+         "Ru:Макс. ошибок на выставлении_");
+
+        public string Label540 => OsLocalization.ConvertToLocString(
+         "Eng:Current fail open orders_" +
+         "Ru:Ошибок на выставлении. Сейчас_");
+
+        public string Label541 => OsLocalization.ConvertToLocString(
+         "Eng:Check cancel orders stream_" +
+         "Ru:Проверять ошибки отзыва ордеров_");
+
+        public string Label542 => OsLocalization.ConvertToLocString(
+         "Eng:Max fail cancel orders_" +
+         "Ru:Макс. ошибок на отзыве_");
+
+        public string Label543 => OsLocalization.ConvertToLocString(
+         "Eng:Current fail cancel orders_" +
+         "Ru:Ошибок на отзыве. Сейчас_");
     }
 }

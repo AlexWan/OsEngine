@@ -1647,7 +1647,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateOrder.WaitToProceed();
 
@@ -1667,11 +1667,16 @@ namespace OsEngine.Market.Servers.KiteConnect
                     SendLogMessage("Cancel order failed. Status: "
                          + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
                 }
+                else
+                {
+                    return true;
+                }
             }
             catch (Exception exception)
             {
                 SendLogMessage("Cancel order failed " + exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

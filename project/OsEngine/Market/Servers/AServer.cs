@@ -3058,7 +3058,13 @@ namespace OsEngine.Market.Servers
                             }
                             else if (order.OrderSendType == OrderSendType.Cancel)
                             {
-                                ServerRealization.CancelOrder(order.Order);
+                                if(ServerRealization.CancelOrder(order.Order) == false)
+                                {
+                                    if(CancelOrderFailEvent != null)
+                                    {
+                                        CancelOrderFailEvent(order.Order);
+                                    }
+                                }
                             }
                             else if (order.OrderSendType == OrderSendType.ChangePrice
                                 && IsCanChangeOrderPrice)
@@ -3452,6 +3458,11 @@ namespace OsEngine.Market.Servers
         /// external systems requested order cancellation
         /// </summary>
         public event Action<Order> UserSetOrderOnCancel;
+
+        /// <summary>
+        /// An attempt to revoke the order ended in an error
+        /// </summary>
+        public event Action<Order> CancelOrderFailEvent;
 
         #endregion
 

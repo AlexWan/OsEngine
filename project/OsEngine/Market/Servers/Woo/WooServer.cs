@@ -1247,13 +1247,13 @@ namespace OsEngine.Market.Servers.Woo
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
             if (OrderStateType.Cancel == order.State)
             {
-                return;
+                return false;
             }
             try
             {
@@ -1274,6 +1274,7 @@ namespace OsEngine.Market.Servers.Woo
 
                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
                 {
+                    return true;
                     SendLogMessage($"CancelOrder. Http State Code: {response.StatusCode}, {response}", LogMessageType.Error);
                 }
             }
@@ -1281,6 +1282,7 @@ namespace OsEngine.Market.Servers.Woo
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void GetAllActivOrders()

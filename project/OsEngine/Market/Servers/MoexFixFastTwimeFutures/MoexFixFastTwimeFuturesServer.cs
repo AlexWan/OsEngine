@@ -3689,7 +3689,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         int _countTest = 0;
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3754,7 +3754,9 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                return false;
             }
+            return true;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

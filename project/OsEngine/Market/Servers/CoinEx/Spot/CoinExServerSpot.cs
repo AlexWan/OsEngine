@@ -1419,7 +1419,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
             lock (_lockOrder)
@@ -1437,6 +1437,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         order.TimeCancel = order.TimeCallBack;
                         MyOrderEvent?.Invoke(order);
                         SendLogMessage("Order cancelled", LogMessageType.Trade);
+                        return true;
                     }
                     else
                     {
@@ -1453,6 +1454,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     SendLogMessage("Cancel order error. " + exception.ToString(), LogMessageType.Error);
                 }
             }
+            return false;
         }
 
         public void CancelAllOrders()

@@ -2829,7 +2829,7 @@ namespace OsEngine.Market.Servers.Plaza
 
         public void CancelAllOrdersToSecurity(Security security) { }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             lock (_publisherLocker)
             {
@@ -2839,7 +2839,7 @@ namespace OsEngine.Market.Servers.Plaza
                 {
                     if (_publisher == null)
                     {
-                        return;
+                        return false;
                     }
 
                     if (_penaltyRemain != 0)
@@ -2866,12 +2866,14 @@ namespace OsEngine.Market.Servers.Plaza
 
                     _publisher.Post(sendMessage, PublishFlag.NeedReply);
                     sendMessage.Dispose();
+                    return true;
                 }
                 catch (Exception error)
                 {
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                 }
             }
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

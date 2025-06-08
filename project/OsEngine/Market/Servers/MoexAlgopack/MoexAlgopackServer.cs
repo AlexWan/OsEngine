@@ -749,9 +749,9 @@ namespace OsEngine.Market.Servers.MoexAlgopack
                 
             }
 
-            public void CancelOrder(Order order)
+            public bool CancelOrder(Order order)
             {
-                
+                return false;
             }
            
             private void CreateOrderFail(Order order)

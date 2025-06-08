@@ -1235,9 +1235,10 @@ contract =>
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _client.CancelOrder(order);
+            return false;
         }
 
         public void CancelAllOrders()

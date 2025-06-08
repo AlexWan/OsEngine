@@ -1719,7 +1719,7 @@ namespace OsEngine.Market.Servers.BloFin
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1749,6 +1749,7 @@ namespace OsEngine.Market.Servers.BloFin
                     if (orderResponse.code == "0")
                     {
                         // Ignore
+                        return true;
                     }
                     else
                     {
@@ -1775,6 +1776,7 @@ namespace OsEngine.Market.Servers.BloFin
             {
                 SendLogMessage($"Cancel Order - {ex.Message}, {ex.StackTrace}", LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()

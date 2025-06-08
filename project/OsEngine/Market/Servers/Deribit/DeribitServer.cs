@@ -1242,13 +1242,13 @@ namespace OsEngine.Market.Servers.Deribit
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
             if (OrderStateType.Cancel == order.State)
             {
-                return;
+                return true;
             }
 
             JsonRequest jsonRequest = new JsonRequest();
@@ -1270,7 +1270,10 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 order.State = OrderStateType.Cancel;
                 MyOrderEvent(order);
+                return true;
             }
+
+            return false;
         }
 
         public void GetAllActivOrders()

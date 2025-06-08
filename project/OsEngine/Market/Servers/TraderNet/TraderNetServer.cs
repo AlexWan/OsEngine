@@ -1299,7 +1299,13 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 if (!JsonResponse.Contains("order_id"))
                 {
-                    CreateOrderFail(order);
+                    order.State = OrderStateType.Fail;
+
+                    if (MyOrderEvent != null)
+                    {
+                        MyOrderEvent(order);
+                    }
+
                     SendLogMessage($"SendOrder: {JsonResponse}", LogMessageType.Error);
                 }                               
             }
@@ -1309,7 +1315,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1330,14 +1336,20 @@ namespace OsEngine.Market.Servers.TraderNet
 
                 if (!JsonResponse.Contains("result"))
                 {
-                    CreateOrderFail(order);
+                    return false;
                     SendLogMessage($"CancelOrder: {JsonResponse}", LogMessageType.Error);
+                }
+                else
+                {
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+
+            return false;
         }
 
         public void GetAllActivOrders()
@@ -1587,16 +1599,6 @@ namespace OsEngine.Market.Servers.TraderNet
             }
 
             return stateType;
-        }
-
-        private void CreateOrderFail(Order order)
-        {
-            order.State = OrderStateType.Fail;
-
-            if (MyOrderEvent != null)
-            {
-                MyOrderEvent(order);
-            }
         }
 
         #endregion

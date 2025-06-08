@@ -1787,7 +1787,7 @@ namespace OsEngine.Market.Servers.Atp
             _messagesToSendTrade.Enqueue(orderToTcp);
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             if (order.NumberUser == 0)
             {
@@ -1799,6 +1799,7 @@ namespace OsEngine.Market.Servers.Atp
             orderToTcp += order.NumberUser + "@";
 
             _messagesToSendTrade.Enqueue(orderToTcp);
+            return true;
         }
 
         public void GetOrdersState(List<Order> orders)

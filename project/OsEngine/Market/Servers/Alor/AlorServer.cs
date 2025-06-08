@@ -2542,7 +2542,7 @@ namespace OsEngine.Market.Servers.Alor
 
         List<string> _cancelOrderNums = new List<string>();
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -2563,7 +2563,7 @@ namespace OsEngine.Market.Servers.Alor
                 if(countTryRevokeOrder >= 2)
                 {
                     SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
-                    return;
+                    return false;
                 }
 
                 _cancelOrderNums.Add(order.NumberMarket);
@@ -2594,7 +2594,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    return;
+                    return true;
                 }
                 else
                 {
@@ -2612,7 +2612,7 @@ namespace OsEngine.Market.Servers.Alor
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
-
+            return false;
         }
 
         public void GetOrdersState(List<Order> orders)

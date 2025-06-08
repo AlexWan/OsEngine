@@ -584,9 +584,9 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
-
+            return false;
         }
 
         public void CancelAllOrders()

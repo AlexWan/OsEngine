@@ -1404,6 +1404,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public event Action<Order> NewOrderIncomeEvent;
 
+        public event Action<Order> CancelOrderFailEvent;
+
         #endregion
 
         #region Orders 3. Internal operations of the "exchange" on orders

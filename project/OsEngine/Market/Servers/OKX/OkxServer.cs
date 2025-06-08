@@ -2477,7 +2477,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateOrder.WaitToProceed();
 
@@ -2503,11 +2503,16 @@ namespace OsEngine.Market.Servers.OKX
                     GetOrderStatus(order);
                     SendLogMessage($"CancelOrder - {message.data[0].sMsg}", LogMessageType.Error);
                 }
+                else
+                {
+                    return true;
+                }
             }
             catch (Exception ex)
             {
                 SendLogMessage($"CancelOrder - {ex.Message}", LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrdersToSecurity(Security security)

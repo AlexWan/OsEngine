@@ -3663,7 +3663,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3691,7 +3691,10 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                return false;
             }
+
+            return true;
         }              
 
         public void CancelAllOrders()

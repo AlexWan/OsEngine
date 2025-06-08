@@ -1584,6 +1584,11 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// </summary>
         public event Action<Order> NewOrderIncomeEvent;
 
+        /// <summary>
+        /// An attempt to revoke the order ended in an error
+        /// </summary>
+        public event Action<Order> CancelOrderFailEvent;
+
         // log messages
         // обработка лога
 

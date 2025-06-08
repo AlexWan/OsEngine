@@ -1801,7 +1801,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateOrder.WaitToProceed();
 
@@ -1830,11 +1830,16 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     SendLogMessage($"Cancel order failed. Status: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
+                else
+                {
+                    return true;
+                }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()

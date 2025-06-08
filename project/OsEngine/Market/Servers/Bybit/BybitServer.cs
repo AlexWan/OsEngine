@@ -3150,7 +3150,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
 
@@ -3198,14 +3198,14 @@ namespace OsEngine.Market.Servers.Bybit
                         order.TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(Convert.ToInt64(responseOrder.time)).UtcDateTime;
                         order.State = OrderStateType.Cancel;
                         MyOrderEvent?.Invoke(order);
-                        return;
+                        return true;
                     }
                     else if (responseOrder.retCode == "110001" || responseOrder.retCode == "170213")   // "retCode":110001,"retMsg":"order not exists or too late to cancel"
                                                                                                        //  retCode":170213,"retMsg":"Order does not exist."
                                                                                                        // The order does not exist (maybe it has not yet been created) or has already been cancelled. Let's ask about its status
                     {
                         GetOrderStatus(order);
-                        return;
+                        return false;
                         /*DateTime TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
                         if ((TimeCancel - order.TimeCreate) > TimeSpan.FromSeconds(minTimeCreateOrders))
                         {
@@ -3225,8 +3225,9 @@ namespace OsEngine.Market.Servers.Bybit
             catch
             {
                 SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode}", LogMessageType.Error);
-                return;
+                return false;
             }
+            return false;
         }
 
         public void CancelAllOrdersToSecurity(Security security)

@@ -502,8 +502,9 @@ namespace OsEngine.Market.Servers.TelegramNews
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
+            return true;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

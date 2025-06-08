@@ -1401,7 +1401,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             rateGateCancelOrder.WaitToProceed();
 
@@ -1413,6 +1413,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 if (stateResponse.code.Equals("200000") == true)
                 {
+                    return true;
                     // ignore
                 }
                 else
@@ -1433,6 +1434,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
+            return false;
         }
 
         public void ResearchTradesToOrders(List<Order> orders)

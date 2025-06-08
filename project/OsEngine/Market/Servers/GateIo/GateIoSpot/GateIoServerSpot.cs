@@ -1489,7 +1489,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1523,11 +1523,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
                     GetOrderStatus(order);
                     SendLogMessage($"CancelOrder. Error: {responseMessage.Content}", LogMessageType.Error);
                 }
+                else
+                {
+                    return true;
+                }
             }
             catch (Exception exception)
             {
                 SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
             }
+            return false;
         }
 
         public void GetAllActivOrders()

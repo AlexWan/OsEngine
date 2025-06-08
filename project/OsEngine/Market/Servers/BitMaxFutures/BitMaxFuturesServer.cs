@@ -261,9 +261,9 @@ namespace OsEngine.Market.Servers.BitMaxFutures
 
         #region Trade
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
-
+            return true;
         }
 
         public void CancelAllOrders()

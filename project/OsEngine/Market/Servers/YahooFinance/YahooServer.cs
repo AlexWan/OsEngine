@@ -466,7 +466,7 @@ namespace OsEngine.Market.Servers.YahooFinance
 
         public void SendOrder(Order order) { }
 
-        public void CancelOrder(Order order){ }
+        public bool CancelOrder(Order order){ return true; }
 
         public void CancelAllOrdersToSecurity(Security security) { }
 

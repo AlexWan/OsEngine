@@ -48,6 +48,7 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 _connector = new ConnectorCandles(TabName, startProgram, true);
                 _connector.OrderChangeEvent += _connector_OrderChangeEvent;
+                _connector.CancelOrderFailEvent += _connector_CancelOrderFailEvent;
                 _connector.MyTradeEvent += _connector_MyTradeEvent;
                 _connector.BestBidAskChangeEvent += _connector_BestBidAskChangeEvent;
                 _connector.PortfolioOnExchangeChangedEvent += _connector_PortfolioOnExchangeChangedEvent;
@@ -361,6 +362,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 if (_connector != null)
                 {
                     _connector.OrderChangeEvent -= _connector_OrderChangeEvent;
+                    _connector.CancelOrderFailEvent -= _connector_CancelOrderFailEvent;
                     _connector.MyTradeEvent -= _connector_MyTradeEvent;
                     _connector.BestBidAskChangeEvent -= _connector_BestBidAskChangeEvent;
                     _connector.GlassChangeEvent -= _connector_GlassChangeEvent;
@@ -6718,6 +6720,29 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// An attempt to revoke the order ended in an error
+        /// </summary>
+        private void _connector_CancelOrderFailEvent(Order order)
+        {
+            if (_isDelete)
+            {
+                return;
+            }
+
+            Order orderInJournal = _journal.IsMyOrder(order);
+
+            if (orderInJournal == null)
+            {
+                return;
+            }
+
+            if(CancelOrderFailEvent != null)
+            {
+                CancelOrderFailEvent(orderInJournal);
+            }
+        }
+
+        /// <summary>
         /// Incoming new bid with ask
         /// </summary>
         private void _connector_BestBidAskChangeEvent(decimal bestBid, decimal bestAsk)
@@ -6901,6 +6926,11 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// Updated order
         /// </summary>
         public event Action<Order> OrderUpdateEvent;
+
+        /// <summary>
+        /// An attempt to revoke the order ended in an error
+        /// </summary>
+        public event Action<Order> CancelOrderFailEvent;
 
         /// <summary>
         /// New trades

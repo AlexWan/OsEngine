@@ -1424,13 +1424,13 @@ namespace OsEngine.Market.Servers.HTX.Futures
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
             if (order.State == OrderStateType.Cancel)
             {
-                return;
+                return true;
             }
             try
             {
@@ -1457,12 +1457,14 @@ namespace OsEngine.Market.Servers.HTX.Futures
                 {
                     order.State = OrderStateType.Cancel;
                     MyOrderEvent(order);
+                    return true;
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()

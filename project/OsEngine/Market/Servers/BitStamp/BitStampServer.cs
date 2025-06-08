@@ -158,9 +158,10 @@ namespace OsEngine.Market.Servers.BitStamp
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _client.CancelOrder(order);
+            return true;
         }
 
         /// <summary>

@@ -283,6 +283,12 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<MyTrade> NewMyTradeEvent;
 
+
+        /// <summary>
+        /// An attempt to revoke the order ended in an error
+        /// </summary>
+        event Action<Order> CancelOrderFailEvent;
+
         #endregion
 
         #region Log messages

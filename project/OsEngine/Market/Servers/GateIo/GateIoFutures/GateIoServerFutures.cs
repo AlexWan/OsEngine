@@ -1619,7 +1619,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1637,6 +1637,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
                         order.State = OrderStateType.Cancel;
                         MyOrderEvent(order);
+                        return true;
                     }
                     else
                     {
@@ -1654,6 +1655,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 SendLogMessage(exception.Message, LogMessageType.Error);
             }
+            return false;
         }
 
         public void GetAllActivOrders()

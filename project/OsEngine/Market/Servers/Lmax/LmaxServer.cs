@@ -176,10 +176,11 @@ namespace OsEngine.Market.Servers.Lmax
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             string securityId = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameId;
             _client.CancelOrder(securityId, order);
+            return true;
         }
 
         /// <summary>

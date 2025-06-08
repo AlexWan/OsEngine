@@ -75,7 +75,10 @@ namespace OsEngine.OsTrader.Grids
             GridCreator = new TradeGridCreator();
             GridCreator.LogMessageEvent += SendNewLogMessage;
 
-            if(StartProgram == StartProgram.IsOsTrader)
+            ErrorsReaction = new TradeGridErrorsReaction(this);
+            ErrorsReaction.LogMessageEvent += SendNewLogMessage;
+
+            if (StartProgram == StartProgram.IsOsTrader)
             {
                 Thread worker = new Thread(ThreadWorkerPlace);
                 worker.Start();
@@ -105,6 +108,8 @@ namespace OsEngine.OsTrader.Grids
         public TradeGridAutoStarter AutoStarter;
 
         public TradeGridCreator GridCreator;
+
+        public TradeGridErrorsReaction ErrorsReaction;
 
         public string GetSaveString()
         {
@@ -150,6 +155,10 @@ namespace OsEngine.OsTrader.Grids
             result += AutoStarter.GetSaveString();
             result += "%";
 
+            // errors reaction
+            result += ErrorsReaction.GetSaveString();
+            result += "%";
+
             return result;
         }
 
@@ -192,6 +201,9 @@ namespace OsEngine.OsTrader.Grids
 
                 // auto start
                 AutoStarter.LoadFromString(array[6]);
+
+                // errors reaction
+                ErrorsReaction.LoadFromString(array[7]);
 
             }
             catch (Exception e)
@@ -247,6 +259,12 @@ namespace OsEngine.OsTrader.Grids
                 GridCreator = null;
             }
 
+            if (ErrorsReaction != null)
+            {
+                ErrorsReaction.LogMessageEvent += SendNewLogMessage;
+                ErrorsReaction.Delete();
+                ErrorsReaction = null;
+            }
         }
 
         public void Save()
@@ -564,7 +582,15 @@ namespace OsEngine.OsTrader.Grids
 
                 _firstStopIsActivate = false;
 
-                if(GridType == TradeGridPrimeType.OpenPosition)
+                if(ErrorsReaction.FailCancelOrdersCountFact != 0 
+                    || ErrorsReaction.FailOpenOrdersCountFact != 0)
+                {
+                    ErrorsReaction.FailCancelOrdersCountFact = 0;
+                    ErrorsReaction.FailOpenOrdersCountFact = 0;
+                    _needToSave = true;
+                }
+
+                if (GridType == TradeGridPrimeType.OpenPosition)
                 {
                     TryDeleteDonePositions();
                 }
@@ -611,9 +637,26 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            // 2 проверяем ожидание в бою. Только что были отозваны или выставлены N кол-во ордеров
+            // 2 проверяем ошибки и реагируем на них
 
-            if(StartProgram == StartProgram.IsOsTrader)
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                TradeGridRegime reaction = ErrorsReaction.GetReactionOnErrors(this);
+
+                if (reaction != TradeGridRegime.On)
+                {
+                    ErrorsReaction.FailCancelOrdersCountFact = 0;
+                    ErrorsReaction.FailOpenOrdersCountFact = 0;
+                    baseRegime = reaction;
+                    Regime = reaction;
+                    Save();
+                    RePaintGrid();
+                }
+            }
+
+            // 3 проверяем ожидание в бою. Только что были отозваны или выставлены N кол-во ордеров
+
+            if (StartProgram == StartProgram.IsOsTrader)
             {
                 if(_vacationTime > DateTime.Now)
                 {
@@ -621,7 +664,7 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            // 3 проверяем наличие ордеров без номеров в маркете. Для медленных подключений
+            // 4 проверяем наличие ордеров без номеров в маркете. Для медленных подключений
 
             if (StartProgram == StartProgram.IsOsTrader)
             {
@@ -631,7 +674,7 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            // 4 попытка смены режима если блокировано по времени или по дням
+            // 5 попытка смены режима если блокировано по времени или по дням
 
             if (baseRegime == TradeGridRegime.On)
             {
@@ -650,7 +693,7 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            // 5 попытка смены режима по остановке торгов
+            // 6 попытка смены режима по остановке торгов
 
             if (baseRegime == TradeGridRegime.On)
             {

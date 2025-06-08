@@ -2706,7 +2706,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -2716,7 +2716,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
                 if (order.State == OrderStateType.Cancel)
                 {
-                    return;
+                    return true;
                 }
 
                 string body = $"{{\"id\":{order.NumberMarket}}}";
@@ -2733,9 +2733,10 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                     {
                         GetOrderStatus(order);
                         SendLogMessage("CancelOrder> Deserialization resulted in null", LogMessageType.Error);
-                        return;
+                        return false;
                     }
 
+                    return true;
                 }
                 else
                 {
@@ -2747,6 +2748,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

@@ -650,22 +650,23 @@ namespace OsEngine.Market.Servers.Quik
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             string command = ConvertToKillQuikOrder(order);
 
             int error;
             var msg = new StringBuilder(256);
 
-
             if (command == null)
             {
-                return;
+                return false;
             }
 
             Trans2Quik.QuikResult result = Trans2Quik.SEND_ASYNC_TRANSACTION(command, out error, msg, msg.Capacity);
 
             SendLogMessage(result.ToString(), LogMessageType.System);
+
+            return true;
         }
 
         /// <summary>

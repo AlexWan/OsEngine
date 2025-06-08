@@ -1749,7 +1749,7 @@ namespace OsEngine.Market.Servers.Mexc
             //unsupported by API
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1774,6 +1774,7 @@ namespace OsEngine.Market.Servers.Mexc
                     {
                         //Everything is OK - do nothing
                         SendLogMessage("Cancel order - OK: " + content, LogMessageType.Connect);
+                        return true;
                     }
                     else
                     {
@@ -1792,6 +1793,7 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 SendLogMessage("Cancel order error." + exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()

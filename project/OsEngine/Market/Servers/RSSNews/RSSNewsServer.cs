@@ -331,8 +331,9 @@ namespace OsEngine.Market.Servers.RSSNews
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

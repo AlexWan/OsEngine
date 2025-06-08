@@ -1031,7 +1031,7 @@ namespace OsEngine.Market.Servers.AE
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1048,6 +1048,7 @@ namespace OsEngine.Market.Servers.AE
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
+            return true;
         }
 
         public void GetOrdersState(List<Order> orders)

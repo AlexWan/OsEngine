@@ -1941,7 +1941,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private RateGate _cancelOrderRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _generalRateGate3.WaitToProceed();
             _cancelOrderRateGate.WaitToProceed();
@@ -1975,7 +1975,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     ResponseFuturesBingXMessage<OrderData> response = JsonConvert.DeserializeObject<ResponseFuturesBingXMessage<OrderData>>(json.Content);
                     if (response.code == "0")
                     {
-
+                        return true;
                     }
                     else
                     {
@@ -1993,6 +1993,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             {
                 SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
             }
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
