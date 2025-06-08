@@ -399,6 +399,28 @@ namespace OsEngine.OsTrader.Grids
             TextBoxFailCancelOrdersCountToReaction.TextChanged += TextBoxFailCancelOrdersCountToReaction_TextChanged;
             TextBoxFailCancelOrdersCountFact.Text = tradeGrid.ErrorsReaction.FailCancelOrdersCountFact.ToString();
 
+            // trailing up / down
+
+            CheckBoxTrailingUpIsOn.IsChecked = tradeGrid.TrailingUp.TrailingUpIsOn;
+            CheckBoxTrailingUpIsOn.Checked += CheckBoxTrailingUpIsOn_Checked;
+            CheckBoxTrailingUpIsOn.Unchecked += CheckBoxTrailingUpIsOn_Checked;
+
+            TextBoxTrailingUpStep.Text = tradeGrid.TrailingUp.TrailingUpStep.ToString();
+            TextBoxTrailingUpStep.TextChanged += TextBoxTrailingUpStep_TextChanged;
+
+            TextBoxTrailingUpLimit.Text = tradeGrid.TrailingUp.TrailingUpLimit.ToString();
+            TextBoxTrailingUpLimit.TextChanged += TextBoxTrailingUpLimit_TextChanged;
+
+            CheckBoxTrailingDownIsOn.IsChecked = tradeGrid.TrailingUp.TrailingDownIsOn;
+            CheckBoxTrailingDownIsOn.Checked += CheckBoxTrailingDownIsOn_Checked; 
+            CheckBoxTrailingDownIsOn.Unchecked += CheckBoxTrailingDownIsOn_Checked;
+
+            TextBoxTrailingDownStep.Text = tradeGrid.TrailingUp.TrailingDownStep.ToString();
+            TextBoxTrailingDownStep.TextChanged += TextBoxTrailingDownStep_TextChanged; 
+
+            TextBoxTrailingDownLimit.Text = tradeGrid.TrailingUp.TrailingDownLimit.ToString();
+            TextBoxTrailingDownLimit.TextChanged += TextBoxTrailingDownLimit_TextChanged;
+
             Localization();
 
             // grid table
@@ -443,6 +465,7 @@ namespace OsEngine.OsTrader.Grids
             TabItemGridLinesTable.Header = OsLocalization.Trader.Label465;
             TabItemAutoStart.Header = OsLocalization.Trader.Label472;
             TabItemError.Header = OsLocalization.Trader.Label537;
+            TabItemTrailingUp.Header = OsLocalization.Trader.Label544;
 
             // non trade periods
 
@@ -529,7 +552,15 @@ namespace OsEngine.OsTrader.Grids
             LabelFailCancelOrdersCountToReaction.Content = OsLocalization.Trader.Label542;
             LabelFailCancelOrdersCountFact.Content = OsLocalization.Trader.Label543;
 
+            // trailing up
 
+            CheckBoxTrailingUpIsOn.Content = OsLocalization.Trader.Label545;
+            LabelTrailingUpStep.Content = OsLocalization.Trader.Label549;
+            LabelTrailingUpLimit.Content = OsLocalization.Trader.Label547;
+
+            CheckBoxTrailingDownIsOn.Content = OsLocalization.Trader.Label546;
+            LabelTrailingDownStep.Content = OsLocalization.Trader.Label549;
+            LabelTrailingDownLimit.Content = OsLocalization.Trader.Label547;
         }
 
         private void CheckEnabledItems()
@@ -697,6 +728,15 @@ namespace OsEngine.OsTrader.Grids
                 CheckBoxFailCancelOrdersReactionIsOn.Unchecked -= CheckBoxFailCancelOrdersReactionIsOn_Checked;
                 ComboBoxFailCancelOrdersReaction.SelectionChanged -= ComboBoxFailCancelOrdersReaction_SelectionChanged;
                 TextBoxFailCancelOrdersCountToReaction.TextChanged -= TextBoxFailCancelOrdersCountToReaction_TextChanged;
+
+                CheckBoxTrailingUpIsOn.Checked -= CheckBoxTrailingUpIsOn_Checked;
+                CheckBoxTrailingUpIsOn.Unchecked -= CheckBoxTrailingUpIsOn_Checked;
+                TextBoxTrailingUpStep.TextChanged -= TextBoxTrailingUpStep_TextChanged;
+                TextBoxTrailingUpLimit.TextChanged -= TextBoxTrailingUpLimit_TextChanged;
+                CheckBoxTrailingDownIsOn.Checked -= CheckBoxTrailingDownIsOn_Checked;
+                CheckBoxTrailingDownIsOn.Unchecked -= CheckBoxTrailingDownIsOn_Checked;
+                TextBoxTrailingDownStep.TextChanged -= TextBoxTrailingDownStep_TextChanged;
+                TextBoxTrailingDownLimit.TextChanged -= TextBoxTrailingDownLimit_TextChanged;
             }
             catch
             {
@@ -843,6 +883,108 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 TradeGrid.ErrorsReaction.FailCancelOrdersCountToReaction = Convert.ToInt32(TextBoxFailCancelOrdersCountToReaction.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        #endregion
+
+        #region Trailing Up Down
+
+        private void CheckBoxTrailingUpIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TrailingUp.TrailingUpIsOn = CheckBoxTrailingUpIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxTrailingUpStep_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxTrailingUpStep.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingUpStep = Convert.ToInt32(TextBoxTrailingUpStep.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxTrailingUpLimit_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxTrailingUpLimit.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingUpLimit = Convert.ToInt32(TextBoxTrailingUpLimit.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxTrailingDownIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                TradeGrid.TrailingUp.TrailingDownIsOn = CheckBoxTrailingDownIsOn.IsChecked.Value;
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxTrailingDownStep_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxTrailingDownStep.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingDownStep = Convert.ToInt32(TextBoxTrailingDownStep.Text);
+                TradeGrid.Save();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxTrailingDownLimit_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxTrailingDownLimit.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.TrailingUp.TrailingDownLimit = Convert.ToInt32(TextBoxTrailingDownLimit.Text);
                 TradeGrid.Save();
             }
             catch

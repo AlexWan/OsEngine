@@ -2074,5 +2074,29 @@ namespace OsEngine.Language
         public string Label543 => OsLocalization.ConvertToLocString(
          "Eng:Current fail cancel orders_" +
          "Ru:Ошибок на отзыве. Сейчас_");
+
+        public string Label544 => OsLocalization.ConvertToLocString(
+         "Eng:Trailing Up_" +
+         "Ru:Подтягивание_");
+
+        public string Label545 => OsLocalization.ConvertToLocString(
+         "Eng:Trailing Up_" +
+         "Ru:Подтягивание вверх_");
+
+        public string Label546 => OsLocalization.ConvertToLocString(
+         "Eng:Trailing Down_" +
+         "Ru:Подтягивание вниз_");
+
+        public string Label547 => OsLocalization.ConvertToLocString(
+         "Eng:Limit_" +
+         "Ru:Ограничение_");
+
+        public string Label548 => OsLocalization.ConvertToLocString(
+         "Eng:Limit_" +
+         "Ru:Ограничение_");
+
+        public string Label549 => OsLocalization.ConvertToLocString(
+         "Eng:Step shift_" +
+         "Ru:Шаг сдвига_");
     }
 }

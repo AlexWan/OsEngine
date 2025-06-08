@@ -78,6 +78,9 @@ namespace OsEngine.OsTrader.Grids
             ErrorsReaction = new TradeGridErrorsReaction(this);
             ErrorsReaction.LogMessageEvent += SendNewLogMessage;
 
+            TrailingUp = new TrailingUp();
+            TrailingUp.LogMessageEvent += SendNewLogMessage;
+
             if (StartProgram == StartProgram.IsOsTrader)
             {
                 Thread worker = new Thread(ThreadWorkerPlace);
@@ -110,6 +113,8 @@ namespace OsEngine.OsTrader.Grids
         public TradeGridCreator GridCreator;
 
         public TradeGridErrorsReaction ErrorsReaction;
+
+        public TrailingUp TrailingUp;
 
         public string GetSaveString()
         {
@@ -159,6 +164,10 @@ namespace OsEngine.OsTrader.Grids
             result += ErrorsReaction.GetSaveString();
             result += "%";
 
+            // trailing up / down
+            result += TrailingUp.GetSaveString();
+            result += "%";
+
             return result;
         }
 
@@ -205,6 +214,8 @@ namespace OsEngine.OsTrader.Grids
                 // errors reaction
                 ErrorsReaction.LoadFromString(array[7]);
 
+                // trailing up / down
+                TrailingUp.LoadFromString(array[8]);
             }
             catch (Exception e)
             {
@@ -261,9 +272,15 @@ namespace OsEngine.OsTrader.Grids
 
             if (ErrorsReaction != null)
             {
-                ErrorsReaction.LogMessageEvent += SendNewLogMessage;
+                ErrorsReaction.LogMessageEvent -= SendNewLogMessage;
                 ErrorsReaction.Delete();
                 ErrorsReaction = null;
+            }
+
+            if(TrailingUp != null)
+            {
+                TrailingUp.LogMessageEvent -= SendNewLogMessage;
+                TrailingUp = null;
             }
         }
 
@@ -708,7 +725,19 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
 
-            if(GridType == TradeGridPrimeType.MarketMaking)
+            // 7 попытка сместить сетку
+
+            if (baseRegime == TradeGridRegime.On)
+            {
+                if(TrailingUp.TryTrailingGrid(this))
+                {
+                    _needToSave = true;
+                }
+            }
+
+            // 8 вход в различную логику различных сеток
+
+            if (GridType == TradeGridPrimeType.MarketMaking)
             {
                 GridTypeMarketMakingLogic(baseRegime);
             }
