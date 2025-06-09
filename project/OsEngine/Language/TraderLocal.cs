@@ -2102,5 +2102,13 @@ namespace OsEngine.Language
         public string Label550 => OsLocalization.ConvertToLocString(
          "Eng:Are you going to remove the Grid? Are you sure?_" +
          "Ru:Вы собираетесь удалить сетку? Вы уверены?_");
+
+        public string Label551 => OsLocalization.ConvertToLocString(
+         "Eng:Required field!!!_" +
+         "Ru:Обязательное поле!!!_");
+
+        public string Label552 => OsLocalization.ConvertToLocString(
+         "Eng:To enable the trailing function, you must enter the required fields. Limit and Step shift._" +
+         "Ru:Чтобы включить функцию трейлинг, нужно ввести обязательные поля. Ограничение и шаг смещения._");
     }
 }

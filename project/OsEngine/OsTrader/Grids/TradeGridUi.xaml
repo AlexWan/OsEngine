@@ -143,13 +143,13 @@
             </TabItem>
             <TabItem Name="TabItemTrailingUp" Header="Trailing Up">
                 <Grid >
-                    <CheckBox Name="CheckBoxTrailingUpIsOn" Content="Trailing Up" HorizontalAlignment="Center" Margin="0,7,0,0" VerticalAlignment="Top" Width="316"/>
+                    <CheckBox Name="CheckBoxTrailingUpIsOn" Content="Trailing Up" HorizontalAlignment="Left" Margin="11,7,0,0" VerticalAlignment="Top" Width="316"/>
                     <Label Name="LabelTrailingUpStep" Content="Step" HorizontalAlignment="Left" Margin="10,35,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingUpStep" Margin="164,35,12,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Name="LabelTrailingUpLimit" Content="Limit" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingUpLimit" Margin="164,63,12,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
-                    <CheckBox Name="CheckBoxTrailingDownIsOn" Content="Trailing Down" HorizontalAlignment="Center" Margin="0,145,0,0" VerticalAlignment="Top" Width="316"/>
+                    <CheckBox Name="CheckBoxTrailingDownIsOn" Content="Trailing Down" HorizontalAlignment="Left" Margin="11,145,0,0" VerticalAlignment="Top" Width="316"/>
                     <Label Name="LabelTrailingDownStep" Content="Step" HorizontalAlignment="Left" Margin="11,173,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxTrailingDownStep" Margin="164,173,11,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Name="LabelTrailingDownLimit" Content="Limit" HorizontalAlignment="Left" Margin="11,201,0,0" VerticalAlignment="Top"/>

@@ -895,11 +895,49 @@ namespace OsEngine.OsTrader.Grids
 
         #region Trailing Up Down
 
+        private int _trailingUpErrorsCountLimit;
+        private int _trailingUpErrorsCountStep;
+
         private void CheckBoxTrailingUpIsOn_Checked(object sender, RoutedEventArgs e)
         {
             try
             {
-                TradeGrid.TrailingUp.TrailingUpIsOn = CheckBoxTrailingUpIsOn.IsChecked.Value;
+                bool value = CheckBoxTrailingUpIsOn.IsChecked.Value;
+
+                if(value == true)
+                {
+                    bool haveBadFields = false;
+                    if(TradeGrid.TrailingUp.TrailingUpLimit == 0)
+                    {
+                        TextBoxTrailingUpLimit.Text = OsLocalization.Trader.Label551;
+                        haveBadFields = true;
+                        _trailingUpErrorsCountLimit++;
+                    }
+                    if (TradeGrid.TrailingUp.TrailingUpStep == 0)
+                    {
+                        TextBoxTrailingUpStep.Text = OsLocalization.Trader.Label551;
+                        haveBadFields = true;
+                        _trailingUpErrorsCountStep++;
+                    }
+                    if(haveBadFields == true)
+                    {
+                        CheckBoxTrailingUpIsOn.IsChecked = false;
+
+                        if(_trailingUpErrorsCountLimit > 2
+                            || _trailingUpErrorsCountStep > 2)
+                        {
+                            _trailingUpErrorsCountStep = 0;
+                            _trailingUpErrorsCountLimit = 0;
+
+                            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label552);
+                            ui.ShowDialog();
+                        }
+
+                        return;
+                    }
+                }
+
+                TradeGrid.TrailingUp.TrailingUpIsOn = value;
                 TradeGrid.Save();
             }
             catch
@@ -944,11 +982,50 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        private int _trailingDownErrorsCountLimit;
+
+        private int _trailingDownErrorsCountStep;
+
         private void CheckBoxTrailingDownIsOn_Checked(object sender, RoutedEventArgs e)
         {
             try
             {
-                TradeGrid.TrailingUp.TrailingDownIsOn = CheckBoxTrailingDownIsOn.IsChecked.Value;
+                bool value = CheckBoxTrailingDownIsOn.IsChecked.Value;
+
+                if (value == true)
+                {
+                    bool haveBadFields = false;
+                    if (TradeGrid.TrailingUp.TrailingDownLimit == 0)
+                    {
+                        TextBoxTrailingDownLimit.Text = OsLocalization.Trader.Label551;
+                        haveBadFields = true;
+                        _trailingDownErrorsCountLimit++;
+                    }
+                    if (TradeGrid.TrailingUp.TrailingDownStep == 0)
+                    {
+                        TextBoxTrailingDownStep.Text = OsLocalization.Trader.Label551;
+                        haveBadFields = true;
+                        _trailingDownErrorsCountStep++;
+                    }
+                    if (haveBadFields == true)
+                    {
+                        CheckBoxTrailingDownIsOn.IsChecked = false;
+
+                        if (_trailingDownErrorsCountLimit > 2
+                            || _trailingDownErrorsCountStep > 2)
+                        {
+                            _trailingDownErrorsCountStep = 0;
+                            _trailingDownErrorsCountLimit = 0;
+
+                            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label552);
+                            ui.ShowDialog();
+                        }
+
+                        return;
+                    }
+                }
+
+                TradeGrid.TrailingUp.TrailingDownIsOn = value;
                 TradeGrid.Save();
             }
             catch
