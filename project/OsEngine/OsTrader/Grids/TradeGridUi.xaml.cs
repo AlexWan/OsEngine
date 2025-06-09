@@ -917,7 +917,7 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingUpStep = Convert.ToInt32(TextBoxTrailingUpStep.Text);
+                TradeGrid.TrailingUp.TrailingUpStep = TextBoxTrailingUpStep.Text.ToDecimal();
                 TradeGrid.Save();
             }
             catch
@@ -930,12 +930,12 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxTrailingUpLimit.Text))
+                if (string.IsNullOrEmpty(TextBoxTrailingUpLimit.Text)) 
                 {
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingUpLimit = Convert.ToInt32(TextBoxTrailingUpLimit.Text);
+                TradeGrid.TrailingUp.TrailingUpLimit = TextBoxTrailingUpLimit.Text.ToDecimal();
                 TradeGrid.Save();
             }
             catch
@@ -966,7 +966,7 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingDownStep = Convert.ToInt32(TextBoxTrailingDownStep.Text);
+                TradeGrid.TrailingUp.TrailingDownStep = TextBoxTrailingDownStep.Text.ToDecimal();
                 TradeGrid.Save();
             }
             catch
@@ -984,7 +984,7 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
-                TradeGrid.TrailingUp.TrailingDownLimit = Convert.ToInt32(TextBoxTrailingDownLimit.Text);
+                TradeGrid.TrailingUp.TrailingDownLimit = TextBoxTrailingDownLimit.Text.ToDecimal();
                 TradeGrid.Save();
             }
             catch
@@ -1381,6 +1381,21 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
+                if(TradeGrid.GridCreator.Lines == null 
+                    || TradeGrid.GridCreator.Lines.Count == 0)
+                {
+                    return;
+                }
+
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label550);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
+
                 TradeGrid.DeleteGrid();
                 RePaintGridTable();
             }

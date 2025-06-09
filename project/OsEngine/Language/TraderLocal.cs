@@ -2098,5 +2098,9 @@ namespace OsEngine.Language
         public string Label549 => OsLocalization.ConvertToLocString(
          "Eng:Step shift_" +
          "Ru:Шаг сдвига_");
+
+        public string Label550 => OsLocalization.ConvertToLocString(
+         "Eng:Are you going to remove the Grid? Are you sure?_" +
+         "Ru:Вы собираетесь удалить сетку? Вы уверены?_");
     }
 }

@@ -78,7 +78,7 @@ namespace OsEngine.OsTrader.Grids
             ErrorsReaction = new TradeGridErrorsReaction(this);
             ErrorsReaction.LogMessageEvent += SendNewLogMessage;
 
-            TrailingUp = new TrailingUp();
+            TrailingUp = new TrailingUp(this);
             TrailingUp.LogMessageEvent += SendNewLogMessage;
 
             if (StartProgram == StartProgram.IsOsTrader)
@@ -280,6 +280,7 @@ namespace OsEngine.OsTrader.Grids
             if(TrailingUp != null)
             {
                 TrailingUp.LogMessageEvent -= SendNewLogMessage;
+                TrailingUp.Delete();
                 TrailingUp = null;
             }
         }
@@ -729,9 +730,10 @@ namespace OsEngine.OsTrader.Grids
 
             if (baseRegime == TradeGridRegime.On)
             {
-                if(TrailingUp.TryTrailingGrid(this))
+                if(TrailingUp.TryTrailingGrid())
                 {
                     _needToSave = true;
+                    RePaintGrid();
                 }
             }
 
@@ -1745,6 +1747,38 @@ namespace OsEngine.OsTrader.Grids
                 decimal result = summ / volume;
 
                 return result;
+            }
+        }
+
+        public decimal MaxGridPrice
+        {
+            get
+            {
+                try
+                {
+                    return TrailingUp.MaxGridPrice;
+                }
+                catch(Exception e)
+                {
+                    SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                    return 0;
+                }
+            }
+        }
+
+        public decimal MinGridPrice
+        {
+            get
+            {
+                try
+                {
+                    return TrailingUp.MinGridPrice;
+                }
+                catch (Exception e)
+                {
+                    SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                    return 0;
+                }
             }
         }
 
