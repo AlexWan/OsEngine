@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Drawing;
-using OsEngine.Charts.CandleChart.Indicators;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System.Linq;
-using OsEngine.Market.Servers;
-using OsEngine.Market;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 
 /* Description
 trading robot for osengine
@@ -25,9 +27,7 @@ Exit:
 From buy: fast Ssma below slow Ssma;
 
 From sell: fast Ssma is higher than slow Ssma.
-
  */
-
 
 namespace OsEngine.Robots.Mybots
 {
@@ -41,11 +41,13 @@ namespace OsEngine.Robots.Mybots
         StrategyParameterDecimal _slippage;
         StrategyParameterTimeOfDay _startTradeTime;
         StrategyParameterTimeOfDay _endTradeTime;
+
+        // GetVolume Settings
         StrategyParameterString _volumeType;
         StrategyParameterDecimal _volume;
         StrategyParameterString _tradeAssetInPortfolio;
 
-        // Setting indicator
+        // Indicator settings
         StrategyParameterInt _periodSsmaFast;
         StrategyParameterInt _periodSsmaSlow;
 
@@ -69,12 +71,14 @@ namespace OsEngine.Robots.Mybots
 
             // Basic setting
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Setting indicator
             _periodSsmaFast = CreateParameter("Period Ssma Fast", 13, 10, 300, 10, "Indicator");
@@ -170,6 +174,7 @@ namespace OsEngine.Robots.Mybots
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -207,7 +212,6 @@ namespace OsEngine.Robots.Mybots
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
                     if (_lastFastSsma < _lastSlowSsma && _lastAD < _prevAD)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
@@ -253,7 +257,6 @@ namespace OsEngine.Robots.Mybots
                         _tab.CloseAtLimit(position, lastPrice + _slippage, position.OpenVolume);
                     }
                 }
-
             }
         }
 
