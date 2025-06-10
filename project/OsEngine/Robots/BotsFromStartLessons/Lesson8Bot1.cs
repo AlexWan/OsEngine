@@ -80,6 +80,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
             //Create a new thread that works in WorkerPlace()
             Thread worker = new Thread(WorkerPlace);
             worker.Start();
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy: If best bid volume bigger on value of _percentInFirstBid, than volume in the summary bid below. Buy at limit price." +
+                "Exit: Close At Stop Market and Close At Profit Market.";
         }
 
         private void WorkerPlace()

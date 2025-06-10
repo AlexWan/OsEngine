@@ -61,6 +61,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
             // Subscribe to the candle finished event
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy: Buy At Stop high price channel." +
+                "Exit: Close At Trailing Stop Market low price channel";
 
         }
 
