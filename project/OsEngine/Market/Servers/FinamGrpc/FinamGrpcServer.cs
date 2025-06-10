@@ -1,14 +1,14 @@
-﻿using Grpc.Tradeapi.V1;
+﻿using Google.Protobuf.Collections;
+using Google.Protobuf.WellKnownTypes;
+//using Google.Type;
+using Grpc.Core;
+using Grpc.Net.Client;
+using Grpc.Tradeapi.V1;
 using Grpc.Tradeapi.V1.Accounts;
-using FPosition = Grpc.Tradeapi.V1.Accounts.Position;
 using Grpc.Tradeapi.V1.Assets;
 using Grpc.Tradeapi.V1.Auth;
 using Grpc.Tradeapi.V1.Marketdata;
-using FTrade = Grpc.Tradeapi.V1.Marketdata.Trade;
 using Grpc.Tradeapi.V1.Orders;
-using Google.Protobuf.Collections;
-using Grpc.Core;
-using Grpc.Net.Client;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -20,10 +20,16 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
+using System.Windows.Forms;
 using Candle = OsEngine.Entity.Candle;
+using FPosition = Grpc.Tradeapi.V1.Accounts.Position;
+using FTimeFrame = Grpc.Tradeapi.V1.Marketdata.TimeFrame;
+using FTrade = Grpc.Tradeapi.V1.Marketdata.Trade;
 using Order = OsEngine.Entity.Order;
 using Portfolio = OsEngine.Entity.Portfolio;
 using Security = OsEngine.Entity.Security;
+using TimeFrame = OsEngine.Entity.TimeFrame;
 using Trade = OsEngine.Entity.Trade;
 
 namespace OsEngine.Market.Servers.FinamGrpc
@@ -295,6 +301,115 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private List<Portfolio> _myPortfolios = new List<Portfolio>();
         #endregion
 
+        #region 5 Data
+        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
+        {
+            DateTime timeStart = DateTime.UtcNow.AddHours(3) - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
+            DateTime timeEnd = DateTime.UtcNow.AddHours(3); // to MSK
+
+            List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
+
+            return candles;
+        }
+
+        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime,
+            DateTime actualTime)
+        {
+
+            FTimeFrame ftf = CreateTimeFrameInterval(timeFrameBuilder.TimeFrame);
+
+            List<Candle> candles = new List<Candle>();
+
+            // ensure all times are UTC
+            startTime = DateTime.SpecifyKind(startTime.AddHours(-3), DateTimeKind.Utc); // MSK -> UTC
+            endTime = DateTime.SpecifyKind(endTime.AddHours(-3), DateTimeKind.Utc);
+
+            TimeSpan tsHistoryDepth = getHistoryDepth(ftf);
+            DateTime queryStartTime = startTime;
+
+            while (queryStartTime < endTime)
+            {
+                DateTime queryEndTime = queryStartTime.Add(tsHistoryDepth);
+                // Не заказываем лишних данных
+                if (queryEndTime > endTime)
+                    queryEndTime = endTime;
+
+
+                List<Candle> range = GetCandleHistoryFromServer(queryStartTime, queryEndTime, security, ftf);
+
+                // Если запрошен некорректный таймфрейм, то возвращает null
+                if (range == null) return null;
+
+                candles.AddRange(range);
+
+                queryStartTime = queryEndTime;
+            }
+
+            return candles;
+        }
+
+        private RateGate _rateGateMarketDataBars = new RateGate(60, TimeSpan.FromMinutes(1));
+        private List<Candle> GetCandleHistoryFromServer(DateTime fromDateTime, DateTime toDateTime, Security security, FTimeFrame ftf)
+        {
+            if (ftf == FTimeFrame.Unspecified) return null;
+
+            BarsResponse resp = null;
+
+            try
+            {
+                BarsRequest req = new BarsRequest
+                {
+                    Symbol = security.NameId,
+                    Timeframe = ftf,
+                    Interval = new Google.Type.Interval { StartTime = Timestamp.FromDateTime(fromDateTime), EndTime = Timestamp.FromDateTime(toDateTime) }
+                };
+
+                _rateGateMarketDataBars.WaitToProceed();
+                resp = _marketDataClient.Bars(req, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error getting candles for {security.Name}. Info: {message}", LogMessageType.Error);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(),
+                    LogMessageType.Error);
+            }
+
+            List<Candle> candles = _convertToOsEngineCandles(resp);
+
+            return candles;
+        }
+
+        private List<Candle> _convertToOsEngineCandles(BarsResponse response)
+        {
+            List<Candle> candles = new List<Candle>();
+
+            if (response == null)
+                return candles;
+
+            for (int i = 0; i < response.Bars.Count; i++)
+            {
+                Bar fCandle = response.Bars[i];
+                Candle candle = new Candle
+                {
+                    High = fCandle.High.Value.ToString().ToDecimal(),
+                    Low = fCandle.Low.Value.ToString().ToDecimal(),
+                    Open = fCandle.Open.Value.ToString().ToDecimal(),
+                    Close = fCandle.Close.Value.ToString().ToDecimal(),
+                    Volume = fCandle.Volume.Value.ToString().ToDecimal(),
+                    State = CandleState.Finished,
+                    TimeStart = fCandle.Timestamp.ToDateTime().AddHours(3)
+                };
+                candles.Add(candle);
+            }
+
+            return candles;
+        }
+        #endregion
+
         #region 6 gRPC streams creation
         private void CreateStreamsConnection()
         {
@@ -352,7 +467,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
             _lastLatestTradesTime = DateTime.UtcNow;
         }
 
-        private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
+
+        //private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
+        private readonly string _gRPCHost = "https://api.finam.ru:443"; // https://t.me/finam_trade_api/1/1751
         private Metadata _gRpcMetadata;
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
@@ -660,6 +777,40 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         //    return bigDecimal;
         //}
+
+        protected TimeSpan getHistoryDepth(FTimeFrame tf)
+        {
+
+            return tf switch
+            {
+                FTimeFrame.M1 => TimeSpan.FromDays(7),
+                FTimeFrame.D => TimeSpan.FromDays(365),
+                //FTimeFrame.W => TimeSpan.FromDays(365),
+                //FTimeFrame.MN => TimeSpan.FromDays(365),
+                //FTimeFrame.QR => TimeSpan.FromDays(365),
+                _ => TimeSpan.FromDays(30),
+            };
+
+            //DateTime historyStart = DateTime.Now - period;
+
+            //return historyStart < dt ? dt : historyStart;
+        }
+
+        private FTimeFrame CreateTimeFrameInterval(TimeFrame tf)
+        {
+            return tf switch
+            {
+                TimeFrame.Min1 => FTimeFrame.M1,
+                TimeFrame.Min5 => FTimeFrame.M5,
+                TimeFrame.Min15 => FTimeFrame.M15,
+                TimeFrame.Min30 => FTimeFrame.M30,
+                TimeFrame.Hour1 => FTimeFrame.H1,
+                TimeFrame.Hour2 => FTimeFrame.H2,
+                TimeFrame.Hour4 => FTimeFrame.H4,
+                TimeFrame.Day => FTimeFrame.D,
+                _ => FTimeFrame.Unspecified
+            };
+        }
         #endregion
 
         #region 11 Log
@@ -696,16 +847,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            throw new NotImplementedException();
-        }
-
-        public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             throw new NotImplementedException();
         }
