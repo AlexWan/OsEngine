@@ -1678,8 +1678,17 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 if (response.status != "ok")
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"CancelOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"CancelOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
                 else
                 {

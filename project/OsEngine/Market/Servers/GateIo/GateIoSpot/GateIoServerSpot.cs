@@ -1520,8 +1520,17 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"CancelOrder. Error: {responseMessage.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"CancelOrder. Error: {responseMessage.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
                 else
                 {

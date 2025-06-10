@@ -15,6 +15,7 @@ using System.Security.Cryptography;
 using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System.Globalization;
 using OsEngine.Entity.WebSocketOsEngine;
+using Com.Lmax.Api.Internal;
 
 namespace OsEngine.Market.Servers.BingX.BingXFutures
 {
@@ -1979,14 +1980,32 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     }
                     else
                     {
-                        GetOrderStatus(order);
-                        SendLogMessage($"Order cancel error: code - {response.code} | message - {response.msg}", LogMessageType.Error);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Order cancel error: code - {response.code} | message - {response.msg}", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error); 
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)

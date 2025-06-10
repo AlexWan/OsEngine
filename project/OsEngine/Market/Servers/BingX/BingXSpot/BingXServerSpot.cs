@@ -1712,15 +1712,33 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     }
                     else
                     {
-                        GetOrderStatus(order);
-                        ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                        SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
+                            SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)

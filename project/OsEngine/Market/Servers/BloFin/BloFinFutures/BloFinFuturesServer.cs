@@ -1753,23 +1753,40 @@ namespace OsEngine.Market.Servers.BloFin
                     }
                     else
                     {
-                        GetOrderStatus(order);
+                        OrderStateType state = GetOrderStatus(order);
 
-                        if (orderResponse != null
-                            && orderResponse.data != null)
+                        if (state == OrderStateType.None)
                         {
-                            SendLogMessage($"Cancel Order error. Code: {orderResponse.data[0].code} || msg: {orderResponse.data[0].msg}", LogMessageType.Error);
+                            if (orderResponse != null
+                                && orderResponse.data != null)
+                            {
+                                SendLogMessage($"Cancel Order error. Code: {orderResponse.data[0].code} || msg: {orderResponse.data[0].msg}", LogMessageType.Error);
+                            }
+                            else
+                            {
+                                SendLogMessage($"Cancel Order error. Code: {orderResponse.code} || msg: {orderResponse.msg}", LogMessageType.Error);
+                            }
+                            return false;
                         }
                         else
                         {
-                            SendLogMessage($"Cancel Order error. Code: {orderResponse.code} || msg: {orderResponse.msg}", LogMessageType.Error);
+                            return true;
                         }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"Cancel Order error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Cancel Order error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception ex)

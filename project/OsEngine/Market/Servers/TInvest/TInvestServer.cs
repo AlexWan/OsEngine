@@ -2899,7 +2899,16 @@ namespace OsEngine.Market.Servers.TInvest
                 }
                 else
                 {
-                    return false;
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)

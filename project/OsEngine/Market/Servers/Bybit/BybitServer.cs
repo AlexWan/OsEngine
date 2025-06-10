@@ -3200,35 +3200,18 @@ namespace OsEngine.Market.Servers.Bybit
                         MyOrderEvent?.Invoke(order);
                         return true;
                     }
-                    else if (responseOrder.retCode == "110001" || responseOrder.retCode == "170213")   // "retCode":110001,"retMsg":"order not exists or too late to cancel"
-                                                                                                       //  retCode":170213,"retMsg":"Order does not exist."
-                                                                                                       // The order does not exist (maybe it has not yet been created) or has already been cancelled. Let's ask about its status
-                    {
-                        OrderStateType state = GetOrderStatus(order);
+                }
 
-                        if(state == OrderStateType.None)
-                        {
-                            return false;
-                        }
-                        else
-                        {
-                            return true;
-                        }
-                      
-                        /*DateTime TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
-                        if ((TimeCancel - order.TimeCreate) > TimeSpan.FromSeconds(minTimeCreateOrders))
-                        {
-                                order.TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;   // gives an error - removes the previously executed order to canceled
-                                order.State = OrderStateType.Cancel;
-                                MyOrderEvent?.Invoke(order);
-                            return;
-                        }*/
+                OrderStateType state = GetOrderStatus(order);
 
-                        // If it turns out that the order doesn’t exist, and we created it a few seconds ago, then we don’t do anything with it.
-
-                    }
-                    SendLogMessage($" Cancel Order Error. Code: {responseOrder.retCode}.\n" +
-                        $" Order num {order.NumberUser}, {order.SecurityNameCode} {responseOrder.retMsg}", LogMessageType.Error);
+                if (state == OrderStateType.None)
+                {
+                    SendLogMessage($"Cancel Order Error. Code: {order.NumberUser}.", LogMessageType.Error);
+                    return false;
+                }
+                else
+                {
+                    return true;
                 }
             }
             catch
@@ -3236,6 +3219,7 @@ namespace OsEngine.Market.Servers.Bybit
                 SendLogMessage($" Cancel Order Error. Order num {order.NumberUser}, {order.SecurityNameCode}", LogMessageType.Error);
                 return false;
             }
+
             return false;
         }
 

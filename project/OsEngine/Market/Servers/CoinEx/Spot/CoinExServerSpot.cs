@@ -1443,12 +1443,17 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     }
                     else
                     {
-                        CreateOrderFail(order);
-                        string msg = string.Format("Cancel order executed, but answer is wrong! {0}cexOrder: {1}{0}order: {2}", Environment.NewLine,
-                            cexOrder.ToStringValue(),
-                            order.GetStringForSave().ToString()
-                        );
-                        SendLogMessage(msg, LogMessageType.Error);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Cancel Order Error. Code: {order.NumberUser}.", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 catch (Exception exception)

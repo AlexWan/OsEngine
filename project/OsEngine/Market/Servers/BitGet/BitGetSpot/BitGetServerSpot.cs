@@ -1725,20 +1725,38 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                     }
                     else
                     {
-                        GetOrderStatus(order);
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Code: {stateResponse.code}\n"
+                                    + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"Http State Code: {response.StatusCode}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
 
-                    if (stateResponse != null && stateResponse.code != null)
+                    if (state == OrderStateType.None)
                     {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        SendLogMessage($"Http State Code: {response.StatusCode}", LogMessageType.Error);
+
+                        if (stateResponse != null && stateResponse.code != null)
+                        {
+                            SendLogMessage($"Code: {stateResponse.code}\n"
+                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        }
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
                     }
                 }
             }

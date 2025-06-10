@@ -1641,14 +1641,32 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     }
                     else
                     {
-                        GetOrderStatus(order);
-                        SendLogMessage($"Error on order cancel num {order.NumberUser}", LogMessageType.Error);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Error on order cancel num {order.NumberUser}", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"CancelOrder> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"CancelOrder> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)

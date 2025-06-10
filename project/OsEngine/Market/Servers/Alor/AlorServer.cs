@@ -2598,13 +2598,24 @@ namespace OsEngine.Market.Servers.Alor
                 }
                 else
                 {
-                    SendLogMessage("Order cancel request error. Status: "
-                        + response.StatusCode + "  " + order.SecurityClassCode, LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
 
-                    if (response.Content != null)
+                    if (state == OrderStateType.None)
                     {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
+                        SendLogMessage("Order cancel request error. Status: "
+                            + response.StatusCode + "  " + order.SecurityClassCode, LogMessageType.Error);
+
+                        if (response.Content != null)
+                        {
+                            SendLogMessage("Fail reasons: "
+                          + response.Content, LogMessageType.Error);
+                        }
+
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
                     }
                 }
             }

@@ -1991,22 +1991,41 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     }
                     else
                     {
-                        GetOrderStatus(order);
-                        SendLogMessage($"Cancel order, answer is wrong: {content}", LogMessageType.Error);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Cancel order, answer is wrong: {content}", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 else
                 {
-                    string message = content;
-                    if (parsed != null && parsed.message != null)
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
                     {
-                        message = parsed.message;
+                        string message = content;
+
+                        if (parsed != null && parsed.message != null)
+                        {
+                            message = parsed.message;
+                        }
+
+                        SendLogMessage("Cancel order failed. Status: "
+                            + response.StatusCode + "  " + order.SecurityNameCode + ", " + message, LogMessageType.Error);
+
+                        return false;
                     }
-
-                    SendLogMessage("Cancel order failed. Status: "
-                        + response.StatusCode + "  " + order.SecurityNameCode + ", " + message, LogMessageType.Error);
-
-                    GetOrderStatus(order);
+                    else
+                    {
+                        return true;
+                    }
                 }
 
             }

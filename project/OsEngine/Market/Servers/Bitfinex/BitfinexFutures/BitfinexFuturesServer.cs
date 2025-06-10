@@ -20,10 +20,6 @@ using System.Threading;
 using Newtonsoft.Json;
 using System.Globalization;
 
-
-
-
-
 namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 {
     public class BitfinexFuturesServer : AServer
@@ -2731,17 +2727,34 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
 
                     if (responseJson == null)
                     {
-                        GetOrderStatus(order);
-                        SendLogMessage("CancelOrder> Deserialization resulted in null", LogMessageType.Error);
-                        return false;
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage("CancelOrder> Deserialization resulted in null", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
 
                     return true;
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($" Error Order cancellation:  {response.Content}, {response.ErrorMessage}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($" Error Order cancellation:  {response.Content}, {response.ErrorMessage}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)

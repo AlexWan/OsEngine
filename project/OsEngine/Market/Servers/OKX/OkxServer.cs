@@ -2500,8 +2500,17 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (message.code.Equals("1"))
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"CancelOrder - {message.data[0].sMsg}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Cancel Order Error. Code: {order.NumberUser}.", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
                 else
                 {
