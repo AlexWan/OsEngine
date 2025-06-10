@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Market.Servers;
@@ -7,43 +12,64 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+
+Buy:
+Buy At Stop high price channel.
+
+Exit:
+Close At Trailing Stop Market low price channel
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     [Bot("Lesson8Bot2")]
     public class Lesson8Bot2 : BotPanel
     {
+        // Reference to the main trading tab
         BotTabSimple _tabToTrade;
 
+        // Basic setting
         StrategyParameterString _regime;
+
+        // GetVolume settings
         StrategyParameterString _volumeType;
         StrategyParameterDecimal _volume;
         StrategyParameterString _tradeAssetInPortfolio;
 
+        // Price channel setting
         StrategyParameterInt _priceChannelLen;
-
-        // логика
-        // покупаем отложенной заявкой по хаю ценового канала
-        // выходим отложенной заявкой по лою ценового канала
 
         public Lesson8Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // called on each new candle
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            //Basic setting
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Price channel setting
             _priceChannelLen = CreateParameter("Price Channel len", 40, 1, 50, 4);
 
+            // Subscribe to the candle finished event
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy: Buy At Stop high price channel." +
+                "Exit: Close At Trailing Stop Market low price channel";
 
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
-
+            // called on each new candle
             if (_regime.ValueString == "Off")
             {
                 return;
@@ -56,16 +82,14 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
-            if (positions.Count == 0) // позиций нет. Правда!
-            {// логика открытия позиции
-
+            if (positions.Count == 0) // no positions. True!
+            {// line opening logic
                 decimal high = GetHigh(candles, _priceChannelLen.ValueInt);
                 decimal volume = GetVolume(_tabToTrade);
                 _tabToTrade.BuyAtStop(volume, high, high, StopActivateType.HigherOrEqual);
             }
             else
-            {// логика закрытия позиции
-
+            {// logic of closing the position
                 decimal low = GetLow(candles, _priceChannelLen.ValueInt);
                 _tabToTrade.CloseAtTrailingStopMarket(positions[0], low);
             }
@@ -75,8 +99,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
         {
             decimal high = 0;
 
-            // цикл с конца. Движение назад
-
+            // for from the end. Move back.
             for (int i = candles.Count - 1; i >= 0 && i > candles.Count - 1 - len; i--)
             {
                 Candle currentCandle = candles[i];
@@ -94,7 +117,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
         {
             decimal low = decimal.MaxValue;
 
-            // цикл с конца минус длинна. Движение вперёд
+            // for from the end. Move forward
             for (int i = candles.Count - 1 - len; i >= 0 && i < candles.Count; i++)
             {
                 Candle currentCandle = candles[i];
