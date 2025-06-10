@@ -72,11 +72,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
         public bool DataFeedTf2HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTf4HourCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTfDayCanLoad
         {
