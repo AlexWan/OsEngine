@@ -736,9 +736,9 @@ namespace OsEngine.Market.Servers.MOEX
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         public void Subscrible(Security security)

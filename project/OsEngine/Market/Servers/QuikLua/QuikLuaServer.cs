@@ -1701,7 +1701,7 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             try
             {
@@ -1720,6 +1720,19 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (foundOrder != null)
                 {
                     EventsOnOnOrder(foundOrder);
+                  
+                    if(foundOrder.State == State.Active)
+                    {
+                        return OrderStateType.Active;
+                    }
+                    else if(foundOrder.State == State.Completed)
+                    {
+                        return OrderStateType.Done;
+                    }
+                    else if(foundOrder.State == State.Canceled)
+                    {
+                        return OrderStateType.Cancel;
+                    }
                 }
                 else
                 {
@@ -1735,6 +1748,7 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 SendLogMessage(e.ToString(), LogMessageType.Error);
             }
+            return OrderStateType.None;
         }
 
         public void CancelAllOrders() { }

@@ -2356,7 +2356,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             string serverOrderId = GetServerOrderId(order);
             if (serverOrderId == null)
@@ -2367,7 +2367,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             Order myOrder = GetOrderFromExchangeByID(serverOrderId, order.SecurityNameCode);
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -2376,6 +2376,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 UpdateTrades(myOrder);
             }
+
+            return myOrder.State;
         }
 
         private void SetOrderSide(Order order, int exchangeSide)

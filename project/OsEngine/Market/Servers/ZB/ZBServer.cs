@@ -269,9 +269,9 @@ namespace OsEngine.Market.Servers.ZB
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         private void StartMessageReader()

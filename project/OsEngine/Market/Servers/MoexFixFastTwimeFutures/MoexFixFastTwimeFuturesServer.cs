@@ -3977,7 +3977,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3986,7 +3986,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 if (_tradingProtocol.Equals("TWIME"))
                 {
                     SendLogMessage("You can get the status of the order only in the FIX protocol", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
 
                 string ClOrdID = order.NumberUser.ToString();
@@ -4016,6 +4016,8 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             {
                 SendLogMessage("Get order status request error " + exception.ToString(), LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         #endregion

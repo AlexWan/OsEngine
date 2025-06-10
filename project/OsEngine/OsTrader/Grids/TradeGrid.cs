@@ -465,6 +465,7 @@ namespace OsEngine.OsTrader.Grids
                     return;
                 }
 
+                _isDeleted = true;
                 GridCreator.DeleteGrid();
                 Save();
             }
@@ -473,6 +474,8 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
+
+        private bool _isDeleted;
 
         public void CreateNewLine()
         {
@@ -507,7 +510,11 @@ namespace OsEngine.OsTrader.Grids
 
         private void Tab_NewTickEvent(Trade trade)
         {
-            if(RegimeLogicEntry == TradeGridLogicEntryRegime.OnTrade)
+            if (_isDeleted == true)
+            {
+                return;
+            }
+            if (RegimeLogicEntry == TradeGridLogicEntryRegime.OnTrade)
             {
                 Process();
             }
@@ -520,6 +527,11 @@ namespace OsEngine.OsTrader.Grids
                 try
                 {
                     Thread.Sleep(1000);
+
+                    if(_isDeleted == true)
+                    {
+                        return;
+                    }
 
                     if(RegimeLogicEntry == TradeGridLogicEntryRegime.OncePerSecond)
                     {
@@ -734,6 +746,7 @@ namespace OsEngine.OsTrader.Grids
                 {
                     _needToSave = true;
                     RePaintGrid();
+                    FullRePaintGrid();
                 }
             }
 

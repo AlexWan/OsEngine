@@ -2683,14 +2683,14 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orders = GetAllOrdersFromExchange();
 
             if(orders == null ||
                 orders.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -2717,7 +2717,7 @@ namespace OsEngine.Market.Servers.Alor
 
             if(orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null && 
@@ -2734,7 +2734,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 if(tradesBySecurity == null)
                 {
-                    return;
+                    return orderOnMarket.State;
                 }
 
                 List<MyTrade> tradesByMyOrder = new List<MyTrade>();
@@ -2755,6 +2755,8 @@ namespace OsEngine.Market.Servers.Alor
                     }
                 }
             }
+
+            return orderOnMarket.State;
         }
 
         private List<Order> GetAllOrdersFromExchange()

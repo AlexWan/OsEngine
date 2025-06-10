@@ -80,7 +80,7 @@ namespace OsEngine.OsTrader.Grids
         public bool TryTrailingGrid()
         {
             if (TrailingUpIsOn == false
-                || TrailingDownIsOn == false)
+                && TrailingDownIsOn == false)
             {
                 return false;
             }

@@ -1374,13 +1374,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order myOrder = cexGetOrderFromExchange(order.SecurityNameCode, order.NumberMarket);
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -1389,6 +1389,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 UpdateTrades(myOrder);
             }
+
+            return myOrder.State;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)

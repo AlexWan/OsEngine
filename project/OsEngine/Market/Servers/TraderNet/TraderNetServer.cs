@@ -1370,7 +1370,7 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             try
             {
@@ -1390,7 +1390,7 @@ namespace OsEngine.Market.Servers.TraderNet
                 if (JsonResponse.Contains("errMsg"))
                 {
                     SendLogMessage($"GetOrderStatus: {JsonResponse}", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
 
                 ResponseRestOrders response = JsonConvert.DeserializeObject<ResponseRestOrders>(JsonResponse);
@@ -1429,14 +1429,18 @@ namespace OsEngine.Market.Servers.TraderNet
                             myTrade.Side = GetOrderSide(item.oper);
 
                             MyTradeEvent(myTrade);
-                        }                        
+                        }
                     }
+
+                    return newOrder.State;
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage($"GetOrderStatus: {ex.Message}", LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         private List<ResponseOrders> GetJsonString(string jsonResponse)

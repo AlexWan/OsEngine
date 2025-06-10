@@ -1814,14 +1814,14 @@ namespace OsEngine.Market.Servers.HTX.Spot
             return orders;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orders = GetAllOrdersFromExchange();
 
             if (orders == null ||
                 orders.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1848,7 +1848,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1865,7 +1865,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 if (tradesBySecurity == null)
                 {
-                    return;
+                    return OrderStateType.None;
                 }
 
                 List<MyTrade> tradesByMyOrder = new List<MyTrade>();
@@ -1886,6 +1886,8 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     }
                 }
             }
+
+            return orderOnMarket.State;
         }
 
         private Order GetOrderFromExchange(string numberMarket)

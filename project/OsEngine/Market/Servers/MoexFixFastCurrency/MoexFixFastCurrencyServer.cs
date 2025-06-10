@@ -3132,9 +3132,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion

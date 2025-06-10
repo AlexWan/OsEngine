@@ -692,9 +692,9 @@ namespace OsEngine.Market.Servers.Quik
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>

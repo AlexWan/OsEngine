@@ -1833,9 +1833,9 @@ namespace OsEngine.Market.Servers.Atp
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion

@@ -254,9 +254,9 @@ namespace OsEngine.Market.Servers.Hitbtc
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion

@@ -198,7 +198,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// Query order status
         /// </summary>
-        void GetOrderStatus(Order order);
+        OrderStateType GetOrderStatus(Order order);
 
         /// <summary>
         /// новые мои ордера

@@ -2153,7 +2153,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            public void GetOrderStatus(Order order)
+            public OrderStateType GetOrderStatus(Order order)
             {
                 _rateGateOpenOrder.WaitToProceed();
 
@@ -2175,7 +2175,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     if (res.StatusCode != HttpStatusCode.OK)
                     {
                         SendLogMessage(contentStr, LogMessageType.Error);
-                        return;
+                        return OrderStateType.None;
                     }
 
                     ResponseMessageRest<OrderResponse> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<OrderResponse>());
@@ -2184,14 +2184,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         SendLogMessage($"GetOrderStatus error, code: {OrderResponse.rc}\n"
                             + $"Message code: {OrderResponse.mc}", LogMessageType.Error);
-                        return;
+                        return OrderStateType.None;
                     }
 
                     Order newOrder = OrderUpdate(OrderResponse.result, GetOrderState(OrderResponse.result.state));
 
                     if (newOrder == null)
                     {
-                        return;
+                        return OrderStateType.None;
                     }
 
                     Order myOrder = newOrder;
@@ -2203,11 +2203,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         CreateQueryMyTrade(myOrder.SecurityNameCode, myOrder.NumberMarket, 1);
                     }
+
+                    return myOrder.State;
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage("GetOrderStatus error: " + exception.ToString(), LogMessageType.Error);
                 }
+
+                return OrderStateType.None;
             }
 
             #endregion

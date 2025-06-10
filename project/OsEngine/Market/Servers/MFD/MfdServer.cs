@@ -599,9 +599,9 @@ namespace OsEngine.Market.Servers.MFD
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         public void Subscrible(Security security)

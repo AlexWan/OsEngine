@@ -2090,9 +2090,9 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion

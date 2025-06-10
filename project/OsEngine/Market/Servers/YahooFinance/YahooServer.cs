@@ -474,7 +474,10 @@ namespace OsEngine.Market.Servers.YahooFinance
 
         public void GetAllActivOrders() { }
 
-        public void GetOrderStatus(Order order) { }
+        public OrderStateType GetOrderStatus(Order order) 
+        {
+            return OrderStateType.None;
+        }
 
         public void ChangeOrderPrice(Order order, decimal newPrice) { }
 

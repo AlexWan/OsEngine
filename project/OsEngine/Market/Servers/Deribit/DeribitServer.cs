@@ -1364,13 +1364,13 @@ namespace OsEngine.Market.Servers.Deribit
             return orders;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order orderFromExchange = GetOrderFromExchange(order.NumberMarket);
 
             if (orderFromExchange == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1390,7 +1390,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1407,7 +1407,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 if (tradesBySecurity == null)
                 {
-                    return;
+                    return orderOnMarket.State;
                 }
 
                 List<MyTrade> tradesByMyOrder = new List<MyTrade>();
@@ -1428,6 +1428,8 @@ namespace OsEngine.Market.Servers.Deribit
                     }
                 }
             }
+
+            return orderOnMarket.State;
         }
 
         private Order GetOrderFromExchange(string numberMarket)

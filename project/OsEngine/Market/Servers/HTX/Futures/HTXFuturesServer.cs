@@ -1564,13 +1564,13 @@ namespace OsEngine.Market.Servers.HTX.Futures
             return orders;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket);
 
             if (orderFromExchange == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1590,7 +1590,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1607,7 +1607,7 @@ namespace OsEngine.Market.Servers.HTX.Futures
 
                 if (tradesBySecurity == null)
                 {
-                    return;
+                    return orderOnMarket.State;
                 }
 
                 List<MyTrade> tradesByMyOrder = new List<MyTrade>();
@@ -1628,6 +1628,8 @@ namespace OsEngine.Market.Servers.HTX.Futures
                     }
                 }
             }
+
+            return orderOnMarket.State;
         }
 
         private Order GetOrderFromExchange(string securityNameCode, string numberMarket)

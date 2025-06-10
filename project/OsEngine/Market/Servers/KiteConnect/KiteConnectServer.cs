@@ -1758,13 +1758,13 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order myOrder = GetOrderFromExchange(order.NumberUser.ToString());
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -1773,6 +1773,8 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 FindMyTradesToOrder(myOrder);
             }
+
+            return myOrder.State;
         }
 
         private List<Order> GetAllOpenOrders()

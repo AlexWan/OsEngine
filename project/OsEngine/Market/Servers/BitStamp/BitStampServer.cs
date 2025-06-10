@@ -178,9 +178,9 @@ namespace OsEngine.Market.Servers.BitStamp
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>

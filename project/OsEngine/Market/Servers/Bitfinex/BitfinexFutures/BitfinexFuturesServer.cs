@@ -2907,14 +2907,14 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
             return orders;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             try
             {
                 if (order == null || order.NumberUser == 0)
                 {
                     SendLogMessage("GetOrderStatus> Order or NumberUser is null or zero.", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
 
                 List<Order> ordersActive = GetAllOpenOrders();
@@ -2949,7 +2949,7 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 if (orderOnMarket == null)
                 {
                     SendLogMessage($"GetOrderStatus> Order with NumberUser {order.NumberUser} not found.", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
 
                 MyOrderEvent?.Invoke(orderOnMarket);
@@ -2959,11 +2959,14 @@ namespace OsEngine.Market.Servers.Bitfinex.BitfinexFutures
                 {
                     CreateMyTrade(order.SecurityNameCode, order.NumberUser);
                 }
+                return orderOnMarket.State;
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         private void CreateMyTrade(string nameSec, int numberUser)

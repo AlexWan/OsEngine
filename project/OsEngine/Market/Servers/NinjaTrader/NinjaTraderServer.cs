@@ -119,9 +119,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         public void Subscrible(Security security)

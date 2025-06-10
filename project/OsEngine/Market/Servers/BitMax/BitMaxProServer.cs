@@ -295,9 +295,9 @@ namespace OsEngine.Market.Servers.BitMax
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>

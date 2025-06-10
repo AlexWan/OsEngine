@@ -1110,8 +1110,9 @@ namespace OsEngine.Market.Servers.AE
             });
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
+            return OrderStateType.None;
         }
 
         #endregion

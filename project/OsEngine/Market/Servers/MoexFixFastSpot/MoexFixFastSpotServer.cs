@@ -3759,8 +3759,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             // Торговый сервер не дает возможности запросить все активные ордера
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
+            return OrderStateType.None;
             // Order Status Request (H) - запрос не реализован на серверах MFIX Trade и MFIX Trade Capture (в документации зачеркнуто)
         }
 

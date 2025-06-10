@@ -258,9 +258,9 @@ namespace OsEngine.Market.Servers.Kraken
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>

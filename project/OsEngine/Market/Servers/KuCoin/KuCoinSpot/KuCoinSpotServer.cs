@@ -1552,13 +1552,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             return null;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket, order.NumberUser);
 
             if (orderFromExchange == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1578,7 +1578,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1592,6 +1592,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 CreateQueryMyTrade(order.SecurityNameCode, order.NumberMarket, Convert.ToInt64(order.TimeDone));
             }
+
+            return orderOnMarket.State;
         }
 
         private Order GetOrderFromExchange(string securityNameCode, string numberMarket, int numberUser)

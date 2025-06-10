@@ -2478,13 +2478,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order myOrder = GetActualOrderQuery(order);
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (MyOrderEvent != null)
@@ -2505,6 +2505,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     }
                 }
             }
+            return myOrder.State;
         }
 
         public List<MyTrade> GetMyTradesByOrderQuery(Order order)

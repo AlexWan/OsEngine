@@ -2967,7 +2967,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        public void GetOrderStatusWithTrades(Order order, bool processTrades)
+        public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades)
         {
             _rateGateOrders.WaitToProceed();
 
@@ -2990,7 +2990,7 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
 
                     Thread.Sleep(1);
-                    return;
+                    return OrderStateType.None;
                 }
                 catch (Exception ex)
                 {
@@ -2998,7 +2998,7 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage("Server data was: " + state.ToString(), LogMessageType.Error);
 
                     Thread.Sleep(1);
-                    return;
+                    return OrderStateType.None;
                 }
                 Order newOrder = new Order();
 
@@ -3081,6 +3081,8 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
                 }
+
+                return newOrder.State;
             }
             catch (RpcException ex)
             {
@@ -3091,11 +3093,13 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage("Get order state request error. " + exception.ToString(), LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-            GetOrderStatusWithTrades(order, true);
+           return GetOrderStatusWithTrades(order, true);
         }
 
         private List<Order> GetAllOrdersFromExchange()

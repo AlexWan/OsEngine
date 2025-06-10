@@ -1880,13 +1880,13 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order orderFromExchange = GetOrderFromExchange(order.NumberUser.ToString());
 
             if (orderFromExchange == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (MyOrderEvent != null)
@@ -1899,6 +1899,8 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 FindMyTradesToOrder(orderFromExchange);
             }
+
+            return orderFromExchange.State;
         }
 
         public void CancelAllOrdersToSecurity(Security security)

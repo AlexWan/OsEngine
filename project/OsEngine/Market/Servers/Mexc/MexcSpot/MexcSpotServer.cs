@@ -2004,7 +2004,7 @@ namespace OsEngine.Market.Servers.Mexc
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             if (_activeSecurities.Exists(s => s == order.SecurityNameCode) == false)
             {
@@ -2015,7 +2015,7 @@ namespace OsEngine.Market.Servers.Mexc
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -2024,6 +2024,8 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 UpdateTrades(myOrder);
             }
+
+            return myOrder.State;
         }
 
         private Order ConvertRestOrdersToOsEngineOrder(MexcOrderResponse baseOrder)

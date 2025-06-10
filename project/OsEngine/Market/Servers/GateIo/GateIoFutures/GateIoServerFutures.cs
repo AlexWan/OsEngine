@@ -1683,7 +1683,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, "open");
 
@@ -1696,7 +1696,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             if (orderFromExchange == null
                || orderFromExchange.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1723,7 +1723,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1737,6 +1737,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 FindMyTradesToOrder(order.NumberUser);
             }
+
+            return orderOnMarket.State;
         }
 
         private List<Order> GetOrderFromExchange(string securityNameCode, string status)

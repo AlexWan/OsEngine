@@ -1795,7 +1795,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             _rateGateOrder.WaitToProceed();
 
@@ -1843,6 +1843,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                                 {
                                     FindMyTradesToOrder(newOrder);
                                 }
+
+                                return newOrder.State;
                             }
                         }
                     }
@@ -1852,6 +1854,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         private void FindMyTradesToOrder(Order order)

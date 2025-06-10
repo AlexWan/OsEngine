@@ -3204,8 +3204,17 @@ namespace OsEngine.Market.Servers.Bybit
                                                                                                        //  retCode":170213,"retMsg":"Order does not exist."
                                                                                                        // The order does not exist (maybe it has not yet been created) or has already been cancelled. Let's ask about its status
                     {
-                        GetOrderStatus(order);
-                        return false;
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if(state == OrderStateType.None)
+                        {
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                      
                         /*DateTime TimeCancel = DateTimeOffset.FromUnixTimeMilliseconds(place_order_response.SelectToken("time").Value<long>()).UtcDateTime;
                         if ((TimeCancel - order.TimeCreate) > TimeSpan.FromSeconds(minTimeCreateOrders))
                         {
@@ -3304,7 +3313,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             try
             {
@@ -3356,7 +3365,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     if (newOrder == null)
                     {
-                        return;
+                        return OrderStateType.None;
                     }
                 }
 
@@ -3376,11 +3385,15 @@ namespace OsEngine.Market.Servers.Bybit
                         MyTradeEvent?.Invoke(myTrades[i]);
                     }
                 }
+
+                return newOrder.State;
             }
             catch (Exception ex)
             {
                 SendLogMessage($"GetOrderStatus>. Order error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         public void GetAllActivOrders()

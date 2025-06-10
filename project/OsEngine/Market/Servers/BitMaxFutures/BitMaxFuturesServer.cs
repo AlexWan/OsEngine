@@ -331,9 +331,9 @@ namespace OsEngine.Market.Servers.BitMaxFutures
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion

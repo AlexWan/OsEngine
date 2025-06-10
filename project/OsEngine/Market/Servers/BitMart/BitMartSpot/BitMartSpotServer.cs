@@ -2090,13 +2090,13 @@ namespace OsEngine.Market.Servers.BitMart
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order myOrder = GetOrderFromExchange(order.NumberUser.ToString());
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -2105,6 +2105,8 @@ namespace OsEngine.Market.Servers.BitMart
             {
                 UpdateTrades(myOrder);
             }
+
+            return myOrder.State;
         }
 
         private Order ConvertRestOrdersToOsEngineOrder(BitMartRestOrder baseOrder)

@@ -1883,7 +1883,7 @@ namespace OsEngine.Market.Servers.BloFin
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orderFromExchange = GetAllOpenOrders();
 
@@ -1896,7 +1896,7 @@ namespace OsEngine.Market.Servers.BloFin
             if (orderFromExchange == null
                || orderFromExchange.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1923,7 +1923,7 @@ namespace OsEngine.Market.Servers.BloFin
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1937,6 +1937,8 @@ namespace OsEngine.Market.Servers.BloFin
             {
                 FindMyTradesToOrder(order.SecurityNameCode, order.NumberMarket);
             }
+
+            return orderOnMarket.State;
         }
 
         private List<Order> GetOrderHistory(string securityName)

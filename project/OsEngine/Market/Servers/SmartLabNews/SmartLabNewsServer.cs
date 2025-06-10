@@ -513,8 +513,9 @@ namespace OsEngine.Market.Servers.SmartLabNews
             return null;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
+            return OrderStateType.None;
         }
 
         public void GetPortfolios()

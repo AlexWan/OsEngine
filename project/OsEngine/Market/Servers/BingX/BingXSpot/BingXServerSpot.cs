@@ -1855,7 +1855,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orders = GetAllOpenOrders();
 
@@ -1863,7 +1863,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 || orders.Count == 0)
             {
                 GetOrderFromExchange(order.SecurityNameCode, order.NumberUser.ToString());
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1890,7 +1890,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1898,6 +1898,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 MyOrderEvent(orderOnMarket);
             }
+
+            return orderOnMarket.State;
         }
 
         private void GetOrderFromExchange(string securityNameCode, string numberUser)

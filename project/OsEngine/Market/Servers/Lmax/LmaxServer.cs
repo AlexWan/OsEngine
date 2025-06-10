@@ -197,9 +197,9 @@ namespace OsEngine.Market.Servers.Lmax
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>

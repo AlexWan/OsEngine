@@ -2112,11 +2112,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-            GetOrderStatusBySecurity(order);
+            OrderStateType state = GetOrderStatusBySecurity(order);
 
             GetMyTradesBySecurity(order);
+
+            return state;
         }
 
         private RateGate _getMyTradesRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
@@ -2193,7 +2195,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private RateGate _getOrderStatusRateGate = new RateGate(1, TimeSpan.FromMilliseconds(210)); // individual IP speed limit is 5 requests per 1 second
 
-        private void GetOrderStatusBySecurity(Order order)
+        private OrderStateType GetOrderStatusBySecurity(Order order)
         {
             _generalRateGate2.WaitToProceed();
             _getOrderStatusRateGate.WaitToProceed();
@@ -2275,6 +2277,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         {
                             MyOrderEvent(openOrder);
                         }
+
+                        return openOrder.State;
                     }
                     else
                     {
@@ -2290,6 +2294,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         #endregion

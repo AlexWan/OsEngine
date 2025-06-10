@@ -766,9 +766,9 @@ namespace OsEngine.Market.Servers.MoexAlgopack
 
             }
 
-            public void GetOrderStatus(Order order)
+            public OrderStateType GetOrderStatus(Order order)
             {
-
+                return OrderStateType.None;
             }
 
             #endregion

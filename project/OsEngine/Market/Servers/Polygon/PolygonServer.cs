@@ -656,7 +656,10 @@ namespace OsEngine.Market.Servers.Polygon
 
         public void GetAllActivOrders() { }
 
-        public void GetOrderStatus(Order order) { }
+        public OrderStateType GetOrderStatus(Order order) 
+        {
+            return OrderStateType.None;
+        }
 
         public void ChangeOrderPrice(Order order, decimal newPrice) { }
 

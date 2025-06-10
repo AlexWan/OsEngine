@@ -2552,7 +2552,7 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             _rateGateOrder.WaitToProceed();
 
@@ -2586,8 +2586,10 @@ namespace OsEngine.Market.Servers.OKX
 
                     if (OrderResponse.data == null || OrderResponse.data.Count == 0)
                     {
-                        return;
+                        return OrderStateType.None;
                     }
+
+                    OrderStateType myOrderState = OrderStateType.None;
 
                     for (int i = 0; i < OrderResponse.data.Count; i++)
                     {
@@ -2609,6 +2611,11 @@ namespace OsEngine.Market.Servers.OKX
                             MyOrderEvent(newOrder);
                         }
 
+                        if(newOrder.NumberUser == order.NumberUser)
+                        {
+                            myOrderState = newOrder.State;
+                        }
+
                         if (newOrder.State == OrderStateType.Partial ||
                             newOrder.State == OrderStateType.Done)
                         {
@@ -2620,18 +2627,21 @@ namespace OsEngine.Market.Servers.OKX
                                 MyTradeEvent(tradesInOrder[i2]);
                             }
                         }
+
+                        return myOrderState;
                     }
                 }
                 else
                 {
                     SendLogMessage($"GetOrderStatus - {contentStr}", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage($"GetOrderStatus - {ex.Message}", LogMessageType.Error);
             }
+            return OrderStateType.None;
         }
 
         private List<Order> GetActiveOrders()

@@ -2356,7 +2356,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             try
             {
@@ -2401,6 +2401,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         {
                             FindMyTradesToOrder(newOrder);
                         }
+
+                        return newOrder.State;
                     }
                     else
                     {
@@ -2413,6 +2415,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         private void FindMyTradesToOrder(Order order)

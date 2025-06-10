@@ -6,7 +6,6 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Layout;
-using OsEngine.Market.Servers.TraderNet.Entity;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,7 +13,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
-
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -896,6 +894,7 @@ namespace OsEngine.OsTrader.Grids
         #region Trailing Up Down
 
         private int _trailingUpErrorsCountLimit;
+
         private int _trailingUpErrorsCountStep;
 
         private void CheckBoxTrailingUpIsOn_Checked(object sender, RoutedEventArgs e)
@@ -1656,11 +1655,13 @@ namespace OsEngine.OsTrader.Grids
 
                     DataGridViewRow rowLine = new DataGridViewRow();
 
+                    Position curPosition = curLine.Position;
+
                     rowLine.Cells.Add(new DataGridViewTextBoxCell());
                     rowLine.Cells[0].Value = i + 1;
                     rowLine.Cells[0].ReadOnly = true;
 
-                    if(curLine.PositionNum == -1)
+                    if(curPosition == null)
                     {
                         rowLine.Cells.Add(new DataGridViewTextBoxCell());
                         rowLine.Cells[1].Value = "_";
@@ -1669,7 +1670,7 @@ namespace OsEngine.OsTrader.Grids
                     else
                     {
                         DataGridViewButtonCell buttonCell = new DataGridViewButtonCell();
-                        buttonCell.Value = curLine.PositionNum;
+                        buttonCell.Value = curPosition.Number;
                         rowLine.Cells.Add(buttonCell);
                     }
 
@@ -1696,9 +1697,9 @@ namespace OsEngine.OsTrader.Grids
 
                     rowLine.Cells.Add(new DataGridViewTextBoxCell());
 
-                    if(curLine.Position != null)
+                    if(curPosition != null)
                     {
-                        rowLine.Cells[5].Value = curLine.Position.OpenVolume;
+                        rowLine.Cells[5].Value = curPosition.OpenVolume;
                         rowLine.Cells[5].Style.ForeColor = Color.Green;
                     }
                     else
@@ -1785,7 +1786,9 @@ namespace OsEngine.OsTrader.Grids
 
                     DataGridViewRow rowLine = _gridDataGrid.Rows[i];
 
-                    if (curLine.Position == null)
+                    Position curPosition = curLine.Position;
+
+                    if (curPosition == null)
                     {
                         if (rowLine.Cells[1].Value.ToString() != "_")
                         {
@@ -1795,11 +1798,11 @@ namespace OsEngine.OsTrader.Grids
                     }
                     else
                     {
-                        if (rowLine.Cells[1].Value.ToString() != curLine.PositionNum.ToString())
+                        if (rowLine.Cells[1].Value.ToString() != curPosition.Number.ToString())
                         {
                             rowLine.Cells[1] = new DataGridViewButtonCell();
                             
-                            rowLine.Cells[1].Value = curLine.PositionNum.ToString();
+                            rowLine.Cells[1].Value = curPosition.Number.ToString();
                         }
                     }
 
@@ -1816,7 +1819,7 @@ namespace OsEngine.OsTrader.Grids
                         rowLine.Cells[3].ReadOnly = true;
                     }
 
-                    if (curLine.Position == null)
+                    if (curPosition == null)
                     {
                         if (rowLine.Cells[5].Value.ToString() != "0")
                         {
@@ -1826,11 +1829,11 @@ namespace OsEngine.OsTrader.Grids
                     }
                     else
                     {
-                        if (rowLine.Cells[5].Value.ToString() != curLine.Position.OpenVolume.ToString())
+                        if (rowLine.Cells[5].Value.ToString() != curPosition.OpenVolume.ToString())
                         {
-                            rowLine.Cells[5].Value = curLine.Position.OpenVolume.ToString();
+                            rowLine.Cells[5].Value = curPosition.OpenVolume.ToString();
 
-                            if(curLine.Position.OpenVolume != 0)
+                            if(curPosition.OpenVolume != 0)
                             {
                                 rowLine.Cells[5].Style.ForeColor = Color.Green;
                             }

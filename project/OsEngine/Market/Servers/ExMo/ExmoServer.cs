@@ -165,9 +165,9 @@ namespace OsEngine.Market.Servers.ExMo
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>

@@ -1261,9 +1261,9 @@ contract =>
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         private void _ibClient_NewOrderEvent(Order order)
