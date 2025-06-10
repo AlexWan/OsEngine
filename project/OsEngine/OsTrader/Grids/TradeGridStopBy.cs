@@ -261,7 +261,7 @@ namespace OsEngine.OsTrader.Grids
                     {
                         decimal downLimit = firstGridPrice - firstGridPrice * (StopGridByMoveDownValuePercent / 100);
 
-                        if (lastSecurityPrice >= downLimit)
+                        if (lastSecurityPrice <= downLimit)
                         {
                             string message = "Auto-stop grid by move Down. \n";
                             message += "First real price in grid: " + firstGridPrice + "\n";

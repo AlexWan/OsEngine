@@ -3058,11 +3058,26 @@ namespace OsEngine.Market.Servers
                             }
                             else if (order.OrderSendType == OrderSendType.Cancel)
                             {
-                                if(ServerRealization.CancelOrder(order.Order) == false)
+                                if(IsAlreadyCancelled(order.Order) == false)
                                 {
-                                    if(CancelOrderFailEvent != null)
+                                    if (ServerRealization.CancelOrder(order.Order) == false)
                                     {
-                                        CancelOrderFailEvent(order.Order);
+                                        if (CancelOrderFailEvent != null)
+                                        {
+                                            CancelOrderFailEvent(order.Order);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(string.IsNullOrEmpty(order.Order.NumberMarket) == false)
+                                        {
+                                            _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
+
+                                            if(_cancelledOrdersNumbers.Count > 100)
+                                            {
+                                                _cancelledOrdersNumbers.RemoveAt(0);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -3080,6 +3095,24 @@ namespace OsEngine.Market.Servers
                 }
             }
         }
+
+        private bool IsAlreadyCancelled(Order order)
+        {
+            if (string.IsNullOrEmpty(order.NumberMarket))
+            {
+                return false;
+            }
+            bool isCancelled = false;
+
+            if (_cancelledOrdersNumbers.Find(o => o == order.NumberMarket) != null)
+            {
+                isCancelled = true;
+            }
+
+            return isCancelled;
+        }
+
+        private List<string> _cancelledOrdersNumbers = new List<string>();
 
         /// <summary>
         /// array for storing orders to be sent to the exchange
