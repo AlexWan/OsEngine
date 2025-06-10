@@ -301,20 +301,32 @@ namespace OsEngine.OsTrader.Grids
             {
                 DateTime time = tab.TimeServerCurrent;
 
-                if(time.Hour >= StopGridByTimeOfDayHour)
-                {
-                    if(time.Minute >= StopGridByTimeOfDayMinute)
-                    {
-                        if(time.Second >= StopGridByTimeOfDaySecond)
-                        {
-                            string message = "Auto-stop grid by time of day. \n";
-                            message += "Current server time: " + time.ToString() + "\n";
-                            message += "New regime: " + StopGridByLifeTimeReaction;
-                            SendNewLogMessage(message, LogMessageType.Signal);
+                bool isActivate = false;
 
-                            return StopGridByTimeOfDayReaction;
-                        }
-                    }
+                if (time.Hour == StopGridByTimeOfDayHour
+                    && time.Minute == StopGridByTimeOfDayMinute
+                    && time.Second >= StopGridByTimeOfDaySecond)
+                {
+                    isActivate = true;
+                }
+                else if (time.Hour == StopGridByTimeOfDayHour
+                    && time.Minute > StopGridByTimeOfDayMinute)
+                {
+                    isActivate = true;
+                }
+                else if (time.Hour > StopGridByTimeOfDayHour)
+                {
+                    isActivate = true;
+                }
+
+                if(isActivate == true)
+                {
+                    string message = "Auto-stop grid by time of day. \n";
+                    message += "Current server time: " + time.ToString() + "\n";
+                    message += "New regime: " + StopGridByLifeTimeReaction;
+                    SendNewLogMessage(message, LogMessageType.Signal);
+
+                    return StopGridByTimeOfDayReaction;
                 }
             }
 
