@@ -1811,9 +1811,10 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"Market data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
-                catch (RpcException exception)
+                catch (RpcException ex)
                 {
-                    SendLogMessage($"Market data stream was disconnected: {exception.Message}", LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Market data stream was disconnected: {message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2458,9 +2459,10 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"My trades data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
-                catch (RpcException exception)
+                catch (RpcException ex)
                 {
-                    SendLogMessage($"My trades data stream was disconnected: {exception}", LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"My trades data stream was disconnected: {message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2620,12 +2622,14 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
                 {
                     // Handle the cancellation gracefully
-                    SendLogMessage("Order state data stream was cancelled", LogMessageType.System);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Order state data stream was cancelled: {ex}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
-                catch (RpcException exception)
+                catch (RpcException ex)
                 {
-                    SendLogMessage($"Order state data stream was disconnected: {exception}", LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Order state data stream was disconnected: {message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
