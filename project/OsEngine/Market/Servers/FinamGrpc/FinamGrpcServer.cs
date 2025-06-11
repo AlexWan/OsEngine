@@ -57,6 +57,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public FinamGrpcServerRealization()
         {
             ServerTime = DateTime.UtcNow;
+            Thread worker0 = new Thread(ConnectionCheckThread);
+            worker0.Name = "CheckAliveFinamGrpc";
+            worker0.Start();
 
             Thread worker1 = new Thread(TradesMessageReader);
             worker1.Name = "TradesMessageReaderFinamGrpc";
@@ -121,6 +124,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         private string _accessToken;
         private string _accountId;
+
+        private int _timezoneOffset = 3;
 
         //private Dictionary<string, int> _orderNumbers = new Dictionary<string, int>();
         #endregion
@@ -191,27 +196,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     newSecurity.PriceStep = 1; // Нет данных
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.VolumeStep = 1;
+                    newSecurity.Lot = 1;
                     newSecurity.MinTradeAmount = 1;
                     newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-
-                    // Не получаем доп инфо по тикеру (лимит 60 запросов в минуту)
-                    //GetAssetParamsResponse assetParamsResponse = null;
-                    //try
-                    //{
-                    //    assetParamsResponse = _assetsClient.GetAssetParams(
-                    //        new GetAssetParamsRequest { AccountId = _accountId, Symbol = item.Symbol },
-                    //        headers: _gRpcMetadata);
-                    //}
-                    //catch (RpcException ex)
-                    //{
-                    //    string message = GetGRPCErrorMessage(ex);
-                    //    SendLogMessage($"Error loading securities. Info: {message}", LogMessageType.Error);
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
-                    //}
-                    //newSecurity.State = ...
 
                     newSecurity.State = SecurityStateType.Activ;
                     _securities.Add(newSecurity);
@@ -308,8 +295,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
         #region 5 Data
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            DateTime timeStart = DateTime.UtcNow.AddHours(3) - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
-            DateTime timeEnd = DateTime.UtcNow.AddHours(3); // to MSK
+            DateTime timeStart = DateTime.UtcNow.AddHours(_timezoneOffset) - TimeSpan.FromMinutes(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes * candleCount);
+            DateTime timeEnd = DateTime.UtcNow.AddHours(_timezoneOffset); // to MSK
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, timeStart, timeEnd, timeStart);
 
@@ -331,8 +318,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
             //}
 
             // ensure all times are UTC
-            startTime = DateTime.SpecifyKind(startTime.AddHours(-3), DateTimeKind.Utc); // MSK -> UTC
-            endTime = DateTime.SpecifyKind(endTime.AddHours(-3), DateTimeKind.Utc);
+            startTime = DateTime.SpecifyKind(startTime.AddHours(-_timezoneOffset), DateTimeKind.Utc); // MSK -> UTC
+            endTime = DateTime.SpecifyKind(endTime.AddHours(-_timezoneOffset), DateTimeKind.Utc);
 
             TimeSpan tsHistoryDepth = getHistoryDepth(ftf);
             DateTime queryStartTime = startTime;
@@ -410,12 +397,62 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     Close = fCandle.Close.Value.ToString().ToDecimal(),
                     Volume = fCandle.Volume.Value.ToString().ToDecimal(),
                     State = CandleState.Finished,
-                    TimeStart = fCandle.Timestamp.ToDateTime().AddHours(3)
+                    TimeStart = fCandle.Timestamp.ToDateTime().AddHours(_timezoneOffset) // convert to MSK
                 };
                 candles.Add(candle);
             }
 
             return candles;
+        }
+
+        private void _updateSecurityParams(Security security)
+        {
+            try
+            {
+                _rateGateGetAsset.WaitToProceed();
+                GetAssetResponse getAssetResponse = _assetsClient.GetAsset(
+                    new GetAssetRequest { AccountId = _accountId, Symbol = security.NameId },
+                    headers: _gRpcMetadata);
+
+                if (getAssetResponse == null) return;
+
+                security.Lot = getAssetResponse.LotSize.Value.ToDecimal();
+                security.Decimals = (int)getAssetResponse.Decimals;
+                security.PriceStep = getAssetResponse.MinStep.ToString().ToDecimal();
+                security.PriceStepCost = security.PriceStep;
+                if (getAssetResponse.ExpirationDate != null)
+                {
+                    security.Expiration = getAssetResponse.ExpirationDate.ToDateTime().AddHours(_timezoneOffset); // convert to MSK
+                }
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error loading security params. Info: {message}", LogMessageType.Error);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error loading security params: {ex}", LogMessageType.Error);
+            }
+
+            // Получаем доп инфо по тикеру (лимит 60 запросов в минуту)
+            //GetAssetParamsResponse assetParamsResponse = null;
+            //try
+            //{
+            //    _rateGateGetAssetParams.WaitToProceed();
+            //    assetParamsResponse = _assetsClient.GetAssetParams(
+            //        new GetAssetParamsRequest { AccountId = _accountId, Symbol = item.Symbol },
+            //        headers: _gRpcMetadata);
+            //}
+            //catch (RpcException ex)
+            //{
+            //    string message = GetGRPCErrorMessage(ex);
+            //    SendLogMessage($"Error loading securities. Info: {message}", LogMessageType.Error);
+            //}
+            //catch (Exception ex)
+            //{
+            //    SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
+            //}
         }
 
         private MarketDepth _getMarketDepth(Security security)
@@ -430,7 +467,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                 OrderBook ob = resp.Orderbook;
 
-                depth.Time = ob.Rows[0].Timestamp.ToDateTime().AddHours(3);// convert to MSK
+                depth.Time = ob.Rows[0].Timestamp.ToDateTime().AddHours(_timezoneOffset);// convert to MSK
 
                 for (int i = 0; i < ob.Rows.Count; i++)
                 {
@@ -478,6 +515,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return depth;
         }
 
+        private RateGate _rateGateGetAsset = new RateGate(60, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateGetAssetParams = new RateGate(60, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
         #endregion
 
         #region 6 gRPC streams creation
@@ -547,8 +587,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
 
 
-        private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
-        //private readonly string _gRPCHost = "https://api.finam.ru:443"; // https://t.me/finam_trade_api/1/1751
+        //private readonly string _gRPCHost = "https://ftrr01.finam.ru:443";
+        private readonly string _gRPCHost = "https://api.finam.ru:443"; // https://t.me/finam_trade_api/1/1751
         private Metadata _gRpcMetadata;
         private GrpcChannel _channel;
         private CancellationTokenSource _cancellationTokenSource;
@@ -607,6 +647,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 // Получаем стакан
                 MarketDepth depth = _getMarketDepth(security);
                 MarketDepthEvent?.Invoke(depth);
+
+                // Получаем недостающие данные по тикеру
+                _updateSecurityParams(security);
             }
             catch (Exception ex)
             {
@@ -625,7 +668,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private AsyncServerStreamingCall<SubscribeOrderBookResponse> _orderBookStream;
         private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _latestTradesStream;
 
-        private RateGate _rateGateOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateSubscribeOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateSubscribeLatestTrades = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateSubscribeSubscribeQuote = new RateGate(60, TimeSpan.FromMinutes(1));
@@ -683,7 +725,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                             trade.SecurityNameCode = security.Name;
                             //trade.Price = GetValue(newTrade.Price);
                             trade.Price = newTrade.Price.Value.ToString().ToDecimal();
-                            trade.Time = newTrade.Timestamp.ToDateTime().AddHours(3); // convert to MSK
+                            trade.Time = newTrade.Timestamp.ToDateTime().AddHours(_timezoneOffset); // convert to MSK
                             trade.Id = newTrade.TradeId;
                             trade.Side = newTrade.Side switch
                             {
@@ -772,7 +814,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                             MarketDepth depth = new MarketDepth();
                             depth.SecurityNameCode = security.Name; // TODO Проверить NameId
-                            depth.Time = ob.Rows[0].Timestamp.ToDateTime().AddHours(3);// convert to MSK
+                            depth.Time = ob.Rows[0].Timestamp.ToDateTime().AddHours(_timezoneOffset);// convert to MSK
                             for (int i = 0; i < ob.Rows.Count; i++)
                             {
                                 StreamOrderBook.Types.Row newLevel = ob.Rows[i];
@@ -852,7 +894,76 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public event Action<Trade> NewTradesEvent;
         #endregion
 
-        #region 9 Trade
+        #region 9 Channel check alive
+        private void ConnectionCheckThread()
+        {
+            while (true)
+            {
+                Thread.Sleep(50000); // Sleep1
+
+                try
+                {
+                    if (ServerStatus != ServerConnectStatus.Connect)
+                    {
+                        continue;
+                    }
+
+                    ClockResponse resp = _assetsClient.Clock(new ClockRequest(), _gRpcMetadata);
+
+                    if(resp == null)
+                    {
+                        Thread.Sleep(3000);
+                        continue;
+                    }
+                    ServerTime = resp.Timestamp.ToDateTime();
+                    Thread.Sleep(3000); // Sleep2
+
+                    // Sleep1 + Sleep2 + some overhead
+                    // Trigger when twice fail
+                    if (_lastTimeCheckConnection.AddSeconds(5) < DateTime.Now && _lastTimeCheckConnection > DateTime.MinValue)
+                    {
+                        if (ServerStatus == ServerConnectStatus.Connect)
+                        {
+                            ServerStatus = ServerConnectStatus.Disconnect;
+                            DisconnectEvent();
+                        }
+                    }
+                }
+                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+                {
+                    // Handle the cancellation gracefully
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Keep Alive stream was cancelled: {message}", LogMessageType.System);
+                    Thread.Sleep(5000);
+                }
+                catch (RpcException ex)
+                {
+                    string msg = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Error while get time from FinamGrpc. Info: {msg}", LogMessageType.Error);
+                    if (ServerStatus == ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                    Thread.Sleep(1000);
+                }
+                catch (Exception error)
+                {
+                    if (ServerStatus == ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                    SendLogMessage(error.ToString(), LogMessageType.Error);
+                    Thread.Sleep(1000);
+                }
+            }
+        }
+
+        private DateTime _lastTimeCheckConnection = DateTime.MinValue;
+        #endregion
+
+        #region 10 Trade
 
         public void GetAllActivOrders()
         {
@@ -868,7 +979,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private RateGate _rateGateOrders = new RateGate(100, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
         #endregion
 
-        #region 10 Helpers
+        #region 11 Helpers
 
         private string GetGRPCErrorMessage(RpcException ex)
         {
@@ -932,7 +1043,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
         #endregion
 
-        #region 11 Log
+        #region 12 Log
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
