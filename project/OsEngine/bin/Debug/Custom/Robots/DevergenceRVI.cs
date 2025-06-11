@@ -37,7 +37,7 @@ Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many ti
 
 namespace OsEngine.Robots.AO
 {
-    [Bot("DevergenceRVI")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("DevergenceRVI")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class DevergenceRVI : BotPanel
     {
         private BotTabSimple _tab;
