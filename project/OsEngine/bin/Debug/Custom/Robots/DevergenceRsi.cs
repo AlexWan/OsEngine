@@ -36,7 +36,7 @@ The robot exits the position after a predefined number of candles.
 
 namespace OsEngine.Robots.AO
 {
-    [Bot("DevergenceRsi")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("DevergenceRsi")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class DevergenceRsi : BotPanel
     {
         private BotTabSimple _tab;

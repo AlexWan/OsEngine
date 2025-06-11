@@ -23,13 +23,20 @@ trading robot for osengine
 
 The trend robot on strategy Devergence RVI.
 
-Buy: The lows on the chart are falling, while the lows are rising on the indicator.
+Buy conditions:
+1. The last low detected by ZigZag on the price chart is lower than the previous one (zzLowOne < zzLowTwo),
+2. The last low detected by ZigZag on the RVI chart is higher than the previous one (zzRviLowOne > zzRviLowTwo)
+3. Divergence occurs before the last RVI high (indexTwo < indexHigh).
 
-Sell: the highs on the chart are rising, while the indicator is falling.
+Sell conditions:
+1. The last high detected by ZigZag on the price chart is higher than the previous one (zzHighOne > zzHighTwo),
+2. The last high detected by ZigZag on the RVI chart is lower than the previous one (zzRviHighOne < zzRviHighTwo)
+3. Divergence occurs before the last RVI low (indexTwo < indexLow).
 
 Exit from buy: Stop and profit.
 The stop is placed at the minimum for the period specified for the stop (StopCandles). 
 Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop).
+
 Exit from sell: Stop and profit.
 The stop is placed at the maximum for the period specified for the stop (StopCandles). 
 Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop).
@@ -91,7 +98,7 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
             _zigZag.Save();
 
-            // Create indicator ZigZag MFI
+            // Create indicator ZigZag RVI
             _zigZagRVI = IndicatorsFactory.CreateIndicatorByName("ZigZagRVI", name + "ZigZagRVI", false);
             _zigZagRVI = (Aindicator)_tab.CreateCandleIndicator(_zigZagRVI, "NewArea");
             ((IndicatorParameterInt)_zigZagRVI.Parameters[0]).ValueInt = _periodRVI.ValueInt;
@@ -194,8 +201,8 @@ namespace OsEngine.Robots.AO
                 List<decimal> zzHigh = _zigZag.DataSeries[2].Values;
                 List<decimal> zzLow = _zigZag.DataSeries[3].Values;
 
-                List<decimal> zzAOLow = _zigZagRVI.DataSeries[4].Values;
-                List<decimal> zzAOHigh = _zigZagRVI.DataSeries[3].Values;
+                List<decimal> zzRviLow = _zigZagRVI.DataSeries[4].Values;
+                List<decimal> zzRviHigh = _zigZagRVI.DataSeries[3].Values;
 
                 decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -205,7 +212,7 @@ namespace OsEngine.Robots.AO
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (DevirgenceBuy(zzLow, zzAOLow, zzAOHigh) == true)
+                    if (DevirgenceBuy(zzLow, zzRviLow, zzRviHigh) == true)
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
@@ -214,7 +221,7 @@ namespace OsEngine.Robots.AO
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (DevirgenceSell(zzHigh, zzAOHigh, zzAOLow) == true)
+                    if (DevirgenceSell(zzHigh, zzRviHigh, zzRviLow) == true)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
@@ -241,7 +248,7 @@ namespace OsEngine.Robots.AO
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal stopActivation = GetPriceStop(pos.TimeCreate, Side.Buy, candles, candles.Count - 1);
 
@@ -256,7 +263,7 @@ namespace OsEngine.Robots.AO
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     decimal stopActivation = GetPriceStop(pos.TimeCreate, Side.Sell, candles, candles.Count - 1);
 
@@ -354,24 +361,22 @@ namespace OsEngine.Robots.AO
         }
 
         // Method for finding divergence
-        private bool DevirgenceBuy(List<decimal> zzLow, List<decimal> zzAOLow, List<decimal> zzAOHigh)
+        private bool DevirgenceBuy(List<decimal> zzLow, List<decimal> zzRviLow, List<decimal> zzRviHigh)
         {
             decimal zzLowOne = 0;
             decimal zzLowTwo = 0;
-            decimal zzAOLowOne = 0;
-            decimal zzAOLowTwo = 0;
+            decimal zzRviLowOne = 0;
+            decimal zzRviLowTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexHigh = 0;
 
-            for (int i = zzAOHigh.Count - 1; i >= 0; i--)
+            for (int i = zzRviHigh.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
 
-                if (zzAOHigh[i] != 0)
+                if (zzRviHigh[i] != 0)
                 {
                     cnt++;
                     indexHigh = i;
@@ -406,20 +411,20 @@ namespace OsEngine.Robots.AO
                 }
             }
 
-            for (int i = zzAOLow.Count - 1; i >= 0; i--)
+            for (int i = zzRviLow.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
 
-                if (zzAOLow[i] != 0 && zzAOLowOne == 0)
+                if (zzRviLow[i] != 0 && zzRviLowOne == 0)
                 {
-                    zzAOLowOne = zzAOLow[i];
+                    zzRviLowOne = zzRviLow[i];
                     cnt++;
                     indexTwo = i;
                 }
 
-                if (zzAOLow[i] != 0 && indexTwo != i && zzAOLowTwo == 0)
+                if (zzRviLow[i] != 0 && indexTwo != i && zzRviLowTwo == 0)
                 {
-                    zzAOLowTwo = zzAOLow[i];
+                    zzRviLowTwo = zzRviLow[i];
                     cnt++;
                 }
 
@@ -436,7 +441,7 @@ namespace OsEngine.Robots.AO
                 cntLow++;
             }
 
-            if (zzAOLowOne > zzAOLowTwo && zzAOLowOne != 0)
+            if (zzRviLowOne > zzRviLowTwo && zzRviLowOne != 0)
             {
                 cntLow++;
             }
@@ -450,24 +455,22 @@ namespace OsEngine.Robots.AO
         }
 
         // Method for finding divergence
-        private bool DevirgenceSell(List<decimal> zzHigh, List<decimal> zzAOHigh, List<decimal> zzAOLow)
+        private bool DevirgenceSell(List<decimal> zzHigh, List<decimal> zzRviHigh, List<decimal> zzRviLow)
         {
             decimal zzHighOne = 0;
             decimal zzHighTwo = 0;
-            decimal zzAOHighOne = 0;
-            decimal zzAOHighTwo = 0;
+            decimal zzRviHighOne = 0;
+            decimal zzRviHighTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexLow = 0;
 
-            for (int i = zzAOLow.Count - 1; i >= 0; i--)
+            for (int i = zzRviLow.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
 
-                if (zzAOLow[i] != 0)
+                if (zzRviLow[i] != 0)
                 {
                     cnt++;
                     indexLow = i;
@@ -502,20 +505,20 @@ namespace OsEngine.Robots.AO
                 }
             }
 
-            for (int i = zzAOHigh.Count - 1; i >= 0; i--)
+            for (int i = zzRviHigh.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
 
-                if (zzAOHigh[i] != 0 && zzAOHighOne == 0)
+                if (zzRviHigh[i] != 0 && zzRviHighOne == 0)
                 {
-                    zzAOHighOne = zzAOHigh[i];
+                    zzRviHighOne = zzRviHigh[i];
                     cnt++;
                     indexTwo = i;
                 }
 
-                if (zzAOHigh[i] != 0 && indexTwo != i && zzAOHighTwo == 0)
+                if (zzRviHigh[i] != 0 && indexTwo != i && zzRviHighTwo == 0)
                 {
-                    zzAOHighTwo = zzAOHigh[i];
+                    zzRviHighTwo = zzRviHigh[i];
                     cnt++;
                 }
 
@@ -532,7 +535,7 @@ namespace OsEngine.Robots.AO
                 cntHigh++;
             }
 
-            if (zzAOHighOne < zzAOHighTwo && zzAOHighOne != 0)
+            if (zzRviHighOne < zzRviHighTwo && zzRviHighOne != 0)
             {
                 cntHigh++;
             }

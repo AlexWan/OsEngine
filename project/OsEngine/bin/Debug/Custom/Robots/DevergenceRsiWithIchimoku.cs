@@ -15,27 +15,28 @@ using OsEngine.Market.Servers;
 using OsEngine.Market;
 
 /* Description
-trading robot for osengine
+Trend-following robot based on RSI divergence with Ichimoku confirmation.
 
-The trend robot on Devergence Rsi with Ichimoku.
+Buy conditions:
+Price forms lower lows, while RSI forms higher lows (bullish divergence).
+Ichimoku confirmation: Senkou Span A crosses above Senkou Span B (Kumo twist up).
 
-Buy:
-1. The lows on the chart are decreasing, and the Rsi indicator is growing.
-2. The Tenkan line crosses the Kijun line from bottom to top.
-Sell:
-1. The highs on the chart are rising, and on the Rsi indicator they are decreasing.
-2. The Tenkan line crosses the Kijun line from top to bottom.
-Exit from the buy:
-1. Stop for a minimum of a certain number of candles.
-2. Profit – for the maximum for a certain number of candles.
-Exit from sell:
-1. Stop for the maximum for a certain number of candles.
-2. Profit – for a minimum of a certain number of candles.
- */
+Sell conditions:
+Price forms higher highs, while RSI forms lower highs (bearish divergence).
+Ichimoku confirmation: Senkou Span A crosses below Senkou Span B (Kumo twist down).
+
+Exit from long:
+Stop-loss below the minimum of the last N candles.
+Take-profit at the maximum of the last N candles.
+
+Exit from short:
+Stop-loss above the maximum of the last N candles.
+Take-profit at the minimum of the last N candles.
+*/
 
 namespace OsEngine.Robots.AO
 {
-    [Bot("DevergenceRsiWithIchimoku")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("DevergenceRsiWithIchimoku")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class DevergenceRsiWithIchimoku : BotPanel
     {
         private BotTabSimple _tab;
@@ -51,7 +52,7 @@ namespace OsEngine.Robots.AO
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator Settings 
+        // Indicators Settings 
         private StrategyParameterInt _tenkanLength;
         private StrategyParameterInt _kijunLength;
         private StrategyParameterInt _senkouLength;
@@ -60,7 +61,7 @@ namespace OsEngine.Robots.AO
         private StrategyParameterInt _periodZigZag;
         private StrategyParameterInt _periodRsi;
 
-        // Indicator
+        // Indicators
         Aindicator _ichomoku;
         Aindicator _zigZag;
         Aindicator _zigZagRsi;
@@ -138,19 +139,19 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Devergence Rsi with Ichimoku. " +
-                "Buy: " +
-                "1. The lows on the chart are decreasing, and the Rsi indicator is growing. " +
-                "2. The Tenkan line crosses the Kijun line from bottom to top. " +
-                "Sell: " +
-                "1. The highs on the chart are rising, and on the Rsi indicator they are decreasing. " +
-                "2. The Tenkan line crosses the Kijun line from top to bottom. " +
-                "Exit from the buy: " +
-                "1. Stop for a minimum of a certain number of candles. " +
-                "2. Profit – for the maximum for a certain number of candles. " +
-                "Exit from sell: " +
-                "1. Stop for the maximum for a certain number of candles. " +
-                "2. Profit – for a minimum of a certain number of candles.";
+            Description = "Trend-following robot based on RSI divergence with Ichimoku confirmation.\n" +
+                        "Buy:\n" +
+                        "1. Price forms lower lows, while RSI forms higher lows (bullish divergence).\n" +
+                        "2. Ichimoku confirmation: Senkou Span A crosses above Senkou Span B (Kumo twist up).\n" +
+                        "Sell:\n" +
+                        "1. Price forms higher highs, while RSI forms lower highs (bearish divergence).\n" +
+                        "2. Ichimoku confirmation: Senkou Span A crosses below Senkou Span B (Kumo twist down).\n" +
+                        "Exit from long:\n" +
+                        "1. Stop-loss below the minimum of the last N candles.\n" +
+                        "2. Take-profit at the maximum of the last N candles.\n" +
+                        "Exit from short:\n" +
+                        "1. Stop-loss above the maximum of the last N candles.\n" +
+                        "2. Take-profit at the minimum of the last N candles.";
         }
 
         private void DevergenceRsiWithIchimoku_ParametrsChangeByUser()
@@ -302,15 +303,15 @@ namespace OsEngine.Robots.AO
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
-                {
+                if (pos.Direction == Side.Buy) // If the direction of the position is buy
+                { 
                     _tab.CloseAtProfit(pos, MaxPrice(candles, _profitCandles.ValueInt), MaxPrice(candles, _profitCandles.ValueInt) + _slippage);
                     _tab.CloseAtStop(pos, MinPrice(candles,_stopCandles.ValueInt), MinPrice(candles, _stopCandles.ValueInt) - _slippage);
                     Cnt = 1;
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is sell
                 {
-                    _tab.CloseAtProfit(pos, MinPrice(candles, _profitCandles.ValueInt), MinPrice(candles, _profitCandles.ValueInt) - _slippage);
+                     _tab.CloseAtProfit(pos, MinPrice(candles, _profitCandles.ValueInt), MinPrice(candles, _profitCandles.ValueInt) - _slippage);
                     _tab.CloseAtStop(pos, MaxPrice(candles, _stopCandles.ValueInt), MaxPrice(candles, _stopCandles.ValueInt) + _slippage);
                     Cnt = 1;
                 }
