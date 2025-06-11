@@ -2155,6 +2155,11 @@ namespace OsEngine.Journal
             int number;
             try
             {
+                if(_openPositionGrid.CurrentCell == null)
+                {
+                    return;
+                }
+
                 number = Convert.ToInt32(_openPositionGrid.Rows[_openPositionGrid.CurrentCell.RowIndex].Cells[0].Value);
             }
             catch (Exception)
@@ -3913,6 +3918,11 @@ namespace OsEngine.Journal
 
                 SecurityToPaint newSecurity = new SecurityToPaint();
 
+                if(row.Cells[1].Value == null)
+                {
+                    continue;
+                }
+
                 newSecurity.Name = row.Cells[1].Value.ToString();
                 newSecurity.IsOn = Convert.ToBoolean(row.Cells[2].EditedFormattedValue.ToString());
 
@@ -3968,7 +3978,8 @@ namespace OsEngine.Journal
 
                         for (int i2 = 0; i2 < _selectedSecurities.Count; i2++)
                         {
-                            if (_selectedSecurities[i2].Name == secName)
+                            if (string.IsNullOrEmpty(secName)
+                                || _selectedSecurities[i2].Name == secName)
                             {
                                 isAccepted = _selectedSecurities[i2].IsOn;
                                 break;
@@ -4048,10 +4059,30 @@ namespace OsEngine.Journal
                 _minTime = _startTime;
                 _maxTime = _endTime;
 
+                if(startTime != DateTime.MaxValue
+                    && startTime != DateTime.MinValue)
+                {
+                    startTime = startTime.AddDays(-1);
+                }
+                else
+                {
+                    startTime = DateTime.MinValue;
+                }
+
+                if(endTime != DateTime.MinValue
+                     && endTime != DateTime.MaxValue)
+                {
+                    endTime = endTime.AddDays(1);
+                }
+                else
+                {
+                    endTime = DateTime.MaxValue;
+                }
+
                 if (IsSlide == false)
                 { // слайдер времени выключен. Просто обновляем
-                    _startTime = startTime.AddDays(-1);
-                    _endTime = endTime.AddDays(1);
+                    _startTime = startTime;
+                    _endTime = endTime;
                     _minTime = _startTime;
                     _maxTime = _endTime;
                     CreateSlidersShowPositions();
@@ -4060,16 +4091,16 @@ namespace OsEngine.Journal
                   && (_startTime == DateTime.MinValue
                       || _endTime == DateTime.MinValue))
                 {
-                    _startTime = startTime.AddDays(-1);
-                    _endTime = endTime.AddDays(1);
+                    _startTime = startTime;
+                    _endTime = endTime;
                     _minTime = _startTime;
                     _maxTime = _endTime;
                     CreateSlidersShowPositions();
                 }
-                else if(lastPositionsCount != _allPositions.Count)
+                else if (lastPositionsCount != _allPositions.Count)
                 {
-                    _startTime = startTime.AddDays(-1);
-                    _endTime = endTime.AddDays(1);
+                    _startTime = startTime;
+                    _endTime = endTime;
                     _minTime = _startTime;
                     _maxTime = _endTime;
                     CreateSlidersShowPositions();
@@ -4132,6 +4163,8 @@ namespace OsEngine.Journal
                             {
                                 _botsJournals[i]._Tabs[i2].Journal.Save();
                                 _botsJournals[i]._Tabs[i2].Journal.NeedToUpdateStatePositions();
+                                PaintSecuritiesFilterGrid();
+                                UpDateSelectedSecurities();
                                 RePaint();
                             }
                             return;

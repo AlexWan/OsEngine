@@ -1223,11 +1223,26 @@ namespace OsEngine.Entity
 
                 if (IsLotServer())
                 {
-                    return (ProfitOperationAbs / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
+                    if(PriceStep != 0)
+                    {
+                        return (ProfitOperationAbs / PriceStep) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
+                    }
+                    else
+                    {
+                        return (ProfitOperationAbs) * PriceStepCost * MaxVolume * Lots - CommissionTotal();
+                    }
+                        
                 }
                 else if(PriceStep != 0)
                 {
-                    return (ProfitOperationAbs / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
+                    if (PriceStep != 0)
+                    {
+                        return (ProfitOperationAbs / PriceStep) * PriceStepCost * MaxVolume - CommissionTotal();
+                    }
+                    else
+                    {
+                        return (ProfitOperationAbs) * PriceStepCost * MaxVolume - CommissionTotal();
+                    }
                 }
                 else
                 {

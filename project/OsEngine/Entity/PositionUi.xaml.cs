@@ -13,14 +13,8 @@ namespace OsEngine.Entity
 {
     public partial class PositionUi
     {
-        /// <summary>
-        /// position
-        /// </summary>
         private Position _position;
 
-        /// <summary>
-        /// constructor
-        /// </summary>
         public PositionUi(Position position, StartProgram startProgram)
         {
             _startProgram = startProgram;
@@ -90,9 +84,9 @@ namespace OsEngine.Entity
             }
         }
 
-        CultureInfo _currentCulture;
+        private CultureInfo _currentCulture;
 
-        StartProgram _startProgram;
+        private StartProgram _startProgram;
 
         private void RePaint()
         {
@@ -101,9 +95,9 @@ namespace OsEngine.Entity
             PaintTradeTable();
         }
 
-        // main table
+        #region Main table
 
-        DataGridView _mainPosGrid;
+        private DataGridView _mainPosGrid;
 
         private void CreateMainTable()
         {
@@ -218,11 +212,13 @@ namespace OsEngine.Entity
             return nRow;
         }
 
-        // orders
+        #endregion
 
-        DataGridView _openOrdersGrid;
+        #region Orders
 
-        DataGridView _closeOrdersGrid;
+        private DataGridView _openOrdersGrid;
+
+        private DataGridView _closeOrdersGrid;
 
         private void CreateOrdersTable()
         {
@@ -359,7 +355,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void CloseOrdersAddOrder_Click(object sender, EventArgs e)
+        private void CloseOrdersAddOrder_Click(object sender, EventArgs e)
         {
             try
             {
@@ -391,7 +387,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void CloseOrdersDeleteOrder_Click(object sender, EventArgs e)
+        private void CloseOrdersDeleteOrder_Click(object sender, EventArgs e)
         {
             try
             {
@@ -516,7 +512,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void OpenOrdersAddOrder_Click(object sender, EventArgs e)
+        private void OpenOrdersAddOrder_Click(object sender, EventArgs e)
         {
             try
             {
@@ -539,7 +535,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void OpenOrdersDeleteOrder_Click(object sender, EventArgs e)
+        private void OpenOrdersDeleteOrder_Click(object sender, EventArgs e)
         {
             try
             {
@@ -576,9 +572,11 @@ namespace OsEngine.Entity
             }
         }
 
-        // trades
+        #endregion
 
-        DataGridView _tradesGrid;
+        #region Trades
+
+        private DataGridView _tradesGrid;
 
         private void CreateTradeTable()
         {
@@ -800,7 +798,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void MyTradeAddInOpenOrders_Click(object sender, EventArgs e)
+        private void MyTradeAddInOpenOrders_Click(object sender, EventArgs e)
         {
             try
             {
@@ -831,7 +829,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void MyTradeAddInCloseOrders_Click(object sender, EventArgs e)
+        private void MyTradeAddInCloseOrders_Click(object sender, EventArgs e)
         {
             try
             {
@@ -868,7 +866,7 @@ namespace OsEngine.Entity
             }
         }
 
-        void MyTradeDelete_Click(object sender, EventArgs e)
+        private void MyTradeDelete_Click(object sender, EventArgs e)
         {
             try
             {
@@ -960,7 +958,9 @@ namespace OsEngine.Entity
             }
         }
 
-        // accept ui
+        #endregion
+
+        #region Accept ui
 
         private bool ActionDeleteIsAccepted()
         {
@@ -988,7 +988,9 @@ namespace OsEngine.Entity
             return true;
         }
 
-        // save changes
+        #endregion
+
+        #region Save changes
 
         private string GetPortfolioName()
         {
@@ -1071,7 +1073,7 @@ namespace OsEngine.Entity
 
                 PositionChanged = true;
 
-                RePaint();
+                Close();
             }
             catch (Exception ex)
             {
@@ -1205,5 +1207,7 @@ namespace OsEngine.Entity
                 }
             }
         }
+
+        #endregion
     }
 }
