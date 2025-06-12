@@ -12,34 +12,44 @@ using System.Linq;
 using OsEngine.Logging;
 using System.Windows.Media.Animation;
 using System.Security.Cryptography;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
+
 
 /* Description
 trading robot for osengine
 
 The trend robot on Break Momentum.
 
-Buy: The Momentum indicator value crosses the 100 level from bottom to top and has been growing for two candles.
+Buy:
+The Momentum indicator value crosses the 100 level from bottom to top and has been growing for two candles.
 
-Sell: The Momentum indicator value crosses the 100 level from top to bottom and has been falling for two candles.
+Sell:
+The Momentum indicator value crosses the 100 level from top to bottom and has been falling for two candles.
 
-Exit: stop and profit in % of the entry price.
+Exit:
+stop and profit in % of the entry price.
  */
 
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
-    [Bot("BreakMomentum")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakMomentum")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakMomentum : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
         private StrategyParameterDecimal Slippage;
         private StrategyParameterTimeOfDay StartTradeTime;
         private StrategyParameterTimeOfDay EndTradeTime;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator setting 
         private StrategyParameterInt _MomentumPeriod;
@@ -56,27 +66,31 @@ namespace OsEngine.Robots.AO
 
         public BreakMomentum(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
             Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Indicator setting
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
+
+            // Indicator Momentum setting
             _MomentumPeriod = CreateParameter("Momentum Period", 16, 10, 300, 7, "Indicator");
 
-            // Create indicator MACD
+            // Create indicator Momentum
             _Momentum = IndicatorsFactory.CreateIndicatorByName("Momentum", name + "Momentum", false);
             _Momentum = (Aindicator)_tab.CreateCandleIndicator(_Momentum, "NewArea");
             ((IndicatorParameterInt)_Momentum.Parameters[0]).ValueInt = _MomentumPeriod.ValueInt;
             _Momentum.Save();
-            
-            // Exit
+
+            // Exit settings
             StopValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
             ProfitValue = CreateParameter("Profit Value", 1.0m, 5, 200, 5, "Exit");
 
@@ -87,9 +101,12 @@ namespace OsEngine.Robots.AO
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "The trend robot on Break Momentum. " +
-                "Buy: The Momentum indicator value crosses the 100 level from bottom to top and has been growing for two candles. " +
-                "Sell: The Momentum indicator value crosses the 100 level from top to bottom and has been falling for two candles. " +
-                "Exit: stop and profit in % of the entry price.";
+                "Buy:" +
+                "The Momentum indicator value crosses the 100 level from bottom to top and has been growing for two candles. " +
+                "Sell:" +
+                "The Momentum indicator value crosses the 100 level from top to bottom and has been falling for two candles. " +
+                "Exit:" +
+                "stop and profit in % of the entry price.";
         }
 
         private void BreakMomentum_ParametrsChangeByUser()
@@ -144,6 +161,7 @@ namespace OsEngine.Robots.AO
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -171,7 +189,7 @@ namespace OsEngine.Robots.AO
                 {
                     if (_lastMomentum > 100)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
@@ -180,7 +198,7 @@ namespace OsEngine.Robots.AO
                 {
                     if (_lastMomentum < 100)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -190,7 +208,7 @@ namespace OsEngine.Robots.AO
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
@@ -225,29 +243,94 @@ namespace OsEngine.Robots.AO
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
