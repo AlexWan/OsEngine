@@ -1,14 +1,15 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Drawing;
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -26,11 +27,9 @@ stop and is transferred (sliding) to new price lows, also for the specified peri
 
 Exit from sell: Trailing stop is placed on the maximum for the period specified for the trailing
 stop and is transferred (sliding) to a new price maximum, also for the specified period.
- 
  */
 
-
-namespace OsEngine.Robots.Mybots
+namespace OsEngine.Robots
 {
     [Bot("BreakAD")] // We create an attribute so that we don't write anything to the BotFactory
     public class BreakAD : BotPanel
@@ -39,10 +38,11 @@ namespace OsEngine.Robots.Mybots
 
         // Basic Settings
         StrategyParameterString _regime;
-
         StrategyParameterDecimal _slippage;
         StrategyParameterTimeOfDay _startTradeTime;
         StrategyParameterTimeOfDay _endTradeTime;
+
+        // GetVolume Settings
         StrategyParameterString _volumeType;
         StrategyParameterDecimal _volume;
         StrategyParameterString _tradeAssetInPortfolio;
@@ -50,11 +50,11 @@ namespace OsEngine.Robots.Mybots
         // Indicator
         Aindicator _AD;
 
-        // Enter
+        // Enter Settings
         StrategyParameterInt _entryCandlesLong;
         StrategyParameterInt _entryCandlesShort;
 
-        // Exit
+        // Exit Settings
         StrategyParameterInt _trailCandlesLong;
         StrategyParameterInt _trailCandlesShort;
 
@@ -63,25 +63,27 @@ namespace OsEngine.Robots.Mybots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Create indicator AD
             _AD = IndicatorsFactory.CreateIndicatorByName("AccumulationDistribution", name + "AD", false);
             _AD = (Aindicator)_tab.CreateCandleIndicator(_AD, "NewArea");
             _AD.Save();
 
-            // Enter 
+            // Enter Settings
             _entryCandlesLong = CreateParameter("Entry Candles Long", 10, 5, 200, 5, "Enter");
             _entryCandlesShort = CreateParameter("Entry Candles Short", 10, 5, 200, 5, "Enter");
 
-            // Exit
+            // Exit Settings
             _trailCandlesLong = CreateParameter("Trail Candles Long", 5, 5, 200, 5, "Exit");
             _trailCandlesShort = CreateParameter("Trail Candles Short", 5, 5, 200, 5, "Exit");
 
@@ -142,6 +144,7 @@ namespace OsEngine.Robots.Mybots
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -164,8 +167,6 @@ namespace OsEngine.Robots.Mybots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-
-
                     if (EnterLongAndShort(values, _entryCandlesLong.ValueInt) == "true")
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
@@ -175,7 +176,6 @@ namespace OsEngine.Robots.Mybots
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
                     if (EnterLongAndShort(values, _entryCandlesShort.ValueInt) == "false")
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
@@ -202,25 +202,28 @@ namespace OsEngine.Robots.Mybots
                     continue;
                 }
 
-                if (position.Direction == Side.Buy) // If the direction of the position is purchase
+                if (position.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
-
             }
         }
 
@@ -319,20 +322,25 @@ namespace OsEngine.Robots.Mybots
         private string EnterLongAndShort(List<decimal> values, int period)
         {
             int l = 0;
+
             decimal Max = -9999999;
             decimal Min = 9999999;
+
             for (int i = 1; i <= period; i++)
             {
                 if (values[values.Count - 1 - i] > Max)
                 {
                     Max = values[values.Count - 1 - i];
                 }
+
                 if (values[values.Count - 1 - i] < Min)
                 {
                     Min = values[values.Count - 1 - i];
                 }
+
                 l = i;
             }
+
             if (Max < values[values.Count - 1])
             {
                 return "true";
@@ -341,6 +349,7 @@ namespace OsEngine.Robots.Mybots
             {
                 return "false";
             }
+
             return "nope";
         }
 
