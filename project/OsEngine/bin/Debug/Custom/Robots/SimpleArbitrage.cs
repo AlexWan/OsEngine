@@ -1,8 +1,17 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Charts.CandleChart.Indicators;
+using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -21,17 +30,20 @@ then we expect the spread to become below the center line of the indicator.
 
 If we opened positions when the spread crossed the lower deviation limit, 
 then we expect the spread to become above the center line of the indicator.
-
  */
 
-namespace OsEngine.Robots.MarketMaker
+namespace OsEngine.Robots
 {
     [Bot("SimpleArbitrage")] // We create an attribute so that we don't write anything to the BotFactory
     internal class SimpleArbitrage : BotPanel
     {
-        // Settings
+        // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _deviation;
+
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterString _tradeAssetInPortfolio;
         private StrategyParameterDecimal _volumeFirstLeg;
         private StrategyParameterDecimal _volumeSecondLeg;
 
@@ -81,12 +93,14 @@ namespace OsEngine.Robots.MarketMaker
         // Parameters
         private void CreateParameters()
         {
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-
             _deviation = CreateParameter("Deviation", 1m, 1, 10, 0.5m);
 
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
             _volumeFirstLeg = CreateParameter("First volume", 1m, 1, 50, 1);
-
             _volumeSecondLeg = CreateParameter("Second volume", 1m, 1, 50, 1);
         }
 
@@ -130,15 +144,15 @@ namespace OsEngine.Robots.MarketMaker
                 //then we sell the first security and buy the second
                 if (lastCandle.Close > _dayMiddle.DataSeries[1].Last)
                 {
-                    _firstLeg.SellAtMarket(_volumeFirstLeg.ValueDecimal, "CrossUp");
-                    _secondLeg.BuyAtMarket(_volumeSecondLeg.ValueDecimal, "CrossUp");
+                    _firstLeg.SellAtMarket(GetVolume(_firstLeg, _volumeFirstLeg.ValueDecimal), "CrossUp");
+                    _secondLeg.BuyAtMarket(GetVolume(_secondLeg, _volumeSecondLeg.ValueDecimal), "CrossUp");
                 }
                 //If the spread chart closes below the lower limit of the indicator deviation,
                 //then we buy the first security and sell the second
                 if (lastCandle.Close < _dayMiddle.DataSeries[2].Last)
                 {
-                    _firstLeg.BuyAtMarket(_volumeFirstLeg.ValueDecimal, "CrossDown");
-                    _secondLeg.SellAtMarket(_volumeSecondLeg.ValueDecimal, "CrossDown");
+                    _firstLeg.BuyAtMarket(GetVolume(_firstLeg, _volumeFirstLeg.ValueDecimal), "CrossDown");
+                    _secondLeg.SellAtMarket(GetVolume(_secondLeg, _volumeSecondLeg.ValueDecimal), "CrossDown");
                 }
             }
             else // If there are open positions in simple tabs, we move on to the logic of closing positions
@@ -177,6 +191,97 @@ namespace OsEngine.Robots.MarketMaker
         public override void ShowIndividualSettingsDialog()
         {
 
+        }
+
+        private decimal GetVolume(BotTabSimple tab, decimal _volume)
+        {
+            decimal volume = 0;
+
+            if (_volumeType.ValueString == "Contracts")
+            {
+                volume = _volume;
+            }
+            else if (_volumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 }
