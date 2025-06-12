@@ -1,10 +1,17 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -18,10 +25,9 @@ Sell: When the ASI indicator has broken through the minimum for a certain number
 Exit from buy: trailing stop in % of the loy of the candle on which you entered.
 
 Exit from sell: trailing stop in % of the high of the candle on which you entered.
-
  */
 
-namespace OsEngine.Robots.MyBots
+namespace OsEngine.Robots
 {
     [Bot("BreakAsi")] // We create an attribute so that we don't write anything to the BotFactory
     internal class BreakAsi : BotPanel
@@ -29,26 +35,29 @@ namespace OsEngine.Robots.MyBots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Indicator setting 
-        private StrategyParameterDecimal AsiLimit;
-        private StrategyParameterInt AsiSmaLength;
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Enter
-        private StrategyParameterInt EntryCandlesLong;
-        private StrategyParameterInt EntryCandlesShort;
+        // Indicator Settings 
+        private StrategyParameterDecimal _asiLimit;
+        private StrategyParameterInt _asiSmaLength;
 
-        // Exit
-        private StrategyParameterDecimal TrailingValue;
+        // Enter Settings
+        private StrategyParameterInt _entryCandlesLong;
+        private StrategyParameterInt _entryCandlesShort;
+
+        // Exit Settings
+        private StrategyParameterDecimal _trailingValue;
 
         // Indicator
-        Aindicator _Asi;
+        private Aindicator _asi;
 
         public BreakAsi(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -56,30 +65,33 @@ namespace OsEngine.Robots.MyBots
             _tab = TabsSimple[0];
 
             // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator setting
-            AsiLimit = CreateParameter("Asi Limit", 10000.0m, 100, 100000m, 1000m, "Indicator");
-            AsiSmaLength = CreateParameter("Sma Length", 21, 7, 48, 7, "Indicator");
+            _asiLimit = CreateParameter("Asi Limit", 10000.0m, 100, 100000m, 1000m, "Indicator");
+            _asiSmaLength = CreateParameter("Sma Length", 21, 7, 48, 7, "Indicator");
 
             // Enter 
-            EntryCandlesLong = CreateParameter("Entry Candles Long", 10, 5, 200, 5, "Enter");
-            EntryCandlesShort = CreateParameter("Entry Candles Short", 10, 5, 200, 5, "Enter");
+            _entryCandlesLong = CreateParameter("Entry Candles Long", 10, 5, 200, 5, "Enter");
+            _entryCandlesShort = CreateParameter("Entry Candles Short", 10, 5, 200, 5, "Enter");
 
             // Exit
-            TrailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
+            _trailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Create indicator Asi
-            _Asi = IndicatorsFactory.CreateIndicatorByName("ASI", name + "Asi", false);
-            _Asi = (Aindicator)_tab.CreateCandleIndicator(_Asi, "AsiArea");
-            ((IndicatorParameterDecimal)_Asi.Parameters[0]).ValueDecimal = AsiLimit.ValueDecimal;
-            ((IndicatorParameterInt)_Asi.Parameters[1]).ValueInt = AsiSmaLength.ValueInt;
-            _Asi.Save();
+            _asi = IndicatorsFactory.CreateIndicatorByName("ASI", name + "Asi", false);
+            _asi = (Aindicator)_tab.CreateCandleIndicator(_asi, "AsiArea");
+            ((IndicatorParameterDecimal)_asi.Parameters[0]).ValueDecimal = _asiLimit.ValueDecimal;
+            ((IndicatorParameterInt)_asi.Parameters[1]).ValueInt = _asiSmaLength.ValueInt;
+            _asi.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakAsi_ParametrsChangeByUser;
@@ -96,40 +108,39 @@ namespace OsEngine.Robots.MyBots
 
         private void BreakAsi_ParametrsChangeByUser()
         {
-            ((IndicatorParameterDecimal)_Asi.Parameters[0]).ValueDecimal = AsiLimit.ValueDecimal;
-            ((IndicatorParameterInt)_Asi.Parameters[1]).ValueInt = AsiSmaLength.ValueInt;
-            _Asi.Save();
-            _Asi.Reload();
+            ((IndicatorParameterDecimal)_asi.Parameters[0]).ValueDecimal = _asiLimit.ValueDecimal;
+            ((IndicatorParameterInt)_asi.Parameters[1]).ValueInt = _asiSmaLength.ValueInt;
+            _asi.Save();
+            _asi.Reload();
         }
 
         public override string GetNameStrategyType()
         {
             return "BreakAsi";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
+
         }
 
-        // Logic
         // Candle Finished Event
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < EntryCandlesShort.ValueInt + 10 || candles.Count < EntryCandlesLong.ValueInt + 10)
+            if (candles.Count < _entryCandlesShort.ValueInt + 10 || candles.Count < _entryCandlesLong.ValueInt + 10)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -143,47 +154,49 @@ namespace OsEngine.Robots.MyBots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles);
             }
         }
+
         // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             // The last value of the indicator
-            decimal lastAsi = _Asi.DataSeries[0].Last;
-            decimal lastAsiSma = _Asi.DataSeries[1].Last;
+            decimal lastAsi = _asi.DataSeries[0].Last;
+            decimal lastAsiSma = _asi.DataSeries[1].Last;
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                List<decimal> values = _Asi.DataSeries[0].Values;
+                List<decimal> values = _asi.DataSeries[0].Values;
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (EnterLong(values, EntryCandlesLong.ValueInt) < lastAsi && lastAsi > lastAsiSma)
+                    if (EnterLong(values, _entryCandlesLong.ValueInt) < lastAsi && lastAsi > lastAsiSma)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (EnterShort(values, EntryCandlesShort.ValueInt) > lastAsi && lastAsi < lastAsiSma)
+                    if (EnterShort(values, _entryCandlesShort.ValueInt) > lastAsi && lastAsi < lastAsiSma)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -205,15 +218,15 @@ namespace OsEngine.Robots.MyBots
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal lov = candles[candles.Count - 1].Low;
-                    stopPrice = lov - lov * TrailingValue.ValueDecimal / 100;
+                    stopPrice = lov - lov * _trailingValue.ValueDecimal / 100;
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     decimal high = candles[candles.Count - 1].High;
-                    stopPrice = high + high * TrailingValue.ValueDecimal / 100;
+                    stopPrice = high + high * _trailingValue.ValueDecimal / 100;
                 }
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
@@ -223,6 +236,7 @@ namespace OsEngine.Robots.MyBots
         private decimal EnterLong(List<decimal> values, int period)
         {
             decimal Max = -9999999;
+
             for (int i = values.Count - 2; i > values.Count - 2 - period; i--)
             {
                 if (values[i] > Max)
@@ -237,6 +251,7 @@ namespace OsEngine.Robots.MyBots
         private decimal EnterShort(List<decimal> values, int period)
         {
             decimal Min = 9999999;
+
             for (int i = values.Count - 2; i > values.Count - 2 - period; i--)
             {
                 if (values[i] < Min)
@@ -248,29 +263,94 @@ namespace OsEngine.Robots.MyBots
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
