@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing;
@@ -7,6 +12,8 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 Trading robot for osengine.
@@ -27,7 +34,7 @@ Exit:
 On the opposite signal.
  */
 
-namespace OsEngine.Robots.My_bots
+namespace OsEngine.Robots
 {
     [Bot("CountertrendTwoEnvelopsAndRSI")] // We create an attribute so that we don't write anything to the BotFactory
     public class CountertrendTwoEnvelopsAndRSI : BotPanel
@@ -35,26 +42,29 @@ namespace OsEngine.Robots.My_bots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Indicator setting 
-        private StrategyParameterInt EnvelopsLengthLoc;
-        private StrategyParameterDecimal EnvelopsDeviationLoc;
-        private StrategyParameterInt EnvelopsLengthGlob;
-        private StrategyParameterDecimal EnvelopsDeviationGlob;
-        private StrategyParameterInt PeriodRsi;
-        private StrategyParameterInt OversoldLine;
-        private StrategyParameterInt OverboughtLine;
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _envelopsLengthLoc;
+        private StrategyParameterDecimal _envelopsDeviationLoc;
+        private StrategyParameterInt _envelopsLengthGlob;
+        private StrategyParameterDecimal _envelopsDeviationGlob;
+        private StrategyParameterInt _periodRsi;
+        private StrategyParameterInt _oversoldLine;
+        private StrategyParameterInt _overboughtLine;
 
         // Indicator
-        Aindicator _EnvelopsLoc;
-        Aindicator _EnvelopsGlob;
-        Aindicator _RSI;
+        private Aindicator _envelopsLoc;
+        private Aindicator _envelopsGlob;
+        private Aindicator _RSI;
 
         // The last value of the indicator
         private decimal _lastUpLineLoc;
@@ -74,44 +84,47 @@ namespace OsEngine.Robots.My_bots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Indicator setting
-            EnvelopsLengthLoc = CreateParameter("Envelop Length Loc", 21, 7, 48, 7, "Indicator");
-            EnvelopsDeviationLoc = CreateParameter("Envelop Deviation Loc", 1.0m, 1, 5, 0.1m, "Indicator");
-            EnvelopsLengthGlob = CreateParameter("Envelop Length Glob", 21, 7, 48, 7, "Indicator");
-            EnvelopsDeviationGlob = CreateParameter("Envelop Deviation Glob", 1.0m, 1, 5, 0.1m, "Indicator");
-            PeriodRsi = CreateParameter("RSI Period", 14, 7, 48, 7, "Indicator");
-            OversoldLine = CreateParameter("Oversold Line", 20, 10,100, 10, "Indicator");
-            OverboughtLine = CreateParameter("Overbought Line", 20, 10, 200, 10, "Indicator");
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Indicator settings
+            _envelopsLengthLoc = CreateParameter("Envelop Length Loc", 21, 7, 48, 7, "Indicator");
+            _envelopsDeviationLoc = CreateParameter("Envelop Deviation Loc", 1.0m, 1, 5, 0.1m, "Indicator");
+            _envelopsLengthGlob = CreateParameter("Envelop Length Glob", 21, 7, 48, 7, "Indicator");
+            _envelopsDeviationGlob = CreateParameter("Envelop Deviation Glob", 1.0m, 1, 5, 0.1m, "Indicator");
+            _periodRsi = CreateParameter("RSI Period", 14, 7, 48, 7, "Indicator");
+            _oversoldLine = CreateParameter("Oversold Line", 20, 10,100, 10, "Indicator");
+            _overboughtLine = CreateParameter("Overbought Line", 20, 10, 200, 10, "Indicator");
            
             // Create indicator RSI
             _RSI = IndicatorsFactory.CreateIndicatorByName("RSI", name + "RSI", false);
             _RSI = (Aindicator)_tab.CreateCandleIndicator(_RSI, "NewArea");
-            ((IndicatorParameterInt)_RSI.Parameters[0]).ValueInt = PeriodRsi.ValueInt;
+            ((IndicatorParameterInt)_RSI.Parameters[0]).ValueInt = _periodRsi.ValueInt;
             _RSI.Save();
 
             // Create indicator EnvelopsLoc
-            _EnvelopsLoc = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "_EnvelopsLoc", false);
-            _EnvelopsLoc = (Aindicator)_tab.CreateCandleIndicator(_EnvelopsLoc, "Prime");
-            ((IndicatorParameterInt)_EnvelopsLoc.Parameters[0]).ValueInt = EnvelopsLengthLoc.ValueInt;
-            ((IndicatorParameterDecimal)_EnvelopsLoc.Parameters[1]).ValueDecimal = EnvelopsDeviationLoc.ValueDecimal;
-            _EnvelopsLoc.Save();
+            _envelopsLoc = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "_EnvelopsLoc", false);
+            _envelopsLoc = (Aindicator)_tab.CreateCandleIndicator(_envelopsLoc, "Prime");
+            ((IndicatorParameterInt)_envelopsLoc.Parameters[0]).ValueInt = _envelopsLengthLoc.ValueInt;
+            ((IndicatorParameterDecimal)_envelopsLoc.Parameters[1]).ValueDecimal = _envelopsDeviationLoc.ValueDecimal;
+            _envelopsLoc.Save();
 
             //  Create indicator EnvelopsGlob
-            _EnvelopsGlob = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "_EnvelopsGlob", false);
-            _EnvelopsGlob = (Aindicator)_tab.CreateCandleIndicator(_EnvelopsGlob, "Prime");
-            ((IndicatorParameterInt)_EnvelopsGlob.Parameters[0]).ValueInt = EnvelopsLengthGlob.ValueInt;
-            ((IndicatorParameterDecimal)_EnvelopsGlob.Parameters[1]).ValueDecimal = EnvelopsDeviationGlob.ValueDecimal;
-            _EnvelopsGlob.DataSeries[0].Color = Color.Aquamarine;
-            _EnvelopsGlob.DataSeries[2].Color = Color.Aquamarine;
-            _EnvelopsGlob.Save();
+            _envelopsGlob = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "_EnvelopsGlob", false);
+            _envelopsGlob = (Aindicator)_tab.CreateCandleIndicator(_envelopsGlob, "Prime");
+            ((IndicatorParameterInt)_envelopsGlob.Parameters[0]).ValueInt = _envelopsLengthGlob.ValueInt;
+            ((IndicatorParameterDecimal)_envelopsGlob.Parameters[1]).ValueDecimal = _envelopsDeviationGlob.ValueDecimal;
+            _envelopsGlob.DataSeries[0].Color = Color.Aquamarine;
+            _envelopsGlob.DataSeries[2].Color = Color.Aquamarine;
+            _envelopsGlob.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += CountertrendTwoEnvelopsAndRSI_ParametrsChangeByUser; ;
@@ -134,17 +147,15 @@ namespace OsEngine.Robots.My_bots
 
         private void CountertrendTwoEnvelopsAndRSI_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_EnvelopsLoc.Parameters[0]).ValueInt = EnvelopsLengthLoc.ValueInt;
-            ((IndicatorParameterDecimal)_EnvelopsLoc.Parameters[1]).ValueDecimal = EnvelopsDeviationLoc.ValueDecimal;
-            _EnvelopsLoc.Save();
-            _EnvelopsLoc.Reload();
-
-            ((IndicatorParameterInt)_EnvelopsGlob.Parameters[0]).ValueInt = EnvelopsLengthGlob.ValueInt;
-            ((IndicatorParameterDecimal)_EnvelopsGlob.Parameters[1]).ValueDecimal = EnvelopsDeviationGlob.ValueDecimal;
-            _EnvelopsGlob.Save();
-            _EnvelopsGlob.Reload();
-
-            ((IndicatorParameterInt)_RSI.Parameters[0]).ValueInt = PeriodRsi.ValueInt;
+            ((IndicatorParameterInt)_envelopsLoc.Parameters[0]).ValueInt = _envelopsLengthLoc.ValueInt;
+            ((IndicatorParameterDecimal)_envelopsLoc.Parameters[1]).ValueDecimal = _envelopsDeviationLoc.ValueDecimal;
+            _envelopsLoc.Save();
+            _envelopsLoc.Reload();
+            ((IndicatorParameterInt)_envelopsGlob.Parameters[0]).ValueInt = _envelopsLengthGlob.ValueInt;
+            ((IndicatorParameterDecimal)_envelopsGlob.Parameters[1]).ValueDecimal = _envelopsDeviationGlob.ValueDecimal;
+            _envelopsGlob.Save();
+            _envelopsGlob.Reload();
+            ((IndicatorParameterInt)_RSI.Parameters[0]).ValueInt = _periodRsi.ValueInt;
             _RSI.Save();
             _RSI.Reload();
         }
@@ -163,21 +174,21 @@ namespace OsEngine.Robots.My_bots
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < EnvelopsLengthLoc.ValueInt || candles.Count < EnvelopsDeviationLoc.ValueDecimal ||
-                candles.Count < EnvelopsLengthGlob.ValueInt || candles.Count < EnvelopsDeviationGlob.ValueDecimal)
+            if (candles.Count < _envelopsLengthLoc.ValueInt || candles.Count < _envelopsDeviationLoc.ValueDecimal ||
+                candles.Count < _envelopsLengthGlob.ValueInt || candles.Count < _envelopsDeviationGlob.ValueDecimal)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -191,10 +202,11 @@ namespace OsEngine.Robots.My_bots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -206,17 +218,18 @@ namespace OsEngine.Robots.My_bots
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            _lastUpLineLoc = _EnvelopsLoc.DataSeries[0].Last;
-            _lastDownLineLoc = _EnvelopsLoc.DataSeries[2].Last;
-            _lastUpLineGlob = _EnvelopsGlob.DataSeries[0].Last;
-            _lastDownLineGlob = _EnvelopsGlob.DataSeries[2].Last;
+            _lastUpLineLoc = _envelopsLoc.DataSeries[0].Last;
+            _lastDownLineLoc = _envelopsLoc.DataSeries[2].Last;
+            _lastUpLineGlob = _envelopsGlob.DataSeries[0].Last;
+            _lastDownLineGlob = _envelopsGlob.DataSeries[2].Last;
             _lastRSI = _RSI.DataSeries[0].Last;
 
             // The prev value of the indicator
-            _prevUpLineLoc = _EnvelopsLoc.DataSeries[0].Values[_EnvelopsLoc.DataSeries[0].Values.Count - 2];
-            _prevDownLineLoc = _EnvelopsLoc.DataSeries[2].Values[_EnvelopsLoc.DataSeries[2].Values.Count - 2];
-            _prevUpLineGlob = _EnvelopsGlob.DataSeries[0].Values[_EnvelopsGlob.DataSeries[0].Values.Count - 2];
-            _prevDownLineGlob = _EnvelopsGlob.DataSeries[2].Values[_EnvelopsGlob.DataSeries[2].Values.Count - 2];
+            _prevUpLineLoc = _envelopsLoc.DataSeries[0].Values[_envelopsLoc.DataSeries[0].Values.Count - 2];
+            _prevDownLineLoc = _envelopsLoc.DataSeries[2].Values[_envelopsLoc.DataSeries[2].Values.Count - 2];
+            _prevUpLineGlob = _envelopsGlob.DataSeries[0].Values[_envelopsGlob.DataSeries[0].Values.Count - 2];
+            _prevDownLineGlob = _envelopsGlob.DataSeries[2].Values[_envelopsGlob.DataSeries[2].Values.Count - 2];
+
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             if (openPositions == null || openPositions.Count == 0)
@@ -225,28 +238,28 @@ namespace OsEngine.Robots.My_bots
                 decimal prevPrice = candles[candles.Count - 2].Close;
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (prevPrice < _prevDownLineLoc && prevPrice > _prevDownLineGlob && 
-                        lastPrice > _lastDownLineLoc && _lastRSI < OversoldLine.ValueInt
+                        lastPrice > _lastDownLineLoc && _lastRSI < _oversoldLine.ValueInt
                         || prevPrice < _prevDownLineGlob && lastPrice > _lastDownLineLoc
-                        && _lastRSI < OversoldLine.ValueInt)
+                        && _lastRSI < _oversoldLine.ValueInt)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (prevPrice > _prevUpLineLoc && prevPrice < _prevUpLineGlob && lastPrice < _lastUpLineLoc
-                        && _lastRSI > OverboughtLine.ValueInt || prevPrice > _prevUpLineGlob && lastPrice < _lastUpLineLoc
-                        && _lastRSI > OverboughtLine.ValueInt)
+                        && _lastRSI > _overboughtLine.ValueInt || prevPrice > _prevUpLineGlob && lastPrice < _lastUpLineLoc
+                        && _lastRSI > _overboughtLine.ValueInt)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -257,17 +270,17 @@ namespace OsEngine.Robots.My_bots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
           
-            _lastUpLineLoc = _EnvelopsLoc.DataSeries[0].Last;
-            _lastDownLineLoc = _EnvelopsLoc.DataSeries[1].Last;
-            _lastUpLineGlob = _EnvelopsGlob.DataSeries[0].Last;
-            _lastDownLineGlob = _EnvelopsGlob.DataSeries[1].Last;
+            _lastUpLineLoc = _envelopsLoc.DataSeries[0].Last;
+            _lastDownLineLoc = _envelopsLoc.DataSeries[1].Last;
+            _lastUpLineGlob = _envelopsGlob.DataSeries[0].Last;
+            _lastDownLineGlob = _envelopsGlob.DataSeries[1].Last;
             _lastRSI = _RSI.DataSeries[0].Last;
 
             // The prev value of the indicator
-            _prevUpLineLoc = _EnvelopsLoc.DataSeries[0].Values[_EnvelopsLoc.DataSeries[0].Values.Count - 2];
-            _prevDownLineLoc = _EnvelopsLoc.DataSeries[1].Values[_EnvelopsLoc.DataSeries[1].Values.Count - 2];
-            _prevUpLineGlob = _EnvelopsGlob.DataSeries[0].Values[_EnvelopsGlob.DataSeries[0].Values.Count - 2];
-            _prevDownLineGlob = _EnvelopsGlob.DataSeries[1].Values[_EnvelopsGlob.DataSeries[1].Values.Count - 2];
+            _prevUpLineLoc = _envelopsLoc.DataSeries[0].Values[_envelopsLoc.DataSeries[0].Values.Count - 2];
+            _prevDownLineLoc = _envelopsLoc.DataSeries[1].Values[_envelopsLoc.DataSeries[1].Values.Count - 2];
+            _prevUpLineGlob = _envelopsGlob.DataSeries[0].Values[_envelopsGlob.DataSeries[0].Values.Count - 2];
+            _prevDownLineGlob = _envelopsGlob.DataSeries[1].Values[_envelopsGlob.DataSeries[1].Values.Count - 2];
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -277,7 +290,7 @@ namespace OsEngine.Robots.My_bots
                 decimal prevPrice = candles[candles.Count - 2].Close;
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 if (pos.State != PositionStateType.Open)
                 {
@@ -287,16 +300,16 @@ namespace OsEngine.Robots.My_bots
                 if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     if (prevPrice > _prevUpLineLoc && prevPrice < _prevUpLineGlob && lastPrice < _lastUpLineLoc
-                        && _lastRSI > OverboughtLine.ValueInt || prevPrice > _prevUpLineGlob && lastPrice < _lastUpLineLoc
-                        && _lastRSI > OverboughtLine.ValueInt)
+                        && _lastRSI > _overboughtLine.ValueInt || prevPrice > _prevUpLineGlob && lastPrice < _lastUpLineLoc
+                        && _lastRSI > _overboughtLine.ValueInt)
                     {
                         _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                     }
                 }
                 else // If the direction of the position is sale
                 {
-                    if (prevPrice < _prevDownLineLoc && prevPrice > _prevDownLineGlob && lastPrice > _lastDownLineLoc && _lastRSI < OversoldLine.ValueInt
-                        || prevPrice < _prevDownLineGlob && lastPrice > _lastDownLineLoc && _lastRSI < OversoldLine.ValueInt)
+                    if (prevPrice < _prevDownLineLoc && prevPrice > _prevDownLineGlob && lastPrice > _lastDownLineLoc && _lastRSI < _oversoldLine.ValueInt
+                        || prevPrice < _prevDownLineGlob && lastPrice > _lastDownLineLoc && _lastRSI < _oversoldLine.ValueInt)
                     {
                         _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
                     }
@@ -305,29 +318,94 @@ namespace OsEngine.Robots.My_bots
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
