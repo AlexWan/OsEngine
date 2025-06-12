@@ -12,6 +12,7 @@ using Grpc.Tradeapi.V1.Orders;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.Alor.Json;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
@@ -67,6 +68,10 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
             Thread worker2 = new Thread(MarketDepthMessageReader);
             worker2.Name = "MarketDepthMessageReaderFinamGrpc";
+            worker2.Start();
+
+            Thread worker3 = new Thread(MyOrderTradeMessageReader);
+            worker2.Name = "MyOrderTradeMessageReaderFinamGrpc";
             worker2.Start();
         }
 
@@ -466,6 +471,10 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 OrderBookResponse resp = _marketDataClient.OrderBook(new OrderBookRequest { Symbol = security.NameId }, _gRpcMetadata);
 
                 OrderBook ob = resp.Orderbook;
+                if (ob == null || ob.Rows.Count == 0)
+                {
+                    return depth;
+                }
 
                 depth.Time = ob.Rows[0].Timestamp.ToDateTime().AddHours(_timezoneOffset);// convert to MSK
 
@@ -543,7 +552,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             _authClient = new AuthService.AuthServiceClient(_channel);
             _assetsClient = new AssetsService.AssetsServiceClient(_channel);
             _accountsClient = new AccountsService.AccountsServiceClient(_channel);
-            _ordersClient = new OrdersService.OrdersServiceClient(_channel);
+            _myOrderTradeClient = new OrdersService.OrdersServiceClient(_channel);
             _marketDataClient = new MarketDataService.MarketDataServiceClient(_channel);
 
             try
@@ -603,7 +612,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private AuthService.AuthServiceClient _authClient;
         private AssetsService.AssetsServiceClient _assetsClient;
         private AccountsService.AccountsServiceClient _accountsClient;
-        private OrdersService.OrdersServiceClient _ordersClient;
+        private OrdersService.OrdersServiceClient _myOrderTradeClient;
         private MarketDataService.MarketDataServiceClient _marketDataClient;
         #endregion
 
@@ -643,6 +652,11 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
                 _latestTradesStream =
                     _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
+                // Собственные заявки и сделки
+                // Перенести, так как подписка нужна один раз
+                _myOrderTradeStream =
+                    //_myOrdersClient.SubscribeOrderTrade(new OrderTradeRequest { Action = OrderTradeRequest.Types.Action.Subscribe, AccountId = _accountId, DataType = OrderTradeRequest.Types.DataType.All }, _gRpcMetadata, null, _cancellationTokenSource.Token);
+                    _myOrderTradeClient.SubscribeOrderTrade(_gRpcMetadata, null, _cancellationTokenSource.Token);
 
                 // Получаем стакан
                 MarketDepth depth = _getMarketDepth(security);
@@ -667,6 +681,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private AsyncServerStreamingCall<SubscribeQuoteResponse> _quoteStream;
         private AsyncServerStreamingCall<SubscribeOrderBookResponse> _orderBookStream;
         private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _latestTradesStream;
+        //private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _myOrdersStream;
+        private AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> _myOrderTradeStream;
 
         private RateGate _rateGateSubscribeOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateSubscribeLatestTrades = new RateGate(60, TimeSpan.FromMinutes(1));
@@ -754,7 +770,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                     Thread.Sleep(5000);
                 }
@@ -878,7 +894,136 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     if (ServerStatus != ServerConnectStatus.Disconnect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
+                    }
+                    Thread.Sleep(5000);
+                }
+                catch (Exception exception)
+                {
+                    SendLogMessage(exception.ToString(), LogMessageType.Error);
+                    Thread.Sleep(5000);
+                }
+            }
+        }
+
+        private async void MyOrderTradeMessageReader()
+        {
+            Thread.Sleep(1000);
+
+            while (true)
+            {
+                try
+                {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (_myOrderTradeStream == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    if (await _myOrderTradeStream.ResponseStream.MoveNext() == false)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    OrderTradeResponse latestOrderTradeResponse = _myOrderTradeStream.ResponseStream.Current;
+
+                    if (latestOrderTradeResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    _lastLatestOrdersTime = DateTime.UtcNow;
+
+                    if (latestOrderTradeResponse.Orders != null && latestOrderTradeResponse.Orders.Count > 0)
+                    {
+                        for (int j = 0; j < latestOrderTradeResponse.OrderBook.Count; j++)
+                        {
+                            StreamOrderBook ob = latestOrderTradeResponse.OrderBook[j];
+
+                            Security security = GetSecurity(ob.Symbol);
+
+                            if (security == null) { continue; }
+
+                            MarketDepth depth = new MarketDepth();
+                            depth.SecurityNameCode = security.Name; // TODO Проверить NameId
+                            depth.Time = ob.Rows[0].Timestamp.ToDateTime().AddHours(_timezoneOffset);// convert to MSK
+                            for (int i = 0; i < ob.Rows.Count; i++)
+                            {
+                                StreamOrderBook.Types.Row newLevel = ob.Rows[i];
+
+                                if (newLevel.Action == StreamOrderBook.Types.Row.Types.Action.Remove || newLevel.Action == StreamOrderBook.Types.Row.Types.Action.Unspecified) continue;
+                                MarketDepthLevel level = new MarketDepthLevel();
+                                level.Price = newLevel.Price.Value.ToString().ToDecimal();
+
+                                //if (!string.IsNullOrEmpty(newLevel.BuySize.Value))
+                                //{
+                                //    level.Bid = newLevel.BuySize.Value.ToString().ToDecimal();
+                                //    depth.Bids.Add(level);
+                                //}
+
+                                //if (!string.IsNullOrEmpty(newLevel.SellSize.Value))
+                                //{
+                                //    level.Ask = newLevel.SellSize.Value.ToString().ToDecimal();
+                                //    depth.Asks.Add(level);
+                                //}
+
+                                if (newLevel.SideCase == StreamOrderBook.Types.Row.SideOneofCase.BuySize)
+                                {
+                                    level.Bid = newLevel.BuySize.Value.ToString().ToDecimal();
+                                    depth.Bids.Add(level);
+                                }
+
+                                if (newLevel.SideCase == StreamOrderBook.Types.Row.SideOneofCase.SellSize)
+                                {
+                                    level.Ask = newLevel.SellSize.Value.ToString().ToDecimal();
+                                    depth.Asks.Add(level);
+                                }
+                            }
+                            if (_lastMdTime != DateTime.MinValue &&
+                                _lastMdTime >= depth.Time)
+                            {
+                                depth.Time = _lastMdTime.AddMilliseconds(1);
+                            }
+
+                            depth.Asks.Sort((x, y) => x.Price.CompareTo(y.Price));
+                            depth.Bids.Sort((y, x) => x.Price.CompareTo(y.Price));
+
+                            _lastMdTime = depth.Time;
+                            MarketDepthEvent?.Invoke(depth);
+
+                        }
+
+                    }
+
+                    if (latestOrderTradeResponse.Trades != null && latestOrderTradeResponse.Trades.Count > 0)
+                    {
+
+                    }
+                }
+                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+                {
+                    // Handle the cancellation gracefully
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"OrderTrade stream was cancelled: {message}", LogMessageType.System);
+                    Thread.Sleep(5000);
+                }
+                catch (RpcException exception)
+                {
+                    SendLogMessage($"OrderTrade stream was disconnected: {exception.Message}", LogMessageType.Error);
+
+                    // need to reconnect everything
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent?.Invoke();
                     }
                     Thread.Sleep(5000);
                 }
@@ -892,6 +1037,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<Trade> NewTradesEvent;
+        public event Action<MyTrade> MyTradeEvent;
         #endregion
 
         #region 9 Channel check alive
@@ -910,7 +1056,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
                     ClockResponse resp = _assetsClient.Clock(new ClockRequest(), _gRpcMetadata);
 
-                    if(resp == null)
+                    if (resp == null)
                     {
                         Thread.Sleep(3000);
                         continue;
@@ -925,7 +1071,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                         if (ServerStatus == ServerConnectStatus.Connect)
                         {
                             ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            DisconnectEvent?.Invoke();
                         }
                     }
                 }
@@ -936,6 +1082,20 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     SendLogMessage($"Keep Alive stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
+                catch (RpcException ex) when (ex.StatusCode == StatusCode.Internal)
+                {
+                    if (ex.Status.ToString().Contains("Token is expired"))
+                    {
+                        string message = GetGRPCErrorMessage(ex);
+                        SendLogMessage($"Token is expired: {message}", LogMessageType.System);
+                    }
+                    if (ServerStatus == ServerConnectStatus.Connect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent?.Invoke();
+                    }
+                    Thread.Sleep(1000);
+                }
                 catch (RpcException ex)
                 {
                     string msg = GetGRPCErrorMessage(ex);
@@ -943,7 +1103,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     if (ServerStatus == ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                     Thread.Sleep(1000);
                 }
@@ -952,7 +1112,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     if (ServerStatus == ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
+                        DisconnectEvent?.Invoke();
                     }
                     SendLogMessage(error.ToString(), LogMessageType.Error);
                     Thread.Sleep(1000);
@@ -1054,7 +1214,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         #endregion
 
-        public event Action<MyTrade> MyTradeEvent;
+        
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
         public void CancelAllOrders()
@@ -1084,7 +1244,52 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            throw new NotImplementedException();
+            return null; // Недоступно
+            LatestTradesResponse resp = null;
+            try
+            {
+                resp = _marketDataClient.LatestTrades(new LatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata);
+            }
+            catch (RpcException exception)
+            {
+                SendLogMessage($"Error while getting latest trades: {exception.Message}", LogMessageType.Error);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+
+            if (resp == null || resp.Trades.Count == 0)
+            {
+                return null;
+            }
+
+            List<Trade> trades = new List<Trade>();
+            for (int i = 0; i < resp.Trades.Count; i++)
+            {
+                FTrade fTrade = resp.Trades[i];
+                DateTime ts = fTrade.Timestamp.ToDateTime();
+                if (ts > startTime && ts < endTime)
+                {
+                    Trade trade = new Trade();
+                    trade.SecurityNameCode = resp.Symbol;
+                    //trade.SecurityNameCode = security.NameId;
+                    trade.Volume = fTrade.Size.Value.ToDecimal();
+                    trade.Price = fTrade.Price.Value.ToDecimal();
+                    trade.Time = fTrade.Timestamp.ToDateTime();
+                    trade.Id = fTrade.TradeId;
+                    trade.Side = fTrade.Side switch
+                    {
+                        FSide.Buy => Side.Buy,
+                        FSide.Sell => Side.Sell,
+                        _ => Side.None
+                    };
+
+                    trades.Add(trade);
+                }
+            }
+
+            return trades.Count > 0 ? trades : null;
         }
 
         public void SendOrder(Order order)
