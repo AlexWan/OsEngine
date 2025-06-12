@@ -1,10 +1,12 @@
-﻿using OsEngine.Entity;
+﻿using System;
+using System.Collections.Generic;
+using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -19,39 +21,46 @@ Sell:
 1. The price is below the lower line of the linear regression channel.
 2. The channel is directed downwards.
 
-Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing 
+Exit from buy:
+The trailing stop is placed at the minimum for the period specified for the trailing 
 stop and is transferred,(slides), to new price lows, also for the specified period.
-Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing 
+
+Exit from sell:
+The trailing stop is placed at the maximum for the period specified for the trailing 
 stop and is transferred(slides) to the new maximum of the price, also for the specified period.
  */
 
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
-    [Bot("BreakLRChannelWithFilter")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakLRChannelWithFilter")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakLRChannelWithFilter : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _Regime;
+        private StrategyParameterDecimal _Slippage;
+        private StrategyParameterTimeOfDay _StartTradeTime;
+        private StrategyParameterTimeOfDay _EndTradeTime;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator setting 
-        private StrategyParameterInt PeriodLR;
-        private StrategyParameterDecimal UpDeviation;
-        private StrategyParameterDecimal DownDeviation;
+        private StrategyParameterInt _PeriodLR;
+        private StrategyParameterDecimal _UpDeviation;
+        private StrategyParameterDecimal _DownDeviation;
 
         // Indicator
-        Aindicator ChannelLR;
+        private Aindicator _ChannelLR;
 
-        // Exit
-        private StrategyParameterInt TrailCandlesLong;
-        private StrategyParameterInt TrailCandlesShort;
+        // Exit settings
+        private StrategyParameterInt _TrailCandlesLong;
+        private StrategyParameterInt _TrailCandlesShort;
 
         // The last value of the indicator
         private decimal _lastUpLine;
@@ -63,33 +72,37 @@ namespace OsEngine.Robots.AO
 
         public BreakLRChannelWithFilter(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Indicator setting
-            PeriodLR = CreateParameter("PeriodLR", 1, 1, 50, 1, "Indicator");
-            UpDeviation = CreateParameter("UpDeviation", 1.0m, 1, 50, 1, "Indicator");
-            DownDeviation = CreateParameter("DownDeviation", 2.0m, 1, 50, 1, "Indicator");
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
+
+            // Indicator settings
+            _PeriodLR = CreateParameter("PeriodLR", 3, 3, 100, 1, "Indicator");
+            _UpDeviation = CreateParameter("UpDeviation", 1.0m, 1, 50, 1, "Indicator");
+            _DownDeviation = CreateParameter("DownDeviation", 2.0m, 1, 50, 1, "Indicator");
 
             // Create indicator LinearRegressionChannel
-            ChannelLR = IndicatorsFactory.CreateIndicatorByName("LinearRegressionChannel", name + "LinearRegressionChannel", false);
-            ChannelLR = (Aindicator)_tab.CreateCandleIndicator(ChannelLR, "Prime");
-            ((IndicatorParameterInt)ChannelLR.Parameters[0]).ValueInt = PeriodLR.ValueInt;
-            ((IndicatorParameterDecimal)ChannelLR.Parameters[2]).ValueDecimal = UpDeviation.ValueDecimal;
-            ((IndicatorParameterDecimal)ChannelLR.Parameters[3]).ValueDecimal = DownDeviation.ValueDecimal;
-            ChannelLR.Save();
+            _ChannelLR = IndicatorsFactory.CreateIndicatorByName("LinearRegressionChannel", name + "LinearRegressionChannel", false);
+            _ChannelLR = (Aindicator)_tab.CreateCandleIndicator(_ChannelLR, "Prime");
+            ((IndicatorParameterInt)_ChannelLR.Parameters[0]).ValueInt = _PeriodLR.ValueInt;
+            ((IndicatorParameterDecimal)_ChannelLR.Parameters[2]).ValueDecimal = _UpDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_ChannelLR.Parameters[3]).ValueDecimal = _DownDeviation.ValueDecimal;
+            _ChannelLR.Save();
 
-            // Exit
-            TrailCandlesLong = CreateParameter("Trail Candles Long", 5, 10, 500, 10, "Exit");
-            TrailCandlesShort = CreateParameter("Trail Candles Short", 1, 15, 200, 5, "Exit");
+            // Exit settings
+            _TrailCandlesLong = CreateParameter("Trail Candles Long", 5, 10, 500, 10, "Exit");
+            _TrailCandlesShort = CreateParameter("Trail Candles Short", 1, 15, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakLRChannel_ParametrsChangeByUser; ;
@@ -104,19 +117,21 @@ namespace OsEngine.Robots.AO
                 "Sell: " +
                 "1. The price is below the lower line of the linear regression channel. " +
                 "2. The channel is directed downwards. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing  " +
+                "Exit from buy:" +
+                "The trailing stop is placed at the minimum for the period specified for the trailing  " +
                 "stop and is transferred,(slides), to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing  " +
+                "Exit from sell:" +
+                "The trailing stop is placed at the maximum for the period specified for the trailing  " +
                 "stop and is transferred(slides) to the new maximum of the price, also for the specified period.";
         }
 
         private void BreakLRChannel_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)ChannelLR.Parameters[0]).ValueInt = PeriodLR.ValueInt;
-            ((IndicatorParameterDecimal)ChannelLR.Parameters[2]).ValueDecimal = UpDeviation.ValueDecimal;
-            ((IndicatorParameterDecimal)ChannelLR.Parameters[3]).ValueDecimal = DownDeviation.ValueDecimal;
-            ChannelLR.Save();
-            ChannelLR.Reload();
+            ((IndicatorParameterInt)_ChannelLR.Parameters[0]).ValueInt = _PeriodLR.ValueInt;
+            ((IndicatorParameterDecimal)_ChannelLR.Parameters[2]).ValueDecimal = _UpDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_ChannelLR.Parameters[3]).ValueDecimal = _DownDeviation.ValueDecimal;
+            _ChannelLR.Save();
+            _ChannelLR.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -124,6 +139,7 @@ namespace OsEngine.Robots.AO
         {
             return "BreakLRChannelWithFilter";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -133,22 +149,22 @@ namespace OsEngine.Robots.AO
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_Regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < DownDeviation.ValueDecimal ||
-                candles.Count < UpDeviation.ValueDecimal ||
-                candles.Count < PeriodLR.ValueInt)
+            if (candles.Count < _DownDeviation.ValueDecimal ||
+                candles.Count < _UpDeviation.ValueDecimal ||
+                candles.Count < _PeriodLR.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_StartTradeTime.Value > _tab.TimeServerCurrent ||
+                _EndTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -162,10 +178,11 @@ namespace OsEngine.Robots.AO
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_Regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -177,12 +194,12 @@ namespace OsEngine.Robots.AO
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            _lastUpLine = ChannelLR.DataSeries[0].Last;
-            _lastCenterLine = ChannelLR.DataSeries[1].Last;
-            _lastDownLine = ChannelLR.DataSeries[2].Last;
+            _lastUpLine = _ChannelLR.DataSeries[0].Last;
+            _lastCenterLine = _ChannelLR.DataSeries[1].Last;
+            _lastDownLine = _ChannelLR.DataSeries[2].Last;
 
             // The prev value of the indicator
-            _prevCenterLine = ChannelLR.DataSeries[1].Values[ChannelLR.DataSeries[1].Values.Count - 2];
+            _prevCenterLine = _ChannelLR.DataSeries[1].Values[_ChannelLR.DataSeries[1].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -191,26 +208,26 @@ namespace OsEngine.Robots.AO
                 decimal lastPrice = candles[candles.Count - 1].Close;
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = _Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
 
 
                     if (_lastUpLine < lastPrice && _lastCenterLine > _prevCenterLine)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
 
                     if (_lastDownLine > lastPrice && _lastCenterLine < _prevCenterLine)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -221,7 +238,7 @@ namespace OsEngine.Robots.AO
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = _Slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -241,7 +258,9 @@ namespace OsEngine.Robots.AO
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
+
                 }
                 else // If the direction of the position is sale
                 {
@@ -250,7 +269,9 @@ namespace OsEngine.Robots.AO
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
+
                 }
 
             }
@@ -258,7 +279,7 @@ namespace OsEngine.Robots.AO
 
         private decimal GetPriceStop(Side side, List<Candle> candles, int index)
         {
-            if (candles == null || index < TrailCandlesLong.ValueInt || index < TrailCandlesShort.ValueInt)
+            if (candles == null || index < _TrailCandlesLong.ValueInt || index < _TrailCandlesShort.ValueInt)
             {
                 return 0;
             }
@@ -267,21 +288,23 @@ namespace OsEngine.Robots.AO
             {
                 decimal price = decimal.MaxValue;
 
-                for (int i = index; i > index - TrailCandlesLong.ValueInt; i--)
+                for (int i = index; i > index - _TrailCandlesLong.ValueInt; i--)
                 {
                     if (candles[i].Low < price)
                     {
                         price = candles[i].Low;
                     }
                 }
+
                 return price;
+
             }
 
             if (side == Side.Sell)
             {
                 decimal price = 0;
 
-                for (int i = index; i > index - TrailCandlesShort.ValueInt; i--)
+                for (int i = index; i > index - _TrailCandlesShort.ValueInt; i--)
                 {
                     if (candles[i].High > price)
                     {
@@ -291,34 +314,102 @@ namespace OsEngine.Robots.AO
 
                 return price;
             }
+
             return 0;
+
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
+
         }
 
     }
