@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -6,6 +11,8 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /*Discription
 Trading robot for osengine
@@ -20,81 +27,84 @@ Exit the buy: trailing stop in % of the loy of the candle on which the minus exi
 Exit the sell: trailing stop in % of the high of the candle on which you entered plus the entry coefficient * Adaptive Look. 
 */
 
-namespace OsEngine.Robots.My_bots
+namespace OsEngine.Robots
 {
     [Bot("StrategyAdaptiveLookBackandBollinger")]//We create an attribute so that we don't write anything in the Boot factory
     public class StrategyAdaptiveLookBackandBollinger : BotPanel
-
     {
         BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
+
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator Settings
-        private StrategyParameterInt BollingerLength;
-        private StrategyParameterDecimal BollingerDeviation;
-        private StrategyParameterInt PeriodALB;
-        private StrategyParameterDecimal CoefExitALB;
-        private StrategyParameterDecimal CoefEntryALB;
-        // Indicator
-        private Aindicator ALB;
-        private Aindicator Bollinger;
+        private StrategyParameterInt _bollingerLength;
+        private StrategyParameterDecimal _bollingerDeviation;
+        private StrategyParameterInt _periodALB;
+        private StrategyParameterDecimal coefExitALB;
+        private StrategyParameterDecimal _coefEntryALB;
 
+        // Indicator
+        private Aindicator _ALB;
+        private Aindicator _bollinger;
 
         // The last value of the indicators      
         private decimal _lastUpBollinger;
         private decimal _lastDownBollinger;
         private decimal _lastALB;
 
-        // Exit
-        private StrategyParameterDecimal TrailingValue;
+        // Exit Setting
+        private StrategyParameterDecimal _trailingValue;
 
         public StrategyAdaptiveLookBackandBollinger(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator Settings
-            PeriodALB = CreateParameter("Adaptive Look Back", 5, 1, 10, 1, "Indicator");
-            CoefExitALB = CreateParameter("CoefExitALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
-            CoefEntryALB= CreateParameter("CoefEntrytALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
-            BollingerLength = CreateParameter("BollingerLength", 250, 50, 500, 20, "Indicator");
-            BollingerDeviation = CreateParameter("BollingerDeviation", 0.2m, 0.01m, 2, 0.02m, "Indicator");
-
+            _periodALB = CreateParameter("Adaptive Look Back", 5, 1, 10, 1, "Indicator");
+            coefExitALB = CreateParameter("CoefExitALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
+            _coefEntryALB= CreateParameter("CoefEntrytALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
+            _bollingerLength = CreateParameter("BollingerLength", 250, 50, 500, 20, "Indicator");
+            _bollingerDeviation = CreateParameter("BollingerDeviation", 0.2m, 0.01m, 2, 0.02m, "Indicator");
 
             // Create indicator Adaptive Look Back
-            ALB = IndicatorsFactory.CreateIndicatorByName("AdaptiveLookBack", name + "ALB", false);
-            ALB = (Aindicator)_tab.CreateCandleIndicator(ALB, "NewArea");
-            ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = PeriodALB.ValueInt;
-            ALB.Save();
-
+            _ALB = IndicatorsFactory.CreateIndicatorByName("AdaptiveLookBack", name + "ALB", false);
+            _ALB = (Aindicator)_tab.CreateCandleIndicator(_ALB, "NewArea");
+            ((IndicatorParameterInt)_ALB.Parameters[0]).ValueInt = _periodALB.ValueInt;
+            _ALB.Save();
 
             // Create indicator Bollinger
-            Bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
-            Bollinger = (Aindicator)_tab.CreateCandleIndicator(Bollinger, "Prime");
-            ((IndicatorParameterInt)Bollinger.Parameters[0]).ValueInt = BollingerLength.ValueInt;
-            ((IndicatorParameterDecimal)Bollinger.Parameters[1]).ValueDecimal = BollingerDeviation.ValueDecimal;
-            Bollinger.DataSeries[0].Color = Color.Red;
-            Bollinger.DataSeries[1].Color = Color.Red;
-            Bollinger.Save();
+            _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
+            _bollinger = (Aindicator)_tab.CreateCandleIndicator(_bollinger, "Prime");
+            ((IndicatorParameterInt)_bollinger.Parameters[0]).ValueInt = _bollingerLength.ValueInt;
+            ((IndicatorParameterDecimal)_bollinger.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
+            _bollinger.DataSeries[0].Color = Color.Red;
+            _bollinger.DataSeries[1].Color = Color.Red;
+            _bollinger.Save();
             ParametrsChangeByUser += StrategyAdaptiveLookBackandBollinger_ParametrsChangeByUser;
 
-            // Exit
-            TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
+            // Exit setting
+            _trailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -110,15 +120,15 @@ namespace OsEngine.Robots.My_bots
         // Indicator Update event
         private void StrategyAdaptiveLookBackandBollinger_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = PeriodALB.ValueInt;
-            ALB.Save();
-            ALB.Reload();
-
-            ((IndicatorParameterInt)Bollinger.Parameters[0]).ValueInt = BollingerLength.ValueInt;
-            ((IndicatorParameterDecimal)Bollinger.Parameters[1]).ValueDecimal = BollingerDeviation.ValueDecimal;
-            Bollinger.Save();
-            Bollinger.Reload();
+            ((IndicatorParameterInt)_ALB.Parameters[0]).ValueInt = _periodALB.ValueInt;
+            _ALB.Save();
+            _ALB.Reload();
+            ((IndicatorParameterInt)_bollinger.Parameters[0]).ValueInt = _bollingerLength.ValueInt;
+            ((IndicatorParameterDecimal)_bollinger.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
+            _bollinger.Save();
+            _bollinger.Reload();
         }
+
         // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
@@ -133,21 +143,21 @@ namespace OsEngine.Robots.My_bots
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodALB.ValueInt || candles.Count < CoefExitALB.ValueDecimal || 
-                candles.Count < BollingerLength.ValueInt)
+            if (candles.Count < _periodALB.ValueInt || candles.Count < coefExitALB.ValueDecimal || 
+                candles.Count < _bollingerLength.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -161,10 +171,11 @@ namespace OsEngine.Robots.My_bots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -178,31 +189,30 @@ namespace OsEngine.Robots.My_bots
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             // The last value of the indicators
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             // He last value of the indicator           
-            _lastUpBollinger = Bollinger.DataSeries[0].Last;
-            _lastDownBollinger = Bollinger.DataSeries[1].Last;
+            _lastUpBollinger = _bollinger.DataSeries[0].Last;
+            _lastDownBollinger = _bollinger.DataSeries[1].Last;
 
             if (openPositions == null || openPositions.Count == 0)
             {
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if ( lastPrice > _lastUpBollinger)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
                     if (lastPrice < _lastDownBollinger)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -213,7 +223,7 @@ namespace OsEngine.Robots.My_bots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
             
-            _lastALB = ALB.DataSeries[0].Last;
+            _lastALB = _ALB.DataSeries[0].Last;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -223,46 +233,113 @@ namespace OsEngine.Robots.My_bots
                 {
                     continue;
                 }
+
                 decimal stopPriсe;
-                if (pos.Direction == Side.Buy) // If the direction of the position is buy
+
+                if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal low = candles[candles.Count - 1].Low;
-                    stopPriсe = low - low * TrailingValue.ValueDecimal / 100 - CoefExitALB.ValueDecimal * _lastALB;
+                    stopPriсe = low - low * _trailingValue.ValueDecimal / 100 - coefExitALB.ValueDecimal * _lastALB;
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     decimal high = candles[candles.Count - 1].High;
-                    stopPriсe = high + high * TrailingValue.ValueDecimal / 100 + CoefEntryALB.ValueDecimal * _lastALB;
+                    stopPriсe = high + high * _trailingValue.ValueDecimal / 100 + _coefEntryALB.ValueDecimal * _lastALB;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPriсe, stopPriсe);
             }
         }
 
-
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
