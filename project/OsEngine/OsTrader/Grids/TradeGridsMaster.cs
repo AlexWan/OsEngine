@@ -18,6 +18,7 @@ namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridsMaster
     {
+        #region Service
 
         public TradeGridsMaster(StartProgram startProgram, string botName, BotTabSimple tab)
         {
@@ -60,6 +61,8 @@ namespace OsEngine.OsTrader.Grids
                 // ignore
             }
         }
+
+        #endregion
 
         #region TradeGrid management
 
@@ -132,7 +135,7 @@ namespace OsEngine.OsTrader.Grids
             PaintGridView();
         }
 
-        List<TradeGridUi> _tradeGridUis = new List<TradeGridUi>();
+        private List<TradeGridUi> _tradeGridUis = new List<TradeGridUi>();
 
         public void ShowDialog(int num)
         {

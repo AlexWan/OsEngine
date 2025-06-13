@@ -13,6 +13,8 @@ namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridStopAndProfit
     {
+        #region Service
+
         public OnOffRegime ProfitRegime = OnOffRegime.Off;
         public TradeGridValueType ProfitValueType = TradeGridValueType.Percent;
         public decimal ProfitValue = 1.5m;
@@ -70,6 +72,10 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Logic
 
         public void Process(TradeGrid grid)
         {
@@ -361,6 +367,8 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
         }
+
+        #endregion
 
         #region Log
 

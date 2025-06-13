@@ -14,6 +14,8 @@ namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridAutoStarter
     {
+        #region Service
+
         public TradeGridAutoStartRegime AutoStartRegime;
 
         public decimal AutoStartPrice;
@@ -58,6 +60,10 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Logic
 
         public bool HaveEventToStart(TradeGrid grid)
         {
@@ -139,6 +145,8 @@ namespace OsEngine.OsTrader.Grids
 
             return result;
         }
+
+        #endregion
 
         #region Log
 

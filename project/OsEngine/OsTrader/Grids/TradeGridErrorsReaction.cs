@@ -13,6 +13,8 @@ namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridErrorsReaction
     {
+        #region Service
+
         public TradeGridErrorsReaction(TradeGrid grid)
         {
             _tab = grid.Tab;
@@ -44,6 +46,49 @@ namespace OsEngine.OsTrader.Grids
         public int FailCancelOrdersCountToReaction = 10;
 
         public int FailCancelOrdersCountFact;
+
+        public string GetSaveString()
+        {
+            string result = "";
+
+            result += FailOpenOrdersReactionIsOn + "@";
+            result += FailOpenOrdersReaction + "@";
+            result += FailOpenOrdersCountToReaction + "@";
+
+            result += FailCancelOrdersReaction + "@";
+            result += FailCancelOrdersCountToReaction + "@";
+            result += FailCancelOrdersReactionIsOn + "@";
+            result += "@";
+            result += "@";
+            result += "@";
+            result += "@";
+            result += "@"; // пять пустых полей в резерв
+
+            return result;
+        }
+
+        public void LoadFromString(string value)
+        {
+            try
+            {
+                string[] values = value.Split('@');
+
+                FailOpenOrdersReactionIsOn = Convert.ToBoolean(values[0]);
+                Enum.TryParse(values[1], out FailOpenOrdersReaction);
+                FailOpenOrdersCountToReaction = Convert.ToInt32(values[2]);
+                Enum.TryParse(values[3], out FailCancelOrdersReaction);
+                FailCancelOrdersCountToReaction = Convert.ToInt32(values[4]);
+                FailCancelOrdersReactionIsOn = Convert.ToBoolean(values[5]);
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Errors collect
 
         private BotTabSimple _tab;
 
@@ -84,44 +129,9 @@ namespace OsEngine.OsTrader.Grids
             FailCancelOrdersCountFact++;
         }
 
-        public string GetSaveString()
-        {
-            string result = "";
+        #endregion
 
-            result += FailOpenOrdersReactionIsOn + "@";
-            result += FailOpenOrdersReaction + "@";
-            result += FailOpenOrdersCountToReaction + "@";
-
-            result += FailCancelOrdersReaction + "@";
-            result += FailCancelOrdersCountToReaction + "@";          
-            result += FailCancelOrdersReactionIsOn + "@";
-            result += "@";
-            result += "@";
-            result += "@";
-            result += "@";
-            result += "@"; // пять пустых полей в резерв
-
-            return result;
-        }
-
-        public void LoadFromString(string value)
-        {
-            try
-            {
-                string[] values = value.Split('@');
-
-                FailOpenOrdersReactionIsOn = Convert.ToBoolean(values[0]);
-                Enum.TryParse(values[1], out FailOpenOrdersReaction);
-                FailOpenOrdersCountToReaction = Convert.ToInt32(values[2]);
-                Enum.TryParse(values[3], out FailCancelOrdersReaction);
-                FailCancelOrdersCountToReaction = Convert.ToInt32(values[4]);
-                FailCancelOrdersReactionIsOn = Convert.ToBoolean(values[5]);
-            }
-            catch (Exception e)
-            {
-                SendNewLogMessage(e.ToString(), LogMessageType.Error);
-            }
-        }
+        #region Logic
 
         public TradeGridRegime GetReactionOnErrors(TradeGrid grid)
         {
@@ -159,6 +169,8 @@ namespace OsEngine.OsTrader.Grids
 
             return TradeGridRegime.On;
         }
+
+        #endregion
 
         #region Log
 

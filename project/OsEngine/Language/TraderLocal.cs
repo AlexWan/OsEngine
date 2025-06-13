@@ -2110,5 +2110,9 @@ namespace OsEngine.Language
         public string Label552 => OsLocalization.ConvertToLocString(
          "Eng:To enable the trailing function, you must enter the required fields. Limit and Step shift._" +
          "Ru:Чтобы включить функцию трейлинг, нужно ввести обязательные поля. Ограничение и шаг смещения._");
+
+        public string Label553 => OsLocalization.ConvertToLocString(
+         "Eng:The new settings have been applied. You need to restart the settings window to update them._" +
+         "Ru:Новые настройки применены. Нужно перезапустить окно, чтобы обновить их в окне настроек._");
     }
 }

@@ -11,11 +11,12 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 
-
 namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridStopBy
     {
+        #region Service
+
         public bool StopGridByMoveUpIsOn = false;
         public decimal StopGridByMoveUpValuePercent = 2.5m;
         public TradeGridRegime StopGridByMoveUpReaction = TradeGridRegime.CloseForced;
@@ -37,91 +38,6 @@ namespace OsEngine.OsTrader.Grids
         public int StopGridByTimeOfDayMinute = 15;
         public int StopGridByTimeOfDaySecond = 0;
         public TradeGridRegime StopGridByTimeOfDayReaction = TradeGridRegime.CloseForced;
-
-        public void TryStopGridByEvent()
-        {
-            /*if (Regime != TradeGridRegime.On)
-            {
-                return;
-            }
-
-            if (StopGridByPositionsCountIsOn.ValueBool == true)
-            {
-                if (_lastGridOpenPositions > StopGridByPositionsCountValue.ValueInt)
-                { // Останавливаем сетку по кол-ву уже открытых позиций с последнего создания сетки
-                    Regime.ValueString = "Only Close";
-
-                    SendNewLogMessage(
-                        "Grid stopped by open positions count. Open positions: " + _lastGridOpenPositions,
-                        OsEngine.Logging.LogMessageType.System);
-
-                    return;
-                }
-            }
-
-            if (StopGridByProfitIsOn.ValueBool == true
-                || StopGridByStopIsOn.ValueBool == true)
-            {
-                decimal lastPrice = _tab.PriceBestAsk;
-
-                if (lastPrice == 0)
-                {
-                    return;
-                }
-
-                if (StopGridByProfitIsOn.ValueBool == true)
-                {
-                    decimal profitMove = 0;
-
-                    if (GridSide == Side.Buy)
-                    {
-                        profitMove = (lastPrice - FirstPrice) / (FirstPrice / 100);
-                    }
-                    else if (GridSide == Side.Sell)
-                    {
-                        profitMove = (FirstPrice - lastPrice) / (FirstPrice / 100);
-                    }
-
-                    if (profitMove > StopGridByProfitValuePercent.ValueDecimal)
-                    {
-                        // Останавливаем сетку по движению вверх от первой цены сетки
-                        Regime.ValueString = "Only Close";
-
-                        SendNewLogMessage(
-                            "Grid stopped by move in Profit. Open positions: " + _lastGridOpenPositions,
-                            OsEngine.Logging.LogMessageType.System);
-
-                        return;
-                    }
-                }
-
-                if (StopGridByStopIsOn.ValueBool == true)
-                {
-                    decimal lossMove = 0;
-
-                    if (GridSide == Side.Buy)
-                    {
-                        lossMove = (FirstPrice - lastPrice) / (FirstPrice / 100);
-                    }
-                    else if (GridSide == Side.Sell)
-                    {
-                        lossMove = (lastPrice - FirstPrice) / (FirstPrice / 100);
-                    }
-
-                    if (lossMove > StopGridByProfitValuePercent.ValueDecimal)
-                    {
-                        // Останавливаем сетку по движению вверх от первой цены сетки
-                        Regime.ValueString = "Only Close";
-
-                        SendNewLogMessage(
-                            "Grid stopped by move in Loss. Open positions: " + _lastGridOpenPositions,
-                            OsEngine.Logging.LogMessageType.System);
-
-                        return;
-                    }
-                }
-            }*/
-        }
 
         public string GetSaveString()
         {
@@ -193,6 +109,10 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Logic
 
         public TradeGridRegime GetRegime(TradeGrid grid, BotTabSimple tab)
         {
@@ -332,6 +252,8 @@ namespace OsEngine.OsTrader.Grids
 
             return TradeGridRegime.On;
         }
+
+        #endregion
 
         #region Log
 

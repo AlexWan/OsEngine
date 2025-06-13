@@ -7,21 +7,73 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using System;
 
-
 namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridNonTradeDays
     {
+        #region Service
 
         public bool TradeInMonday = true;
+
         public bool TradeInTuesday = true;
+
         public bool TradeInWednesday = true;
+
         public bool TradeInThursday = true;
+
         public bool TradeInFriday = true;
+
         public bool TradeInSaturday = false;
+
         public bool TradeInSunday = false;
 
         public TradeGridRegime NonTradeDaysRegime;
+
+        public string GetSaveString()
+        {
+            string result = "";
+
+            result += TradeInMonday + "@";
+            result += TradeInTuesday + "@";
+            result += TradeInWednesday + "@";
+            result += TradeInThursday + "@";
+            result += TradeInFriday + "@";
+            result += TradeInSaturday + "@";
+            result += TradeInSunday + "@";
+            result += NonTradeDaysRegime + "@";
+            result += "@";
+            result += "@";
+            result += "@";
+            result += "@";
+            result += "@"; // пять пустых полей в резерв
+
+            return result;
+        }
+
+        public void LoadFromString(string value)
+        {
+            try
+            {
+                string[] values = value.Split('@');
+
+                TradeInMonday = Convert.ToBoolean(values[0]);
+                TradeInTuesday = Convert.ToBoolean(values[1]);
+                TradeInWednesday = Convert.ToBoolean(values[2]);
+                TradeInThursday = Convert.ToBoolean(values[3]);
+                TradeInFriday = Convert.ToBoolean(values[4]);
+                TradeInSaturday = Convert.ToBoolean(values[5]);
+                TradeInSunday = Convert.ToBoolean(values[6]);
+                Enum.TryParse(values[7], out NonTradeDaysRegime);
+            }
+            catch (Exception e)
+            {
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Logic
 
         public TradeGridRegime GetNonTradeDaysRegime(DateTime curTime)
         {
@@ -70,47 +122,7 @@ namespace OsEngine.OsTrader.Grids
             return TradeGridRegime.On;
         }
 
-        public string GetSaveString()
-        {
-            string result = "";
-
-            result += TradeInMonday + "@";
-            result += TradeInTuesday + "@";
-            result += TradeInWednesday + "@";
-            result += TradeInThursday + "@";
-            result += TradeInFriday + "@";
-            result += TradeInSaturday + "@";
-            result += TradeInSunday + "@";
-            result += NonTradeDaysRegime + "@";
-            result += "@";
-            result += "@";
-            result += "@";
-            result += "@";
-            result += "@"; // пять пустых полей в резерв
-
-            return result;
-        }
-
-        public void LoadFromString(string value)
-        {
-            try
-            {
-                string[] values = value.Split('@');
-
-                TradeInMonday = Convert.ToBoolean(values[0]);
-                TradeInTuesday = Convert.ToBoolean(values[1]);
-                TradeInWednesday = Convert.ToBoolean(values[2]);
-                TradeInThursday = Convert.ToBoolean(values[3]);
-                TradeInFriday = Convert.ToBoolean(values[4]);
-                TradeInSaturday = Convert.ToBoolean(values[5]);
-                TradeInSunday = Convert.ToBoolean(values[6]);
-                Enum.TryParse(values[7], out NonTradeDaysRegime);
-            }
-            catch (Exception e)
-            {
-                SendNewLogMessage(e.ToString(),LogMessageType.Error);
-            }
-        }
+        #endregion
 
         #region Log
 

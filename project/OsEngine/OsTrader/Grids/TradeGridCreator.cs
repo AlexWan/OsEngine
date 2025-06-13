@@ -14,7 +14,7 @@ namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridCreator
     {
-        #region Settings
+        #region Service
 
         public Side GridSide = Side.Buy;
 
@@ -324,8 +324,6 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        #endregion
-
         public decimal GetVolume(TradeGridLine line, BotTabSimple tab)
         {
             decimal volume = 0;
@@ -397,6 +395,8 @@ namespace OsEngine.OsTrader.Grids
                 return qty;
             }
         }
+
+        #endregion
 
         #region Log
 

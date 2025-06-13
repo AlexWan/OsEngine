@@ -13,6 +13,8 @@ namespace OsEngine.OsTrader.Grids
 {
     public class TrailingUp
     {
+        #region Service
+
         public TrailingUp(TradeGrid grid)
         {
             _grid = grid;
@@ -76,6 +78,10 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Logic
 
         public bool TryTrailingGrid()
         {
@@ -301,6 +307,8 @@ namespace OsEngine.OsTrader.Grids
                 line.PriceExit += value;
             }
         }
+
+        #endregion
 
         #region Log
 

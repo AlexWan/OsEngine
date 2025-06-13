@@ -9,6 +9,7 @@ using OsEngine.Layout;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -2828,16 +2829,6 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-        private void ButtonSave_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void ButtonSelectPositionToClose_Click(object sender, RoutedEventArgs e)
         {
 
@@ -2874,6 +2865,99 @@ namespace OsEngine.OsTrader.Grids
                 TradeGrid.Save();
             }
             catch
+            {
+                // ignore
+            }
+        }
+
+        private void ButtonSave_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                saveFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+
+                saveFileDialog.RestoreDirectory = true;
+                saveFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(saveFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = saveFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    using (FileStream stream = File.Create(filePath))
+                    {
+                        // do nothin
+                    }
+                }
+
+                try
+                {
+                    using (StreamWriter writer = new StreamWriter(filePath))
+                    {
+                        writer.WriteLine(TradeGrid.GetSaveString());
+                    }
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ButtonLoad_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog();
+                openFileDialog.Filter = "txt files (*.txt)|*.txt|All files (*.*)|*.*";
+                openFileDialog.InitialDirectory = System.Windows.Forms.Application.StartupPath;
+                openFileDialog.RestoreDirectory = true;
+                openFileDialog.ShowDialog();
+
+                if (string.IsNullOrEmpty(openFileDialog.FileName))
+                {
+                    return;
+                }
+
+                string filePath = openFileDialog.FileName;
+
+                if (File.Exists(filePath) == false)
+                {
+                    return;
+                }
+
+                try
+                {
+                    using (StreamReader reader = new StreamReader(filePath))
+                    {
+                        string fileStr = reader.ReadToEnd();
+                        TradeGrid.LoadFromString(fileStr);
+                    }
+                }
+                catch (Exception error)
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(error.ToString());
+                    ui.ShowDialog();
+
+                    return;
+                }
+
+                CustomMessageBoxUi uiDialog = new CustomMessageBoxUi(OsLocalization.Trader.Label553);
+                uiDialog.ShowDialog();
+                Close();
+            }
+            catch (Exception ex)
             {
                 // ignore
             }
