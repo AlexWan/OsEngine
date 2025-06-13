@@ -95,14 +95,14 @@ namespace OsEngine.Robots.AO
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "The trend robot on Strategy Volume And MFI. " +
-                "Buy: " +
+                "Buy " +
                 "1. The volume is higher than the VolumeValue value. " +
                 "2. The MFI is lower than the MfiMinValue value. " +
-                "Sell: " +
+                "Sell " +
                 "1. The volume is higher than the VolumeValue value. " +
                 "2. The MFI is higher than the MfiMaxValue value. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+                "Exit from buy trailing stop in % of the loy of the candle on which you entered. " +
+                "Exit from sell trailing stop in % of the high of the candle on which you entered.";
         }
 
         private void StrategyVolumeAndMFI_ParametrsChangeByUser()

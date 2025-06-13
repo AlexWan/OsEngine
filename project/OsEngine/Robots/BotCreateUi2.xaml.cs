@@ -646,9 +646,16 @@ namespace OsEngine.Robots
                         string saveStr = reader.ReadLine();
 
                         BotDescription description = new BotDescription();
-                        description.LoadFromSaveStr(saveStr);
-
-                        descriptions.Add(description);
+                        try
+                        {
+                            description.LoadFromSaveStr(saveStr);
+                            descriptions.Add(description);
+                        }
+                        catch
+                        {
+                            // ignore
+                        }
+                       
                     }
 
                     reader.Close();

@@ -16,14 +16,14 @@ using System.Windows.Forms.Integration;
 using System.Threading;
 using System.Linq;
 
-[Bot("GridBotClassic")]
-public class GridBotClassic : BotPanel
+[Bot("GridBotMonolith")]
+public class GridBotMonolith : BotPanel
 {
     #region Parameters and service
 
     public override string GetNameStrategyType()
     {
-        return "GridBotClassic";
+        return "GridBotMonolith";
     }
 
     public override void ShowIndividualSettingsDialog()
@@ -31,7 +31,7 @@ public class GridBotClassic : BotPanel
 
     }
 
-    public GridBotClassic(string name, StartProgram startProgram)
+    public GridBotMonolith(string name, StartProgram startProgram)
           : base(name, startProgram)
     {
         Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On", "Only Close" }, " Base settings ");
@@ -135,7 +135,7 @@ public class GridBotClassic : BotPanel
         Thread worker = new Thread(WorkerThreadArea);
         worker.Start();
 
-        Description = "An example of a grid robot with rich customizations.";
+        Description = "An example of a grid robot with rich customizations. Obsolete due to size and the new layer of mesh robot creation. But left in the assembly for possible modifications.";
     }
 
     private BotTabSimple _tab;

@@ -32,6 +32,8 @@ namespace OsEngine.OsTrader.Grids
             Tab.PositionOpeningSuccesEvent += Tab_PositionOpeningSuccesEvent; 
             Tab.PositionStopActivateEvent += Tab_PositionStopActivateEvent;
             Tab.PositionProfitActivateEvent += Tab_PositionProfitActivateEvent;
+            Tab.Connector.TestStartEvent += Connector_TestStartEvent;
+
             StartProgram = startProgram;
 
             NonTradePeriods = new TradeGridNonTradePeriods();
@@ -70,6 +72,7 @@ namespace OsEngine.OsTrader.Grids
                 RegimeLogicEntry = TradeGridLogicEntryRegime.OnTrade;
             }
         }
+
 
         public StartProgram StartProgram;
 
@@ -208,6 +211,7 @@ namespace OsEngine.OsTrader.Grids
                 Tab.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
                 Tab.PositionStopActivateEvent -= Tab_PositionStopActivateEvent;
                 Tab.PositionProfitActivateEvent -= Tab_PositionProfitActivateEvent;
+                Tab.Connector.TestStartEvent -= Connector_TestStartEvent;
                 Tab = null;
             }
 
@@ -284,6 +288,23 @@ namespace OsEngine.OsTrader.Grids
             {
                 FullRePaintGridEvent();
             }
+        }
+
+        private void Connector_TestStartEvent()
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            if(lines == null)
+            {
+                return;
+            }
+
+            for(int i = 0;i < lines.Count;i++)
+            {
+                lines[i].Position = null;
+                lines[i].PositionNum = 0;
+            }
+
         }
 
         public event Action NeedToSaveEvent;

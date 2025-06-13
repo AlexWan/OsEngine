@@ -911,8 +911,11 @@ namespace OsEngine.Market.Connectors
 
                     if (_myServer.ServerType == ServerType.Tester)
                     {
-                        ((TesterServer)_myServer).TestingEndEvent -= ConnectorReal_TestingEndEvent;
-                        ((TesterServer)_myServer).TestingEndEvent += ConnectorReal_TestingEndEvent;
+                        ((TesterServer)_myServer).TestingEndEvent -= Connector_TestingEndEvent;
+                        ((TesterServer)_myServer).TestingEndEvent += Connector_TestingEndEvent;
+
+                        ((TesterServer)_myServer).TestingStartEvent -= Connector_TestingStartEvent;
+                        ((TesterServer)_myServer).TestingStartEvent += Connector_TestingStartEvent;
                     }
 
                     if (_mySeries == null)
@@ -1082,13 +1085,28 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// test finished. Event from tester
         /// </summary>
-        void ConnectorReal_TestingEndEvent()
+        void Connector_TestingEndEvent()
         {
             try
             {
                 if (TestOverEvent != null)
                 {
                     TestOverEvent();
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void Connector_TestingStartEvent()
+        {
+            try
+            {
+                if (TestStartEvent != null)
+                {
+                    TestStartEvent();
                 }
             }
             catch (Exception error)
@@ -1842,6 +1860,11 @@ namespace OsEngine.Market.Connectors
         /// testing finished
         /// </summary>
         public event Action TestOverEvent;
+
+        /// <summary>
+        /// testing started
+        /// </summary>
+        public event Action TestStartEvent;
 
         /// <summary>
         /// server time is changed

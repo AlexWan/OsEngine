@@ -595,7 +595,17 @@ namespace OsEngine.OsTrader.Grids
             else
             { // trade regime
                 ComboBoxGridType.IsEnabled = true;
-                ComboBoxRegimeLogicEntry.IsEnabled = true;
+
+                if (TradeGrid.StartProgram == StartProgram.IsTester
+                   || TradeGrid.StartProgram == StartProgram.IsOsOptimizer)
+                {
+                    ComboBoxRegimeLogicEntry.IsEnabled = false;
+                }
+                else
+                {
+                    ComboBoxRegimeLogicEntry.IsEnabled = true;
+                }
+                   
 
                 ComboBoxGridSide.IsEnabled = true;
                 TextBoxFirstPrice.IsEnabled = true;
@@ -2943,6 +2953,7 @@ namespace OsEngine.OsTrader.Grids
                     {
                         string fileStr = reader.ReadToEnd();
                         TradeGrid.LoadFromString(fileStr);
+                        TradeGrid.Save();
                     }
                 }
                 catch (Exception error)
