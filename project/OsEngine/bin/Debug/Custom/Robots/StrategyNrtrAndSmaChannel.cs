@@ -1,10 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -20,10 +28,9 @@ The calculation method that is further from the current price is selected.
 
 Exit from sell: Set a trailing stop along the NRTR line and at the upper border of the SmaChannel indicator. 
 The calculation method that is further from the current price is selected.
-
  */
 
-namespace OsEngine.Robots.MyBots
+namespace OsEngine.Robots
 {
     [Bot("StrategyNrtrAndSmaChannel")] // We create an attribute so that we don't write anything to the BotFactory
     internal class StrategyNrtrAndSmaChannel : BotPanel
@@ -31,55 +38,61 @@ namespace OsEngine.Robots.MyBots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Indicator setting 
-        private StrategyParameterInt LengthNrtr;
-        private StrategyParameterDecimal DeviationNrtr;
-        private StrategyParameterInt SmaLength;
-        private StrategyParameterDecimal SmaDeviation;
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _lengthNrtr;
+        private StrategyParameterDecimal _deviationNrtr;
+        private StrategyParameterInt _smaLength;
+        private StrategyParameterDecimal _smaDeviation;
 
         // Indicator
-        private Aindicator _Nrtr;
-        private Aindicator _SmaChannel;
+        private Aindicator _nrtr;
+        private Aindicator _smaChannel;
 
         public StrategyNrtrAndSmaChannel(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Indicator setting
-            LengthNrtr = CreateParameter("Length NRTR", 24, 5, 100, 5, "Indicator");
-            DeviationNrtr = CreateParameter("Deviation NRTR", 1, 1m, 10, 1, "Indicator");
-            SmaLength = CreateParameter("Length Sma", 10, 10, 300, 10, "Indicator");
-            SmaDeviation = CreateParameter("Deviation Sma", 1.0m, 1, 10, 1, "Indicator");
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Indicator settings
+            _lengthNrtr = CreateParameter("Length NRTR", 24, 5, 100, 5, "Indicator");
+            _deviationNrtr = CreateParameter("Deviation NRTR", 1, 1m, 10, 1, "Indicator");
+            _smaLength = CreateParameter("Length Sma", 10, 10, 300, 10, "Indicator");
+            _smaDeviation = CreateParameter("Deviation Sma", 1.0m, 1, 10, 1, "Indicator");
 
             // Create indicator NRTR
-            _Nrtr = IndicatorsFactory.CreateIndicatorByName("NRTR", name + "Nrtr", false);
-            _Nrtr = (Aindicator)_tab.CreateCandleIndicator(_Nrtr, "Prime");
-            ((IndicatorParameterInt)_Nrtr.Parameters[0]).ValueInt = LengthNrtr.ValueInt;
-            ((IndicatorParameterDecimal)_Nrtr.Parameters[1]).ValueDecimal = DeviationNrtr.ValueDecimal;
-            _Nrtr.Save();
+            _nrtr = IndicatorsFactory.CreateIndicatorByName("NRTR", name + "Nrtr", false);
+            _nrtr = (Aindicator)_tab.CreateCandleIndicator(_nrtr, "Prime");
+            ((IndicatorParameterInt)_nrtr.Parameters[0]).ValueInt = _lengthNrtr.ValueInt;
+            ((IndicatorParameterDecimal)_nrtr.Parameters[1]).ValueDecimal = _deviationNrtr.ValueDecimal;
+            _nrtr.Save();
 
             // Create indicator SmaChannel
-            _SmaChannel = IndicatorsFactory.CreateIndicatorByName("SmaChannel", name + "SmaChannel", false);
-            _SmaChannel = (Aindicator)_tab.CreateCandleIndicator(_SmaChannel, "Prime");
-            ((IndicatorParameterInt)_SmaChannel.Parameters[0]).ValueInt = SmaLength.ValueInt;
-            ((IndicatorParameterDecimal)_SmaChannel.Parameters[1]).ValueDecimal = SmaDeviation.ValueDecimal;
-            _SmaChannel.Save();
+            _smaChannel = IndicatorsFactory.CreateIndicatorByName("SmaChannel", name + "SmaChannel", false);
+            _smaChannel = (Aindicator)_tab.CreateCandleIndicator(_smaChannel, "Prime");
+            ((IndicatorParameterInt)_smaChannel.Parameters[0]).ValueInt = _smaLength.ValueInt;
+            ((IndicatorParameterDecimal)_smaChannel.Parameters[1]).ValueDecimal = _smaDeviation.ValueDecimal;
+            _smaChannel.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += StrategyNrtrAndAdx_ParametrsChangeByUser;
@@ -98,46 +111,44 @@ namespace OsEngine.Robots.MyBots
 
         private void StrategyNrtrAndAdx_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_Nrtr.Parameters[0]).ValueInt = LengthNrtr.ValueInt;
-            ((IndicatorParameterDecimal)_Nrtr.Parameters[1]).ValueDecimal = DeviationNrtr.ValueDecimal;
-            _Nrtr.Save();
-            _Nrtr.Reload();
-
-            ((IndicatorParameterInt)_SmaChannel.Parameters[0]).ValueInt = SmaLength.ValueInt;
-            ((IndicatorParameterDecimal)_SmaChannel.Parameters[1]).ValueDecimal = SmaDeviation.ValueDecimal;
-            _SmaChannel.Save();
-            _SmaChannel.Reload();
+            ((IndicatorParameterInt)_nrtr.Parameters[0]).ValueInt = _lengthNrtr.ValueInt;
+            ((IndicatorParameterDecimal)_nrtr.Parameters[1]).ValueDecimal = _deviationNrtr.ValueDecimal;
+            _nrtr.Save();
+            _nrtr.Reload();
+            ((IndicatorParameterInt)_smaChannel.Parameters[0]).ValueInt = _smaLength.ValueInt;
+            ((IndicatorParameterDecimal)_smaChannel.Parameters[1]).ValueDecimal = _smaDeviation.ValueDecimal;
+            _smaChannel.Save();
+            _smaChannel.Reload();
         }
 
         public override string GetNameStrategyType()
         {
             return "StrategyNrtrAndSmaChannel";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
+
         }
 
-        // Logic
         // Candle Finished Event
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthNrtr.ValueInt ||
-                candles.Count < SmaLength.ValueInt)
+            if (candles.Count < _lengthNrtr.ValueInt ||
+                candles.Count < _smaLength.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -151,10 +162,11 @@ namespace OsEngine.Robots.MyBots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -166,9 +178,9 @@ namespace OsEngine.Robots.MyBots
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            decimal lastNRTR = _Nrtr.DataSeries[2].Last;
-            decimal lastUpSma = _SmaChannel.DataSeries[0].Last;
-            decimal lastDownSma = _SmaChannel.DataSeries[2].Last;
+            decimal lastNRTR = _nrtr.DataSeries[2].Last;
+            decimal lastUpSma = _smaChannel.DataSeries[0].Last;
+            decimal lastDownSma = _smaChannel.DataSeries[2].Last;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -177,23 +189,23 @@ namespace OsEngine.Robots.MyBots
             if (openPositions == null || openPositions.Count == 0)
             {
                 // Slippage
-                decimal slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal slippage = _slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (lastPrice > lastNRTR  && lastPrice > lastUpSma)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (lastPrice < lastNRTR  && lastPrice < lastDownSma)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - slippage);
                     }
                 }
             }
@@ -204,11 +216,10 @@ namespace OsEngine.Robots.MyBots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
             
-
             // The last value of the indicator
-            decimal lastNRTR = _Nrtr.DataSeries[2].Last;
-            decimal lastUpSma = _SmaChannel.DataSeries[0].Last;
-            decimal lastDownSma = _SmaChannel.DataSeries[2].Last;
+            decimal lastNRTR = _nrtr.DataSeries[2].Last;
+            decimal lastUpSma = _smaChannel.DataSeries[0].Last;
+            decimal lastDownSma = _smaChannel.DataSeries[2].Last;
 
             decimal stop_level = 0;
 
@@ -223,12 +234,10 @@ namespace OsEngine.Robots.MyBots
 
                 if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    
                     stop_level = lastNRTR < lastDownSma ? lastNRTR : lastDownSma;
                 }
                 else // If the direction of the position is sale
                 {
-                    
                     stop_level = lastNRTR > lastUpSma ? lastNRTR : lastUpSma;
                 }
                 _tab.CloseAtTrailingStop(pos, stop_level, stop_level);
@@ -236,29 +245,94 @@ namespace OsEngine.Robots.MyBots
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
