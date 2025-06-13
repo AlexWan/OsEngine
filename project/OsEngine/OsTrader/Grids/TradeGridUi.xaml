@@ -135,10 +135,10 @@
                     <Label Name="LabelAutoStartPrice" Content="Price" HorizontalAlignment="Left" Margin="10,38,0,0" VerticalAlignment="Top" Width="134"/>
                     <TextBox Name="TextBoxAutoStartPrice" Margin="165,38,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
 
-                    <Label Name="LabelRebuildGridRegime" Content="Rebuild grid on start" HorizontalAlignment="Left" Margin="10,98,0,0" VerticalAlignment="Top" Width="134"/>
-                    <ComboBox Name="ComboBoxRebuildGridRegime" Margin="164,98,14,0" VerticalAlignment="Top"/>
-                    <Label Name="LabelShiftFirstPrice" Content="Shift first price %" HorizontalAlignment="Left" Margin="10,126,0,0" VerticalAlignment="Top" Width="134"/>
-                    <TextBox Name="TextBoxShiftFirstPrice" Margin="165,126,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
+                    <Label Name="LabelRebuildGridRegime" Content="Rebuild grid on start" HorizontalAlignment="Left" Margin="10,98,0,0" VerticalAlignment="Top" Width="189"/>
+                    <ComboBox Name="ComboBoxRebuildGridRegime" Margin="201,98,14,0" VerticalAlignment="Top"/>
+                    <Label Name="LabelShiftFirstPrice" Content="Shift first price %" HorizontalAlignment="Left" Margin="10,126,0,0" VerticalAlignment="Top" Width="189"/>
+                    <TextBox Name="TextBoxShiftFirstPrice" Margin="201,126,14,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
             <TabItem Name="TabItemTrailingUp" Header="Trailing Up">
@@ -240,7 +240,7 @@
                     <Label Name="LabelFailOpenOrdersCountToReaction" Content="Max fail open orders" HorizontalAlignment="Left" Margin="9,63,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxFailOpenOrdersCountToReaction" Margin="196,63,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Name="LabelFailOpenOrdersCountFact" Content="Current fail open orders" HorizontalAlignment="Left" Margin="9,91,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxFailOpenOrdersCountFact" Margin="196,91,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFailOpenOrdersCountFact" Margin="221,91,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
                     <CheckBox Name="CheckBoxFailCancelOrdersReactionIsOn" Content="Check cancel orders stream" HorizontalAlignment="Left" Margin="10,145,0,0" VerticalAlignment="Top" Width="312"/>
                     <Label Name="LabelFailCancelOrdersReaction" Content="Reaction" HorizontalAlignment="Left" Margin="9,173,0,0" VerticalAlignment="Top"/>
@@ -248,7 +248,7 @@
                     <Label Name="LabelFailCancelOrdersCountToReaction" Content="Max fail cancel orders" HorizontalAlignment="Left" Margin="9,202,0,0" VerticalAlignment="Top"/>
                     <TextBox Name="TextBoxFailCancelOrdersCountToReaction" Margin="196,202,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                     <Label Name="LabelFailCancelOrdersCountFact" Content="Current fail cancel orders" HorizontalAlignment="Left" Margin="9,230,0,0" VerticalAlignment="Top"/>
-                    <TextBox Name="TextBoxFailCancelOrdersCountFact" Margin="196,230,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxFailCancelOrdersCountFact" Margin="221,230,15,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
                 </Grid>
             </TabItem>
         </TabControl>
