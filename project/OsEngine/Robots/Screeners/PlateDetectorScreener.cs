@@ -113,6 +113,11 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
+            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
+            {
+                return;
+            }
+
             MarketDepth md = marketDepth.GetCopy();
 
             if (md.Bids == null ||

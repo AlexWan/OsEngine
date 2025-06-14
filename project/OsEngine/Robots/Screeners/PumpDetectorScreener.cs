@@ -103,6 +103,11 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
+            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
+            {
+                return;
+            }
+
             CheckMoveTime myTime = null;
 
             for(int i = 0;i < _checkMoveTimes.Count;i++)
