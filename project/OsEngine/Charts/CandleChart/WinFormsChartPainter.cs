@@ -7073,7 +7073,8 @@ ContextMenuStrip menu)
                    double minOnSeries = yLength.Ymin;
 
                    if (minOnSeries != double.MaxValue && 
-                       minOnSeries < min)
+                       minOnSeries < min
+                       && minOnSeries != 0)
                    {
                        min = minOnSeries;
                    }
@@ -7307,6 +7308,11 @@ ContextMenuStrip menu)
 
             }
 
+            if(max == Double.MinValue)
+            {
+                return 0;
+            }
+
             return max;
         }
 
@@ -7337,6 +7343,12 @@ ContextMenuStrip menu)
                     i += 1;
                 }
             }
+
+            if(min == double.MaxValue)
+            {
+                return 0;
+            }
+
             return min;
         }
 
