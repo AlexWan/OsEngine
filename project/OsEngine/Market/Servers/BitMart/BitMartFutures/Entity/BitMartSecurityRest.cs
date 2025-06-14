@@ -7,7 +7,6 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.BitMartFutures.Json
 {
-
     public class BitMartBaseMessage
     {
         public int code;

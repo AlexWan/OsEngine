@@ -3,13 +3,11 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System.Collections.Generic;
-
 namespace OsEngine.Market.Servers.BitMartFutures.Json
 {
     public class LastTrade
     {
-        public ulong lastTradeID { get; set; }
+        public string lastTradeID { get; set; }
         public string fillQty { get; set; }
         public string fillPrice { get; set; }
         public string fee { get; set; }
@@ -23,15 +21,15 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string price { get; set; }
         public string size { get; set; }
         public string symbol { get; set; }
-        public int state { get; set; }
-        public int side { get; set; }
+        public string state { get; set; }
+        public string side { get; set; }
         public string type { get; set; }
         public string leverage { get; set; }
         public string open_type { get; set; }
         public string deal_avg_price { get; set; }
         public string deal_size { get; set; }
-        public ulong create_time { get; set; }
-        public ulong update_time { get; set; }
+        public string create_time { get; set; }
+        public string update_time { get; set; }
         public string plan_order_id { get; set; }
         public LastTrade last_trade { get; set; }
         public string trigger_price { get; set; }
@@ -40,20 +38,12 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string activation_price_type { get; set; }
         public string activation_price { get; set; }
         public string callback_rate { get; set; }
+        public string position_mode { get; set; }
     }
 
     public class BitMartOrderAction
     {
-        public int action { get; set; }
+        public string action { get; set; }
         public BitMartOrder order { get; set; }
     }
-
-
-
-    public class BitMartOrderActions : List<BitMartOrderAction>
-    {
-
-    }
-
-
 }
