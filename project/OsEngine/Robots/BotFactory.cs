@@ -175,6 +175,14 @@ namespace OsEngine.Robots
                     return results; // Directory doesn't exist
                 }
 
+                string dirName = Path.GetFileName(directory);
+
+                // Skip BaseClasses dir while searching for user robot scripts
+                if (dirName.Equals("BaseClasses", StringComparison.OrdinalIgnoreCase))
+                {
+                    return results;
+                }
+
                 string[] subDirectories = Directory.GetDirectories(directory);
                 foreach (string subDir in subDirectories)
                 {
@@ -313,9 +321,12 @@ namespace OsEngine.Robots
             }
 
             InitializeBaseReferences();
-            List<MetadataReference> currentCompilationReferences = new List<MetadataReference>(_baseReferences);
 
+            List<string> baseClassFiles = GetBaseClassFiles();
+
+            List<MetadataReference> currentCompilationReferences = new List<MetadataReference>(_baseReferences);
             List<string> dllsFromScriptFolder = GetDllsPathFromScriptFolder(scriptPath);
+
             if (dllsFromScriptFolder != null)
             {
                 foreach (string dllPath in dllsFromScriptFolder)
@@ -337,29 +348,42 @@ namespace OsEngine.Robots
             SourceText sourceText;
             using (var fileStream = new FileStream(scriptPath, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 4096, useAsync: false))
             {
-                // Create SourceText from stream, specifying UTF-8 encoding.
-                // This will correctly handle UTF-8 files with or without BOM.
-                // canBeEmbedded: true is for #embed directive support.
                 sourceText = SourceText.From(fileStream, Encoding.UTF8, canBeEmbedded: true);
             }
 
             SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(
-                sourceText, // Use the SourceText object
+                sourceText,
                 options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
-                path: scriptPath // Provide the file path for diagnostics and PDB symbol information
-            );
-            
+                path: scriptPath);
+
+            // Создаем деревья синтаксиса для всех базовых классов
+            List<SyntaxTree> syntaxTrees = new List<SyntaxTree>();
+
+            foreach (string baseFile in baseClassFiles)
+            {
+                using (var baseFileStream = new FileStream(baseFile, FileMode.Open, FileAccess.Read))
+                {
+                    SourceText baseSource = SourceText.From(baseFileStream, Encoding.UTF8, canBeEmbedded: true);
+                    SyntaxTree baseSyntaxTree = CSharpSyntaxTree.ParseText(
+                        baseSource,
+                        options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest),
+                        path: baseFile);
+                    syntaxTrees.Add(baseSyntaxTree);
+                }
+            }
+
+            syntaxTrees.Add(syntaxTree); // Добавляем сам скрипт последним
+
             string assemblyName = $"BotScript_{nameClass}_{Guid.NewGuid():N}";
-            CSharpCompilationOptions compilationOptions = new CSharpCompilationOptions(
-                OutputKind.DynamicallyLinkedLibrary,
-                optimizationLevel: OptimizationLevel.Debug, // Or Release
-                platform: Platform.AnyCpu);
 
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
-                syntaxTrees: new[] { syntaxTree },
+                syntaxTrees: syntaxTrees.ToArray(),
                 references: currentCompilationReferences,
-                options: compilationOptions);
+                options: new CSharpCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary,
+                    optimizationLevel: OptimizationLevel.Debug,
+                    platform: Platform.AnyCpu));
 
             using (var assemblyStream = new MemoryStream())
             using (var pdbStream = new MemoryStream())
@@ -666,6 +690,17 @@ namespace OsEngine.Robots
             {
                 LoadNamesWithParamEndEvent?.Invoke(new List<string>(_optimizerBotsWithParam));
             }
+        }
+
+        private static List<string> GetBaseClassFiles()
+        {
+            string baseDir = Path.Combine("Custom", "Robots", "BaseClasses");
+            if (!Directory.Exists(baseDir))
+            {
+                return new List<string>();
+            }
+
+            return Directory.GetFiles(baseDir, "*.cs").ToList();
         }
     }
 }
