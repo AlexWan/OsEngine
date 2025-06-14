@@ -7,29 +7,23 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.BitMartFutures.Json
 {
-    public class SoketBaseMessage
+    public class SoketBaseMessage<T>
     {
         public string group;
 
-        public object data;
-    }
-
-    public class MarketTrades : List<MarketTrade>
-    {
-
+        public T data;
     }
 
     public class MarketTrade
     {
-        public ulong trade_id { get; set; }
+        public string trade_id { get; set; }
         public string symbol { get; set; }
         public string deal_price { get; set; }
         public string deal_vol { get; set; }
         public string created_at { get; set; }
-        public int way { get; set; }
-        public int type { get; set; }
+        public string way { get; set; }
+        public string m { get; set; }
     }
-
 
     public class MarketDepthBitMart
     {
@@ -40,11 +34,11 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         -1=bid
         -2=ask
         */
-        public long way { get; set; }
+        public string way { get; set; }
 
         public List<MarketDepthLevelBitMart> depths { get; set; }
 
-        public ulong ms_t { get; set; }
+        public string ms_t { get; set; }
     }
 
     public class MarketDepthLevelBitMart
@@ -52,5 +46,4 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string price { get; set; }
         public string vol { get; set; }
     }
-
 }

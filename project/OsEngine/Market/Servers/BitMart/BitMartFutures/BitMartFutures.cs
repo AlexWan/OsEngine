@@ -15,13 +15,12 @@ using System.Collections.Generic;
 using System.IO.Compression;
 using System.IO;
 using System.Net;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
 using System.Security.Cryptography;
-using System.Windows.Media;
+
 
 
 namespace OsEngine.Market.Servers.BitMartFutures
@@ -87,7 +86,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     return;
                 }
 
-                _restClient = new BitMartRestClient(_publicKey, _secretKey, _memo);
+                //_restClient = new BitMartRestClient(_publicKey, _secretKey, _memo);
 
                 RestRequest requestRest = new RestRequest("/system/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
@@ -143,7 +142,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
-                DisconnectEvent();
+
+                if (DisconnectEvent != null)
+                {
+                    DisconnectEvent();
+                }
             }
         }
 
@@ -171,7 +174,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private BitMartRestClient _restClient;
+        //private BitMartRestClient _restClient;
 
         public bool HedgeMode
         {
@@ -518,6 +521,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
                         DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+
             //if (timeFrameBuilder.TimeFrame == TimeFrame.Day)
             //{
             //    startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
@@ -547,6 +551,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             while (startTime < endTime)
             {
                 List<Candle> newCandles = GetHistoryCandle(security, tfTotalMinutes, startTime, endTimeReal);
+                // List<Candle> newCandles = ConvertToOsEngineCandles(history);
 
                 if (newCandles != null &&
                     newCandles.Count > 0)
@@ -864,13 +869,14 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     {
                         ConnectEvent();
                     }
+                    SetPositionMode();
                 }
             }
         }
 
         private void CreateAuthMessageWebSocKet()
         {
-            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+            string timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
             string sign = GenerateSignature(timestamp, "bitmart.WebSocket");
 
             _webSocketPrivate.Send($"{{\"action\": \"access\", \"args\": [\"{_publicKey}\", \"{timestamp}\", \"{sign}\",\"web\"]}}");
@@ -925,7 +931,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
             catch (Exception ex)
             {
-                SendLogMessage("Data socket error" + ex.ToString(), LogMessageType.Error);
+                SendLogMessage("WebSocket public error" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1079,7 +1085,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
             catch (Exception error)
             {
-                SendLogMessage("Portfolio socket error. " + error.ToString(), LogMessageType.Error);
+                SendLogMessage("WebSocket private error. " + error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1370,8 +1376,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                         continue;
                     }
 
-                    SoketBaseMessage baseMessage =
-                        JsonConvert.DeserializeAnonymousType(message, new SoketBaseMessage());
+                    SoketBaseMessage<object> baseMessage =
+                        JsonConvert.DeserializeAnonymousType(message, new SoketBaseMessage<object>());
 
                     if (baseMessage == null
                         || string.IsNullOrEmpty(baseMessage.group))
@@ -1381,7 +1387,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                     if (baseMessage.data == null)
                     {
-                        SendLogMessage("DataMessageReader empty data: " + message, LogMessageType.Connect);
+                        SendLogMessage("PublicWebSocket empty data: " + message, LogMessageType.Connect);
                         continue;
                     }
 
@@ -1399,7 +1405,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     {
                         SendLogMessage("Unknown message: " + baseMessage.group, LogMessageType.Error);
                     }
-
                 }
                 catch (Exception exception)
                 {
@@ -1411,36 +1416,42 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         private void UpdateTrade(string data)
         {
-            MarketTrades baseTrades =
-                JsonConvert.DeserializeAnonymousType(data, new MarketTrades());
-
-
-            for (int i = 0; i < baseTrades.Count; i++)
+            try
             {
-                MarketTrade baseTrade = baseTrades[i];
+                List<MarketTrade> baseTrades =
+                JsonConvert.DeserializeAnonymousType(data, new List<MarketTrade>());
 
-                if (string.IsNullOrEmpty(baseTrade.symbol))
+                for (int i = 0; i < baseTrades.Count; i++)
                 {
-                    continue;
-                }
+                    MarketTrade baseTrade = baseTrades[i];
 
-                Trade trade = new Trade();
-                trade.SecurityNameCode = baseTrade.symbol;
-                trade.Price = baseTrade.deal_price.ToDecimal();
-                trade.Volume = baseTrade.deal_vol.ToDecimal();
-                trade.Time = DateTime.Parse(baseTrade.created_at);
-                trade.Id = baseTrade.trade_id.ToString();
+                    if (string.IsNullOrEmpty(baseTrade.symbol))
+                    {
+                        continue;
+                    }
 
-                if (baseTrade.way <= 4)
-                {
-                    trade.Side = Side.Buy;
-                }
-                else
-                {
-                    trade.Side = Side.Sell;
-                }
+                    Trade trade = new Trade();
+                    trade.SecurityNameCode = baseTrade.symbol;
+                    trade.Price = baseTrade.deal_price.ToDecimal();
+                    trade.Volume = baseTrade.deal_vol.ToDecimal();
+                    trade.Time = DateTime.Parse(baseTrade.created_at);
+                    trade.Id = baseTrade.trade_id;
 
-                NewTradesEvent?.Invoke(trade);
+                    if (baseTrade.m == "true")
+                    {
+                        trade.Side = Side.Buy;
+                    }
+                    else
+                    {
+                        trade.Side = Side.Sell;
+                    }
+
+                    NewTradesEvent?.Invoke(trade);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1449,104 +1460,107 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         private void UpdateMarketDepth(string data)
         {
-            MarketDepthBitMart baseDepth =
+            try
+            {
+                MarketDepthBitMart baseDepth =
                 JsonConvert.DeserializeAnonymousType(data, new MarketDepthBitMart());
 
-
-            if (String.IsNullOrEmpty(baseDepth.symbol) || baseDepth.depths.Count == 0)
-            {
-                return;
-            }
-
-
-
-            MarketDepth depth = new MarketDepth();
-            depth.SecurityNameCode = baseDepth.symbol;
-            depth.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseDepth.ms_t.ToString());
-
-            decimal maxBid = 0;
-            decimal minAsk = decimal.MaxValue;
-
-            for (int i = 0; i < baseDepth.depths.Count; i++)
-            {
-                MarketDepthLevelBitMart level = baseDepth.depths[i];
-
-                if (level == null)
+                if (String.IsNullOrEmpty(baseDepth.symbol) || baseDepth.depths.Count == 0)
                 {
-                    continue;
+                    return;
                 }
 
-                MarketDepthLevel newBid = new MarketDepthLevel();
-                newBid.Price = level.price.ToDecimal();
+                MarketDepth depth = new MarketDepth();
+                depth.SecurityNameCode = baseDepth.symbol;
+                depth.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseDepth.ms_t.ToString());
 
+                decimal maxBid = 0;
+                decimal minAsk = decimal.MaxValue;
 
-                if (baseDepth.way == 1) //bids
+                for (int i = 0; i < baseDepth.depths.Count; i++)
                 {
-                    newBid.Bid = level.vol.ToDecimal();
-                    depth.Bids.Add(newBid);
-                    maxBid = Math.Max(newBid.Price, maxBid);
-                }
-                else //asks
-                {
-                    newBid.Ask = level.vol.ToDecimal();
-                    depth.Asks.Add(newBid);
-                    minAsk = Math.Min(newBid.Price, minAsk);
-                }
-            }
+                    MarketDepthLevelBitMart level = baseDepth.depths[i];
 
-            if (_lastMdTime != DateTime.MinValue &&
-                _lastMdTime >= depth.Time)
-            {
-                depth.Time = _lastMdTime.AddTicks(1);
-            }
-
-            _lastMdTime = depth.Time;
-            bool skipEvent = false;
-
-            lock (this._lastMarketDepthLock)
-            {
-                // server sends asks or bits in one message only
-                // this is workaround: save asks (bits) from previous message and put
-                // it to current
-
-                if (this._lastMarketDepth.ContainsKey(depth.SecurityNameCode))
-                {
-                    MarketDepth prev = this._lastMarketDepth[depth.SecurityNameCode];
-                    if (depth.Asks.Count == 0)
+                    if (level == null)
                     {
-                        for (int i = 0; i < prev.Asks.Count; i++)
+                        continue;
+                    }
+
+                    MarketDepthLevel newBid = new MarketDepthLevel();
+                    newBid.Price = level.price.ToDecimal();
+
+                    if (baseDepth.way == "1") //bids
+                    {
+                        newBid.Bid = level.vol.ToDecimal();
+                        depth.Bids.Add(newBid);
+                        maxBid = Math.Max(newBid.Price, maxBid);
+                    }
+                    else //asks
+                    {
+                        newBid.Ask = level.vol.ToDecimal();
+                        depth.Asks.Add(newBid);
+                        minAsk = Math.Min(newBid.Price, minAsk);
+                    }
+                }
+
+                if (_lastMdTime != DateTime.MinValue &&
+                    _lastMdTime >= depth.Time)
+                {
+                    depth.Time = _lastMdTime.AddTicks(1);
+                }
+
+                _lastMdTime = depth.Time;
+                bool skipEvent = false;
+
+                lock (this._lastMarketDepthLock)
+                {
+                    // server sends asks or bits in one message only
+                    // this is workaround: save asks (bits) from previous message and put
+                    // it to current
+
+                    if (this._lastMarketDepth.ContainsKey(depth.SecurityNameCode))
+                    {
+                        MarketDepth prev = this._lastMarketDepth[depth.SecurityNameCode];
+                        if (depth.Asks.Count == 0)
                         {
-                            if (prev.Asks[i].Price > maxBid)
+                            for (int i = 0; i < prev.Asks.Count; i++)
                             {
-                                depth.Asks.Add(prev.Asks[i]);
+                                if (prev.Asks[i].Price > maxBid)
+                                {
+                                    depth.Asks.Add(prev.Asks[i]);
+                                }
+                            }
+                        }
+
+                        if (depth.Bids.Count == 0)
+                        {
+                            for (int i = 0; i < prev.Bids.Count; i++)
+                            {
+                                if (prev.Bids[i].Price < minAsk)
+                                {
+                                    depth.Bids.Add(prev.Bids[i]);
+                                }
                             }
                         }
                     }
-
-                    if (depth.Bids.Count == 0)
+                    else
                     {
-                        for (int i = 0; i < prev.Bids.Count; i++)
-                        {
-                            if (prev.Bids[i].Price < minAsk)
-                            {
-                                depth.Bids.Add(prev.Bids[i]);
-                            }
-                        }
+                        skipEvent = true;
                     }
+                    _lastMarketDepth[depth.SecurityNameCode] = depth;
                 }
-                else
+
+                if (skipEvent)
                 {
-                    skipEvent = true;
+                    return;
                 }
-                _lastMarketDepth[depth.SecurityNameCode] = depth;
-            }
 
-            if (skipEvent)
+                MarketDepthEvent?.Invoke(depth);
+            }
+            catch (Exception ex)
             {
-                return;
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
-
-            MarketDepthEvent?.Invoke(depth);
         }
 
         private DateTime _lastMdTime = DateTime.MinValue;
@@ -1584,7 +1598,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                         continue;
                     }
 
-                    SoketBaseMessage baseMessage = JsonConvert.DeserializeAnonymousType(message, new SoketBaseMessage());
+                    SoketBaseMessage<object> baseMessage = JsonConvert.DeserializeAnonymousType(message, new SoketBaseMessage<object>());
 
                     if (baseMessage == null
                         || string.IsNullOrEmpty(baseMessage.group))
@@ -1594,21 +1608,17 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                     if (baseMessage.data == null)
                     {
-                        SendLogMessage("PorfolioWebSocket empty message: " + message, LogMessageType.Connect);
+                        SendLogMessage("PrivateWebSocket empty message: " + message, LogMessageType.Connect);
                         continue;
                     }
-
-                    //SendLogMessage("PorfolioWebSocket Reader: " + message, LogMessageType.Connect);
 
                     if (baseMessage.group.Contains("futures/asset"))
                     {
                         UpdateMyPortfolio(baseMessage.data.ToString());
-
                     }
                     else if (baseMessage.group.Contains("futures/position"))
                     {
                         UpdateMyPositions(baseMessage.data.ToString());
-
                     }
                     else if (baseMessage.group.Contains("futures/order"))
                     {
@@ -1618,7 +1628,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     {
                         SendLogMessage("Unknown message: " + baseMessage.group, LogMessageType.Error);
                     }
-
                 }
                 catch (Exception exception)
                 {
@@ -1648,35 +1657,54 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         private void UpdateMyOrder(string data)
         {
-            //SendLogMessage("UpDateMyOrder: " + data, LogMessageType.Connect);
-
-            BitMartOrderActions baseOrderActions =
-                JsonConvert.DeserializeAnonymousType(data, new BitMartOrderActions());
-
-            if (baseOrderActions == null || baseOrderActions.Count == 0)
+            try
             {
-                return;
-            }
+                List<BitMartOrderAction> baseOrderActions =
+                JsonConvert.DeserializeAnonymousType(data, new List<BitMartOrderAction>());
 
-            for (int k = 0; k < baseOrderActions.Count; k++)
-            {
-                BitMartOrderAction baseOrderAction = baseOrderActions[k];
-
-                Order order = ConvertToOsEngineOrder(baseOrderAction.order, baseOrderAction.action);
-
-                if (order == null)
+                if (baseOrderActions == null || baseOrderActions.Count == 0)
                 {
                     return;
                 }
 
-                MyOrderEvent?.Invoke(order);
-
-                if (MyTradeEvent != null &&
-                    (order.State == OrderStateType.Done || order.State == OrderStateType.Partial))
+                for (int k = 0; k < baseOrderActions.Count; k++)
                 {
-                    UpdateTrades(order);
-                }
+                    BitMartOrderAction baseOrderAction = baseOrderActions[k];
 
+                    Order order = ConvertToOsEngineOrder(baseOrderAction.order, Convert.ToInt32(baseOrderAction.action));
+
+                    if (order == null)
+                    {
+                        return;
+                    }
+
+                    MyOrderEvent?.Invoke(order);
+
+                    if (MyTradeEvent != null &&
+                        (order.State == OrderStateType.Done || order.State == OrderStateType.Partial))
+                    {
+                        UpdateTrades(order);
+
+                        //BitMartOrder baseOrder = baseOrderAction.order;
+
+                        //MyTrade myTrade = new MyTrade();
+
+                        //myTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseOrder.update_time));
+                        //myTrade.NumberOrderParent = baseOrder.order_id.ToString();
+                        //myTrade.NumberTrade = baseOrder.last_trade.lastTradeID;
+                        //myTrade.Price = baseOrder.last_trade.fillPrice.ToDecimal();
+                        //myTrade.Volume = baseOrder.last_trade.fillQty.ToDecimal();
+                        //myTrade.SecurityNameCode = baseOrder.symbol;
+                        //SetOrderSide(order, Convert.ToInt32(baseOrder.side));
+
+                        //MyTradeEvent(myTrade);
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1724,7 +1752,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             order.TimeCreate = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.create_time.ToString());
             order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.update_time.ToString());
 
-            SetOrderSide(order, baseOrder.side);
+            SetOrderSide(order, Convert.ToInt32(baseOrder.side));
 
             //Action
             //- 1 = match deal
@@ -1912,7 +1940,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
             }
         }
 
-
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
@@ -1940,9 +1967,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 NewOrderBitMartRequest body = GetOrderRequestObj(order);
                 string bodyStr = JsonConvert.SerializeObject(body);
                 //SendLogMessage("Order New: " + bodyStr, LogMessageType.Connect);
-                HttpResponseMessage response = _restClient.Post(endPoint, bodyStr, secured: true);
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, bodyStr); //_restClient.Post(endPoint, bodyStr, secured: true);
 
-                string content = response.Content.ReadAsStringAsync().Result;
+                string content = response.Content;
                 BitMartBaseMessage parsed =
                         JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
 
@@ -1952,15 +1979,13 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                     if (parsed != null && parsed.data != null)
                     {
-
-                        NewOrderBitMartResponce parsed_data =
-        JsonConvert.DeserializeAnonymousType(parsed.data.ToString(), new NewOrderBitMartResponce());
+                        NewOrderBitMartResponce parsed_data = JsonConvert.DeserializeAnonymousType(parsed.data.ToString(), new NewOrderBitMartResponce());
 
                         if (parsed_data != null && parsed_data.order_id != 0)
                         {
                             //Everything is OK
                             order_id = parsed_data.order_id.ToString();
-                            _serverOrderIDs.TryAdd(order.NumberUser.ToString(), order_id);
+                            //_serverOrderIDs.TryAdd(order.NumberUser.ToString(), order_id);
                         }
                     }
 
@@ -2052,7 +2077,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public bool CancelOrder(Order order)
         {
-            string order_id = GetServerOrderId(order);
+            string order_id = order.NumberMarket;
 
             if (string.IsNullOrEmpty(order_id))
             {
@@ -2071,12 +2096,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 string bodyStr = JsonConvert.SerializeObject(body);
                 //SendLogMessage("Order Cancel: " + bodyStr, LogMessageType.Connect);
-                HttpResponseMessage response = _restClient.Post(endPoint, bodyStr, secured: true);
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, bodyStr); //_restClient.Post(endPoint, bodyStr, secured: true);
 
-                string content = response.Content.ReadAsStringAsync().Result;
+                string content = response.Content;
                 BitMartBaseMessage parsed =
                         JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
-
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -2087,41 +2111,22 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     }
                     else
                     {
-                        OrderStateType state = GetOrderStatus(order);
-
-                        if (state == OrderStateType.None)
-                        {
-                            SendLogMessage($"Cancel order, answer is wrong: {content}", LogMessageType.Error);
-                            return false;
-                        }
-                        else
-                        {
-                            return true;
-                        }
+                        GetOrderStatus(order);
+                        SendLogMessage($"Cancel order, answer is wrong: {content}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    OrderStateType state = GetOrderStatus(order);
-
-                    if (state == OrderStateType.None)
+                    string message = content;
+                    if (parsed != null && parsed.message != null)
                     {
-                        string message = content;
-
-                        if (parsed != null && parsed.message != null)
-                        {
-                            message = parsed.message;
-                        }
-
-                        SendLogMessage("Cancel order failed. Status: "
-                            + response.StatusCode + "  " + order.SecurityNameCode + ", " + message, LogMessageType.Error);
-
-                        return false;
+                        message = parsed.message;
                     }
-                    else
-                    {
-                        return true;
-                    }
+
+                    SendLogMessage("Cancel order failed. Status: "
+                        + response.StatusCode + "  " + order.SecurityNameCode + ", " + message, LogMessageType.Error);
+
+                    GetOrderStatus(order);
                 }
 
             }
@@ -2162,12 +2167,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     order.State = OrderStateType.Cancel;
                 }
             }
-
-        }
-
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
         }
 
         public void CancelAllOrders()
@@ -2209,11 +2208,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 string endPoint = "/contract/private/get-open-orders";
 
-                HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.GET); //_restClient.Get(endPoint, secured: true);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    string content = response.Content.ReadAsStringAsync().Result;
+                    string content = response.Content;
                     //SendLogMessage("GetAllOrdersFromExchange resp: " + content, LogMessageType.Connect);
                     BitMartBaseMessage parsed =
                         JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
@@ -2234,7 +2233,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                             }
 
                             osEngineOrders.Add(order);
-                            _serverOrderIDs.TryAdd(order.NumberUser.ToString(), order.NumberMarket);
+                            //_serverOrderIDs.TryAdd(order.NumberUser.ToString(), order.NumberMarket);
                         }
 
                         return osEngineOrders;
@@ -2266,34 +2265,34 @@ namespace OsEngine.Market.Servers.BitMartFutures
         }
 
         // map: client_order_id -> server_order_id
-        ConcurrentDictionary<string, string> _serverOrderIDs = new ConcurrentDictionary<string, string>();
+        //ConcurrentDictionary<string, string> _serverOrderIDs = new ConcurrentDictionary<string, string>();
 
-        private string GetServerOrderId(Order order)
-        {
-            string order_id = order.NumberMarket;
-            if (string.IsNullOrEmpty(order_id))
-            {
-                if (_serverOrderIDs.TryGetValue(order.NumberUser.ToString(), out order_id))
-                    return order_id;
+        //private string GetServerOrderId(Order order)
+        //{
+        //    string order_id = order.NumberMarket;
+        //    if (string.IsNullOrEmpty(order_id))
+        //    {
+        //        if (_serverOrderIDs.TryGetValue(order.NumberUser.ToString(), out order_id))
+        //            return order_id;
 
-                //refresh open order IDs
-                GetOpenOrdersFromExchange();
+        //        //refresh open order IDs
+        //        GetOpenOrdersFromExchange();
 
-                if (_serverOrderIDs.TryGetValue(order.NumberUser.ToString(), out order_id))
-                    return order_id;
+        //        if (_serverOrderIDs.TryGetValue(order.NumberUser.ToString(), out order_id))
+        //            return order_id;
 
-                //search in history orders
-                Order marketOrder = GetOrderFromExchange(order.NumberUser.ToString(), order.SecurityNameCode);
-                if (marketOrder != null)
-                {
-                    return order.NumberMarket;
-                }
+        //        //search in history orders
+        //        Order marketOrder = GetOrderFromExchange(order.NumberUser.ToString(), order.SecurityNameCode);
+        //        if (marketOrder != null)
+        //        {
+        //            return order.NumberMarket;
+        //        }
 
-                SendLogMessage($"Failed to get server order_id " + order.NumberUser, LogMessageType.Error);
-            }
+        //        SendLogMessage($"Failed to get server order_id " + order.NumberUser, LogMessageType.Error);
+        //    }
 
-            return order_id;
-        }
+        //    return order_id;
+        //}
 
         private Order GetOrderFromExchange(string userOrderId, string symbol)
         {
@@ -2314,11 +2313,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 //SendLogMessage("Request Orders: " + endPoint, LogMessageType.Connect);
 
-                HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.GET); //_restClient.Get(endPoint, secured: true);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    string content = response.Content.ReadAsStringAsync().Result;
+                    string content = response.Content;
                     //SendLogMessage("GetOrderFromExchange resp: " + content, LogMessageType.Connect);
                     BitMartBaseMessage parsed =
                         JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
@@ -2343,7 +2342,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                                 continue;
                             }
 
-                            _serverOrderIDs.TryAdd(order.NumberUser.ToString(), order.NumberMarket);
+                            //_serverOrderIDs.TryAdd(order.NumberUser.ToString(), order.NumberMarket);
 
                             if (order.NumberUser.ToString() == userOrderId)
                             {
@@ -2356,9 +2355,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                             SendLogMessage("Order not found: " + userOrderId, LogMessageType.Error);
                         }
 
-
                         return outOrder;
-
                     }
 
                 }
@@ -2369,7 +2366,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 }
                 else
                 {
-                    SendLogMessage("Get order request error: " + response.ReasonPhrase + ",  " + response.ToString(), LogMessageType.Error);
+                    SendLogMessage("Get order request error: " + response.StatusCode + ",  " + response.ToString(), LogMessageType.Error);
 
                     if (response.Content != null)
                     {
@@ -2385,74 +2382,74 @@ namespace OsEngine.Market.Servers.BitMartFutures
             return null;
         }
 
-        private Order GetOrderFromExchangeByID(string serverOrderId, string symbol)
-        {
-            _rateGateGetOrder.WaitToProceed();
+        //private Order GetOrderFromExchangeByID(string serverOrderId, string symbol)
+        //{
+        //    _rateGateGetOrder.WaitToProceed();
 
-            if (string.IsNullOrEmpty(serverOrderId))
-            {
-                SendLogMessage("Server Order ID is empty", LogMessageType.Connect);
-                return null;
-            }
+        //    if (string.IsNullOrEmpty(serverOrderId))
+        //    {
+        //        SendLogMessage("Server Order ID is empty", LogMessageType.Connect);
+        //        return null;
+        //    }
 
-            try
-            {
-                DateTime endTime = DateTime.Now.ToUniversalTime();
-                string endPoint = "/contract/private/order?symbol=" + symbol;
-                endPoint += "&order_id=" + serverOrderId.ToString();
+        //    try
+        //    {
+        //        DateTime endTime = DateTime.Now.ToUniversalTime();
+        //        string endPoint = "/contract/private/order?symbol=" + symbol;
+        //        endPoint += "&order_id=" + serverOrderId.ToString();
 
-                //SendLogMessage("Request Order: " + endPoint, LogMessageType.Connect);
+        //        //SendLogMessage("Request Order: " + endPoint, LogMessageType.Connect);
 
-                HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
+        //        HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
 
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    string content = response.Content.ReadAsStringAsync().Result;
-                    //SendLogMessage("GetOrderFromExchangeByID resp: " + content, LogMessageType.Connect);
-                    BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+        //        if (response.StatusCode == HttpStatusCode.OK)
+        //        {
+        //            string content = response.Content.ReadAsStringAsync().Result;
+        //            //SendLogMessage("GetOrderFromExchangeByID resp: " + content, LogMessageType.Connect);
+        //            BitMartBaseMessage parsed =
+        //                JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
 
-                    if (parsed != null && parsed.data != null)
-                    {
-                        //Everything is OK
-                        BitMartRestOrder baseOrder = JsonConvert.DeserializeAnonymousType(parsed.data.ToString(), new BitMartRestOrder());
+        //            if (parsed != null && parsed.data != null)
+        //            {
+        //                //Everything is OK
+        //                BitMartRestOrder baseOrder = JsonConvert.DeserializeAnonymousType(parsed.data.ToString(), new BitMartRestOrder());
 
-                        Order order = ConvertRestOrdersToOsEngineOrder(baseOrder, false);
-                        if (order == null)
-                        {
-                            SendLogMessage("Order not found: " + serverOrderId, LogMessageType.Error);
-                        }
-                        else
-                        {
-                            _serverOrderIDs.TryAdd(order.NumberUser.ToString(), order.NumberMarket);
-                        }
+        //                Order order = ConvertRestOrdersToOsEngineOrder(baseOrder, false);
+        //                if (order == null)
+        //                {
+        //                    SendLogMessage("Order not found: " + serverOrderId, LogMessageType.Error);
+        //                }
+        //                else
+        //                {
+        //                    _serverOrderIDs.TryAdd(order.NumberUser.ToString(), order.NumberMarket);
+        //                }
 
-                        return order;
-                    }
+        //                return order;
+        //            }
 
-                }
-                else if (response.StatusCode == HttpStatusCode.NotFound)
-                {
-                    SendLogMessage("Order not found: " + serverOrderId, LogMessageType.Connect);
-                    return null;
-                }
-                else
-                {
-                    SendLogMessage("Get order request error: " + response.ReasonPhrase + ",  " + response.ToString(), LogMessageType.Error);
+        //        }
+        //        else if (response.StatusCode == HttpStatusCode.NotFound)
+        //        {
+        //            SendLogMessage("Order not found: " + serverOrderId, LogMessageType.Connect);
+        //            return null;
+        //        }
+        //        else
+        //        {
+        //            SendLogMessage("Get order request error: " + response.ReasonPhrase + ",  " + response.ToString(), LogMessageType.Error);
 
-                    if (response.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: " + response.Content, LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage("Get order request error." + exception.ToString(), LogMessageType.Error);
-            }
+        //            if (response.Content != null)
+        //            {
+        //                SendLogMessage("Fail reasons: " + response.Content, LogMessageType.Error);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception exception)
+        //    {
+        //        SendLogMessage("Get order request error." + exception.ToString(), LogMessageType.Error);
+        //    }
 
-            return null;
-        }
+        //    return null;
+        //}
 
         public void GetAllActivOrders()
         {
@@ -2473,13 +2470,14 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public OrderStateType GetOrderStatus(Order order)
         {
-            string serverOrderId = GetServerOrderId(order);
+            string serverOrderId = order.NumberUser.ToString();
             if (serverOrderId == null)
             {
                 SendLogMessage("Fail to get server order_id for user order_id=" + order.NumberUser, LogMessageType.Error);
             }
 
-            Order myOrder = GetOrderFromExchangeByID(serverOrderId, order.SecurityNameCode);
+            Order myOrder = GetOrderFromExchange(serverOrderId, order.SecurityNameCode);
+
             if (myOrder == null)
             {
                 return OrderStateType.None;
@@ -2597,10 +2595,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 order.State = OrderStateType.Partial;
             }
 
-
-
-
-
             return order;
         }
 
@@ -2611,7 +2605,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             //BitMart don't provide API to get order by client_order_id, only by server order_id
             //Plan
             //1. get client_order_id by orderId (search in order history)
-            string serverOrderId = GetServerOrderId(order);
+            string serverOrderId = order.NumberMarket; //GetServerOrderId(order);
 
             //2. get trades, filter by orderId  (search in trade history)
             try
@@ -2623,8 +2617,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 endPoint += "&end_time=" + TimeManager.GetTimeStampSecondsToDateTime(curTime.AddHours(10));
 
                 //SendLogMessage("Order trades: " + endPoint, LogMessageType.Connect);
-                HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
-                string content = response.Content.ReadAsStringAsync().Result;
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.GET);//_restClient.Get(endPoint, secured: true);
+                string content = response.Content;
 
                 //SendLogMessage("Order trades resp: " + content, LogMessageType.Connect);
 
