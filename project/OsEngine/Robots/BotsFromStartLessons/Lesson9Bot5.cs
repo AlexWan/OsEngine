@@ -1,42 +1,56 @@
-﻿using System.Threading;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Threading;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+Stores examples of different methods for manage position.
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
-    [Bot("Lesson9Bot5")]
+
+    [Bot("Lesson9Bot5")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class Lesson9Bot5 : BotPanel
     {
+        // Reference to the main trading tab
         BotTabSimple _tabToTrade;
 
         public Lesson9Bot5(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
 
             // CloseAllAtMarket
-
             _closeAllOrderToPositionButton = CreateParameterButton("Close orders to position", "Close to position");
             _closeAllOrderToPositionButton.UserClickOnButtonEvent += _closeAllOrderToPositionButton_UserClickOnButtonEvent;
+
             _closeAllOrderToPositionSignal = CreateParameter("Close orders to position have signal", false, "Close to position");
 
             // CloseAllOrderInSystem
-
             _closeAllOrderInSystemButton = CreateParameterButton("Close orders in system", "Close all orders");
             _closeAllOrderInSystemButton.UserClickOnButtonEvent += _closeAllOrderInSystemButton_UserClickOnButtonEvent;
+
             _closeAllOrderInSystemSignal = CreateParameter("Close orders to in system", false, "Close all orders");
 
             // CloseOrder
-
             _closeCloseOrderButton = CreateParameterButton("Close order", "Close order");
             _closeCloseOrderButton.UserClickOnButtonEvent += _closeCloseOrderButton_UserClickOnButtonEvent;
 
             // ChangeOrderPrice
-
             _changeOrderPriceButton = CreateParameterButton("Change order price", "ChangeOrderPrice");
             _changeOrderPriceButton.UserClickOnButtonEvent += _changeOrderPriceButton_UserClickOnButtonEvent;
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Stores examples of another methods manage positions";
         }
 
         #region CloseAllOrderToPosition
@@ -69,13 +83,13 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             Thread.Sleep(5000);
 
-            if(_closeAllOrderToPositionSignal.ValueBool == false)
+            if (_closeAllOrderToPositionSignal.ValueBool == false)
             {
                 _tabToTrade.CloseAllOrderToPosition(newPosition);
             }
             else if (_closeAllOrderToPositionSignal.ValueBool == true)
             {
-                _tabToTrade.CloseAllOrderToPosition(newPosition,"User click close orders to position");
+                _tabToTrade.CloseAllOrderToPosition(newPosition, "User click close orders to position");
             }
         }
 
