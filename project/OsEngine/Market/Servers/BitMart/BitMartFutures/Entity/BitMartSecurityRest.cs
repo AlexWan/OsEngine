@@ -16,21 +16,26 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public object data;
     }
 
-    public class BitMartBaseMessageDict
-    {
-        public int code;
-        public string trace;
-        public string message;
-        public Dictionary<string, object> data;
-    }
-
     public class BitMartSecurityRest
     {
+        public string code { get; set; }
+        public string message { get; set; }
+        public string trace { get; set; }
+        public SecurityData data { get; set; }
+    }
+
+    public class SecurityData
+    {
+        public List<BitMartSymbol> symbols { get; set; }
+    }
+
+    public class BitMartSymbol
+    {
         public string symbol { get; set; }
-        public int product_type { get; set; }
-        public ulong open_timestamp { get; set; }
-        public ulong expire_timestamp { get; set; }
-        public ulong settle_timestamp { get; set; }
+        public string product_type { get; set; }
+        public string open_timestamp { get; set; }
+        public string expire_timestamp { get; set; }
+        public string settle_timestamp { get; set; }
         public string base_currency { get; set; }
         public string quote_currency { get; set; }
         public string last_price { get; set; }
@@ -44,6 +49,7 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string price_precision { get; set; }
         public string vol_precision { get; set; }
         public string max_volume { get; set; }
+        public string market_max_volume { get; set; }
         public string min_volume { get; set; }
         public string funding_rate { get; set; }
         public string expected_funding_rate { get; set; }
@@ -52,17 +58,22 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string high_24h { get; set; }
         public string low_24h { get; set; }
         public string change_24h { get; set; }
-
+        public string funding_interval_hours { get; set; }
+        public string status { get; set; }
+        public string delist_time { get; set; }
     }
 
-    public class BitMartCandlesHistory : List<BitMartCandle>
+    public class BitMartCandlesHistory
     {
-
+        public string code { get; set; }
+        public string trace { get; set; }
+        public string message { get; set; }
+        public List<BitMartCandle> data { get; set; }
     }
 
     public class BitMartCandle
     {
-        public ulong timestamp;
+        public string timestamp;
         public string open_price;
         public string high_price;
         public string low_price;

@@ -162,9 +162,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         private List<Security> _securities = new List<Security>();
 
+        private RateGate _rateGateSecurity = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
         public void GetSecurities()
         {
-            UpdateSec();
+            UpdateSecurity();
 
             if (_securities.Count > 0)
             {
@@ -175,124 +177,68 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     SecurityEvent.Invoke(_securities);
                 }
             }
-
         }
 
-        private void UpdateSec()
+        private void UpdateSecurity()
         {
-            string endPoint = "/contract/public/details";
+            _rateGateSecurity.WaitToProceed();
 
             try
             {
-                HttpResponseMessage response = _restClient.Get(endPoint, secured: false);
-
-                string content = response.Content.ReadAsStringAsync().Result;
-                //SendLogMessage("UpdateSec resp: " + content, LogMessageType.Connect);
-                BitMartBaseMessageDict parsed =
-                    JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessageDict());
+                RestRequest requestRest = new RestRequest("/contract/public/details", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (parsed != null && parsed.data != null && parsed.data.ContainsKey("symbols"))
-                    {
-                        string symbols = parsed.data["symbols"].ToString();
+                    BitMartSecurityRest symbolsResponse = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartSecurityRest());
 
-                        List<BitMartSecurityRest> securities =
-                            JsonConvert.DeserializeAnonymousType(symbols, new List<BitMartSecurityRest>());
-                        UpdateSecuritiesFromServer(securities);
+                    if (symbolsResponse.code == "1000")
+                    {
+                        for (int i = 0; i < symbolsResponse.data.symbols.Count; i++)
+                        {
+                            BitMartSymbol item = symbolsResponse.data.symbols[i];
+
+                            if (item.status != "Trading")
+                            {
+                                continue;
+                            }
+
+                            Security newSecurity = new Security();
+
+                            newSecurity.Name = item.symbol;
+                            newSecurity.NameFull = item.symbol;
+                            newSecurity.NameClass = item.quote_currency;
+                            newSecurity.NameId = item.symbol + "_" + item.last_price;
+                            newSecurity.State = SecurityStateType.Activ;
+                            newSecurity.Decimals = item.price_precision.DecimalsCount();
+                            newSecurity.DecimalsVolume = item.contract_size.DecimalsCount();
+                            newSecurity.PriceStep = item.price_precision.ToDecimal();
+                            newSecurity.PriceStepCost = newSecurity.PriceStep;
+                            newSecurity.Lot = 1;
+                            newSecurity.SecurityType = SecurityType.Futures;
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
+                            newSecurity.Exchange = ServerType.BitMartFutures.ToString();
+                            newSecurity.MinTradeAmount = item.contract_size.ToDecimal();
+                            newSecurity.VolumeStep = item.contract_size.ToDecimal();
+
+                            _securities.Add(newSecurity);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Securities error. Code:{symbolsResponse.code} || msg: {symbolsResponse.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    string message = "";
-                    if (parsed != null)
-                    {
-                        message = parsed.message;
-                    }
-                    SendLogMessage("Securities request error. Status: " +
-                        response.StatusCode + ", " + message, LogMessageType.Error);
+                    SendLogMessage($"Securities error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage("Securities request error: " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"Securities request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
-        }
-
-        private void UpdateSecuritiesFromServer(List<BitMartSecurityRest> stocks)
-        {
-            try
-            {
-                if (stocks == null ||
-                    stocks.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < stocks.Count; i++)
-                {
-                    BitMartSecurityRest item = stocks[i];
-
-                    if (item.last_price == "0"
-                        || item.volume_24h == "0")
-                    {
-                        continue;
-                    }
-
-                    Security newSecurity = new Security();
-
-                    newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.quote_currency;
-                    newSecurity.NameId = item.symbol;
-                    newSecurity.State = SecurityStateType.Activ;
-                    newSecurity.Decimals = GetDecimalsVolume(item.price_precision);
-                    newSecurity.DecimalsVolume = GetDecimalsVolume(item.vol_precision);
-                    newSecurity.PriceStep = GetPriceStep(newSecurity.Decimals);
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.Lot = 1;
-                    newSecurity.SecurityType = SecurityType.Futures;
-                    newSecurity.Exchange = ServerType.BitMartFutures.ToString();
-                    newSecurity.MinTradeAmount = item.min_volume.ToDecimal();
-
-                    _securities.Add(newSecurity);
-                }
-
-            }
-            catch (Exception e)
-            {
-                SendLogMessage($"Error loading stocks: {e.Message}" + e.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private static int GetDecimalsVolume(string str)
-        {
-            string[] s = str.Split('.');
-            if (s.Length > 1)
-            {
-                return s[1].Length;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        private decimal GetPriceStep(int ScalePrice)
-        {
-            if (ScalePrice == 0)
-            {
-                return 1;
-            }
-            string priceStep = "0,";
-            for (int i = 0; i < ScalePrice - 1; i++)
-            {
-                priceStep += "0";
-            }
-
-            priceStep += "1";
-
-            return priceStep.ToDecimal();
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -589,9 +535,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
             List<Candle> result = new List<Candle>();
 
-            for (int i = 0; i < candles.Count; i++)
+            for (int i = 0; i < candles.data.Count; i++)
             {
-                BitMartCandle curCandle = candles[i];
+                BitMartCandle curCandle = candles.data[i];
 
                 Candle newCandle = new Candle();
                 newCandle.Open = curCandle.open_price.ToDecimal();
