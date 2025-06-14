@@ -29,6 +29,5 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string create_time { get; set; }
         public string update_time { get; set; }
         public string position_mode { get; set; }
-
     }
 }

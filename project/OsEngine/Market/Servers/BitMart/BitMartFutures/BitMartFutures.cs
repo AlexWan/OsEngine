@@ -21,6 +21,7 @@ using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
 using System.Security.Cryptography;
+using System.Windows.Media;
 
 
 namespace OsEngine.Market.Servers.BitMartFutures
@@ -35,6 +36,13 @@ namespace OsEngine.Market.Servers.BitMartFutures
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterString(OsLocalization.Market.Memo, "");
+            CreateParameterBoolean("Hedge Mode", true);
+            ServerParameters[3].ValueChange += BitMartFuturesServer_ValueChange;
+        }
+
+        private void BitMartFuturesServer_ValueChange()
+        {
+            ((BitMartFuturesServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
         }
     }
 
@@ -68,6 +76,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 _memo = ((ServerParameterString)ServerParameters[2]).Value;
+                HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
 
                 if (string.IsNullOrEmpty(_publicKey)
                     || string.IsNullOrEmpty(_secretKey)
@@ -113,10 +122,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _securities.Clear();
-                //_myPortfolious.Clear();
-                _serverOrderIDs.Clear();
-
                 DeleteWebSocketConnection();
 
                 SendLogMessage("Dispose. Connection Closed by BitMartFutures. WebSocket Closed Event", LogMessageType.System);
@@ -129,6 +134,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
             _subscribledSecurities.Clear();
+            _securities = new List<Security>();
             Disconnect();
         }
 
@@ -166,6 +172,61 @@ namespace OsEngine.Market.Servers.BitMartFutures
         public List<IServerParameter> ServerParameters { get; set; }
 
         private BitMartRestClient _restClient;
+
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set
+            {
+                if (value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+
+                SetPositionMode();
+            }
+        }
+
+        private bool _hedgeMode;
+
+        public void SetPositionMode()
+        {
+            _rateGateSendOrder.WaitToProceed();
+
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                Dictionary<string, string> mode = new Dictionary<string, string>();
+                mode["position_mode"] = "one_way_mode";
+
+                if (HedgeMode)
+                {
+                    mode["position_mode"] = "hedge_mode";
+                }
+
+                string jsonRequest = JsonConvert.SerializeObject(mode);
+                string path = "/contract/private/set-position-mode";
+                IRestResponse response = CreatePrivateQuery(path, Method.POST, jsonRequest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+
+                }
+                else
+                {
+                    SendLogMessage($"PositionMode error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         #endregion
 
