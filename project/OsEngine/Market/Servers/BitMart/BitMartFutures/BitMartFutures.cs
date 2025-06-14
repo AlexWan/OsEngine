@@ -356,44 +356,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
-            DateTime endTime = DateTime.Now.ToUniversalTime();
-
-            while (endTime.Hour != 23)
-            {
-                endTime = endTime.AddHours(1);
-            }
-
-            int candlesInDay = 0;
-
-            if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes >= 1)
-            {
-                candlesInDay = 900 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes);
-            }
-            else
-            {
-                candlesInDay = 54000 / Convert.ToInt32(timeFrameBuilder.TimeFrameTimeSpan.TotalSeconds);
-            }
-
-            if (candlesInDay == 0)
-            {
-                candlesInDay = 1;
-            }
-
-            int daysCount = candleCount / candlesInDay;
-
-            if (daysCount == 0)
-            {
-                daysCount = 1;
-            }
-
-            daysCount++;
-
-            if (daysCount > 5)
-            { // add weekends
-                daysCount = daysCount + (daysCount / 5) * 2;
-            }
-
-            DateTime startTime = endTime.AddDays(-daysCount);
+            int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
+            DateTime endTime = DateTime.Now;
+            DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
 
@@ -411,16 +376,23 @@ namespace OsEngine.Market.Servers.BitMartFutures
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
                         DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            _rateGateSendOrder.WaitToProceed();
+            //if (timeFrameBuilder.TimeFrame == TimeFrame.Day)
+            //{
+            //    startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            //    endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            //    actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+            //}
 
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
             if (!_allowedTf.Contains(tfTotalMinutes))
-                return null;
-
-            if (startTime != actualTime)
             {
-                startTime = actualTime;
+                return null;
+            }
+
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
             }
 
             List<Candle> candles = new List<Candle>();
@@ -432,8 +404,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
             while (startTime < endTime)
             {
-                BitMartCandlesHistory history = GetHistoryCandle(security, tfTotalMinutes, startTime, endTimeReal);
-                List<Candle> newCandles = ConvertToOsEngineCandles(history);
+                List<Candle> newCandles = GetHistoryCandle(security, tfTotalMinutes, startTime, endTimeReal);
 
                 if (newCandles != null &&
                     newCandles.Count > 0)
@@ -469,7 +440,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             return candles;
         }
 
-        private BitMartCandlesHistory GetHistoryCandle(Security security, int tfTotalMinutes,
+        private List<Candle> GetHistoryCandle(Security security, int tfTotalMinutes,
             DateTime startTime, DateTime endTime)
         {
             DateTime maxStartTime = endTime.AddMinutes(-500 * tfTotalMinutes);
@@ -487,7 +458,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
             endPoint += "&start_time=" + TimeManager.GetTimeStampSecondsToDateTime(startTime);
             endPoint += "&end_time=" + TimeManager.GetTimeStampSecondsToDateTime(endTime);
 
-            //SendLogMessage("Get Candles: " + endPoint, LogMessageType.Connect);
+            _rateGateSendOrder.WaitToProceed();
+
             try
             {
                 RestRequest requestRest = new RestRequest(endPoint, Method.GET);
@@ -496,72 +468,77 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    string content = response.Content;
-                    //SendLogMessage("GetHistoryCandle resp: " + content, LogMessageType.Connect);
-                    BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                    BitMartCandlesHistory candlesResponse = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartCandlesHistory());
 
-                    if (parsed != null && parsed.data != null)
+                    if (candlesResponse.code == "1000")
                     {
-                        string history = parsed.data.ToString();
-                        BitMartCandlesHistory candles =
-                            JsonConvert.DeserializeAnonymousType(history, new BitMartCandlesHistory());
+                        List<Candle> result = new List<Candle>();
 
-                        return candles;
+                        for (int i = 0; i < candlesResponse.data.Count; i++)
+                        {
+                            BitMartCandle curCandle = candlesResponse.data[i];
 
+                            Candle newCandle = new Candle();
+                            newCandle.Open = curCandle.open_price.ToDecimal();
+                            newCandle.High = curCandle.high_price.ToDecimal();
+                            newCandle.Low = curCandle.low_price.ToDecimal();
+                            newCandle.Close = curCandle.close_price.ToDecimal();
+                            newCandle.Volume = curCandle.volume.ToDecimal();
+                            newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.timestamp.ToString());
+
+                            //fix candle
+                            if (newCandle.Open < newCandle.Low)
+                            {
+                                newCandle.Open = newCandle.Low;
+                            }
+
+                            if (newCandle.Open > newCandle.High)
+                            {
+                                newCandle.Open = newCandle.High;
+                            }
+
+                            if (newCandle.Close < newCandle.Low)
+                            {
+                                newCandle.Close = newCandle.Low;
+                            }
+
+                            if (newCandle.Close > newCandle.High)
+                            {
+                                newCandle.Close = newCandle.High;
+                            }
+
+                            result.Add(newCandle);
+                        }
+
+                        return result;
                     }
                     else
                     {
-                        SendLogMessage("Empty Candles request error. Status: " + response.StatusCode, LogMessageType.Error);
+                        SendLogMessage($"Candles request error. Code:{candlesResponse.code} || msg: {candlesResponse.message}", LogMessageType.Error);
                     }
-
                 }
                 else
                 {
-                    SendLogMessage("Candles request error to url='" + endPoint + "'. Status: " + response.StatusCode, LogMessageType.Error);
+                    SendLogMessage($"Candles request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage("Candles request error:" + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"Candles request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
             return null;
         }
 
-        private List<Candle> ConvertToOsEngineCandles(BitMartCandlesHistory candles)
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            if (candles == null)
-                return null;
-
-            List<Candle> result = new List<Candle>();
-
-            for (int i = 0; i < candles.data.Count; i++)
+            if (startTime >= endTime ||
+                startTime >= DateTime.Now ||
+                actualTime > endTime ||
+                actualTime > DateTime.Now)
             {
-                BitMartCandle curCandle = candles.data[i];
-
-                Candle newCandle = new Candle();
-                newCandle.Open = curCandle.open_price.ToDecimal();
-                newCandle.High = curCandle.high_price.ToDecimal();
-                newCandle.Low = curCandle.low_price.ToDecimal();
-                newCandle.Close = curCandle.close_price.ToDecimal();
-                newCandle.Volume = curCandle.volume.ToDecimal();
-                newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.timestamp.ToString());
-
-                //fix candle
-                if (newCandle.Open < newCandle.Low)
-                    newCandle.Open = newCandle.Low;
-                if (newCandle.Open > newCandle.High)
-                    newCandle.Open = newCandle.High;
-
-                if (newCandle.Close < newCandle.Low)
-                    newCandle.Close = newCandle.Low;
-                if (newCandle.Close > newCandle.High)
-                    newCandle.Close = newCandle.High;
-
-                result.Add(newCandle);
+                return false;
             }
-
-            return result;
+            return true;
         }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
