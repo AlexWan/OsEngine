@@ -22,6 +22,7 @@ using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
 using System.Security.Cryptography;
 
+
 namespace OsEngine.Market.Servers.BitMartFutures
 {
     public class BitMartFuturesServer : AServer
@@ -47,13 +48,17 @@ namespace OsEngine.Market.Servers.BitMartFutures
             worker.Name = "CheckAliveBitMartFutures";
             worker.Start();
 
-            Thread worker2 = new Thread(DataMessageReader);
-            worker2.Name = "DataMessageReaderBitMartFutures";
+            Thread worker2 = new Thread(MessageReaderPublic);
+            worker2.Name = "MessageReaderPublicBitMartFutures";
             worker2.Start();
 
-            Thread worker3 = new Thread(PortfolioMessageReader);
-            worker3.Name = "PortfolioMessageReaderBitMartFutures";
+            Thread worker3 = new Thread(MessageReaderPrivate);
+            worker3.Name = "MessageReaderPrivateBitMartFutures";
             worker3.Start();
+
+            Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
+            threadGetPortfolios.Name = "ThreadBitMartFuturesPortfolios";
+            threadGetPortfolios.Start();
         }
 
         public void Connect(WebProxy proxy = null)
@@ -75,26 +80,32 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 _restClient = new BitMartRestClient(_publicKey, _secretKey, _memo);
 
-                if (CheckConnection() == false)
-                {
-                    SendLogMessage("Authorization Error. Probably an invalid keys are specified. You can see it on the BitMartFutures website.",
-                    LogMessageType.Error);
-                    return;
-                }
+                RestRequest requestRest = new RestRequest("/system/time", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
 
-                CreatePublicWebSocketConnect();
-                CreatePrivateWebSocketConnect();
-                //CheckActivationSockets();
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    CreatePublicWebSocketConnect();
+                    CreatePrivateWebSocketConnect();
+                    //SetPositionMode();
+                    //CheckActivationSockets();
+                }
+                else
+                {
+                    SendLogMessage("Connection can be open. BitMartFutures. Error request", LogMessageType.Error);
+
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                    }
+                }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
             }
-        }
-
-        private bool CheckConnection()
-        {
-            return GetCurrentPortfolio();
         }
 
         public void Dispose()
@@ -103,7 +114,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 UnsubscribeFromAllWebSockets();
                 _securities.Clear();
-                _myPortfolious.Clear();
+                //_myPortfolious.Clear();
                 _serverOrderIDs.Clear();
 
                 DeleteWebSocketConnection();
@@ -247,105 +258,175 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         #region 4 Portfolios
 
-        private List<Portfolio> _myPortfolious = new List<Portfolio>();
+        private List<Portfolio> _portfolios;
 
         private string _portfolioName = "BitMartFutures";
 
+        private bool _portfolioIsStarted = false;
+
         public void GetPortfolios()
         {
-            GetCurrentPortfolio();
+            if (_securities.Count == 0)
+            {
+                GetSecurities();
+            }
+
+            if (_portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
+            GetCurrentPortfolio(true);
+            _portfolioIsStarted = true;
         }
 
-        private bool GetCurrentPortfolio()
+        private void GetNewPortfolio()
+        {
+            _portfolios = new List<Portfolio>();
+
+            Portfolio portfolioInitial = new Portfolio();
+            portfolioInitial.Number = this._portfolioName;
+            portfolioInitial.ValueBegin = 1;
+            portfolioInitial.ValueCurrent = 1;
+            portfolioInitial.ValueBlocked = 0;
+
+            _portfolios.Add(portfolioInitial);
+
+            PortfolioEvent(_portfolios);
+        }
+
+        private void ThreadGetPortfolios()
+        {
+            Thread.Sleep(15000);
+
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
+                try
+                {
+                    Thread.Sleep(5000);
+
+                    if (_portfolioIsStarted == false)
+                    {
+                        continue;
+                    }
+
+                    if (_portfolios == null)
+                    {
+                        GetNewPortfolio();
+                    }
+
+                    GetCurrentPortfolio(false);
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+            }
+        }
+
+        private void GetCurrentPortfolio(bool IsUpdateValueBegin)
         {
             _rateGateSendOrder.WaitToProceed();
 
             try
             {
-                string endPoint = $"/contract/private/assets-detail";
+                string path = $"/contract/private/assets-detail";
 
-                //SendLogMessage("GetCurrentPortfolio request: " + endPoint, LogMessageType.Connect);
-                HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
-
-                string content = response.Content.ReadAsStringAsync().Result;
-                //SendLogMessage("GetCurrentPortfolio message: " + content, LogMessageType.Connect);
-                BitMartBaseMessage parsed =
-                    JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                IRestResponse response = CreatePrivateQuery(path, Method.GET);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (parsed != null && parsed.data != null)
+                    BitMartPortfolioRest portfolioResponse = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartPortfolioRest());
+
+                    if (portfolioResponse.code == "1000")
                     {
-                        string wallet = parsed.data.ToString();
-                        BitMartFuturesPortfolioItems portfolio =
-                            JsonConvert.DeserializeAnonymousType(wallet, new BitMartFuturesPortfolioItems());
+                        if (_portfolios == null)
+                        {
+                            return;
+                        }
 
-                        ConvertToPortfolio(portfolio);
+                        Portfolio portfolio = _portfolios[0];
 
-                        return true;
+                        decimal positionInUSDT = 0;
+                        decimal positionPnL = 0;
+                        decimal positionBlocked = 0;
+
+                        for (int i = 0; i < portfolioResponse.data.Count; i++)
+                        {
+                            BalanceData item = portfolioResponse.data[i];
+
+                            if (item.currency == "USDT")
+                            {
+                                positionInUSDT = item.available_balance.ToDecimal();
+                            }
+                            else if (item.currency == "USDC"
+                                || item.currency == "BTC"
+                                || item.currency == "ETH")
+                            {
+                                positionInUSDT += GetPriceSecurity(item.currency + "USDT") * item.available_balance.ToDecimal();
+                            }
+
+                            PositionOnBoard pos = new PositionOnBoard();
+
+                            pos.PortfolioName = this._portfolioName;
+                            pos.SecurityNameCode = item.currency;
+                            pos.ValueBlocked = Math.Round(item.frozen_balance.ToDecimal(), 5);
+                            pos.ValueCurrent = Math.Round(item.available_balance.ToDecimal(), 5);
+                            pos.UnrealizedPnl = Math.Round(item.unrealized.ToDecimal(), 5);
+                            positionPnL += pos.UnrealizedPnl;
+                            positionBlocked += pos.ValueBlocked;
+                            portfolio.SetNewPosition(pos);
+                        }
+
+                        if (IsUpdateValueBegin)
+                        {
+                            portfolio.ValueBegin = Math.Round(positionInUSDT, 5);
+                        }
+
+                        portfolio.ValueCurrent = Math.Round(positionInUSDT, 5);
+                        portfolio.UnrealizedPnl = positionPnL;
+                        portfolio.ValueBlocked = positionBlocked;
+
+                        if (PortfolioEvent != null)
+                        {
+                            PortfolioEvent(_portfolios);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Portfolio error. Code:{portfolioResponse.code} || msg: {portfolioResponse.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    string message = "";
-                    if (parsed != null)
-                    {
-                        message = parsed.message;
-                    }
-                    SendLogMessage("Portfolio request error. Status: "
-                        + response.StatusCode + "  " + _portfolioName +
-                        ", " + message, LogMessageType.Error);
+                    SendLogMessage($"Portfolio error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage("Portfolio request error " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"Portfolio request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
-
-            return false;
         }
 
-        private void ConvertToPortfolio(BitMartFuturesPortfolioItems portfolioItems)
+        private decimal GetPriceSecurity(string security)
         {
-            if (portfolioItems == null)
+            for (int i = 0; i < _securities.Count; i++)
             {
-                return;
-            }
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = this._portfolioName;
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            for (int i = 0; i < portfolioItems.Count; i++)
-            {
-                BitMartFuturesPortfolioItem item = portfolioItems[i];
-
-                PositionOnBoard pos = new PositionOnBoard()
+                if (security == _securities[i].Name)
                 {
-                    PortfolioName = this._portfolioName,
-                    SecurityNameCode = item.currency,
-                    ValueBlocked = item.frozen_balance.ToDecimal(),
-                    ValueCurrent = item.available_balance.ToDecimal()
-                };
+                    string price = _securities[i].NameId.ToString().Split('_')[1];
 
-                portfolio.SetNewPosition(pos);
+                    return price.ToDecimal();
+                }
             }
 
-            if (_myPortfolious.Count > 0)
-            {
-                _myPortfolious[0] = portfolio;
-            }
-            else
-            {
-                _myPortfolious.Add(portfolio);
-            }
-
-
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(_myPortfolious);
-            }
+            return 0;
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -1199,7 +1280,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
-        private void DataMessageReader()
+        private void MessageReaderPublic()
         {
             Thread.Sleep(1000);
 
@@ -1413,7 +1494,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public event Action<MarketDepth> MarketDepthEvent;
 
-        private void PortfolioMessageReader()
+        private void MessageReaderPrivate()
         {
             Thread.Sleep(1000);
 
@@ -1628,115 +1709,146 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         private void UpdateMyPortfolio(string data)
         {
-            BitMartBalanceDetail balanceDetail =
-                JsonConvert.DeserializeAnonymousType(data, new BitMartBalanceDetail());
-
-            Portfolio portf = null;
-            if (_myPortfolious != null && _myPortfolious.Count > 0)
-            {
-                portf = _myPortfolious[0];
-            }
-
-            if (portf == null)
+            if (_portfolioIsStarted == false)
             {
                 return;
             }
 
-            List<PositionOnBoard> positions = portf.GetPositionOnBoard();
-
-            for (int i = 0; i < positions.Count; i++)
+            try
             {
-                PositionOnBoard position = positions[i];
-                if (position.SecurityNameCode != balanceDetail.currency)
+                BitMartBalanceDetail balanceDetail =
+                JsonConvert.DeserializeAnonymousType(data, new BitMartBalanceDetail());
+
+                Portfolio portf = null;
+                if (_portfolios != null && _portfolios.Count > 0)
                 {
-                    continue;
+                    portf = _portfolios[0];
                 }
 
-                position.ValueCurrent = balanceDetail.available_balance.ToDecimal();
-                position.ValueBlocked = balanceDetail.frozen_balance.ToDecimal();
+                if (portf == null)
+                {
+                    return;
+                }
 
-                portf.SetNewPosition(position);
+                List<PositionOnBoard> positions = portf.GetPositionOnBoard();
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    PositionOnBoard position = positions[i];
+                    if (position.SecurityNameCode != balanceDetail.currency)
+                    {
+                        continue;
+                    }
+
+                    position.ValueCurrent = balanceDetail.available_balance.ToDecimal();
+                    position.ValueBlocked = balanceDetail.frozen_balance.ToDecimal();
+
+                    portf.SetNewPosition(position);
+                }
+
+                if (PortfolioEvent != null)
+                {
+                    PortfolioEvent(_portfolios);
+                }
             }
-
-
-            if (PortfolioEvent != null)
+            catch (Exception ex)
             {
-                PortfolioEvent(_myPortfolious);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
         private void UpdateMyPositions(string data)
         {
-            BitMartPositions basePositions =
-                JsonConvert.DeserializeAnonymousType(data, new BitMartPositions());
-
-            Portfolio portf = null;
-            if (_myPortfolious != null && _myPortfolious.Count > 0)
+            try
             {
-                portf = _myPortfolious[0];
-            }
+                List<BitMartPosition> basePositions =
+                JsonConvert.DeserializeAnonymousType(data, new List<BitMartPosition>());
 
-            if (portf == null)
-            {
-                return;
-            }
-
-            List<PositionOnBoard> positions = portf.GetPositionOnBoard();
-
-            for (int k = 0; k < basePositions.Count; k++)
-            {
-                BitMartPosition basePos = basePositions[k];
-
-                string name = basePos.symbol;
-                decimal volume = basePos.hold_volume.ToDecimal();
-                if (basePos.position_type == 1)
+                Portfolio portf = null;
+                if (_portfolios != null && _portfolios.Count > 0)
                 {
-                    name += "_LONG";
-                }
-                else
-                {
-                    name += "_SHORT";
-                    volume = -volume;
+                    portf = _portfolios[0];
                 }
 
-                bool found = false;
-
-                for (int i = 0; i < positions.Count; i++)
+                if (portf == null)
                 {
-                    PositionOnBoard position = positions[i];
-                    if (position.SecurityNameCode != name)
+                    return;
+                }
+
+                List<PositionOnBoard> positions = portf.GetPositionOnBoard();
+
+                for (int k = 0; k < basePositions.Count; k++)
+                {
+                    BitMartPosition basePos = basePositions[k];
+
+                    string name = basePos.symbol;
+                    decimal volume = basePos.hold_volume.ToDecimal();
+
+                    if (basePos.position_mode == "hedge_mode")
                     {
-                        continue;
+                        if (basePos.position_type == "1")
+                        {
+                            name += "_LONG";
+                        }
+                        else
+                        {
+                            name += "_SHORT";
+                            volume = -volume;
+                        }
                     }
 
-                    found = true;
-
-                    position.ValueCurrent = volume;
-                    position.ValueBlocked = basePos.frozen_volume.ToDecimal();
-
-                    portf.SetNewPosition(position);
-                }
-
-                if (!found)
-                {
-                    PositionOnBoard newPos = new PositionOnBoard()
+                    if (basePos.position_mode == "one_way_mode")
                     {
-                        PortfolioName = this._portfolioName,
-                        SecurityNameCode = name,
-                        ValueCurrent = volume,
-                        ValueBlocked = basePos.frozen_volume.ToDecimal(),
-                        ValueBegin = 0
-                    };
+                        if (basePos.position_type == "1")
+                        {
+                            // name;
+                        }
+                        else
+                        {
+                            //name;
+                            volume = -volume;
+                        }
+                    }
 
-                    portf.SetNewPosition(newPos);
+                    bool found = false;
+
+                    for (int i = 0; i < positions.Count; i++)
+                    {
+                        PositionOnBoard position = positions[i];
+                        if (position.SecurityNameCode != name)
+                        {
+                            continue;
+                        }
+
+                        found = true;
+
+                        position.ValueCurrent = volume;
+                        position.ValueBlocked = basePos.frozen_volume.ToDecimal();
+
+                        portf.SetNewPosition(position);
+                    }
+
+                    if (!found)
+                    {
+                        PositionOnBoard newPos = new PositionOnBoard()
+                        {
+                            PortfolioName = this._portfolioName,
+                            SecurityNameCode = name,
+                            ValueCurrent = volume,
+                            ValueBlocked = basePos.frozen_volume.ToDecimal(),
+                            ValueBegin = 0
+                        };
+
+                        portf.SetNewPosition(newPos);
+                    }
                 }
 
+                PortfolioEvent?.Invoke(_portfolios);
             }
-
-
-
-            PortfolioEvent?.Invoke(_myPortfolious);
-
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
         }
 
 
@@ -2523,7 +2635,40 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         #endregion
 
-        #region 12 Helpers
+        #region 12 Query
+
+        private IRestResponse CreatePrivateQuery(string path, Method method, string bodyStr = null)
+        {
+            try
+            {
+                string timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+
+                RestRequest requestRest = new RestRequest(path, method);
+                requestRest.AddHeader("X-BM-KEY", _publicKey);
+
+                if (bodyStr != null)
+                {
+                    requestRest.AddParameter("application/json", bodyStr, ParameterType.RequestBody);
+                }
+
+                if (method == Method.POST)
+                {
+                    string signature = GenerateSignature(timestamp, bodyStr);
+
+                    requestRest.AddHeader("X-BM-TIMESTAMP", timestamp);
+                    requestRest.AddHeader("X-BM-SIGN", signature);
+                }
+
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
+            }
+        }
 
         public string GenerateSignature(string timestamp, string body)
         {
@@ -2531,24 +2676,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
             using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey));
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
-
-            //byte[] keyBytes = Encoding.UTF8.GetBytes(_secretKey);
-            //byte[] messageBytes = Encoding.UTF8.GetBytes(message);
-
-            //// Вычисляем HMAC-SHA256
-            //using (var hmac = new HMACSHA256(keyBytes))
-            //{
-            //    byte[] hashBytes = hmac.ComputeHash(messageBytes);
-
-            //    // Конвертируем хеш в HEX-строку
-            //    StringBuilder hexBuilder = new StringBuilder(hashBytes.Length * 2);
-            //    foreach (byte b in hashBytes)
-            //    {
-            //        hexBuilder.AppendFormat("{0:x2}", b);
-            //    }
-            //    return hexBuilder.ToString();
-            //}
-
         }
 
         private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
