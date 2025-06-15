@@ -108,12 +108,6 @@ namespace OsEngine.Market.Servers.OKX
 
             try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls |
-                    SecurityProtocolType.Tls11 |
-                    SecurityProtocolType.Tls12 |
-                    SecurityProtocolType.Tls13 |
-                    SecurityProtocolType.SystemDefault;
-
                 RestRequest requestRest = new RestRequest("/api/v5/public/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
 
@@ -141,12 +135,10 @@ namespace OsEngine.Market.Servers.OKX
 
             try
             {
-                SetPositionMode();
-                FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                 CreatePublicWebSocketConnect();
                 CreatePrivateWebSocketConnect();
                 CheckSocketsActivate();
+                //SetPositionMode();
             }
             catch (Exception exception)
             {
@@ -170,8 +162,8 @@ namespace OsEngine.Market.Servers.OKX
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketPublicMessage = null;
-            FIFOListWebSocketPrivateMessage = null;
+            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -1044,7 +1036,12 @@ namespace OsEngine.Market.Servers.OKX
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Connect;
-                        ConnectEvent();
+                        if (ConnectEvent != null)
+                        {
+                            ConnectEvent();
+                        }
+
+                        SetPositionMode();
                     }
                 }
             }
@@ -1068,6 +1065,11 @@ namespace OsEngine.Market.Servers.OKX
 
         private void SetPositionMode()
         {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
             Dictionary<string, string> dict = new Dictionary<string, string>();
 
             dict["posMode"] = "net_mode";
@@ -1101,6 +1103,11 @@ namespace OsEngine.Market.Servers.OKX
             if (message.code.Equals("1"))
             {
                 SendLogMessage($"PushPositionMode - {message.data[0].sMsg}", LogMessageType.Error);
+            }
+            else if(message.msg == "API key doesn't exist")
+            {
+                SendLogMessage($"PushPositionMode - {contentStr}", LogMessageType.Error);
+                Disconnect();
             }
 
             return contentStr;
@@ -2620,7 +2627,7 @@ namespace OsEngine.Market.Servers.OKX
                             MyOrderEvent(newOrder);
                         }
 
-                        if(newOrder.NumberUser == order.NumberUser)
+                        if (newOrder.NumberUser == order.NumberUser)
                         {
                             myOrderState = newOrder.State;
                         }
