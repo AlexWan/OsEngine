@@ -39,6 +39,7 @@ namespace OsEngine.Robots.AO
     [Bot("DevergenceRsi")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class DevergenceRsi : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -65,6 +66,7 @@ namespace OsEngine.Robots.AO
 
         public DevergenceRsi(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -120,6 +122,7 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
             _zigZag.Save();
             _zigZag.Reload();
+
             ((IndicatorParameterInt)_zigZagRsi.Parameters[0]).ValueInt = _periodRsi.ValueInt;
             ((IndicatorParameterInt)_zigZagRsi.Parameters[1]).ValueInt = _periodZigZag.ValueInt;
             _zigZagRsi.Save();
@@ -131,6 +134,7 @@ namespace OsEngine.Robots.AO
         {
             return "DevergenceRsi";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -389,9 +393,7 @@ namespace OsEngine.Robots.AO
             decimal zzRsiHighTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexLow = 0;
 
             for (int i = zzRsiLow.Count - 1; i >= 0; i--)
@@ -486,6 +488,7 @@ namespace OsEngine.Robots.AO
                     max = candles[candles.Count - i].Close;
                 }
             }
+
             return max;
         }
 
@@ -499,6 +502,7 @@ namespace OsEngine.Robots.AO
                     min = candles[candles.Count - i].Close;
                 }
             }
+
             return min;
         }
 
@@ -589,9 +593,11 @@ namespace OsEngine.Robots.AO
                 }
 
                 return qty;
+
             }
 
             return volume;
+
         }
     }
 }

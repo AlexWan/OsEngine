@@ -46,10 +46,10 @@ namespace OsEngine.Robots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -57,17 +57,17 @@ namespace OsEngine.Robots
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator setting 
-        private StrategyParameterInt _MomentumPeriod;
+        private StrategyParameterInt _momentumPeriod;
 
         // Indicator
-        Aindicator _Momentum;
+        private Aindicator _momentum;
 
         // The last value of the indicator
         private decimal _lastMomentum;
 
         // Exit
-        private StrategyParameterDecimal StopValue;
-        private StrategyParameterDecimal ProfitValue;
+        private StrategyParameterDecimal _stopValue;
+        private StrategyParameterDecimal _profitValue;
 
         public BreakMomentum(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -76,10 +76,10 @@ namespace OsEngine.Robots
             _tab = TabsSimple[0];
 
             // Basic settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
@@ -87,17 +87,17 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Indicator Momentum setting
-            _MomentumPeriod = CreateParameter("Momentum Period", 16, 10, 300, 7, "Indicator");
+            _momentumPeriod = CreateParameter("Momentum Period", 16, 10, 300, 7, "Indicator");
 
             // Create indicator Momentum
-            _Momentum = IndicatorsFactory.CreateIndicatorByName("Momentum", name + "Momentum", false);
-            _Momentum = (Aindicator)_tab.CreateCandleIndicator(_Momentum, "NewArea");
-            ((IndicatorParameterInt)_Momentum.Parameters[0]).ValueInt = _MomentumPeriod.ValueInt;
-            _Momentum.Save();
+            _momentum = IndicatorsFactory.CreateIndicatorByName("Momentum", name + "Momentum", false);
+            _momentum = (Aindicator)_tab.CreateCandleIndicator(_momentum, "NewArea");
+            ((IndicatorParameterInt)_momentum.Parameters[0]).ValueInt = _momentumPeriod.ValueInt;
+            _momentum.Save();
 
             // Exit settings
-            StopValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
-            ProfitValue = CreateParameter("Profit Value", 1.0m, 5, 200, 5, "Exit");
+            _stopValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
+            _profitValue = CreateParameter("Profit Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakMomentum_ParametrsChangeByUser; ;
@@ -116,9 +116,9 @@ namespace OsEngine.Robots
 
         private void BreakMomentum_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_Momentum.Parameters[0]).ValueInt = _MomentumPeriod.ValueInt;
-            _Momentum.Save();
-            _Momentum.Reload();
+            ((IndicatorParameterInt)_momentum.Parameters[0]).ValueInt = _momentumPeriod.ValueInt;
+            _momentum.Save();
+            _momentum.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -135,20 +135,20 @@ namespace OsEngine.Robots
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _MomentumPeriod.ValueInt)
+            if (candles.Count < _momentumPeriod.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -162,7 +162,7 @@ namespace OsEngine.Robots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -178,7 +178,7 @@ namespace OsEngine.Robots
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            _lastMomentum = _Momentum.DataSeries[0].Last;
+            _lastMomentum = _momentum.DataSeries[0].Last;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -187,10 +187,10 @@ namespace OsEngine.Robots
                 decimal lastPrice = candles[candles.Count - 1].Close;
 
                 // Slippage
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (_lastMomentum > 100)
                     {
@@ -199,7 +199,7 @@ namespace OsEngine.Robots
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (_lastMomentum < 100)
                     {
@@ -214,7 +214,7 @@ namespace OsEngine.Robots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -229,16 +229,16 @@ namespace OsEngine.Robots
 
                 if (pos.Direction == Side.Buy) // If the direction of the position is purchase
                 {
-                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * ProfitValue.ValueDecimal / 100;
-                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * StopValue.ValueDecimal / 100;
+                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * _profitValue.ValueDecimal / 100;
+                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * _stopValue.ValueDecimal / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
                 }
                 else // If the direction of the position is sale
                 {
-                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * ProfitValue.ValueDecimal / 100;
-                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * StopValue.ValueDecimal / 100;
+                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * _profitValue.ValueDecimal / 100;
+                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * _stopValue.ValueDecimal / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);

@@ -45,10 +45,10 @@ namespace OsEngine.Robots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString _Regime;
-        private StrategyParameterDecimal _Slippage;
-        private StrategyParameterTimeOfDay _StartTradeTime;
-        private StrategyParameterTimeOfDay _EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -56,16 +56,16 @@ namespace OsEngine.Robots
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator setting 
-        private StrategyParameterInt _PeriodLR;
-        private StrategyParameterDecimal _UpDeviation;
-        private StrategyParameterDecimal _DownDeviation;
+        private StrategyParameterInt _periodLR;
+        private StrategyParameterDecimal _upDeviation;
+        private StrategyParameterDecimal _downDeviation;
 
         // Indicator
-        private Aindicator _ChannelLR;
+        private Aindicator _channelLR;
 
         // Exit settings
-        private StrategyParameterInt _TrailCandlesLong;
-        private StrategyParameterInt _TrailCandlesShort;
+        private StrategyParameterInt _trailCandlesLong;
+        private StrategyParameterInt _trailCandlesShort;
 
         // The last value of the indicator
         private decimal _lastUpLine;
@@ -82,10 +82,10 @@ namespace OsEngine.Robots
             _tab = TabsSimple[0];
 
             // Basic settings
-            _Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            _Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            _StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
@@ -93,21 +93,21 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
 
             // Indicator settings
-            _PeriodLR = CreateParameter("PeriodLR", 3, 3, 100, 1, "Indicator");
-            _UpDeviation = CreateParameter("UpDeviation", 1.0m, 1, 50, 1, "Indicator");
-            _DownDeviation = CreateParameter("DownDeviation", 2.0m, 1, 50, 1, "Indicator");
+            _periodLR = CreateParameter("PeriodLR", 3, 3, 100, 1, "Indicator");
+            _upDeviation = CreateParameter("UpDeviation", 1.0m, 1, 50, 1, "Indicator");
+            _downDeviation = CreateParameter("DownDeviation", 2.0m, 1, 50, 1, "Indicator");
 
             // Create indicator LinearRegressionChannel
-            _ChannelLR = IndicatorsFactory.CreateIndicatorByName("LinearRegressionChannel", name + "LinearRegressionChannel", false);
-            _ChannelLR = (Aindicator)_tab.CreateCandleIndicator(_ChannelLR, "Prime");
-            ((IndicatorParameterInt)_ChannelLR.Parameters[0]).ValueInt = _PeriodLR.ValueInt;
-            ((IndicatorParameterDecimal)_ChannelLR.Parameters[2]).ValueDecimal = _UpDeviation.ValueDecimal;
-            ((IndicatorParameterDecimal)_ChannelLR.Parameters[3]).ValueDecimal = _DownDeviation.ValueDecimal;
-            _ChannelLR.Save();
+            _channelLR = IndicatorsFactory.CreateIndicatorByName("LinearRegressionChannel", name + "LinearRegressionChannel", false);
+            _channelLR = (Aindicator)_tab.CreateCandleIndicator(_channelLR, "Prime");
+            ((IndicatorParameterInt)_channelLR.Parameters[0]).ValueInt = _periodLR.ValueInt;
+            ((IndicatorParameterDecimal)_channelLR.Parameters[2]).ValueDecimal = _upDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_channelLR.Parameters[3]).ValueDecimal = _downDeviation.ValueDecimal;
+            _channelLR.Save();
 
             // Exit settings
-            _TrailCandlesLong = CreateParameter("Trail Candles Long", 5, 10, 500, 10, "Exit");
-            _TrailCandlesShort = CreateParameter("Trail Candles Short", 1, 15, 200, 5, "Exit");
+            _trailCandlesLong = CreateParameter("Trail Candles Long", 5, 10, 500, 10, "Exit");
+            _trailCandlesShort = CreateParameter("Trail Candles Short", 1, 15, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakLRChannel_ParametrsChangeByUser; ;
@@ -132,11 +132,11 @@ namespace OsEngine.Robots
 
         private void BreakLRChannel_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_ChannelLR.Parameters[0]).ValueInt = _PeriodLR.ValueInt;
-            ((IndicatorParameterDecimal)_ChannelLR.Parameters[2]).ValueDecimal = _UpDeviation.ValueDecimal;
-            ((IndicatorParameterDecimal)_ChannelLR.Parameters[3]).ValueDecimal = _DownDeviation.ValueDecimal;
-            _ChannelLR.Save();
-            _ChannelLR.Reload();
+            ((IndicatorParameterInt)_channelLR.Parameters[0]).ValueInt = _periodLR.ValueInt;
+            ((IndicatorParameterDecimal)_channelLR.Parameters[2]).ValueDecimal = _upDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_channelLR.Parameters[3]).ValueDecimal = _downDeviation.ValueDecimal;
+            _channelLR.Save();
+            _channelLR.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -154,22 +154,22 @@ namespace OsEngine.Robots
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (_Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _DownDeviation.ValueDecimal ||
-                candles.Count < _UpDeviation.ValueDecimal ||
-                candles.Count < _PeriodLR.ValueInt)
+            if (candles.Count < _downDeviation.ValueDecimal ||
+                candles.Count < _upDeviation.ValueDecimal ||
+                candles.Count < _periodLR.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (_StartTradeTime.Value > _tab.TimeServerCurrent ||
-                _EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -183,7 +183,7 @@ namespace OsEngine.Robots
             }
 
             // If the position closing mode, then exit the method
-            if (_Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -199,12 +199,12 @@ namespace OsEngine.Robots
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            _lastUpLine = _ChannelLR.DataSeries[0].Last;
-            _lastCenterLine = _ChannelLR.DataSeries[1].Last;
-            _lastDownLine = _ChannelLR.DataSeries[2].Last;
+            _lastUpLine = _channelLR.DataSeries[0].Last;
+            _lastCenterLine = _channelLR.DataSeries[1].Last;
+            _lastDownLine = _channelLR.DataSeries[2].Last;
 
             // The prev value of the indicator
-            _prevCenterLine = _ChannelLR.DataSeries[1].Values[_ChannelLR.DataSeries[1].Values.Count - 2];
+            _prevCenterLine = _channelLR.DataSeries[1].Values[_channelLR.DataSeries[1].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -213,10 +213,10 @@ namespace OsEngine.Robots
                 decimal lastPrice = candles[candles.Count - 1].Close;
 
                 // Slippage
-                decimal _slippage = _Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (_Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
 
 
@@ -227,7 +227,7 @@ namespace OsEngine.Robots
                 }
 
                 // Short
-                if (_Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
 
                     if (_lastDownLine > lastPrice && _lastCenterLine < _prevCenterLine)
@@ -243,7 +243,7 @@ namespace OsEngine.Robots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            decimal _slippage = _Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -284,7 +284,7 @@ namespace OsEngine.Robots
 
         private decimal GetPriceStop(Side side, List<Candle> candles, int index)
         {
-            if (candles == null || index < _TrailCandlesLong.ValueInt || index < _TrailCandlesShort.ValueInt)
+            if (candles == null || index < _trailCandlesLong.ValueInt || index < _trailCandlesShort.ValueInt)
             {
                 return 0;
             }
@@ -293,7 +293,7 @@ namespace OsEngine.Robots
             {
                 decimal price = decimal.MaxValue;
 
-                for (int i = index; i > index - _TrailCandlesLong.ValueInt; i--)
+                for (int i = index; i > index - _trailCandlesLong.ValueInt; i--)
                 {
                     if (candles[i].Low < price)
                     {
@@ -309,7 +309,7 @@ namespace OsEngine.Robots
             {
                 decimal price = 0;
 
-                for (int i = index; i > index - _TrailCandlesShort.ValueInt; i--)
+                for (int i = index; i > index - _trailCandlesShort.ValueInt; i--)
                 {
                     if (candles[i].High > price)
                     {

@@ -62,9 +62,9 @@ namespace OsEngine.Robots.AO
         private StrategyParameterInt _periodRsi;
 
         // Indicators
-        Aindicator _ichomoku;
-        Aindicator _zigZag;
-        Aindicator _zigZagRsi;
+        private Aindicator _ichomoku;
+        private Aindicator _zigZag;
+        private Aindicator _zigZagRsi;
 
         // The last value of the indicator
         private decimal _lastSenkouA;
@@ -79,7 +79,7 @@ namespace OsEngine.Robots.AO
         private StrategyParameterInt _profitCandles;
 
         // Counter
-        decimal Cnt;
+        private decimal _cnt;
 
         public DevergenceRsiWithIchimoku(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -139,18 +139,18 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend-following robot based on RSI divergence with Ichimoku confirmation.\n" +
-                        "Buy:\n" +
-                        "1. Price forms lower lows, while RSI forms higher lows (bullish divergence).\n" +
-                        "2. Ichimoku confirmation: Senkou Span A crosses above Senkou Span B (Kumo twist up).\n" +
-                        "Sell:\n" +
-                        "1. Price forms higher highs, while RSI forms lower highs (bearish divergence).\n" +
-                        "2. Ichimoku confirmation: Senkou Span A crosses below Senkou Span B (Kumo twist down).\n" +
-                        "Exit from long:\n" +
-                        "1. Stop-loss below the minimum of the last N candles.\n" +
-                        "2. Take-profit at the maximum of the last N candles.\n" +
-                        "Exit from short:\n" +
-                        "1. Stop-loss above the maximum of the last N candles.\n" +
+            Description = "Trend-following robot based on RSI divergence with Ichimoku confirmation." +
+                        "Buy:" +
+                        "1. Price forms lower lows, while RSI forms higher lows (bullish divergence)." +
+                        "2. Ichimoku confirmation: Senkou Span A crosses above Senkou Span B (Kumo twist up)." +
+                        "Sell:" +
+                        "1. Price forms higher highs, while RSI forms lower highs (bearish divergence)." +
+                        "2. Ichimoku confirmation: Senkou Span A crosses below Senkou Span B (Kumo twist down)." +
+                        "Exit from long:" +
+                        "1. Stop-loss below the minimum of the last N candles." +
+                        "2. Take-profit at the maximum of the last N candles." +
+                        "Exit from short:" +
+                        "1. Stop-loss above the maximum of the last N candles." +
                         "2. Take-profit at the minimum of the last N candles.";
         }
 
@@ -230,7 +230,7 @@ namespace OsEngine.Robots.AO
             if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles);
-                Cnt = 0;
+                _cnt = 0;
             }
         }
 
@@ -293,7 +293,7 @@ namespace OsEngine.Robots.AO
             {
                 Position pos = openPositions[i];
 
-                if (Cnt == 1)
+                if (_cnt == 1)
                 {
                     return;
                 }
@@ -307,13 +307,13 @@ namespace OsEngine.Robots.AO
                 { 
                     _tab.CloseAtProfit(pos, MaxPrice(candles, _profitCandles.ValueInt), MaxPrice(candles, _profitCandles.ValueInt) + _slippage);
                     _tab.CloseAtStop(pos, MinPrice(candles,_stopCandles.ValueInt), MinPrice(candles, _stopCandles.ValueInt) - _slippage);
-                    Cnt = 1;
+                    _cnt = 1;
                 }
                 else // If the direction of the position is sell
                 {
                      _tab.CloseAtProfit(pos, MinPrice(candles, _profitCandles.ValueInt), MinPrice(candles, _profitCandles.ValueInt) - _slippage);
                     _tab.CloseAtStop(pos, MaxPrice(candles, _stopCandles.ValueInt), MaxPrice(candles, _stopCandles.ValueInt) + _slippage);
-                    Cnt = 1;
+                    _cnt = 1;
                 }
             }
         }
