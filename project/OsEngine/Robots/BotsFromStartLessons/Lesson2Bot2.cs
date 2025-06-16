@@ -19,31 +19,34 @@ This code describes the creation of 5 different parameters for the robot.
 
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson2Bot2")]
     public class Lesson2Bot2 : BotPanel
     {   
         
         public Lesson2Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            // 1 creates string parameter
-
+            // create string parameter
+            // создаём строчный параметр 
             StrategyParameterString Mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
 
-            // 2 creates an Int parameter
-
+            // create int parameter
+            // создаём int параметр 
             StrategyParameterInt smaLen = CreateParameter("Sma len", 15, 1, 20, 1);
 
-            // 3 creates a bool parameter
-
+            // create a bool parameter
+            // создаём bool параметр 
             StrategyParameterBool isUpCandleToEntry = CreateParameter("Is up candle", true);
 
-            // 4 creates the Decimal parameter
-
+            // create the decimal parameter
+            // создаём decimal параметр
             StrategyParameterDecimal bollingerDeviation = CreateParameter("Bollinger deviation", 1.4m, 1, 2, 0.1m);
 
-            // 5 creates TimeOfDay parameter
-
+            // create TimeOfDay parameter
+            // создание параметра TimeOfDay
             StrategyParameterTimeOfDay startToTrade = CreateParameterTimeOfDay("Start to trade", 11, 00, 00, 00);
+
             Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
                 "This code describes the creation of 5 different parameters for the robot." +
                 "1)Mode is an example of the parameter of the mode of operation of the robot. It includes a set of possible string values \"On\", \"Off\"." +
