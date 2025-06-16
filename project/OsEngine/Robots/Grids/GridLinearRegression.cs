@@ -3,24 +3,185 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Entity;
-using OsEngine.OsTrader.Panels;
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using OsEngine.Entity;
+using OsEngine.Indicators;
+using OsEngine.OsTrader.Grids;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.OsTrader.Panels.Tab;
+
+/* Description
+Robot showing the work with the grid. 
+Throws a grid of the “Position Opening” type and closes the grid by a general trailing stop order. 
+The linear regression indicator serves as a signal for grid throwing. 
+When the candlestick closing price is higher than the upper channel line of the indicator - the grid is thrown out.
+ */
 
 namespace OsEngine.Robots.Grids
 {
+    [Bot("GridLinearRegression")]
     public class GridLinearRegression : BotPanel
     {
+        private StrategyParameterString _regime; 
+        private StrategyParameterDecimal _trailStopValuePercent;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
+
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        private StrategyParameterInt _lrLength;
+        private StrategyParameterDecimal _upDeviation;
+        private StrategyParameterDecimal _downDeviation;
+
+        private StrategyParameterInt _linesCount;
+        private StrategyParameterDecimal _linesStep;
+
+        private Aindicator _linearRegression;
+
+        private BotTabSimple _tab;
+
         public GridLinearRegression(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            
+            TabCreate(BotTabType.Simple);
+            _tab = TabsSimple[0];
+            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
+            _trailStopValuePercent = CreateParameter("Trail", 1.5m, 1, 5, 0.1m, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
+            _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
+            _linesStep = CreateParameter("Grid lines step", 0.1m, 10m, 300, 10, "Grid");
+            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Grid");
+            _volume = CreateParameter("Volume on one line", 1, 1.0m, 50, 4, "Grid");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Grid");
 
+            _lrLength = CreateParameter("LR Length", 10, 10, 300, 10, "Indicator");
+            _upDeviation = CreateParameter("Up Deviation", 3.0m, 1, 5, 0.1m, "Indicator");
+            _downDeviation = CreateParameter("Down Deviation", 3.0m, 1, 5, 0.1m, "Indicator");
+
+            // Create indicator LR
+            _linearRegression = IndicatorsFactory.CreateIndicatorByName("LinearRegressionChannel", name + "LinearRegressionChannel", false);
+            _linearRegression = (Aindicator)_tab.CreateCandleIndicator(_linearRegression, "Prime");
+            ((IndicatorParameterInt)_linearRegression.Parameters[0]).ValueInt = _lrLength.ValueInt;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[2]).ValueDecimal = _upDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[3]).ValueDecimal = _downDeviation.ValueDecimal;
+            _linearRegression.Save();
+
+            ParametrsChangeByUser += ParametersChangeByUser;
+
+            Description = "Robot showing the work with the grid. " +
+                "Throws a grid of the “Position Opening” type and closes the grid by a general trailing stop order. " +
+                "The linear regression indicator serves as a signal for grid throwing. " +
+                "When the candlestick closing price is higher than the upper channel line of the indicator - the grid is thrown out. ";
+        }
+
+        private void ParametersChangeByUser()
+        {
+            ((IndicatorParameterInt)_linearRegression.Parameters[0]).ValueInt = _lrLength.ValueInt;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[2]).ValueDecimal = _upDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[3]).ValueDecimal = _downDeviation.ValueDecimal;
+            _linearRegression.Save();
+            _linearRegression.Reload();
+        }
+
+        private void _tab_CandleFinishedEvent(List<Candle> candles)
+        {
+            if (_regime.ValueString == "Off")
+            {
+                return;
+            }
+
+            if (candles.Count < _lrLength.ValueInt)
+            {
+                return;
+            }
+
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
+            {
+                return;
+            }
+
+            if(_tab.GridsMaster.TradeGrids.Count == 0)
+            {
+                LogicCreateGrid(candles);
+            }
+            else
+            {
+                LogicCloseGrid();
+            }
+
+        }
+
+        private void LogicCreateGrid(List<Candle> candles)
+        {
+            decimal lastLrUp = _linearRegression.DataSeries[0].Last;
+
+            if (lastLrUp == 0)
+            {
+                return;
+            }
+
+            decimal lastPrice = candles[^1].Close;
+
+            if (lastPrice > lastLrUp)
+            {
+                _tab.GridsMaster.CreateNewTradeGrid();
+
+                TradeGrid grid = _tab.GridsMaster.TradeGrids[0];
+
+                grid.GridType = TradeGridPrimeType.OpenPosition;
+
+                grid.GridCreator.StartVolume = _volume.ValueDecimal;
+                grid.GridCreator.TradeAssetInPortfolio = _tradeAssetInPortfolio.ValueString;
+
+                if (_volumeType.ValueString == "Contracts")
+                {
+                    grid.GridCreator.TypeVolume = TradeGridVolumeType.Contracts;
+                }
+                else if (_volumeType.ValueString == "Contract currency")
+                {
+                    grid.GridCreator.TypeVolume = TradeGridVolumeType.ContractCurrency;
+                }
+                else if (_volumeType.ValueString == "Deposit percent")
+                {
+                    grid.GridCreator.TypeVolume = TradeGridVolumeType.DepositPercent;
+                }
+
+                grid.GridCreator.FirstPrice = lastPrice;
+                grid.GridCreator.LineCountStart = _linesCount.ValueInt;
+                grid.GridCreator.LineStep = _linesStep.ValueDecimal;
+                grid.GridCreator.TypeStep = TradeGridValueType.Percent;
+                grid.GridCreator.CreateNewGrid(_tab,TradeGridPrimeType.OpenPosition);
+
+                grid.StopAndProfit.TrailStopValue = _trailStopValuePercent.ValueDecimal;
+                grid.StopAndProfit.TrailStopValueType = TradeGridValueType.Percent;
+                grid.StopAndProfit.TrailStopRegime = OnOffRegime.On;
+                grid.Save();
+
+                grid.Regime = TradeGridRegime.On;
+
+            }
+
+        }
+
+        private void LogicCloseGrid()
+        {
+            TradeGrid grid = _tab.GridsMaster.TradeGrids[0];
+
+            // проверяем сетку на то что она уже прекратила работать и её надо удалить
+
+            if(grid.HaveOpenPositionsByGrid == false 
+                && grid.Regime == TradeGridRegime.Off)
+            { // Grid is stop work
+                _tab.GridsMaster.DeleteAtNum(grid.Number);
+                return;
+            }
         }
 
         public override string GetNameStrategyType()

@@ -97,15 +97,18 @@ namespace OsEngine.OsTrader.Grids
             SaveGrids();
         }
 
-        public void DeleteAtNum(int num)
+        public void DeleteAtNum(int num, bool isAuto = true)
         {
-            AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label443);
-
-            ui.ShowDialog();
-
-            if (ui.UserAcceptAction == false)
+            if(isAuto == false)
             {
-                return;
+                AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Trader.Label443);
+
+                ui.ShowDialog();
+
+                if (ui.UserAcceptAction == false)
+                {
+                    return;
+                }
             }
 
             for(int i = 0;i < TradeGrids.Count;i++)
@@ -125,6 +128,7 @@ namespace OsEngine.OsTrader.Grids
                     TradeGrids[i].NeedToSaveEvent -= NewGrid_NeedToSaveEvent;
                     TradeGrids[i].LogMessageEvent -= SendNewLogMessage;
                     TradeGrids[i].RePaintSettingsEvent -= NewGrid_UpdateTableEvent;
+                    TradeGrids[i].Delete();
                     TradeGrids.RemoveAt(i);
                     
                     break;
@@ -446,7 +450,7 @@ namespace OsEngine.OsTrader.Grids
 
                     int number = Convert.ToInt32(_gridViewInstances.Rows[row].Cells[0].Value.ToString());
 
-                    DeleteAtNum(number);
+                    DeleteAtNum(number, false);
                 }
 
                 if (row < _gridViewInstances.Rows.Count - 1
