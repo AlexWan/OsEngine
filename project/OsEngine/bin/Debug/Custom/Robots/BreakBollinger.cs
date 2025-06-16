@@ -122,8 +122,7 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _bollingerDeviation.ValueDecimal ||
-                candles.Count < _bollingerLength.ValueInt)
+            if (candles.Count < _bollingerLength.ValueInt)
             {
                 return;
             }

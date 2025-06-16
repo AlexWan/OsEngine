@@ -89,6 +89,16 @@ namespace OsEngine.Robots.Grids
             _linearRegression.Reload();
         }
 
+        public override string GetNameStrategyType()
+        {
+            return "GridLinearRegression";
+        }
+
+        public override void ShowIndividualSettingsDialog()
+        {
+
+        }
+
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             if (_regime.ValueString == "Off")
@@ -157,6 +167,7 @@ namespace OsEngine.Robots.Grids
                 grid.GridCreator.LineCountStart = _linesCount.ValueInt;
                 grid.GridCreator.LineStep = _linesStep.ValueDecimal;
                 grid.GridCreator.TypeStep = TradeGridValueType.Percent;
+                grid.GridCreator.GridSide = Side.Buy;
                 grid.GridCreator.CreateNewGrid(_tab,TradeGridPrimeType.OpenPosition);
 
                 grid.StopAndProfit.TrailStopValue = _trailStopValuePercent.ValueDecimal;
@@ -184,16 +195,5 @@ namespace OsEngine.Robots.Grids
             }
         }
 
-        public override string GetNameStrategyType()
-        {
-            return "GridLinearRegression";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-           
-
-
-        }
     }
 }
