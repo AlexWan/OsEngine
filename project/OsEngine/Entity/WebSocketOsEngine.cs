@@ -196,9 +196,10 @@ namespace OsEngine.Entity.WebSocketOsEngine
 
         private async Task ReceiveLoopAsync(CancellationToken token)
         {
-            var buffer = new byte[8192 * 2]; // 16KB buffer, adjust as needed
             try
             {
+                var buffer = new byte[8192 * 2]; // 16KB buffer, adjust as needed
+
                 while (_client.State == System.Net.WebSockets.WebSocketState.Open && !token.IsCancellationRequested)
                 {
                     using (var ms = new MemoryStream())

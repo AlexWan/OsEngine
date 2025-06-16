@@ -1003,6 +1003,18 @@ namespace OsEngine.OsOptimizer
 
             if (allLength > allDays)
             {
+                if (Convert.ToDecimal(allLength) / allDays > 1.2m)
+                {
+                    if (curLengthInSample > 1000)
+                    {
+                        curLengthInSample -= 10;
+                    }
+                    else
+                    {
+                        curLengthInSample -= 5;
+                    }
+                }
+
                 curLengthInSample--;
                 return GetInSampleRecurs(curLengthInSample, fazeCount, lastInSample, allDays);
             }
