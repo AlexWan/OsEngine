@@ -1,11 +1,19 @@
-﻿using System;
-using System.Net;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
-using OsEngine.OsTrader.Panels;
-using OsEngine.OsTrader.Panels.Tab;
-using System.Collections.Generic;
-using OsEngine.OsTrader.Panels.Attributes;         
 using OsEngine.Indicators;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
+using System.Net;
 using OsEngine.Logging;
 using System.Threading;
 
@@ -23,8 +31,7 @@ Robot is for demonstration, not for real trading - be careful
 Be careful in Tester and Optimazer - it can often send notifications
  */
 
-
-namespace OsEngine.Robots.MyRobots
+namespace OsEngine.Robots
 {
     [Bot("TelegramSample")]
     public class TelegramSample : BotPanel
@@ -33,8 +40,12 @@ namespace OsEngine.Robots.MyRobots
 
         // Basic Settings
         private StrategyParameterString Regime;
-        private StrategyParameterDecimal Volume;
         private StrategyParameterInt PriceChannelLength;
+
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Telegram Allerts Settings
         private StrategyParameterString AlertsRegime;
@@ -42,7 +53,7 @@ namespace OsEngine.Robots.MyRobots
         private StrategyParameterString BotToken;
 
         // Indicator
-        Aindicator _priceChannel;
+        private Aindicator _priceChannel;
 
         // Was there a connection to server
         private bool _isConnect;  
@@ -54,8 +65,12 @@ namespace OsEngine.Robots.MyRobots
 
             // Trade Settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Trade settings");
-            Volume = CreateParameter("Volume (lots)", 1m, 1m, 50m, 1m, "Trade settings");
             PriceChannelLength = CreateParameter("Price Channel Length", 21, 7, 70, 7, "Trade settings");
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Telegram Allerts Settings
             AlertsRegime = CreateParameter("Alerts Regime", "Off", new[] { "Off", "On" }, "Telegram settings");
@@ -172,7 +187,7 @@ namespace OsEngine.Robots.MyRobots
             {
                 if (candles[candles.Count - 1].Close > prevUpChannel)
                 {
-                    _tab.BuyAtMarket(GetVolume());
+                    _tab.BuyAtMarket(GetVolume(_tab));
                 }
             }
         }
@@ -190,23 +205,6 @@ namespace OsEngine.Robots.MyRobots
                     _tab.CloseAtMarket(pos, pos.OpenVolume);
                 }
             }
-        }
-
-        // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
-        {
-            decimal volume = Volume.ValueDecimal;
-
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
-            return volume;
         }
 
         // Method sending message to Telegram
@@ -256,6 +254,98 @@ namespace OsEngine.Robots.MyRobots
                     }
                 }
             }
+        }
+
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (_volumeType.ValueString == "Contracts")
+            {
+                volume = _volume.ValueDecimal;
+            }
+            else if (_volumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 }
