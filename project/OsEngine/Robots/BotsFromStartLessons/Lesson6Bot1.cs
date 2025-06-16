@@ -28,29 +28,35 @@ Close all positions using a Trailing Stop along the lower Bollinger Band.
 
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson6Bot1")]
     public class Lesson6Bot1 : BotPanel
     {
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку
         private BotTabSimple _tabToTrade;
-        
+
         // Basic settings
+        // Базовые настройки
         private StrategyParameterString _regime;
+        private StrategyParameterDecimal _multOne;
+        private StrategyParameterDecimal _multTwo;
 
         // GetVolume settings
+        // Настройки метода GetVolume
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator Bollinger settings
+        // Настройка индикатора Bollinger
         private StrategyParameterInt _lengthBollinger;
         private StrategyParameterDecimal _bollingerDeviation;
 
         // Indicator atr settings
+        // Настройка индикатора atr
         private StrategyParameterInt _atrLength;
-
-        // Indicator Bollinger settings
-        private StrategyParameterDecimal _multOne;
-        private StrategyParameterDecimal _multTwo;
 
         // Indicators
         private Aindicator _bollinger;
@@ -58,41 +64,51 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         public Lesson6Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            
+
             // Basic settings
+            // Базовые настройки
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             _multOne = CreateParameter("Mult 1", 0.5m, 1.0m, 50, 4);
             _multTwo = CreateParameter("Mult 2", 1, 1.0m, 50, 4);
 
             // GetVolume settings
+            // Настройки метода GetVolume
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator Bollinger settings
+            // Настройки индикатора Bollinger
             _lengthBollinger = CreateParameter("Bollinger len", 21, 10, 100, 2);
             _bollingerDeviation = CreateParameter("Bollinger deviation", 1.5m, 10, 100, 2);
 
             // Indicator atr settings
+            // Настройка индикатора atr
             _atrLength = CreateParameter("Length ATR", 14, 10, 100, 2);
 
             // Create indicator Bollinger 
+            // Создание индикатора Bollinger 
             _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
             _bollinger = (Aindicator)_tabToTrade.CreateCandleIndicator(_bollinger, "Prime");
             _bollinger.ParametersDigit[0].Value = _lengthBollinger.ValueInt;
             _bollinger.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
 
             // Create indicator atr 
+            // Создание индикатора atr
             _atr = IndicatorsFactory.CreateIndicatorByName("ATR", name + "ATR", false);
             _atr = (Aindicator)_tabToTrade.CreateCandleIndicator(_atr, "Atr Area");
             _atr.ParametersDigit[0].Value = _atrLength.ValueInt;
 
             // Subscribe handler to track robot parameter changes
+            // Подписка обработчик для отслеживания изменений параметров робота
             ParametrsChangeByUser += Lesson6Bot1_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
+            // Подписка на завершение свечи
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
             Description = "Robot example from the lecture course \"C# for algotreader\"." +
@@ -116,7 +132,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // called on each new candle
+            // Сalled on each new candle
+            // Вызывается перед каждой новой свечой
 
             if (_regime.ValueString == "Off")
             {
@@ -130,7 +147,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
-            if (positions.Count == 0) // no positions. True!
+            if (positions.Count == 0) // No positions. True! // Нет позиций. Правда!
             { // opening the first position
 
                 decimal bollingerUpLine = _bollinger.DataSeries[0].Last;

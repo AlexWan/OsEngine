@@ -27,65 +27,82 @@ Close at trailing stop: stop price = Close last candle - TrailingStopReal.
 
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson7Bot1")]
     public class Lesson7Bot1 : BotPanel
     {
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку
         private BotTabSimple _tabToTrade;
 
         // Basic settings
+        // Базовые настройки
         private StrategyParameterString _regime;
         private StrategyParameterTimeOfDay _startTradeTime;
         private StrategyParameterTimeOfDay _endTradeTime;
 
         // GetVolume settings
+        // настройки метода GetVolume
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // variables that are needed to calculate volatility and variables
+        // переменные, необходимые для расчета волатильности и переменных
         private StrategyParameterInt _daysVolatilityAdaptive;
         private StrategyParameterDecimal _commonHeightSoldiers;
         private StrategyParameterDecimal _oneHeightSoldier;
         private StrategyParameterDecimal _trailingStopMult;
 
-        //Sma settings
+        // Sma setting
+        // Настройка Sma
         private StrategyParameterInt _smaLen;
 
         // service fields for values.
+        // сервисные поля для значений.
         private StrategyParameterDecimal HeightSoldiers;
         private StrategyParameterDecimal MinHeightOneSoldier;
         private StrategyParameterDecimal TrailingStopReal;
 
         public Lesson7Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-           
+
             // Basic settings
+            // Базовые настройки
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             _startTradeTime = CreateParameterTimeOfDay("Start trade time", 11, 0, 0, 0);
             _endTradeTime = CreateParameterTimeOfDay("End trade time", 18, 0, 0, 0);
 
             // GetVolume settings
+            // Настройки метода GetVolume
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            //Sma settings
+            // Sma setting
+            // Настройка Sma 
             _smaLen = CreateParameter("Sma len", 150, 20, 300, 5);
 
-            // variables that are needed to calculate volatility and variables
-            _daysVolatilityAdaptive = CreateParameter("Volatility days average", 4, 2, 8, 1); // number of days we count volatility
+            // Variables that are needed to calculate volatility and variables
+            // Переменные, необходимые для расчета волатильности и переменных
+            _daysVolatilityAdaptive = CreateParameter("Volatility days average", 4, 2, 8, 1); // number of days we count volatility // количество дней, в течение которых мы считаем волатильность
             _commonHeightSoldiers = CreateParameter("Height all soldiers", 60m, 10, 80, 5);
             _oneHeightSoldier = CreateParameter("Height one soldier", 10m, 10, 80, 5);
             _trailingStopMult = CreateParameter("Trail stop mult", 140m, 10, 180, 5);
 
-            // service fields for values.
+            // Service fields for values
+            // Поля обслуживания для значений.
             HeightSoldiers = CreateParameter("Height soldiers", 1, 0, 20, 1m);
             MinHeightOneSoldier = CreateParameter("Min height one soldier", 0.2m, 0, 20, 1m);
             TrailingStopReal = CreateParameter("Trail stop real", 0.2m, 0, 20, 1m);
 
             // Subscribe to the candle finished event
+            // Подписка на завершение свечи
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
             Description = "Robot example from the lecture course \"C# for algotreader\"." +
@@ -99,6 +116,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             {
                 return;
             }
+
             if (candles.Count < 30)
             {
                 return;
@@ -107,7 +125,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
             if (_startTradeTime.Value > candles[candles.Count - 1].TimeStart
                 ||
                  _endTradeTime.Value < candles[candles.Count - 1].TimeStart)
-            {// limits the algorithm’s uptime
+            {
+                // limits the algorithm’s uptime
+                // ограничивает время работы алгоритма
+
                 return;
             }
 
@@ -121,7 +142,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
             if (positions.Count == 0)
-            { // check the opening conditions
+            {
+                // check the opening conditions
+                // проверка условий открытия
 
                 Candle candleFirst = candles[candles.Count - 1];
                 Candle candleSecond = candles[candles.Count - 2];
@@ -169,12 +192,15 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 }
 
                 // you need to buy here. All filters passed
-                
+                // Вы должны купить здесь. Все фильтры прошли
+
                 decimal volume = GetVolume(_tabToTrade);
                 _tabToTrade.BuyAtMarket(volume);
             }
             else
-            { // Close At Trailing Stop
+            {
+                // Close At Trailing Stop
+                // Закрытие по trailing Stop
 
                 decimal stopPrice = candles[candles.Count - 1].Close - TrailingStopReal.ValueDecimal;
                 _tabToTrade.CloseAtTrailingStopMarket(positions[0], stopPrice);
@@ -188,7 +214,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            // 1) calculate the movement from high to low within N days
+            // 1) Calculate the movement from high to low within N days
+            // 1) Вычислить движение от high к Low в течение N дней
 
             decimal minValueInDay = decimal.MaxValue;
             decimal maxValueInDay = decimal.MinValue;
@@ -247,7 +274,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 return;
             }
 
-            // 2) averaging this movement. Average volatility is needed. Percent
+            // 2) Averaging this movement. Average volatility is needed. Percent
+            // 2) Усреднение этого движения. Требуется средняя волатильность. Процент
 
             decimal volaPercentSma = 0;
 
@@ -259,6 +287,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             volaPercentSma = volaPercentSma / volaInDaysPercent.Count;
 
             // 3) we calculate the size of the candles taking into account this volatility
+            // 3) мы считаем размер свечей с учётом этой волатильности
 
             decimal allSoldiersHeight = volaPercentSma * (_commonHeightSoldiers.ValueDecimal / 100);
             decimal oneSoldiersHeight = volaPercentSma * (_oneHeightSoldier.ValueDecimal / 100);

@@ -1,72 +1,97 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+Stores examples of different methods for entering in position.
+When you click on the button in robot parameters, an order of the selected type is created.
+You can close the positions with button in the settings of the robot.
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson9Bot1")]
     public class Lesson9Bot1 : BotPanel
     {
+        // Reference to the main trading tab
         BotTabSimple _tabToTrade;
 
         public Lesson9Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
 
             // Close positions
-
             _closeAllMarketButton = CreateParameterButton("Close all positions", "Close");
             _closeAllMarketButton.UserClickOnButtonEvent += _closeAllMarketButton_UserClickOnButtonEvent;
 
             // BuyAtMarket / SellAtMarket
-
             _buyMarketButton = CreateParameterButton("Market Buy", "Market");
             _buyMarketButton.UserClickOnButtonEvent += MarketBuy_UserClickOnButtonEvent;
+
             _sellMarketButton = CreateParameterButton("Market Sell", "Market");
             _sellMarketButton.UserClickOnButtonEvent += MarketSell_UserClickOnButtonEvent;
+
             _marketSignal = CreateParameter("Market with signal type", false, "Market");
 
             // BuyAtLimit / SellAtLimit
-
             _buyLimitButton = CreateParameterButton("Limit Buy", "Limit");
             _buyLimitButton.UserClickOnButtonEvent += _buyLimitButton_UserClickOnButtonEvent;
+
             _sellLimitButton = CreateParameterButton("Limit Sell", "Limit");
             _sellLimitButton.UserClickOnButtonEvent += _sellLimitButton_UserClickOnButtonEvent;
+
             _limitSignal = CreateParameter("Limit with signal type", false, "Limit");
 
             // BuyAtIceberg / SellAtIceberg
-
             _buyIcebergButton = CreateParameterButton("Iceberg Buy", "Iceberg");
             _buyIcebergButton.UserClickOnButtonEvent += _buyIcebergButton_UserClickOnButtonEvent;
+
             _sellIcebergButton = CreateParameterButton("Iceberg Sell", "Iceberg");
             _sellIcebergButton.UserClickOnButtonEvent += _sellIcebergButton_UserClickOnButtonEvent;
+
             _icebergCount = CreateParameter("Iceberg orders count", 2, 1, 10, 1, "Iceberg");
             _icebergSignal = CreateParameter("Iceberg with signal type", false, "Iceberg");
             _icebergVolume = CreateParameter("Iceberg volume", 10m, 1, 10, 1, "Iceberg");
             _icebergMarket = CreateParameter("Iceberg market", false, "Iceberg");
             _icebergMarketMinMillisecondsDistance = CreateParameter("Iceberg market min milliseconds distance", 500, 1, 10, 1, "Iceberg");
 
-            //  BuyAtFake / SellAtFake
-
+            // BuyAtFake / SellAtFake
             _buyFakeButton = CreateParameterButton("Fake Buy", "Fake");
             _buyFakeButton.UserClickOnButtonEvent += _buyFakeButton_UserClickOnButtonEvent;
+
             _sellFakeButton = CreateParameterButton("Fake Sell", "Fake");
             _sellFakeButton.UserClickOnButtonEvent += _sellFakeButton_UserClickOnButtonEvent;
+
             _fakeSignal = CreateParameter("Fake with signal type", false, "Fake");
 
             // BuyAtStop / SellAtStop
-
             _buyAtStopButton = CreateParameterButton("Buy at Stop", "Entry at Stop");
             _buyAtStopButton.UserClickOnButtonEvent += _buyAtStopButton_UserClickOnButtonEvent;
+
             _sellAtStopButton = CreateParameterButton("Sell at Stop", "Entry at Stop");
             _sellAtStopButton.UserClickOnButtonEvent += _sellAtStopButton_UserClickOnButtonEvent;
+
             _openAtStopExpiresBars = CreateParameter("Open at stop expires bars", 0, 0, 10, 1, "Entry at Stop");
             _openAtStopIsNoLifeTimeOrder = CreateParameter("Use no lifetime order", false, "Entry at Stop");
             _openAtStopIsMarketOrder = CreateParameter("Is market order", false, "Entry at Stop");
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Stores examples of different methods for entering in position." +
+                "When you click on the button in robot parameters, an order of the selected type is created." +
+                "You can close the positions with button in the settings of the robot.";
         }
 
         #region Close positions
@@ -463,7 +488,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             }
 
             if (_openAtStopExpiresBars.ValueInt == 0)
-            {// время жизни ордера - одна свеча
+            {// lifetime of the order - one candle
                 if (_limitSignal.ValueBool == false)
                 {
                     _tabToTrade.BuyAtStop(volume, price, price, StopActivateType.HigherOrEqual);
@@ -474,7 +499,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 }
             }
             else
-            {// время жизни ордера четко указано в количестве свечей. Может быть больше чем 1
+            {// lifetime order is clearly indicated in the number of candles. Can be more than 1
                 int expireBars = _openAtStopExpiresBars.ValueInt;
 
                 if (_limitSignal.ValueBool == false)
@@ -534,7 +559,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
 
             if (_openAtStopExpiresBars.ValueInt == 0)
-            {// время жизни ордера - одна свеча
+            {// lifetime of the order - one candle
                 if (_limitSignal.ValueBool == false)
                 {
                     _tabToTrade.SellAtStop(volume, price, price, StopActivateType.LowerOrEqual);
@@ -545,7 +570,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 }
             }
             else
-            {// время жизни ордера четко указано в количестве свечей. Может быть больше чем 1
+            {// lifetime order is clearly indicated in the number of candles. Can be more than 1
                 int expireBars = _openAtStopExpiresBars.ValueInt;
 
                 if (_limitSignal.ValueBool == false)

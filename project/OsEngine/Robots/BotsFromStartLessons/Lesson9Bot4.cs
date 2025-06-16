@@ -1,60 +1,82 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+Stores examples of different methods for close position from stops and profits.
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson9Bot4")]
     public class Lesson9Bot4 : BotPanel
     {
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку
         BotTabSimple _tabToTrade;
 
         public Lesson9Bot4(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
 
             // BuyAtMarket / SellAtMarket
-
             _buyMarketButton = CreateParameterButton("Market Buy", "Open");
             _buyMarketButton.UserClickOnButtonEvent += MarketBuy_UserClickOnButtonEvent;
+
             _sellMarketButton = CreateParameterButton("Market Sell", "Open");
             _sellMarketButton.UserClickOnButtonEvent += MarketSell_UserClickOnButtonEvent;
 
             // CloseAllAtMarket
-
             _closeAllMarketButton = CreateParameterButton("Close all at market", "Market all");
             _closeAllMarketButton.UserClickOnButtonEvent += _closeAllMarketButton_UserClickOnButtonEvent;
+
             _closeAllAtMarketSignal = CreateParameter("Close all at market have signal", false, "Market all");
 
             // CloseAtStop
-
             _closeAtStopButton = CreateParameterButton("Close at Stop", "Stop");
             _closeAtStopButton.UserClickOnButtonEvent += _closeAtStopButton_UserClickOnButtonEvent;
+
             _closeAtStopCancelButton = CreateParameterButton("Cancel Stop order", "Stop");
             _closeAtStopCancelButton.UserClickOnButtonEvent += _closeAtStopCancelButton_UserClickOnButtonEvent;
+
             _closeAtStopSignal = CreateParameter("Close at Stop have signal", false, "Stop");
             _closeAtStopIsMarket = CreateParameter("Close at Stop is market", false, "Stop");
 
             // CloseAtTrailingStop
-
             _closeAtTrailingStopButton = CreateParameterButton("Close at Trailing Stop", "Trailing Stop");
             _closeAtTrailingStopButton.UserClickOnButtonEvent += _closeAtTrailingStopButton_UserClickOnButtonEvent;
+
             _closeAtTrailingStopCancelButton = CreateParameterButton("Cancel Trailing Stop order", "Trailing Stop");
             _closeAtTrailingStopCancelButton.UserClickOnButtonEvent += _closeAtTrailingStopCancelButton_UserClickOnButtonEvent;
+
            _closeAtTrailingStopSignal = CreateParameter("Close at Trailing Stop have signal", false, "Trailing Stop");
             _closeAtTrailingStopIsMarket = CreateParameter("Close at Trailing Stop is market", false, "Trailing Stop");
 
             // CloseAtProfit
-
             _closeAtProfitButton = CreateParameterButton("Close at Profit", "Profit");
             _closeAtProfitButton.UserClickOnButtonEvent += _closeAtProfitButton_UserClickOnButtonEvent;
+
             _closeAtProfitCancelButton = CreateParameterButton("Cancel Profit order", "Profit");
             _closeAtProfitCancelButton.UserClickOnButtonEvent += _closeAtProfitCancelButton_UserClickOnButtonEvent;
+
             _closeAtProfitSignal = CreateParameter("Close at Profit have signal", false, "Profit");
             _closeAtProfitIsMarket = CreateParameter("Close at Profit is market", false, "Profit");
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Stores examples of different methods for close position from stops and profits.";
         }
 
         #region BuyAtMarket / SellAtMarket
