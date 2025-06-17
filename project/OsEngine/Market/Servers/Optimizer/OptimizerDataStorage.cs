@@ -1508,6 +1508,22 @@ namespace OsEngine.Market.Servers.Optimizer
                     }
                 }
             }
+
+            for(int i = 0;i < Securities.Count;i++)
+            {
+                Security etalonSecurity = Securities[i];
+
+                for(int j = 0;j < SecuritiesTester.Count;j++)
+                {
+                    Security currentSecurity = SecuritiesTester[j].Security;
+                    if (currentSecurity.Name == etalonSecurity.Name
+                        && currentSecurity.NameClass == etalonSecurity.NameClass)
+                    {
+                        currentSecurity.LoadFromString(etalonSecurity.GetSaveStr());
+                    }
+                }
+            }
+
         }
 
         private List<string[]> LoadSecurityDopSettings(string path)
@@ -1600,14 +1616,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (saves[i][0] == securityToSave.Name)
                 {
-                    saves.Remove(saves[i]);
-                    saves.Add(new[] { securityToSave.Name,
-                    securityToSave.Lot.ToString(culture),
-                    securityToSave.Go.ToString(culture),
-                    securityToSave.PriceStepCost.ToString(culture),
-                    securityToSave.PriceStep.ToString(culture),
-                    securityToSave.DecimalsVolume.ToString(culture)
-                    });
+                    saves.RemoveAt(i);
+                    i--;
                 }
             }
 

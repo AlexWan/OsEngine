@@ -280,6 +280,8 @@ namespace OsEngine.Market.Servers.Optimizer
                     return;
                 }
 
+                int displayedRow = _myGridView.FirstDisplayedScrollingRowIndex;
+
                 _myGridView.Rows.Clear();
 
                 List<SecurityTester> securities = _server.SecuritiesTester;
@@ -338,6 +340,12 @@ namespace OsEngine.Market.Servers.Optimizer
 
                         _myGridView.Rows.Add(nRow);
                     }
+                }
+
+                if (displayedRow > 0
+                    && displayedRow < _myGridView.Rows.Count)
+                {
+                    _myGridView.FirstDisplayedScrollingRowIndex = displayedRow;
                 }
             }
             catch (Exception ex)
@@ -405,8 +413,6 @@ namespace OsEngine.Market.Servers.Optimizer
 
                 if (ui.IsChanged)
                 {
-                    security = _server.SecuritiesTester[rowNum].Security;
-
                     for (int i = 0; i < _server.SecuritiesTester.Count; i++)
                     {
                         if (_server.SecuritiesTester[i].Security.Name == security.Name)
