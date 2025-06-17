@@ -26,13 +26,19 @@ namespace OsEngine.Robots.CounterTrend
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyLong);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
-            ComboBoxRegime.SelectedItem = _strategy.Regime;
+            ComboBoxRegime.SelectedItem = _strategy._regime;
 
-            TextBoxSlippage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
+            ComboBoxVolumeType.Items.Add("Deposit percent");
+            ComboBoxVolumeType.Items.Add("Contracts");
+            ComboBoxVolumeType.Items.Add("Contract currency");
+            ComboBoxVolumeType.SelectedItem = _strategy._volumeType;
 
-            TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
-            RsiUp.Text = _strategy.Upline.Value.ToString(new CultureInfo("ru-RU"));
-            RsiDown.Text = _strategy.Downline.Value.ToString(new CultureInfo("ru-RU"));
+            TextBoxAssetInPortfolio.Text = "Prime";
+            TextBoxSlippage.Text = _strategy._slippage.ToString(new CultureInfo("ru-RU"));
+
+            TextBoxVolumeOne.Text = _strategy._volume.ToString();
+            RsiUp.Text = _strategy._upline.Value.ToString(new CultureInfo("ru-RU"));
+            RsiDown.Text = _strategy._downline.Value.ToString(new CultureInfo("ru-RU"));
 
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
@@ -40,6 +46,8 @@ namespace OsEngine.Robots.CounterTrend
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelRsiOverbought.Content = OsLocalization.Trader.Label141;
             LabelRsiOversold.Content = OsLocalization.Trader.Label142;
+            LabelVolumeType.Content = OsLocalization.Trader.Label531;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label532;
 
             this.Activate();
             this.Focus();
@@ -57,7 +65,6 @@ namespace OsEngine.Robots.CounterTrend
                 {
                     throw new Exception("");
                 }
-                
             }
             catch (Exception)
             {
@@ -65,14 +72,16 @@ namespace OsEngine.Robots.CounterTrend
                 return;
             }
 
-            Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
-            _strategy.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
-            _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
-            _strategy.Upline.Value = Convert.ToDecimal(RsiUp.Text);
-            _strategy.Downline.Value = Convert.ToDecimal(RsiDown.Text);
+            Enum.TryParse(ComboBoxRegime.Text, true, out _strategy._regime);
+            _strategy._volumeType =Convert.ToString(ComboBoxVolumeType.Text);
+            _strategy._tradeAssetInPortfolio = Convert.ToString(TextBoxAssetInPortfolio.Text);
+            _strategy._slippage = Convert.ToDecimal(TextBoxSlippage.Text);
+            _strategy._volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
+            _strategy._upline.Value = Convert.ToDecimal(RsiUp.Text);
+            _strategy._downline.Value = Convert.ToDecimal(RsiDown.Text);
 
-            _strategy.Upline.Refresh();
-            _strategy.Downline.Refresh();
+            _strategy._upline.Refresh();
+            _strategy._downline.Refresh();
 
             _strategy.Save();
             Close();
