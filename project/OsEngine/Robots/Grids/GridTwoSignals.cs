@@ -11,18 +11,13 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
-/*
-
-Выброс двух сеток в одну сторону
-Первый сигнал на покупку: Пробой канала Прайс-ченнел вниз
-Второй сигнал на покупку: Есть первая сетка + цена вернулась в центр канала.
-Выход: По количеству закрытых линий (проверить подсчёт позиций закрытых когда сетки две на одном источнике)
-Выход: По времени в секундах
-
-Допы: ТрейлингАп / Тлейлинг Даун. Шаг перестановки это 10 минимальных шагов цены.
-Допы: торговые дни.
-Допы: торговые периоды
-
+/*Description
+Ejection of two grids in one direction
+First buy signal: Breakdown of Price-Channel down
+Second buy signal: There is the first grid + price returned to the center of the channel.
+Output: By the number of closed lines
+Output 2: By time in seconds
+TrailingUp / Trailing Down. The permutation step is 20 minimum price steps.
 */
 
 namespace OsEngine.Robots.Grids
@@ -87,11 +82,13 @@ namespace OsEngine.Robots.Grids
 
             ParametrsChangeByUser += ParametersChangeByUser;
 
-            Description = 
-                "" +
-                "" +
-                "" +
-                "";
+            Description =
+                "Ejection of two grids in one direction " +
+                "First buy signal: Breakdown of Price-Channel down " +
+                "Second buy signal: There is the first grid + price returned to the center of the channel. " +
+                "Output: By the number of closed lines. " +
+                "Output 2: By time in seconds. " +
+                "TrailingUp / Trailing Down. The permutation step is 20 minimum price steps.";
         }
 
         private void ParametersChangeByUser()
@@ -152,19 +149,6 @@ namespace OsEngine.Robots.Grids
 
         private void LogicCreateGrid(List<Candle> candles)
         {
-            /*
-
-Выброс двух сеток в одну сторону
-Первый сигнал на покупку: Пробой канала Прайс-ченнел вниз
-Второй сигнал на покупку: Есть первая сетка + цена вернулась в центр канала.
-Выход: По количеству закрытых линий (проверить подсчёт позиций закрытых когда сетки две на одном источнике)
-Выход: По времени в секундах
-
-Допы: ТрейлингАп / Тлейлинг Даун. Шаг перестановки это 10 минимальных шагов цены.
-Допы: торговые дни.
-Допы: торговые периоды
-
-*/
             decimal lastUpLine = _priceChannel.DataSeries[0].Values[^2];
             decimal lastDownLine = _priceChannel.DataSeries[1].Values[^2];
 
@@ -267,7 +251,7 @@ namespace OsEngine.Robots.Grids
                     && grid.Regime == TradeGridRegime.Off)
                 { // Grid is stop work
                     _tab.GridsMaster.DeleteAtNum(grid.Number);
-                    return;
+                    i--;
                 }
             }
         }
