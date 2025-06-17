@@ -46,8 +46,8 @@ namespace OsEngine.Robots.CounterTrend
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelRsiOverbought.Content = OsLocalization.Trader.Label141;
             LabelRsiOversold.Content = OsLocalization.Trader.Label142;
-            LabelVolumeType.Content = OsLocalization.Trader.Label531;
-            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label532;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();

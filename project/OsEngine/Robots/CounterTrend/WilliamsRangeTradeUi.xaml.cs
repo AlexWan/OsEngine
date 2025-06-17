@@ -45,8 +45,8 @@ namespace OsEngine.Robots.CounterTrend
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelUp.Content = OsLocalization.Trader.Label155;
             LabelLow.Content = OsLocalization.Trader.Label156;
-            LabelVolumeType.Content = OsLocalization.Trader.Label531;
-            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label532;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();
