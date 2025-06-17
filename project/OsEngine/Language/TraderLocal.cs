@@ -2114,5 +2114,13 @@ namespace OsEngine.Language
         public string Label553 => OsLocalization.ConvertToLocString(
          "Eng:The new settings have been applied. You need to restart the settings window to update them._" +
          "Ru:Новые настройки применены. Нужно перезапустить окно, чтобы обновить их в окне настроек._");
+
+        public string Label554 => OsLocalization.ConvertToLocString(
+        "Eng:Volume type_" +
+        "Ru:Тип объема");
+
+        public string Label555 => OsLocalization.ConvertToLocString(
+        "Eng:Asset in portfolio_" +
+        "Ru:Актив в портфеле");
     }
 }
