@@ -852,7 +852,152 @@ namespace OsEngine.Market.Servers.OKX
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
+            if (startTime < DateTime.UtcNow.AddMonths(-3))
+            {
+                SendLogMessage("History more than 3 months is not supported by Api", LogMessageType.Error);
+                return null;
+            }
+
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
+
+            List<Trade> trades = new List<Trade>();
+
+            List<Trade> newTrades = GetTickHistoryToSecurity(security.Name, endTime);
+
+            if (newTrades == null ||
+                    newTrades.Count == 0)
+            {
+                return null;
+            }
+
+            trades.AddRange(newTrades);
+            DateTime timeEnd = DateTime.SpecifyKind(trades[0].Time, DateTimeKind.Utc);
+
+            while (timeEnd > startTime)
+            {
+                newTrades = GetTickHistoryToSecurity(security.Name, timeEnd);
+
+                if (newTrades != null && trades.Count != 0 && newTrades.Count != 0)
+                {
+                    for (int j = 0; j < newTrades.Count; j++)
+                    {
+                        for (int i = 0; i < newTrades.Count; i++)
+                        {
+                            if (trades[j].Id == newTrades[i].Id)
+                            {
+                                newTrades.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                    }
+                }
+
+                if (newTrades.Count == 0)
+                {
+                    break;
+                }
+
+                trades.InsertRange(0, newTrades);
+                timeEnd = DateTime.SpecifyKind(trades[0].Time, DateTimeKind.Utc);
+            }
+
+            if (trades.Count == 0)
+            {
+                return null;
+            }
+
+            for (int i = trades.Count - 1; i >= 0; i--)
+            {
+                if (DateTime.SpecifyKind(trades[i].Time, DateTimeKind.Utc) <= endTime)
+                {
+                    break;
+                }
+                else
+                {
+                    trades.RemoveAt(i);
+                }
+            }
+
+            return trades;
+        }
+
+        private List<Trade> GetTickHistoryToSecurity(string securityName, DateTime endTime)
+        {
+            _rateGateCandles.WaitToProceed();
+
+            try
+            {
+                List<Trade> trades = new List<Trade>();
+
+                long timeEnd = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
+
+                string url = _baseUrl + $"/api/v5/market/history-trades?instId={securityName}&type=2&after={timeEnd}&limit=100";
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse response = client.Execute(request);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    TradesDataResponse tradesResponse = JsonConvert.DeserializeAnonymousType(response.Content, new TradesDataResponse());
+
+                    if (tradesResponse.code == "0")
+                    {
+                        for (int i = 0; i < tradesResponse.data.Count; i++)
+                        {
+                            TradeData item = tradesResponse.data[i];
+
+                            Trade trade = new Trade();
+                            trade.SecurityNameCode = item.instId;
+                            trade.Id = item.tradeId;
+                            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts));
+                            trade.Price = item.px.ToDecimal();
+                            trade.Volume = item.sz.ToDecimal(); //For spot trading, the unit is base currency
+                                                                //For FUTURES / SWAP / OPTION, the unit is contract.
+
+                            trade.Side = item.side == "Sell" ? Side.Sell : Side.Buy;
+                            trades.Add(trade);
+                        }
+
+                        trades.Reverse();
+                        return trades;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Trades request error: {tradesResponse.code} - {tradesResponse.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Trades request error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"Trades request error: {error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+
             return null;
+        }
+
+        private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            if (startTime >= endTime ||
+                startTime >= DateTime.UtcNow ||
+                actualTime > endTime ||
+                actualTime > DateTime.UtcNow)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         #endregion
