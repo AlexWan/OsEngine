@@ -68,7 +68,7 @@ namespace OsEngine.OsTrader.Grids
 
         public List<TradeGrid> TradeGrids = new List<TradeGrid>();
 
-        public void CreateNewTradeGrid()
+        public TradeGrid CreateNewTradeGrid()
         {
             TradeGrid newGrid = new TradeGrid(_startProgram, _tab);
             newGrid.NeedToSaveEvent += NewGrid_NeedToSaveEvent;
@@ -90,6 +90,8 @@ namespace OsEngine.OsTrader.Grids
             TradeGrids.Add(newGrid);
 
             SaveGrids();
+
+            return newGrid;
         }
 
         private void NewGrid_NeedToSaveEvent()

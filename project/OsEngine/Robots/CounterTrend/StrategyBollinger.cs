@@ -8,10 +8,10 @@ using System.Collections.Generic;
 using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+
 /* Description
 The Countertrend robot
 Buy:

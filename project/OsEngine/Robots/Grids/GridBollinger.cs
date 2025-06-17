@@ -48,6 +48,7 @@ namespace OsEngine.Robots.Grids
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+            _tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
             
@@ -98,6 +99,16 @@ namespace OsEngine.Robots.Grids
 
         }
 
+        private void Connector_TestStartEvent()
+        {
+            for (int i = 0; i < _tab.GridsMaster.TradeGrids.Count; i++)
+            {
+                TradeGrid grid = _tab.GridsMaster.TradeGrids[i];
+                _tab.GridsMaster.DeleteAtNum(grid.Number);
+                i--;
+            }
+        }
+
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             if (_regime.ValueString == "Off")
@@ -143,9 +154,7 @@ namespace OsEngine.Robots.Grids
             if (lastPrice > lastUpLine
                 || lastPrice < lastDownLine)
             {
-                _tab.GridsMaster.CreateNewTradeGrid();
-
-                TradeGrid grid = _tab.GridsMaster.TradeGrids[0];
+                TradeGrid grid = _tab.GridsMaster.CreateNewTradeGrid();
 
                 grid.GridType = TradeGridPrimeType.MarketMaking;
 
@@ -181,7 +190,7 @@ namespace OsEngine.Robots.Grids
                 {
                     grid.GridCreator.GridSide = Side.Buy;
                 }
-                grid.GridCreator.CreateNewGrid(_tab, TradeGridPrimeType.OpenPosition);
+                grid.GridCreator.CreateNewGrid(_tab, TradeGridPrimeType.MarketMaking);
                 grid.Save();
                 grid.Regime = TradeGridRegime.On;
             }

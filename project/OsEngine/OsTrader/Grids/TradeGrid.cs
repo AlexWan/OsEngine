@@ -553,8 +553,25 @@ namespace OsEngine.OsTrader.Grids
         {
             if (Regime == TradeGridRegime.On)
             {
-                _openPositionsBySession++;
-                _needToSave = true;
+                bool isInArray = false;
+
+                for(int i = 0;i < GridCreator.Lines.Count;i++)
+                {
+                    TradeGridLine line = GridCreator.Lines[i];
+
+                    if(line.Position != null 
+                        && line.Position.Number == position.Number)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if(isInArray)
+                {
+                    _openPositionsBySession++;
+                    _needToSave = true;
+                }
             }
         }
 
