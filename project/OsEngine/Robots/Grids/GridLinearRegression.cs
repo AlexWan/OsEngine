@@ -102,6 +102,11 @@ namespace OsEngine.Robots.Grids
 
         private void Connector_TestStartEvent()
         {
+            if (_tab.GridsMaster == null)
+            {
+                return;
+            }
+
             for (int i = 0; i < _tab.GridsMaster.TradeGrids.Count; i++)
             {
                 TradeGrid grid = _tab.GridsMaster.TradeGrids[i];

@@ -555,7 +555,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            for (int i = _deals.Count - 1; i > _deals.Count - 500 && i > -1; i--)
+            for (int i = _deals.Count - 1; i > -1; i--)
             {
                 Position curPosition = null;
 

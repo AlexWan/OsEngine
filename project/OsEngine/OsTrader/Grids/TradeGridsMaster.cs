@@ -237,7 +237,8 @@ namespace OsEngine.OsTrader.Grids
 
         private void LoadGrids()
         {
-            if (_startProgram == StartProgram.IsOsOptimizer)
+            if (_startProgram == StartProgram.IsOsOptimizer
+                || _startProgram == StartProgram.IsTester)
             {
                 return;
             }

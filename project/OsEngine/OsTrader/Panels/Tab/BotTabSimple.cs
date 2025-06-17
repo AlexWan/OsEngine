@@ -3924,6 +3924,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     ClosePeaceOfDeal(position, OrderPriceType.Limit, priceLimit, ManualPositionSupport.SecondToClose, volume, true, false);
                 }
+
+                if (position.CloseOrders[^1].State == OrderStateType.None)
+                {
+
+                }
             }
             catch (Exception error)
             {

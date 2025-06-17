@@ -215,6 +215,12 @@ namespace OsEngine.Market.Connectors
 
             if (_myServer != null)
             {
+                if (_myServer.ServerType == ServerType.Tester)
+                {
+                    ((TesterServer)_myServer).TestingEndEvent -= Connector_TestingEndEvent;
+                    ((TesterServer)_myServer).TestingStartEvent -= Connector_TestingStartEvent;
+                }
+
                 _myServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
                 _myServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
                 _myServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
@@ -1085,7 +1091,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// test finished. Event from tester
         /// </summary>
-        void Connector_TestingEndEvent()
+        private void Connector_TestingEndEvent()
         {
             try
             {
