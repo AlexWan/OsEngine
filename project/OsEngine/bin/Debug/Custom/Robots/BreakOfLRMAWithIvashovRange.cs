@@ -1,88 +1,101 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 Trading robot for osengine.
 
-The trend robot on Break of LRMAW ith Ivashov Range.
+The trend robot on Break of LRMA with Ivashov Range.
 
 Buy:
 The candle closed above LRMA + MultIvashov * Ivashov.
 
 Sell:
-The candle closed below IRMA - Cartoon ivashov * Ivashov.
+The candle closed below LRMA - Multivashov * Ivashov.
 
 Exit: 
 On the return signal.
-
  */
 
-namespace OsEngine.Robots.My_bots
+namespace OsEngine.Robots
 {
-    [Bot("BreakOfLRMAWithIvashovRange")]
+    [Bot("BreakOfLRMAWithIvashovRange")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakOfLRMAWithIvashovRange : BotPanel
-    
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Setting indicator
-        private StrategyParameterInt LengthLRMA;
-        private StrategyParameterInt LengthMAIvashov;
-        private StrategyParameterInt LengthRangeIvashov;
-        private StrategyParameterDecimal MultIvashov;
-       
-        // Indicator
-        private Aindicator _LRMA;
-        private Aindicator _RangeIvashov;
-       
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicators settings 
+        private StrategyParameterInt _lengthLRMA;
+        private StrategyParameterInt _lengthMAIvashov;
+        private StrategyParameterInt _lengthRangeIvashov;
+        private StrategyParameterDecimal _multIvashov;
+
+        // Indicators
+        private Aindicator _lRMA;
+        private Aindicator _rangeIvashov;
+
         // The last value of the indicators
         private decimal _lastLRMA;
         private decimal _lastRangeIvashov;
 
         public BreakOfLRMAWithIvashovRange(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Setting indicator 
-            LengthLRMA = CreateParameter("Length LRMA", 20, 10, 200, 10, "Indicator");
-            LengthMAIvashov = CreateParameter("Length MA Ivashov", 14, 7, 48, 7, "Indicator");
-            LengthRangeIvashov = CreateParameter("Length Range Ivashov", 14, 7, 48, 7, "Indicator");
-            MultIvashov = CreateParameter("Mult Ivashov", 0.5m, 0.1m, 2, 0.1m, "Indicator");
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
+
+            // Settings indicators
+            _lengthLRMA = CreateParameter("Length LRMA", 20, 10, 200, 10, "Indicator");
+            _lengthMAIvashov = CreateParameter("Length MA Ivashov", 14, 7, 48, 7, "Indicator");
+            _lengthRangeIvashov = CreateParameter("Length Range Ivashov", 14, 7, 48, 7, "Indicator");
+            _multIvashov = CreateParameter("Mult Ivashov", 0.5m, 0.1m, 2, 0.1m, "Indicator");
 
             // Create indicator LRMA
-            _LRMA = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "LRMA", false);
-            _LRMA = (Aindicator)_tab.CreateCandleIndicator(_LRMA, "Prime");
-            ((IndicatorParameterInt)_LRMA.Parameters[0]).ValueInt = LengthLRMA.ValueInt;
-            _LRMA.Save();
+            _lRMA = IndicatorsFactory.CreateIndicatorByName("LinearRegressionLine", name + "LRMA", false);
+            _lRMA = (Aindicator)_tab.CreateCandleIndicator(_lRMA, "Prime");
+            ((IndicatorParameterInt)_lRMA.Parameters[0]).ValueInt = _lengthLRMA.ValueInt;
+            _lRMA.Save();
 
             // Create indicator Ivashov
-            _RangeIvashov = IndicatorsFactory.CreateIndicatorByName("IvashovRange", name + "Range Ivashov", false);
-            _RangeIvashov = (Aindicator)_tab.CreateCandleIndicator(_RangeIvashov, "NewArea");
-            ((IndicatorParameterInt)_RangeIvashov.Parameters[0]).ValueInt = LengthMAIvashov.ValueInt;
-            ((IndicatorParameterInt)_RangeIvashov.Parameters[1]).ValueInt = LengthRangeIvashov.ValueInt;
-            _RangeIvashov.Save();
+            _rangeIvashov = IndicatorsFactory.CreateIndicatorByName("IvashovRange", name + "Range Ivashov", false);
+            _rangeIvashov = (Aindicator)_tab.CreateCandleIndicator(_rangeIvashov, "NewArea");
+            ((IndicatorParameterInt)_rangeIvashov.Parameters[0]).ValueInt = _lengthMAIvashov.ValueInt;
+            ((IndicatorParameterInt)_rangeIvashov.Parameters[1]).ValueInt = _lengthRangeIvashov.ValueInt;
+            _rangeIvashov.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakOfLRMAWithIvashovRange_ParametrsChangeByUser;
@@ -94,7 +107,7 @@ namespace OsEngine.Robots.My_bots
                 "Buy:" +
                 "The candle closed above LRMA + MultIvashov * Ivashov." +
                 "Sell:" +
-                "The candle closed below IRMA - Cartoon ivashov* Ivashov." +
+                "The candle closed below LRMA - MultIivashov* Ivashov." +
                 "Exit:" +
                 "On the return signal.";
         }
@@ -102,14 +115,16 @@ namespace OsEngine.Robots.My_bots
         // Indicator Update event
         private void BreakOfLRMAWithIvashovRange_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_LRMA.Parameters[0]).ValueInt = LengthLRMA.ValueInt;
-            _LRMA.Save();
-            _LRMA.Reload();
+            // LRMA
+            ((IndicatorParameterInt)_lRMA.Parameters[0]).ValueInt = _lengthLRMA.ValueInt;
+            _lRMA.Save();
+            _lRMA.Reload();
 
-            ((IndicatorParameterInt)_RangeIvashov.Parameters[0]).ValueInt = LengthMAIvashov.ValueInt;
-            ((IndicatorParameterInt)_RangeIvashov.Parameters[1]).ValueInt = LengthRangeIvashov.ValueInt;
-            _RangeIvashov.Save();
-            _RangeIvashov.Reload();
+            // Range Ivashov
+            ((IndicatorParameterInt)_rangeIvashov.Parameters[0]).ValueInt = _lengthMAIvashov.ValueInt;
+            ((IndicatorParameterInt)_rangeIvashov.Parameters[1]).ValueInt = _lengthRangeIvashov.ValueInt;
+            _rangeIvashov.Save();
+            _rangeIvashov.Reload();
 
         }
 
@@ -118,6 +133,7 @@ namespace OsEngine.Robots.My_bots
         {
             return "BreakOfLRMAWithIvashovRange";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -127,20 +143,20 @@ namespace OsEngine.Robots.My_bots
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthLRMA.ValueInt || candles.Count < LengthRangeIvashov.ValueInt)
+            if (candles.Count < _lengthLRMA.ValueInt || candles.Count < _lengthRangeIvashov.ValueInt)
             {
                 return;
             }
 
-            // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            // If the time does not match, we exit
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -153,11 +169,12 @@ namespace OsEngine.Robots.My_bots
                 LogicClosePosition(candles);
             }
 
-            // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            // If the position closing mode, then we exit from method
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -173,28 +190,30 @@ namespace OsEngine.Robots.My_bots
             if (openPositions == null || openPositions.Count == 0)
             {
                 // The last value of the indicators
-                _lastLRMA = _LRMA.DataSeries[0].Last;
-                _lastRangeIvashov = _RangeIvashov.DataSeries[0].Last;
+                _lastLRMA = _lRMA.DataSeries[0].Last;
+                _lastRangeIvashov = _rangeIvashov.DataSeries[0].Last;
 
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     decimal lastPrice = candles[candles.Count - 1].Close;
-                   
-                    if (lastPrice > _lastLRMA + MultIvashov.ValueDecimal * _lastRangeIvashov)
+
+                    if (lastPrice > _lastLRMA + _multIvashov.ValueDecimal * _lastRangeIvashov)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     decimal lastPrice = candles[candles.Count - 1].Close;
-                    if (lastPrice < _lastLRMA - MultIvashov.ValueDecimal * _lastRangeIvashov)
+
+                    if (lastPrice < _lastLRMA - _multIvashov.ValueDecimal * _lastRangeIvashov)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -204,12 +223,12 @@ namespace OsEngine.Robots.My_bots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-           
-            // The last value of the indicator
-            _lastLRMA = _LRMA.DataSeries[0].Last;
-            _lastRangeIvashov = _RangeIvashov.DataSeries[0].Last;
 
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            // The last value of the indicator
+            _lastLRMA = _lRMA.DataSeries[0].Last;
+            _lastRangeIvashov = _rangeIvashov.DataSeries[0].Last;
+
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -222,16 +241,16 @@ namespace OsEngine.Robots.My_bots
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is buy
                 {
-                    if (lastPrice < _lastLRMA - MultIvashov.ValueDecimal * _lastRangeIvashov)
+                    if (lastPrice < _lastLRMA - _multIvashov.ValueDecimal * _lastRangeIvashov)
                     {
                         _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                     }
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is sell
                 {
-                    if (lastPrice > _lastLRMA + MultIvashov.ValueDecimal * _lastRangeIvashov)
+                    if (lastPrice > _lastLRMA + _multIvashov.ValueDecimal * _lastRangeIvashov)
                     {
                         _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
                     }
@@ -240,30 +259,97 @@ namespace OsEngine.Robots.My_bots
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
+
         }
     }
 }
