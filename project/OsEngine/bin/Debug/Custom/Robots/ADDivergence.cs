@@ -16,27 +16,31 @@ using OsEngine.Market;
 using System.Drawing;
 
 /* Description
-trading robot for osengine
+Trading robot for OsEngine.
 
-The trend robot on AD indicator divergence and price
+This trend-following robot detects divergence between price and the AD (Accumulation/Distribution) indicator using ZigZag patterns.
 
-Buy: 
-at the price, the minimum for a certain period of time is below the previous
-minimum, and on the indicator, the minimum is higher than the previous one.
+Buy conditions:
+1) Price forms a lower low based on ZigZag.
+2) AD indicator forms a higher low based on ZigZagAD.
+3) Divergence appears before the most recent AD high.
 
-Sell: 
-on the price the maximum for a certain period of time is higher than the 
-previous maximum, and on the indicator the maximum is lower than the previous one.
+Sell conditions:
+1) Price forms a higher high based on ZigZag.
+2) AD indicator forms a lower high based on ZigZagAD.
+3) Divergence appears before the most recent AD low.
 
-Exit: after n number of candles.
- */
+Exit:
+Position is closed after a fixed number of candles (N bars) from entry.
+*/
 
 namespace OsEngine.Robots
 {
-    // We create an attribute so that we don't write anything to the BotFactory
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     [Bot("ADDivergence")]
     public class ADDivergence : BotPanel
     {
+        // Reference to the main trading tab
         BotTabSimple _tab;
 
         // Basic Settings
@@ -50,23 +54,20 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
-        private StrategyParameterInt _fastLineLengthAO;
-        private StrategyParameterInt _slowLineLengthAO;
-
-        // Indicator
+        // Indicators
         private Aindicator _ZZ;
         private Aindicator _ZigZagAD;
 
         // Divergence
         private StrategyParameterInt _lenghtZig;
-        private StrategyParameterInt _lenghtZigAO;
+        private StrategyParameterInt _lenghtZigAD;
 
         // Exit setting
         private StrategyParameterInt _exitCandlesCount;
 
         public ADDivergence(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -75,7 +76,7 @@ namespace OsEngine.Robots
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
-            
+
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
@@ -83,12 +84,12 @@ namespace OsEngine.Robots
 
             // Indicator settings
             _lenghtZig = CreateParameter("Period Zig", 30, 10, 300, 10, "Indicator");
-            _lenghtZigAO = CreateParameter("Period Zig AO", 30, 10, 300, 10, "Indicator");
+            _lenghtZigAD = CreateParameter("Period Zig AD", 30, 10, 300, 10, "Indicator");
 
-            // Create indicator ZigZagAO
+            // Create indicator ZigZagAD
             _ZigZagAD = IndicatorsFactory.CreateIndicatorByName("ZigZagAD", name + "ZigZagAD", false);
             _ZigZagAD = (Aindicator)_tab.CreateCandleIndicator(_ZigZagAD, "NewArea");
-            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAO.ValueInt;
+            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAD.ValueInt;
             _ZigZagAD.Save();
 
             // Create indicator ZigZag
@@ -106,20 +107,27 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on AD indicator divergence and price. " +
-                "Buy: at the price, the minimum for a certain period of time is below the previous minimum," +
-                " and on the indicator, the minimum is higher than the previous one. " +
-                "Sell: on the price the maximum for a certain period of time is higher than the previous maximum," +
-                " and on the indicator the maximum is lower than the previous one." +
-                "Exit: after n number of candles.";
+            Description = "Trading robot for OsEngine." +
+                "This trend-following robot detects divergence between price and the AD (Accumulation/Distribution) indicator using ZigZag patterns." +
+                "Buy conditions:" +
+                "1) Price forms a lower low based on ZigZag." +
+                "2) AD indicator forms a higher low based on ZigZagAD." +
+                "3) Divergence appears before the most recent AD high." +
+                "Sell conditions:" +
+                "1) Price forms a higher high based on ZigZag." +
+                "2) AD indicator forms a lower high based on ZigZagAD." +
+                "3) Divergence appears before the most recent AD low." +
+                "Exit:" +
+                "Position is closed after a fixed number of candles (N bars) from entry.";
         }
 
         // Indicator Update event
         private void ADDivergence_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAO.ValueInt;
+            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAD.ValueInt;
             _ZigZagAD.Save();
             _ZigZagAD.Reload();
+
             ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = _lenghtZig.ValueInt;
             _ZZ.Save();
             _ZZ.Reload();
@@ -130,6 +138,7 @@ namespace OsEngine.Robots
         {
             return "ADDivergence";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -550,4 +559,3 @@ namespace OsEngine.Robots
         }
     }
 }
-
