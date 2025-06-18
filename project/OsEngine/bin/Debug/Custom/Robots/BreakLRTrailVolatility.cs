@@ -62,8 +62,8 @@ namespace OsEngine.Robots
         private Aindicator _eR;
 
         // Exit
-        private StrategyParameterInt TrailCandlesLong;
-        private StrategyParameterInt TrailCandlesShort;
+        private StrategyParameterInt _trailCandlesLong;
+        private StrategyParameterInt _trailCandlesShort;
 
         // The last value of the indicator
         private decimal _lastATR;
@@ -116,8 +116,8 @@ namespace OsEngine.Robots
             _eR.Save();
 
             // Exit
-            TrailCandlesLong = CreateParameter("Trail Candles Long", 5, 5, 200, 5, "Exit");
-            TrailCandlesShort = CreateParameter("Trail Candles Short", 5, 5, 200, 5, "Exit");
+            _trailCandlesLong = CreateParameter("Trail Candles Long", 5, 5, 200, 5, "Exit");
+            _trailCandlesShort = CreateParameter("Trail Candles Short", 5, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakLRTrailVolatility_ParametrsChangeByUser; ;
@@ -295,7 +295,7 @@ namespace OsEngine.Robots
 
         private decimal GetPriceStop(Side side, List<Candle> candles, int index)
         {
-            if (candles == null || index < TrailCandlesLong.ValueInt || index < TrailCandlesShort.ValueInt)
+            if (candles == null || index < _trailCandlesLong.ValueInt || index < _trailCandlesShort.ValueInt)
             {
                 return 0;
             }
@@ -304,7 +304,7 @@ namespace OsEngine.Robots
             {
                 decimal price = decimal.MaxValue;
 
-                for (int i = index; i > index - TrailCandlesLong.ValueInt; i--)
+                for (int i = index; i > index - _trailCandlesLong.ValueInt; i--)
                 {
                     if (candles[i].Low < price)
                     {
@@ -318,7 +318,7 @@ namespace OsEngine.Robots
             {
                 decimal price = 0;
 
-                for (int i = index; i > index - TrailCandlesShort.ValueInt; i--)
+                for (int i = index; i > index - _trailCandlesShort.ValueInt; i--)
                 {
                     if (candles[i].High > price)
                     {
