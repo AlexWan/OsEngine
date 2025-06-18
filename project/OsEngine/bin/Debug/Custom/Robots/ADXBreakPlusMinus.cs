@@ -35,9 +35,10 @@ Exit: by DM reverse intersection.
 
 namespace OsEngine.Robots
 {
-    [Bot("ADXBreakPlusMinus")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("ADXBreakPlusMinus")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class ADXBreakPlusMinus : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -69,6 +70,7 @@ namespace OsEngine.Robots
 
         public ADXBreakPlusMinus(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -122,6 +124,7 @@ namespace OsEngine.Robots
         {
             return "ADXBreakPlusMinus";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -216,7 +219,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-           
+
             // The last value of the indicator
             _lastPlus = _ADX.DataSeries[1].Last;
             _lastMinus = _ADX.DataSeries[2].Last;
