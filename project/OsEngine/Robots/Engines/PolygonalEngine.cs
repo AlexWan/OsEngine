@@ -9,21 +9,24 @@ using OsEngine.OsTrader.Panels.Attributes;
 
 namespace OsEngine.Robots.Engines
 {
-    [Bot("PolygonalEngine")]
+    [Bot("PolygonalEngine")] // We create an attribute so that we don't write anything to the BotFactory
     public class PolygonalEngine : BotPanel
     {
         public PolygonalEngine(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Polygon);
 
             Description = "blank strategy for manual currency trading";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PolygonalEngine";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 

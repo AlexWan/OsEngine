@@ -7,29 +7,22 @@ namespace OsEngine.Robots.Engines
 {
     public class ClusterEngine : BotPanel
     {
-
         public ClusterEngine(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Cluster);
 
             Description = "blank strategy for manual trading";
         }
 
-        /// <summary>
-        /// strategy name 
-        /// имя стратегии
-        /// </summary>
-        /// <returns></returns>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ClusterEngine";
         }
 
-        /// <summary>
-        /// show settings
-        /// показать настройки
-        /// </summary>
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             MessageBox.Show(OsLocalization.Trader.Label112);

@@ -7,35 +7,27 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
-
 namespace OsEngine.Robots.Engines
 {
-    [Bot("EnginePair")]
+    [Bot("EnginePair")] // We create an attribute so that we don't write anything to the BotFactory
     public class EnginePair : BotPanel
     {
-       
         public EnginePair(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Pair);
 
             Description = "blank strategy for manual pair trading";
         }
 
-        /// <summary>
-        /// strategy name 
-        /// имя стратегии
-        /// </summary>
-        /// <returns></returns>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "EnginePair";
         }
 
-        /// <summary>
-        /// show settings
-        /// показать настройки
-        /// </summary>
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
            

@@ -9,12 +9,13 @@ using OsEngine.OsTrader.Panels.Attributes;
 
 namespace OsEngine.Robots.Engines
 {
-    [Bot("NewsEngine")]
+    [Bot("NewsEngine")] // We create an attribute so that we don't write anything to the BotFactory
     public class NewsEngine : BotPanel
     {
         public NewsEngine(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.News);
             TabsNews[0].NewsEvent += NewsEngine_NewsEvent;
 
@@ -23,16 +24,16 @@ namespace OsEngine.Robots.Engines
 
         private void NewsEngine_NewsEvent(News news)
         {
-            // do something
-
+            // Do something
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "NewsEngine";
         }
 
-
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
