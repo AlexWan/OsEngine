@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing;
@@ -53,7 +58,7 @@ namespace OsEngine.Robots
         private StrategyParameterInt _momentumPeriod;
 
         // Indicator
-        Aindicator _momentum;
+        private Aindicator _momentum;
 
         // The last value of the indicator
         private decimal _lastMomentum;
@@ -87,7 +92,7 @@ namespace OsEngine.Robots
             _momentum = (Aindicator)_tab.CreateCandleIndicator(_momentum, "NewArea");
             ((IndicatorParameterInt)_momentum.Parameters[0]).ValueInt = _momentumPeriod.ValueInt;
             _momentum.Save();
-            
+
             // Exit settings
             _stopValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
             _profitValue = CreateParameter("Profit Value", 1.0m, 5, 200, 5, "Exit");
@@ -119,6 +124,7 @@ namespace OsEngine.Robots
         {
             return "BreakMomentum";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -206,7 +212,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
