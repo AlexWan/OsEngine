@@ -181,4 +181,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string Coin { get; set; } // Asset
         public string Balance { get; set; } // Balance
     }
+
+    public class TradeData
+    {
+        public string tradeId { get; set; }
+        public string price { get; set; }
+        public string size { get; set; }
+        public string side { get; set; }
+        public string ts { get; set; }
+        public string symbol { get; set; }
+    }
 }
