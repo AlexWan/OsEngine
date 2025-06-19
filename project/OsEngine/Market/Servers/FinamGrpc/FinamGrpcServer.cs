@@ -9,19 +9,21 @@ using Grpc.Tradeapi.V1.Assets;
 using Grpc.Tradeapi.V1.Auth;
 using Grpc.Tradeapi.V1.Marketdata;
 using Grpc.Tradeapi.V1.Orders;
-using FOrder = Grpc.Tradeapi.V1.Orders.Order;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Candle = OsEngine.Entity.Candle;
+using FOrder = Grpc.Tradeapi.V1.Orders.Order;
 using FPosition = Grpc.Tradeapi.V1.Accounts.Position;
 using FSide = Grpc.Tradeapi.V1.Side;
 using FTimeFrame = Grpc.Tradeapi.V1.Marketdata.TimeFrame;
@@ -71,8 +73,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
             worker2.Start();
 
             Thread worker3 = new Thread(MyOrderTradeMessageReader);
-            worker2.Name = "MyOrderTradeMessageReaderFinamGrpc";
-            worker2.Start();
+            worker3.Name = "MyOrderTradeMessageReaderFinamGrpc";
+            worker3.Start();
         }
 
         public void Connect(WebProxy proxy)
@@ -155,7 +157,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 SendLogMessage($"Error loading securities: {ex}", LogMessageType.Error);
             }
 
-            _updateSecuritiesFromServer(assetsResponse);
+            UpdateSecuritiesFromServer(assetsResponse);
 
             if (_securities.Count > 0)
             {
@@ -165,7 +167,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
-        private void _updateSecuritiesFromServer(AssetsResponse assetsResponse)
+        private void UpdateSecuritiesFromServer(AssetsResponse assetsResponse)
         {
             if (assetsResponse == null ||
                 assetsResponse.Assets.Count == 0)
@@ -337,7 +339,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     queryEndTime = endTime;
 
 
-                List<Candle> range = _getCandleHistoryFromServer(queryStartTime, queryEndTime, security, ftf);
+                List<Candle> range = GetCandleHistoryFromServer(queryStartTime, queryEndTime, security, ftf);
 
                 // Если запрошен некорректный таймфрейм, то возвращает null
                 if (range == null) return null;
@@ -351,7 +353,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
 
         private RateGate _rateGateMarketDataBars = new RateGate(60, TimeSpan.FromMinutes(1));
-        private List<Candle> _getCandleHistoryFromServer(DateTime fromDateTime, DateTime toDateTime, Security security, FTimeFrame ftf)
+        private List<Candle> GetCandleHistoryFromServer(DateTime fromDateTime, DateTime toDateTime, Security security, FTimeFrame ftf)
         {
             if (ftf == FTimeFrame.Unspecified) return null;
 
@@ -379,12 +381,12 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 SendLogMessage($"Error getting candles for {security.Name}: " + ex.ToString(), LogMessageType.Error);
             }
 
-            List<Candle> candles = _convertToOsEngineCandles(resp);
+            List<Candle> candles = ConvertToOsEngineCandles(resp);
 
             return candles;
         }
 
-        private List<Candle> _convertToOsEngineCandles(BarsResponse response)
+        private List<Candle> ConvertToOsEngineCandles(BarsResponse response)
         {
             List<Candle> candles = new List<Candle>();
 
@@ -410,7 +412,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return candles;
         }
 
-        private void _updateSecurityParams(Security security)
+        private void UpdateSecurityParams(Security security)
         {
             try
             {
@@ -460,7 +462,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             //}
         }
 
-        private MarketDepth _getMarketDepth(Security security)
+        private MarketDepth GetMarketDepth(Security security)
         {
             MarketDepth depth = new MarketDepth();
             depth.SecurityNameCode = security.Name;
@@ -659,11 +661,11 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     _myOrderTradeClient.SubscribeOrderTrade(_gRpcMetadata, null, _cancellationTokenSource.Token);
 
                 // Получаем стакан
-                MarketDepth depth = _getMarketDepth(security);
+                MarketDepth depth = GetMarketDepth(security);
                 MarketDepthEvent?.Invoke(depth);
 
                 // Получаем недостающие данные по тикеру
-                _updateSecurityParams(security);
+                UpdateSecurityParams(security);
             }
             catch (Exception ex)
             {
@@ -948,7 +950,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                         {
                             OrderState myOrder = myOrderTradeResponse.Orders[j];
 
-                            Order order = _convertToOSEngineOrder(myOrder);
+                            Order order = ConvertToOSEngineOrder(myOrder);
 
                             if (order == null) continue;
 
@@ -962,7 +964,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                         {
                             AccountTrade myTrade = myOrderTradeResponse.Trades[j];
 
-                            MyTrade trade = _convertToOSEngineTrade(myTrade);
+                            MyTrade trade = ConvertToOSEngineTrade(myTrade);
 
                             if (trade == null) continue;
 
@@ -997,7 +999,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
-        private MyTrade _convertToOSEngineTrade(AccountTrade myTrade)
+        private MyTrade ConvertToOSEngineTrade(AccountTrade myTrade)
         {
             MyTrade trade = new MyTrade();
 
@@ -1011,56 +1013,48 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return trade;
         }
 
-        private Order _convertToOSEngineOrder(OrderState orderState)
+        private Order ConvertToOSEngineOrder(OrderState orderState)
         {
             if (orderState == null || orderState.Order == null) return null;
 
             Order myOrder = new Order();
-            FOrder order = orderState.Order;
-            myOrder.NumberUser = int.Parse(order.ClientOrderId);
-            if(myOrder.NumberUser == 0) return null;
+            FOrder fOrder = orderState.Order;
+            myOrder.NumberUser = int.Parse(fOrder.ClientOrderId);
+            if (myOrder.NumberUser == 0) return null;
 
-            myOrder.PortfolioNumber = order.AccountId;
+            myOrder.PortfolioNumber = fOrder.AccountId;
             myOrder.NumberMarket = orderState.OrderId;
             myOrder.TimeCallBack = orderState.TransactAt.ToDateTime(); // TODO Проверить
             myOrder.TimeCreate = orderState.TransactAt.ToDateTime();  // TODO Проверить
-            myOrder.Price = order.LimitPrice.Value.ToDecimal();
-            myOrder.Volume = order.Quantity.Value.ToDecimal();
-            myOrder.TypeOrder = order.Type switch
+            myOrder.Price = fOrder.LimitPrice.Value.ToDecimal();
+            myOrder.Volume = fOrder.Quantity.Value.ToDecimal();
+            myOrder.TypeOrder = fOrder.Type switch
             {
                 OrderType.Market => OrderPriceType.Market,
                 OrderType.Limit => OrderPriceType.Limit,
                 _ => throw new Exception("Order type is not supported")
             };
-            //// Only Limit and Market
-            //if (order.Type == OrderType.Market)
-            //{
-            //    myOrder.TypeOrder = OrderPriceType.Market;
-            //}
-            //else if (order.Type == OrderType.Limit)
-            //{
-            //    myOrder.TypeOrder = OrderPriceType.Limit;
-            //}
 
-            Security security = GetSecurity(order.Symbol);
+            Security security = GetSecurity(fOrder.Symbol);
             myOrder.SecurityNameCode = security.Name;
             myOrder.SecurityClassCode = security.NameClass; // TODO Проверить
-            myOrder.Side = GetSide(order.Side);
-            myOrder.State = orderState.Status switch
-            {
-                OrderStatus.Canceled => OrderStateType.Cancel,
-                OrderStatus.Expired => OrderStateType.Cancel, // По смыслу подходит? или fail
-                OrderStatus.Executed => OrderStateType.Done,
-                OrderStatus.New => OrderStateType.Active,
-                OrderStatus.PendingNew => OrderStateType.Pending,
-                OrderStatus.Filled => OrderStateType.Done,
-                OrderStatus.PartiallyFilled => OrderStateType.Partial,
-                OrderStatus.Rejected => OrderStateType.Fail,
-                OrderStatus.RejectedByExchange => OrderStateType.Fail,
-                OrderStatus.DeniedByBroker => OrderStateType.Fail,
-                OrderStatus.Failed => OrderStateType.Fail,
-                _ => OrderStateType.None
-            };
+            myOrder.Side = GetSide(fOrder.Side);
+            myOrder.State = GetOrderStateType(orderState.Status);
+            //    orderState.Status switch
+            //{
+            //    OrderStatus.Canceled => OrderStateType.Cancel,
+            //    OrderStatus.Expired => OrderStateType.Cancel, // По смыслу подходит? или fail
+            //    OrderStatus.Executed => OrderStateType.Done,
+            //    OrderStatus.New => OrderStateType.Active,
+            //    OrderStatus.PendingNew => OrderStateType.Pending,
+            //    OrderStatus.Filled => OrderStateType.Done,
+            //    OrderStatus.PartiallyFilled => OrderStateType.Partial,
+            //    OrderStatus.Rejected => OrderStateType.Fail,
+            //    OrderStatus.RejectedByExchange => OrderStateType.Fail,
+            //    OrderStatus.DeniedByBroker => OrderStateType.Fail,
+            //    OrderStatus.Failed => OrderStateType.Fail,
+            //    _ => OrderStateType.None
+            //};
 
             if (myOrder.State == OrderStateType.Cancel)
             {
@@ -1169,10 +1163,76 @@ namespace OsEngine.Market.Servers.FinamGrpc
         #endregion
 
         #region 10 Trade
+        public void SendOrder(Order order)
+        {
+            _rateGatePlaceOrder.WaitToProceed();
+            Security security = GetSecurity(order.SecurityNameCode);
+            FOrder fOrder = new FOrder();
+            fOrder.AccountId = _accountId;
+            fOrder.Symbol = order.SecurityNameCode;
+            fOrder.Quantity = new Google.Type.Decimal { Value = order.Volume.ToString() };
+            fOrder.Side = order.Side switch { Side.Buy => FSide.Buy, Side.Sell => FSide.Sell, _ => throw new Exception("Order side is not defined!") };
+            fOrder.ClientOrderId = order.NumberUser.ToString();
+            if (order.TypeOrder == OrderPriceType.Limit)
+            {
+                fOrder.Type = OrderType.Limit;
+                fOrder.LimitPrice = new Google.Type.Decimal { Value = order.Price.ToString() };
+            }
+            else if (order.TypeOrder == OrderPriceType.Market)
+            {
+                fOrder.Type = OrderType.Market;
+            }
+
+            OrderState orderState;
+            try
+            {
+                orderState = _myOrderTradeClient.PlaceOrder(fOrder, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Error place order. Info: {message}", LogMessageType.Error);
+                InvokeOrderFail(order);
+                return;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"Error on order execution: {exception.Message}", LogMessageType.Error);
+                InvokeOrderFail(order);
+                return;
+            }
+
+            if (orderState == null)
+            {
+                InvokeOrderFail(order);
+                return;
+            }
+
+            FOrder newOrder = orderState.Order;
+            order.State = GetOrderStateType(orderState.Status);
+            order.NumberMarket = orderState.OrderId;
+            order.TimeCallBack = orderState.TransactAt.ToDateTime();
+            order.Price = newOrder.LimitPrice.Value.ToDecimal();
+            order.Volume = newOrder.Quantity.Value.ToDecimal();
+
+            if (order.State == OrderStateType.Cancel)
+            {
+                order.TimeCancel = orderState.WithdrawAt.ToDateTime(); // TODO Описание в документации не соответствует названию параметра. Уточнить.
+            }
+
+            if (order.State == OrderStateType.Done)
+            {
+                order.TimeDone = orderState.AcceptAt.ToDateTime();
+            }
+            MyOrderEvent?.Invoke(order);
+        }
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = null;
+            _rateGateGetOrders.WaitToProceed();
+            List<Order> orders = GetAllActiveOrdersFromExchange();
+
+            if (orders == null || orders.Count == 0) return;
 
             for (int i = 0; orders != null && i < orders.Count; i++)
             {
@@ -1180,8 +1240,101 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
+        private List<Order> GetAllActiveOrdersFromExchange()
+        {
+            OrdersResponse ordersResponse = null;
+            try
+            {
+                ordersResponse = _myOrderTradeClient.GetOrders(new OrdersRequest { AccountId = _accountId }, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Get all orders request error. Info: {message}", LogMessageType.Error);
+                return null;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"Get get all orders request error: {exception.Message}", LogMessageType.Error);
+                return null;
+            }
+
+            if (ordersResponse == null || ordersResponse.Orders.Count == 0) return null;
+
+            List<Order> orders = new List<Order>();
+            for (int i = 0; i < ordersResponse.Orders.Count; i++)
+            {
+                OrderState orderState = ordersResponse.Orders[i];
+                Order order = ConvertToOSEngineOrder(orderState); //TODO првоерить логику
+                orders.Add(order);
+            }
+
+            return orders;
+        }
+
+        public void CancelOrder(Order order)
+        {
+            _rateGateCancelOrder.WaitToProceed();
+
+            OrderState orderCancelResponse = null;
+            try
+            {
+                orderCancelResponse = _myOrderTradeClient.CancelOrder(new CancelOrderRequest { AccountId = _accountId, OrderId = order.NumberMarket }, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Cancel order request error. Info: {message}", LogMessageType.Error);
+                return;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"Cancel order request error: {exception.Message}", LogMessageType.Error);
+                return;
+            }
+
+            if (orderCancelResponse != null)
+            {
+                order.State = GetOrderStateType(orderCancelResponse.Status);
+
+                MyOrderEvent?.Invoke(order);
+            }
+        }
+
+        public void GetOrderStatus(Order order)
+        {
+            _rateGateGetOrder.WaitToProceed();
+            OrderState orderResponse = null;
+            try
+            {
+                orderResponse = _myOrderTradeClient.GetOrder(new GetOrderRequest { AccountId = _accountId, OrderId = order.NumberMarket }, _gRpcMetadata);
+            }
+            catch (RpcException ex)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"Get all orders request error. Info: {message}", LogMessageType.Error);
+                return;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"Get get all orders request error: {exception.Message}", LogMessageType.Error);
+                return;
+            }
+
+            if (orderResponse == null || string.IsNullOrEmpty(orderResponse.Order.ClientOrderId)) return;
+
+            Order orderUpdated = ConvertToOSEngineOrder(orderResponse);
+
+            MyOrderEvent?.Invoke(orderUpdated);
+        }
+
+        public void ChangeOrderPrice(Order order, decimal newPrice) { }
+
         public event Action<Order> MyOrderEvent;
-        private RateGate _rateGateOrders = new RateGate(100, TimeSpan.FromMinutes(1)); // https://russianinvestments.github.io/investAPI/limits/
+        private RateGate _rateGatePlaceOrder = new RateGate(60, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateCancelOrder = new RateGate(60, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateGetOrders = new RateGate(60, TimeSpan.FromMinutes(1));
+        private RateGate _rateGateGetOrder = new RateGate(60, TimeSpan.FromMinutes(1));
         #endregion
 
         #region 11 Helpers
@@ -1198,6 +1351,25 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 FSide.Buy => Side.Buy,
                 FSide.Sell => Side.Sell,
                 _ => Side.None
+            };
+        }
+
+        private OrderStateType GetOrderStateType(OrderStatus status)
+        {
+            return status switch
+            {
+                OrderStatus.Canceled => OrderStateType.Cancel,
+                OrderStatus.Expired => OrderStateType.Cancel, // По смыслу подходит? или fail
+                OrderStatus.Executed => OrderStateType.Done,
+                OrderStatus.New => OrderStateType.Active,
+                OrderStatus.PendingNew => OrderStateType.Pending,
+                OrderStatus.Filled => OrderStateType.Done,
+                OrderStatus.PartiallyFilled => OrderStateType.Partial,
+                OrderStatus.Rejected => OrderStateType.Fail,
+                OrderStatus.RejectedByExchange => OrderStateType.Fail,
+                OrderStatus.DeniedByBroker => OrderStateType.Fail,
+                OrderStatus.Failed => OrderStateType.Fail,
+                _ => OrderStateType.None
             };
         }
 
@@ -1227,6 +1399,12 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         //    return bigDecimal;
         //}
+
+        private void InvokeOrderFail(Order order)
+        {
+            order.State = OrderStateType.Fail;
+            MyOrderEvent?.Invoke(order);
+        }
 
         protected TimeSpan getHistoryDepth(FTimeFrame tf)
         {
@@ -1282,21 +1460,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
             throw new NotImplementedException();
         }
 
-        public void CancelOrder(Order order)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ChangeOrderPrice(Order order, decimal newPrice)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void GetOrderStatus(Order order)
-        {
-            throw new NotImplementedException();
-        }
-
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null; // Недоступно
@@ -1342,9 +1505,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return trades.Count > 0 ? trades : null;
         }
 
-        public void SendOrder(Order order)
-        {
-            throw new NotImplementedException();
-        }
+
     }
 }
