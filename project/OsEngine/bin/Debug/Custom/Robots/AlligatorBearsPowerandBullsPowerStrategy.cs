@@ -29,16 +29,17 @@ Sell:
 2. Bulls Power columns should be above 0, but decrease
 3. Bears Power columns should be below 0 and decrease - enter short position
 
-Exit from the purchase: the fast line is lower than the slow one
-Exit from sale: fast line above slow line
+Exit from the buy: the fast line is lower than the slow one
+Exit from sell: fast line above slow line
  */
 
 namespace OsEngine.Robots
 {
-    // We create an attribute so that we don't write anything to the BotFactory
-    [Bot("AlligatorBearsPowerandBullsPowerStrategy")] 
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    [Bot("AlligatorBearsPowerandBullsPowerStrategy")]
     public class AlligatorBearsPowerandBullsPowerStrategy : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -52,19 +53,19 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _alligatorFastLineLength;
         private StrategyParameterInt _alligatorMiddleLineLength;
         private StrategyParameterInt _alligatorSlowLineLength;
         private StrategyParameterInt _bearsPeriod;
         private StrategyParameterInt _bullsPeriod;
 
-        // Indicator
+        // Indicators
         private Aindicator _alligator;
         private Aindicator _bullsPower;
         private Aindicator _bearsPower;
 
-        // The last value of the indicators
+        // The last values of the indicators
         private decimal _lastFast;
         private decimal _lastMiddle;
         private decimal _lastSlow;
@@ -100,8 +101,8 @@ namespace OsEngine.Robots
             _alligator = IndicatorsFactory.CreateIndicatorByName("Alligator", name + "Alligator", false);
             _alligator = (Aindicator)_tab.CreateCandleIndicator(_alligator, "Prime");
             ((IndicatorParameterInt)_alligator.Parameters[0]).ValueInt = _alligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorFastLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorFastLineLength.ValueInt;
             _alligator.Save();
 
             // Create indicator BullsPower
@@ -129,21 +130,23 @@ namespace OsEngine.Robots
                 "1. fast line (lips) below the midline (teeth), medium below the slow line (jaw) " +
                 "2. Bulls Power columns should be above 0, but decrease " +
                 "3. Bears Power columns should be below 0 and decrease - enter short position " +
-                "Exit from the purchase: the fast line is lower than the slow one " +
-                "Exit from sale: fast line above slow line";
+                "Exit from the buy: the fast line is lower than the slow one " +
+                "Exit from sell: fast line above slow line";
         }
 
         // Indicator Update event
         private void AlligatorBearsPowerandBullsPowerStrategy_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_alligator.Parameters[0]).ValueInt = _alligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorFastLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorFastLineLength.ValueInt;
             _alligator.Save();
             _alligator.Reload();
+
             ((IndicatorParameterInt)_bearsPower.Parameters[0]).ValueInt = _bearsPeriod.ValueInt;
             _bearsPower.Save();
             _bearsPower.Reload();
+
             ((IndicatorParameterInt)_bullsPower.Parameters[0]).ValueInt = _bullsPeriod.ValueInt;
             _bullsPower.Save();
             _bullsPower.Reload();
@@ -154,6 +157,7 @@ namespace OsEngine.Robots
         {
             return "AlligatorBearsPowerandBullsPowerStrategy";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -233,7 +237,7 @@ namespace OsEngine.Robots
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if(_lastFast < _lastMiddle && _lastMiddle < _lastSlow && _lastBulls > 0 && _lastBulls < _prevBulls && _lastBears < 0 && _lastBears < _prevBears)
+                    if (_lastFast < _lastMiddle && _lastMiddle < _lastSlow && _lastBulls > 0 && _lastBulls < _prevBulls && _lastBears < 0 && _lastBears < _prevBears)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }

@@ -38,9 +38,10 @@ price, also for the specified period.
 
 namespace OsEngine.Robots
 {
-    [Bot("AlligatorStrategyAndFractals")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("AlligatorStrategyAndFractals")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class AlligatorStrategyAndFractals : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -54,12 +55,12 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Setting indicator
+        // Settings indicators
         private StrategyParameterInt _alligatorFastLineLength;
         private StrategyParameterInt _alligatorMiddleLineLength;
         private StrategyParameterInt _alligatorSlowLineLength;
 
-        // Indicator
+        // Indicators
         private Aindicator _alligator;
         private Aindicator _fractal;
 
@@ -75,6 +76,7 @@ namespace OsEngine.Robots
 
         public AlligatorStrategyAndFractals(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -98,8 +100,8 @@ namespace OsEngine.Robots
             _alligator = IndicatorsFactory.CreateIndicatorByName("Alligator", name + "Alligator", false);
             _alligator = (Aindicator)_tab.CreateCandleIndicator(_alligator, "Prime");
             ((IndicatorParameterInt)_alligator.Parameters[0]).ValueInt = _alligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorFastLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorFastLineLength.ValueInt;
             _alligator.Save();
 
             // Create indicator Fractal
@@ -135,8 +137,8 @@ namespace OsEngine.Robots
         private void AlligatorStrategyAndFractals_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_alligator.Parameters[0]).ValueInt = _alligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorFastLineLength.ValueInt;
-            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorFastLineLength.ValueInt;
             _alligator.Save();
             _alligator.Reload();
         }
@@ -146,6 +148,7 @@ namespace OsEngine.Robots
         {
             return "AlligatorStrategyAndFractals";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -223,7 +226,7 @@ namespace OsEngine.Robots
                 _lastFast = _alligator.DataSeries[2].Last;
                 _lastMiddle = _alligator.DataSeries[1].Last;
                 _lastSlow = _alligator.DataSeries[0].Last;
-                
+
                 decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
                 decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -251,7 +254,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             // The last value of the indicators
@@ -281,12 +284,12 @@ namespace OsEngine.Robots
                 else // If the direction of the position is short
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
-                    if(price == 0)
+                    if (price == 0)
                     {
                         return;
                     }
                     _tab.CloseAtTrailingStop(pos, price, price + _slippage);
-                }   
+                }
             }
         }
 
