@@ -19,6 +19,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
+using OsEngine.Market.Servers.Polygon.Entity;
+
 
 namespace OsEngine.Market.Servers.Bybit
 {
@@ -37,6 +39,8 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
+            CreateParameterEnum("Open interest", "On", new List<string> { "On", "Off" });
+
         }
     }
 
@@ -121,6 +125,15 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 _leverage = ((ServerParameterString)ServerParameters[5]).Value.Replace(",", ".");
+
+                if (((ServerParameterEnum)ServerParameters[6]).Value == "On")
+                {
+                    _oi = true;
+                }
+                else
+                {
+                    _oi = false;
+                }
 
                 if (!CheckApiKeyInformation(PublicKey))
                 {
@@ -267,6 +280,8 @@ namespace OsEngine.Market.Servers.Bybit
             _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<string>();
             _concurrentQueueMessageOrderBookInverse = new ConcurrentQueue<string>();
             concurrentQueueMessagePrivateWebSocket = new ConcurrentQueue<string>();
+            _concurrentQueueTickersLinear = new ConcurrentQueue<string>();
+            _concurrentQueueTickersInverse = new ConcurrentQueue<string>();
 
             _concurrentQueueTradesSpot = new ConcurrentQueue<string>();
             _concurrentQueueTradesLinear = new ConcurrentQueue<string>();
@@ -334,13 +349,15 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string _leverage;
 
+        private bool _oi;
+
         private List<string> _listLinearCurrency = new List<string>() { "USDC", "USDT" };
 
         private int marketDepthDeep
         {
             get
             {
-                if (((ServerParameterBool)ServerParameters[13]).Value)
+                if (((ServerParameterBool)ServerParameters[14]).Value)
                 {
                     return 50;
                 }
@@ -1440,7 +1457,6 @@ namespace OsEngine.Market.Servers.Bybit
                 _webSocketPublicSpot.Add(CreateNewSpotPublicSocket());
                 _webSocketPublicLinear.Add(CreateNewLinearPublicSocket());
                 _webSocketPublicInverse.Add(CreateNewInversePublicSocket());
-
             }
             catch (Exception ex)
             {
@@ -1693,8 +1709,6 @@ namespace OsEngine.Market.Servers.Bybit
 
         }
 
-        DateTime SendLogMessageTime = DateTime.Now;
-
         private void WebSocketPublic_Error(object sender, ErrorEventArgs e)
         {
             try
@@ -1885,6 +1899,11 @@ namespace OsEngine.Market.Servers.Bybit
                                 string s = SubscribeSecurityLinear[i2].Split('.')[0];
                                 webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
                                 webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+
+                                if (_oi)
+                                {
+                                    webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                }
                             }
                         }
                     }
@@ -1927,6 +1946,11 @@ namespace OsEngine.Market.Servers.Bybit
                                 string s = SubscribeSecurityInverse[i2].Split('.')[0];
                                 webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
                                 webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+
+                                if (_oi)
+                                {
+                                    webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                }
                             }
                         }
                     }
@@ -2069,6 +2093,12 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".P", "")}\" ] }}");
                         webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".P", "")}\" ] }}");
 
+                        if (_oi)
+                        {
+                            webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".P", "")}\" ] }}");
+                        }
+
+
                         if (SubscribeSecurityLinear.Exists(s => s == security.Name) == false)
                         {
                             SubscribeSecurityLinear.Add(security.Name);
@@ -2120,6 +2150,11 @@ namespace OsEngine.Market.Servers.Bybit
 
                         webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".I", "")}\" ] }}");
                         webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".I", "")}\" ] }}");
+
+                        if (_oi)
+                        {
+                            webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".I", "")}\" ] }}");
+                        }
 
                         if (SubscribeSecurityInverse.Exists(s => s == security.Name) == false)
                         {
@@ -2220,6 +2255,20 @@ namespace OsEngine.Market.Servers.Bybit
                             else if (category == Category.inverse)
                             {
                                 _concurrentQueueMessageOrderBookInverse.Enqueue(message);
+                            }
+
+                            continue;
+                        }
+                        else if (response.topic.Contains("tickers"))
+                        {
+
+                            if (category == Category.linear)
+                            {
+                                _concurrentQueueTickersLinear.Enqueue(_message);
+                            }
+                            else if (category == Category.inverse)
+                            {
+                                _concurrentQueueTickersInverse.Enqueue(message);
                             }
 
                             continue;
@@ -2919,6 +2968,24 @@ namespace OsEngine.Market.Servers.Bybit
 
                     Category category = Category.linear;
                     UpdateTrade(message, category);
+
+                    if (_oi)
+                    {
+                        if (_concurrentQueueTickersLinear == null
+                        || _concurrentQueueTickersLinear.IsEmpty
+                        || _concurrentQueueTickersLinear.Count == 0)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
+                        if (!_concurrentQueueTickersLinear.TryDequeue(out string message2))
+                        {
+                            continue;
+                        }
+
+                        UpdateTicker(message2, category);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2954,6 +3021,24 @@ namespace OsEngine.Market.Servers.Bybit
 
                     Category category = Category.inverse;
                     UpdateTrade(message, category);
+
+                    if (_oi)
+                    {
+                        if (_concurrentQueueTickersInverse == null
+                        || _concurrentQueueTickersInverse.IsEmpty
+                        || _concurrentQueueTickersInverse.Count == 0)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
+                        if (!_concurrentQueueTickersInverse.TryDequeue(out string message2))
+                        {
+                            continue;
+                        }
+
+                        UpdateTicker(message2, category);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -2997,8 +3082,88 @@ namespace OsEngine.Market.Servers.Bybit
                             trade.SecurityNameCode = item.s;
                         }
 
+                        if (_oi)
+                        {
+                            trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
+                        }
+
                         NewTradesEvent?.Invoke(trade);
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private decimal GetOpenInterest(string securityNameCode)
+        {
+            if (_allTickers.Count == 0
+                || _allTickers == null)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < _allTickers.Count; i++)
+            {
+                if (_allTickers[i].SecutityName == securityNameCode)
+                {
+                    return _allTickers[i].OpenInterest.ToDecimal();
+                }
+            }
+
+            return 0;
+        }
+
+        private ConcurrentQueue<string> _concurrentQueueTickersLinear = new ConcurrentQueue<string>();
+
+        private ConcurrentQueue<string> _concurrentQueueTickersInverse = new ConcurrentQueue<string>();
+
+        private List<Tickers> _allTickers = new List<Tickers>();
+
+        private void UpdateTicker(string message, Category category)
+        {
+            try
+            {
+                ResponseWebSocketMessage<ResponseTicker> responseTicker =
+                                 JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseTicker>());
+
+                if (responseTicker == null
+                    || responseTicker.data == null
+                    || responseTicker.data.openInterestValue == null)
+                {
+                    return;
+                }
+
+                Tickers tickers = new Tickers();
+
+                if (category == Category.linear)
+                {
+                    tickers.SecutityName = responseTicker.data.symbol + ".P";
+                }
+                else if (category == Category.inverse)
+                {
+                    tickers.SecutityName = responseTicker.data.symbol + ".I";
+                }
+
+                tickers.OpenInterest = responseTicker.data.openInterestValue;
+
+                bool isInArray = false;
+
+                for (int i = 0; i < _allTickers.Count; i++)
+                {
+                    if (_allTickers[i].SecutityName == tickers.SecutityName)
+                    {
+                        _allTickers[i].OpenInterest = tickers.OpenInterest;
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    _allTickers.Add(tickers);
                 }
             }
             catch (Exception ex)
@@ -4120,6 +4285,13 @@ namespace OsEngine.Market.Servers.Bybit
 
         #endregion 13
     }
+
+    public class Tickers
+    {
+        public string SecutityName { get; set; }
+        public string OpenInterest { get; set; }
+    }
+
 
     #region 14 Enum
 
