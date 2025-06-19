@@ -526,6 +526,51 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return depth;
         }
 
+        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
+        {
+            return null; // Недоступно
+            LatestTradesResponse resp = null;
+            try
+            {
+                resp = _marketDataClient.LatestTrades(new LatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata);
+            }
+            catch (RpcException exception)
+            {
+                SendLogMessage($"Error while getting latest trades: {exception.Message}", LogMessageType.Error);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+
+            if (resp == null || resp.Trades.Count == 0)
+            {
+                return null;
+            }
+
+            List<Trade> trades = new List<Trade>();
+            for (int i = 0; i < resp.Trades.Count; i++)
+            {
+                FTrade fTrade = resp.Trades[i];
+                DateTime ts = fTrade.Timestamp.ToDateTime();
+                if (ts > startTime && ts < endTime)
+                {
+                    Trade trade = new Trade();
+                    trade.SecurityNameCode = resp.Symbol;
+                    //trade.SecurityNameCode = security.NameId;
+                    trade.Volume = fTrade.Size.Value.ToDecimal();
+                    trade.Price = fTrade.Price.Value.ToDecimal();
+                    trade.Time = fTrade.Timestamp.ToDateTime();
+                    trade.Id = fTrade.TradeId;
+                    trade.Side = GetSide(fTrade.Side);
+
+                    trades.Add(trade);
+                }
+            }
+
+            return trades.Count > 0 ? trades : null;
+        }
+
         private RateGate _rateGateGetAsset = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateGetAssetParams = new RateGate(60, TimeSpan.FromMinutes(1));
         private RateGate _rateGateOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
@@ -672,6 +717,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
+
         public bool SubscribeNews()
         {
             return false;
@@ -1074,6 +1120,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return myOrder;
         }
 
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<Trade> NewTradesEvent;
         public event Action<MyTrade> MyTradeEvent;
@@ -1475,57 +1523,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
         #endregion
-
-
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-
-        public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
-        {
-            return null; // Недоступно
-            LatestTradesResponse resp = null;
-            try
-            {
-                resp = _marketDataClient.LatestTrades(new LatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata);
-            }
-            catch (RpcException exception)
-            {
-                SendLogMessage($"Error while getting latest trades: {exception.Message}", LogMessageType.Error);
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage(exception.ToString(), LogMessageType.Error);
-            }
-
-            if (resp == null || resp.Trades.Count == 0)
-            {
-                return null;
-            }
-
-            List<Trade> trades = new List<Trade>();
-            for (int i = 0; i < resp.Trades.Count; i++)
-            {
-                FTrade fTrade = resp.Trades[i];
-                DateTime ts = fTrade.Timestamp.ToDateTime();
-                if (ts > startTime && ts < endTime)
-                {
-                    Trade trade = new Trade();
-                    trade.SecurityNameCode = resp.Symbol;
-                    //trade.SecurityNameCode = security.NameId;
-                    trade.Volume = fTrade.Size.Value.ToDecimal();
-                    trade.Price = fTrade.Price.Value.ToDecimal();
-                    trade.Time = fTrade.Timestamp.ToDateTime();
-                    trade.Id = fTrade.TradeId;
-                    trade.Side = GetSide(fTrade.Side);
-
-                    trades.Add(trade);
-                }
-            }
-
-            return trades.Count > 0 ? trades : null;
-        }
-
-
     }
 }
