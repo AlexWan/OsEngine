@@ -32,7 +32,8 @@ namespace OsEngine.Market.Servers.Bybit
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
-            CreateParameterEnum(OsLocalization.Market.Label1, Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(), Net_type.Demo.ToString() });
+            CreateParameterEnum(OsLocalization.Market.Label1, Net_type.MainNet.ToString(), new List<string>() { Net_type.MainNet.ToString(),
+                Net_type.Demo.ToString(), Net_type.Netherlands.ToString(), Net_type.HongKong.ToString(), Net_type.Turkey.ToString(), Net_type.Kazakhstan.ToString() });
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
@@ -358,20 +359,46 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string test_Url = "https://api-demo.bybit.com";
 
+        private string Netherlands_Url = "https://api.bybit.nl";
+
+        private string HongKong_Url = "https://api.byhkbit.com";
+
+        private string Turkey_Url = "https://api.bybit-tr.com";
+
+        private string Kazakhstan_Url = "https://api.bybit.kz";
+
         private string mainWsPublicUrl = "wss://stream.bybit.com/v5/public/";
 
         private string testWsPublicUrl = "wss://stream.bybit.com/v5/public/";
 
+        private string TurkeyWsPublicUrl = "wss://stream.bybit-tr.com/v5/public/";
+
+        private string KazakhstanWsPublicUrl = "wss://stream.bybit.kz/v5/public/";
+
         private string mainWsPrivateUrl = "wss://stream.bybit.com/v5/private";
+
+        private string TurkeyWsPrivateUrl = "wss://stream.bybit-tr.com/v5/private";
+
+        private string KazakhstanWsPrivateUrl = "wss://stream.bybit.kz/v5/private";
 
         private string testWsPrivateUrl = "wss://stream-demo.bybit.com/v5/private";
 
         private string wsPublicUrl(Category category = Category.spot)
         {
             string url;
-            if (net_type == Net_type.MainNet)
+            if (net_type == Net_type.MainNet
+                 || net_type == Net_type.Netherlands
+                 || net_type == Net_type.HongKong)
             {
                 url = mainWsPublicUrl;
+            }
+            else if (net_type == Net_type.Turkey)
+            {
+                url = TurkeyWsPublicUrl;
+            }
+            else if (net_type == Net_type.Kazakhstan)
+            {
+                url = KazakhstanWsPublicUrl;
             }
             else
             {
@@ -403,9 +430,19 @@ namespace OsEngine.Market.Servers.Bybit
         {
             get
             {
-                if (net_type == Net_type.MainNet)
+                if (net_type == Net_type.MainNet
+                   || net_type == Net_type.Netherlands
+                   || net_type == Net_type.HongKong)
                 {
                     return mainWsPrivateUrl;
+                }
+                else if (net_type == Net_type.Turkey)
+                {
+                    return TurkeyWsPrivateUrl;
+                }
+                else if (net_type == Net_type.Kazakhstan)
+                {
+                    return KazakhstanWsPrivateUrl;
                 }
                 else
                 {
@@ -421,6 +458,22 @@ namespace OsEngine.Market.Servers.Bybit
                 if (net_type == Net_type.MainNet)
                 {
                     return main_Url;
+                }
+                else if (net_type == Net_type.Netherlands)
+                {
+                    return Netherlands_Url;
+                }
+                else if (net_type == Net_type.HongKong)
+                {
+                    return HongKong_Url;
+                }
+                else if (net_type == Net_type.Turkey)
+                {
+                    return Turkey_Url;
+                }
+                else if (net_type == Net_type.Kazakhstan)
+                {
+                    return Kazakhstan_Url;
                 }
                 else
                 {
@@ -4073,7 +4126,11 @@ namespace OsEngine.Market.Servers.Bybit
     public enum Net_type
     {
         MainNet,
-        Demo
+        Demo,
+        Netherlands,
+        HongKong,
+        Turkey,
+        Kazakhstan
     }
 
     public enum MarginMode
