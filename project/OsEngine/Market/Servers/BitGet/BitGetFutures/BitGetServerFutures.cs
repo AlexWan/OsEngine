@@ -108,11 +108,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 _marginMode = "isolated";
             }
 
-            ServicePointManager.SecurityProtocol =
-                SecurityProtocolType.Tls11
-                | SecurityProtocolType.Tls12
-                | SecurityProtocolType.Tls13
-                | SecurityProtocolType.Tls;
+            //ServicePointManager.SecurityProtocol =
+            //    SecurityProtocolType.Tls11
+            //    | SecurityProtocolType.Tls12
+            //    | SecurityProtocolType.Tls13
+            //    | SecurityProtocolType.Tls;
 
             try
             {
@@ -990,7 +990,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
                 if (newTrades != null && trades.Count != 0 && newTrades.Count != 0)
                 {
-                    for (int j = 0; j < newTrades.Count; j++)
+                    for (int j = 0; j < trades.Count; j++)
                     {
                         for (int i = 0; i < newTrades.Count; i++)
                         {
