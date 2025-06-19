@@ -76,6 +76,7 @@ namespace OsEngine.Robots
 
         public AlligatorBearsPowerandBullsPowerStrategy(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 

@@ -30,9 +30,10 @@ Reverse side of the channel.
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakEnvelops")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakEnvelops")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakEnvelops : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -59,6 +60,7 @@ namespace OsEngine.Robots
 
         public BreakEnvelops(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -94,7 +96,7 @@ namespace OsEngine.Robots
                 "Buy: " +
                 "The price is above the upper Envelops band. " +
                 "Sell: " +
-                "The price is below the lower Envelopsband. " +
+                "The price is below the lower Envelops band. " +
                 "Exit:" +
                 "Reverse side of the channel.";
         }
@@ -112,6 +114,7 @@ namespace OsEngine.Robots
         {
             return "BreakEnvelops";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -127,8 +130,7 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _envelopsDeviation.ValueDecimal ||
-                candles.Count < _envelopsLength.ValueInt)
+            if (candles.Count <= _envelopsLength.ValueInt)
             {
                 return;
             }
@@ -168,6 +170,11 @@ namespace OsEngine.Robots
             _lastUpLine = _envelop.DataSeries[0].Last;
             _lastDownLine = _envelop.DataSeries[2].Last;
 
+            if (_lastUpLine == 0 || _lastDownLine == 0)
+            {
+                return;
+            }
+
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             if (openPositions == null || openPositions.Count == 0)
@@ -201,7 +208,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // The last value of the indicator
             _lastUpLine = _envelop.DataSeries[0].Last;
             _lastDownLine = _envelop.DataSeries[2].Last;
