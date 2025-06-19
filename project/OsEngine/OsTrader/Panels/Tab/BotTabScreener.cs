@@ -2458,6 +2458,52 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
+        /// <summary>
+        /// Number of sources with open or opening positions.
+        /// </summary>
+        public int SourceWithOpenPositionsCount
+        {
+            get
+            {
+                int result = 0;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    List<Position> curPoses = Tabs[i].PositionsOpenAll;
+
+                    if (curPoses.Count != 0)
+                    {
+                        result++;
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Number of sources with grids
+        /// </summary>
+        public int SourceWithGridsCount
+        {
+            get
+            {
+                int result = 0;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    BotTabSimple tab = Tabs[i];
+
+                    if(tab.GridsMaster.TradeGrids.Count != 0)
+                    {
+                        result++;
+                    }
+                }
+
+                return result;
+            }
+        }
+
         #endregion
 
         #region Events
