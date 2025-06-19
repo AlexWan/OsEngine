@@ -1328,6 +1328,37 @@ namespace OsEngine.Market.Servers.FinamGrpc
             MyOrderEvent?.Invoke(orderUpdated);
         }
 
+        public void CancelAllOrders()
+        {
+            List<Order> orders = GetAllActiveOrdersFromExchange();
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+
+                if (order.State == OrderStateType.Active)
+                {
+                    CancelOrder(order);
+                }
+            }
+        }
+
+        public void CancelAllOrdersToSecurity(Security security)
+        {
+            List<Order> orders = GetAllActiveOrdersFromExchange();
+
+            for (int i = 0; i < orders.Count; i++)
+            {
+                Order order = orders[i];
+
+                if (order.State == OrderStateType.Active
+                    && order.SecurityNameCode == security.Name)
+                {
+                    CancelOrder(order);
+                }
+            }
+        }
+
         public void ChangeOrderPrice(Order order, decimal newPrice) { }
 
         public event Action<Order> MyOrderEvent;
@@ -1449,16 +1480,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-
-        public void CancelAllOrders()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void CancelAllOrdersToSecurity(Security security)
-        {
-            throw new NotImplementedException();
-        }
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
