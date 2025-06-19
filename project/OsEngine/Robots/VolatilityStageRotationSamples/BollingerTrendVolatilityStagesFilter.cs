@@ -13,38 +13,52 @@ using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System;
 
+/* Description
+trading robot for osengine
+
+The trend robot on Bollinger Trend VolatilityStages Filter.
+
+Buy:
+1. The price has broken above the upper line of the main Bollinger band.
+2. If the volatility filter is enabled, the current volatility stage must match the one selected for trading.
+
+Sell:
+1. The price has broken below the lower line of the main Bollinger band.
+2. If the volatility filter is enabled, the current volatility stage must match the one selected for trading.
+
+Exit for long: Close by a trailing stop set at the lower Bollinger line.
+Exit for short: Close by a trailing stop set at the upper Bollinger line.
+*/
+
 namespace OsEngine.Robots.VolatilityStageRotationSamples
 {
-    [Bot("BollingerTrendVolatilityStagesFilter")]
+    [Bot("BollingerTrendVolatilityStagesFilter")] // We create an attribute so that we don't write anything to the BotFactory
     public class BollingerTrendVolatilityStagesFilter : BotPanel
     {
         private BotTabSimple _tab;
 
+        // Basic setting
+        private StrategyParameterString _regime;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _bollingerLength;
+        private StrategyParameterDecimal _bollingerDeviation;
+
+        // Volatility settings
+        private StrategyParameterBool _volatilityFilterIsOn;
+        private StrategyParameterString _volatilityStageToTrade;
+        private StrategyParameterInt _volatilitySlowSmaLength;
+        private StrategyParameterInt _volatilityFastSmaLength;
+        private StrategyParameterDecimal _volatilityChannelDeviation;
+
+        // Indicator
         private Aindicator _bollinger;
-
         private Aindicator _volatilityStages;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt BollingerLength;
-
-        public StrategyParameterDecimal BollingerDeviation;
-
-        public StrategyParameterBool VolatilityFilterIsOn;
-
-        public StrategyParameterString VolatilityStageToTrade;
-
-        public StrategyParameterInt VolatilitySlowSmaLength;
-
-        public StrategyParameterInt VolatilityFastSmaLength;
-
-        public StrategyParameterDecimal VolatilityChannelDeviation;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
 
         public BollingerTrendVolatilityStagesFilter(string name, StartProgram startProgram)
             : base(name, startProgram)
@@ -52,76 +66,94 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            // Basic setting
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
 
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            BollingerLength = CreateParameter("Bollinger length", 30, 10, 80, 3);
-            BollingerDeviation = CreateParameter("Bollinger deviation", 2, 1.0m, 50, 4);
+            // Indicator settings
+            _bollingerLength = CreateParameter("Bollinger length", 30, 10, 80, 3);
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 2, 1.0m, 50, 4);
 
-            VolatilityFilterIsOn = CreateParameter("Volatility filter is on", false);
-            VolatilityStageToTrade = CreateParameter("Volatility stage to trade", "2", new[] { "1", "2", "3", "4" });
-            VolatilitySlowSmaLength = CreateParameter("Volatility slow sma length", 25, 10, 80, 3);
-            VolatilityFastSmaLength = CreateParameter("Volatility fast sma length", 7, 10, 80, 3);
-            VolatilityChannelDeviation = CreateParameter("Volatility channel deviation", 0.5m, 1.0m, 50, 4);
+            // Volatility settings
+            _volatilityFilterIsOn = CreateParameter("Volatility filter is on", false);
+            _volatilityStageToTrade = CreateParameter("Volatility stage to trade", "2", new[] { "1", "2", "3", "4" });
+            _volatilitySlowSmaLength = CreateParameter("Volatility slow sma length", 25, 10, 80, 3);
+            _volatilityFastSmaLength = CreateParameter("Volatility fast sma length", 7, 10, 80, 3);
+            _volatilityChannelDeviation = CreateParameter("Volatility channel deviation", 0.5m, 1.0m, 50, 4);
 
+            // Create indicator Bollinger
             _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
             _bollinger = (Aindicator)_tab.CreateCandleIndicator(_bollinger, "Prime");
-            _bollinger.ParametersDigit[0].Value = BollingerLength.ValueInt;
-            _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
+            _bollinger.ParametersDigit[0].Value = _bollingerLength.ValueInt;
+            _bollinger.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
             _bollinger.Save();
 
+            // Create indicator VolatilityStages
             _volatilityStages = IndicatorsFactory.CreateIndicatorByName("VolatilityStagesAW", name + "VolatilityStages", false);
             _volatilityStages = (Aindicator)_tab.CreateCandleIndicator(_volatilityStages, "VolatilityStagesArea");
-            _volatilityStages.ParametersDigit[0].Value = VolatilitySlowSmaLength.ValueInt;
-            _volatilityStages.ParametersDigit[1].Value = VolatilityFastSmaLength.ValueInt;
-            _volatilityStages.ParametersDigit[2].Value = VolatilityChannelDeviation.ValueDecimal;
+            _volatilityStages.ParametersDigit[0].Value = _volatilitySlowSmaLength.ValueInt;
+            _volatilityStages.ParametersDigit[1].Value = _volatilityFastSmaLength.ValueInt;
+            _volatilityStages.ParametersDigit[2].Value = _volatilityChannelDeviation.ValueDecimal;
+            _volatilityStages.Save();
 
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
+
+            Description = "The trend robot on Bollinger Trend VolatilityStages Filter. " +
+                "Buy: " +
+                "1. The price has broken above the upper line of the main Bollinger band. " +
+                "2. If the volatility filter is enabled, the current volatility stage must match the one selected for trading. " +
+                "Sell: " +
+                "1. The price has broken below the lower line of the main Bollinger band. " +
+                "2. If the volatility filter is enabled, the current volatility stage must match the one selected for trading. " +
+                "Exit for long: Close by a trailing stop set at the lower Bollinger line. " +
+                "Exit for short: Close by a trailing stop set at the upper Bollinger line.";
         }
 
         void Event_ParametrsChangeByUser()
         {
-            if (BollingerLength.ValueInt != _bollinger.ParametersDigit[0].Value ||
-                BollingerLength.ValueInt != _bollinger.ParametersDigit[1].Value)
+            if (_bollingerLength.ValueInt != _bollinger.ParametersDigit[0].Value ||
+                _bollingerLength.ValueInt != _bollinger.ParametersDigit[1].Value)
             {
-                _bollinger.ParametersDigit[0].Value = BollingerLength.ValueInt;
-                _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
-
+                _bollinger.ParametersDigit[0].Value = _bollingerLength.ValueInt;
+                _bollinger.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
                 _bollinger.Reload();
             }
 
-            if (_volatilityStages.ParametersDigit[0].Value != VolatilitySlowSmaLength.ValueInt
-                || _volatilityStages.ParametersDigit[1].Value != VolatilityFastSmaLength.ValueInt
-                || _volatilityStages.ParametersDigit[2].Value != VolatilityChannelDeviation.ValueDecimal)
+            if (_volatilityStages.ParametersDigit[0].Value != _volatilitySlowSmaLength.ValueInt
+                || _volatilityStages.ParametersDigit[1].Value != _volatilityFastSmaLength.ValueInt
+                || _volatilityStages.ParametersDigit[2].Value != _volatilityChannelDeviation.ValueDecimal)
             {
-                _volatilityStages.ParametersDigit[0].Value = VolatilitySlowSmaLength.ValueInt;
-                _volatilityStages.ParametersDigit[1].Value = VolatilityFastSmaLength.ValueInt;
-                _volatilityStages.ParametersDigit[2].Value = VolatilityChannelDeviation.ValueDecimal;
-
+                _volatilityStages.ParametersDigit[0].Value = _volatilitySlowSmaLength.ValueInt;
+                _volatilityStages.ParametersDigit[1].Value = _volatilityFastSmaLength.ValueInt;
+                _volatilityStages.ParametersDigit[2].Value = _volatilityChannelDeviation.ValueDecimal;
                 _volatilityStages.Reload();
             }
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "BollingerTrendVolatilityStagesFilter";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // logic
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -142,7 +174,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -154,6 +186,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal lastPrice = candles[candles.Count - 1].Close;
@@ -167,13 +200,13 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
 
             if (lastPrice > lastPcUp
-                && Regime.ValueString != "OnlyShort")
+                && _regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
             {
-                if (VolatilityFilterIsOn.ValueBool == true)
+                if (_volatilityFilterIsOn.ValueBool == true)
                 {
                     decimal stage = _volatilityStages.DataSeries[0].Values[_volatilityStages.DataSeries[0].Values.Count - 2];
 
-                    if (stage != VolatilityStageToTrade.ValueString.ToDecimal())
+                    if (stage != _volatilityStageToTrade.ValueString.ToDecimal())
                     {
                         return;
                     }
@@ -182,13 +215,13 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 _tab.BuyAtMarket(GetVolume(_tab));
             }
             if (lastPrice < lastPcDown
-                && Regime.ValueString != "OnlyLong")
+                && _regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
             {
-                if (VolatilityFilterIsOn.ValueBool == true)
+                if (_volatilityFilterIsOn.ValueBool == true)
                 {
                     decimal stage = _volatilityStages.DataSeries[0].Values[_volatilityStages.DataSeries[0].Values.Count - 2];
 
-                    if (stage != VolatilityStageToTrade.ValueString.ToDecimal())
+                    if (stage != _volatilityStageToTrade.ValueString.ToDecimal())
                     {
                         return;
                     }
@@ -198,6 +231,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             decimal lastPcUp = _bollinger.DataSeries[0].Values[_bollinger.DataSeries[0].Values.Count - 1];
@@ -213,18 +247,19 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -235,7 +270,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -245,7 +280,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -256,7 +291,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -271,7 +306,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -281,11 +316,11 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
