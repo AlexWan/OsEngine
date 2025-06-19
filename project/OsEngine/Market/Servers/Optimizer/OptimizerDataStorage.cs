@@ -513,7 +513,8 @@ namespace OsEngine.Market.Servers.Optimizer
                         decimal minPriceStep = decimal.MaxValue;
                         int countFive = 0;
 
-                        CultureInfo culture = new CultureInfo("ru-RU");
+                        //CultureInfo culture = new CultureInfo("ru-RU");
+                        CultureInfo culture = CultureInfo.InvariantCulture;
 
                         for (int i2 = 0; i2 < 20; i2++)
                         {
@@ -537,36 +538,36 @@ namespace OsEngine.Market.Servers.Optimizer
                             decimal low = (decimal)Convert.ToDouble(candleN.Low);
                             decimal close = (decimal)Convert.ToDouble(candleN.Close);
 
-                            if (open.ToString(culture).Split(',').Length > 1 ||
-                                high.ToString(culture).Split(',').Length > 1 ||
-                                low.ToString(culture).Split(',').Length > 1 ||
-                                close.ToString(culture).Split(',').Length > 1)
+                            if (open.ToString(culture).Split('.').Length > 1 ||
+                                high.ToString(culture).Split('.').Length > 1 ||
+                                low.ToString(culture).Split('.').Length > 1 ||
+                                close.ToString(culture).Split('.').Length > 1)
                             {
                                 // if the real part takes place / если имеет место вещественная часть
                                 int length = 1;
 
-                                if (open.ToString(culture).Split(',').Length > 1 &&
-                                    open.ToString(culture).Split(',')[1].Length > length)
+                                if (open.ToString(culture).Split('.').Length > 1 &&
+                                    open.ToString(culture).Split('.')[1].Length > length)
                                 {
-                                    length = open.ToString(culture).Split(',')[1].Length;
+                                    length = open.ToString(culture).Split('.')[1].Length;
                                 }
 
-                                if (high.ToString(culture).Split(',').Length > 1 &&
-                                    high.ToString(culture).Split(',')[1].Length > length)
+                                if (high.ToString(culture).Split('.').Length > 1 &&
+                                    high.ToString(culture).Split('.')[1].Length > length)
                                 {
-                                    length = high.ToString(culture).Split(',')[1].Length;
+                                    length = high.ToString(culture).Split('.')[1].Length;
                                 }
 
-                                if (low.ToString(culture).Split(',').Length > 1 &&
-                                    low.ToString(culture).Split(',')[1].Length > length)
+                                if (low.ToString(culture).Split('.').Length > 1 &&
+                                    low.ToString(culture).Split('.')[1].Length > length)
                                 {
-                                    length = low.ToString(culture).Split(',')[1].Length;
+                                    length = low.ToString(culture).Split('.')[1].Length;
                                 }
 
-                                if (close.ToString(culture).Split(',').Length > 1 &&
-                                    close.ToString(culture).Split(',')[1].Length > length)
+                                if (close.ToString(culture).Split('.').Length > 1 &&
+                                    close.ToString(culture).Split('.')[1].Length > length)
                                 {
-                                    length = close.ToString(culture).Split(',')[1].Length;
+                                    length = close.ToString(culture).Split('.')[1].Length;
                                 }
 
                                 if (length == 1 && minPriceStep > 0.1m)
@@ -815,7 +816,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
 
-                    CultureInfo culture = new CultureInfo("ru-RU");
+                    CultureInfo culture = CultureInfo.InvariantCulture;
 
                     for (int i2 = 0; i2 < 100; i2++)
                     {
@@ -825,15 +826,15 @@ namespace OsEngine.Market.Servers.Optimizer
                         decimal open = (decimal)Convert.ToDouble(tradeN.Price);
 
 
-                        if (open.ToString(culture).Split(',').Length > 1)
+                        if (open.ToString(culture).Split('.').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
                             int length = 1;
 
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > length)
+                            if (open.ToString(culture).Split('.').Length > 1 &&
+                                open.ToString(culture).Split('.')[1].Length > length)
                             {
-                                length = open.ToString(culture).Split(',')[1].Length;
+                                length = open.ToString(culture).Split('.')[1].Length;
                             }
 
 
@@ -1043,7 +1044,7 @@ namespace OsEngine.Market.Servers.Optimizer
                     decimal minPriceStep = decimal.MaxValue;
                     int countFive = 0;
 
-                    CultureInfo culture = new CultureInfo("ru-RU");
+                    CultureInfo culture = CultureInfo.InvariantCulture;
 
                     for (int i2 = 0; i2 < 20; i2++)
                     {
@@ -1057,15 +1058,15 @@ namespace OsEngine.Market.Servers.Optimizer
                             open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
                         }
 
-                        if (open.ToString(culture).Split(',').Length > 1)
+                        if (open.ToString(culture).Split('.').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
                             int length = 1;
 
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > length)
+                            if (open.ToString(culture).Split('.').Length > 1 &&
+                                open.ToString(culture).Split('.')[1].Length > length)
                             {
-                                length = open.ToString(culture).Split(',')[1].Length;
+                                length = open.ToString(culture).Split('.')[1].Length;
                             }
 
 
