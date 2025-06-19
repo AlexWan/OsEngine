@@ -71,11 +71,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 return;
             }
 
-            ServicePointManager.SecurityProtocol =
-                SecurityProtocolType.Tls11
-                | SecurityProtocolType.Tls12
-                | SecurityProtocolType.Tls13
-                | SecurityProtocolType.Tls;
+            //ServicePointManager.SecurityProtocol =
+            //    SecurityProtocolType.Tls11
+            //    | SecurityProtocolType.Tls12
+            //    | SecurityProtocolType.Tls13
+            //    | SecurityProtocolType.Tls;
 
             try
             {
@@ -638,9 +638,154 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
             return false;
         }
+        private readonly RateGate _rgTickData = new RateGate(1, TimeSpan.FromMilliseconds(110));
 
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
+
+            if (startTime < DateTime.UtcNow.AddDays(-90))
+            {
+                SendLogMessage("History more than 90 days is not supported by API", LogMessageType.Error);
+                return null;
+            }
+
+            TimeSpan span = endTime - startTime;
+
+            if (span.Days > 7)
+            {
+                SendLogMessage("The time interval between startTime and endTime should not exceed 7 days", LogMessageType.Error);
+                return null;
+            }
+
+            if (!CheckTime(startTime, endTime, actualTime))
+            {
+                return null;
+            }
+
+            List<Trade> trades = new List<Trade>();
+            List<Trade> newTrades = GetTickHistoryToSecurity(security, endTime, startTime);
+
+            if (newTrades == null ||
+                    newTrades.Count == 0)
+            {
+                return null;
+            }
+
+            trades.AddRange(newTrades);
+            DateTime timeEnd = DateTime.SpecifyKind(trades[0].Time, DateTimeKind.Utc);
+
+            while (timeEnd > startTime)
+            {
+                newTrades = GetTickHistoryToSecurity(security, timeEnd, startTime);
+
+                if (newTrades != null && trades.Count != 0 && newTrades.Count != 0)
+                {
+                    for (int j = 0; j < trades.Count; j++)
+                    {
+                        for (int i = 0; i < newTrades.Count; i++)
+                        {
+                            if (trades[j].Id == newTrades[i].Id)
+                            {
+                                newTrades.RemoveAt(i);
+                                i--;
+                            }
+                        }
+                    }
+                }
+
+                if (newTrades.Count == 0)
+                {
+                    break;
+                }
+
+                trades.InsertRange(0, newTrades);
+                timeEnd = DateTime.SpecifyKind(trades[0].Time, DateTimeKind.Utc);
+            }
+
+            if (trades.Count == 0)
+            {
+                return null;
+            }
+
+            for (int i = trades.Count - 1; i >= 0; i--)
+            {
+                if (DateTime.SpecifyKind(trades[i].Time, DateTimeKind.Utc) <= endTime)
+                {
+                    break;
+                }
+                else
+                {
+                    trades.RemoveAt(i);
+                }
+            }
+
+            return trades;
+        }
+
+        private List<Trade> GetTickHistoryToSecurity(Security security, DateTime endTime, DateTime startTime)
+        {
+            _rgTickData.WaitToProceed();
+
+            try
+            {
+                List<Trade> trades = new List<Trade>();
+
+                long timeEnd = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
+                long timeStart = TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
+
+                string requestStr = $"/api/v2/spot/market/fills-history?symbol={security.Name}&limit=1000&endTime={timeEnd}&startTime={timeStart}";
+
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<TradeData>> tradesResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<TradeData>>());
+
+                    if (tradesResponse.code == "00000")
+                    {
+                        for (int i = 0; i < tradesResponse.data.Count; i++)
+                        {
+                            TradeData item = tradesResponse.data[i];
+
+                            Trade trade = new Trade();
+                            trade.SecurityNameCode = item.symbol;
+                            trade.Id = item.tradeId;
+                            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item.ts));
+                            trade.Price = item.price.ToDecimal();
+                            trade.Volume = item.size.ToDecimal();
+                            trade.Side = item.side == "Sell" ? Side.Sell : Side.Buy;
+                            trades.Add(trade);
+                        }
+
+                        trades.Reverse();
+                        return trades;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Trades request error: {tradesResponse.code} - {tradesResponse.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Trades request error: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"Trades request error: {error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+
             return null;
         }
 

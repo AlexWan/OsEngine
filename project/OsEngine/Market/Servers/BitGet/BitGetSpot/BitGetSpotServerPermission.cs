@@ -101,12 +101,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public bool DataFeedTfTickCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
 
         #endregion
