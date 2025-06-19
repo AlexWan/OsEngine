@@ -3,114 +3,154 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
 using OsEngine.Entity;
-using OsEngine.Market.Servers;
+using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.Tester;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using OsEngine.Indicators;
-using OsEngine.Market.Servers.Tester;
+using System;
+using System.Collections.Generic;
+
+/* Description
+trading robot for osengine
+
+The trend robot on PriceChannel Screener On Index Volatility.
+
+Buy:
+1. The price breaks above the upper band of the Price Channel.
+2. (If ATR filter is enabled) The ATR has grown by at least X% over the last N candles.
+
+Sell:
+1. The price breaks below the lower band of the Price Channel.
+2. (If ATR filter is enabled) The ATR has grown by at least X% over the last N candles.
+
+Exit for long: Close using a trailing stop set at the lower Price Channel band.
+Exit for short: Close using a trailing stop set at the upper Price Channel band.
+ */
 
 namespace OsEngine.Robots.VolatilityStageRotationSamples
 {
-    [Bot("PriceChannelScreenerOnIndexVolatility")]
+    [Bot("PriceChannelScreenerOnIndexVolatility")] // We create an attribute so that we don't write anything to the BotFactory
     public class PriceChannelScreenerOnIndexVolatility : BotPanel
     {
-        BotTabScreener _tabScreener;
-        BotTabIndex _tabIndex;
+        private BotTabScreener _tabScreener;
+        private BotTabIndex _tabIndex;
 
+        // Indicator
         private Aindicator _volatilityStagesOnIndex;
 
-        public StrategyParameterString Regime;
-        public StrategyParameterInt MaxPositions;
-        public StrategyParameterInt PriceChannelLength;
-        private StrategyParameterTimeOfDay TimeStart;
-        private StrategyParameterTimeOfDay TimeEnd;
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _maxPositions;
+        private StrategyParameterTimeOfDay _timeStart;
+        private StrategyParameterTimeOfDay _timeEnd;
 
-        public StrategyParameterBool AtrFilterIsOn;
-        public StrategyParameterInt AtrLength;
-        public StrategyParameterDecimal AtrGrowPercent;
-        public StrategyParameterInt AtrGrowLookBack;
+        // Indicator settings
+        private StrategyParameterInt _priceChannelLength;
+        private StrategyParameterBool _atrFilterIsOn;
+        private StrategyParameterInt _atrLength;
+        private StrategyParameterDecimal _atrGrowPercent;
+        private StrategyParameterInt _atrGrowLookBack;
 
-        public StrategyParameterBool VolatilityFilterIsOn;
+        // Volatility settings
+        private StrategyParameterBool _volatilityFilterIsOn;
+        private StrategyParameterBool _volatilityStageOneIsOn;
+        private StrategyParameterBool _volatilityStageTwoIsOn;
+        private StrategyParameterBool _volatilityStageThreeIsOn;
+        private StrategyParameterInt _volatilitySlowSmaLength;
+        private StrategyParameterInt _volatilityFastSmaLength;
+        private StrategyParameterDecimal _volatilityChannelDeviation;
 
-        public StrategyParameterBool VolatilityStageOneIsOn;
-        public StrategyParameterBool VolatilityStageTwoIsOn;
-        public StrategyParameterBool VolatilityStageThreeIsOn;
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        public StrategyParameterInt VolatilitySlowSmaLength;
-        public StrategyParameterInt VolatilityFastSmaLength;
-        public StrategyParameterDecimal VolatilityChannelDeviation;
-
-        public StrategyParameterString VolumeType;
-        public StrategyParameterDecimal Volume;
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterInt TopVolumeSecurities;
-        public StrategyParameterInt TopCandlesLookBack;
-        public StrategyParameterDecimal MaxVolatilityDifference;
-        public StrategyParameterDecimal MinVolatilityDifference;
-        public StrategyParameterString SecuritiesToTrade;
-        public StrategyParameterBool MessageOnRebuild;
+        private StrategyParameterInt _topVolumeSecurities;
+        private StrategyParameterInt _topCandlesLookBack;
+        private StrategyParameterDecimal _maxVolatilityDifference;
+        private StrategyParameterDecimal _minVolatilityDifference;
+        private StrategyParameterString _securitiesToTrade;
+        private StrategyParameterBool _messageOnRebuild;
 
         public PriceChannelScreenerOnIndexVolatility(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Index);
             _tabIndex = TabsIndex[0];
+
+            // Subscribe to the spread change event
             _tabIndex.SpreadChangeEvent += _tabIndex_SpreadChangeEvent;
 
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
+
+            // Subscribe to the candle finished event
             _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
-            TimeStart = CreateParameterTimeOfDay("Start Trade Time", 10, 32, 0, 0);
-            TimeEnd = CreateParameterTimeOfDay("End Trade Time", 18, 25, 0, 0);
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _maxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            _timeStart = CreateParameterTimeOfDay("Start Trade Time", 10, 32, 0, 0);
+            _timeEnd = CreateParameterTimeOfDay("End Trade Time", 18, 25, 0, 0);
 
-            PriceChannelLength = CreateParameter("Price channel length", 50, 10, 80, 3);
-            AtrLength = CreateParameter("Atr length", 25, 10, 80, 3);
-            AtrFilterIsOn = CreateParameter("Atr filter is on", false);
-            AtrGrowPercent = CreateParameter("Atr grow percent", 3, 1.0m, 50, 4);
-            AtrGrowLookBack = CreateParameter("Atr grow look back", 20, 1, 50, 4);
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            TopVolumeSecurities = CreateParameter("Top volume securities", 15, 0, 20, 1, "Volatility stage");
-            TopCandlesLookBack = CreateParameter("Top days look back", 5, 0, 20, 1, "Volatility stage");
-            MaxVolatilityDifference = CreateParameter("Vol Diff Max", 1.4m, 1.0m, 50, 4, "Volatility stage");
-            MinVolatilityDifference = CreateParameter("Vol Diff Min", 1.0m, 1.0m, 50, 4, "Volatility stage");
-            SecuritiesToTrade = CreateParameter("Securities to trade", "", "Volatility stage");
-            MessageOnRebuild = CreateParameter("Message on rebuild", true, "Volatility stage");
+            // Indicator settings
+            _priceChannelLength = CreateParameter("Price channel length", 50, 10, 80, 3);
+            _atrLength = CreateParameter("Atr length", 25, 10, 80, 3);
+            _atrFilterIsOn = CreateParameter("Atr filter is on", false);
+            _atrGrowPercent = CreateParameter("Atr grow percent", 3, 1.0m, 50, 4);
+            _atrGrowLookBack = CreateParameter("Atr grow look back", 20, 1, 50, 4);
+
+            _topVolumeSecurities = CreateParameter("Top volume securities", 15, 0, 20, 1, "Volatility stage");
+            _topCandlesLookBack = CreateParameter("Top days look back", 5, 0, 20, 1, "Volatility stage");
+            _maxVolatilityDifference = CreateParameter("Vol Diff Max", 1.4m, 1.0m, 50, 4, "Volatility stage");
+            _minVolatilityDifference = CreateParameter("Vol Diff Min", 1.0m, 1.0m, 50, 4, "Volatility stage");
+            _securitiesToTrade = CreateParameter("Securities to trade", "", "Volatility stage");
+            _messageOnRebuild = CreateParameter("Message on rebuild", true, "Volatility stage");
             StrategyParameterButton button = CreateParameterButton("Check securities rating", "Volatility stage");
             button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
 
-            VolatilityFilterIsOn = CreateParameter("Volatility filter is on", false, "Volatility stage");
-            VolatilityStageOneIsOn = CreateParameter("Volatility stage one is on", true, "Volatility stage");
-            VolatilityStageTwoIsOn = CreateParameter("Volatility stage two is on", true, "Volatility stage");
-            VolatilityStageThreeIsOn = CreateParameter("Volatility stage three is on", true, "Volatility stage");
+            // Volatility settings
+            _volatilityFilterIsOn = CreateParameter("Volatility filter is on", false, "Volatility stage");
+            _volatilityStageOneIsOn = CreateParameter("Volatility stage one is on", true, "Volatility stage");
+            _volatilityStageTwoIsOn = CreateParameter("Volatility stage two is on", true, "Volatility stage");
+            _volatilityStageThreeIsOn = CreateParameter("Volatility stage three is on", true, "Volatility stage");
+            _volatilitySlowSmaLength = CreateParameter("Volatility slow sma length", 25, 10, 80, 3, "Volatility stage");
+            _volatilityFastSmaLength = CreateParameter("Volatility fast sma length", 7, 10, 80, 3, "Volatility stage");
+            _volatilityChannelDeviation = CreateParameter("Volatility channel deviation", 0.5m, 1.0m, 50, 4, "Volatility stage");
 
-            VolatilitySlowSmaLength = CreateParameter("Volatility slow sma length", 25, 10, 80, 3, "Volatility stage");
-            VolatilityFastSmaLength = CreateParameter("Volatility fast sma length", 7, 10, 80, 3, "Volatility stage");
-            VolatilityChannelDeviation = CreateParameter("Volatility channel deviation", 0.5m, 1.0m, 50, 4, "Volatility stage");
-
-            _volatilityStagesOnIndex
-    = IndicatorsFactory.CreateIndicatorByName("VolatilityStagesAW", name + "VolatilityStagesAW", false);
+            // Create Indicator VolatilityStagesAW
+            _volatilityStagesOnIndex = IndicatorsFactory.CreateIndicatorByName("VolatilityStagesAW", name + "VolatilityStagesAW", false);
             _volatilityStagesOnIndex = (Aindicator)_tabIndex.CreateCandleIndicator(_volatilityStagesOnIndex, "VolaStagesArea");
-            _volatilityStagesOnIndex.ParametersDigit[0].Value = VolatilitySlowSmaLength.ValueInt;
-            _volatilityStagesOnIndex.ParametersDigit[1].Value = VolatilityFastSmaLength.ValueInt;
-            _volatilityStagesOnIndex.ParametersDigit[2].Value = VolatilityChannelDeviation.ValueDecimal;
-
+            _volatilityStagesOnIndex.ParametersDigit[0].Value = _volatilitySlowSmaLength.ValueInt;
+            _volatilityStagesOnIndex.ParametersDigit[1].Value = _volatilityFastSmaLength.ValueInt;
+            _volatilityStagesOnIndex.ParametersDigit[2].Value = _volatilityChannelDeviation.ValueDecimal;
             _volatilityStagesOnIndex.Save();
 
-            _tabScreener.CreateCandleIndicator(1, "PriceChannel", new List<string>() { PriceChannelLength.ValueInt.ToString() }, "Prime");
-            _tabScreener.CreateCandleIndicator(2, "ATR", new List<string>() { AtrLength.ValueInt.ToString() }, "Second");
+            // Create Indicator PriceChannel and ATR
+            _tabScreener.CreateCandleIndicator(1, "PriceChannel", new List<string>() { _priceChannelLength.ValueInt.ToString() }, "Prime");
+            _tabScreener.CreateCandleIndicator(2, "ATR", new List<string>() { _atrLength.ValueInt.ToString() }, "Second");
 
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += PriceChannelScreenerOnIndexVolatility_ParametrsChangeByUser;
+
+            Description = "The trend robot on PriceChannel Screener On Index Volatility. " +
+                "Buy: " +
+                "1. The price breaks above the upper band of the Price Channel. " +
+                "2. (If ATR filter is enabled) The ATR has grown by at least X% over the last N candles. " +
+                "Sell: " +
+                "1. The price breaks below the lower band of the Price Channel. " +
+                "2. (If ATR filter is enabled) The ATR has grown by at least X% over the last N candles. " +
+                "Exit for long: Close using a trailing stop set at the lower Price Channel band. " +
+                "Exit for short: Close using a trailing stop set at the upper Price Channel band.";
 
             if (StartProgram == StartProgram.IsTester 
                 && ServerMaster.GetServers() != null)
@@ -129,19 +169,19 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
         private void Server_TestingStartEvent()
         {
-            SecuritiesToTrade.ValueString = "";
+            _securitiesToTrade.ValueString = "";
             _lastTimeRating = DateTime.MinValue;
         }
 
         private void PriceChannelScreenerOnIndexVolatility_ParametrsChangeByUser()
         {
-            if (_volatilityStagesOnIndex.ParametersDigit[0].Value != VolatilitySlowSmaLength.ValueInt
-                || _volatilityStagesOnIndex.ParametersDigit[1].Value != VolatilityFastSmaLength.ValueInt
-                || _volatilityStagesOnIndex.ParametersDigit[2].Value != VolatilityChannelDeviation.ValueDecimal)
+            if (_volatilityStagesOnIndex.ParametersDigit[0].Value != _volatilitySlowSmaLength.ValueInt
+                || _volatilityStagesOnIndex.ParametersDigit[1].Value != _volatilityFastSmaLength.ValueInt
+                || _volatilityStagesOnIndex.ParametersDigit[2].Value != _volatilityChannelDeviation.ValueDecimal)
             {
-                _volatilityStagesOnIndex.ParametersDigit[0].Value = VolatilitySlowSmaLength.ValueInt;
-                _volatilityStagesOnIndex.ParametersDigit[1].Value = VolatilityFastSmaLength.ValueInt;
-                _volatilityStagesOnIndex.ParametersDigit[2].Value = VolatilityChannelDeviation.ValueDecimal;
+                _volatilityStagesOnIndex.ParametersDigit[0].Value = _volatilitySlowSmaLength.ValueInt;
+                _volatilityStagesOnIndex.ParametersDigit[1].Value = _volatilityFastSmaLength.ValueInt;
+                _volatilityStagesOnIndex.ParametersDigit[2].Value = _volatilityChannelDeviation.ValueDecimal;
                 _volatilityStagesOnIndex.Reload();
                 _volatilityStagesOnIndex.Save();
             }
@@ -152,11 +192,13 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             CheckSecuritiesRating(candles);
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PriceChannelScreenerOnIndexVolatility";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -192,18 +234,18 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             // 0 check volatility stage on index
 
-            if(VolatilityFilterIsOn.ValueBool == true)
+            if(_volatilityFilterIsOn.ValueBool == true)
             {
                 decimal currentStage = _volatilityStagesOnIndex.DataSeries[0].Last;
 
                 if (currentStage == 0
-                    || (currentStage == 1 && VolatilityStageOneIsOn.ValueBool == false)
-                    || (currentStage == 2 && VolatilityStageTwoIsOn.ValueBool == false)
-                    || (currentStage == 3 && VolatilityStageThreeIsOn.ValueBool == false))
+                    || (currentStage == 1 && _volatilityStageOneIsOn.ValueBool == false)
+                    || (currentStage == 2 && _volatilityStageTwoIsOn.ValueBool == false)
+                    || (currentStage == 3 && _volatilityStageThreeIsOn.ValueBool == false))
                 {
-                    SecuritiesToTrade.ValueString = "";
+                    _securitiesToTrade.ValueString = "";
 
-                    if (MessageOnRebuild.ValueBool == true)
+                    if (_messageOnRebuild.ValueBool == true)
                     {
                         this.SendNewLogMessage("No trading. Current volatility stage on index: " + currentStage, Logging.LogMessageType.Error);
                     }
@@ -222,8 +264,8 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             {
                 SecurityRatingDataPc newData = new SecurityRatingDataPc();
                 newData.SecurityName = tabs[i].Security.Name;
-                newData.Volume = CalculateVolume(TopCandlesLookBack.ValueInt, tabs[i]);
-                newData.Volatility = GetVolatilityDiff(tabs[i].CandlesAll, candlesIndex, TopCandlesLookBack.ValueInt);
+                newData.Volume = CalculateVolume(_topCandlesLookBack.ValueInt, tabs[i]);
+                newData.Volatility = GetVolatilityDiff(tabs[i].CandlesAll, candlesIndex, _topCandlesLookBack.ValueInt);
 
                 if (newData.Volume == 0
                     || newData.Volatility == 0)
@@ -254,7 +296,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 }
             }
 
-            securityRatingData = securityRatingData.GetRange(0, TopVolumeSecurities.ValueInt);
+            securityRatingData = securityRatingData.GetRange(0, _topVolumeSecurities.ValueInt);
 
             // 3 sort by volatility difference to index
 
@@ -262,8 +304,8 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             for (int i = 0; i < securityRatingData.Count; i++)
             {
-                if (securityRatingData[i].Volatility > MinVolatilityDifference.ValueDecimal
-                    && securityRatingData[i].Volatility < MaxVolatilityDifference.ValueDecimal)
+                if (securityRatingData[i].Volatility > _minVolatilityDifference.ValueDecimal
+                    && securityRatingData[i].Volatility < _maxVolatilityDifference.ValueDecimal)
                 {
                     securityExitValues.Add(securityRatingData[i]);
                 }
@@ -276,14 +318,15 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 securitiesInTrade += securityExitValues[i].SecurityName + " ";
             }
 
-            SecuritiesToTrade.ValueString = securitiesInTrade;
+            _securitiesToTrade.ValueString = securitiesInTrade;
 
-            if(MessageOnRebuild.ValueBool == true)
+            if(_messageOnRebuild.ValueBool == true)
             {
                 this.SendNewLogMessage("New securities in trade: \n" + securitiesInTrade, Logging.LogMessageType.Error);
             }
         }
 
+        // Method for calculating volume
         public decimal CalculateVolume(int daysCount, BotTabSimple tab)
         {
             List<Candle> candles = tab.CandlesAll;
@@ -335,8 +378,8 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return 0;
             }
 
-            // волатильность. Берём внутридневную волу за N дней в % по бумаге(V1) и по индексу(V2)
-            // делим V1 / V2 - получаем отношение волатильности бумаги к индексу. 
+            // Volatility. We take the intraday volatility over N days for the stock (V1) and for the index (V2) in percentage terms.
+            // Then, we divide V1 by V2 to get the ratio of the stock's volatility to the index's volatility.
 
             decimal volSec = GetVolatility(sec, len);
             decimal volIndex = GetVolatility(index, len);
@@ -351,6 +394,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             return result;
         }
 
+        // Method get value Volatility
         private decimal GetVolatility(List<Candle> candles, int len)
         {
             if (candles == null
@@ -365,7 +409,6 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             decimal curMaxInDay = 0;
             int curDay = candles[candles.Count - 1].TimeStart.Day;
             int daysCount = 1;
-
 
             for (int i = candles.Count - 1; i > 0; i--)
             {
@@ -425,10 +468,9 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
         }
 
         // logic
-
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -442,10 +484,11 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
+
                 LogicOpenPosition(candles, tab);
             }
             else
@@ -454,29 +497,30 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles, BotTabSimple tab)
         {
-            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
+            if (_tabScreener.PositionsOpenAll.Count >= _maxPositions.ValueInt)
             {
                 return;
             }
 
-            if (SecuritiesToTrade.ValueString.Contains(tab.Security.Name) == false)
+            if (_securitiesToTrade.ValueString.Contains(tab.Security.Name) == false)
             {
                 return;
             }
 
-            if (TimeStart.Value > tab.TimeServerCurrent ||
-                TimeEnd.Value < tab.TimeServerCurrent)
+            if (_timeStart.Value > tab.TimeServerCurrent ||
+                _timeEnd.Value < tab.TimeServerCurrent)
             {
                 return;
             }
 
             Aindicator priceChannel = (Aindicator)tab.Indicators[0];
 
-            if (priceChannel.ParametersDigit[0].Value != PriceChannelLength.ValueInt)
+            if (priceChannel.ParametersDigit[0].Value != _priceChannelLength.ValueInt)
             {
-                priceChannel.ParametersDigit[0].Value = PriceChannelLength.ValueInt;
+                priceChannel.ParametersDigit[0].Value = _priceChannelLength.ValueInt;
                 priceChannel.Save();
                 priceChannel.Reload();
             }
@@ -499,9 +543,9 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             Aindicator atr = (Aindicator)tab.Indicators[1];
 
-            if (atr.ParametersDigit[0].Value != AtrLength.ValueInt)
+            if (atr.ParametersDigit[0].Value != _atrLength.ValueInt)
             {
-                atr.ParametersDigit[0].Value = AtrLength.ValueInt;
+                atr.ParametersDigit[0].Value = _atrLength.ValueInt;
                 atr.Save();
                 atr.Reload();
             }
@@ -512,18 +556,18 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 return;
             }
 
-            if (lastPrice > lastPcUp
-                && Regime.ValueString != "OnlyShort")
+            if (lastPrice > lastPcUp && _regime.ValueString != "OnlyShort")
             {
-                if (AtrFilterIsOn.ValueBool == true)
+                if (_atrFilterIsOn.ValueBool == true)
                 {
-                    if (atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt <= 0)
+                    if (atr.DataSeries[0].Values.Count - 1 - _atrGrowLookBack.ValueInt <= 0)
                     {
                         return;
                     }
+
                     decimal atrLast = atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1];
-                    decimal atrLookBack =
-                    atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt];
+                    decimal atrLookBack = atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1 - _atrGrowLookBack.ValueInt];
+
                     if (atrLast == 0
                         || atrLookBack == 0)
                     {
@@ -532,7 +576,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     decimal atrGrowPercent = atrLast / (atrLookBack / 100) - 100;
 
-                    if (atrGrowPercent < AtrGrowPercent.ValueDecimal)
+                    if (atrGrowPercent < _atrGrowPercent.ValueDecimal)
                     {
                         return;
                     }
@@ -541,18 +585,18 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 tab.BuyAtMarket(GetVolume(tab));
             }
 
-            if (lastPrice < lastPcDown
-                && Regime.ValueString != "OnlyLong")
+            if (lastPrice < lastPcDown && _regime.ValueString != "OnlyLong")
             {
-                if (AtrFilterIsOn.ValueBool == true)
+                if (_atrFilterIsOn.ValueBool == true)
                 {
-                    if (atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt <= 0)
+                    if (atr.DataSeries[0].Values.Count - 1 - _atrGrowLookBack.ValueInt <= 0)
                     {
                         return;
                     }
+
                     decimal atrLast = atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1];
-                    decimal atrLookBack =
-                    atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1 - AtrGrowLookBack.ValueInt];
+                    decimal atrLookBack = atr.DataSeries[0].Values[atr.DataSeries[0].Values.Count - 1 - _atrGrowLookBack.ValueInt];
+
                     if (atrLast == 0
                         || atrLookBack == 0)
                     {
@@ -561,7 +605,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     decimal atrGrowPercent = atrLast / (atrLookBack / 100) - 100;
 
-                    if (atrGrowPercent < AtrGrowPercent.ValueDecimal)
+                    if (atrGrowPercent < _atrGrowPercent.ValueDecimal)
                     {
                         return;
                     }
@@ -571,6 +615,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
             if (position.State != PositionStateType.Open
@@ -587,28 +632,29 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             decimal lastPcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 1];
             decimal lastPcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 1];
 
-            if (position.Direction == Side.Buy)
+            if (position.Direction == Side.Buy) // If the direction of the position is long
             {
                 tab.CloseAtTrailingStopMarket(position, lastPcDown);
             }
-            if (position.Direction == Side.Sell)
+            if (position.Direction == Side.Sell) // If the direction of the position is short
             {
                 tab.CloseAtTrailingStopMarket(position, lastPcUp);
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -619,7 +665,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -629,7 +675,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -640,7 +686,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -655,7 +701,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -665,11 +711,11 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
@@ -687,7 +733,6 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             return volume;
         }
-
     }
 
     public class SecurityRatingDataPc
