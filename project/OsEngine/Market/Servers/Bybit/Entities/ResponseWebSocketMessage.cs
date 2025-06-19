@@ -131,4 +131,28 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string smpOrderId { get; set; }
         public string feeCurrency { get; set; }
     }
+
+    public class ResponseTicker
+    {
+        public string symbol { get; set; }
+        public string tickDirection { get; set; }
+        public string price24hPcnt { get; set; }
+        public string lastPrice { get; set; }
+        public string prevPrice24h { get; set; }
+        public string highPrice24h { get; set; }
+        public string lowPrice24h { get; set; }
+        public string prevPrice1h { get; set; }
+        public string markPrice { get; set; }
+        public string indexPrice { get; set; }
+        public string openInterest { get; set; }
+        public string openInterestValue { get; set; }
+        public string turnover24h { get; set; }
+        public string volume24h { get; set; }
+        public string nextFundingTime { get; set; }
+        public string fundingRate { get; set; }
+        public string bid1Price { get; set; }
+        public string bid1Size { get; set; }
+        public string ask1Price { get; set; }
+        public string ask1Size { get; set; }
+    }
 }
