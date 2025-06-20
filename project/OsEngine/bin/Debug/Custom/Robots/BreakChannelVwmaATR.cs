@@ -19,11 +19,14 @@ trading robot for osengine
 
 The trend robot on channel Vwma and ATR.
 
-Buy: price above top Vwma + MultAtr * Atr.
+Buy:
+price above top Vwma + MultAtr * Atr.
 
-Sell: price below lower Vwma - MultAtr * Atr.
+Sell:
+price below lower Vwma - MultAtr * Atr.
 
-Exit: opposite channel boundary.
+Exit:
+opposite channel boundary.
  */
 
 namespace OsEngine.Robots
@@ -31,6 +34,7 @@ namespace OsEngine.Robots
     [Bot("BreakChannelVwmaATR")] // We create an attribute so that we don't write anything to the BotFactory
     public class BreakChannelVwmaATR : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -61,6 +65,7 @@ namespace OsEngine.Robots
 
         public BreakChannelVwmaATR(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -117,9 +122,11 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_vwmaHigh.Parameters[0]).ValueInt = _periodVwma.ValueInt;
             _vwmaHigh.Save();
             _vwmaHigh.Reload();
+
             ((IndicatorParameterInt)_vwmaLow.Parameters[0]).ValueInt = _periodVwma.ValueInt;
             _vwmaLow.Save();
             _vwmaLow.Reload();
+
             ((IndicatorParameterInt)_ATR.Parameters[0]).ValueInt = _lengthAtr.ValueInt;
             _ATR.Save();
             _ATR.Reload();
@@ -130,6 +137,7 @@ namespace OsEngine.Robots
         {
             return "BreakChannelVwmaATR";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -145,8 +153,8 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthAtr.ValueInt ||
-                candles.Count < _periodVwma.ValueInt)
+            if (candles.Count <= _lengthAtr.ValueInt ||
+                candles.Count <= _periodVwma.ValueInt)
             {
                 return;
             }
@@ -208,7 +216,7 @@ namespace OsEngine.Robots
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (lastPrice < _lastVwmaHigh - _multAtr.ValueDecimal * _lastATR)
+                    if (lastPrice < _lastVwmaLow - _multAtr.ValueDecimal * _lastATR)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
@@ -220,7 +228,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // The last value of the indicator
             _lastVwmaHigh = _vwmaHigh.DataSeries[0].Last;
             _lastVwmaLow = _vwmaLow.DataSeries[0].Last;
@@ -248,7 +256,7 @@ namespace OsEngine.Robots
                 }
                 else // If the direction of the position is short
                 {
-                    if (lastPrice > _lastVwmaHigh + _multAtr.ValueDecimal * _lastATR)
+                    if (lastPrice > _lastVwmaLow + _multAtr.ValueDecimal * _lastATR)
                     {
                         _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
                     }

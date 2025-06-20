@@ -23,18 +23,21 @@ Trend robot at the Break Channel LRMA and ADX.
 Buy:
 1. The price is above the upper line of the channel.
 2. Adx is growing and crosses level 20 from bottom to top.
+
 Sell:
 1. The price is below the bottom line of the channel.
 2. Adx is growing and crosses level 20 from bottom to top.
+
 Exit: after a certain number of candles.
 */
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakChannelLRMAandADX")] //We create an attribute so that we don't write anything in the Boot factory
+    [Bot("BreakChannelLRMAandADX")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakChannelLRMAandADX : BotPanel
     {
-        BotTabSimple _tab;
+        // Reference to the main trading tab
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -46,12 +49,12 @@ namespace OsEngine.Robots
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
-        
+
         // Indicator settings
         private StrategyParameterInt _periodLRMA;
         private StrategyParameterInt _periodADX;
-        
-        // Indicator
+
+        // Indicators
         private Aindicator _oneLRMA;
         private Aindicator _twoLRMA;
         private Aindicator _ADX;
@@ -69,6 +72,7 @@ namespace OsEngine.Robots
 
         public BreakChannelLRMAandADX(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -106,10 +110,10 @@ namespace OsEngine.Robots
             _ADX = (Aindicator)_tab.CreateCandleIndicator(_ADX, "NewArea0");
             ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _periodADX.ValueInt;
             _ADX.Save();
-            
+
             // Exit settings
             _exitCandles = CreateParameter("Exit Candles", 10, 5, 1000, 10, "Exit settings");
-            
+
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakChannelLRMAandADX_ParametrsChangeByUser;
 
@@ -132,9 +136,11 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_oneLRMA.Parameters[0]).ValueInt = _periodLRMA.ValueInt;
             _oneLRMA.Save();
             _oneLRMA.Reload();
+
             ((IndicatorParameterInt)_twoLRMA.Parameters[0]).ValueInt = _periodLRMA.ValueInt;
             _twoLRMA.Save();
             _twoLRMA.Reload();
+
             ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _periodADX.ValueInt;
             _ADX.Save();
             _ADX.Reload();
@@ -387,5 +393,3 @@ namespace OsEngine.Robots
         }
     }
 }
-
-
