@@ -418,7 +418,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; i < Tabs.Count; i++)
                     {
-                        Tabs[i].Connector.EventsIsOn = value;
+                        Tabs[i].EventsIsOn = value;
                     }
                 }
                 catch

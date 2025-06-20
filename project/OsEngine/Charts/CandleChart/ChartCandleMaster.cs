@@ -1576,7 +1576,7 @@ namespace OsEngine.Charts.CandleChart
                         {
                             _indicators[i].Process(candles);
 
-                            if (EventIsOn == false)
+                            if (EventIsOn == false) 
                             {
                                 Type indType = _indicators[i].GetType();
                                 if (indType.BaseType.Name == "Aindicator")
