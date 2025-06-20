@@ -3,44 +3,93 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System.Collections.Generic;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+
+/* Description
+Trading robot for osengine.
+
+The trend robot on BreakEnvelops.
+
+Buy:
+The price is above the upper Envelops band.
+
+Sell: 
+The price is below the lower Envelops band.
+
+Exit: 
+Reverse side of the channel.
+*/
 
 namespace OsEngine.Robots.Trend
 {
-    /// <summary>
-    /// Trend strategy based on indicator Envelop
-    /// Трендовая стратегия на основе индикатора конверт(Envelop)
-    /// </summary>
-    [Bot("EnvelopTrend")]
+    [Bot("EnvelopTrend")] // We create an attribute so that we don't write anything to the BotFactory
     public class EnvelopTrend : BotPanel
     {
+        private BotTabSimple _tab;
+
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _slippage;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterDecimal _envelopDeviation;
+        private StrategyParameterInt _envelopMovingLength;
+
+        // Indicator
+        private Aindicator _envelop;
+
+        // Exit settings
+        private StrategyParameterDecimal _trailStop;
+
         public EnvelopTrend(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _slippage = CreateParameter("Slippage", 0, 0, 20, 1);
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            
+            // Indicator settings
+            _envelopDeviation = CreateParameter("Envelop Deviation", 0.3m, 0.3m, 4, 0.3m);
+            _envelopMovingLength = CreateParameter("Envelop Moving Length", 10, 10, 200, 5);
+
+            // Create indicator Envelops
+            _envelop = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "Envelops", false);
+            _envelop = (Aindicator)_tab.CreateCandleIndicator(_envelop, "Prime");
+            ((IndicatorParameterInt)_envelop.Parameters[0]).ValueInt = _envelopMovingLength.ValueInt;
+            ((IndicatorParameterDecimal)_envelop.Parameters[1]).ValueDecimal = _envelopDeviation.ValueDecimal;
+            _envelop.Save();
+            
+            // Exit settings
+            _trailStop = CreateParameter("Trail Stop", 0.1m, 0.1m, 5, 0.1m);
+
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            // Subscribe to the position opening succes event
             _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
 
-            _envelop = new Envelops(name + "Envelop", false);
-            _envelop = (Envelops)_tab.CreateCandleIndicator(_envelop, "Prime");
-            _envelop.Save();
-
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
-            Volume= CreateParameter("Volume", 0.1m, 0.1m, 50, 0.1m);
-            EnvelopDeviation = CreateParameter("Envelop Deviation", 0.3m, 0.3m, 4, 0.3m);
-            EnvelopMovingLength = CreateParameter("Envelop Moving Length", 10, 10, 200, 5);
-            TrailStop = CreateParameter("Trail Stop", 0.1m, 0.1m, 5, 0.1m);
-
-            _envelop.Deviation = EnvelopDeviation.ValueDecimal;
-            _envelop.MovingAverage.Length = EnvelopMovingLength.ValueInt;
-
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += EnvelopTrend_ParametrsChangeByUser;
 
             Description = "Trend strategy based on indicator Envelop. " +
@@ -52,56 +101,25 @@ namespace OsEngine.Robots.Trend
 
         private void EnvelopTrend_ParametrsChangeByUser()
         {
-            _envelop.Deviation = EnvelopDeviation.ValueDecimal;
-            _envelop.MovingAverage.Length = EnvelopMovingLength.ValueInt;
+            ((IndicatorParameterInt)_envelop.Parameters[0]).ValueInt = _envelopMovingLength.ValueInt;
+            ((IndicatorParameterDecimal)_envelop.Parameters[1]).ValueDecimal = _envelopDeviation.ValueDecimal;
+            _envelop.Save();
             _envelop.Reload();
         }
 
-        // public settings / настройки публичные
+        // The name of the robot in OsEngine
+        public override string GetNameStrategyType()
+        {
+            return "EnvelopTrend";
+        }
 
-        /// <summary>
-        /// slippage
-        /// проскальзывание
-        /// </summary>
-        public StrategyParameterInt Slippage;
+        // Show settings GUI
+        public override void ShowIndividualSettingsDialog()
+        {
 
-        /// <summary>
-        /// volume for entry
-        /// объём для входа
-        /// </summary>
-        public StrategyParameterDecimal Volume;
+        }
 
-        /// <summary>
-        /// Envelop deviation from center moving average 
-        /// Envelop отклонение от скользящей средней
-        /// </summary>
-        public StrategyParameterDecimal EnvelopDeviation;
-
-        /// <summary>
-        /// moving average length in Envelop 
-        /// длинна скользящей средней в конверте
-        /// </summary>
-        public StrategyParameterInt EnvelopMovingLength;
-
-        /// <summary>
-        /// Trail stop length in percent
-        /// длинна трейлинг стопа в процентах
-        /// </summary>
-        public StrategyParameterDecimal TrailStop;
-
-        /// <summary>
-        /// regime
-        /// режим работы
-        /// </summary>
-        public StrategyParameterString Regime;
-
-
-        // indicators / индикаторы
-
-        private Envelops _envelop;
-
-        // trade logic
-
+        // Trade logic
         private void _tab_PositionOpeningSuccesEvent(Position position)
         {
             _tab.BuyAtStopCancel();
@@ -109,20 +127,20 @@ namespace OsEngine.Robots.Trend
 
             if (position.Direction == Side.Buy)
             {
-                decimal activationPrice = _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] -
-                    _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] * (TrailStop.ValueDecimal / 100);
+                decimal activationPrice = _envelop.DataSeries[0].Last -
+                    _envelop.DataSeries[0].Last * (_trailStop.ValueDecimal / 100);
 
-                decimal orderPrice = activationPrice - _tab.Security.PriceStep * Slippage.ValueInt;
+                decimal orderPrice = activationPrice - _tab.Security.PriceStep * _slippage.ValueInt;
 
                 _tab.CloseAtTrailingStop(position,
                     activationPrice, orderPrice);
             }
             if (position.Direction == Side.Sell)
             {
-                decimal activationPrice = _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] +
-                    _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] * (TrailStop.ValueDecimal / 100);
+                decimal activationPrice = _envelop.DataSeries[2].Last +
+                    _envelop.DataSeries[2].Last * (_trailStop.ValueDecimal / 100);
 
-                decimal orderPrice = activationPrice + _tab.Security.PriceStep * Slippage.ValueInt;
+                decimal orderPrice = activationPrice + _tab.Security.PriceStep * _slippage.ValueInt;
 
                 _tab.CloseAtTrailingStop(position,
                     activationPrice, orderPrice);
@@ -131,12 +149,12 @@ namespace OsEngine.Robots.Trend
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString != "On")
+            if (_regime.ValueString != "On")
             {
                 return;
             }
 
-            if(candles.Count +5 < _envelop.MovingAverage.Length)
+            if(candles.Count +5 < _envelop.DataSeries[0].Values.Count)
             {
                 return;
             }
@@ -145,16 +163,16 @@ namespace OsEngine.Robots.Trend
 
             if(positions.Count == 0)
             { // open logic
-                _tab.BuyAtStop(Volume.ValueDecimal,
-                    _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] + 
-                    Slippage.ValueInt * _tab.Security.PriceStep,
-                    _envelop.ValuesUp[_envelop.ValuesUp.Count - 1],
+                _tab.BuyAtStop(GetVolume(_tab),
+                    _envelop.DataSeries[0].Last + 
+                    _slippage.ValueInt * _tab.Security.PriceStep,
+                    _envelop.DataSeries[0].Last,
                     StopActivateType.HigherOrEqual,1);
 
-                _tab.SellAtStop(Volume.ValueDecimal,
-                     _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] -
-                     Slippage.ValueInt * _tab.Security.PriceStep,
-                    _envelop.ValuesDown[_envelop.ValuesDown.Count - 1],
+                _tab.SellAtStop(GetVolume(_tab),
+                     _envelop.DataSeries[2].Last -
+                     _slippage.ValueInt * _tab.Security.PriceStep,
+                    _envelop.DataSeries[2].Last,
                     StopActivateType.LowerOrEqual, 1);
             }
             else
@@ -167,20 +185,20 @@ namespace OsEngine.Robots.Trend
 
                 if(positions[0].Direction == Side.Buy)
                 {
-                    decimal activationPrice = _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] -
-                        _envelop.ValuesUp[_envelop.ValuesUp.Count - 1] * (TrailStop.ValueDecimal / 100);
+                    decimal activationPrice = _envelop.DataSeries[0].Last -
+                        _envelop.DataSeries[0].Last * (_trailStop.ValueDecimal / 100);
 
-                    decimal orderPrice = activationPrice - _tab.Security.PriceStep * Slippage.ValueInt;
+                    decimal orderPrice = activationPrice - _tab.Security.PriceStep * _slippage.ValueInt;
 
                     _tab.CloseAtTrailingStop(positions[0],
                         activationPrice, orderPrice);
                 }
                 if (positions[0].Direction == Side.Sell)
                 {
-                    decimal activationPrice = _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] +
-                        _envelop.ValuesDown[_envelop.ValuesDown.Count - 1] * (TrailStop.ValueDecimal / 100);
+                    decimal activationPrice = _envelop.DataSeries[2].Last +
+                        _envelop.DataSeries[2].Last * (_trailStop.ValueDecimal / 100);
 
-                    decimal orderPrice = activationPrice + _tab.Security.PriceStep * Slippage.ValueInt;
+                    decimal orderPrice = activationPrice + _tab.Security.PriceStep * _slippage.ValueInt;
 
                     _tab.CloseAtTrailingStop(positions[0],
                         activationPrice, orderPrice);
@@ -188,20 +206,96 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        public override string GetNameStrategyType()
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
         {
-            return "EnvelopTrend";
-        }
+            decimal volume = 0;
 
-        public override void ShowIndividualSettingsDialog()
-        {
-           
-        }
+            if (_volumeType.ValueString == "Contracts")
+            {
+                volume = _volume.ValueDecimal;
+            }
+            else if (_volumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
 
-        /// <summary>
-        /// tab to trade
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
+        }
     }
 }
