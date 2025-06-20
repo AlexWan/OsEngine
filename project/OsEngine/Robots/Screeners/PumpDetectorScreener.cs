@@ -13,30 +13,37 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+trading robot for osengine
+
+The trend robot on Pump Detector Screener.
+
+Buy: If the price change exceeds the specified threshold (MoveToEntry)
+
+Exit: by stop and profit.
+ */
+
 namespace OsEngine.Robots.Screeners
 {
-    [Bot("PumpDetectorScreener")]
+    [Bot("PumpDetectorScreener")] // We create an attribute so that we don't write anything to the BotFactory
     public class PumpDetectorScreener : BotPanel
     {
         private BotTabScreener _tabScreener;
 
-        public StrategyParameterString Regime;
+        // Basic settings
+        private StrategyParameterString Regime;
+        private StrategyParameterInt MaxPositions;
+        private StrategyParameterInt SecondsToAnalyze;
+        private StrategyParameterDecimal MoveToEntry;
 
-        public StrategyParameterInt MaxPositions;
+        // GetVolume settings
+        private StrategyParameterString VolumeType;
+        private StrategyParameterDecimal Volume;
+        private StrategyParameterString TradeAssetInPortfolio;
 
-        public StrategyParameterInt SecondsToAnalyze;
-
-        public StrategyParameterDecimal MoveToEntry;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterDecimal ProfitPercent;
-
-        public StrategyParameterDecimal StopPercent;
+        // Exit settings
+        private StrategyParameterDecimal ProfitPercent;
+        private StrategyParameterDecimal StopPercent;
 
         public PumpDetectorScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -45,23 +52,24 @@ namespace OsEngine.Robots.Screeners
             _tabScreener.NewTickEvent += _tabScreener_NewTickEvent;
             _tabScreener.PositionOpeningSuccesEvent += _tabScreener_PositionOpeningSuccesEvent;
 
+            // Basic settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On"});
-
             MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
-
             SecondsToAnalyze = CreateParameter("Seconds to analyze", 2, 0, 20, 1);
-
             MoveToEntry = CreateParameter("Move to entry", 1m, 0, 20, 1);
 
+            // GetVolume settings
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Exit settings
             ProfitPercent = CreateParameter("Profit percent", 1.5m, 0, 20, 1m);
-
             StopPercent = CreateParameter("Stop percent", 0.5m, 0, 20, 1m);
+
+            Description = "The trend robot on Pump Detector Screener. " +
+                "Buy: If the price change exceeds the specified threshold (MoveToEntry) " +
+                "Exit: by stop and profit.";
 
             if (startProgram == StartProgram.IsTester)
             {
@@ -82,11 +90,13 @@ namespace OsEngine.Robots.Screeners
             _checkMoveTimes.Clear();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PumpDetectorScreener";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -96,14 +106,10 @@ namespace OsEngine.Robots.Screeners
 
         private List<CheckMoveTime> _checkMoveTimes = new List<CheckMoveTime>();
 
+        // Opening logic
         private void _tabScreener_NewTickEvent(Trade newTrade, BotTabSimple tab)
         {
             if(tab.PositionsOpenAll.Count > 0)
-            {
-                return;
-            }
-
-            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
             {
                 return;
             }
@@ -174,18 +180,17 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Logic close position
         private void _tabScreener_PositionOpeningSuccesEvent(Position position, BotTabSimple tab)
         {
-            decimal stopPrice =
-                position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
-
-            decimal profitOrderPrice =
-                position.EntryPrice + position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+            decimal stopPrice = position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
+            decimal profitOrderPrice = position.EntryPrice + position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
 
             tab.CloseAtStopMarket(position, stopPrice);
             tab.CloseAtProfitMarket(position, profitOrderPrice);
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
