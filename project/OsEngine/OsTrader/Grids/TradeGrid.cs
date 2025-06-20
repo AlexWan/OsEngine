@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Threading;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -1365,6 +1366,17 @@ namespace OsEngine.OsTrader.Grids
             }
 
             decimal lastPrice = candles[candles.Count - 1].Close;
+
+            if(lastPrice == 0)
+            {
+                return;
+            }
+
+            if(Tab.PriceBestAsk == 0
+                || Tab.PriceBestBid == 0)
+            {
+                return;
+            }
 
             List<TradeGridLine> linesAll = GridCreator.Lines;
 
