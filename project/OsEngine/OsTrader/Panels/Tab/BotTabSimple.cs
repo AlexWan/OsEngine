@@ -281,8 +281,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 Connector.EventsIsOn = value;
-            }
 
+                if(value == false)
+                {
+                    _chartMaster.EventIsOn = value;
+                }
+            }
         }
 
         /// <summary>

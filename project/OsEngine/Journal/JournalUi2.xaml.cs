@@ -436,12 +436,36 @@ namespace OsEngine.Journal
                     {
                         PaintClosePositionGrid();
                     }
+
+                    PaintTitleAbsProfit(allSortPoses);
+                    
                 }
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(),LogMessageType.Error);
             }
+        }
+
+        private void PaintTitleAbsProfit(List<Position> positionsAll)
+        {
+            decimal absProfit = PositionStatisticGenerator.GetAllProfitInAbsolute(positionsAll.ToArray());
+
+            if (absProfit != 0)
+            {
+                absProfit = Math.Round(absProfit, 3);
+
+                Title = OsLocalization.Journal.TitleJournalUi
+                    + ".  " + OsLocalization.Journal.Label1 + ": " + absProfit;
+            }
+            else
+            {
+                if(Title != OsLocalization.Journal.TitleJournalUi)
+                {
+                    Title = OsLocalization.Journal.TitleJournalUi;
+                }
+            }
+
         }
 
         private string _paintLocker = "journalPainterLocker";
@@ -672,7 +696,7 @@ namespace OsEngine.Journal
                 _chartEquity.BackColor = Color.FromArgb(17, 18, 23);
 
                 ChartArea areaLineProfit = new ChartArea("ChartAreaProfit");
-                areaLineProfit.Position.Height = 70;
+                areaLineProfit.Position.Height = 80;
                 areaLineProfit.Position.Width = 100;
                 areaLineProfit.Position.Y = 0;
                 areaLineProfit.CursorX.IsUserSelectionEnabled = true; //allow the user to change the view scope/ разрешаем пользователю изменять рамки представления
@@ -682,7 +706,7 @@ namespace OsEngine.Journal
 
                 ChartArea areaLineProfitBar = new ChartArea("ChartAreaProfitBar");
                 areaLineProfitBar.AlignWithChartArea = "ChartAreaProfit";
-                areaLineProfitBar.Position.Height = 30;
+                areaLineProfitBar.Position.Height = 20;
                 areaLineProfitBar.Position.Width = 100;
                 areaLineProfitBar.Position.Y = 70;
                 areaLineProfitBar.AxisX.Enabled = AxisEnabled.False;

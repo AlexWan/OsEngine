@@ -528,6 +528,11 @@ namespace OsEngine.Charts.CandleChart
         /// </summary>
         public IChartPainter ChartCandle;
 
+        /// <summary>
+        /// On / Off events regime
+        /// </summary>
+        public bool EventIsOn = true;
+
         // bind 
 
         public void Bind(ChartCandleMaster chart)
@@ -1566,14 +1571,29 @@ namespace OsEngine.Charts.CandleChart
 
                     if (_indicators != null)
                     {
+
                         for (int i = 0; i < _indicators.Count; i++)
                         {
                             _indicators[i].Process(candles);
+
+                            if (EventIsOn == false)
+                            {
+                                Type indType = _indicators[i].GetType();
+                                if (indType.BaseType.Name == "Aindicator")
+                                {
+                                    ((Aindicator)_indicators[i]).Reload();
+                                }
+                            }    
 
                             if (canReload)
                             {
                                 ChartCandle?.ProcessIndicator(_indicators[i]);
                             }
+                        }
+
+                        if (EventIsOn == false)
+                        {
+                            EventIsOn = true;
                         }
                     }
                     if (canReload && _alertArray != null && _alertArray.Count != 0)
