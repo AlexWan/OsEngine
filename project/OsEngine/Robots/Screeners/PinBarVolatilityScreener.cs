@@ -15,38 +15,93 @@ using System.Globalization;
 using System.IO;
 using OsEngine.Market.Servers.Tester;
 
+/* Description
+trading robot for osengine
+
+The trend robot on PinBar Volatility Screener.
+
+Buy:
+1. The last candle's close and open prices are near the high of the candle, specifically within the top third of the candle's range.
+2. The candle's high-to-low length exceeds a specified threshold (HeightPinBar).
+3. If the Simple Moving Average (SMA) filter is enabled, the current SMA must be higher than the previous SMA, indicating an upward trend.
+
+Sell:
+1. The last candle's close and open prices are near the low of the candle, specifically within the bottom third of the candle's range.
+2. The candle's high-to-low length exceeds HeightPinBar.
+3. If SMA filter is enabled, the current SMA must be lower than the previous SMA, indicating a downward trend.
+
+Exit: We close the position by trailing stop.
+ */
+
 namespace OsEngine.Robots.Screeners
 {
-    [Bot("PinBarVolatilityScreener")]
+    [Bot("PinBarVolatilityScreener")] // We create an attribute so that we don't write anything to the BotFactory
     public class PinBarVolatilityScreener : BotPanel
     {
+        private BotTabScreener _tabScreener;
+
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _maxPositions;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Volatility settings
+        private StrategyParameterInt _daysVolatilityAdaptive;
+        private StrategyParameterDecimal _heightPinBarVolaPercent;
+
+        // Indicator settings
+        private StrategyParameterBool _smaFilterIsOn;
+        private StrategyParameterInt _smaFilterLen;
+
+        // Exit setting
+        private StrategyParameterDecimal _procHeightStop;
+
+        // Volatility adaptation
+        private List<SecuritiesVolatilitySettings> _tradeSettings = new List<SecuritiesVolatilitySettings>();
+
         public PinBarVolatilityScreener(string name, StartProgram startProgram)
            : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
 
+            // Subscribe to the candle finished event
             _tabScreener.CandleFinishedEvent += _tab_CandleFinishedEvent1;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _maxPositions = CreateParameter("Max positions", 10, 0, 20, 1);
 
-            MaxPositions = CreateParameter("Max positions", 10, 0, 20, 1);
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            // Volatility settings
+            _daysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 5, 0, 20, 1);
+            _heightPinBarVolaPercent = CreateParameter("Height PinBar volatility percent", 30, 0, 20, 1m);
 
-            Volume = CreateParameter("Volume", 10, 1.0m, 50, 4);
+            // Indicator settings
+            _smaFilterIsOn = CreateParameter("Sma filter is on", true);
+            _smaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
+            
+            // Exit setting
+            _procHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
 
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
-            ProcHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
-
-            DaysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 5, 0, 20, 1);
-
-            HeightPinBarVolaPercent = CreateParameter("Height PinBar volatility percent", 30, 0, 20, 1m);
-
-            SmaFilterIsOn = CreateParameter("Sma filter is on", true);
-
-            SmaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
+            Description = "The trend robot on PinBar Volatility Screener. " +
+                "Buy: " +
+                "1. The last candle's close and open prices are near the high of the candle, specifically within the top third of the candle's range. " +
+                "2. The candle's high-to-low length exceeds a specified threshold (HeightPinBar). " +
+                "3. If the Simple Moving Average (SMA) filter is enabled, the current SMA must be higher than the previous SMA, indicating an upward trend. " +
+                "Sell: " +
+                "1. The last candle's close and open prices are near the low of the candle, specifically within the bottom third of the candle's range. " +
+                "2. The candle's high-to-low length exceeds HeightPinBar. " +
+                "3. If SMA filter is enabled, the current SMA must be lower than the previous SMA, indicating a downward trend. " +
+                "Exit: We close the position by trailing stop.";
 
             if (startProgram == StartProgram.IsOsTrader)
             {
@@ -73,44 +128,19 @@ namespace OsEngine.Robots.Screeners
             _tradeSettings.Clear();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PinBarVolatilityScreener";
         }
 
+        // Snow settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabScreener _tabScreener;
-
-        // settings
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt MaxPositions;
-
-        public StrategyParameterDecimal ProcHeightStop;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterInt DaysVolatilityAdaptive;
-
-        public StrategyParameterDecimal HeightPinBarVolaPercent;
-
-        public StrategyParameterBool SmaFilterIsOn;
-
-        public StrategyParameterInt SmaFilterLen;
-
-        // volatility adaptation
-
-        private List<SecuritiesVolatilitySettings> _tradeSettings = new List<SecuritiesVolatilitySettings>();
-
+        // Save settings
         private void SaveTradeSettings()
         {
             try
@@ -132,6 +162,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Load settings
         private void LoadTradeSettings()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -182,13 +213,13 @@ namespace OsEngine.Robots.Screeners
 
         private void AdaptPinBarHeight(List<Candle> candles, SecuritiesVolatilitySettings settings)
         {
-            if (DaysVolatilityAdaptive.ValueInt <= 0
-                || HeightPinBarVolaPercent.ValueDecimal <= 0)
+            if (_daysVolatilityAdaptive.ValueInt <= 0
+                || _heightPinBarVolaPercent.ValueDecimal <= 0)
             {
                 return;
             }
 
-            // 1 рассчитываем движение от хая до лоя внутри N дней
+            // 1 We are calculating the movement from the high point to the low point within N days
 
             decimal minValueInDay = decimal.MaxValue;
             decimal maxValueInDay = decimal.MinValue;
@@ -218,7 +249,7 @@ namespace OsEngine.Robots.Screeners
                     maxValueInDay = decimal.MinValue;
                 }
 
-                if (days >= DaysVolatilityAdaptive.ValueInt)
+                if (days >= _daysVolatilityAdaptive.ValueInt)
                 {
                     break;
                 }
@@ -247,7 +278,7 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
-            // 2 усредняем это движение. Нужна усреднённая волатильность. процент
+            // 2 We are averaging this movement.An average volatility is needed. percentage
 
             decimal volaPercentSma = 0;
 
@@ -258,16 +289,15 @@ namespace OsEngine.Robots.Screeners
 
             volaPercentSma = volaPercentSma / volaInDaysPercent.Count;
 
-            // 3 считаем размер свечей с учётом этой волатильности
+            // 3 We calculate the size of the candles taking this volatility into account
 
-            decimal allSoldiersHeight = volaPercentSma * (HeightPinBarVolaPercent.ValueDecimal / 100);
+            decimal allSoldiersHeight = volaPercentSma * (_heightPinBarVolaPercent.ValueDecimal / 100);
 
             settings.HeightPinBar = allSoldiersHeight;
             settings.LastUpdateTime = candles[candles.Count - 1].TimeStart;
         }
 
-        // logic
-
+        // Logic
         private void _tab_CandleFinishedEvent1(List<Candle> candles, BotTabSimple tab)
         {
             SecuritiesVolatilitySettings mySettings = null;
@@ -310,7 +340,7 @@ namespace OsEngine.Robots.Screeners
 
         private void Logic(List<Candle> candles, BotTabSimple tab, SecuritiesVolatilitySettings settings)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -324,7 +354,7 @@ namespace OsEngine.Robots.Screeners
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -336,12 +366,15 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles, BotTabSimple tab, SecuritiesVolatilitySettings settings)
         {
-            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
+            if (_tabScreener.PositionsOpenAll.Count >= _maxPositions.ValueInt)
             {
                 return;
             }
+
+            // Last candles
             decimal lastClose = candles[candles.Count - 1].Close;
             decimal lastOpen = candles[candles.Count - 1].Open;
             decimal lastHigh = candles[candles.Count - 1].High;
@@ -355,14 +388,14 @@ namespace OsEngine.Robots.Screeners
             }
 
             //  long
-            if (Regime.ValueString != "OnlyShort")
+            if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
             {
                 if (lastClose >= lastHigh - ((lastHigh - lastLow) / 3) && lastOpen >= lastHigh - ((lastHigh - lastLow) / 3))
                 {
-                    if (SmaFilterIsOn.ValueBool == true)
+                    if (_smaFilterIsOn.ValueBool == true)
                     {
-                        decimal smaValue = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 1);
-                        decimal smaPrev = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 2);
+                        decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
+                        decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
 
                         if (smaValue < smaPrev)
                         {
@@ -375,14 +408,14 @@ namespace OsEngine.Robots.Screeners
             }
 
             // Short
-            if (Regime.ValueString != "OnlyLong")
+            if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
             {
                 if (lastClose <= lastLow + ((lastHigh - lastLow) / 3) && lastOpen <= lastLow + ((lastHigh - lastLow) / 3))
                 {
-                    if (SmaFilterIsOn.ValueBool == true)
+                    if (_smaFilterIsOn.ValueBool == true)
                     {
-                        decimal smaValue = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 1);
-                        decimal smaPrev = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 2);
+                        decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
+                        decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
 
                         if (smaValue > smaPrev)
                         {
@@ -395,6 +428,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, BotTabSimple tab, SecuritiesVolatilitySettings settings)
         {
             decimal _lastPrice = candles[candles.Count - 1].Close;
@@ -407,33 +441,36 @@ namespace OsEngine.Robots.Screeners
                     continue;
                 }
 
-                if (openPositions[i].Direction == Side.Buy)
+                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal heightPattern = settings.HeightPinBar;
-                    decimal priceStop = _lastPrice - _lastPrice * ((heightPattern * (ProcHeightStop.ValueDecimal / 100))/100);
+                    decimal priceStop = _lastPrice - _lastPrice * ((heightPattern * (_procHeightStop.ValueDecimal / 100))/100);
+
                     tab.CloseAtTrailingStopMarket(openPositions[i], priceStop);
                 }
-                else
+                else // If the direction of the position is short
                 {
                     decimal heightPattern = settings.HeightPinBar;
-                    decimal priceStop = _lastPrice + _lastPrice * ((heightPattern * (ProcHeightStop.ValueDecimal / 100)) / 100);
+                    decimal priceStop = _lastPrice + _lastPrice * ((heightPattern * (_procHeightStop.ValueDecimal / 100)) / 100);
+
                     tab.CloseAtTrailingStopMarket(openPositions[i], priceStop);
                 }
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -444,7 +481,7 @@ namespace OsEngine.Robots.Screeners
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -454,7 +491,7 @@ namespace OsEngine.Robots.Screeners
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -465,7 +502,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -480,7 +517,7 @@ namespace OsEngine.Robots.Screeners
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -490,11 +527,11 @@ namespace OsEngine.Robots.Screeners
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
@@ -513,6 +550,7 @@ namespace OsEngine.Robots.Screeners
             return volume;
         }
 
+        // Method for calculating Sma
         private decimal Sma(List<Candle> candles, int len, int index)
         {
             if (candles.Count == 0
@@ -541,6 +579,7 @@ namespace OsEngine.Robots.Screeners
         }
     }
 
+    // Storing volatility settings
     public class SecuritiesVolatilitySettings
     {
         public string SecName;
