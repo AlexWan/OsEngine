@@ -31,9 +31,10 @@ Exit from sell: When fast Ema is higher than slow Ema.
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakDeMarkerAndIntersectionOfTwoEma")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakDeMarkerAndIntersectionOfTwoEma")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class BreakDeMarkerAndIntersectionOfTwoEma : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -63,6 +64,7 @@ namespace OsEngine.Robots
 
         public BreakDeMarkerAndIntersectionOfTwoEma(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -124,9 +126,11 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_deM.Parameters[0]).ValueInt = _deMLength.ValueInt;
             _deM.Save();
             _deM.Reload();
+
             ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _lengthEmaFast.ValueInt;
             _ema1.Save();
             _ema1.Reload();
+
             ((IndicatorParameterInt)_ema2.Parameters[0]).ValueInt = _lengthEmaSlow.ValueInt;
             _ema2.Save();
             _ema2.Reload();
@@ -136,6 +140,7 @@ namespace OsEngine.Robots
         {
             return "BreakDeMarkerAndIntersectionOfTwoEma";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -194,6 +199,12 @@ namespace OsEngine.Robots
             decimal lastDeM = _deM.DataSeries[0].Last;
             decimal lastEmaFast = _ema1.DataSeries[0].Last;
             decimal lastEmaSlow = _ema2.DataSeries[0].Last;
+
+            // Indicator not ready
+            if (lastEmaSlow == 0 || lastEmaFast == 0)
+            {
+                return;
+            }
 
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -267,7 +278,7 @@ namespace OsEngine.Robots
 
             for (int i = values.Count - 2; i > values.Count - 2 - period; i--)
             {
-                if(i < 0)
+                if (i < 0)
                 {
                     return Max;
                 }
