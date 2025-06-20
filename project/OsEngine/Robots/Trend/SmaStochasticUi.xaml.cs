@@ -21,7 +21,8 @@ namespace OsEngine.Robots.Trend
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 
-            TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
+            TextBoxVolumeOne.Text = _strategy.Volume.ToString();
+            TextBoxAssetInPortfolio.Text = "Prime";
 
             TextBoxSlippage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
@@ -30,6 +31,11 @@ namespace OsEngine.Robots.Trend
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyLong);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
             ComboBoxRegime.SelectedItem = _strategy.Regime;
+
+            ComboBoxVolumeType.Items.Add("Deposit percent");
+            ComboBoxVolumeType.Items.Add("Contracts");
+            ComboBoxVolumeType.Items.Add("Contract currency");
+            ComboBoxVolumeType.SelectedItem = _strategy.VolumeType;
 
             StochUp.Text = _strategy.Upline.ToString(new CultureInfo("ru-RU"));
             StochDown.Text = _strategy.Downline.ToString(new CultureInfo("ru-RU"));
@@ -42,6 +48,8 @@ namespace OsEngine.Robots.Trend
             LabelStohasticUp.Content = OsLocalization.Trader.Label149;
             LabelStochasticLow.Content = OsLocalization.Trader.Label150;
             LabelStep.Content = OsLocalization.Trader.Label151;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();
@@ -67,9 +75,10 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
+            _strategy.VolumeType = Convert.ToString(ComboBoxVolumeType.Text);
+            _strategy.TradeAssetInPortfolio = Convert.ToString(TextBoxAssetInPortfolio.Text);
             _strategy.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
-
+            _strategy.Volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Upline = Convert.ToDecimal(StochUp.Text);
             _strategy.Downline = Convert.ToDecimal(StochDown.Text);
             _strategy.Step = Convert.ToDecimal(Step.Text);
