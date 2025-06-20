@@ -32,6 +32,7 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterEnum("Demo Mode", "Off", new List<string> { "Off", "On" });
+            CreateParameterEnum("Open interest", "On", new List<string> { "On", "Off" });
         }
     }
 
@@ -104,6 +105,15 @@ namespace OsEngine.Market.Servers.OKX
             else
             {
                 _demoMode = true;
+            }
+
+            if (((ServerParameterEnum)ServerParameters[7]).Value == "On")
+            {
+                _oi = true;
+            }
+            else
+            {
+                _oi = false;
             }
 
             try
@@ -210,6 +220,8 @@ namespace OsEngine.Market.Servers.OKX
         private bool _useOptions;
 
         private bool _demoMode;
+
+        private bool _oi;
 
         #endregion
 
@@ -1249,7 +1261,7 @@ namespace OsEngine.Market.Servers.OKX
             {
                 SendLogMessage($"PushPositionMode - {message.data[0].sMsg}", LogMessageType.Error);
             }
-            else if(message.msg == "API key doesn't exist")
+            else if (message.msg == "API key doesn't exist")
             {
                 SendLogMessage($"PushPositionMode - {contentStr}", LogMessageType.Error);
                 Disconnect();
@@ -1459,16 +1471,13 @@ namespace OsEngine.Market.Servers.OKX
 
         #region 8 WebSocket check alive
 
-        private DateTime _timeToSendPingPublic = DateTime.Now;
-        private DateTime _timeToSendPingPrivate = DateTime.Now;
-
         private void CheckAliveWebSocket()
         {
             while (true)
             {
                 try
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(20000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
@@ -1478,13 +1487,10 @@ namespace OsEngine.Market.Servers.OKX
                     for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
                         WebSocket webSocketPublic = _webSocketPublic[i];
-                        if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
+                        if (webSocketPublic != null
+                            && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            if (_timeToSendPingPublic.AddSeconds(25) < DateTime.Now)
-                            {
-                                webSocketPublic.Send("ping");
-                                _timeToSendPingPublic = DateTime.Now;
-                            }
+                            webSocketPublic.Send("ping");
                         }
                         else
                         {
@@ -1493,14 +1499,9 @@ namespace OsEngine.Market.Servers.OKX
                     }
 
                     if (_webSocketPrivate != null &&
-                    (_webSocketPrivate.ReadyState == WebSocketState.Open)
-                    )
+                    (_webSocketPrivate.ReadyState == WebSocketState.Open))
                     {
-                        if (_timeToSendPingPrivate.AddSeconds(25) < DateTime.Now)
-                        {
-                            _webSocketPrivate.Send("ping");
-                            _timeToSendPingPrivate = DateTime.Now;
-                        }
+                        _webSocketPrivate.Send("ping");
                     }
                     else
                     {
@@ -1588,9 +1589,13 @@ namespace OsEngine.Market.Servers.OKX
 
                 if (webSocketPublic != null)
                 {
-                    SubscribeTrades(security, webSocketPublic);
-                    SubscribeDepths(security, webSocketPublic);
+                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"trades\",\"instId\": \"{security.Name}\"}}]}}");
 
+                    if (_oi && security.Name.Contains("SWAP"))
+                    {
+                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{security.Name}\"}}]}}");
+                    }
                 }
 
                 if (_useOptions && security.SecurityType == SecurityType.Option)
@@ -1599,7 +1604,6 @@ namespace OsEngine.Market.Servers.OKX
 
                     _rateGateSubscribe.WaitToProceed();
 
-                    SubscribeOpenInterest(security.Name, webSocketPublic);
                     SubscribeMarkPrice(security.Name, webSocketPublic);
 
                     securityName = securityName.Substring(0, 7);
@@ -1625,30 +1629,6 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
-        public void SubscribeTrades(Security security, WebSocket webSocketPublic)
-        {
-            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
-            requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
-            requestTrade.args[0].channel = "trades";
-            requestTrade.args[0].instId = security.Name;
-
-            string json = JsonConvert.SerializeObject(requestTrade);
-
-            webSocketPublic.Send(json);
-        }
-
-        public void SubscribeDepths(Security security, WebSocket webSocketPublic)
-        {
-            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
-            requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
-            requestTrade.args[0].channel = "books5";
-            requestTrade.args[0].instId = security.Name;
-
-            // webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
-            string json = JsonConvert.SerializeObject(requestTrade);
-            webSocketPublic.Send(json);
-        }
-
         public void SubscribeOptionSummary(string securityName, WebSocket webSocketPublic)
         {
             RequestSubscribe<SubscribeArgsOption> requestTrade = new RequestSubscribe<SubscribeArgsOption>();
@@ -1657,18 +1637,6 @@ namespace OsEngine.Market.Servers.OKX
             requestTrade.args[0].instFamily = securityName; //"BTC-USD"
 
             string json = JsonConvert.SerializeObject(requestTrade);
-            webSocketPublic.Send(json);
-        }
-
-        public void SubscribeOpenInterest(string name, WebSocket webSocketPublic)
-        {
-            RequestSubscribe<SubscribeArgs> requestTrade = new RequestSubscribe<SubscribeArgs>();
-            requestTrade.args = new List<SubscribeArgs>() { new SubscribeArgs() };
-            requestTrade.args[0].channel = "open-interest";
-            requestTrade.args[0].instId = name; //"LTC-USD-SWAP"
-
-            string json = JsonConvert.SerializeObject(requestTrade);
-
             webSocketPublic.Send(json);
         }
 
@@ -1722,10 +1690,14 @@ namespace OsEngine.Market.Servers.OKX
                                     webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
                                     webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
 
+                                    if (_oi && name.Contains("SWAP"))
+                                    {
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
+                                    }
+
                                     if (item.Value)
                                     {
                                         //option
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
                                         webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"mark-price\",\"instId\": \"{name}\"}}]}}");
                                     }
                                 }
@@ -2190,9 +2162,15 @@ namespace OsEngine.Market.Servers.OKX
                 {
                     trade.Side = Side.Buy;
                 }
+
                 if (tradeRespone.data[0].side.Equals("sell"))
                 {
                     trade.Side = Side.Sell;
+                }
+
+                if (_oi && trade.SecurityNameCode.Contains("SWAP"))
+                {
+                    trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
                 }
 
                 NewTradesEvent?.Invoke(trade);
@@ -2201,6 +2179,25 @@ namespace OsEngine.Market.Servers.OKX
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+        }
+
+        private decimal GetOpenInterest(string securityNameCode)
+        {
+            if (_additionalOptionData == null
+                || _additionalOptionData.Count == 0)
+            {
+                return 0;
+            }
+
+            foreach (var optionData in _additionalOptionData)
+            {
+                if (optionData.Key == securityNameCode)
+                {
+                    return optionData.Value.OpenInterest.ToDecimal();
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateOrder(string message)
@@ -2496,7 +2493,6 @@ namespace OsEngine.Market.Servers.OKX
                 Thread.Sleep(5000);
             }
         }
-
 
         public event Action<Order> MyOrderEvent;
 
