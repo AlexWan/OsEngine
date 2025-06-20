@@ -13,87 +13,113 @@ using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Attributes;
 
+/* Description
+trading robot for osengine
+
+The trend robot on PriceChannel Adaptive RsiScreener.
+
+Entry long:
+1. Verify that the total number of positions across all tabs does not exceed the maximum allowed (MaxPoses).
+2. If RSI is below a minimum threshold (MinRsiValueToEntry), do not enter.
+3. If it is higher than pcUp, then consider entering a long position.
+4. If the current SMA is lower than the previous SMA (indicating a downtrend), do not enter.
+
+Exit: by trailing stop.
+ */
+
 namespace OsEngine.Robots.Screeners
 {
-    [Bot("PriceChannelAdaptiveRsiScreener")]
+    [Bot("PriceChannelAdaptiveRsiScreener")] // We create an attribute so that we don't write anything to the BotFactory
     public class PriceChannelAdaptiveRsiScreener : BotPanel
     {
+        private BotTabScreener _screenerTab;
+
+        // Basic settings
+        private StrategyParameterString Regime;
+        private StrategyParameterInt MaxPoses;
+        private StrategyParameterDecimal MinRsiValueToEntry;
+
+        // GetVolume settings
+        private StrategyParameterString VolumeType;
+        private StrategyParameterDecimal Volume;
+        private StrategyParameterString TradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt RsiLength;
+        private StrategyParameterInt PcAdxLength;
+        private StrategyParameterInt PcRatio;
+        private StrategyParameterBool SmaFilterIsOn;
+        private StrategyParameterInt SmaFilterLen;
+
         public PriceChannelAdaptiveRsiScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
             _screenerTab = TabsScreener[0];
+
+            // Subscribe to the candle finished event
             _screenerTab.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
+            // Basic settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             MaxPoses = CreateParameter("Max poses", 1, 1, 20, 1);
             MinRsiValueToEntry = CreateParameter("Min Rsi value to entry", 80, 1.0m, 95, 4);
 
+            // GetVolume settings
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Indicator settings
             RsiLength = CreateParameter("Rsi length", 100, 5, 300, 1);
             PcAdxLength = CreateParameter("Pc adx length", 10, 5, 300, 1);
             PcRatio = CreateParameter("Pc ratio", 80, 5, 300, 1);
-
             SmaFilterIsOn = CreateParameter("Sma filter is on", true);
-
             SmaFilterLen = CreateParameter("Sma filter Len", 150, 100, 300, 10);
 
+            // Create indicator RSI
             _screenerTab.CreateCandleIndicator(1,
                 "RSI",
                 new List<string>() { RsiLength.ValueInt.ToString() },
                 "Second");
 
+            // Create indicator PriceChannelAdaptive
             _screenerTab.CreateCandleIndicator(2,
                 "PriceChannelAdaptive",
                 new List<string>() { PcAdxLength.ValueInt.ToString(), PcRatio.ValueInt.ToString() },
                 "Prime");
 
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
+
+            Description = "The trend robot on PriceChannel Adaptive RsiScreener. " +
+                "Entry long: " +
+                "1. Verify that the total number of positions across all tabs does not exceed the maximum allowed (MaxPoses). " +
+                "2. If RSI is below a minimum threshold (MinRsiValueToEntry), do not enter. " +
+                "3. If it is higher than pcUp, then consider entering a long position. " +
+                "4. If the current SMA is lower than the previous SMA (indicating a downtrend), do not enter. " +
+                "Exit: by trailing stop.";
         }
 
         private void SmaScreener_ParametrsChangeByUser()
         {
             _screenerTab._indicators[0].Parameters = new List<string>() { RsiLength.ValueInt.ToString() };
             _screenerTab._indicators[1].Parameters = new List<string>() { PcAdxLength.ValueInt.ToString(), PcRatio.ValueInt.ToString() };
-
             _screenerTab.UpdateIndicatorsParameters();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PriceChannelAdaptiveRsiScreener";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabScreener _screenerTab;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt MaxPoses;
-
-        public StrategyParameterDecimal MinRsiValueToEntry;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterInt RsiLength;
-
-        public StrategyParameterInt PcAdxLength;
-
-        public StrategyParameterInt PcRatio;
-
-        public StrategyParameterBool SmaFilterIsOn;
-
-        public StrategyParameterInt SmaFilterLen;
-
+        // Logic
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
             // 1 Если поза есть, то по трейлинг стопу закрываем
@@ -112,9 +138,8 @@ namespace OsEngine.Robots.Screeners
 
             List<Position> positions = tab.PositionsOpenAll;
 
-            if (positions.Count == 0)
-            { // open position logic
-
+            if (positions.Count == 0) // Open position logic
+            { 
                 int allPosesInAllTabs = this.PositionsCount;
 
                 if (allPosesInAllTabs >= MaxPoses.ValueInt)
@@ -124,15 +149,14 @@ namespace OsEngine.Robots.Screeners
 
                 Aindicator rsi = (Aindicator)tab.Indicators[0];
 
-                if (rsi.DataSeries[0].Last < MinRsiValueToEntry.ValueDecimal)
-                {// Rsi filter
+                if (rsi.DataSeries[0].Last < MinRsiValueToEntry.ValueDecimal) // Rsi filter
+                {
                     return;
                 }
 
                 Aindicator priceChannel = (Aindicator)tab.Indicators[1];
 
                 decimal pcUp = priceChannel.DataSeries[0].Values[priceChannel.DataSeries[0].Values.Count - 2];
-                //decimal pcDown = priceChannel.DataSeries[1].Values[priceChannel.DataSeries[1].Values.Count-2];
 
                 if (pcUp == 0)
                 {
@@ -158,7 +182,7 @@ namespace OsEngine.Robots.Screeners
                     tab.BuyAtMarket(GetVolume(tab));
                 }
             }
-            else
+            else // Close logic
             {
                 Position pos = positions[0];
 
@@ -169,7 +193,6 @@ namespace OsEngine.Robots.Screeners
 
                 Aindicator priceChannel = (Aindicator)tab.Indicators[1];
 
-                //decimal pcUp = priceChannel.DataSeries[0].Last;
                 decimal pcDown = priceChannel.DataSeries[1].Last;
 
                 if (pcDown == 0)
@@ -181,6 +204,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Method for calculating Sma
         private decimal Sma(List<Candle> candles, int len, int index)
         {
             if (candles.Count == 0
@@ -208,6 +232,7 @@ namespace OsEngine.Robots.Screeners
             return summ / countPoints;
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;

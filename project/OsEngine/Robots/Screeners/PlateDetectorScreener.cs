@@ -12,68 +12,81 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+trading robot for osengine
+
+The trend robot on Plate Detector Screener.
+
+Buy:
+1. If the Bid ratio is higher than the specified minimum value BestBidMinRatioToAll.
+
+Exit: based on stop and profit.
+ */
+
 namespace OsEngine.Robots.Screeners
 {
-    [Bot("PlateDetectorScreener")]
+    [Bot("PlateDetectorScreener")] // We create an attribute so that we don't write anything to the BotFactory
     public class PlateDetectorScreener : BotPanel
     {
         private BotTabScreener _tabScreener;
 
-        public StrategyParameterString Regime;
+        // Basic settings
+        private StrategyParameterString Regime;
+        private StrategyParameterInt MaxPositions;
+        private StrategyParameterDecimal BestBidMinRatioToAll;
 
-        public StrategyParameterInt MaxPositions;
+        // GetVolume settings
+        private StrategyParameterString VolumeType;
+        private StrategyParameterDecimal Volume;
+        private StrategyParameterString TradeAssetInPortfolio;
 
-        public StrategyParameterDecimal BestBidMinRatioToAll;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterDecimal ProfitPercent;
-
-        public StrategyParameterDecimal StopPercent;
-
-        public StrategyParameterInt OrderLifeTime;
+        // Exit settings
+        private StrategyParameterDecimal ProfitPercent;
+        private StrategyParameterDecimal StopPercent;
+        private StrategyParameterInt OrderLifeTime;
 
         public PlateDetectorScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
+
+            // Subscribe to the candle finished event
             _tabScreener.MarketDepthUpdateEvent += _tabScreener_MarketDepthUpdateEvent;
 
+            // Basic settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-
             MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
-
             BestBidMinRatioToAll = CreateParameter("Best bid min ratio", 5m, 0, 20, 1m);
 
+            // GetVolume settings
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Exit settings
             ProfitPercent = CreateParameter("Profit percent", 1.5m, 0, 20, 1m);
-
             StopPercent = CreateParameter("Stop percent", 0.5m, 0, 20, 1m);
-
             OrderLifeTime = CreateParameter("Order life time milliseconds", 2000, 0, 20, 1);
+
+            Description = "The trend robot on Plate Detector Screener. " +
+                "Buy: " +
+                "1. If the Bid ratio is higher than the specified minimum value BestBidMinRatioToAll. " +
+                "Exit: based on stop and profit.";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PlateDetectorScreener";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // trade logic
-
+        // Trade logic
         private void _tabScreener_MarketDepthUpdateEvent(MarketDepth marketDepth, BotTabSimple tab)
         {
             if (Regime.ValueString == "Off")
@@ -106,14 +119,10 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Opening logic
         private void LogicEntry(MarketDepth marketDepth, BotTabSimple tab)
         {
             if (marketDepth == null)
-            {
-                return;
-            }
-
-            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
             {
                 return;
             }
@@ -151,16 +160,15 @@ namespace OsEngine.Robots.Screeners
             tab.BuyAtLimit(volume, openOrderPrice);
         }
 
+        // Logic close position
         private void LogicClosePosition(BotTabSimple tab, Position position)
         {
-            if (position.OpenOrders[0].State == OrderStateType.Active)
-            { // ордер ещё не исполнен на открытие
+            if (position.OpenOrders[0].State == OrderStateType.Active) // the order has not yet been executed for opening
+            { 
                 Order order = position.OpenOrders[0];
 
                 if (position.SignalTypeOpen == "Canceled")
                 {
-                    // уже отозвали открывающий орде по позиции в прошлые заходы в метод
-                    // ждём пока коннектор отработает и отзовёт ордер
                     return;
                 }
 
@@ -175,33 +183,33 @@ namespace OsEngine.Robots.Screeners
                 if (position.OpenOrders[0].MyTrades == null
                     || position.OpenOrders[0].MyTrades.Count == 0)
                 {
-                    // трейды по ордеру ещё не пришли. Рано обрабатывать позицию
+                    // Trades on the order have not arrived yet. It is too early to process the position
                     return;
                 }
 
                 if (position.StopOrderRedLine == 0)
                 {
-                    // 1 рассчитываем стоп, один раз. И выставляем закрывающий ордер.
-                    // это значит что с этой позицией в этой ветке логики мы впервые
+                    // 1 we calculate the stop, once. And we place a closing order.
+                    // This means that with this position in this branch of logic we are for the first time
 
                     decimal stopPrice =
                         position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
                     position.StopOrderRedLine = stopPrice;
 
-                    // выставляем ордер на закрытие позиции
+                    // we place an order to close the position
                     decimal profitOrderPrice =
                         position.EntryPrice + position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
                     tab.CloseAtLimit(position, profitOrderPrice, position.OpenVolume);
                 }
 
-                // 2 выход по стопу
+                // 2 exit at stop
 
                 decimal bestSellPrice = tab.PriceBestAsk;
 
                 if (bestSellPrice <= position.StopOrderRedLine
                     || position.SignalTypeClose == "Stop")
                 {
-                    // отзываем ордер на закрытие по профиту
+                    // we recall the order to close at profit
                     if (position.CloseActive == true
                         && position.SignalTypeClose != "Stop")
                     {
@@ -223,6 +231,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
