@@ -27,11 +27,12 @@ Exit: on the opposite signal.
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakEma")] //We create an attribute so that we don't write anything in the Boot factory
+    [Bot("BreakEma")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakEma : BotPanel
     {
+        // Reference to the main trading tab
         BotTabSimple _tab;
-       
+
         // Basic Settings
         private StrategyParameterString _regime;
         private StrategyParameterDecimal _slippage;
@@ -43,23 +44,24 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator Settings
+        // Indicator Setting
         private StrategyParameterInt _emaPeriod;
-        
+
         // Indicator
         private Aindicator _ema;
-       
+
         //The last value of the indicators
         private decimal _lastMa;
 
         public BreakEma(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
-           
+
             // Basic Settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");            
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _timeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _timeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
@@ -76,10 +78,10 @@ namespace OsEngine.Robots
             _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, "Prime");
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;
             _ema.Save();
-            
+
             // Subscribe to the indicator update event
             ParametrsChangeByUser += BreakEma_ParametrsChangeByUser;
-           
+
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
@@ -102,6 +104,7 @@ namespace OsEngine.Robots
         {
             return "BreakEma";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -115,13 +118,13 @@ namespace OsEngine.Robots
             {
                 return;
             }
-           
+
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _emaPeriod.ValueInt)
+            if (candles.Count <= _emaPeriod.ValueInt)
             {
                 return;
             }
-            
+
             // If the time does not match, we exit
             if (_timeStart.Value > _tab.TimeServerCurrent ||
                 _timeEnd.Value < _tab.TimeServerCurrent)
@@ -130,7 +133,7 @@ namespace OsEngine.Robots
             }
 
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // If there are positions, then go to the position closing method
             if (openPositions != null && openPositions.Count != 0)
             {
@@ -142,7 +145,7 @@ namespace OsEngine.Robots
             {
                 return;
             }
-            
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -158,11 +161,11 @@ namespace OsEngine.Robots
             if (openPositions == null || openPositions.Count == 0)
             {
                 decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
-                
+
                 // The last value of the indicators               
                 _lastMa = _ema.DataSeries[0].Last;
                 decimal lastPrice = candles[candles.Count - 1].Close;
-               
+
                 // Long
                 if (_regime.ValueString != "OnlyShort") // if the mode is not only short, then we enter long
                 {
@@ -174,7 +177,7 @@ namespace OsEngine.Robots
 
                 // Short
                 if (_regime.ValueString != "OnlyLong") // if the mode is not only long, we enter the short
-                {                    
+                {
                     if (lastPrice < _lastMa)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
@@ -186,14 +189,14 @@ namespace OsEngine.Robots
         // Logic close position 
         private void LogicClosePosition(List<Candle> candles)
         {
-            List<Position> openPositions = _tab.PositionsOpenAll;   
-            
+            List<Position> openPositions = _tab.PositionsOpenAll;
+
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             _lastMa = _ema.DataSeries[0].Last;
-            
+
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 if (openPositions[i].State != PositionStateType.Open)
@@ -202,7 +205,7 @@ namespace OsEngine.Robots
                 }
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is long
-                {                                       
+                {
                     if (lastPrice < _lastMa)
                     {
                         _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
@@ -213,7 +216,7 @@ namespace OsEngine.Robots
                     if (lastPrice > _lastMa)
                     {
                         _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
-                    }                    
+                    }
                 }
             }
         }
