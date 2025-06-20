@@ -90,6 +90,7 @@ namespace OsEngine.OsTrader.Grids
             TradeGrids.Add(newGrid);
 
             SaveGrids();
+            PaintGridView();
 
             return newGrid;
         }

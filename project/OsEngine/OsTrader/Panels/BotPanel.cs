@@ -215,7 +215,12 @@ namespace OsEngine.OsTrader.Panels
             }
             else
             {
+                if(_chartUi.WindowState == WindowState.Minimized)
+                {
+                    _chartUi.WindowState = WindowState.Normal;
+                }
                 _chartUi.Activate();
+                _chartUi.Focus();
             }
 
             return _chartUi;

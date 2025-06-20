@@ -22,6 +22,7 @@ using OsEngine.Candles;
 using OsEngine.Market.Servers;
 using OsEngine.Candles.Factory;
 using OsEngine.OsTrader.Panels.Tab.Internal;
+using System.Drawing;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -222,6 +223,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (row.Cells[6].Value == null
                         || row.Cells[6].Value.ToString() != curPoses)
                     {
+                        if(posCurr > 0)
+                        {
+                            row.Cells[6].Style.ForeColor = Color.Green;
+                        }
+                        else
+                        {
+                            row.Cells[6].Style.ForeColor = row.Cells[5].Style.ForeColor;
+                        }
+
                         row.Cells[6].Value = curPoses;
                     }
                 }
@@ -1292,9 +1302,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 string botName = Tabs[tabNum].TabName + "_Engine";
 
-                if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
+                for(int i = 0;i < _chartEngines.Count;i++)
                 {
-                    return;
+                    if (_chartEngines[i].NameStrategyUniq == botName)
+                    {
+                        _chartEngines[i].ShowChartDialog();
+                        return;
+                    }
                 }
 
                 CandleEngine bot = new CandleEngine(botName, _startProgram);
@@ -1450,9 +1464,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Trader.Label165;
+            colum0.HeaderText = "#";
             colum0.ReadOnly = true;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colum1 = new DataGridViewColumn();

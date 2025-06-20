@@ -169,7 +169,7 @@ namespace OsEngine.OsTrader.Grids
                 MaxClosePositionsInJournal = Convert.ToInt32(values[5]);
                 MaxOpenOrdersInMarket = Convert.ToInt32(values[6]);
                 MaxCloseOrdersInMarket = Convert.ToInt32(values[7]);
-                _firstTradePrice = Convert.ToInt32(values[8]);
+                _firstTradePrice = values[8].ToDecimal();
                 _openPositionsBySession = Convert.ToInt32(values[9]);
                 _firstTradeTime = Convert.ToDateTime(values[10], CultureInfo.InvariantCulture);
 
@@ -606,6 +606,11 @@ namespace OsEngine.OsTrader.Grids
 
             if(GridCreator.Lines == null 
                 || GridCreator.Lines.Count == 0)
+            {
+                return;
+            }
+
+            if(Tab.EventsIsOn == false)
             {
                 return;
             }
