@@ -3,64 +3,102 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Security.Cryptography;
 
+/* Description
+Trading robot for osengine.
+
+Trend strategy based on 2 indicators Momentum and Macd. 
+
+Buy:
+If lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.
+
+Sell: 
+If lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short.
+*/
 
 namespace OsEngine.Robots.Trend
 {
-    /// <summary>
-    /// Trend strategy based on 2 indicators Momentum and Macd
-    /// Трендовая стратегия на основе 2х индикаторов Momentum и Macd
-    /// </summary>
-    [Bot("MomentumMacd")]
+    [Bot("MomentumMacd")] // We create an attribute so that we don't write anything to the BotFactory
     public class MomentumMacd : BotPanel
     {
-        public MomentumMacd(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Indicators
+        private Aindicator _macdLine;
+        private Aindicator _momentum;
+
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _slippage;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _momentumPeriod;
+        private StrategyParameterInt _smaShortLen;
+        private StrategyParameterInt _smaLongLen;
+        private StrategyParameterInt _smaSignalLen;
+
+        // The last value of the indicator and close
+        private decimal _lastClose;
+        private decimal _lastMacdUp;
+        private decimal _lastMacdDown;
+        private decimal _lastMom;
+
+        public MomentumMacd(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
-            MomentumPeriod = CreateParameter("Momentum Period", 5, 0, 20, 1);
+            // Indicator settings
+            _momentumPeriod = CreateParameter("Momentum Period", 5, 0, 20, 1);
+            _smaShortLen = CreateParameter("Macd Sma Short", 12, 0, 20, 1);
+            _smaLongLen = CreateParameter("Macd Sma Long", 26, 0, 20, 1);
+            _smaSignalLen = CreateParameter("Macd Sma Signal", 9, 0, 20, 1);
 
-            SmaShortLen = CreateParameter("Macd Sma Short", 12, 0, 20, 1);
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            SmaLongLen = CreateParameter("Macd Sma Long", 26, 0, 20, 1);
+            // Create indicator MacdLine
+            _macdLine = IndicatorsFactory.CreateIndicatorByName("MacdLine", name + "MACD", false);
+            _macdLine = (Aindicator)_tab.CreateCandleIndicator(_macdLine, "MacdArea");
+            ((IndicatorParameterInt)_macdLine.Parameters[0]).ValueInt = _smaShortLen.ValueInt;
+            ((IndicatorParameterInt)_macdLine.Parameters[1]).ValueInt = _smaLongLen.ValueInt;
+            ((IndicatorParameterInt)_macdLine.Parameters[2]).ValueInt = _smaSignalLen.ValueInt;
+            _macdLine.Save();
 
-            SmaSignalLen = CreateParameter("Macd Sma Signal", 9, 0, 20, 1);
+            // Create indicator Momentum
+            _momentum = IndicatorsFactory.CreateIndicatorByName("Momentum", name + "Momentum Length", false);
+            _momentum = (Aindicator)_tab.CreateCandleIndicator(_momentum, "MomentumArea");
+            ((IndicatorParameterInt)_momentum.Parameters[0]).ValueInt = _momentumPeriod.ValueInt;
+            _momentum.Save();
 
-            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
-
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
-            _macd = new MacdLine(name + "Macd", false);
-            _macd.SmaShortLen = SmaShortLen.ValueInt;
-            _macd.SmaLongLen = SmaLongLen.ValueInt;
-            _macd.SmaSignalLen = SmaSignalLen.ValueInt;
-            _macd = (MacdLine)_tab.CreateCandleIndicator(_macd, "MacdArea");
-            _macd.Save();
-
-            _mom = new Momentum(name + "Momentum", false);
-            _mom.Nperiod = MomentumPeriod.ValueInt;
-            _mom = (Momentum)_tab.CreateCandleIndicator(_mom, "Momentum");
-            _mom.Save();
-
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
+            // Subscribe to the strategy delete event
             DeleteEvent += Strategy_DeleteEvent;
 
             Description = "Trend strategy based on 2 indicators Momentum and Macd. " +
@@ -72,72 +110,27 @@ namespace OsEngine.Robots.Trend
 
         private void MomentumMacd_ParametrsChangeByUser()
         {
-            if (_macd.SmaShortLen != SmaShortLen.ValueInt
-                || _macd.SmaLongLen != SmaLongLen.ValueInt
-                || _macd.SmaSignalLen != SmaSignalLen.ValueInt)
-            {
-                _macd.SmaShortLen = SmaShortLen.ValueInt;
-                _macd.SmaLongLen = SmaLongLen.ValueInt;
-                _macd.SmaSignalLen = SmaSignalLen.ValueInt;
-                _macd.Reload();
-            }
-
-            if(_mom.Nperiod != MomentumPeriod.ValueInt)
-            {
-                _mom.Nperiod = MomentumPeriod.ValueInt;
-                _mom.Reload();
-            }
+            ((IndicatorParameterInt)_macdLine.Parameters[0]).ValueInt = _smaShortLen.ValueInt;
+            ((IndicatorParameterInt)_macdLine.Parameters[1]).ValueInt = _smaLongLen.ValueInt;
+            ((IndicatorParameterInt)_macdLine.Parameters[2]).ValueInt = _smaSignalLen.ValueInt;
+            _macdLine.Save();
+            _macdLine.Reload();
+            ((IndicatorParameterInt)_momentum.Parameters[0]).ValueInt = _momentumPeriod.ValueInt;
+            _momentum.Save();
+            _momentum.Reload();
         }
 
-        /// <summary>
-        /// strategy uniq name
-        /// взять уникальное имя
-        /// </summary>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "MomentumMacd";
         }
 
-        /// <summary>
-        /// strategy GUI
-        /// показать окно настроек
-        /// </summary>
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
-
-        /// <summary>
-        /// tab to trade
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //indicators индикаторы
-
-        private MacdLine _macd;
-
-        private Momentum _mom;
-
-        //settings настройки публичные
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt MomentumPeriod;
-
-        public StrategyParameterInt SmaShortLen;
-
-        public StrategyParameterInt SmaLongLen;
-
-        public StrategyParameterInt SmaSignalLen;
-
-        public StrategyParameterInt Slippage;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
 
         private void Strategy_DeleteEvent()
         {
@@ -147,37 +140,23 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        private decimal _lastClose;
-
-        private decimal _lastMacdUp;
-
-        private decimal _lastMacdDown;
-
-        private decimal _lastMom;
-
-        // logic логика
-
-        /// <summary>
-        /// candle finished event
-        /// событие завершения свечи
-        /// </summary>
+        // Logic
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
-            if (_macd.ValuesUp == null || _macd.ValuesDown == null ||
-                _mom.Nperiod + 3 > _mom.Values.Count)
+            if (_macdLine.DataSeries[0].Values == null || _macdLine.DataSeries[1].Values == null)
             {
                 return;
             }
 
             _lastClose = candles[candles.Count - 1].Close;
-            _lastMacdUp = _macd.ValuesUp[_macd.ValuesUp.Count - 1];
-            _lastMacdDown = _macd.ValuesDown[_macd.ValuesDown.Count - 1];
-            _lastMom = _mom.Values[_mom.Values.Count - 1];
+            _lastMacdUp = _macdLine.DataSeries[0].Last;
+            _lastMacdDown = _macdLine.DataSeries[1].Last;
+            _lastMom = _momentum.DataSeries[0].Last;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -190,36 +169,31 @@ namespace OsEngine.Robots.Trend
                 }
             }
 
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles, openPositions);
             }
         }
 
-        /// <summary>
-        /// logic open position
-        /// логика открытия первой позиции
-        /// </summary>
+        // Logic open position
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
-            if (_lastMacdUp > _lastMacdDown && _lastMom > 100 && Regime.ValueString != "OnlyShort")
+            if (_lastMacdUp > _lastMacdDown && _lastMom > 100 && _regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
             {
-                _tab.BuyAtLimit(GetVolume(_tab), _lastClose + Slippage.ValueInt * _tab.Security.PriceStep);
+                _tab.BuyAtLimit(GetVolume(_tab), _lastClose + _slippage.ValueInt * _tab.Security.PriceStep);
             }
-            if (_lastMacdUp < _lastMacdDown && _lastMom < 100 && Regime.ValueString != "OnlyLong")
+            if (_lastMacdUp < _lastMacdDown && _lastMom < 100 && _regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
             {
-                _tab.SellAtLimit(GetVolume(_tab), _lastClose - Slippage.ValueInt * _tab.Security.PriceStep);
+                _tab.SellAtLimit(GetVolume(_tab), _lastClose - _slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
 
-        /// <summary>
-        /// logic close position
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if(position.State != PositionStateType.Open)
@@ -227,52 +201,52 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            if (position.Direction == Side.Buy)
+            if (position.Direction == Side.Buy) // If the direction of the position is long
             {
-                decimal exitPrice = _lastClose - Slippage.ValueInt * _tab.Security.PriceStep;
+                decimal exitPrice = _lastClose - _slippage.ValueInt * _tab.Security.PriceStep;
 
                 if (_lastMacdUp < _lastMacdDown && _lastMom < 100)
                 {
                     _tab.CloseAtLimit(position, exitPrice, position.OpenVolume);
 
-                    if (Regime.ValueString != "OnlyLong"
-                        && Regime.ValueString != "OnlyClosePosition")
+                    if (_regime.ValueString != "OnlyLong"
+                        && _regime.ValueString != "OnlyClosePosition")
                     {
                         _tab.SellAtLimit(GetVolume(_tab), exitPrice);
                     }
                 }
             }
 
-            if (position.Direction == Side.Sell)
+            if (position.Direction == Side.Sell) // If the direction of the position is short
             {
-                decimal exitPrice = _lastClose + Slippage.ValueInt * _tab.Security.PriceStep;
+                decimal exitPrice = _lastClose + _slippage.ValueInt * _tab.Security.PriceStep;
 
                 if (_lastMacdUp > _lastMacdDown && _lastMom > 100)
                 {
                     _tab.CloseAtLimit(position, exitPrice, position.OpenVolume);
 
-                    if (Regime.ValueString != "OnlyShort" 
-                        && Regime.ValueString != "OnlyClosePosition")
+                    if (_regime.ValueString != "OnlyShort" 
+                        && _regime.ValueString != "OnlyClosePosition")
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), exitPrice);
                     }
                 }
             }
-
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -283,7 +257,7 @@ namespace OsEngine.Robots.Trend
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -293,7 +267,7 @@ namespace OsEngine.Robots.Trend
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -304,7 +278,7 @@ namespace OsEngine.Robots.Trend
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -319,7 +293,7 @@ namespace OsEngine.Robots.Trend
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -329,10 +303,10 @@ namespace OsEngine.Robots.Trend
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, LogMessageType.Error);
                     return 0;
                 }
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
@@ -351,5 +325,4 @@ namespace OsEngine.Robots.Trend
             return volume;
         }
     }
-
 }
