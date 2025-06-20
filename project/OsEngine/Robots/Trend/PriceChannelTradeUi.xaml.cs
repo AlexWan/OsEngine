@@ -22,10 +22,9 @@ namespace OsEngine.Robots.Trend
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 
-            TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
-
+            TextBoxVolumeOne.Text = _strategy.Volume.ToString();
+            TextBoxAssetInPortfolio.Text = "Prime";
             TextBoxSlippage.Text = _strategy.Slippage.ToString();
-
 
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
@@ -34,10 +33,17 @@ namespace OsEngine.Robots.Trend
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
             ComboBoxRegime.SelectedItem = _strategy.Regime;
 
+            ComboBoxVolumeType.Items.Add("Deposit percent");
+            ComboBoxVolumeType.Items.Add("Contracts");
+            ComboBoxVolumeType.Items.Add("Contract currency");
+            ComboBoxVolumeType.SelectedItem = _strategy.VolumeType;
+
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
-            ButtonAccept.Content = OsLocalization.Trader.Label7;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();
@@ -60,7 +66,9 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            _strategy.VolumeFix = TextBoxVolumeOne.Text.ToDecimal();
+            _strategy.VolumeType = Convert.ToString(ComboBoxVolumeType.Text);
+            _strategy.TradeAssetInPortfolio = Convert.ToString(TextBoxAssetInPortfolio.Text);
+            _strategy.Volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slippage = TextBoxSlippage.Text.ToDecimal();
 
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);

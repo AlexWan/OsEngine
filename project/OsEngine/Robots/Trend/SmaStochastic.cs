@@ -3,50 +3,87 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+/* Description
+Trading robot for osengine.
+
+Trend strategy based on 2 indicators Sma and RSI. 
+
+Buy:
+If lastClose > lastSma + Step and secondLastRsi <= Downline and firstLastRsi >= Downline - Enter Long. 
+
+Sell: 
+If lastClose < lastSma - Step and secondLastRsi >= Upline and firstLastRsi <= Upline - Enter Short. 
+
+Exit Long: lastClose < lastSma - Step.
+Exit Short: lastClose > lastSma + Step.
+ */
 
 namespace OsEngine.Robots.Trend
 {
-    /// <summary>
-    /// Trend strategy based on 2 indicators Sma and RSI
-    /// Трендовая стратегия на основе 2х индикаторов Sma и RSI
-    /// </summary>
-    [Bot("SmaStochastic")]
+    [Bot("SmaStochastic")] // We create an attribute so that we don't write anything to the BotFactory
     public class SmaStochastic : BotPanel
     {
-        public SmaStochastic(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Basic sattings
+        public BotTradeRegime Regime;
+        public decimal Step;
+        public decimal Slippage;
+
+        // GetVolume settings
+        public decimal Volume;
+        public string VolumeType;
+        public string TradeAssetInPortfolio;
+
+        // Indicator stoh line
+        public decimal Upline;
+        public decimal Downline;
+        
+        // Indicators
+        private Aindicator _smaFast;
+        private Aindicator _stochastic;
+
+        public SmaStochastic(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
-
-            _sma = new MovingAverage(name + "Sma", false);
-            _sma = (MovingAverage)_tab.CreateCandleIndicator(_sma, "Prime");
-            _sma.Save();
-
-            _stoc = new StochasticOscillator(name + "ST", false);
-            _stoc = (StochasticOscillator)_tab.CreateCandleIndicator(_stoc, "StocArea");
-            _stoc.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
+            
+            // Basic settings
             Slippage = 0;
-            VolumeFix = 1;
+            VolumeType = "Deposit percent";
+            Volume = 1;
             Step = 500;
             Upline = 70;
             Downline = 30;
 
+            // Create indicator Sma
+            _smaFast = IndicatorsFactory.CreateIndicatorByName("Sma", name + "SmaFast", false);
+            _smaFast = (Aindicator)_tab.CreateCandleIndicator(_smaFast, "Prime");
+            _smaFast.Save();
+
+            // Create indicator Stochastic
+            _stochastic = IndicatorsFactory.CreateIndicatorByName("Stochastic", name + "Stochastic", false);
+            _stochastic = (Aindicator)_tab.CreateCandleIndicator(_stochastic, "NewArea0");
+            _stochastic.Save();
 
             Load();
 
+            // Subscribe to the candle finished event
+            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
+            // Subscribe to the strategy delete event
             DeleteEvent += Strategy_DeleteEvent;
 
             Description = "Trend strategy based on 2 indicators Sma and RSI. " +
@@ -56,77 +93,20 @@ namespace OsEngine.Robots.Trend
                 "Exit Short: lastClose > lastSma + Step.";
         }
 
-        /// <summary>
-        /// uniq strategy name
-        /// взять уникальное имя
-        /// </summary>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "SmaStochastic";
         }
-        /// <summary>
-        /// settings GUI
-        /// показать окно настроек
-        /// </summary>
+
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             SmaStochasticUi ui = new SmaStochasticUi(this);
             ui.ShowDialog();
         }
-        /// <summary>
-        /// tab to trade
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        //indicators индикаторы
-
-        private MovingAverage _sma;
-
-        private StochasticOscillator _stoc;
-
-        //settings настройки публичные
-
-        /// <summary>
-        /// up Stochastic line to trade
-        /// верхняя граница стохастика
-        /// </summary>
-        public decimal Upline;
-
-        /// <summary>
-        /// down Stochastic line to trade
-        /// нижняя граница стохастика
-        /// </summary>
-        public decimal Downline;
-
-        /// <summary>
-        /// slippage
-        /// проскальзывание
-        /// </summary>
-        public decimal Slippage;
-
-        /// <summary>
-        /// step
-        /// Шаг 
-        /// </summary>
-        public decimal Step;
-
-        /// <summary>
-        /// volume
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// regime
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
+        
+        // Save settings
         public void Save()
         {
             try
@@ -134,8 +114,10 @@ namespace OsEngine.Robots.Trend
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
+                    writer.WriteLine(VolumeType);
+                    writer.WriteLine(TradeAssetInPortfolio);
                     writer.WriteLine(Slippage);
-                    writer.WriteLine(VolumeFix);
+                    writer.WriteLine(Volume);
                     writer.WriteLine(Regime);
                     writer.WriteLine(Step);
                     writer.WriteLine(Upline);
@@ -150,10 +132,7 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        /// <summary>
-        /// load settings
-        /// загрузить настройки
-        /// </summary>
+        // Load settings
         private void Load()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -164,8 +143,10 @@ namespace OsEngine.Robots.Trend
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
+                    VolumeType = reader.ReadLine();
+                    TradeAssetInPortfolio = reader.ReadLine();
                     Slippage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
+                    Volume = Convert.ToDecimal(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Step = Convert.ToDecimal(reader.ReadLine());
                     Upline = Convert.ToDecimal(reader.ReadLine());
@@ -180,10 +161,7 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        /// <summary>
-        /// delete save file
-        /// удаление файла с сохранением
-        /// </summary>
+        // Delete save file
         void Strategy_DeleteEvent()
         {
             if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -193,16 +171,11 @@ namespace OsEngine.Robots.Trend
         }
 
         private decimal _lastClose;
-        private decimal _firstLastRsi;
-        private decimal _secondLastRsi;
+        private decimal _firstLastStoh;
+        private decimal _secondLastStoh;
         private decimal _lastSma;
 
-        // logic логика
-
-        /// <summary>
-        /// candles finished event
-        /// событие завершения свечи
-        /// </summary>
+        // Logic
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
             if (Regime == BotTradeRegime.Off)
@@ -210,16 +183,15 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            if (_sma.Values == null || _stoc.ValuesUp == null ||
-                _sma.Length + 3 > _sma.Values.Count || _stoc.P1 + 3 > _stoc.ValuesUp.Count)
+            if (_smaFast.DataSeries[0].Values == null || _stochastic.DataSeries[0].Values == null)
             {
                 return;
             }
 
             _lastClose = candles[candles.Count - 1].Close;
-            _firstLastRsi = _stoc.ValuesUp[_stoc.ValuesUp.Count - 1];
-            _secondLastRsi = _stoc.ValuesUp[_stoc.ValuesUp.Count - 2];
-            _lastSma = _sma.Values[_sma.Values.Count - 1];
+            _firstLastStoh = _stochastic.DataSeries[0].Last;
+            _secondLastStoh = _stochastic.DataSeries[0].Values[_stochastic.DataSeries[0].Values.Count - 2];
+            _lastSma = _smaFast.DataSeries[0].Last;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -242,29 +214,23 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        /// <summary>
-        /// logic open position
-        /// логика открытия первой позиции
-        /// </summary>
+        // Logic open position
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
-            if (_lastClose > _lastSma + Step && _secondLastRsi <= Downline && _firstLastRsi >= Downline &&
+            if (_lastClose > _lastSma + Step && _secondLastStoh <= Downline && _firstLastStoh >= Downline &&
                 Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastClose + Slippage);
+                _tab.BuyAtLimit(GetVolume(_tab), _lastClose + Slippage);
             }
 
-            if (_lastClose < _lastSma - Step && _secondLastRsi >= Upline && _firstLastRsi <= Upline &&
+            if (_lastClose < _lastSma - Step && _secondLastStoh >= Upline && _firstLastStoh <= Upline &&
                 Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastClose - Slippage);
+                _tab.SellAtLimit(GetVolume(_tab), _lastClose - Slippage);
             }
         }
 
-        /// <summary>
-        /// logic close position
-        /// логика зыкрытия позиции
-        /// </summary>
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if (position.Direction == Side.Buy)
@@ -284,5 +250,97 @@ namespace OsEngine.Robots.Trend
             }
         }
 
+
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (VolumeType == "Contracts")
+            {
+                volume = Volume;
+            }
+            else if (VolumeType == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = Volume / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (VolumeType == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (Volume / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
+        }
     }
 }

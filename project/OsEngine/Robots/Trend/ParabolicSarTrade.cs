@@ -3,77 +3,104 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
 using OsEngine.Logging;
-using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+
+/* Description
+Trading robot for osengine.
+
+Trend strategy at the intersection of the ParabolicSar indicator.
+
+Buy:
+If Price > lastSar - close position and open Long.
+
+Sell: 
+If Price < lastSar - close position and open Short.
+ */
 
 namespace OsEngine.Robots.Trend
 {
-    [Bot("ParabolicSarTrade")]
+    [Bot("ParabolicSarTrade")] // We create an attribute so that we don't write anything to the BotFactory
     public class ParabolicSarTrade : BotPanel
     {
-        public ParabolicSarTrade(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Basic settings
+        public StrategyParameterString _regime;
+        public StrategyParameterInt _slippage;
+
+        // GetVolume settings
+        public StrategyParameterString _volumeType;
+        public StrategyParameterDecimal _volume;
+        public StrategyParameterString _tradeAssetInPortfolio;
+        
+        // Indicator settings
+        public StrategyParameterDecimal _parabolicAf;
+        public StrategyParameterDecimal _parabolicMaxAf;
+        
+        // Indicator
+        private Aindicator _parabolic;
+
+        // The last value of the indicator and price
+        private decimal _lastPrice;
+        private decimal _lastSar;
+
+        public ParabolicSarTrade(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
-            ParabolicAf = CreateParameter("Parabolic Af", 0.02m, 0.02m, 0.1m, 0.01m);
-            ParabolicMaxAf = CreateParameter("Parabolic Max Af", 0.2m, 0.2m, 0.5m, 0.1m);
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
-            _sar = new ParabolicSaR(name + "Prime", false);
-            _sar = (ParabolicSaR)_tab.CreateCandleIndicator(_sar, "Prime");
-            _sar.Af = Convert.ToDouble(ParabolicAf.ValueDecimal);
-            _sar.MaxAf = Convert.ToDouble(ParabolicMaxAf.ValueDecimal);
-            _sar.Save();
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            
+            // Indicator settings
+            _parabolicAf = CreateParameter("Parabolic Af", 0.02m, 0.02m, 0.1m, 0.01m);
+            _parabolicMaxAf = CreateParameter("Parabolic Max Af", 0.2m, 0.2m, 0.5m, 0.1m);
 
+            // Create indicator ParabolicSAR
+            _parabolic = IndicatorsFactory.CreateIndicatorByName("ParabolicSAR", name + "Par", false);
+            _parabolic = (Aindicator)_tab.CreateCandleIndicator(_parabolic, "Prime");
+            ((IndicatorParameterDecimal)_parabolic.Parameters[0]).ValueDecimal = _parabolicAf.ValueDecimal;
+            ((IndicatorParameterDecimal)_parabolic.Parameters[1]).ValueDecimal = _parabolicMaxAf.ValueDecimal;
+            _parabolic.Save();
+
+            // Subscribe to receive events/commands from Telegram
+            ServerTelegram.GetServer().TelegramCommandEvent += TelegramCommandHandler;
+
+            // Subscribe to the indicator update event
+            ParametrsChangeByUser += ParabolicSarTrade_ParametrsChangeByUser;
+
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
             Description = "Trend strategy at the intersection of the ParabolicSar indicator. " +
                 "if Price < lastSar - close position and open Short. " +
                 "if Price > lastSar - close position and open Long.";
-
-            //Подписка на получение событий/команд из телеграма - Subscribe to receive events/commands from Telegram
-            ServerTelegram.GetServer().TelegramCommandEvent += TelegramCommandHandler;
-
-            ParametrsChangeByUser += ParabolicSarTrade_ParametrsChangeByUser;
         }
 
         private void ParabolicSarTrade_ParametrsChangeByUser()
         {
-            double af = Convert.ToDouble(ParabolicAf.ValueDecimal);
-            double maxAf = Convert.ToDouble(ParabolicMaxAf.ValueDecimal);
-
-            if(_sar.Af != af ||
-                _sar.MaxAf != maxAf)
-            {
-                _sar.Af = Convert.ToDouble(ParabolicAf.ValueDecimal);
-                _sar.MaxAf = Convert.ToDouble(ParabolicMaxAf.ValueDecimal);
-                _sar.Reload();
-                _sar.Save();
-            }
+            ((IndicatorParameterDecimal)_parabolic.Parameters[0]).ValueDecimal = _parabolicAf.ValueDecimal;
+            ((IndicatorParameterDecimal)_parabolic.Parameters[1]).ValueDecimal = _parabolicMaxAf.ValueDecimal;
+            _parabolic.Save();
+            _parabolic.Reload();
         }
 
-        public StrategyParameterInt Slippage;
-        public StrategyParameterString VolumeType;
-        public StrategyParameterDecimal Volume;
-        public StrategyParameterString TradeAssetInPortfolio;
-        public StrategyParameterString Regime;
-        public StrategyParameterDecimal ParabolicAf;
-        public StrategyParameterDecimal ParabolicMaxAf;
-       
         private void TelegramCommandHandler(string botName, Command cmd)
         {
             if (botName != null && !_tab.TabName.Equals(botName)) 
@@ -81,17 +108,17 @@ namespace OsEngine.Robots.Trend
             
             if (cmd == Command.StopAllBots || cmd == Command.StopBot)
             {
-                Regime.ValueString = BotTradeRegime.Off.ToString();
+                _regime.ValueString = BotTradeRegime.Off.ToString();
                 
                 SendNewLogMessage($"Changed Bot {_tab.TabName} Regime to Off " +
                                   $"by telegram command {cmd}", LogMessageType.User);
             }
             else if (cmd == Command.StartAllBots || cmd == Command.StartBot)
             {
-                Regime.ValueString = BotTradeRegime.On.ToString();
+                _regime.ValueString = BotTradeRegime.On.ToString();
 
                 //changing bot mode to its previous state or On
-                SendNewLogMessage($"Changed bot {_tab.TabName} mode to state {Regime} " +
+                SendNewLogMessage($"Changed bot {_tab.TabName} mode to state {_regime} " +
                                   $"by telegram command {cmd}", LogMessageType.User);
             }
             else if (cmd == Command.CancelAllActiveOrders)
@@ -100,47 +127,38 @@ namespace OsEngine.Robots.Trend
             }
             else if (cmd == Command.GetStatus)
             {
-                SendNewLogMessage($"Bot {_tab.TabName} is {Regime}. Emulator - {_tab.EmulatorIsOn}, " +
+                SendNewLogMessage($"Bot {_tab.TabName} is {_regime}. Emulator - {_tab.EmulatorIsOn}, " +
                                   $"Server Status - {_tab.ServerStatus}.", LogMessageType.User);
             }
         }
-        
+
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ParabolicSarTrade";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabSimple _tab;
-
-        private ParabolicSaR _sar;
-
-        private decimal _lastPrice;
-
-        private decimal _lastSar;
-
         // logic логика
-
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            //SendNewLogMessage("Candle finished event", LogMessageType.User);
-
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
-            if (_sar.Values == null)
+            if (_parabolic.DataSeries[0].Values == null)
             {
                 return;
             }
 
             _lastPrice = candles[candles.Count - 1].Close;
-            _lastSar = _sar.Values[_sar.Values.Count - 1];
+            _lastSar = _parabolic.DataSeries[0].Last;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -152,10 +170,11 @@ namespace OsEngine.Robots.Trend
                 }
             }
 
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             if (openPositions == null 
                 || openPositions.Count == 0)
             {
@@ -163,19 +182,21 @@ namespace OsEngine.Robots.Trend
             }
         }
 
+        // Logic open position
         private void LogicOpenPosition(List<Candle> candles)
         {
-            if (_lastPrice > _lastSar && Regime.ValueString != "OnlyShort")
+            if (_lastPrice > _lastSar && _regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
             {
-                _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+                _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep);
             }
 
-            if (_lastPrice < _lastSar && Regime.ValueString != "OnlyLong")
+            if (_lastPrice < _lastSar && _regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
             {
-                _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+                _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
             }
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, Position position, List<Position> positionsAll)
         {
             if(position.State != PositionStateType.Open)
@@ -183,49 +204,50 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            if (position.Direction == Side.Buy)
+            if (position.Direction == Side.Buy) // If the direction of the position is long
             {
                 if (_lastPrice < _lastSar)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
-                    if (Regime.ValueString != "OnlyLong" 
-                        && Regime.ValueString != "OnlyClosePosition"
+                    if (_regime.ValueString != "OnlyLong" 
+                        && _regime.ValueString != "OnlyClosePosition"
                         && positionsAll.Count == 1)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+                        _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
             }
 
-            if (position.Direction == Side.Sell)
+            if (position.Direction == Side.Sell) // If the direction of the position is short
             {
                 if (_lastPrice > _lastSar)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
-                    if (Regime.ValueString != "OnlyShort"
-                        && Regime.ValueString != "OnlyClosePosition"
+                    if (_regime.ValueString != "OnlyShort"
+                        && _regime.ValueString != "OnlyClosePosition"
                         && positionsAll.Count == 1)
                     {
-                        _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+                        _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -236,7 +258,7 @@ namespace OsEngine.Robots.Trend
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -246,7 +268,7 @@ namespace OsEngine.Robots.Trend
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -257,7 +279,7 @@ namespace OsEngine.Robots.Trend
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -272,7 +294,7 @@ namespace OsEngine.Robots.Trend
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -282,10 +304,10 @@ namespace OsEngine.Robots.Trend
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, LogMessageType.Error);
                     return 0;
                 }
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
