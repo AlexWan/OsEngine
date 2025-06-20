@@ -205,6 +205,8 @@ namespace OsEngine.OsTrader.Grids
 
         public void Delete()
         {
+            _isDeleted = true;
+
             if (Tab != null)
             {
                 Tab.NewTickEvent -= Tab_NewTickEvent;
@@ -527,6 +529,11 @@ namespace OsEngine.OsTrader.Grids
                     Thread.Sleep(1000);
 
                     if(_isDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if(Tab == null)
                     {
                         return;
                     }
