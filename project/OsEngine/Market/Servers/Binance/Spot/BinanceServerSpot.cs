@@ -2847,6 +2847,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

@@ -2344,6 +2344,7 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

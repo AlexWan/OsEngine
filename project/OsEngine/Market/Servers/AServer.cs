@@ -76,6 +76,7 @@ namespace OsEngine.Market.Servers
                 _serverRealization.NewsEvent += _serverRealization_NewsEvent;
 
                 _serverRealization.AdditionalMarketDataEvent += _serverRealization_AdditionalMarketDataEvent;
+                _serverRealization.PublicMarketDataEvent += _serverRealization_PublicMarketDataEvent;
 
                 Load();
 
@@ -1464,6 +1465,16 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
+                    else if (!_publicMarketDataToSend.IsEmpty)
+                    {
+                        PublicMarketData data;
+
+                        if (_publicMarketDataToSend.TryDequeue(out data))
+                        {
+                            NewPublicMarketDataEvent(data);
+                        }
+                    }
+
                     else
                     {
                         if (MainWindow.ProccesIsWorked == false)
@@ -1538,6 +1549,11 @@ namespace OsEngine.Market.Servers
         /// queue for Additional Market Data
         /// </summary>
         private ConcurrentQueue<OptionMarketDataForConnector> _additionalMarketDataToSend = new ConcurrentQueue<OptionMarketDataForConnector>();
+
+        /// <summary>
+        /// queue for Public Market Data
+        /// </summary>
+        private ConcurrentQueue<PublicMarketData> _publicMarketDataToSend = new ConcurrentQueue<PublicMarketData>();
 
         #endregion
 
@@ -1745,7 +1761,7 @@ namespace OsEngine.Market.Servers
                     return _securities[i];
                 }
             }
-
+            
             return null;
         }
 
@@ -3769,6 +3785,33 @@ namespace OsEngine.Market.Servers
         /// new Additional Market Data
         /// </summary>
         public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+
+        private void _serverRealization_PublicMarketDataEvent(PublicMarketData obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(obj.SecurityName))
+                {
+                    return;
+                }
+
+                _publicMarketDataToSend.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// new Public Market Data
+        /// </summary>
+        public event Action<PublicMarketData> NewPublicMarketDataEvent;
 
         #endregion
     }

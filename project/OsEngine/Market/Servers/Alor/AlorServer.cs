@@ -3070,6 +3070,7 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

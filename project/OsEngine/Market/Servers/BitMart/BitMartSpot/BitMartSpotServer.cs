@@ -2347,6 +2347,7 @@ namespace OsEngine.Market.Servers.BitMart
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

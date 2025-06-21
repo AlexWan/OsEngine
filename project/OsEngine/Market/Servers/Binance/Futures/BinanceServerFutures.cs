@@ -45,8 +45,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             CreateParameterBoolean("HedgeMode", false);
             ServerParameters[3].ValueChange += BinanceServerFutures_ValueChange;
             CreateParameterBoolean("Demo Account", false);
-
-            
+            CreateParameterBoolean("Public Market Data", false);            
         }
 
         private void BinanceServerFutures_ValueChange()
@@ -81,8 +80,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
             worker4.IsBackground = true;
             worker4.Name = "BinanceFutThread_ConverterUserData";
             worker4.Start();
-
-            
         }
 
         private WebProxy _myProxy;
@@ -156,6 +153,15 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 }
             }
 
+            if (((ServerParameterBool)ServerParameters[5]).Value == true)
+            {
+                _publicMarketData = true;
+            }
+            else
+            {
+                _publicMarketData = false;
+            }
+
             ActivateSockets();
             SetPositionMode();
         }
@@ -209,6 +215,8 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public string ApiKey;
 
         public string SecretKey;
+
+        private bool _publicMarketData;
 
         public bool HedgeMode
         {
@@ -1609,6 +1617,14 @@ namespace OsEngine.Market.Servers.Binance.Futures
                  + "/" + security.Name.ToLower() + "@trade";
             }
 
+            if (_publicMarketData)
+            {
+                urlStrDepth += "/" + security.Name.ToLower() + "@markPrice" + "/" + security.Name.ToLower() + "@miniTicker";
+
+                GetFundingRate(security.Name);
+                GetFundingHistory(security.Name.ToLower());
+            }
+
             WebSocket wsClientDepth = new WebSocket(urlStrDepth);
 
             if (_myProxy != null)
@@ -1622,8 +1638,61 @@ namespace OsEngine.Market.Servers.Binance.Futures
             wsClientDepth.OnClose += _socketClient_Closed;
             wsClientDepth.Connect();
 
-            _socketsArray.Add(security.Name + "_depth20", wsClientDepth);
+            _socketsArray.Add(security.Name + "_depth20", wsClientDepth);            
+        }
 
+        private void GetFundingRate(string security)
+        {
+            try
+            {
+                string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/fundingInfo", null, true);
+                              
+                List<FundingInfo> response = JsonConvert.DeserializeAnonymousType(res, new List<FundingInfo>());
+
+                PublicMarketData data = new PublicMarketData();
+
+                for (int i = 0; i < response.Count; i++)
+                {
+                    if (response[i].symbol == security)
+                    {
+                        data.SecurityName = response[i].symbol;
+                        data.Funding.MinFundingRate = response[i].adjustedFundingRateFloor.ToDecimal();
+                        data.Funding.MaxFundingRate = response[i].adjustedFundingRateCap.ToDecimal();
+                        int.TryParse(response[i].fundingIntervalHours, out data.Funding.FundingIntervalHours);
+
+                        PublicMarketDataEvent?.Invoke(data);
+
+                        break;
+                    }
+                }                
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
+        private void GetFundingHistory(string security)
+        {
+            try
+            {
+                string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/fundingRate", new Dictionary<string, string>() { { "symbol=", security } }, false);
+
+                List<FundingHistory> response = JsonConvert.DeserializeAnonymousType(res, new List<FundingHistory>());
+
+                PublicMarketData data = new PublicMarketData();
+
+                data.SecurityName = response[^1].symbol;
+                data.Funding.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)response[^1].fundingTime.ToDecimal());
+
+                PublicMarketDataEvent?.Invoke(data);
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
         }
 
         public bool SubscribeNews()
@@ -1668,6 +1737,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
                                 }
 
                                 UpdateTrades(quotes);
+                            }
+                            else if (mes.Contains("\"e\":\"markPriceUpdate\"")) // funding
+                            {
+                                PublicMarketDataResponse<PublicMarketDataFunding> markPriceUpdate = 
+                                    JsonConvert.DeserializeAnonymousType(mes, new PublicMarketDataResponse<PublicMarketDataFunding>());
+                                UpdatePublicMarketDataFunding(markPriceUpdate);
+                            }
+                            else if (mes.Contains("\"e\":\"24hrMiniTicker\"")) // 24hr rolling window mini-ticker statistics
+                            {
+                                PublicMarketDataResponse<PublicMarketDataVolume24h> markPriceUpdate = 
+                                    JsonConvert.DeserializeAnonymousType(mes, new PublicMarketDataResponse<PublicMarketDataVolume24h>());
+                                UpdatePublicMarketDataVolume24h(markPriceUpdate);
                             }
                             else if (mes.Contains("error"))
                             {
@@ -2221,6 +2302,48 @@ namespace OsEngine.Market.Servers.Binance.Futures
                         MarketDepthEvent(needDepth.GetCopy());
                     }
                 }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdatePublicMarketDataFunding(PublicMarketDataResponse<PublicMarketDataFunding> response)
+        {
+            try
+            {
+                PublicMarketData data = new PublicMarketData();
+
+                PublicMarketDataFunding item = response.data;
+
+                data.SecurityName = item.s;
+                data.Funding.CurrentValue = item.r.ToDecimal() * 100;
+                data.Funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.T.ToDecimal());
+                data.Funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.E.ToDecimal());
+
+                PublicMarketDataEvent?.Invoke(data);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void UpdatePublicMarketDataVolume24h(PublicMarketDataResponse<PublicMarketDataVolume24h> response)
+        {
+            try
+            {
+                PublicMarketData data = new PublicMarketData();
+
+                PublicMarketDataVolume24h item = response.data;
+
+                data.SecurityName = item.s;
+                data.Volume24h = item.v.ToDecimal();
+                data.Turnover24h = item.q.ToDecimal();
+                data.Funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.E.ToDecimal());
+
+                PublicMarketDataEvent?.Invoke(data);
             }
             catch (Exception error)
             {
@@ -2884,6 +3007,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

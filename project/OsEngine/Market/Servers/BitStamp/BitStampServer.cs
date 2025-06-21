@@ -495,5 +495,6 @@ namespace OsEngine.Market.Servers.BitStamp
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
     }
 }

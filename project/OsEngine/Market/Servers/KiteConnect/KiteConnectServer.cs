@@ -2127,6 +2127,7 @@ namespace OsEngine.Market.Servers.KiteConnect
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion 12
     }

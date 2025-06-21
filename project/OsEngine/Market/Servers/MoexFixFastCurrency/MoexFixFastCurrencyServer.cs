@@ -3337,6 +3337,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

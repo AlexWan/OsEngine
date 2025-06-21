@@ -1867,6 +1867,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
         public event Action<News> NewsEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType type)
         {

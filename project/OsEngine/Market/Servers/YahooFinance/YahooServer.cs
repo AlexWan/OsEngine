@@ -499,6 +499,7 @@ namespace OsEngine.Market.Servers.YahooFinance
         public event Action<List<Portfolio>> PortfolioEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }
