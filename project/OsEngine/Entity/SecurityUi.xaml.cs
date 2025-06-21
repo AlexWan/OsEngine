@@ -67,12 +67,56 @@ namespace OsEngine.Entity
                 step = TextBoxStep.Text.ToDecimal();
                 stepCost = TextBoxStepCost.Text.ToDecimal();
                 volDecimals = Convert.ToInt32(TextBoxVolumeDecimals.Text);
+
+                string message = OsLocalization.Message.HintMessageError5 + "\n";
+
+                int index = 0;
+
+                if (step < 0)
+                {
+                    message += index + 1 + ") " + OsLocalization.Message.HintMessageError0 + "\n";
+                    index++;
+                }
+
+                if (stepCost < 0)
+                {
+                    message += index + 1 + ") " + OsLocalization.Message.HintMessageError1 + "\n";
+                    index++;
+                }
+
+                if (go < 0)
+                {
+                    message += index + 1 + ") " + OsLocalization.Message.HintMessageError2 + "\n";
+                    index++;
+                }
+
+                if (lot < 0)
+                {
+                    message += index + 1 + ") " + OsLocalization.Message.HintMessageError3 + "\n";
+                    index++;
+                }
+
+                if (volDecimals < 0)
+                {
+                    message += index + 1 + ") " + OsLocalization.Message.HintMessageError4 + "\n";
+                    index++;
+                }
+
+                if (message != OsLocalization.Message.HintMessageError5 + "\n")
+                {
+                    CustomMessageBoxUi ui = new CustomMessageBoxUi(message);
+                    ui.ShowDialog();
+                    return;
+                }
             }
             catch (Exception)
             {
-                MessageBox.Show(OsLocalization.Entity.ErrorSave);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageError5);
+                ui.ShowDialog();
                 return;
             }
+
+            
 
             _security.Go = go;
             _security.Lot = lot;
@@ -81,6 +125,36 @@ namespace OsEngine.Entity
             _security.DecimalsVolume = volDecimals;
             IsChanged = true;
             Close();
+        }
+
+        private void ButtonInfoPriceStep_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel0);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoPriceStepPrice_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel1);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoLotPrice_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel2);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoLot_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel3);
+            ui.ShowDialog();
+        }
+
+        private void ButtonInfoVolume_Click(object sender, RoutedEventArgs e)
+        {
+            CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel4);
+            ui.ShowDialog();
         }
     }
 }
