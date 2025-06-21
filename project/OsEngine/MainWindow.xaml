@@ -28,5 +28,11 @@
         <Image Name="ImageAlor" Source="/Images/MainWIndow/alor1.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
         <Image Name="ImageAlor2" Source="/Images/MainWIndow/alor2.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
         <Image Name="ImagePadlock" HorizontalAlignment="Left" Source="/Images/padlockClosed.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
+        <Button Name="ButtonLocal_Ru" Margin="518,232,0,0" VerticalAlignment="Top" Height="24" Click="ButtonLocal_Click" HorizontalAlignment="Left" Width="37">
+            <Image Name="ImageFlag_Ru" Height="27" Source="/Images/MainWIndow/flag_ru.png" Width="30"/>
+        </Button>
+        <Button Name="ButtonLocal_Eng" Margin="557,232,0,0" VerticalAlignment="Top" Height="24" Click="ButtonLocal_Eng_Click" HorizontalAlignment="Left" Width="37">
+            <Image Name="ImageFlag_Eng" Width="30" Height="27" Source="/Images/MainWIndow/flag_eng.png"/>
+        </Button>
     </Grid>
 </Window>
