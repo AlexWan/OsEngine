@@ -20,6 +20,7 @@ using System.IO.Compression;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
+using RestSharp;
 
 namespace OsEngine.Market.Servers.CoinEx.Futures
 {
@@ -40,19 +41,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
     {
         #region 1 Constructor, Status, Connection
 
-        public ServerConnectStatus ServerStatus { get; set; }
-
-        public event Action ConnectEvent;
-
-        public event Action DisconnectEvent;
-
-        public DateTime ServerTime { get; set; }
-
-        public ServerType ServerType
-        {
-            get { return ServerType.CoinExFutures; }
-        }
-
         public CoinExServerRealization()
         {
             Thread worker = new Thread(DataMessageReaderThread);
@@ -62,6 +50,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             Thread worker1 = new Thread(ConnectionCheckThread);
             worker1.Name = "CheckAliveCoinEx";
             worker1.Start();
+
+            Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
+            threadGetPortfolios.IsBackground = true;
+            threadGetPortfolios.Name = "ThreadCoinExFuturesPortfolios";
+            threadGetPortfolios.Start();
         }
 
         public void Connect(WebProxy proxy = null)
@@ -69,7 +62,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             try
             {
                 _securities.Clear();
-                _portfolios.Clear();
+                //_portfolios.Clear();
                 _wsClients.Clear();
                 _subscribedSecurities.Clear();
 
@@ -90,14 +83,19 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 _restClient = new CoinExRestClient(_publicKey, _secretKey);
                 _restClient.LogMessageEvent += SendLogMessage;
 
-                // Check rest auth
-                if (!GetCurrentPortfolios())
-                {
-                    SendLogMessage("Authorization Error. Probably an invalid keys are specified, check it!",
-                        LogMessageType.Error);
-                }
+                RestRequest requestRest = new RestRequest("/time", Method.GET);
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
 
-                _wsClients.Add(CreateWebSocketConnection());
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    _wsClients.Add(CreateWebSocketConnection());
+                }
+                else
+                {
+                    SendLogMessage("Connection cannot be open. CoinExFutures. Error request", LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
             catch (Exception ex)
             {
@@ -150,6 +148,19 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
+        public ServerConnectStatus ServerStatus { get; set; }
+
+        public event Action ConnectEvent;
+
+        public event Action DisconnectEvent;
+
+        public DateTime ServerTime { get; set; }
+
+        public ServerType ServerType
+        {
+            get { return ServerType.CoinExFutures; }
+        }
+
         #endregion
 
         #region 2 Properties
@@ -160,6 +171,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         private string _secretKey;
 
+        private string _baseUrl = "https://api.coinex.com/v2";
+
         private int _marketDepth;
 
         // Futures only
@@ -168,13 +181,9 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         #region 3 Securities
 
-        private List<Security> _securities = new List<Security>();
-
-        public event Action<List<Security>> SecurityEvent;
-
         public void GetSecurities()
         {
-            UpdateSec();
+            UpdateSecurity();
 
             if (_securities.Count > 0)
             {
@@ -187,13 +196,55 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        private void UpdateSec()
+        private List<Security> _securities = new List<Security>();
+
+        private void UpdateSecurity()
         {
             // https://docs.coinex.com/api/v2/futures/market/http/list-market
             try
             {
-                List<CexSecurity> securities = _restClient.Get<List<CexSecurity>>("/futures/market");
-                UpdateSecuritiesFromServer(securities);
+                RestRequest requestRest = new RestRequest("/futures/market", Method.GET);
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<MarketInfoData>> responseMarket = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<MarketInfoData>>());
+
+                    if (responseMarket.code == "0")
+                    {
+                        for (int i = 0; i < responseMarket.data.Count; i++)
+                        {
+                            MarketInfoData item = responseMarket.data[i];
+
+                            Security security = new Security();
+                            security.Name = item.market;
+                            security.NameId = item.market;
+                            security.NameFull = item.market;
+                            security.NameClass = item.quote_ccy;
+                            security.State = SecurityStateType.Activ;
+                            security.Decimals = Convert.ToInt32(item.quote_ccy_precision);
+                            security.MinTradeAmount = item.min_amount.ToDecimal();
+                            security.DecimalsVolume = Convert.ToInt32(item.base_ccy_precision);
+                            security.PriceStep = item.tick_size.ToDecimal();
+                            security.PriceStepCost = security.PriceStep;
+                            security.Lot = 1;
+                            security.SecurityType = SecurityType.Futures;
+                            security.Exchange = ServerType.CoinExFutures.ToString();
+                            security.MinTradeAmountType = MinTradeAmountType.Contract;
+                            security.VolumeStep = security.DecimalsVolume.GetValueByDecimals();
+
+                            _securities.Add(security);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Securities error. Code:{responseMarket.code} || msg: {responseMarket.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Securities error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception exception)
             {
@@ -201,56 +252,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        private void UpdateSecuritiesFromServer(List<CexSecurity> stocks)
-        {
-            try
-            {
-                if (stocks == null ||
-                    stocks.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < stocks.Count; i++)
-                {
-                    CexSecurity cexSecurity = stocks[i];
-
-                    Security security = new Security();
-                    security.Name = cexSecurity.market;
-                    security.NameId = cexSecurity.market;
-                    security.NameFull = cexSecurity.market;
-                    security.NameClass = cexSecurity.quote_ccy;
-                    security.State = SecurityStateType.Activ;
-                    security.Decimals = Convert.ToInt32(cexSecurity.quote_ccy_precision);
-                    security.MinTradeAmount = cexSecurity.min_amount.ToDecimal();
-                    security.DecimalsVolume = Convert.ToInt32(cexSecurity.base_ccy_precision);
-                    security.PriceStep = security.Decimals.GetValueByDecimals();
-                    security.PriceStepCost = security.PriceStep;
-                    security.Lot = 1;
-                    security.SecurityType = SecurityType.CurrencyPair;
-                    security.Exchange = ServerType.CoinExFutures.ToString();
-
-                    _securities.Add(security);
-                }
-
-                _securities.Sort(delegate (Security x, Security y)
-                {
-                    return String.Compare(x.NameFull, y.NameFull);
-                });
-            }
-            catch (Exception e)
-            {
-                SendLogMessage($"Error loading stocks: {e.Message}" + e.ToString(), LogMessageType.Error);
-            }
-        }
+        public event Action<List<Security>> SecurityEvent;
 
         #endregion
 
         #region 4 Portfolios
-
-        public event Action<List<Portfolio>> PortfolioEvent;
-
-        private List<Portfolio> _portfolios = new List<Portfolio>();
 
         public string getPortfolioName(string securityName = "")
         {
@@ -259,113 +265,221 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public void GetPortfolios()
         {
-            GetCurrentPortfolios();
+            GetCurrentPortfolios(true);
+            GetCurrentPositions();
         }
 
-        public bool GetCurrentPortfolios()
+        private List<Portfolio> _portfolios = new List<Portfolio>();
+
+        private void ThreadGetPortfolios()
+        {
+            Thread.Sleep(10000);
+
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
+                try
+                {
+                    Thread.Sleep(5000);
+
+                    GetCurrentPortfolios(false);
+                    GetCurrentPositions();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+                }
+            }
+        }
+
+        private void GetCurrentPortfolios(bool IsUpdateValueBegin)
         {
             _rateGateAccountStatus.WaitToProceed();
 
             try
             {
-                List<CexPortfolioItem>? cexBalance = _restClient.Get<List<CexPortfolioItem>>("/assets/futures/balance", true);
+                IRestResponse response = CreatePrivateQuery("/assets/futures/balance", Method.GET);
 
-                Dictionary<string, Object> parameters = (new CexRequestGetPendingPosition(_marketMode)).parameters;
-                List<CexPositionItem>? cexPendingPositions = _restClient.Get<List<CexPositionItem>>("/futures/pending-position", true, parameters);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<BalanceData>> responseBalance = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<BalanceData>>());
 
-                ConvertFuturesToPortfolio(cexBalance, cexPendingPositions);
-                return _portfolios.Count > 0;
+                    if (responseBalance.code == "0")
+                    {
+                        string portfolioName = getPortfolioName();
+                        Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
+
+                        if (myPortfolio == null)
+                        {
+                            Portfolio newPortf = new Portfolio();
+                            newPortf.Number = portfolioName;
+                            newPortf.ServerType = ServerType;
+                            newPortf.ValueBegin = 1;
+                            newPortf.ValueCurrent = 1;
+                            _portfolios.Add(newPortf);
+                            myPortfolio = newPortf;
+                        }
+
+                        decimal positionInUSDT = 0;
+                        decimal positionPnL = 0;
+                        decimal positionBlocked = 0;
+
+                        for (int i = 0; i < responseBalance.data.Count; i++)
+                        {
+                            BalanceData item = responseBalance.data[i];
+
+                            if (item.ccy == "USDT")
+                            {
+                                positionInUSDT = item.available.ToDecimal();
+                            }
+                            else if (item.ccy == "USDC"
+                                || item.ccy == "BTC"
+                                || item.ccy == "ETH")
+                            {
+                                //positionInUSDT += GetPriceSecurity(item.ccy + "USDT") * item.available.ToDecimal();
+                            }
+
+                            PositionOnBoard pos = new PositionOnBoard();
+
+                            pos.PortfolioName = portfolioName;
+                            pos.SecurityNameCode = item.ccy;
+                            pos.ValueCurrent = Math.Round(item.available.ToDecimal(), 5);
+                            pos.ValueBlocked = Math.Round(item.frozen.ToDecimal(), 5);
+                            pos.UnrealizedPnl = Math.Round(item.unrealized_pnl.ToDecimal(), 5);
+
+                            if (IsUpdateValueBegin)
+                            {
+                                pos.ValueBegin = Math.Round(item.available.ToDecimal(), 5);
+                            }
+
+                            positionPnL += pos.UnrealizedPnl;
+                            positionBlocked += pos.ValueBlocked;
+
+                            myPortfolio.SetNewPosition(pos);
+                        }
+
+                        myPortfolio.ValueCurrent = Math.Round(positionInUSDT, 5);
+                        myPortfolio.UnrealizedPnl = positionPnL;
+                        myPortfolio.ValueBlocked = positionBlocked;
+
+                        if (IsUpdateValueBegin)
+                        {
+                            myPortfolio.ValueBegin = Math.Round(positionInUSDT, 5);
+                        }
+
+                        PortfolioEvent(_portfolios);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Portfolio error. Code:{responseBalance.code} || msg: {responseBalance.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Portfolio request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception exception)
             {
                 SendLogMessage("Portfolio request error " + exception.ToString(), LogMessageType.Error);
             }
-            return false;
         }
 
-        private void ConvertFuturesToPortfolio(List<CexPortfolioItem> balance, List<CexPositionItem> pendingPositions)
+        private void GetCurrentPositions()
         {
-            string portfolioName = getPortfolioName();
+            _rateGateAccountStatus.WaitToProceed();
+
+            if (_portfolios == null)
+            {
+                return;
+            }
+
             try
             {
-                Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
+                IRestResponse response = CreatePrivateQuery("/futures/pending-position?market_type=FUTURES", Method.GET);
 
-                if (myPortfolio == null)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    Portfolio newPortf = new Portfolio();
-                    newPortf.Number = portfolioName;
-                    newPortf.ServerType = ServerType;
-                    newPortf.ValueBegin = 1;
-                    newPortf.ValueCurrent = 1;
-                    _portfolios.Add(newPortf);
-                    myPortfolio = newPortf;
-                }
+                    ResponseRestMessage<List<PositionData>> responsePositions = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<PositionData>>());
 
-                if (balance == null || balance.Count == 0)
-                {
-                    SendLogMessage("No portfolios detected!", LogMessageType.System);
-                    return;
-                }
-
-                for (int i = 0; i < balance.Count; i++)
-                {
-                    CexPortfolioItem cexPortfolioItem = balance[i];
-                    if (cexPortfolioItem.ccy == "USDT"
-                        || cexPortfolioItem.ccy == "USDC"
-                        || cexPortfolioItem.ccy == "USD"
-                        || cexPortfolioItem.ccy == "RUB"
-                        || cexPortfolioItem.ccy == "EUR")
+                    if (responsePositions.code == "0")
                     {
-                        myPortfolio.ValueCurrent = Math.Round(cexPortfolioItem.available.ToDecimal(), 2);
-                        myPortfolio.UnrealizedPnl = Math.Round(cexPortfolioItem.unrealized_pnl.ToDecimal(), 2);
-                        myPortfolio.ValueBlocked = Math.Round(cexPortfolioItem.margin.ToDecimal(), 2);
-                        if (myPortfolio.ValueBegin == 1)
+                        string portfolioName = getPortfolioName();
+                        Portfolio portfolio = _portfolios[0];
+
+                        List<PositionData> positionsOnBoard = responsePositions.data;
+
+                        for (int i = 0; i < responsePositions.data.Count; i++)
                         {
-                            myPortfolio.ValueBegin = myPortfolio.ValueCurrent + myPortfolio.ValueBlocked;
+                            PositionData item = responsePositions.data[i];
+                            PositionOnBoard pos = new PositionOnBoard();
+
+                            pos.PortfolioName = portfolioName;
+                            pos.SecurityNameCode = item.market;
+                            pos.UnrealizedPnl = item.unrealized_pnl.ToDecimal();
+
+                            if (item.side == "long")
+                            {
+                                pos.ValueCurrent = item.close_avbl.ToDecimal();
+                            }
+                            else
+                            {
+                                pos.ValueCurrent = -item.close_avbl.ToDecimal();
+                            }
+
+                            portfolio.SetNewPosition(pos);
                         }
-                        break;
+
+                        List<PositionOnBoard> positionInPortfolio = portfolio.GetPositionOnBoard();
+
+                        for (int j = 0; j < positionInPortfolio.Count; j++)
+                        {
+                            if (positionInPortfolio[j].SecurityNameCode == "USDT")
+                            {
+                                continue;
+                            }
+
+                            bool isInArray = false;
+
+                            for (int i = 0; i < positionsOnBoard.Count; i++)
+                            {
+                                PositionData item = positionsOnBoard[i];
+
+                                string curNameSec = item.market;
+
+                                if (curNameSec == positionInPortfolio[j].SecurityNameCode)
+                                {
+                                    isInArray = true;
+                                    break;
+                                }
+                            }
+
+                            if (isInArray == false)
+                            {
+                                positionInPortfolio[j].ValueCurrent = 0;
+                            }
+                        }
+
+                        PortfolioEvent(_portfolios);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Positions error. Code:{responsePositions.code} || msg: {responsePositions.message}", LogMessageType.Error);
                     }
                 }
-
-                if (pendingPositions != null && pendingPositions.Count > 0)
+                else
                 {
-                    for (int i = 0; i < pendingPositions.Count; i++)
-                    {
-                        CexPositionItem cexPositionItem = pendingPositions[i];
-
-                        PositionOnBoard pos = new PositionOnBoard();
-
-                        pos.SecurityNameCode = cexPositionItem.market;
-                        pos.ValueCurrent = cexPositionItem.open_interest.ToDecimal();
-                        pos.ValueBlocked = pos.ValueCurrent;
-                        pos.PortfolioName = portfolioName;
-                        pos.UnrealizedPnl = cexPositionItem.unrealized_pnl.ToDecimal();
-                        if (pos.ValueBegin == 1)
-                        {
-                            pos.ValueBegin = pos.ValueCurrent + pos.ValueBlocked;
-                        }
-
-                        if (cexPositionItem.side == "short")
-                        {
-                            pos.ValueCurrent = -pos.ValueCurrent;
-                            pos.ValueBlocked = -pos.ValueBlocked;
-                        }
-
-                        if (Math.Abs(pos.ValueBlocked + pos.ValueCurrent) > 0)
-                        {
-                            myPortfolio.SetNewPosition(pos);
-                        }
-                    }
-
+                    SendLogMessage($"Positions request error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
-
-                //myPortfolio.ValueCurrent = getPortfolioValue(myPortfolio);
-
-                PortfolioEvent?.Invoke(_portfolios);
             }
-            catch (Exception error)
+            catch (Exception exception)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                SendLogMessage("Positions request error " + exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -394,6 +508,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
             return cexInfo;
         }
+
+        public event Action<List<Portfolio>> PortfolioEvent;
 
         #endregion
 
@@ -912,6 +1028,11 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
+        public bool SubscribeNews()
+        {
+            return false;
+        }
+
         #endregion
 
         #region 10 WebSocket parsing the messages
@@ -1128,10 +1249,10 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     return;
                 }
 
-                Dictionary<string, Object> parameters = (new CexRequestGetPendingPosition(_marketMode)).parameters;
-                List<CexPositionItem>? cexPendingPositions = _restClient.Get<List<CexPositionItem>>("/futures/pending-position", true, parameters);
+                //Dictionary<string, Object> parameters = (new CexRequestGetPendingPosition(_marketMode)).parameters;
+                //List<CexPositionItem>? cexPendingPositions = _restClient.Get<List<CexPositionItem>>("/futures/pending-position", true, parameters);
 
-                wsUpdateFuturesPortfolio(data, cexPendingPositions);
+                wsUpdateFuturesPortfolio(data);
             }
             catch (Exception error)
             {
@@ -1139,7 +1260,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        private void wsUpdateFuturesPortfolio(CexWsBalance data, List<CexPositionItem> pendingPositions)
+        private void wsUpdateFuturesPortfolio(CexWsBalance data)
         {
             string portfolioName = getPortfolioName();
             Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
@@ -1152,50 +1273,48 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             for (int i = 0; i < data.balance_list.Length; i++)
             {
                 CexWsBalanceItem cexPosition = data.balance_list[i];
-                if (cexPosition.ccy == "USDT"
-                    || cexPosition.ccy == "USDC"
-                    || cexPosition.ccy == "USD"
-                    || cexPosition.ccy == "RUB"
-                    || cexPosition.ccy == "EUR")
-                {
-                    myPortfolio.ValueCurrent = Math.Round(cexPosition.available.ToDecimal(), 2);
-                    myPortfolio.UnrealizedPnl = Math.Round(cexPosition.unrealized_pnl.ToDecimal(), 2);
-                    myPortfolio.ValueBlocked = Math.Round(cexPosition.margin.ToDecimal(), 2);
-                    break;
-                }
+
+                PositionOnBoard pos = new PositionOnBoard();
+
+                pos.SecurityNameCode = cexPosition.ccy;
+                pos.ValueCurrent = Math.Round(cexPosition.available.ToDecimal(), 2);
+                pos.UnrealizedPnl = Math.Round(cexPosition.unrealized_pnl.ToDecimal(), 2);
+                pos.ValueBlocked = Math.Round(cexPosition.margin.ToDecimal(), 2);
+
+                myPortfolio.SetNewPosition(pos);
             }
 
-            if (pendingPositions != null && pendingPositions.Count > 0)
-            {
-                for (int i = 0; i < pendingPositions.Count; i++)
-                {
-                    CexPositionItem cexPositionItem = pendingPositions[i];
+            //if (pendingPositions != null && pendingPositions.Count > 0)
+            //{
+            //    for (int i = 0; i < pendingPositions.Count; i++)
+            //    {
+            //        CexPositionItem cexPositionItem = pendingPositions[i];
 
-                    PositionOnBoard pos = new PositionOnBoard();
+            //        PositionOnBoard pos = new PositionOnBoard();
 
-                    pos.SecurityNameCode = cexPositionItem.market;
-                    pos.ValueCurrent = cexPositionItem.open_interest.ToDecimal();
-                    pos.ValueBlocked = pos.ValueCurrent;
-                    pos.PortfolioName = portfolioName;
-                    pos.UnrealizedPnl = cexPositionItem.unrealized_pnl.ToDecimal();
-                    if (pos.ValueBegin == 1)
-                    {
-                        pos.ValueBegin = pos.ValueCurrent + pos.ValueBlocked;
-                    }
+            //        pos.SecurityNameCode = cexPositionItem.market;
+            //        pos.ValueCurrent = cexPositionItem.open_interest.ToDecimal();
+            //        pos.ValueBlocked = pos.ValueCurrent;
+            //        pos.PortfolioName = portfolioName;
+            //        pos.UnrealizedPnl = cexPositionItem.unrealized_pnl.ToDecimal();
+            //        if (pos.ValueBegin == 1)
+            //        {
+            //            pos.ValueBegin = pos.ValueCurrent + pos.ValueBlocked;
+            //        }
 
-                    if (cexPositionItem.side == "short")
-                    {
-                        pos.ValueCurrent = -pos.ValueCurrent;
-                        pos.ValueBlocked = -pos.ValueBlocked;
-                    }
+            //        if (cexPositionItem.side == "short")
+            //        {
+            //            pos.ValueCurrent = -pos.ValueCurrent;
+            //            pos.ValueBlocked = -pos.ValueBlocked;
+            //        }
 
-                    if (Math.Abs(pos.ValueBlocked + pos.ValueCurrent) > 0)
-                    {
-                        myPortfolio.SetNewPosition(pos);
-                    }
-                }
+            //        if (Math.Abs(pos.ValueBlocked + pos.ValueCurrent) > 0)
+            //        {
+            //            myPortfolio.SetNewPosition(pos);
+            //        }
+            //    }
 
-            }
+            //}
 
             PortfolioEvent?.Invoke(_portfolios);
         }
@@ -1592,6 +1711,46 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         #region 12 Queries
 
+        private IRestResponse CreatePrivateQuery(string path, Method method, string body = null)
+        {
+            try
+            {
+                //string requestPath = path;
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                string signature = GenerateSignature(path, method.ToString(), timestamp, body);
+
+                RestRequest requestRest = new RestRequest(path, method);
+                requestRest.AddHeader("X-COINEX-KEY", _publicKey);
+                requestRest.AddHeader("X-COINEX-SIGN", signature);
+                requestRest.AddHeader("X-COINEX-TIMESTAMP", timestamp);
+
+                if (body != null)
+                {
+                    requestRest.AddParameter("application/json", body, ParameterType.RequestBody);
+                }
+
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
+        public string GenerateSignature(string path, string method, string timestamp, string body)
+        {
+            string message = method + "/v2" + path + body + timestamp;
+
+            using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey)))
+            {
+                byte[] r = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
+                return BitConverter.ToString(r).Replace("-", "").ToLower();
+            }
+        }
+
         public List<Trade> GetTickDataToSecurity(Security security, DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             return null;
@@ -1858,10 +2017,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             return order;
         }
 
-        public bool SubscribeNews()
-        {
-            throw new NotImplementedException();
-        }
+        
 
         #endregion
     }
