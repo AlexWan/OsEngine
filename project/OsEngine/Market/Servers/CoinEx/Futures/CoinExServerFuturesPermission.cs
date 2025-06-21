@@ -145,7 +145,18 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "USDT",
+                    "BTC",
+                    "ETH",
+                    "USDC"
+                };
+
+                return values;
+            }
         }
 
         public bool CanQueryOrdersAfterReconnect
