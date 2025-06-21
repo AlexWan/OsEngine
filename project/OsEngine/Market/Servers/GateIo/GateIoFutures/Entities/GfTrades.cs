@@ -6,7 +6,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures.Entities.Response
     {
         public string channel { get; set; }
         public string @event { get; set; }
-        public long time { get; set; }
+        public string time { get; set; }
         public List<GfTradeResult> result { get; set; }
     }
 
