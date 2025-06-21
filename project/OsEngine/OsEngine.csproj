@@ -129,9 +129,15 @@
     <Content Remove="bin\Release\libssl-3-x64.dll" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="Images\MainWIndow\flag_eng.png" />
+    <None Remove="Images\MainWIndow\flag_ru.png" />
+  </ItemGroup>
+  <ItemGroup>
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Images\MainWIndow\flag_eng.png" />
+    <Resource Include="Images\MainWIndow\flag_ru.png" />
     <Resource Include="Images\OsLogo.ico" />
   </ItemGroup>
   <ItemGroup>
