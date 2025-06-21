@@ -20,6 +20,7 @@ using System.IO.Compression;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Net;
+using RestSharp;
 
 namespace OsEngine.Market.Servers.CoinEx.Futures
 {
@@ -40,19 +41,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
     {
         #region 1 Constructor, Status, Connection
 
-        public ServerConnectStatus ServerStatus { get; set; }
-
-        public event Action ConnectEvent;
-
-        public event Action DisconnectEvent;
-
-        public DateTime ServerTime { get; set; }
-
-        public ServerType ServerType
-        {
-            get { return ServerType.CoinExFutures; }
-        }
-
         public CoinExServerRealization()
         {
             Thread worker = new Thread(DataMessageReaderThread);
@@ -69,7 +57,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             try
             {
                 _securities.Clear();
-                _portfolios.Clear();
+                //_portfolios.Clear();
                 _wsClients.Clear();
                 _subscribedSecurities.Clear();
 
@@ -90,14 +78,19 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 _restClient = new CoinExRestClient(_publicKey, _secretKey);
                 _restClient.LogMessageEvent += SendLogMessage;
 
-                // Check rest auth
-                if (!GetCurrentPortfolios())
-                {
-                    SendLogMessage("Authorization Error. Probably an invalid keys are specified, check it!",
-                        LogMessageType.Error);
-                }
+                RestRequest requestRest = new RestRequest("/time", Method.GET);
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
 
-                _wsClients.Add(CreateWebSocketConnection());
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    _wsClients.Add(CreateWebSocketConnection());
+                }
+                else
+                {
+                    SendLogMessage("Connection cannot be open. CoinExFutures. Error request", LogMessageType.Error);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent();
+                }
             }
             catch (Exception ex)
             {
@@ -150,6 +143,19 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
+        public ServerConnectStatus ServerStatus { get; set; }
+
+        public event Action ConnectEvent;
+
+        public event Action DisconnectEvent;
+
+        public DateTime ServerTime { get; set; }
+
+        public ServerType ServerType
+        {
+            get { return ServerType.CoinExFutures; }
+        }
+
         #endregion
 
         #region 2 Properties
@@ -160,6 +166,8 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         private string _secretKey;
 
+        private string _baseUrl = "https://api.coinex.com/v2";
+
         private int _marketDepth;
 
         // Futures only
@@ -168,13 +176,9 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         #region 3 Securities
 
-        private List<Security> _securities = new List<Security>();
-
-        public event Action<List<Security>> SecurityEvent;
-
         public void GetSecurities()
         {
-            UpdateSec();
+            UpdateSecurity();
 
             if (_securities.Count > 0)
             {
@@ -187,13 +191,55 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        private void UpdateSec()
+        private List<Security> _securities = new List<Security>();
+
+        private void UpdateSecurity()
         {
             // https://docs.coinex.com/api/v2/futures/market/http/list-market
             try
             {
-                List<CexSecurity> securities = _restClient.Get<List<CexSecurity>>("/futures/market");
-                UpdateSecuritiesFromServer(securities);
+                RestRequest requestRest = new RestRequest("/futures/market", Method.GET);
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<MarketInfoData>> responseMarket = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<MarketInfoData>>());
+
+                    if (responseMarket.code == "0")
+                    {
+                        for (int i = 0; i < responseMarket.data.Count; i++)
+                        {
+                            MarketInfoData item = responseMarket.data[i];
+
+                            Security security = new Security();
+                            security.Name = item.market;
+                            security.NameId = item.market;
+                            security.NameFull = item.market;
+                            security.NameClass = item.quote_ccy;
+                            security.State = SecurityStateType.Activ;
+                            security.Decimals = Convert.ToInt32(item.quote_ccy_precision);
+                            security.MinTradeAmount = item.min_amount.ToDecimal();
+                            security.DecimalsVolume = Convert.ToInt32(item.base_ccy_precision);
+                            security.PriceStep = item.tick_size.ToDecimal();
+                            security.PriceStepCost = security.PriceStep;
+                            security.Lot = 1;
+                            security.SecurityType = SecurityType.Futures;
+                            security.Exchange = ServerType.CoinExFutures.ToString();
+                            security.MinTradeAmountType = MinTradeAmountType.Contract;
+                            security.VolumeStep = security.DecimalsVolume.GetValueByDecimals();
+
+                            _securities.Add(security);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Securities error. Code:{responseMarket.code} || msg: {responseMarket.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"Securities error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
             }
             catch (Exception exception)
             {
@@ -201,48 +247,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             }
         }
 
-        private void UpdateSecuritiesFromServer(List<CexSecurity> stocks)
-        {
-            try
-            {
-                if (stocks == null ||
-                    stocks.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < stocks.Count; i++)
-                {
-                    CexSecurity cexSecurity = stocks[i];
-
-                    Security security = new Security();
-                    security.Name = cexSecurity.market;
-                    security.NameId = cexSecurity.market;
-                    security.NameFull = cexSecurity.market;
-                    security.NameClass = cexSecurity.quote_ccy;
-                    security.State = SecurityStateType.Activ;
-                    security.Decimals = Convert.ToInt32(cexSecurity.quote_ccy_precision);
-                    security.MinTradeAmount = cexSecurity.min_amount.ToDecimal();
-                    security.DecimalsVolume = Convert.ToInt32(cexSecurity.base_ccy_precision);
-                    security.PriceStep = security.Decimals.GetValueByDecimals();
-                    security.PriceStepCost = security.PriceStep;
-                    security.Lot = 1;
-                    security.SecurityType = SecurityType.CurrencyPair;
-                    security.Exchange = ServerType.CoinExFutures.ToString();
-
-                    _securities.Add(security);
-                }
-
-                _securities.Sort(delegate (Security x, Security y)
-                {
-                    return String.Compare(x.NameFull, y.NameFull);
-                });
-            }
-            catch (Exception e)
-            {
-                SendLogMessage($"Error loading stocks: {e.Message}" + e.ToString(), LogMessageType.Error);
-            }
-        }
+        public event Action<List<Security>> SecurityEvent;
 
         #endregion
 
