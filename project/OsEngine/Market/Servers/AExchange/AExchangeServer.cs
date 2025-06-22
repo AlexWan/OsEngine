@@ -313,7 +313,19 @@ namespace OsEngine.Market.Servers.AE
                 newTrade.SecurityNameCode = q.Ticker;
                 newTrade.Side = q.LastVolume > 0 ? Side.Buy : Side.Sell;
 
-                if (q.Ask != null)
+                if (q.Volatility != null) // needs to be before orderbook so MarkIV already available
+                {
+                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                    data.MarkIV = q.Volatility.ToString();
+                    data.SecurityName = q.Ticker;
+                    data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
+                    data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
+
+                    AdditionalMarketDataEvent!(data);
+                }
+
+                if (q.Ask != null) // orderbook DTO construction
                 {
                     newTrade.Ask = q.Ask ?? 0;
                     newTrade.AsksVolume = q.AskVolume ?? 0;
@@ -343,18 +355,6 @@ namespace OsEngine.Market.Servers.AE
                     _lastMDTime = newMarketDepth.Time;
 
                     MarketDepthEvent!(newMarketDepth);
-                }
-
-                if (q.Volatility != null)
-                {
-                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
-
-                    data.MarkIV = q.Volatility.ToString();
-                    data.SecurityName = q.Ticker;
-                    data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
-                    data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
-
-                    AdditionalMarketDataEvent(data);
                 }
 
                 NewTradesEvent!(newTrade);
