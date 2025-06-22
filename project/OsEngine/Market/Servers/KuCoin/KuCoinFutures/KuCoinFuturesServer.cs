@@ -2200,6 +2200,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

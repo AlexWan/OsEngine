@@ -3317,6 +3317,7 @@ namespace OsEngine.Market.Servers.TInvest
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

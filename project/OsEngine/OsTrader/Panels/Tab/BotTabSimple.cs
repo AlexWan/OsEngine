@@ -61,6 +61,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.ConnectorStartedReconnectEvent += _connector_ConnectorStartedReconnectEvent;
                 _connector.SecuritySubscribeEvent += _connector_SecuritySubscribeEvent;
                 _connector.DialogClosed += _connector_DialogClosed;
+                _connector.PublicMarketDataChangedEvent += _connector_PublicMarketDataChangedEvent;
 
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
@@ -380,6 +381,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector.SecuritySubscribeEvent -= _connector_SecuritySubscribeEvent;
                     _connector.DialogClosed -= _connector_DialogClosed;
+                    _connector.PublicMarketDataChangedEvent -= _connector_PublicMarketDataChangedEvent;
 
                     _connector = null;
                 }
@@ -6923,6 +6925,48 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private void _connector_PublicMarketDataChangedEvent(PublicMarketData data)
+        {
+            _funding.CurrentValue = data.Funding.CurrentValue;
+            _funding.NextFundingTime = data.Funding.NextFundingTime;
+            _funding.FundingIntervalHours = data.Funding.FundingIntervalHours;
+            _funding.MaxFundingRate = data.Funding.MaxFundingRate;
+            _funding.MinFundingRate = data.Funding.MinFundingRate;
+            _funding.TimeUpdate = data.Funding.TimeUpdate;
+            _volume24h = data.Volume24h;
+            _turnover24h = data.Turnover24h;
+        }
+
+        /// <summary>
+        /// Data of Funding
+        /// </summary>
+        public Funding Funding
+        {
+            get { return _funding; }
+        }
+
+        private Funding _funding = new Funding();
+
+        /// <summary>
+        /// Volume24h
+        /// </summary>
+        public decimal Volume24h
+        {
+            get { return _volume24h; }
+        }
+
+        private decimal _volume24h;
+
+        /// <summary>
+        /// Turnover24h
+        /// </summary>
+        public decimal Turnover24h
+        {
+            get { return _turnover24h; }
+        }
+
+        private decimal _turnover24h;
 
         // Outgoing events. Handlers for strategy
 

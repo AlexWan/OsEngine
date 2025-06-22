@@ -2417,6 +2417,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         #region 12 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

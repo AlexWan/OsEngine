@@ -2613,6 +2613,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             }
 
             public event Action<string, LogMessageType> LogMessageEvent;
+            public event Action<PublicMarketData> PublicMarketDataEvent;
 
             #endregion
         }

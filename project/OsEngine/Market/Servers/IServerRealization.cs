@@ -132,6 +132,12 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<Trade> NewTradesEvent;
 
+        /// <summary>
+        /// Public data
+        /// Публичные биржевые данные по инструменту
+        /// </summary>
+        event Action<PublicMarketData> PublicMarketDataEvent;
+
         #endregion
 
         #region Data upload

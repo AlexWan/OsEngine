@@ -529,6 +529,7 @@ namespace OsEngine.Market.Servers.BitMaxFutures
         }
 
         public event Action<News> NewsEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         private void PushMessage(object sender, MessageReceivedEventArgs e)
         {

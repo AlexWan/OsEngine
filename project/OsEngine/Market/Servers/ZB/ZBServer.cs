@@ -621,6 +621,7 @@ namespace OsEngine.Market.Servers.ZB
         }
 
         public event Action<News> NewsEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
     }
 }
 

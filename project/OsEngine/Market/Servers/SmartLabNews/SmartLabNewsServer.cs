@@ -561,6 +561,7 @@ namespace OsEngine.Market.Servers.SmartLabNews
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
         #endregion
     }
 }

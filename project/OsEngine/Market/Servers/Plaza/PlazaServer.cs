@@ -3158,6 +3158,7 @@ namespace OsEngine.Market.Servers.Plaza
         }
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

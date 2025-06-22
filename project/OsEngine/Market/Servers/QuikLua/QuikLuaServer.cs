@@ -962,6 +962,7 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         public event Action<News> NewsEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
 

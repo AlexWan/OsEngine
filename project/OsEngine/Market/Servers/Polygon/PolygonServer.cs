@@ -681,6 +681,7 @@ namespace OsEngine.Market.Servers.Polygon
         public event Action<List<Portfolio>> PortfolioEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

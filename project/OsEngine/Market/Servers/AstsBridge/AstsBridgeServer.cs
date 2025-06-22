@@ -1620,6 +1620,7 @@ namespace OsEngine.Market.Servers.AstsBridge
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> NewPublicMarketDataEvent;
     }
 
     /// <summary>

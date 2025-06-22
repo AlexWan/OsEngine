@@ -1214,5 +1214,6 @@ namespace OsEngine.Market.Servers.Quik
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
     }
 }

@@ -2298,6 +2298,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         #endregion
     }

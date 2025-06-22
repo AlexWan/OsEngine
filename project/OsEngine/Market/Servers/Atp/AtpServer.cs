@@ -1843,6 +1843,7 @@ namespace OsEngine.Market.Servers.Atp
         #region 11 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<PublicMarketData> PublicMarketDataEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {
