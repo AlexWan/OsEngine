@@ -23,6 +23,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Candles.Factory;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Drawing;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -276,6 +277,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 ServerType = ServerType.Tester;
                 ServerName = ServerType.Tester.ToString();
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if(servers != null &&
+                    servers.Count > 0)
+                {
+                    ((TesterServer)servers[0]).TestingStartEvent += BotTabScreener_TestingStartEvent;
+                    ((TesterServer)servers[0]).TestingEndEvent += BotTabScreener_TestingEndEvent;
+                }
+
             }
             else if (startProgram == StartProgram.IsOsOptimizer)
             {
@@ -654,6 +665,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _positionViewer.Delete();
             }
 
+            if (_startProgram == StartProgram.IsTester)
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers != null &&
+                    servers.Count > 0)
+                {
+                    ((TesterServer)servers[0]).TestingStartEvent -= BotTabScreener_TestingStartEvent;
+                    ((TesterServer)servers[0]).TestingEndEvent -= BotTabScreener_TestingEndEvent;
+                }
+            }
+
             if (TabDeletedEvent != null)
             {
                 TabDeletedEvent();
@@ -710,6 +733,46 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return true;
             }
         }
+
+        private void BotTabScreener_TestingEndEvent()
+        {
+            if(TestOverEvent != null)
+            {
+                try
+                {
+                    TestOverEvent();
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private void BotTabScreener_TestingStartEvent()
+        {
+            if(TestStartEvent != null)
+            {
+                try
+                {
+                    TestStartEvent();
+                }
+                catch(Exception error)
+                {
+                    SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// testing finished
+        /// </summary>
+        public event Action TestOverEvent;
+
+        /// <summary>
+        /// testing started
+        /// </summary>
+        public event Action TestStartEvent;
 
         #endregion
 

@@ -51,6 +51,11 @@ namespace OsEngine.Robots.Grids
             _tabScreener = TabsScreener[0];
             _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
+            if (startProgram == StartProgram.IsTester)
+            {
+                _tabScreener.TestStartEvent += _tabScreener_TestStartEvent;
+            }
+
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
             _bollingerLen = CreateParameter("Bollinger length", 50, 15, 20, 1);
             _bollingerDev = CreateParameter("Bollinger deviation", 2m, 1.2m, 20, 1m);
@@ -74,35 +79,35 @@ namespace OsEngine.Robots.Grids
 
             // non trade periods
 
-            NonTradePeriod1OnOff = CreateParameter("Block trade. Period " + "1", false, " Trade periods ");
-            NonTradePeriod1Start = CreateParameterTimeOfDay("Start period " + "1", 9, 0, 0, 0, " Trade periods ");
-            NonTradePeriod1End = CreateParameterTimeOfDay("End period " + "1", 10, 5, 0, 0, " Trade periods ");
+            _nonTradePeriod1OnOff = CreateParameter("Block trade. Period " + "1", false, " Trade periods ");
+            _nonTradePeriod1Start = CreateParameterTimeOfDay("Start period " + "1", 9, 0, 0, 0, " Trade periods ");
+            _nonTradePeriod1End = CreateParameterTimeOfDay("End period " + "1", 10, 5, 0, 0, " Trade periods ");
 
-            NonTradePeriod2OnOff = CreateParameter("Block trade. Period " + "2", false, " Trade periods ");
-            NonTradePeriod2Start = CreateParameterTimeOfDay("Start period " + "2", 13, 55, 0, 0, " Trade periods ");
-            NonTradePeriod2End = CreateParameterTimeOfDay("End period " + "2", 14, 5, 0, 0, " Trade periods ");
+            _nonTradePeriod2OnOff = CreateParameter("Block trade. Period " + "2", false, " Trade periods ");
+            _nonTradePeriod2Start = CreateParameterTimeOfDay("Start period " + "2", 13, 55, 0, 0, " Trade periods ");
+            _nonTradePeriod2End = CreateParameterTimeOfDay("End period " + "2", 14, 5, 0, 0, " Trade periods ");
 
-            NonTradePeriod3OnOff = CreateParameter("Block trade. Period " + "3", false, " Trade periods ");
-            NonTradePeriod3Start = CreateParameterTimeOfDay("Start period " + "3", 18, 40, 0, 0, " Trade periods ");
-            NonTradePeriod3End = CreateParameterTimeOfDay("End period " + "3", 19, 5, 0, 0, " Trade periods ");
+            _nonTradePeriod3OnOff = CreateParameter("Block trade. Period " + "3", false, " Trade periods ");
+            _nonTradePeriod3Start = CreateParameterTimeOfDay("Start period " + "3", 18, 40, 0, 0, " Trade periods ");
+            _nonTradePeriod3End = CreateParameterTimeOfDay("End period " + "3", 19, 5, 0, 0, " Trade periods ");
 
-            NonTradePeriod4OnOff = CreateParameter("Block trade. Period " + "4", false, " Trade periods ");
-            NonTradePeriod4Start = CreateParameterTimeOfDay("Start period " + "4", 23, 40, 0, 0, " Trade periods ");
-            NonTradePeriod4End = CreateParameterTimeOfDay("End period " + "4", 23, 59, 0, 0, " Trade periods ");
+            _nonTradePeriod4OnOff = CreateParameter("Block trade. Period " + "4", false, " Trade periods ");
+            _nonTradePeriod4Start = CreateParameterTimeOfDay("Start period " + "4", 23, 40, 0, 0, " Trade periods ");
+            _nonTradePeriod4End = CreateParameterTimeOfDay("End period " + "4", 23, 59, 0, 0, " Trade periods ");
 
-            NonTradePeriod5OnOff = CreateParameter("Block trade. Period " + "5", false, " Trade periods ");
-            NonTradePeriod5Start = CreateParameterTimeOfDay("Start period " + "5", 23, 40, 0, 0, " Trade periods ");
-            NonTradePeriod5End = CreateParameterTimeOfDay("End period " + "5", 23, 59, 0, 0, " Trade periods ");
+            _nonTradePeriod5OnOff = CreateParameter("Block trade. Period " + "5", false, " Trade periods ");
+            _nonTradePeriod5Start = CreateParameterTimeOfDay("Start period " + "5", 23, 40, 0, 0, " Trade periods ");
+            _nonTradePeriod5End = CreateParameterTimeOfDay("End period " + "5", 23, 59, 0, 0, " Trade periods ");
 
             CreateParameterLabel("Empty string tp", "", "", 20, 20, System.Drawing.Color.Black, " Trade periods ");
 
-            TradeInMonday = CreateParameter("Trade in Monday. Is on", true, " Trade periods ");
-            TradeInTuesday = CreateParameter("Trade in Tuesday. Is on", true, " Trade periods ");
-            TradeInWednesday = CreateParameter("Trade in Wednesday. Is on", true, " Trade periods ");
-            TradeInThursday = CreateParameter("Trade in Thursday. Is on", true, " Trade periods ");
-            TradeInFriday = CreateParameter("Trade in Friday. Is on", true, " Trade periods ");
-            TradeInSaturday = CreateParameter("Trade in Saturday. Is on", true, " Trade periods ");
-            TradeInSunday = CreateParameter("Trade in Sunday. Is on", true, " Trade periods ");
+            _tradeInMonday = CreateParameter("Trade in Monday. Is on", true, " Trade periods ");
+            _tradeInTuesday = CreateParameter("Trade in Tuesday. Is on", true, " Trade periods ");
+            _tradeInWednesday = CreateParameter("Trade in Wednesday. Is on", true, " Trade periods ");
+            _tradeInThursday = CreateParameter("Trade in Thursday. Is on", true, " Trade periods ");
+            _tradeInFriday = CreateParameter("Trade in Friday. Is on", true, " Trade periods ");
+            _tradeInSaturday = CreateParameter("Trade in Saturday. Is on", true, " Trade periods ");
+            _tradeInSunday = CreateParameter("Trade in Sunday. Is on", true, " Trade periods ");
 
             this.ParametrsChangeByUser += GridBollingerScreener_ParametrsChangeByUser;
 
@@ -135,6 +140,26 @@ namespace OsEngine.Robots.Grids
         public override void ShowIndividualSettingsDialog()
         {
 
+        }
+
+        private void _tabScreener_TestStartEvent()
+        {
+            for (int i = 0; i < _tabScreener.Tabs.Count; i++)
+            {
+                BotTabSimple _tab = _tabScreener.Tabs[i];
+
+                if (_tab.GridsMaster == null)
+                {
+                    continue;
+                }
+
+                for (int j = 0; j < _tab.GridsMaster.TradeGrids.Count; j++)
+                {
+                    TradeGrid grid = _tab.GridsMaster.TradeGrids[j];
+                    _tab.GridsMaster.DeleteAtNum(grid.Number);
+                    j--;
+                }
+            }
         }
 
         // logic
@@ -338,7 +363,7 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
-            if (grid.Regime == TradeGridRegime.CloseForced)
+            if (grid.Regime != TradeGridRegime.On)
             {
                 return;
             }
@@ -372,163 +397,163 @@ namespace OsEngine.Robots.Grids
 
         #region Non trade periods
 
-        public StrategyParameterBool NonTradePeriod1OnOff;
-        public StrategyParameterTimeOfDay NonTradePeriod1Start;
-        public StrategyParameterTimeOfDay NonTradePeriod1End;
+        private StrategyParameterBool _nonTradePeriod1OnOff;
+        private StrategyParameterTimeOfDay _nonTradePeriod1Start;
+        private StrategyParameterTimeOfDay _nonTradePeriod1End;
 
-        public StrategyParameterBool NonTradePeriod2OnOff;
-        public StrategyParameterTimeOfDay NonTradePeriod2Start;
-        public StrategyParameterTimeOfDay NonTradePeriod2End;
+        private StrategyParameterBool _nonTradePeriod2OnOff;
+        private StrategyParameterTimeOfDay _nonTradePeriod2Start;
+        private StrategyParameterTimeOfDay _nonTradePeriod2End;
 
-        public StrategyParameterBool NonTradePeriod3OnOff;
-        public StrategyParameterTimeOfDay NonTradePeriod3Start;
-        public StrategyParameterTimeOfDay NonTradePeriod3End;
+        private StrategyParameterBool _nonTradePeriod3OnOff;
+        private StrategyParameterTimeOfDay _nonTradePeriod3Start;
+        private StrategyParameterTimeOfDay _nonTradePeriod3End;
 
-        public StrategyParameterBool NonTradePeriod4OnOff;
-        public StrategyParameterTimeOfDay NonTradePeriod4Start;
-        public StrategyParameterTimeOfDay NonTradePeriod4End;
+        private StrategyParameterBool _nonTradePeriod4OnOff;
+        private StrategyParameterTimeOfDay _nonTradePeriod4Start;
+        private StrategyParameterTimeOfDay _nonTradePeriod4End;
 
-        public StrategyParameterBool NonTradePeriod5OnOff;
-        public StrategyParameterTimeOfDay NonTradePeriod5Start;
-        public StrategyParameterTimeOfDay NonTradePeriod5End;
+        private StrategyParameterBool _nonTradePeriod5OnOff;
+        private StrategyParameterTimeOfDay _nonTradePeriod5Start;
+        private StrategyParameterTimeOfDay _nonTradePeriod5End;
 
-        public StrategyParameterBool TradeInMonday;
-        public StrategyParameterBool TradeInTuesday;
-        public StrategyParameterBool TradeInWednesday;
-        public StrategyParameterBool TradeInThursday;
-        public StrategyParameterBool TradeInFriday;
-        public StrategyParameterBool TradeInSaturday;
-        public StrategyParameterBool TradeInSunday;
+        private StrategyParameterBool _tradeInMonday;
+        private StrategyParameterBool _tradeInTuesday;
+        private StrategyParameterBool _tradeInWednesday;
+        private StrategyParameterBool _tradeInThursday;
+        private StrategyParameterBool _tradeInFriday;
+        private StrategyParameterBool _tradeInSaturday;
+        private StrategyParameterBool _tradeInSunday;
 
         private bool IsBlockNonTradePeriods(DateTime curTime)
         {
-            if (NonTradePeriod1OnOff.ValueBool == true)
+            if (_nonTradePeriod1OnOff.ValueBool == true)
             {
-                if (NonTradePeriod1Start.Value < curTime
-                 && NonTradePeriod1End.Value > curTime)
+                if (_nonTradePeriod1Start.Value < curTime
+                 && _nonTradePeriod1End.Value > curTime)
                 {
                     return true;
                 }
 
-                if (NonTradePeriod1Start.Value > NonTradePeriod1End.Value)
+                if (_nonTradePeriod1Start.Value > _nonTradePeriod1End.Value)
                 { // overnight transfer
-                    if (NonTradePeriod1Start.Value > curTime
-                        || NonTradePeriod1End.Value < curTime)
+                    if (_nonTradePeriod1Start.Value > curTime
+                        || _nonTradePeriod1End.Value < curTime)
                     {
                         return true;
                     }
                 }
             }
 
-            if (NonTradePeriod2OnOff.ValueBool == true)
+            if (_nonTradePeriod2OnOff.ValueBool == true)
             {
-                if (NonTradePeriod2Start.Value < curTime
-                 && NonTradePeriod2End.Value > curTime)
+                if (_nonTradePeriod2Start.Value < curTime
+                 && _nonTradePeriod2End.Value > curTime)
                 {
                     return true;
                 }
 
-                if (NonTradePeriod2Start.Value > NonTradePeriod2End.Value)
+                if (_nonTradePeriod2Start.Value > _nonTradePeriod2End.Value)
                 { // overnight transfer
-                    if (NonTradePeriod2Start.Value > curTime
-                        || NonTradePeriod2End.Value < curTime)
+                    if (_nonTradePeriod2Start.Value > curTime
+                        || _nonTradePeriod2End.Value < curTime)
                     {
                         return true;
                     }
                 }
             }
 
-            if (NonTradePeriod3OnOff.ValueBool == true)
+            if (_nonTradePeriod3OnOff.ValueBool == true)
             {
-                if (NonTradePeriod3Start.Value < curTime
-                 && NonTradePeriod3End.Value > curTime)
+                if (_nonTradePeriod3Start.Value < curTime
+                 && _nonTradePeriod3End.Value > curTime)
                 {
                     return true;
                 }
 
-                if (NonTradePeriod3Start.Value > NonTradePeriod3End.Value)
+                if (_nonTradePeriod3Start.Value > _nonTradePeriod3End.Value)
                 { // overnight transfer
-                    if (NonTradePeriod3Start.Value > curTime
-                        || NonTradePeriod3End.Value < curTime)
+                    if (_nonTradePeriod3Start.Value > curTime
+                        || _nonTradePeriod3End.Value < curTime)
                     {
                         return true;
                     }
                 }
             }
 
-            if (NonTradePeriod4OnOff.ValueBool == true)
+            if (_nonTradePeriod4OnOff.ValueBool == true)
             {
-                if (NonTradePeriod4Start.Value < curTime
-                 && NonTradePeriod4End.Value > curTime)
+                if (_nonTradePeriod4Start.Value < curTime
+                 && _nonTradePeriod4End.Value > curTime)
                 {
                     return true;
                 }
 
-                if (NonTradePeriod4Start.Value > NonTradePeriod4End.Value)
+                if (_nonTradePeriod4Start.Value > _nonTradePeriod4End.Value)
                 { // overnight transfer
-                    if (NonTradePeriod4Start.Value > curTime
-                        || NonTradePeriod4End.Value < curTime)
+                    if (_nonTradePeriod4Start.Value > curTime
+                        || _nonTradePeriod4End.Value < curTime)
                     {
                         return true;
                     }
                 }
             }
 
-            if (NonTradePeriod5OnOff.ValueBool == true)
+            if (_nonTradePeriod5OnOff.ValueBool == true)
             {
-                if (NonTradePeriod5Start.Value < curTime
-                 && NonTradePeriod5End.Value > curTime)
+                if (_nonTradePeriod5Start.Value < curTime
+                 && _nonTradePeriod5End.Value > curTime)
                 {
                     return true;
                 }
 
-                if (NonTradePeriod5Start.Value > NonTradePeriod5End.Value)
+                if (_nonTradePeriod5Start.Value > _nonTradePeriod5End.Value)
                 { // overnight transfer
-                    if (NonTradePeriod5Start.Value > curTime
-                        || NonTradePeriod5End.Value < curTime)
+                    if (_nonTradePeriod5Start.Value > curTime
+                        || _nonTradePeriod5End.Value < curTime)
                     {
                         return true;
                     }
                 }
             }
 
-            if (TradeInMonday.ValueBool == false
+            if (_tradeInMonday.ValueBool == false
                 && curTime.DayOfWeek == DayOfWeek.Monday)
             {
                 return true;
             }
 
-            if (TradeInTuesday.ValueBool == false
+            if (_tradeInTuesday.ValueBool == false
                 && curTime.DayOfWeek == DayOfWeek.Tuesday)
             {
                 return true;
             }
 
-            if (TradeInWednesday.ValueBool == false
+            if (_tradeInWednesday.ValueBool == false
                 && curTime.DayOfWeek == DayOfWeek.Wednesday)
             {
                 return true;
             }
 
-            if (TradeInThursday.ValueBool == false
+            if (_tradeInThursday.ValueBool == false
                 && curTime.DayOfWeek == DayOfWeek.Thursday)
             {
                 return true;
             }
 
-            if (TradeInFriday.ValueBool == false
+            if (_tradeInFriday.ValueBool == false
                 && curTime.DayOfWeek == DayOfWeek.Friday)
             {
                 return true;
             }
 
-            if (TradeInSaturday.ValueBool == false
+            if (_tradeInSaturday.ValueBool == false
                 && curTime.DayOfWeek == DayOfWeek.Saturday)
             {
                 return true;
             }
 
-            if (TradeInSunday.ValueBool == false
+            if (_tradeInSunday.ValueBool == false
                 && curTime.DayOfWeek == DayOfWeek.Sunday)
             {
                 return true;
@@ -539,34 +564,34 @@ namespace OsEngine.Robots.Grids
 
         private void CopyNonTradePeriodsSettingsInGrid(TradeGrid grid)
         {
-            grid.NonTradeDays.TradeInMonday = TradeInMonday.ValueBool;
-            grid.NonTradeDays.TradeInTuesday = TradeInTuesday.ValueBool;
-            grid.NonTradeDays.TradeInWednesday = TradeInWednesday.ValueBool;
-            grid.NonTradeDays.TradeInThursday = TradeInThursday.ValueBool;
-            grid.NonTradeDays.TradeInFriday = TradeInFriday.ValueBool;
-            grid.NonTradeDays.TradeInSaturday = TradeInSaturday.ValueBool;
-            grid.NonTradeDays.TradeInSunday = TradeInSunday.ValueBool;
+            grid.NonTradeDays.TradeInMonday = _tradeInMonday.ValueBool;
+            grid.NonTradeDays.TradeInTuesday = _tradeInTuesday.ValueBool;
+            grid.NonTradeDays.TradeInWednesday = _tradeInWednesday.ValueBool;
+            grid.NonTradeDays.TradeInThursday = _tradeInThursday.ValueBool;
+            grid.NonTradeDays.TradeInFriday = _tradeInFriday.ValueBool;
+            grid.NonTradeDays.TradeInSaturday = _tradeInSaturday.ValueBool;
+            grid.NonTradeDays.TradeInSunday = _tradeInSunday.ValueBool;
             grid.NonTradeDays.NonTradeDaysRegime = TradeGridRegime.CloseForced;
 
-            grid.NonTradePeriods.NonTradePeriod1OnOff = NonTradePeriod1OnOff.ValueBool;
-            grid.NonTradePeriods.NonTradePeriod1Start = NonTradePeriod1Start.Value;
-            grid.NonTradePeriods.NonTradePeriod1End = NonTradePeriod1End.Value;
+            grid.NonTradePeriods.NonTradePeriod1OnOff = _nonTradePeriod1OnOff.ValueBool;
+            grid.NonTradePeriods.NonTradePeriod1Start = _nonTradePeriod1Start.Value;
+            grid.NonTradePeriods.NonTradePeriod1End = _nonTradePeriod1End.Value;
 
-            grid.NonTradePeriods.NonTradePeriod2OnOff = NonTradePeriod2OnOff.ValueBool;
-            grid.NonTradePeriods.NonTradePeriod2Start = NonTradePeriod2Start.Value;
-            grid.NonTradePeriods.NonTradePeriod2End = NonTradePeriod2End.Value;
+            grid.NonTradePeriods.NonTradePeriod2OnOff = _nonTradePeriod2OnOff.ValueBool;
+            grid.NonTradePeriods.NonTradePeriod2Start = _nonTradePeriod2Start.Value;
+            grid.NonTradePeriods.NonTradePeriod2End = _nonTradePeriod2End.Value;
 
-            grid.NonTradePeriods.NonTradePeriod3OnOff = NonTradePeriod3OnOff.ValueBool;
-            grid.NonTradePeriods.NonTradePeriod3Start = NonTradePeriod3Start.Value;
-            grid.NonTradePeriods.NonTradePeriod3End = NonTradePeriod3End.Value;
+            grid.NonTradePeriods.NonTradePeriod3OnOff = _nonTradePeriod3OnOff.ValueBool;
+            grid.NonTradePeriods.NonTradePeriod3Start = _nonTradePeriod3Start.Value;
+            grid.NonTradePeriods.NonTradePeriod3End = _nonTradePeriod3End.Value;
 
-            grid.NonTradePeriods.NonTradePeriod4OnOff = NonTradePeriod4OnOff.ValueBool;
-            grid.NonTradePeriods.NonTradePeriod4Start = NonTradePeriod4Start.Value;
-            grid.NonTradePeriods.NonTradePeriod4End = NonTradePeriod4End.Value;
+            grid.NonTradePeriods.NonTradePeriod4OnOff = _nonTradePeriod4OnOff.ValueBool;
+            grid.NonTradePeriods.NonTradePeriod4Start = _nonTradePeriod4Start.Value;
+            grid.NonTradePeriods.NonTradePeriod4End = _nonTradePeriod4End.Value;
 
-            grid.NonTradePeriods.NonTradePeriod5OnOff = NonTradePeriod5OnOff.ValueBool;
-            grid.NonTradePeriods.NonTradePeriod5Start = NonTradePeriod5Start.Value;
-            grid.NonTradePeriods.NonTradePeriod5End = NonTradePeriod5End.Value;
+            grid.NonTradePeriods.NonTradePeriod5OnOff = _nonTradePeriod5OnOff.ValueBool;
+            grid.NonTradePeriods.NonTradePeriod5Start = _nonTradePeriod5Start.Value;
+            grid.NonTradePeriods.NonTradePeriod5End = _nonTradePeriod5End.Value;
         }
 
         #endregion
