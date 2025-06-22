@@ -333,7 +333,7 @@ namespace OsEngine.Market.Servers.AE
                     newMarketDepth.Bids.Add(bidLevel);
 
                     newMarketDepth.SecurityNameCode = q.Ticker;
-                    newMarketDepth.Time = DateTime.UtcNow;
+                    newMarketDepth.Time = q.Timestamp;
 
                     if (newMarketDepth.Time == _lastMDTime)
                     {
@@ -351,7 +351,7 @@ namespace OsEngine.Market.Servers.AE
 
                     data.MarkIV = q.Volatility.ToString();
                     data.SecurityName = q.Ticker;
-                    data.TimeCreate = q.Timestamp.ToString();
+                    data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
                     data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
 
                     AdditionalMarketDataEvent(data);
@@ -625,13 +625,6 @@ namespace OsEngine.Market.Servers.AE
             {
                 _ws.Send(json);
             }
-        }
-
-        private enum SslProtocolsHack
-        {
-            Tls = 192,
-            Tls11 = 768,
-            Tls12 = 3072
         }
 
         private void CreateWebSocketConnection()
