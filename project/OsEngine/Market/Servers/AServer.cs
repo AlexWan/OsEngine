@@ -76,6 +76,8 @@ namespace OsEngine.Market.Servers
                 _serverRealization.NewsEvent += _serverRealization_NewsEvent;
 
                 _serverRealization.AdditionalMarketDataEvent += _serverRealization_AdditionalMarketDataEvent;
+                _serverRealization.FundingUpdateEvent += _serverRealization_FundingUpdateEvent;
+                _serverRealization.Volume24hUpdateEvent += _serverRealization_Volume24hUpdateEvent;
 
                 Load();
 
@@ -1464,6 +1466,26 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
+                    else if (!_fundingToSend.IsEmpty)
+                    {
+                        Funding data;
+
+                        if (_fundingToSend.TryDequeue(out data))
+                        {
+                            NewFundingEvent(data);
+                        }
+                    }
+
+                    else if (!_securityVolumesToSend.IsEmpty)
+                    {
+                        SecurityVolumes data;
+
+                        if (_securityVolumesToSend.TryDequeue(out data))
+                        {
+                            NewVolume24hUpdateEvent(data);
+                        }
+                    }
+
                     else
                     {
                         if (MainWindow.ProccesIsWorked == false)
@@ -1538,6 +1560,16 @@ namespace OsEngine.Market.Servers
         /// queue for Additional Market Data
         /// </summary>
         private ConcurrentQueue<OptionMarketDataForConnector> _additionalMarketDataToSend = new ConcurrentQueue<OptionMarketDataForConnector>();
+
+        /// <summary>
+        /// queue for Funding
+        /// </summary>
+        private ConcurrentQueue<Funding> _fundingToSend = new ConcurrentQueue<Funding>();
+
+        /// <summary>
+        /// queue for Volume24H
+        /// </summary>
+        private ConcurrentQueue<SecurityVolumes> _securityVolumesToSend = new ConcurrentQueue<SecurityVolumes>();
 
         #endregion
 
@@ -1745,7 +1777,7 @@ namespace OsEngine.Market.Servers
                     return _securities[i];
                 }
             }
-
+            
             return null;
         }
 
@@ -3769,6 +3801,60 @@ namespace OsEngine.Market.Servers
         /// new Additional Market Data
         /// </summary>
         public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+
+        private void _serverRealization_FundingUpdateEvent(Funding obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(obj.SecurityNameCode))
+                {
+                    return;
+                }
+
+                _fundingToSend.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// new Funding data
+        /// </summary>
+        public event Action<Funding> NewFundingEvent;
+
+        private void _serverRealization_Volume24hUpdateEvent(SecurityVolumes obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(obj.SecurityNameCode))
+                {
+                    return;
+                }
+
+                _securityVolumesToSend.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// new Volumes 24h data
+        /// </summary>
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
 
         #endregion
     }

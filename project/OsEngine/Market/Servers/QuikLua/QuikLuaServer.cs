@@ -963,6 +963,10 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public event Action<News> NewsEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
 
         #region 7 Parsing incoming data

@@ -578,7 +578,9 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
     }
 
     public enum KrakenLeverageType

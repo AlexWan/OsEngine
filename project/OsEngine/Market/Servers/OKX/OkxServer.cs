@@ -2975,6 +2975,11 @@ namespace OsEngine.Market.Servers.OKX
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
+
         #endregion
     }
 }

@@ -2299,6 +2299,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
     }
 }

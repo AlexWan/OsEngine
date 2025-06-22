@@ -93,6 +93,8 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string fundingInterval { get; set; }
         public string settleCoin { get; set; }
         public string copyTrading { get; set; }
+        public string upperFundingRate { get; set; }
+        public string lowerFundingRate { get; set; }
     }
 
     public class LotSizeFilter

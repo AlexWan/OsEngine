@@ -4450,6 +4450,12 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<Funding> NewFundingEvent;
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
+
         #endregion
     }
 

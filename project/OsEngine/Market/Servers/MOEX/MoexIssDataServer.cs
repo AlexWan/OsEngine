@@ -784,6 +784,10 @@ namespace OsEngine.Market.Servers.MOEX
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
         public event Action<Trade> NewTradesEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
     }
 }

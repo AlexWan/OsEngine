@@ -19,6 +19,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
+using static Kraken.WebSockets.KrakenApi;
 
 
 namespace OsEngine.Market.Servers.Bybit
@@ -38,8 +39,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
-            CreateParameterEnum("Open interest", "On", new List<string> { "On", "Off" });
-
+            CreateParameterEnum("Open Interest", "On", new List<string> { "On", "Off" });
         }
     }
 
@@ -1942,6 +1942,7 @@ namespace OsEngine.Market.Servers.Bybit
                         if (_oi)
                         {
                             webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".P", "")}\" ] }}");
+                            GetFundingData(security.Name.Replace(".P", ""));
                         }
                     }
 
@@ -2013,6 +2014,48 @@ namespace OsEngine.Market.Servers.Bybit
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
+        private void GetFundingData(string security)
+        {
+            try
+            {
+                Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs.Add("symbol", security);
+                parametrs.Add("category", Category.linear);
+
+                string message = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
+
+                var responseSymbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(message);
+
+                if (responseSymbols != null
+                    && responseSymbols.retCode == "0"
+                    && responseSymbols.retMsg == "OK")
+                {
+                    Symbols item = responseSymbols.result.list[0];
+
+                    string sec = item.symbol + ".P";
+
+                    Funding data = new Funding();
+
+                    data.SecurityNameCode = sec;
+                    int.TryParse(item.fundingInterval, out data.FundingIntervalHours);
+                    data.MaxFundingRate = item.upperFundingRate.ToDecimal();
+                    data.MinFundingRate = item.lowerFundingRate.ToDecimal();
+                    data.FundingIntervalHours = data.FundingIntervalHours / 60;
+
+                    FundingUpdateEvent?.Invoke(data);
+                }
+                else
+                {
+                    SendLogMessage($"Linear securities error. Code: {responseSymbols.retCode}\n"
+                        + $"Message: {responseSymbols.retMsg}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetFundingData error. {ex.ToString()}", LogMessageType.Error);
+            }
+        }
+
 
         private void DisposePrivateWebSocket()
         {
@@ -3145,12 +3188,11 @@ namespace OsEngine.Market.Servers.Bybit
                                  JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<ResponseTicker>());
 
                 if (responseTicker == null
-                    || responseTicker.data == null
-                    || responseTicker.data.openInterestValue == null)
+                    || responseTicker.data == null)
                 {
                     return;
                 }
-
+                                
                 Tickers tickers = new Tickers();
 
                 if (category == Category.linear)
@@ -3162,24 +3204,46 @@ namespace OsEngine.Market.Servers.Bybit
                     tickers.SecutityName = responseTicker.data.symbol + ".I";
                 }
 
-                tickers.OpenInterest = responseTicker.data.openInterestValue;
-
-                bool isInArray = false;
-
-                for (int i = 0; i < _allTickers.Count; i++)
+                if (responseTicker.data.openInterestValue != null)
                 {
-                    if (_allTickers[i].SecutityName == tickers.SecutityName)
+                    tickers.OpenInterest = responseTicker.data.openInterestValue;
+
+                    bool isInArray = false;
+
+                    for (int i = 0; i < _allTickers.Count; i++)
                     {
-                        _allTickers[i].OpenInterest = tickers.OpenInterest;
-                        isInArray = true;
-                        break;
+                        if (_allTickers[i].SecutityName == tickers.SecutityName)
+                        {
+                            _allTickers[i].OpenInterest = tickers.OpenInterest;
+                            isInArray = true;
+                            break;
+                        }
                     }
-                }
 
-                if (isInArray == false)
-                {
-                    _allTickers.Add(tickers);
-                }
+                    if (isInArray == false)
+                    {
+                        _allTickers.Add(tickers);
+                    }
+                }                
+
+                Funding funding = new Funding();
+
+                ResponseTicker item = responseTicker.data;
+
+                funding.SecurityNameCode = tickers.SecutityName;
+                funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
+                funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());                
+                funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
+
+                FundingUpdateEvent?.Invoke(funding);
+
+                SecurityVolumes volume = new SecurityVolumes();
+
+                volume.SecurityNameCode = tickers.SecutityName;
+                volume.Volume24h = item.volume24h.ToDecimal();
+                volume.Volume24hUSDT = item.turnover24h.ToDecimal();
+
+                Volume24hUpdateEvent?.Invoke(volume);
             }
             catch (Exception ex)
             {
@@ -3188,6 +3252,11 @@ namespace OsEngine.Market.Servers.Bybit
         }
 
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
 
         #endregion 10
 
@@ -4292,7 +4361,7 @@ namespace OsEngine.Market.Servers.Bybit
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
+        
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent?.Invoke(message, messageType);
