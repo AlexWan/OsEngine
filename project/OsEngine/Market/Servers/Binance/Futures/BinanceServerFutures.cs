@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             CreateParameterBoolean("HedgeMode", false);
             ServerParameters[3].ValueChange += BinanceServerFutures_ValueChange;
             CreateParameterBoolean("Demo Account", false);
-            CreateParameterBoolean("Open Interest", false);            
+            CreateParameterBoolean("Extended Data", false);            
         }
 
         private void BinanceServerFutures_ValueChange()
@@ -155,11 +155,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             if (((ServerParameterBool)ServerParameters[5]).Value == true)
             {
-                _publicMarketData = true;
+                _extendedMarketData = true;
             }
             else
             {
-                _publicMarketData = false;
+                _extendedMarketData = false;
             }
 
             ActivateSockets();
@@ -216,7 +216,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         public string SecretKey;
 
-        private bool _publicMarketData;
+        private bool _extendedMarketData;
 
         public bool HedgeMode
         {
@@ -1617,7 +1617,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                  + "/" + security.Name.ToLower() + "@trade";
             }
 
-            if (_publicMarketData)
+            if (_extendedMarketData)
             {
                 urlStrDepth += "/" + security.Name.ToLower() + "@markPrice" + "/" + security.Name.ToLower() + "@miniTicker";
 

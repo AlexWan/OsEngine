@@ -12,7 +12,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 
-namespace OsEngine.Robots.FundingSamples
+namespace OsEngine.Robots.Funding
 {
     [Bot("TestBotFunding")]
     public class TestBotFunding : BotPanel
