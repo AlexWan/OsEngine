@@ -130,7 +130,7 @@ namespace OsEngine.Robots.AutoTestBots
             string[] columns =
             [
                 "Name", "Class", "Full Name", "Name ID", "Current Funding", "Time next funding", "Funding Interval Hours", "Max Funding Rate", "Min Funding Rate",
-                "Volume 24h", "Turnover 24h", "Open Interest", "Time Update"
+                "Volume 24h", "Volume 24h USDT", "Open Interest", "Time Update"
             ];
 
             for (int i = 0; i < columns.Length; i++)
@@ -218,15 +218,15 @@ namespace OsEngine.Robots.AutoTestBots
             }
 
             if (_grid.Rows[row].Cells[9].Value == null ||
-                _grid.Rows[row].Cells[9].Value.ToString() != tab.Volume24h.ToString())
+                _grid.Rows[row].Cells[9].Value.ToString() != tab.SecurityVolumes.Volume24h.ToString())
             {
-                _grid.Rows[row].Cells[9].Value = tab.Volume24h;
+                _grid.Rows[row].Cells[9].Value = tab.SecurityVolumes.Volume24h;
             }
 
             if (_grid.Rows[row].Cells[10].Value == null ||
-                _grid.Rows[row].Cells[10].Value.ToString() != tab.Turnover24h.ToString())
+                _grid.Rows[row].Cells[10].Value.ToString() != tab.SecurityVolumes.Volume24hUSDT.ToString())
             {
-                _grid.Rows[row].Cells[10].Value = tab.Turnover24h;
+                _grid.Rows[row].Cells[10].Value = tab.SecurityVolumes.Volume24hUSDT;
             }
 
             if (_grid.Rows[row].Cells[11].Value == null ||

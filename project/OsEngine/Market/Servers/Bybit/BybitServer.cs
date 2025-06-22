@@ -39,8 +39,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
-            CreateParameterEnum("Public Market Data", "On", new List<string> { "On", "Off" });
-
+            CreateParameterEnum("Open Interest", "On", new List<string> { "On", "Off" });
         }
     }
 
@@ -2035,16 +2034,15 @@ namespace OsEngine.Market.Servers.Bybit
 
                     string sec = item.symbol + ".P";
 
-                    PublicMarketData data = new PublicMarketData();
+                    Funding data = new Funding();
 
-                    data.SecurityName = sec;
-                    int.TryParse(item.fundingInterval, out data.Funding.FundingIntervalHours);
-                    data.Funding.MaxFundingRate = item.upperFundingRate.ToDecimal();
-                    data.Funding.MinFundingRate = item.lowerFundingRate.ToDecimal();
+                    data.SecurityNameCode = sec;
+                    int.TryParse(item.fundingInterval, out data.FundingIntervalHours);
+                    data.MaxFundingRate = item.upperFundingRate.ToDecimal();
+                    data.MinFundingRate = item.lowerFundingRate.ToDecimal();
+                    data.FundingIntervalHours = data.FundingIntervalHours / 60;
 
-                    data.Funding.FundingIntervalHours = data.Funding.FundingIntervalHours / 60;
-
-                    PublicMarketDataEvent?.Invoke(data);
+                    FundingUpdateEvent?.Invoke(data);
                 }
                 else
                 {
@@ -3228,18 +3226,24 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }                
 
-                PublicMarketData data = new PublicMarketData();
+                Funding funding = new Funding();
 
                 ResponseTicker item = responseTicker.data;
 
-                data.SecurityName = tickers.SecutityName;
-                data.Funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
-                data.Funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
-                data.Volume24h = item.volume24h.ToDecimal();
-                data.Turnover24h = item.turnover24h.ToDecimal();
-                data.Funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
+                funding.SecurityNameCode = tickers.SecutityName;
+                funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
+                funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());                
+                funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
 
-                PublicMarketDataEvent?.Invoke(data);
+                FundingUpdateEvent?.Invoke(funding);
+
+                SecurityVolumes volume = new SecurityVolumes();
+
+                volume.SecurityNameCode = tickers.SecutityName;
+                volume.Volume24h = item.volume24h.ToDecimal();
+                volume.Volume24hUSDT = item.turnover24h.ToDecimal();
+
+                Volume24hUpdateEvent?.Invoke(volume);
             }
             catch (Exception ex)
             {
@@ -3249,7 +3253,10 @@ namespace OsEngine.Market.Servers.Bybit
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<PublicMarketData> PublicMarketDataEvent;
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
 
         #endregion 10
 
@@ -4354,7 +4361,7 @@ namespace OsEngine.Market.Servers.Bybit
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
+        
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent?.Invoke(message, messageType);

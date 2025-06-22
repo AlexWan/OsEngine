@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             CreateParameterBoolean("HedgeMode", false);
             ServerParameters[3].ValueChange += BinanceServerFutures_ValueChange;
             CreateParameterBoolean("Demo Account", false);
-            CreateParameterBoolean("Public Market Data", false);            
+            CreateParameterBoolean("Open Interest", false);            
         }
 
         private void BinanceServerFutures_ValueChange()
@@ -1649,18 +1649,18 @@ namespace OsEngine.Market.Servers.Binance.Futures
                               
                 List<FundingInfo> response = JsonConvert.DeserializeAnonymousType(res, new List<FundingInfo>());
 
-                PublicMarketData data = new PublicMarketData();
+                Funding data = new Funding();
 
                 for (int i = 0; i < response.Count; i++)
                 {
                     if (response[i].symbol == security)
                     {
-                        data.SecurityName = response[i].symbol;
-                        data.Funding.MinFundingRate = response[i].adjustedFundingRateFloor.ToDecimal();
-                        data.Funding.MaxFundingRate = response[i].adjustedFundingRateCap.ToDecimal();
-                        int.TryParse(response[i].fundingIntervalHours, out data.Funding.FundingIntervalHours);
+                        data.SecurityNameCode = response[i].symbol;
+                        data.MinFundingRate = response[i].adjustedFundingRateFloor.ToDecimal();
+                        data.MaxFundingRate = response[i].adjustedFundingRateCap.ToDecimal();
+                        int.TryParse(response[i].fundingIntervalHours, out data.FundingIntervalHours);
 
-                        PublicMarketDataEvent?.Invoke(data);
+                        FundingUpdateEvent?.Invoke(data);
 
                         break;
                     }
@@ -1681,12 +1681,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 List<FundingHistory> response = JsonConvert.DeserializeAnonymousType(res, new List<FundingHistory>());
 
-                PublicMarketData data = new PublicMarketData();
+                Funding data = new Funding();
 
-                data.SecurityName = response[^1].symbol;
-                data.Funding.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)response[^1].fundingTime.ToDecimal());
+                data.SecurityNameCode = response[^1].symbol;
+                data.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)response[^1].fundingTime.ToDecimal());
 
-                PublicMarketDataEvent?.Invoke(data);
+                FundingUpdateEvent?.Invoke(data);
             }
             catch (Exception exception)
             {
@@ -1742,13 +1742,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
                             {
                                 PublicMarketDataResponse<PublicMarketDataFunding> markPriceUpdate = 
                                     JsonConvert.DeserializeAnonymousType(mes, new PublicMarketDataResponse<PublicMarketDataFunding>());
-                                UpdatePublicMarketDataFunding(markPriceUpdate);
+                                UpdateFunding(markPriceUpdate);
                             }
                             else if (mes.Contains("\"e\":\"24hrMiniTicker\"")) // 24hr rolling window mini-ticker statistics
                             {
                                 PublicMarketDataResponse<PublicMarketDataVolume24h> markPriceUpdate = 
                                     JsonConvert.DeserializeAnonymousType(mes, new PublicMarketDataResponse<PublicMarketDataVolume24h>());
-                                UpdatePublicMarketDataVolume24h(markPriceUpdate);
+                                UpdateVolume24h(markPriceUpdate);
                             }
                             else if (mes.Contains("error"))
                             {
@@ -2309,20 +2309,20 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        private void UpdatePublicMarketDataFunding(PublicMarketDataResponse<PublicMarketDataFunding> response)
+        private void UpdateFunding(PublicMarketDataResponse<PublicMarketDataFunding> response)
         {
             try
             {
-                PublicMarketData data = new PublicMarketData();
+                Funding data = new Funding();
 
                 PublicMarketDataFunding item = response.data;
 
-                data.SecurityName = item.s;
-                data.Funding.CurrentValue = item.r.ToDecimal() * 100;
-                data.Funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.T.ToDecimal());
-                data.Funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.E.ToDecimal());
+                data.SecurityNameCode = item.s;
+                data.CurrentValue = item.r.ToDecimal() * 100;
+                data.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.T.ToDecimal());
+                data.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.E.ToDecimal());
 
-                PublicMarketDataEvent?.Invoke(data);
+                FundingUpdateEvent?.Invoke(data);
             }
             catch (Exception error)
             {
@@ -2330,20 +2330,20 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        private void UpdatePublicMarketDataVolume24h(PublicMarketDataResponse<PublicMarketDataVolume24h> response)
+        private void UpdateVolume24h(PublicMarketDataResponse<PublicMarketDataVolume24h> response)
         {
             try
             {
-                PublicMarketData data = new PublicMarketData();
+                SecurityVolumes data = new SecurityVolumes();
 
                 PublicMarketDataVolume24h item = response.data;
 
-                data.SecurityName = item.s;
+                data.SecurityNameCode = item.s;
                 data.Volume24h = item.v.ToDecimal();
-                data.Turnover24h = item.q.ToDecimal();
-                data.Funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.E.ToDecimal());
+                data.Volume24hUSDT = item.q.ToDecimal();
+                data.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.E.ToDecimal());
 
-                PublicMarketDataEvent?.Invoke(data);
+                Volume24hUpdateEvent?.Invoke(data);
             }
             catch (Exception error)
             {
@@ -3007,7 +3007,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-        public event Action<PublicMarketData> PublicMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

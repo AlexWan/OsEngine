@@ -198,9 +198,15 @@ namespace OsEngine.Market.Servers
 
         /// <summary>
         /// new public market data
-        /// новые данные по публичным данным по тикеру
+        /// новые данные по фандингу
         /// </summary>
-        event Action<PublicMarketData> NewPublicMarketDataEvent;
+        event Action<Funding> NewFundingEvent;
+
+        /// <summary>
+        /// new public market data
+        /// новые данные по объемам за 24 часа
+        /// </summary>
+        event Action<SecurityVolumes> NewVolume24hUpdateEvent;
 
         #endregion
 

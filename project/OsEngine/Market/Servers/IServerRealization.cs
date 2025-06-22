@@ -133,10 +133,16 @@ namespace OsEngine.Market.Servers
         event Action<Trade> NewTradesEvent;
 
         /// <summary>
-        /// Public data
-        /// Публичные биржевые данные по инструменту
+        /// Funding data
+        /// данные по фандингу
         /// </summary>
-        event Action<PublicMarketData> PublicMarketDataEvent;
+        event Action<Funding> FundingUpdateEvent;
+
+        /// <summary>
+        /// Volumes 24h data
+        /// данные по объемам за 24 часа
+        /// </summary>
+        event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 

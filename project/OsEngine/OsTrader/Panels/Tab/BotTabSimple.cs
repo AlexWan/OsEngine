@@ -61,7 +61,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.ConnectorStartedReconnectEvent += _connector_ConnectorStartedReconnectEvent;
                 _connector.SecuritySubscribeEvent += _connector_SecuritySubscribeEvent;
                 _connector.DialogClosed += _connector_DialogClosed;
-                _connector.PublicMarketDataChangedEvent += _connector_PublicMarketDataChangedEvent;
+                _connector.FundingChangedEvent += _connector_FundingChangedEvent;
+                _connector.NewVolume24hChangedEvent += _connector_NewVolume24hChangedEvent;
 
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
@@ -381,7 +382,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector.SecuritySubscribeEvent -= _connector_SecuritySubscribeEvent;
                     _connector.DialogClosed -= _connector_DialogClosed;
-                    _connector.PublicMarketDataChangedEvent -= _connector_PublicMarketDataChangedEvent;
+                    _connector.FundingChangedEvent -= _connector_FundingChangedEvent;
+                    _connector.NewVolume24hChangedEvent -= _connector_NewVolume24hChangedEvent;
 
                     _connector = null;
                 }
@@ -6926,16 +6928,23 @@ namespace OsEngine.OsTrader.Panels.Tab
             }
         }
 
-        private void _connector_PublicMarketDataChangedEvent(PublicMarketData data)
+        private void _connector_NewVolume24hChangedEvent(SecurityVolumes data)
         {
-            _funding.CurrentValue = data.Funding.CurrentValue;
-            _funding.NextFundingTime = data.Funding.NextFundingTime;
-            _funding.FundingIntervalHours = data.Funding.FundingIntervalHours;
-            _funding.MaxFundingRate = data.Funding.MaxFundingRate;
-            _funding.MinFundingRate = data.Funding.MinFundingRate;
-            _funding.TimeUpdate = data.Funding.TimeUpdate;
-            _volume24h = data.Volume24h;
-            _turnover24h = data.Turnover24h;
+            _securityVolumes.SecurityNameCode = data.SecurityNameCode;
+            _securityVolumes.Volume24h = data.Volume24h;
+            _securityVolumes.Volume24hUSDT = data.Volume24hUSDT;
+            _securityVolumes.TimeUpdate = data.TimeUpdate;
+        }
+
+        private void _connector_FundingChangedEvent(Funding data)
+        {
+            _funding.SecurityNameCode = data.SecurityNameCode;
+            _funding.CurrentValue = data.CurrentValue;
+            _funding.NextFundingTime = data.NextFundingTime;
+            _funding.FundingIntervalHours = data.FundingIntervalHours;
+            _funding.MaxFundingRate = data.MaxFundingRate;
+            _funding.MinFundingRate = data.MinFundingRate;
+            _funding.TimeUpdate = data.TimeUpdate;
         }
 
         /// <summary>
@@ -6951,22 +6960,12 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Volume24h
         /// </summary>
-        public decimal Volume24h
+        public SecurityVolumes SecurityVolumes
         {
-            get { return _volume24h; }
+            get { return _securityVolumes; }
         }
 
-        private decimal _volume24h;
-
-        /// <summary>
-        /// Turnover24h
-        /// </summary>
-        public decimal Turnover24h
-        {
-            get { return _turnover24h; }
-        }
-
-        private decimal _turnover24h;
+        private SecurityVolumes _securityVolumes = new SecurityVolumes();
 
         // Outgoing events. Handlers for strategy
 
