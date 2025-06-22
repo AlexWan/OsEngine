@@ -578,6 +578,10 @@ namespace OsEngine.Market.Servers.TelegramNews
         public event Action<MyTrade> MyTradeEvent;
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
     }
 }

@@ -2848,6 +2848,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
     }
 

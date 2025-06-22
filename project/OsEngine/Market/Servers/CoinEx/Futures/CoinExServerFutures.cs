@@ -1868,6 +1868,10 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         private void SendLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)

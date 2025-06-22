@@ -958,6 +958,10 @@ namespace OsEngine.Market.Servers.BitMax
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         /// <summary>
         /// an auxiliary object that combines the order number in the osEngine, the order id on the exchange and the request id to cancel the order,
         /// It also stores the current open volume for the correct calculation of the volume of trades.

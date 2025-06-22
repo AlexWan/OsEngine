@@ -61,6 +61,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _connector.ConnectorStartedReconnectEvent += _connector_ConnectorStartedReconnectEvent;
                 _connector.SecuritySubscribeEvent += _connector_SecuritySubscribeEvent;
                 _connector.DialogClosed += _connector_DialogClosed;
+                _connector.FundingChangedEvent += _connector_FundingChangedEvent;
+                _connector.NewVolume24hChangedEvent += _connector_NewVolume24hChangedEvent;
 
                 if (startProgram != StartProgram.IsOsOptimizer)
                 {
@@ -380,6 +382,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector.SecuritySubscribeEvent -= _connector_SecuritySubscribeEvent;
                     _connector.DialogClosed -= _connector_DialogClosed;
+                    _connector.FundingChangedEvent -= _connector_FundingChangedEvent;
+                    _connector.NewVolume24hChangedEvent -= _connector_NewVolume24hChangedEvent;
 
                     _connector = null;
                 }
@@ -6923,6 +6927,45 @@ namespace OsEngine.OsTrader.Panels.Tab
                 SetNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
+
+        private void _connector_NewVolume24hChangedEvent(SecurityVolumes data)
+        {
+            _securityVolumes.SecurityNameCode = data.SecurityNameCode;
+            _securityVolumes.Volume24h = data.Volume24h;
+            _securityVolumes.Volume24hUSDT = data.Volume24hUSDT;
+            _securityVolumes.TimeUpdate = data.TimeUpdate;
+        }
+
+        private void _connector_FundingChangedEvent(Funding data)
+        {
+            _funding.SecurityNameCode = data.SecurityNameCode;
+            _funding.CurrentValue = data.CurrentValue;
+            _funding.NextFundingTime = data.NextFundingTime;
+            _funding.FundingIntervalHours = data.FundingIntervalHours;
+            _funding.MaxFundingRate = data.MaxFundingRate;
+            _funding.MinFundingRate = data.MinFundingRate;
+            _funding.TimeUpdate = data.TimeUpdate;
+        }
+
+        /// <summary>
+        /// Data of Funding
+        /// </summary>
+        public Funding Funding
+        {
+            get { return _funding; }
+        }
+
+        private Funding _funding = new Funding();
+
+        /// <summary>
+        /// Volume24h
+        /// </summary>
+        public SecurityVolumes SecurityVolumes
+        {
+            get { return _securityVolumes; }
+        }
+
+        private SecurityVolumes _securityVolumes = new SecurityVolumes();
 
         // Outgoing events. Handlers for strategy
 

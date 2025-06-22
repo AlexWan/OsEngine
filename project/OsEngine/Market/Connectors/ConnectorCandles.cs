@@ -1046,6 +1046,8 @@ namespace OsEngine.Market.Connectors
             server.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
             server.NewAdditionalMarketDataEvent -= Server_NewAdditionalMarketDataEvent;
+            server.NewFundingEvent -= Server_NewFundingEvent;
+            server.NewVolume24hUpdateEvent -= Server_NewVolume24hUpdateEvent;
         }
 
         private void SubscribeOnServer(IServer server)
@@ -1060,6 +1062,8 @@ namespace OsEngine.Market.Connectors
             server.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
             server.PortfoliosChangeEvent -= Server_PortfoliosChangeEvent;
             server.NewAdditionalMarketDataEvent -= Server_NewAdditionalMarketDataEvent;
+            server.NewFundingEvent -= Server_NewFundingEvent;
+            server.NewVolume24hUpdateEvent -= Server_NewVolume24hUpdateEvent;
 
             if (NeedToLoadServerData)
             {
@@ -1072,6 +1076,8 @@ namespace OsEngine.Market.Connectors
                 server.CancelOrderFailEvent += _myServer_CancelOrderFailEvent;
                 server.PortfoliosChangeEvent += Server_PortfoliosChangeEvent;
                 server.NewAdditionalMarketDataEvent += Server_NewAdditionalMarketDataEvent;
+                server.NewFundingEvent += Server_NewFundingEvent;
+                server.NewVolume24hUpdateEvent += Server_NewVolume24hUpdateEvent;
             }
 
             server.NeedToReconnectEvent += _myServer_NeedToReconnectEvent;
@@ -1091,7 +1097,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// test finished. Event from tester
         /// </summary>
-        private void Connector_TestingEndEvent()
+        void Connector_TestingEndEvent()
         {
             try
             {
@@ -1506,6 +1512,132 @@ namespace OsEngine.Market.Connectors
             }
         }
 
+        private void Server_NewVolume24hUpdateEvent(SecurityVolumes data)
+        {
+            if (_securityName != data.SecurityNameCode)
+            {
+                return;
+            }
+
+            _securityVolumes.SecurityNameCode = data.SecurityNameCode;
+
+            bool isChange = false;
+
+            if (data.Volume24h != 0 && _securityVolumes.Volume24h != data.Volume24h)
+            {
+                _securityVolumes.Volume24h = data.Volume24h;
+                isChange = true;
+            }
+
+            if (data.Volume24hUSDT != 0 && _securityVolumes.Volume24hUSDT != data.Volume24hUSDT)
+            {
+                _securityVolumes.Volume24hUSDT = data.Volume24hUSDT;
+                isChange = true;
+            }
+
+            if (isChange)
+            {
+                if (data.TimeUpdate != new DateTime(1970, 1, 1, 0, 0, 0) && _securityVolumes.TimeUpdate != data.TimeUpdate)
+                {
+                    _securityVolumes.TimeUpdate = data.TimeUpdate;
+                }
+
+                SecurityVolumes marketData = new SecurityVolumes();
+
+                marketData.SecurityNameCode = _securityVolumes.SecurityNameCode;
+                marketData.Volume24h = _securityVolumes.Volume24h;
+                marketData.Volume24hUSDT = _securityVolumes.Volume24hUSDT;
+                marketData.TimeUpdate = _securityVolumes.TimeUpdate;
+
+                NewVolume24hChangedEvent?.Invoke(marketData);
+            }
+        }
+
+        private void Server_NewFundingEvent(Funding data)
+        {
+            if (_securityName != data.SecurityNameCode)
+            {
+                return;
+            }
+
+            _funding.SecurityNameCode = data.SecurityNameCode;
+
+            bool isChange = false;
+
+            if (data.CurrentValue != 0 && _funding.CurrentValue != data.CurrentValue)
+            {
+                _funding.CurrentValue = data.CurrentValue;
+                isChange = true;
+            }
+
+            if (data.NextFundingTime != new DateTime(1970, 1, 1, 0, 0, 0) && _funding.NextFundingTime != data.NextFundingTime)
+            {
+                _funding.NextFundingTime = data.NextFundingTime;
+                isChange = true;
+            }
+
+            if (data.PreviousValue != 0 && _funding.PreviousValue != data.PreviousValue)
+            {
+                _funding.PreviousValue = data.PreviousValue;
+                isChange = true;
+            }
+
+            if (data.PreviousFundingTime != new DateTime(1970, 1, 1, 0, 0, 0) && _funding.PreviousFundingTime != data.PreviousFundingTime)
+            {
+                _funding.PreviousFundingTime = data.PreviousFundingTime;
+                isChange = true;
+            }
+
+            if (data.MaxFundingRate != 0 && _funding.MaxFundingRate != data.MaxFundingRate)
+            {
+                _funding.MaxFundingRate = data.MaxFundingRate;
+                isChange = true;
+            }
+
+            if (data.MinFundingRate != 0 && _funding.MinFundingRate != data.MinFundingRate)
+            {
+                _funding.MinFundingRate = data.MinFundingRate;
+                isChange = true;
+            }
+                        
+            if (_funding.NextFundingTime > new DateTime(1970, 1, 1, 0, 0, 0) &&
+                _funding.PreviousFundingTime > new DateTime(1970, 1, 1, 0, 0, 0) &&
+                _funding.FundingIntervalHours == 0)
+            {
+                _funding.NextFundingTime = _funding.NextFundingTime.AddMilliseconds(-_funding.NextFundingTime.Millisecond);
+                _funding.PreviousFundingTime = _funding.PreviousFundingTime.AddMilliseconds(-_funding.PreviousFundingTime.Millisecond);
+
+                _funding.FundingIntervalHours = (_funding.NextFundingTime - _funding.PreviousFundingTime).Hours;
+                isChange = true;
+            }
+
+            if (_funding.FundingIntervalHours == 0 && data.FundingIntervalHours != 0)
+            {
+                _funding.FundingIntervalHours = data.FundingIntervalHours;
+                isChange = true;
+            }
+
+            if (isChange)
+            {
+                if (data.TimeUpdate != new DateTime(1970, 1, 1, 0, 0, 0) && _funding.TimeUpdate != data.TimeUpdate)
+                {
+                    _funding.TimeUpdate = data.TimeUpdate;
+                }
+
+                Funding marketData = new Funding();
+
+                marketData.SecurityNameCode = _funding.SecurityNameCode;
+                marketData.CurrentValue = _funding.CurrentValue;
+                marketData.NextFundingTime = _funding.NextFundingTime;
+                marketData.FundingIntervalHours = _funding.FundingIntervalHours;
+                marketData.MaxFundingRate = _funding.MaxFundingRate;
+                marketData.MinFundingRate = _funding.MinFundingRate;
+                marketData.TimeUpdate = _funding.TimeUpdate;               
+
+                FundingChangedEvent?.Invoke(marketData);
+            }
+        }
+
         #endregion
 
         #region Trade data access interface
@@ -1617,10 +1749,30 @@ namespace OsEngine.Market.Connectors
         public OptionMarketData OptionMarketData
         {
             get { return _optionMarketData; }
-
         }
+
         private OptionMarketData _optionMarketData = new OptionMarketData();
 
+        /// <summary>
+        /// Data of Funding
+        /// </summary>
+        public Funding Funding
+        {
+            get { return _funding; }
+        }
+
+        private Funding _funding = new Funding();
+
+        /// <summary>
+        /// Volume24h
+        /// </summary>
+        public SecurityVolumes SecurityVolumes
+        {
+            get { return _securityVolumes; }
+        }
+
+        private SecurityVolumes _securityVolumes = new SecurityVolumes();
+              
         #endregion
 
         #region Orders
@@ -1891,6 +2043,16 @@ namespace OsEngine.Market.Connectors
         /// portfolio on exchange changed
         /// </summary>
         public event Action<Portfolio> PortfolioOnExchangeChangedEvent;
+
+        /// <summary>
+        /// funding data is changed
+        /// </summary>
+        public event Action<Funding> FundingChangedEvent;
+
+        /// <summary>
+        /// volumes 24h data is changed
+        /// </summary>
+        public event Action<SecurityVolumes> NewVolume24hChangedEvent;
 
         #endregion
 

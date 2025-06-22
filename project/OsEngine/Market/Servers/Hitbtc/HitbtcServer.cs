@@ -847,6 +847,10 @@ namespace OsEngine.Market.Servers.Hitbtc
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
         #endregion
 
         public void CancelAllOrdersToSecurity(Security security)

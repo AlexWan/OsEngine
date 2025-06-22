@@ -2614,6 +2614,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
 
             public event Action<string, LogMessageType> LogMessageEvent;
 
+            public event Action<Funding> FundingUpdateEvent;
+
+            public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
             #endregion
         }
     }
