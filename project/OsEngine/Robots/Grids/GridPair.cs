@@ -96,8 +96,6 @@ namespace OsEngine.Robots.Grids
 
             this.ParametrsChangeByUser += GridBollingerScreener_ParametrsChangeByUser;
 
-
-
             /* Description
             Market maker's grid for trading in a pair.
             A graph of minimum residuals from the difference of two price series with an optimal multiplier is calculated.
