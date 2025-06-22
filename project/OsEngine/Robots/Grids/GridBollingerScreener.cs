@@ -52,8 +52,8 @@ namespace OsEngine.Robots.Grids
             _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
-            _bollingerLen = CreateParameter("Bollinger length", 50, 0, 20, 1);
-            _bollingerDev = CreateParameter("Bollinger deviation", 2m, 0, 20, 1m);
+            _bollingerLen = CreateParameter("Bollinger length", 50, 15, 20, 1);
+            _bollingerDev = CreateParameter("Bollinger deviation", 2m, 1.2m, 20, 1m);
 
             _adxFilterLength = CreateParameter("ADX filter Len", 30, 10, 100, 3);
             _minAdxValue = CreateParameter("ADX min value", 10, 20, 90, 1m);
