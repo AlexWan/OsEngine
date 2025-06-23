@@ -30,7 +30,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterEnum("Margin Mode", "Crossed", new List<string> { "Crossed", "Isolated" });
             CreateParameterBoolean("Demo Trading", false);
-            CreateParameterEnum("Open interest", "Off", new List<string> { "On", "Off" });
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -61,10 +61,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             threadGetPortfolios.Name = "ThreadBitGetFuturesPortfolios";
             threadGetPortfolios.Start();
 
-            Thread threadGetOpenInterest = new Thread(ThreadGetOpenInterest);
-            threadGetOpenInterest.IsBackground = true;
-            threadGetOpenInterest.Name = "ThreadBitGetFuturesOpenInterest";
-            threadGetOpenInterest.Start();
+            Thread threadExtendedData = new Thread(ThreadExtendedData);
+            threadExtendedData.IsBackground = true;
+            threadExtendedData.Name = "ThreadBitGetFuturesExtendedData";
+            threadExtendedData.Start();
         }
 
         private WebProxy _myProxy;
@@ -114,13 +114,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 _marginMode = "isolated";
             }
 
-            if (((ServerParameterEnum)ServerParameters[6]).Value == "On")
+            if (((ServerParameterBool)ServerParameters[6]).Value == true)
             {
-                _oi = true;
+                _extendedMarketData = true;
             }
             else
             {
-                _oi = false;
+                _extendedMarketData = false;
             }
 
             try
@@ -237,7 +237,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private string _marginMode = "crossed";
 
-        private bool _oi;
+        private bool _extendedMarketData;
 
         private Dictionary<string, List<string>> _allPositions = new Dictionary<string, List<string>>();
 
@@ -2240,7 +2240,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 trade.Volume = responseTrade.data[0].size.ToDecimal();
                 trade.Side = responseTrade.data[0].side.Equals("buy") ? Side.Buy : Side.Sell;
 
-                if (_oi)
+                if (_extendedMarketData)
                 {
                     trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
                 }
@@ -2910,7 +2910,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private readonly RateGate _rgOpenInterest = new RateGate(1, TimeSpan.FromMilliseconds(110));
 
-        private void ThreadGetOpenInterest()
+        private void ThreadExtendedData()
         {
             while (true)
             {
@@ -2931,7 +2931,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     continue;
                 }
 
-                if (!_oi)
+                if (!_extendedMarketData)
                 {
                     continue;
                 }
