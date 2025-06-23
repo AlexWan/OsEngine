@@ -1737,7 +1737,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     {
                         string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/openInterest", new Dictionary<string, string>() { { "symbol=", _subscribledSecurities[i].Name } }, false);
 
-                        openInterestInfo response = JsonConvert.DeserializeAnonymousType(res, new openInterestInfo());
+                        OpenInterestInfo response = JsonConvert.DeserializeAnonymousType(res, new OpenInterestInfo());
 
                         string name = response.symbol;
                         string oi = response.openInterest;

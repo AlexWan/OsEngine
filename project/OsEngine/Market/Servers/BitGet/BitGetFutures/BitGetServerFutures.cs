@@ -2974,8 +2974,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                         openInterestData.Add(name, oi);
                                     }
                                 }
-
-                                _timeLast = DateTime.Now;
                             }
                             else
                             {
@@ -2987,6 +2985,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                             SendLogMessage($"GetOpenInterest> - Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
                         }
                     }
+
+                    _timeLast = DateTime.Now;
                 }
                 catch (Exception e)
                 {
