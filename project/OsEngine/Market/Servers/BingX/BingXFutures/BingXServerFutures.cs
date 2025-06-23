@@ -15,7 +15,8 @@ using System.Security.Cryptography;
 using OsEngine.Market.Servers.BingX.BingXFutures.Entity;
 using System.Globalization;
 using OsEngine.Entity.WebSocketOsEngine;
-using Com.Lmax.Api.Internal;
+
+
 
 namespace OsEngine.Market.Servers.BingX.BingXFutures
 {
@@ -30,6 +31,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterBoolean("HedgeMode", false);
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -60,6 +62,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             threadGetPortfolios.IsBackground = true;
             threadGetPortfolios.Name = "ThreadBingXFuturesPortfolios";
             threadGetPortfolios.Start();
+
+            Thread threadExtendedData = new Thread(ThreadExtendedData);
+            threadExtendedData.IsBackground = true;
+            threadExtendedData.Name = "ThreadBigXFuturesExtendedData";
+            threadExtendedData.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -83,6 +90,15 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     client.Proxy = _myProxy;
                 }
 
+                if (((ServerParameterBool)ServerParameters[3]).Value == true)
+                {
+                    _extendedMarketData = true;
+                }
+                else
+                {
+                    _extendedMarketData = false;
+                }
+
                 IRestResponse responseMessage = client.Execute(requestRest);
 
                 if (responseMessage.StatusCode != HttpStatusCode.OK)
@@ -95,8 +111,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     try
                     {
-                        FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                        FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                         CreatePrivateWebSocketConnect();
                         CheckSocketsActivate();
                         SetPositionMode();
@@ -130,8 +144,8 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
 
-            FIFOListWebSocketPublicMessage = null;
-            FIFOListWebSocketPrivateMessage = null;
+            FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
+            FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
             Disconnect();
         }
@@ -216,17 +230,19 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _generalRateGate1 = new RateGate(1, TimeSpan.FromMilliseconds(130));
+        private RateGate _generalRateGate1 = new RateGate(100, TimeSpan.FromSeconds(10));
 
         private RateGate _generalRateGate2 = new RateGate(100, TimeSpan.FromSeconds(10));
 
-        private RateGate _generalRateGate3 = new RateGate(1, TimeSpan.FromMilliseconds(100));
+        private RateGate _generalRateGate3 = new RateGate(200, TimeSpan.FromSeconds(10));
 
         public string _publicKey;
 
         public string _secretKey;
 
         private bool _hedgeMode;
+
+        private bool _extendedMarketData;
 
         #endregion
 
@@ -1396,6 +1412,101 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
+        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+
+        private DateTime _timeLast = DateTime.Now;
+
+        private void ThreadExtendedData()
+        {
+            while (true)
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+
+                if (_subscribledSecutiries == null
+                    || _subscribledSecutiries.Count == 0)
+                {
+                    continue;
+                }
+
+                if (_timeLast.AddSeconds(20) > DateTime.Now)
+                {
+                    continue;
+                }
+
+                if (!_extendedMarketData)
+                {
+                    continue;
+                }
+
+                _generalRateGate1.WaitToProceed();
+
+                try
+                {
+                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    {
+
+                        RestClient client = new RestClient(_baseUrl);
+
+                        if (_myProxy != null)
+                        {
+                            client.Proxy = _myProxy;
+                        }
+
+                        string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                        string parameters = $"symbol={_subscribledSecutiries[i]}&timestamp={timeStamp}";
+                        string sign = CalculateHmacSha256(parameters);
+                        string requestUri = $"/openApi/swap/v2/quote/openInterest?{parameters}";
+
+                        RestRequest request = new RestRequest(requestUri, Method.GET);
+
+                        request.AddParameter("timestamp", timeStamp);
+                        request.AddParameter("signature", sign);
+                        request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                        IRestResponse json = client.Execute(request);
+
+                        if (json.StatusCode == HttpStatusCode.OK)
+                        {
+                            ResponseFuturesBingXMessage<OpenInterestInfo> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseFuturesBingXMessage<OpenInterestInfo>());
+
+                            if (response.code == "0")
+                            {
+                                string name = response.data.symbol;
+                                string oi = response.data.openInterest;
+
+                                if (openInterestData.ContainsKey(name))
+                                {
+                                    openInterestData[name] = oi;
+                                }
+                                else
+                                {
+                                    openInterestData.Add(name, oi);
+                                }
+                            }
+                            else
+                            {
+                                SendLogMessage($"GetOpenInterest> - Code: {response.code} - {response.msg}", LogMessageType.Error);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"GetOpenInterest> - Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                        }
+                    }
+
+                    _timeLast = DateTime.Now;
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.Message, LogMessageType.Error);
+                }
+            }
+        }
+
         public bool SubscribeNews()
         {
             return false;
@@ -1510,9 +1621,20 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     // trade.Id = // the exchange does not send trade id
                     trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data[i].T));
                     trade.Volume = response.data[i].q.Replace('.', ',').ToDecimal();
+
                     if (response.data[i].m == "true")
+                    {
                         trade.Side = Side.Sell;
-                    else trade.Side = Side.Buy;
+                    }
+                    else
+                    {
+                        trade.Side = Side.Buy;
+                    }
+
+                    if (_extendedMarketData)
+                    {
+                        trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
+                    }
 
                     NewTradesEvent(trade);
                 }
@@ -1521,6 +1643,25 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             {
                 SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private decimal GetOpenInterestValue(string securityNameCode)
+        {
+            if (openInterestData == null
+               || openInterestData.Count == 0)
+            {
+                return 0;
+            }
+
+            foreach (var data in openInterestData)
+            {
+                if (data.Key == securityNameCode)
+                {
+                    return data.Value.ToDecimal();
+                }
+            }
+
+            return 0;
         }
 
         private void UpdatePortfolio(string message)
@@ -1999,7 +2140,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                     if (state == OrderStateType.None)
                     {
-                        SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error); 
+                        SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                         return false;
                     }
                     else

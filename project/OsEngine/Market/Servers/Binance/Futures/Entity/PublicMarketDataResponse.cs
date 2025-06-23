@@ -45,7 +45,7 @@ namespace OsEngine.Market.Servers.Binance.Futures.Entity
         public string fundingTime;
     }
 
-    public class openInterestInfo
+    public class OpenInterestInfo
     {
         public string openInterest;
         public string symbol;
