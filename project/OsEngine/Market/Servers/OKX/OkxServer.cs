@@ -32,7 +32,7 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterEnum("Demo Mode", "Off", new List<string> { "Off", "On" });
-            CreateParameterEnum("Open interest", "Off", new List<string> { "On", "Off" });
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -107,13 +107,13 @@ namespace OsEngine.Market.Servers.OKX
                 _demoMode = true;
             }
 
-            if (((ServerParameterEnum)ServerParameters[7]).Value == "On")
+            if (((ServerParameterBool)ServerParameters[7]).Value == true)
             {
-                _oi = true;
+                _extendedMarketData = true;
             }
             else
             {
-                _oi = false;
+                _extendedMarketData = false;
             }
 
             try
@@ -221,7 +221,7 @@ namespace OsEngine.Market.Servers.OKX
 
         private bool _demoMode;
 
-        private bool _oi;
+        private bool _extendedMarketData;
 
         #endregion
 
@@ -1592,7 +1592,7 @@ namespace OsEngine.Market.Servers.OKX
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"trades\",\"instId\": \"{security.Name}\"}}]}}");
 
-                    if (_oi && security.Name.Contains("SWAP"))
+                    if (_extendedMarketData && security.Name.Contains("SWAP"))
                     {
                         webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{security.Name}\"}}]}}");
                     }
@@ -1690,7 +1690,7 @@ namespace OsEngine.Market.Servers.OKX
                                     webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
                                     webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
 
-                                    if (_oi && name.Contains("SWAP"))
+                                    if (_extendedMarketData && name.Contains("SWAP"))
                                     {
                                         webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
                                     }
@@ -2168,7 +2168,7 @@ namespace OsEngine.Market.Servers.OKX
                     trade.Side = Side.Sell;
                 }
 
-                if (_oi && trade.SecurityNameCode.Contains("SWAP"))
+                if (_extendedMarketData && trade.SecurityNameCode.Contains("SWAP"))
                 {
                     trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
                 }

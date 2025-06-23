@@ -38,7 +38,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
-            CreateParameterEnum("Open Interest", "Off", new List<string> { "On", "Off" });
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -124,13 +124,13 @@ namespace OsEngine.Market.Servers.Bybit
 
                 _leverage = ((ServerParameterString)ServerParameters[5]).Value.Replace(",", ".");
 
-                if (((ServerParameterEnum)ServerParameters[6]).Value == "On")
+                if (((ServerParameterBool)ServerParameters[6]).Value == true)
                 {
-                    _oi = true;
+                    _extendedMarketData = true;
                 }
                 else
                 {
-                    _oi = false;
+                    _extendedMarketData = false;
                 }
 
                 if (!CheckApiKeyInformation(PublicKey))
@@ -347,7 +347,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string _leverage;
 
-        private bool _oi;
+        private bool _extendedMarketData;
 
         private List<string> _listLinearCurrency = new List<string>() { "USDC", "USDT" };
 
@@ -1938,7 +1938,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".P", "")}\" ] }}");
                         webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".P", "")}\" ] }}");
 
-                        if (_oi)
+                        if (_extendedMarketData)
                         {
                             webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".P", "")}\" ] }}");
                             GetFundingData(security.Name.Replace(".P", ""));
@@ -2001,7 +2001,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".I", "")}\" ] }}");
                         webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".I", "")}\" ] }}");
 
-                        if (_oi)
+                        if (_extendedMarketData)
                         {
                             webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".I", "")}\" ] }}");
                         }
@@ -2149,7 +2149,7 @@ namespace OsEngine.Market.Servers.Bybit
                                 webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
                                 webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
-                                if (_oi)
+                                if (_extendedMarketData)
                                 {
                                     webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
@@ -2196,7 +2196,7 @@ namespace OsEngine.Market.Servers.Bybit
                                 webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
                                 webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
-                                if (_oi)
+                                if (_extendedMarketData)
                                 {
                                     webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
@@ -3026,7 +3026,7 @@ namespace OsEngine.Market.Servers.Bybit
                     Category category = Category.linear;
                     UpdateTrade(message, category);
 
-                    if (_oi)
+                    if (_extendedMarketData)
                     {
                         if (_concurrentQueueTickersLinear == null
                         || _concurrentQueueTickersLinear.IsEmpty
@@ -3079,7 +3079,7 @@ namespace OsEngine.Market.Servers.Bybit
                     Category category = Category.inverse;
                     UpdateTrade(message, category);
 
-                    if (_oi)
+                    if (_extendedMarketData)
                     {
                         if (_concurrentQueueTickersInverse == null
                         || _concurrentQueueTickersInverse.IsEmpty
@@ -3139,7 +3139,7 @@ namespace OsEngine.Market.Servers.Bybit
                             trade.SecurityNameCode = item.s;
                         }
 
-                        if (_oi && category != Category.spot)
+                        if (_extendedMarketData && category != Category.spot)
                         {
                             trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
                         }

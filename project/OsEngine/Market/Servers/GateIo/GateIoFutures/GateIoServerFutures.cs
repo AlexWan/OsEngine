@@ -36,7 +36,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             CreateParameterString("User ID", "");
             CreateParameterEnum("Base Wallet", "USDT", new List<string> { "USDT", "BTC" });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
-            CreateParameterEnum("Open interest", "Off", new List<string> { "On", "Off" });
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -93,13 +93,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 _hedgeMode = false;
             }
 
-            if (((ServerParameterEnum)ServerParameters[5]).Value == "On")
+            if (((ServerParameterBool)ServerParameters[5]).Value == true)
             {
-                _oi = true;
+                _extendedMarketData = true;
             }
             else
             {
-                _oi = false;
+                _extendedMarketData = false;
             }
 
             IRestResponse response = null;
@@ -234,7 +234,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private bool _hedgeMode;
 
-        private bool _oi;
+        private bool _extendedMarketData;
 
         public List<IServerParameter> ServerParameters { get; set; }
 
@@ -1087,7 +1087,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 SubscribeOrders(security.Name);
                 SubscribeMyTrades(security.Name);
 
-                if (_oi)
+                if (_extendedMarketData)
                 {
                     SubscribeContractStats(security.Name);
                 }
@@ -1241,7 +1241,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"0\"]}}");
                         _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
 
-                        if (_oi)
+                        if (_extendedMarketData)
                         {
                             _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
                         }
@@ -1343,8 +1343,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
         }
 
-
-
         private void UpdateTrade(string message)
         {
             try
@@ -1364,7 +1362,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     newTrade.Volume = Math.Abs(responseTrades.result[i].size.ToDecimal());
                     newTrade.Side = responseTrades.result[i].size.ToString().StartsWith("-") ? Side.Sell : Side.Buy;
 
-                    if (_oi)
+                    if (_extendedMarketData)
                     {
                         newTrade.OpenInterest = GetOpenInterest(newTrade.SecurityNameCode);
                     }
