@@ -30,6 +30,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterEnum("Margin Mode", "Crossed", new List<string> { "Crossed", "Isolated" });
             CreateParameterBoolean("Demo Trading", false);
+            CreateParameterEnum("Open interest", "Off", new List<string> { "On", "Off" });
         }
     }
 
@@ -59,6 +60,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             threadGetPortfolios.IsBackground = true;
             threadGetPortfolios.Name = "ThreadBitGetFuturesPortfolios";
             threadGetPortfolios.Start();
+
+            Thread threadGetOpenInterest = new Thread(ThreadGetOpenInterest);
+            threadGetOpenInterest.IsBackground = true;
+            threadGetOpenInterest.Name = "ThreadBitGetFuturesOpenInterest";
+            threadGetOpenInterest.Start();
         }
 
         private WebProxy _myProxy;
@@ -108,11 +114,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 _marginMode = "isolated";
             }
 
-            //ServicePointManager.SecurityProtocol =
-            //    SecurityProtocolType.Tls11
-            //    | SecurityProtocolType.Tls12
-            //    | SecurityProtocolType.Tls13
-            //    | SecurityProtocolType.Tls;
+            if (((ServerParameterEnum)ServerParameters[6]).Value == "On")
+            {
+                _oi = true;
+            }
+            else
+            {
+                _oi = false;
+            }
 
             try
             {
@@ -134,7 +143,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
-                    CheckSocketsActivate();
+                    //CheckSocketsActivate();
                     _lastConnectionStartTime = DateTime.Now;
                 }
                 else
@@ -227,6 +236,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         private bool _hedgeMode;
 
         private string _marginMode = "crossed";
+
+        private bool _oi;
 
         private Dictionary<string, List<string>> _allPositions = new Dictionary<string, List<string>>();
 
@@ -1867,7 +1878,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 SubscribleState.msg, LogMessageType.Error);
 
                             if (_lastConnectionStartTime.AddMinutes(5) > DateTime.Now)
-                            { // если на старте вёб-сокета проблемы, то надо его перезапускать
+                            { // if there are problems with the web socket startup, you need to restart it
                                 ServerStatus = ServerConnectStatus.Disconnect;
                                 DisconnectEvent();
                             }
@@ -2229,12 +2240,36 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 trade.Volume = responseTrade.data[0].size.ToDecimal();
                 trade.Side = responseTrade.data[0].side.Equals("buy") ? Side.Buy : Side.Sell;
 
+                if (_oi)
+                {
+                    trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
+                }
+
                 NewTradesEvent(trade);
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
             }
+        }
+
+        private decimal GetOpenInterestValue(string securityNameCode)
+        {
+            if (openInterestData == null
+               || openInterestData.Count == 0)
+            {
+                return 0;
+            }
+
+            foreach (var data in openInterestData)
+            {
+                if (data.Key == securityNameCode)
+                {
+                    return data.Value.ToDecimal();
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateDepth(string message)
@@ -2866,6 +2901,92 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 byte[] hashBytes = hmac.ComputeHash(Encoding.UTF8.GetBytes(preHash));
                 return Convert.ToBase64String(hashBytes);
+            }
+        }
+
+        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+
+        private DateTime _timeLast = DateTime.Now;
+
+        private readonly RateGate _rgOpenInterest = new RateGate(1, TimeSpan.FromMilliseconds(110));
+
+        private void ThreadGetOpenInterest()
+        {
+            while (true)
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+
+                if (_subscribledSecutiries == null
+                    || _subscribledSecutiries.Count == 0)
+                {
+                    continue;
+                }
+
+                if (_timeLast.AddSeconds(20) > DateTime.Now)
+                {
+                    continue;
+                }
+
+                _rgOpenInterest.WaitToProceed();
+
+                try
+                {
+                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    {
+                        string requestStr = $"/api/v2/mix/market/open-interest?symbol={_subscribledSecutiries[i].Name}&productType={_subscribledSecutiries[i].NameClass.ToLower()}";
+                        RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+
+                        RestClient client = new RestClient(BaseUrl);
+
+                        if (_myProxy != null)
+                        {
+                            client.Proxy = _myProxy;
+                        }
+
+                        IRestResponse response = client.Execute(requestRest);
+
+                        if (response.StatusCode == HttpStatusCode.OK)
+                        {
+                            ResponseRestMessage<OpenInterestData> oiResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<OpenInterestData>());
+
+                            if (oiResponse.code == "00000")
+                            {
+                                for (int j = 0; j < oiResponse.data.openInterestList.Count; j++)
+                                {
+                                    string name = oiResponse.data.openInterestList[j].symbol;
+                                    string oi = oiResponse.data.openInterestList[j].size;
+
+                                    if (openInterestData.ContainsKey(name))
+                                    {
+                                        openInterestData[name] = oi;
+                                    }
+                                    else
+                                    {
+                                        openInterestData.Add(name, oi);
+                                    }
+                                }
+
+                                _timeLast = DateTime.Now;
+                            }
+                            else
+                            {
+                                SendLogMessage($"GetOpenInterest> - Code: {oiResponse.code} - {oiResponse.msg}", LogMessageType.Error);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"GetOpenInterest> - Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.Message, LogMessageType.Error);
+                }
             }
         }
 
