@@ -2931,6 +2931,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     continue;
                 }
 
+                if (!_oi)
+                {
+                    continue;
+                }
+
                 _rgOpenInterest.WaitToProceed();
 
                 try
