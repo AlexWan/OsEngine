@@ -47,7 +47,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
             ServerParameters[3].ValueChange += BinanceServerFutures_ValueChange;
             CreateParameterBoolean("Demo Account", false);
             CreateParameterBoolean("Extended Data", false);
-            CreateParameterEnum("Open Interest", "Off", new List<string> { "On", "Off" });
         }
 
         private void BinanceServerFutures_ValueChange()
@@ -83,10 +82,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
             worker4.Name = "BinanceFutThread_ConverterUserData";
             worker4.Start();
 
-            Thread threadGetOpenInterest = new Thread(ThreadGetOpenInterest);
-            threadGetOpenInterest.IsBackground = true;
-            threadGetOpenInterest.Name = "ThreadBinanceFuturesOpenInterest";
-            threadGetOpenInterest.Start();
+            Thread threadExtendedData = new Thread(ThreadExtendedData);
+            threadExtendedData.IsBackground = true;
+            threadExtendedData.Name = "ThreadBinanceFuturesExtendedData";
+            threadExtendedData.Start();
         }
 
         private WebProxy _myProxy;
@@ -169,15 +168,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
                 _extendedMarketData = false;
             }
 
-            if (((ServerParameterEnum)ServerParameters[6]).Value == "On")
-            {
-                _oi = true;
-            }
-            else
-            {
-                _oi = false;
-            }
-
             ActivateSockets();
             SetPositionMode();
         }
@@ -250,8 +240,6 @@ namespace OsEngine.Market.Servers.Binance.Futures
         }
 
         private bool _hedgeMode;
-
-        private bool _oi;
 
         public void SetPositionMode()
         {
@@ -1621,7 +1609,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
             string urlStrDepth = null;
 
-            if (((ServerParameterBool)ServerParameters[14]).Value == false)
+            if (((ServerParameterBool)ServerParameters[13]).Value == false)
             {
                 urlStrDepth = wss_point + "/stream?streams="
                              + security.Name.ToLower() + "@depth5"
@@ -1717,7 +1705,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private DateTime _timeLast = DateTime.Now;
 
-        private void ThreadGetOpenInterest()
+        private void ThreadExtendedData()
         {
             while (true)
             {
@@ -1738,7 +1726,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     continue;
                 }
 
-                if (!_oi)
+                if (!_extendedMarketData)
                 {
                     continue;
                 }
@@ -2289,7 +2277,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     trades.data.q.ToDecimal();
             trade.Side = trades.data.m == true ? Side.Sell : Side.Buy;
 
-            if (_oi)
+            if (_extendedMarketData)
             {
                 trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
             }
