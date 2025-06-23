@@ -31,7 +31,7 @@ opposite channel boundary.
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakChannelVwmaATR")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakChannelVwmaATR")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakChannelVwmaATR : BotPanel
     {
         // Reference to the main trading tab
