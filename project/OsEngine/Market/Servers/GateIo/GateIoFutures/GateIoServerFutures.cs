@@ -36,7 +36,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             CreateParameterString("User ID", "");
             CreateParameterEnum("Base Wallet", "USDT", new List<string> { "USDT", "BTC" });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
-            CreateParameterEnum("Open interest", "On", new List<string> { "On", "Off" });
+            CreateParameterEnum("Open interest", "Off", new List<string> { "On", "Off" });
         }
     }
 

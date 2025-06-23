@@ -19,7 +19,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
-using static Kraken.WebSockets.KrakenApi;
 
 
 namespace OsEngine.Market.Servers.Bybit
@@ -39,7 +38,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
-            CreateParameterEnum("Open Interest", "On", new List<string> { "On", "Off" });
+            CreateParameterEnum("Open Interest", "Off", new List<string> { "On", "Off" });
         }
     }
 
@@ -3140,7 +3139,7 @@ namespace OsEngine.Market.Servers.Bybit
                             trade.SecurityNameCode = item.s;
                         }
 
-                        if (_oi)
+                        if (_oi && category != Category.spot)
                         {
                             trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
                         }
