@@ -32,7 +32,7 @@ namespace OsEngine.Market.Servers.OKX
             CreateParameterEnum("Margin Mode", "Cross", new List<string> { "Cross", "Isolated" });
             CreateParameterBoolean(OsLocalization.Market.UseOptions, false);
             CreateParameterEnum("Demo Mode", "Off", new List<string> { "Off", "On" });
-            CreateParameterEnum("Open interest", "On", new List<string> { "On", "Off" });
+            CreateParameterEnum("Open interest", "Off", new List<string> { "On", "Off" });
         }
     }
 
