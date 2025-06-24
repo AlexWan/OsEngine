@@ -27,6 +27,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterPassphrase, "");
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -57,6 +58,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             threadGetPortfolios.IsBackground = true;
             threadGetPortfolios.Name = "ThreadKuCoinFuturesPortfolios";
             threadGetPortfolios.Start();
+
+            Thread threadExtendedData = new Thread(ThreadExtendedData);
+            threadExtendedData.IsBackground = true;
+            threadExtendedData.Name = "ThreadKuCoinFuturesExtendedData";
+            threadExtendedData.Start();
         }
 
         public DateTime ServerTime { get; set; }
@@ -69,6 +75,15 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
                 _passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
 
+                if (((ServerParameterBool)ServerParameters[3]).Value == true)
+                {
+                    _extendedMarketData = true;
+                }
+                else
+                {
+                    _extendedMarketData = false;
+                }
+
                 RestRequest requestRest = new RestRequest("/api/v1/timestamp", Method.GET);
                 IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
 
@@ -80,7 +95,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                         _webSocketPrivateMessages = new ConcurrentQueue<string>();
                         CreatePublicWebSocketConnect();
                         CreatePrivateWebSocketConnect();
-                        CheckActivationSockets();
+                        //CheckActivationSockets();
                     }
                     catch (Exception exception)
                     {
@@ -162,6 +177,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         private string _secretKey;
 
         private string _passphrase;
+
+        private bool _extendedMarketData;
 
         private List<string> _listCurrency = new List<string>() { "XBT", "ETH", "USDC", "USDT", "SOL", "DOT", "XRP" }; // list of currencies on the exchange
 
@@ -483,7 +500,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     SendLogMessage("KuCoin public keys are wrong. Message from server: " + responseMessage.Content, LogMessageType.Error);
                     return null;
                 }
-
 
                 ResponsePrivateWebSocketConnection wsResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponsePrivateWebSocketConnection());
 
@@ -999,6 +1015,87 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
+        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+
+        private DateTime _timeLast = DateTime.Now;
+
+        private readonly RateGate _rateGateOpenInterest = new RateGate(1, TimeSpan.FromMilliseconds(350));
+
+        private void ThreadExtendedData()
+        {
+            while (true)
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    Thread.Sleep(1000);
+                    continue;
+                }
+
+                if (_subscribedSecurities == null
+                    || _subscribedSecurities.Count == 0)
+                {
+                    continue;
+                }
+
+                if (_timeLast.AddSeconds(20) > DateTime.Now)
+                {
+                    continue;
+                }
+
+                if (!_extendedMarketData)
+                {
+                    continue;
+                }
+
+                _rateGateOpenInterest.WaitToProceed();
+
+                try
+                {
+                    for (int i = 0; i < _subscribedSecurities.Count; i++)
+                    {
+                        string requestStr = $"/api/v1/contracts/{_subscribedSecurities[i]}";
+
+                        RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                        IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
+
+                        if (responseMessage.StatusCode == HttpStatusCode.OK)
+                        {
+                            ResponseMessageRest<ResponseSymbol> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseSymbol>());
+
+                            if (stateResponse.code == "200000")
+                            {
+                                string name = stateResponse.data.symbol;
+                                string oi = stateResponse.data.openInterest;
+
+                                if (openInterestData.ContainsKey(name))
+                                {
+                                    openInterestData[name] = oi;
+                                }
+                                else
+                                {
+                                    openInterestData.Add(name, oi);
+                                }
+                            }
+                            else
+                            {
+                                SendLogMessage($"GetOpenInterest> - Code: {stateResponse.code} - {stateResponse.msg}", LogMessageType.Error);
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"GetOpenInterest> - Code: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
+                        }
+                    }
+
+                    _timeLast = DateTime.Now;
+                }
+                catch (Exception e)
+                {
+                    SendLogMessage(e.Message, LogMessageType.Error);
+                }
+            }
+        }
+
         public bool SubscribeNews()
         {
             return false;
@@ -1169,12 +1266,36 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     trade.Side = Side.Buy;
                 }
 
+                if (_extendedMarketData)
+                {
+                    trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
+                }
+
                 NewTradesEvent(trade);
             }
             catch (Exception ex)
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private decimal GetOpenInterestValue(string securityNameCode)
+        {
+            if (openInterestData == null
+               || openInterestData.Count == 0)
+            {
+                return 0;
+            }
+
+            foreach (var data in openInterestData)
+            {
+                if (data.Key == securityNameCode)
+                {
+                    return data.Value.ToDecimal();
+                }
+            }
+
+            return 0;
         }
 
         private void UpdateDepth(string message)
