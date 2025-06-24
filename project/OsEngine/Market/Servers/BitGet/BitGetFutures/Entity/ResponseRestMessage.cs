@@ -192,7 +192,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string symbol { get; set; }
     }
 
-    public class OpenInterestData
+    public class OIData
     {
         public List<OpenInterestItem> openInterestList { get; set; }
         public string ts { get; set; }

@@ -14,6 +14,7 @@ using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 
+
 namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 {
     public class BitGetServerFutures : AServer
@@ -1690,8 +1691,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 {
                                     for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
                                     }
                                 }
                             }
@@ -2255,17 +2256,17 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private decimal GetOpenInterestValue(string securityNameCode)
         {
-            if (openInterestData == null
-               || openInterestData.Count == 0)
+            if (_openInterest.Count == 0
+                 || _openInterest == null)
             {
                 return 0;
             }
 
-            foreach (var data in openInterestData)
+            for (int i = 0; i < _openInterest.Count; i++)
             {
-                if (data.Key == securityNameCode)
+                if (_openInterest[i].SecutityName == securityNameCode)
                 {
-                    return data.Value.ToDecimal();
+                    return _openInterest[i].OpenInterestValue.ToDecimal();
                 }
             }
 
@@ -2904,7 +2905,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
-        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+        private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
         private DateTime _timeLast = DateTime.Now;
 
@@ -2936,62 +2937,81 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     continue;
                 }
 
-                _rgOpenInterest.WaitToProceed();
+                GetOpenInterest();
+            }
+        }
 
-                try
+        private void GetOpenInterest()
+        {
+            _rgOpenInterest.WaitToProceed();
+
+            try
+            {
+                for (int i = 0; i < _subscribledSecutiries.Count; i++)
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                    string requestStr = $"/api/v2/mix/market/open-interest?symbol={_subscribledSecutiries[i].Name}&productType={_subscribledSecutiries[i].NameClass.ToLower()}";
+                    RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+
+                    RestClient client = new RestClient(BaseUrl);
+
+                    if (_myProxy != null)
                     {
-                        string requestStr = $"/api/v2/mix/market/open-interest?symbol={_subscribledSecutiries[i].Name}&productType={_subscribledSecutiries[i].NameClass.ToLower()}";
-                        RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                        client.Proxy = _myProxy;
+                    }
 
-                        RestClient client = new RestClient(BaseUrl);
+                    IRestResponse response = client.Execute(requestRest);
 
-                        if (_myProxy != null)
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseRestMessage<OIData> oiResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<OIData>());
+
+                        if (oiResponse.code == "00000")
                         {
-                            client.Proxy = _myProxy;
-                        }
-
-                        IRestResponse response = client.Execute(requestRest);
-
-                        if (response.StatusCode == HttpStatusCode.OK)
-                        {
-                            ResponseRestMessage<OpenInterestData> oiResponse = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<OpenInterestData>());
-
-                            if (oiResponse.code == "00000")
+                            for (int j = 0; j < oiResponse.data.openInterestList.Count; j++)
                             {
-                                for (int j = 0; j < oiResponse.data.openInterestList.Count; j++)
-                                {
-                                    string name = oiResponse.data.openInterestList[j].symbol;
-                                    string oi = oiResponse.data.openInterestList[j].size;
+                                OpenInterestData openInterestData = new OpenInterestData();
 
-                                    if (openInterestData.ContainsKey(name))
+                                openInterestData.SecutityName = oiResponse.data.openInterestList[j].symbol;
+
+                                if (oiResponse.data.openInterestList[j].size != null)
+                                {
+                                    openInterestData.OpenInterestValue = oiResponse.data.openInterestList[j].size;
+
+                                    bool isInArray = false;
+
+                                    for (int k = 0; k < _openInterest.Count; k++)
                                     {
-                                        openInterestData[name] = oi;
+                                        if (_openInterest[k].SecutityName == openInterestData.SecutityName)
+                                        {
+                                            _openInterest[k].OpenInterestValue = openInterestData.OpenInterestValue;
+                                            isInArray = true;
+                                            break;
+                                        }
                                     }
-                                    else
+
+                                    if (isInArray == false)
                                     {
-                                        openInterestData.Add(name, oi);
+                                        _openInterest.Add(openInterestData);
                                     }
                                 }
-                            }
-                            else
-                            {
-                                SendLogMessage($"GetOpenInterest> - Code: {oiResponse.code} - {oiResponse.msg}", LogMessageType.Error);
                             }
                         }
                         else
                         {
-                            SendLogMessage($"GetOpenInterest> - Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                            SendLogMessage($"GetOpenInterest> - Code: {oiResponse.code} - {oiResponse.msg}", LogMessageType.Error);
                         }
                     }
+                    else
+                    {
+                        SendLogMessage($"GetOpenInterest> - Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
+                    }
+                }
 
-                    _timeLast = DateTime.Now;
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.Message, LogMessageType.Error);
-                }
+                _timeLast = DateTime.Now;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
 
@@ -3057,5 +3077,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
+    }
+
+    public class OpenInterestData
+    {
+        public string SecutityName { get; set; }
+        public string OpenInterestValue { get; set; }
     }
 }

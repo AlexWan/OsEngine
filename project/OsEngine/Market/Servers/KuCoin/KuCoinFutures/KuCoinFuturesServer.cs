@@ -14,6 +14,7 @@ using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
 using RestSharp;
 
+
 namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 {
     public class KuCoinFuturesServer : AServer
@@ -1015,7 +1016,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
-        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+        private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
         private DateTime _timeLast = DateTime.Now;
 
@@ -1047,52 +1048,71 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     continue;
                 }
 
-                _rateGateOpenInterest.WaitToProceed();
+                GetOpenInterest();
+            }
+        }
 
-                try
+        private void GetOpenInterest()
+        {
+            _rateGateOpenInterest.WaitToProceed();
+
+            try
+            {
+                for (int i = 0; i < _subscribedSecurities.Count; i++)
                 {
-                    for (int i = 0; i < _subscribedSecurities.Count; i++)
+                    string requestStr = $"/api/v1/contracts/{_subscribedSecurities[i]}";
+
+                    RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                    IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
+
+                    if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
-                        string requestStr = $"/api/v1/contracts/{_subscribedSecurities[i]}";
+                        ResponseMessageRest<ResponseSymbol> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseSymbol>());
 
-                        RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-                        IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
-
-                        if (responseMessage.StatusCode == HttpStatusCode.OK)
+                        if (stateResponse.code == "200000")
                         {
-                            ResponseMessageRest<ResponseSymbol> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<ResponseSymbol>());
+                            OpenInterestData openInterestData = new OpenInterestData();
 
-                            if (stateResponse.code == "200000")
-                            {
-                                string name = stateResponse.data.symbol;
-                                string oi = stateResponse.data.openInterest;
+                            openInterestData.SecutityName = stateResponse.data.symbol;
 
-                                if (openInterestData.ContainsKey(name))
-                                {
-                                    openInterestData[name] = oi;
-                                }
-                                else
-                                {
-                                    openInterestData.Add(name, oi);
-                                }
-                            }
-                            else
+                            if (stateResponse.data.openInterest != null)
                             {
-                                SendLogMessage($"GetOpenInterest> - Code: {stateResponse.code} - {stateResponse.msg}", LogMessageType.Error);
+                                openInterestData.OpenInterestValue = stateResponse.data.openInterest;
+
+                                bool isInArray = false;
+
+                                for (int j = 0; j < _openInterest.Count; j++)
+                                {
+                                    if (_openInterest[j].SecutityName == openInterestData.SecutityName)
+                                    {
+                                        _openInterest[j].OpenInterestValue = openInterestData.OpenInterestValue;
+                                        isInArray = true;
+                                        break;
+                                    }
+                                }
+
+                                if (isInArray == false)
+                                {
+                                    _openInterest.Add(openInterestData);
+                                }
                             }
                         }
                         else
                         {
-                            SendLogMessage($"GetOpenInterest> - Code: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
+                            SendLogMessage($"GetOpenInterest> - Code: {stateResponse.code} - {stateResponse.msg}", LogMessageType.Error);
                         }
                     }
+                    else
+                    {
+                        SendLogMessage($"GetOpenInterest> - Code: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
+                    }
+                }
 
-                    _timeLast = DateTime.Now;
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.Message, LogMessageType.Error);
-                }
+                _timeLast = DateTime.Now;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
 
@@ -1281,17 +1301,17 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private decimal GetOpenInterestValue(string securityNameCode)
         {
-            if (openInterestData == null
-               || openInterestData.Count == 0)
+            if (_openInterest.Count == 0
+                 || _openInterest == null)
             {
                 return 0;
             }
 
-            foreach (var data in openInterestData)
+            for (int i = 0; i < _openInterest.Count; i++)
             {
-                if (data.Key == securityNameCode)
+                if (_openInterest[i].SecutityName == securityNameCode)
                 {
-                    return data.Value.ToDecimal();
+                    return _openInterest[i].OpenInterestValue.ToDecimal();
                 }
             }
 
@@ -2332,5 +2352,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
         }
 
         #endregion
+    }
+
+    public class OpenInterestData
+    {
+        public string SecutityName { get; set; }
+        public string OpenInterestValue { get; set; }
     }
 }
