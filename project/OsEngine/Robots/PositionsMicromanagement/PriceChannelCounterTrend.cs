@@ -16,20 +16,16 @@ using System.Collections.Generic;
 /* Description
 trading robot for osengine
 
-The trend robot on Strategy PivotFloor And PriceChannel.
+The Countertrend robot on PriceChannel.
 
 Buy:
-1. The candle closed above the R1 level.
-2. The price is above the top line of the PC.
+If the price is below the lower level _pc
 
 Sell:
-1. The candle closed below the S1 level.
-2. The price is below the bottom line of the PC.
+If the current price exceeds the upper level _pc
 
-Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing
-stop and transferred (slides) to new price lows, also for the specified period.
-Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing
-stop and is transferred (slides) to the new maximum of the price, also for the specified period.
+Exit:
+Based on stop-loss and profit targets
  */
 
 namespace OsEngine.Robots.PositionsMicromanagement

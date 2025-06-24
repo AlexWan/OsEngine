@@ -16,20 +16,13 @@ using System.Collections.Generic;
 /* Description
 trading robot for osengine
 
-The trend robot on Strategy PivotFloor And PriceChannel.
+The trend robot on Candles Turnaround Pattern.
 
-Buy:
-1. The candle closed above the R1 level.
-2. The price is above the top line of the PC.
+Buy:The last candle is a fast, large-bodied bullish candle, and the previous candle is a slow, large-bodied bearish candle.
 
-Sell:
-1. The candle closed below the S1 level.
-2. The price is below the bottom line of the PC.
-
-Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing
-stop and transferred (slides) to new price lows, also for the specified period.
-Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing
-stop and is transferred (slides) to the new maximum of the price, also for the specified period.
+Exit:The position is closed by placing stop-loss orders if the price moves against the position beyond a certain percentage, and
+by setting multiple limit orders at increasing profit levels—first at a small profit target, then at a higher one, and finally
+closing the remaining volume at the highest target.
  */
 
 namespace OsEngine.Robots.PositionsMicromanagement
@@ -97,7 +90,11 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "Example of a robot that sequentially closes a position through 3 limit orders";
+            Description = "The trend robot on Candles Turnaround Pattern. " +
+                "Buy:The last candle is a fast, large-bodied bullish candle, and the previous candle is a slow, large-bodied bearish candle. " +
+                "Exit:The position is closed by placing stop-loss orders if the price moves against the position beyond a certain percentage, and " +
+                "by setting multiple limit orders at increasing profit levels—first at a small profit target, then at a higher one, and finally " +
+                "closing the remaining volume at the highest target.";
         }
 
         void Event_ParametrsChangeByUser()
