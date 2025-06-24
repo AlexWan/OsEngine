@@ -13,108 +13,128 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+trading robot for osengine
+
+The trend robot on Strategy PivotFloor And PriceChannel.
+
+Buy:
+1. The candle closed above the R1 level.
+2. The price is above the top line of the PC.
+
+Sell:
+1. The candle closed below the S1 level.
+2. The price is below the bottom line of the PC.
+
+Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing
+stop and transferred (slides) to new price lows, also for the specified period.
+Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing
+stop and is transferred (slides) to the new maximum of the price, also for the specified period.
+ */
+
 namespace OsEngine.Robots.PositionsMicromanagement
 {
-    [Bot("TwoEntrySample")]
+    [Bot("TwoEntrySample")] // We create an attribute so that we don't write anything to the BotFactory
     public class TwoEntrySample : BotPanel
-    {
-        // Parameters
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterDecimal EnvelopDeviation;
-
-        public StrategyParameterInt EnvelopMovingLength;
-
-        public StrategyParameterInt PcLength;
-
-        // indicators
-
-        private Aindicator _envelop;
-
-        private Aindicator _pc;
-
-        // source
-
+    { 
         private BotTabSimple _tab;
+
+        // Basic setting
+        private StrategyParameterString _regime;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterDecimal _envelopDeviation;
+        private StrategyParameterInt _envelopMovingLength;
+        private StrategyParameterInt _pcLength;
+
+        // Indicator
+        private Aindicator _envelop;
+        private Aindicator _pc;
 
         public TwoEntrySample(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+            // Basic setting
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // Indicator settings
+            _envelopDeviation = CreateParameter("Envelop deviation", 0.3m, 0.3m, 4, 0.3m);
+            _envelopMovingLength = CreateParameter("Envelop moving length", 10, 10, 200, 5);
+            _pcLength = CreateParameter("Price channel length", 20, 5, 50, 1);
 
-            EnvelopDeviation = CreateParameter("Envelop deviation", 0.3m, 0.3m, 4, 0.3m);
-            EnvelopMovingLength = CreateParameter("Envelop moving length", 10, 10, 200, 5);
-            PcLength = CreateParameter("Price channel length", 20, 5, 50, 1);
-
+            // Create indicator PriceChannel
             _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
             _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
-            _pc.ParametersDigit[0].Value = PcLength.ValueInt;
-            _pc.ParametersDigit[1].Value = PcLength.ValueInt;
+            _pc.ParametersDigit[0].Value = _pcLength.ValueInt;
+            _pc.ParametersDigit[1].Value = _pcLength.ValueInt;
 
+            // Create indicator Envelops
             _envelop = IndicatorsFactory.CreateIndicatorByName("Envelops", name + "Envelops", false);
             _envelop = (Aindicator)_tab.CreateCandleIndicator(_envelop, "Prime");
-            _envelop.ParametersDigit[0].Value = EnvelopMovingLength.ValueInt;
-            _envelop.ParametersDigit[1].Value = EnvelopDeviation.ValueDecimal;
+            _envelop.ParametersDigit[0].Value = _envelopMovingLength.ValueInt;
+            _envelop.ParametersDigit[1].Value = _envelopDeviation.ValueDecimal;
 
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += EnvelopTrend_ParametrsChangeByUser;
+
+            // Subscribe to the candle finished event
+            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "Example of a robot that shows the logic of trading two patterns within one logic";
         }
 
         private void EnvelopTrend_ParametrsChangeByUser()
         {
-            if (_pc.ParametersDigit[0].Value != PcLength.ValueInt
-                || _pc.ParametersDigit[1].Value != PcLength.ValueInt)
+            if (_pc.ParametersDigit[0].Value != _pcLength.ValueInt
+                || _pc.ParametersDigit[1].Value != _pcLength.ValueInt)
             {
-                _pc.ParametersDigit[0].Value = PcLength.ValueInt;
-                _pc.ParametersDigit[1].Value = PcLength.ValueInt;
+                _pc.ParametersDigit[0].Value = _pcLength.ValueInt;
+                _pc.ParametersDigit[1].Value = _pcLength.ValueInt;
                 _pc.Reload();
                 _pc.Save();
             }
 
-            if (_envelop.ParametersDigit[0].Value != EnvelopMovingLength.ValueInt ||
-                _envelop.ParametersDigit[1].Value != EnvelopDeviation.ValueDecimal)
+            if (_envelop.ParametersDigit[0].Value != _envelopMovingLength.ValueInt ||
+                _envelop.ParametersDigit[1].Value != _envelopDeviation.ValueDecimal)
             {
-                _envelop.ParametersDigit[0].Value = EnvelopMovingLength.ValueInt;
-                _envelop.ParametersDigit[1].Value = EnvelopDeviation.ValueDecimal;
+                _envelop.ParametersDigit[0].Value = _envelopMovingLength.ValueInt;
+                _envelop.ParametersDigit[1].Value = _envelopDeviation.ValueDecimal;
             }
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "TwoEntrySample";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // trade logic
-
+        // Trade logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString != "On")
+            if (_regime.ValueString != "On")
             {
                 return;
             }
 
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -159,6 +179,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Opening PriceChannel logic
         private void LogicOpenPriceChannel(List<Candle> candles)
         {
             decimal upChannelPc = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 2];
@@ -178,6 +199,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Close PriceChannel logic
         private void LogicClosePriceChannel(Position position)
         {
             if (position.State != PositionStateType.Open)
@@ -190,6 +212,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             _tab.CloseAtTrailingStopMarket(position, downChannel);
         }
 
+        // Opening Envelops logic
         private void LogicOpenEnvelops(List<Candle> candles)
         {
             decimal upChannel = _envelop.DataSeries[0].Values[_envelop.DataSeries[0].Values.Count - 1];
@@ -209,6 +232,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Close Envelops logic
         private void LogicCloseEnvelops(Position position)
         {
             if (position.State != PositionStateType.Open)
@@ -221,18 +245,19 @@ namespace OsEngine.Robots.PositionsMicromanagement
             _tab.CloseAtTrailingStopMarket(position, downChannel);
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -243,7 +268,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -253,7 +278,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -264,7 +289,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -279,7 +304,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -289,11 +314,11 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
