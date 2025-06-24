@@ -208,6 +208,5 @@ namespace OsEngine.Robots.Grids
                 return;
             }
         }
-
     }
 }

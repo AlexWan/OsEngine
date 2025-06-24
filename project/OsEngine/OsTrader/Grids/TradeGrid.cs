@@ -458,7 +458,8 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
-                if (HaveOpenPositionsByGrid == true)
+                if (HaveOpenPositionsByGrid == true 
+                    && StartProgram == StartProgram.IsOsTrader)
                 {
                     CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label524);
                     ui.Show();
