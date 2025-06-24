@@ -13,112 +13,147 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 
+/* Description
+trading robot for osengine
+
+The trend robot on Strategy Alligator Trend Average.
+
+Buy:
+1. The current price is above all lines of the Alligator indicator.
+2. The Alligator lines are arranged in order: fast > middle > slow.
+Sell:
+1. The current price is below all lines of the Alligator indicator.
+2. The Alligator lines are arranged in order: fast < middle < slow.
+
+Standard Exit: 
+Triggered by the opposite signal (i.e., when the conditions for entry are no longer valid).
+Averaging Positions: 
+If the price moves against the position and reaches certain conditions, additional volume is added to the position using a market order.
+Pyramid:
+If the price moves in the direction of the position and exceeds a certain percentage of the entry price (`_pyramidPercent`), a new part of the position ("pyramiding") is added.
+ */
+
 namespace OsEngine.Robots.PositionsMicromanagement
 {
-
-    [Bot("AlligatorTrendAverage")]
+    [Bot("AlligatorTrendAverage")] // We create an attribute so that we don't write anything to the BotFactory
     public class AlligatorTrendAverage : BotPanel
     {
         private BotTabSimple _tab;
 
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _pyramidPercent;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _lengthJaw;
+        private StrategyParameterInt _lengthTeeth;
+        private StrategyParameterInt _lengthLips;
+        private StrategyParameterInt _shiftJaw;
+        private StrategyParameterInt _shiftTeeth;
+        private StrategyParameterInt _shiftLips;
+        
+        // Indicator
         private Aindicator _alligator;
 
-        public StrategyParameterString Regime;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterDecimal PyramidPercent;
-
-        public StrategyParameterInt LengthJaw;
-        public StrategyParameterInt LengthTeeth;
-        public StrategyParameterInt LengthLips;
-
-        public StrategyParameterInt ShiftJaw;
-        public StrategyParameterInt ShiftTeeth;
-        public StrategyParameterInt ShiftLips;
-
-        public AlligatorTrendAverage(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        public AlligatorTrendAverage(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _pyramidPercent = CreateParameter("Pyramid percent", 0.1m, 1.0m, 50, 4);
 
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            PyramidPercent = CreateParameter("Pyramid percent", 0.1m, 1.0m, 50, 4);
+            // Indicator settings
+            _lengthJaw = CreateParameter("Jaw length", 13, 1, 50, 4);
+            _lengthTeeth = CreateParameter("Teeth length", 8, 1, 50, 4);
+            _lengthLips = CreateParameter("Lips length", 5, 1, 50, 4);
+            _shiftJaw = CreateParameter("Jaw offset", 8, 1, 50, 4);
+            _shiftTeeth = CreateParameter("Teeth offset", 5, 1, 50, 4);
+            _shiftLips = CreateParameter("Lips offset", 3, 1, 50, 4);
 
-            LengthJaw = CreateParameter("Jaw length", 13, 1, 50, 4);
-            LengthTeeth = CreateParameter("Teeth length", 8, 1, 50, 4);
-            LengthLips = CreateParameter("Lips length", 5, 1, 50, 4);
-            ShiftJaw = CreateParameter("Jaw offset", 8, 1, 50, 4);
-            ShiftTeeth = CreateParameter("Teeth offset", 5, 1, 50, 4);
-            ShiftLips = CreateParameter("Lips offset", 3, 1, 50, 4);
-
+            // Create indicator Alligator
             _alligator = IndicatorsFactory.CreateIndicatorByName("Alligator", name + "Alligator", false);
             _alligator = (Aindicator)_tab.CreateCandleIndicator(_alligator, "Prime");
-
-            _alligator.ParametersDigit[0].Value = LengthJaw.ValueInt;
-            _alligator.ParametersDigit[1].Value = LengthTeeth.ValueInt;
-            _alligator.ParametersDigit[2].Value = LengthLips.ValueInt;
-            _alligator.ParametersDigit[3].Value = ShiftJaw.ValueInt;
-            _alligator.ParametersDigit[4].Value = ShiftTeeth.ValueInt;
-            _alligator.ParametersDigit[5].Value = ShiftLips.ValueInt;
-
+            _alligator.ParametersDigit[0].Value = _lengthJaw.ValueInt;
+            _alligator.ParametersDigit[1].Value = _lengthTeeth.ValueInt;
+            _alligator.ParametersDigit[2].Value = _lengthLips.ValueInt;
+            _alligator.ParametersDigit[3].Value = _shiftJaw.ValueInt;
+            _alligator.ParametersDigit[4].Value = _shiftTeeth.ValueInt;
+            _alligator.ParametersDigit[5].Value = _shiftLips.ValueInt;
             _alligator.Save();
 
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "An example of a robot that shows sequential averaging of a position and increase of a position on a trend";
+            Description = "The trend robot on Strategy Alligator Trend Average. " +
+                "Buy: " +
+                "1. The current price is above all lines of the Alligator indicator. " +
+                "2. The Alligator lines are arranged in order: fast > middle > slow. " +
+                "Sell: " +
+                "1. The current price is below all lines of the Alligator indicator. " +
+                "2. The Alligator lines are arranged in order: fast < middle < slow. " +
+                "Standard Exit:  " +
+                "Triggered by the opposite signal (i.e., when the conditions for entry are no longer valid). " +
+                "Averaging Positions:  " +
+                "If the price moves against the position and reaches certain conditions, additional volume is added to the position using a market order. " +
+                "Pyramid: " +
+                "If the price moves in the direction of the position and exceeds a certain percentage of the entry price (`_pyramidPercent`), a new part of the " +
+                "position (pyramiding) is added.";
         }
 
         void Event_ParametrsChangeByUser()
         {
-            if (_alligator.ParametersDigit[0].Value != LengthJaw.ValueInt ||
-            _alligator.ParametersDigit[1].Value != LengthTeeth.ValueInt ||
-            _alligator.ParametersDigit[2].Value != LengthLips.ValueInt ||
-            _alligator.ParametersDigit[3].Value != ShiftJaw.ValueInt ||
-            _alligator.ParametersDigit[4].Value != ShiftTeeth.ValueInt ||
-            _alligator.ParametersDigit[5].Value != ShiftLips.ValueInt)
+            if (_alligator.ParametersDigit[0].Value != _lengthJaw.ValueInt ||
+            _alligator.ParametersDigit[1].Value != _lengthTeeth.ValueInt ||
+            _alligator.ParametersDigit[2].Value != _lengthLips.ValueInt ||
+            _alligator.ParametersDigit[3].Value != _shiftJaw.ValueInt ||
+            _alligator.ParametersDigit[4].Value != _shiftTeeth.ValueInt ||
+            _alligator.ParametersDigit[5].Value != _shiftLips.ValueInt)
             {
-                _alligator.ParametersDigit[0].Value = LengthJaw.ValueInt;
-                _alligator.ParametersDigit[1].Value = LengthTeeth.ValueInt;
-                _alligator.ParametersDigit[2].Value = LengthLips.ValueInt;
-                _alligator.ParametersDigit[3].Value = ShiftJaw.ValueInt;
-                _alligator.ParametersDigit[4].Value = ShiftTeeth.ValueInt;
-                _alligator.ParametersDigit[5].Value = ShiftLips.ValueInt;
+                _alligator.ParametersDigit[0].Value = _lengthJaw.ValueInt;
+                _alligator.ParametersDigit[1].Value = _lengthTeeth.ValueInt;
+                _alligator.ParametersDigit[2].Value = _lengthLips.ValueInt;
+                _alligator.ParametersDigit[3].Value = _shiftJaw.ValueInt;
+                _alligator.ParametersDigit[4].Value = _shiftTeeth.ValueInt;
+                _alligator.ParametersDigit[5].Value = _shiftLips.ValueInt;
 
                 _alligator.Reload();
                 _alligator.Save();
             }
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "AlligatorTrendAverage";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // logic
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -137,7 +172,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -149,6 +184,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal lastPrice = candles[candles.Count - 1].Close;
@@ -164,7 +200,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
              && lastPrice > lastFastAlligator
              && lastFastAlligator > lastMiddleAlligator
              && lastMiddleAlligator > lastSlowAlligator
-             && Regime.ValueString != "OnlyShort")
+             && _regime.ValueString != "OnlyShort")
             {
                 _tab.BuyAtMarket(GetVolume(_tab));
             }
@@ -174,12 +210,13 @@ namespace OsEngine.Robots.PositionsMicromanagement
              && lastPrice < lastFastAlligator
              && lastFastAlligator < lastMiddleAlligator
              && lastMiddleAlligator < lastSlowAlligator
-             && Regime.ValueString != "OnlyLong")
+             && _regime.ValueString != "OnlyLong")
             {
                 _tab.SellAtMarket(GetVolume(_tab));
             }
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if(position.State == PositionStateType.Opening
@@ -194,12 +231,11 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
 
             decimal lastPrice = candles[candles.Count - 1].Close;
-
             decimal lastSlowAlligator = _alligator.DataSeries[0].Last;
             decimal lastMiddleAlligator = _alligator.DataSeries[1].Last;
             decimal lastFastAlligator = _alligator.DataSeries[2].Last;
 
-            // 1 Standard Exit / стандартный выход
+            // 1 Standard Exit
 
             if (position.Direction == Side.Buy
                 && lastPrice < lastSlowAlligator
@@ -210,7 +246,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 return;
             }
             else if (position.Direction == Side.Sell
-                && lastPrice > lastSlowAlligator
+             && lastPrice > lastSlowAlligator
              && lastPrice > lastMiddleAlligator
              && lastPrice > lastFastAlligator)
             {
@@ -218,7 +254,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 return;
             }
 
-            // 2 Averaging / усреднение при возврате в канал
+            // 2 Averaging
 
             if (position.Direction == Side.Buy
                 && 
@@ -247,14 +283,13 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 }
             }
 
-            // 3 Trend follow-up buying / пирамидинг по тренду
+            // 3 Trend follow-up buying
 
             if (position.Direction == Side.Buy
                 &&
                 (position.Comment.Contains("Pyramid") == false))
             {
-                decimal pyramidPrice = 
-                    position.EntryPrice + position.EntryPrice * (PyramidPercent.ValueDecimal/100);
+                decimal pyramidPrice = position.EntryPrice + position.EntryPrice * (_pyramidPercent.ValueDecimal/100);
 
                 if(lastPrice > pyramidPrice)
                 {
@@ -262,14 +297,12 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     _tab.BuyAtMarketToPosition(position, GetVolume(_tab));
                     return;
                 }
-
             }
             else if (position.Direction == Side.Sell 
                 &&
                 (position.Comment.Contains("Pyramid") == false))
             {
-                decimal pyramidPrice =
-                    position.EntryPrice - position.EntryPrice * (PyramidPercent.ValueDecimal / 100);
+                decimal pyramidPrice = position.EntryPrice - position.EntryPrice * (_pyramidPercent.ValueDecimal / 100);
 
                 if (lastPrice < pyramidPrice)
                 {
@@ -280,18 +313,19 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -302,7 +336,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -312,7 +346,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -323,7 +357,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -338,7 +372,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -348,11 +382,11 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
