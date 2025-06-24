@@ -29,9 +29,10 @@ Exit: on the opposite signal.
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakFi")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakFi")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakFi : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -59,6 +60,7 @@ namespace OsEngine.Robots
 
         public BreakFi(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -106,6 +108,7 @@ namespace OsEngine.Robots
         {
             return "BreakFi";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -196,7 +199,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // The last value of the indicator
             _lastFI = _FI.DataSeries[0].Last;
 
