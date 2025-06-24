@@ -81,8 +81,8 @@ namespace OsEngine.Robots.Patterns
             CheckBoxProfitOrderIsOn.Content = OsLocalization.Trader.Label124;
             CheckBoxExitFromSomeCandlesIsOn.Content = OsLocalization.Trader.Label125;
             CheckBoxTrailingStopIsOn.Content = OsLocalization.Trader.Label126;
-            LabelVolumeType.Content = OsLocalization.Trader.Label531;
-            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label532;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             LabelSlippage1.Content = OsLocalization.Trader.Label92;
             LabelSlippage2.Content = OsLocalization.Trader.Label92;
