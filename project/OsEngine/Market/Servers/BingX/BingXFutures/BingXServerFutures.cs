@@ -230,11 +230,17 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private RateGate _generalRateGate1 = new RateGate(100, TimeSpan.FromSeconds(10));
+        //private RateGate _generalRateGate1 = new RateGate(1, TimeSpan.FromMilliseconds(110));
 
-        private RateGate _generalRateGate2 = new RateGate(100, TimeSpan.FromSeconds(10));
+        //private RateGate _generalRateGate2 = new RateGate(1, TimeSpan.FromMilliseconds(110));
 
-        private RateGate _generalRateGate3 = new RateGate(200, TimeSpan.FromSeconds(10));
+        //private RateGate _generalRateGate3 = new RateGate(2, TimeSpan.FromMilliseconds(110));
+
+        private RateGate _generalRateGate1 = new RateGate(10, TimeSpan.FromSeconds(1));
+
+        private RateGate _generalRateGate2 = new RateGate(100, TimeSpan.FromSeconds(1));
+
+        private RateGate _generalRateGate3 = new RateGate(100, TimeSpan.FromSeconds(1));
 
         public string _publicKey;
 
@@ -1392,7 +1398,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                             {
                                 for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
                                 {
-                                    string name = _subscribledSecutiries[i];
+                                    string name = _subscribledSecutiries[i2];
 
                                     webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
                                     webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
@@ -1412,7 +1418,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             }
         }
 
-        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+        private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
         private DateTime _timeLast = DateTime.Now;
 
@@ -1442,68 +1448,87 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     continue;
                 }
 
-                _generalRateGate1.WaitToProceed();
+                GetOpenInterest();
+            }
+        }
 
-                try
+        private void GetOpenInterest()
+        {
+            _generalRateGate1.WaitToProceed();
+
+            try
+            {
+                for (int i = 0; i < _subscribledSecutiries.Count; i++)
                 {
-                    for (int i = 0; i < _subscribledSecutiries.Count; i++)
+
+                    RestClient client = new RestClient(_baseUrl);
+
+                    if (_myProxy != null)
                     {
+                        client.Proxy = _myProxy;
+                    }
 
-                        RestClient client = new RestClient(_baseUrl);
+                    string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                    string parameters = $"symbol={_subscribledSecutiries[i]}&timestamp={timeStamp}";
+                    string sign = CalculateHmacSha256(parameters);
+                    string requestUri = $"/openApi/swap/v2/quote/openInterest?{parameters}";
 
-                        if (_myProxy != null)
+                    RestRequest request = new RestRequest(requestUri, Method.GET);
+
+                    request.AddParameter("timestamp", timeStamp);
+                    request.AddParameter("signature", sign);
+                    request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                    IRestResponse json = client.Execute(request);
+
+                    if (json.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseFuturesBingXMessage<OpenInterestInfo> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseFuturesBingXMessage<OpenInterestInfo>());
+
+                        if (response.code == "0")
                         {
-                            client.Proxy = _myProxy;
-                        }
+                            OpenInterestData openInterestData = new OpenInterestData();
 
-                        string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
-                        string parameters = $"symbol={_subscribledSecutiries[i]}&timestamp={timeStamp}";
-                        string sign = CalculateHmacSha256(parameters);
-                        string requestUri = $"/openApi/swap/v2/quote/openInterest?{parameters}";
+                            openInterestData.SecutityName = response.data.symbol;
 
-                        RestRequest request = new RestRequest(requestUri, Method.GET);
-
-                        request.AddParameter("timestamp", timeStamp);
-                        request.AddParameter("signature", sign);
-                        request.AddHeader("X-BX-APIKEY", _publicKey);
-
-                        IRestResponse json = client.Execute(request);
-
-                        if (json.StatusCode == HttpStatusCode.OK)
-                        {
-                            ResponseFuturesBingXMessage<OpenInterestInfo> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseFuturesBingXMessage<OpenInterestInfo>());
-
-                            if (response.code == "0")
+                            if (response.data.openInterest != null)
                             {
-                                string name = response.data.symbol;
-                                string oi = response.data.openInterest;
+                                openInterestData.OpenInterestValue = response.data.openInterest;
 
-                                if (openInterestData.ContainsKey(name))
+                                bool isInArray = false;
+
+                                for (int j = 0; j < _openInterest.Count; j++)
                                 {
-                                    openInterestData[name] = oi;
+                                    if (_openInterest[j].SecutityName == openInterestData.SecutityName)
+                                    {
+                                        _openInterest[j].OpenInterestValue = openInterestData.OpenInterestValue;
+                                        isInArray = true;
+                                        break;
+                                    }
                                 }
-                                else
+
+                                if (isInArray == false)
                                 {
-                                    openInterestData.Add(name, oi);
+                                    _openInterest.Add(openInterestData);
                                 }
-                            }
-                            else
-                            {
-                                SendLogMessage($"GetOpenInterest> - Code: {response.code} - {response.msg}", LogMessageType.Error);
                             }
                         }
                         else
                         {
-                            SendLogMessage($"GetOpenInterest> - Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                            SendLogMessage($"GetOpenInterest> - Code: {response.code} - {response.msg}", LogMessageType.Error);
                         }
                     }
+                    else
+                    {
+                        SendLogMessage($"GetOpenInterest> - Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                    }
+                }
 
-                    _timeLast = DateTime.Now;
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.Message, LogMessageType.Error);
-                }
+                _timeLast = DateTime.Now;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
 
@@ -1647,17 +1672,17 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private decimal GetOpenInterestValue(string securityNameCode)
         {
-            if (openInterestData == null
-               || openInterestData.Count == 0)
+            if (_openInterest.Count == 0
+                  || _openInterest == null)
             {
                 return 0;
             }
 
-            foreach (var data in openInterestData)
+            for (int i = 0; i < _openInterest.Count; i++)
             {
-                if (data.Key == securityNameCode)
+                if (_openInterest[i].SecutityName == securityNameCode)
                 {
-                    return data.Value.ToDecimal();
+                    return _openInterest[i].OpenInterestValue.ToDecimal();
                 }
             }
 
@@ -2614,5 +2639,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         }
 
         #endregion
+    }
+
+    public class OpenInterestData
+    {
+        public string SecutityName { get; set; }
+        public string OpenInterestValue { get; set; }
     }
 }
