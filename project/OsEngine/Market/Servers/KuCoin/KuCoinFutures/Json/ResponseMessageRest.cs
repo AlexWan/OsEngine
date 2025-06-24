@@ -158,61 +158,70 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
     // https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
     public class ResponseSymbol
     {
-        public string symbol;
-        public string rootSymbol;
-        public string type;
-        public string firstOpenDate;
-        public string expireDate;
-        public string settleDate;
-        public string baseCurrency;
-        public string quoteCurrency;
-        public string settleCurrency;
-        public string maxOrderQty;
-        public string maxPrice;
-        public string lotSize;
-        public string tickSize;
-        public string indexPriceTickSize;
-        public string multiplier;
-        public string initialMargin;
-        public string mastringainMargin;
-        public string maxRiskLimit;
-        public string minRiskLimit;
-        public string riskStep;
-        public string makerFeeRate;
-        public string takerFeeRate;
-        public string takerFixFee;
-        public string makerFixFee;
-        public string settlementFee;
-        public string isDeleverage;
-        public string isQuanto;
-        public string isInverse;
-        public string markMethod;
-        public string fairMethod;
-        public string fundingBaseSymbol;
-        public string fundingQuoteSymbol;
-        public string fundingRateSymbol;
-        public string indexSymbol;
-        public string settlementSymbol;
-        public string status;
-        public string fundingFeeRate;
-        public string predictedFundingFeeRate;
-        public string openstringerest;
-        public string turnoverOf24h;
-        public string volumeOf24h;
-        public string markPrice;
-        public string indexPrice;
-        public string lastTradePrice;
-        public string nextFundingRateTime;
-        public string maxLeverage;
-        public string[] sourceExchanges;
-        public string premiumsSymbol1M;
-        public string premiumsSymbol8H;
-        public string fundingBaseSymbol1M;
-        public string fundingQuoteSymbol1M;
-        public string lowPrice;
-        public string highPrice;
-        public string priceChgPct;
-        public string priceChg;
+        public string symbol { get; set; }
+        public string rootSymbol { get; set; }
+        public string type { get; set; }
+        public string firstOpenDate { get; set; }
+        public string expireDate { get; set; }
+        public string settleDate { get; set; }
+        public string baseCurrency { get; set; }
+        public string quoteCurrency { get; set; }
+        public string settleCurrency { get; set; }
+        public string maxOrderQty { get; set; }
+        public string maxPrice { get; set; }
+        public string lotSize { get; set; }
+        public string tickSize { get; set; }
+        public string indexPriceTickSize { get; set; }
+        public string multiplier { get; set; }
+        public string initialMargin { get; set; }
+        public string maintainMargin { get; set; }
+        public string maxRiskLimit { get; set; }
+        public string minRiskLimit { get; set; }
+        public string riskStep { get; set; }
+        public string makerFeeRate { get; set; }
+        public string takerFeeRate { get; set; }
+        public string takerFixFee { get; set; }
+        public string makerFixFee { get; set; }
+        public string settlementFee { get; set; }
+        public string isDeleverage { get; set; }
+        public string isQuanto { get; set; }
+        public string isInverse { get; set; }
+        public string markMethod { get; set; }
+        public string fairMethod { get; set; }
+        public string fundingBaseSymbol { get; set; }
+        public string fundingQuoteSymbol { get; set; }
+        public string fundingRateSymbol { get; set; }
+        public string indexSymbol { get; set; }
+        public string settlementSymbol { get; set; }
+        public string status { get; set; }
+        public string fundingFeeRate { get; set; }
+        public string predictedFundingFeeRate { get; set; }
+        public string fundingRateGranularity { get; set; }
+        public string openInterest { get; set; }
+        public string turnoverOf24h { get; set; }
+        public string volumeOf24h { get; set; }
+        public string markPrice { get; set; }
+        public string indexPrice { get; set; }
+        public string lastTradePrice { get; set; }
+        public string nextFundingRateTime { get; set; }
+        public string maxLeverage { get; set; }
+        public List<string> sourceExchanges { get; set; }
+        public string premiumsSymbol1M { get; set; }
+        public string premiumsSymbol8H { get; set; }
+        public string fundingBaseSymbol1M { get; set; }
+        public string fundingQuoteSymbol1M { get; set; }
+        public string lowPrice { get; set; }
+        public string highPrice { get; set; }
+        public string priceChgPct { get; set; }
+        public string priceChg { get; set; }
+        public string k { get; set; }
+        public string m { get; set; }
+        public string f { get; set; }
+        public string mmrLimit { get; set; }
+        public string mmrLevConstant { get; set; }
+        public string supportCross { get; set; }
+        public string buyLimit { get; set; }
+        public string sellLimit { get; set; }
     }
 
     public class ResponseMyTrade
