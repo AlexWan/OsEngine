@@ -3,6 +3,11 @@
 * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Charts.CandleChart;
+using OsEngine.Entity;
+using OsEngine.Language;
+using OsEngine.OsMiner.Patterns;
+using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -11,11 +16,7 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
-using OsEngine.Charts.CandleChart;
-using OsEngine.Entity;
-using OsEngine.Language;
-using OsEngine.OsMiner.Patterns;
-using OsEngine.OsTrader.Panels;
+using Tinkoff.InvestApi.V1;
 
 namespace OsEngine.Robots.Patterns
 {
@@ -48,6 +49,13 @@ namespace OsEngine.Robots.Patterns
             _chartSingleOpenPattern.StartPaintPrimeChart(null, HostSinglePatternToOpen, new Rectangle());
             _chartSingleClosePattern.StartPaintPrimeChart(null, HostSinglePatternToClose, new Rectangle());
 
+            ComboBoxVolumeType.Items.Add("Deposit percent");
+            ComboBoxVolumeType.Items.Add("Contracts");
+            ComboBoxVolumeType.Items.Add("Contract currency");
+            ComboBoxVolumeType.SelectedItem = _bot._volumeType;
+
+            TextBoxAssetInPortfolio.Text = "Prime";
+
             InitializePrimeSettings();
             InitializePattarnsToOpenTab();
             InitializeTabClosePosition();
@@ -73,6 +81,8 @@ namespace OsEngine.Robots.Patterns
             CheckBoxProfitOrderIsOn.Content = OsLocalization.Trader.Label124;
             CheckBoxExitFromSomeCandlesIsOn.Content = OsLocalization.Trader.Label125;
             CheckBoxTrailingStopIsOn.Content = OsLocalization.Trader.Label126;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             LabelSlippage1.Content = OsLocalization.Trader.Label92;
             LabelSlippage2.Content = OsLocalization.Trader.Label92;
@@ -111,7 +121,7 @@ namespace OsEngine.Robots.Patterns
             TextBoxMaxPosition.Text = _bot.MaxPosition.ToString();
             TextBoxMaxPosition.TextChanged += TextBoxMaxPosition_TextChanged;
 
-            TextBoxOpenVolume.Text = _bot.OpenVolume.ToString();
+            TextBoxOpenVolume.Text = _bot._volume.ToString();
             TextBoxOpenVolume.TextChanged += TextBoxOpenVolume_TextChanged;
         }
 
@@ -119,18 +129,18 @@ namespace OsEngine.Robots.Patterns
         {
             try
             {
-                if (_bot.OpenVolume.ToString() == "" ||
-                    _bot.OpenVolume.ToString().EndsWith(",") ||
-                    _bot.OpenVolume.ToString().EndsWith("."))
+                if (_bot._volume.ToString() == "" ||
+                    _bot._volume.ToString().EndsWith(",") ||
+                    _bot._volume.ToString().EndsWith("."))
                 {
                     return;
                 }
 
-                _bot.OpenVolume = TextBoxOpenVolume.Text.ToDecimal();
+                _bot._volume = TextBoxOpenVolume.Text.ToDecimal();
             }
             catch (Exception)
             {
-                TextBoxOpenVolume.Text = _bot.OpenVolume.ToString();
+                TextBoxOpenVolume.Text = _bot._volume.ToString();
             }
             _bot.Save();
         }
@@ -743,6 +753,18 @@ namespace OsEngine.Robots.Patterns
                     chart.ProcessIndicator(pat.Indicators[i]);
                 }
             }
+        }
+
+        private void TextBoxAssetInPortfolio_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            _bot._tradeAssetInPortfolio = TextBoxAssetInPortfolio.Text.ToString();
+            _bot.Save();
+        }
+
+        private void ComboBoxVolumeType_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            _bot._volumeType = ComboBoxVolumeType.SelectedItem.ToString();
+            _bot.Save();
         }
     }
 }
