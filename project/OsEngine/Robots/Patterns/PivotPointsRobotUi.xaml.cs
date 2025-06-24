@@ -46,8 +46,8 @@ namespace OsEngine.Robots.Patterns
             LabelSlippage.Content = OsLocalization.Trader.Label92;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelStopOrder.Content = OsLocalization.Trader.Label123;
-            LabelVolumeType.Content = OsLocalization.Trader.Label531;
-            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label532;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();
