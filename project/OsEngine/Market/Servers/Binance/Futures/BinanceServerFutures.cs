@@ -1701,7 +1701,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
             }
         }
 
-        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+        private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
         private DateTime _timeLast = DateTime.Now;
 
@@ -1731,33 +1731,52 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     continue;
                 }
 
-                try
+                GetOpenInterest();
+            }
+        }
+
+        private void GetOpenInterest()
+        {
+            try
+            {
+                for (int i = 0; i < _subscribledSecurities.Count; i++)
                 {
-                    for (int i = 0; i < _subscribledSecurities.Count; i++)
+                    string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/openInterest", new Dictionary<string, string>() { { "symbol=", _subscribledSecurities[i].Name } }, false);
+
+                    OpenInterestInfo response = JsonConvert.DeserializeAnonymousType(res, new OpenInterestInfo());
+
+                    OpenInterestData openInterestData = new OpenInterestData();
+
+                    openInterestData.SecutityName = response.symbol;
+
+                    if (response.openInterest != null)
                     {
-                        string res = CreateQuery(Method.GET, "/" + type_str_selector + "/v1/openInterest", new Dictionary<string, string>() { { "symbol=", _subscribledSecurities[i].Name } }, false);
+                        openInterestData.OpenInterestValue = response.openInterest;
 
-                        OpenInterestInfo response = JsonConvert.DeserializeAnonymousType(res, new OpenInterestInfo());
+                        bool isInArray = false;
 
-                        string name = response.symbol;
-                        string oi = response.openInterest;
-
-                        if (openInterestData.ContainsKey(name))
+                        for (int j = 0; j < _openInterest.Count; j++)
                         {
-                            openInterestData[name] = oi;
+                            if (_openInterest[j].SecutityName == openInterestData.SecutityName)
+                            {
+                                _openInterest[j].OpenInterestValue = openInterestData.OpenInterestValue;
+                                isInArray = true;
+                                break;
+                            }
                         }
-                        else
+
+                        if (isInArray == false)
                         {
-                            openInterestData.Add(name, oi);
+                            _openInterest.Add(openInterestData);
                         }
                     }
+                }
 
-                    _timeLast = DateTime.Now;
-                }
-                catch (Exception e)
-                {
-                    SendLogMessage(e.Message, LogMessageType.Error);
-                }
+                _timeLast = DateTime.Now;
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
 
@@ -2287,17 +2306,17 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private decimal GetOpenInterestValue(string securityNameCode)
         {
-            if (openInterestData == null
-               || openInterestData.Count == 0)
+            if (_openInterest.Count == 0
+                 || _openInterest == null)
             {
                 return 0;
             }
 
-            foreach (var data in openInterestData)
+            for (int i = 0; i < _openInterest.Count; i++)
             {
-                if (data.Key == securityNameCode)
+                if (_openInterest[i].SecutityName == securityNameCode)
                 {
-                    return data.Value.ToDecimal();
+                    return _openInterest[i].OpenInterestValue.ToDecimal();
                 }
             }
 
@@ -3103,5 +3122,11 @@ namespace OsEngine.Market.Servers.Binance.Futures
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
+    }
+
+    public class OpenInterestData
+    {
+        public string SecutityName { get; set; }
+        public string OpenInterestValue { get; set; }
     }
 }
