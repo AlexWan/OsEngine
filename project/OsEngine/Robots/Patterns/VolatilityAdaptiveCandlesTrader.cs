@@ -12,70 +12,100 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+trading robot for osengine
+
+The trend robot on Volatility Adaptive Candles Trader.
+
+Buy:
+1. If the difference between the opening and closing price of the current candle relative
+to its price is less than the specified threshold (HeightSignalCandle), then no entry is made.  
+2. The current candle is bullish (the closing price is higher than the opening price).  
+
+Sell: 
+1. If the difference between the opening and closing price of the current candle relative 
+to its price is less than the specified threshold (HeightSignalCandle), then no entry is made.  
+2. The current candle is bearish (the closing price is lower than the opening price).  
+
+Exit: by trailing stop.
+ */
+
 namespace OsEngine.Robots.Patterns
 {
-    [Bot("VolatilityAdaptiveCandlesTrader")]
+    [Bot("VolatilityAdaptiveCandlesTrader")] // We create an attribute so that we don't write anything to the BotFactory
     public class VolatilityAdaptiveCandlesTrader : BotPanel
     {
-        public VolatilityAdaptiveCandlesTrader(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Basic settings
+        public StrategyParameterString Regime;
+        public StrategyParameterDecimal HeightSignalCandle;
+        public StrategyParameterDecimal Slippage;
+
+        // GetVolume settings
+        public StrategyParameterString VolumeType;
+        public StrategyParameterDecimal Volume;
+        public StrategyParameterString TradeAssetInPortfolio;
+
+        // Volatility settings
+        public StrategyParameterInt DaysVolatilityAdaptive;
+        public StrategyParameterDecimal HeightSignalCandleVolaPercent;
+        public StrategyParameterDecimal TrailingStopVolaPercent;
+
+        // Exit setting
+        public StrategyParameterDecimal TrailingStopPercent;
+
+        public VolatilityAdaptiveCandlesTrader(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
-
+            // Basic settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
-
-            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
-
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
             Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-
             HeightSignalCandle = CreateParameter("Height signal candle %", 1, 0, 20, 1m);
 
+            // Volatility settings
+            DaysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 1, 0, 20, 1);
+            TrailingStopVolaPercent = CreateParameter("Height trail stop volatility percent", 10, 0, 20, 1m);
+            HeightSignalCandleVolaPercent = CreateParameter("Height signal candle volatility percent", 20, 0, 20, 1m);
+            
+            // GetVolume settings
+            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
+            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Exit setting
             TrailingStopPercent = CreateParameter("Trail stop %", 20m, 0, 20, 1m);
 
-            DaysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 1, 0, 20, 1);
+            // Subscribe to the candle finished event
+            _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            HeightSignalCandleVolaPercent = CreateParameter("Height signal candle volatility percent", 20, 0, 20, 1m);
-
-            TrailingStopVolaPercent = CreateParameter("Height trail stop volatility percent", 10, 0, 20, 1m);
-
-            Description = "Trading robot for adaptive candles by volatility";
+            Description = "The trend robot on Volatility Adaptive Candles Trader. " +
+                "Buy: " +
+                "1. If the difference between the opening and closing price of the current candle relative " +
+                "to its price is less than the specified threshold (HeightSignalCandle), then no entry is made.   " +
+                "2. The current candle is bullish (the closing price is higher than the opening price).   " +
+                "Sell: " +
+                "1. If the difference between the opening and closing price of the current candle relative  " +
+                "to its price is less than the specified threshold (HeightSignalCandle), then no entry is made.   " +
+                "2. The current candle is bearish (the closing price is lower than the opening price).   " +
+                "Exit: by trailing stop.";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "VolatilityAdaptiveCandlesTrader";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabSimple _tab;
-
-        // settings
-
-        public StrategyParameterString Regime;
-        public StrategyParameterDecimal HeightSignalCandle;
-        public StrategyParameterDecimal TrailingStopPercent;
-        public StrategyParameterDecimal Slippage;
-        public StrategyParameterString VolumeType;
-        public StrategyParameterDecimal Volume;
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterInt DaysVolatilityAdaptive;
-        public StrategyParameterDecimal HeightSignalCandleVolaPercent;
-        public StrategyParameterDecimal TrailingStopVolaPercent;
-
-        // volatility adaptation
-
+        // Volatility adaptation
         private void AdaptSignalCandleHeight(List<Candle> candles)
         {
             if (DaysVolatilityAdaptive.ValueInt <= 0
@@ -84,7 +114,7 @@ namespace OsEngine.Robots.Patterns
                 return;
             }
 
-            // 1 рассчитываем движение от хая до лоя внутри N дней
+            // 1 we calculate the movement from high to low within N days
 
             decimal minValueInDay = decimal.MaxValue;
             decimal maxValueInDay = decimal.MinValue;
@@ -143,7 +173,7 @@ namespace OsEngine.Robots.Patterns
                 return;
             }
 
-            // 2 усредняем это движение. Нужна усреднённая волатильность. процент
+            // 2 we average this movement. We need average volatility percentage
 
             decimal volaPercentSma = 0;
 
@@ -154,7 +184,7 @@ namespace OsEngine.Robots.Patterns
 
             volaPercentSma = volaPercentSma / volaInDaysPercent.Count;
 
-            // 3 считаем размер параметров с учётом этой волатильности
+            // 3 we calculate the size of the parameters taking this volatility into account
 
             decimal signalCandleHeight = volaPercentSma * (HeightSignalCandleVolaPercent.ValueDecimal / 100);
             HeightSignalCandle.ValueDecimal = signalCandleHeight;
@@ -163,8 +193,7 @@ namespace OsEngine.Robots.Patterns
             TrailingStopPercent.ValueDecimal = trailStopHeight;
         }
 
-        // logic
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             if (Regime.ValueString == "Off")
@@ -199,6 +228,7 @@ namespace OsEngine.Robots.Patterns
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal _lastPrice = candles[candles.Count - 1].Close;
@@ -228,9 +258,9 @@ namespace OsEngine.Robots.Patterns
             }
 
             return;
-
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles)
         {
             decimal _lastPrice = candles[candles.Count - 1].Close;
@@ -256,6 +286,7 @@ namespace OsEngine.Robots.Patterns
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
