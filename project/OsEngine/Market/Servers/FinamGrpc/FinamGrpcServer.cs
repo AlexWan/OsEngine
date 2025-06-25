@@ -15,8 +15,6 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -717,7 +715,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-
+    
         public bool SubscribeNews()
         {
             return false;
