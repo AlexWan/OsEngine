@@ -5,29 +5,37 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Robots.MarketMaker"
         mc:Ignorable="d"
-         Title="Settings" Height="262.059" Width="621" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+         Title="Settings" Height="290" Width="621" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle Margin="5,5,5,37"/>
-        <Label Name="LabelSlippage1" Content="Slippage1" HorizontalAlignment="Left" Margin="320,73,0,0" VerticalAlignment="Top" />
-        <TextBox Name="TextBoxSlippage1" Height="23" Margin="461,73,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,10" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
+        <Label Name="LabelSlippage1" Content="Slippage1" HorizontalAlignment="Left" Margin="23,157,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.673,0.041" />
+        <TextBox Name="TextBoxSlippage1" Height="24" Margin="173,157,326,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Button Name="ButtonAccept" Content="Accept" Margin="0,0,5,7" Click="Button_Click" Height="22" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="120"/>
         <Label Content="" HorizontalAlignment="Left" Margin="23,81,0,0" VerticalAlignment="Top"/>
         <TextBox Name="TextBoxCandleCount" HorizontalAlignment="Left" Height="23" Margin="173,45,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelCandlesCount" Content="CandlesCount" HorizontalAlignment="Left" Margin="23,45,0,0" VerticalAlignment="Top" />
         <ComboBox Name="ComboBoxRegime" HorizontalAlignment="Left" Margin="173,14,0,0" VerticalAlignment="Top" Width="120"/>
         <Label Name="LabelRegime" Content="Regime" HorizontalAlignment="Left" Margin="23,14,0,0" VerticalAlignment="Top" />
-        <Label Name="LabelVolume1" Content="Volume1" HorizontalAlignment="Left" Margin="320,45,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxVolume1" Height="23" Margin="461,45,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Name="LabelVolume1" Content="Volume1" HorizontalAlignment="Left" Margin="324,14,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxVolume1" Height="23" Margin="459,14,23,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <TextBox Name="TextBoxDivergention" HorizontalAlignment="Left" Height="23" Margin="173,73,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="120" RenderTransformOrigin="0.483,0.609"/>
         <Label Name="LabelSpreadExpansion" Content="Spread Expansion" HorizontalAlignment="Left" Margin="23,73,0,0" VerticalAlignment="Top" />
-        <Label Name="LabelSlippage2" Content="Slippage2" HorizontalAlignment="Left" Margin="320,129,0,0" VerticalAlignment="Top"/>
-        <TextBox Name="TextBoxSlippage2" Height="23" Margin="461,129,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
-        <Label Name="LabelVolume2" Content="Volume2" HorizontalAlignment="Left" Margin="320,101,0,0" VerticalAlignment="Top" />
-        <TextBox Name="TextBoxVolume2" Height="23" Margin="461,101,21,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Name="LabelSlippage2" Content="Slippage2" HorizontalAlignment="Left" Margin="23,186,0,0" VerticalAlignment="Top"/>
+        <TextBox Name="TextBoxSlippage2" Height="24" Margin="173,186,326,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <Label Name="LabelVolume2" Content="Volume2" HorizontalAlignment="Left" Margin="324,98,0,0" VerticalAlignment="Top" />
+        <TextBox Name="TextBoxVolume2" Height="23" Margin="459,98,23,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
         <Label Name="LabelProfit" Content="Profit in % of spread" HorizontalAlignment="Left" Margin="23,101,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxProfit1" Height="23" Margin="173,101,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="120"/>
         <Label Name="LabelLoss" Content="Loss % Spread" HorizontalAlignment="Left" Margin="23,129,0,0" VerticalAlignment="Top" />
         <TextBox Name="TextBoxLoss1" Height="23" Margin="173,129,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" HorizontalAlignment="Left" Width="120"/>
-        <Button Name="ButtonAbout" Content="???" HorizontalAlignment="Left" Margin="5,0,0,10" VerticalAlignment="Bottom" Width="43" Click="ButtonAbout_Click"/>
+        <Button Name="ButtonAbout" Content="???" HorizontalAlignment="Left" Margin="5,0,0,6" VerticalAlignment="Bottom" Width="43" Click="ButtonAbout_Click"/>
+        <TextBox Name="TextBoxAssetInPortfolio1" IsReadOnly="True" Height="23" Margin="459,70,23,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxVolumeType1" Margin="459,42,23,0" VerticalAlignment="Top"/>
+        <Label Name="LabelAssetInPortfolio1" Content="Asset in portfolio1" HorizontalAlignment="Left" Margin="324,70,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelVolumeType1" Content="Volume Type1&#xD;&#xA;" HorizontalAlignment="Left" Margin="324,42,0,0" VerticalAlignment="Top" />
+        <TextBox Name="TextBoxAssetInPortfolio2" IsReadOnly="True" Height="23" Margin="459,154,23,0" TextWrapping="Wrap"  VerticalAlignment="Top"/>
+        <ComboBox Name="ComboBoxVolumeType2" Margin="459,126,23,0" VerticalAlignment="Top"/>
+        <Label Name="LabelAssetInPortfolio2" Content="Asset in portfolio2" HorizontalAlignment="Left" Margin="324,154,0,0" VerticalAlignment="Top" />
+        <Label Name="LabelVolumeType2" Content="Volume Type2" HorizontalAlignment="Left" Margin="324,126,0,0" VerticalAlignment="Top" />
     </Grid>
 </Window>
