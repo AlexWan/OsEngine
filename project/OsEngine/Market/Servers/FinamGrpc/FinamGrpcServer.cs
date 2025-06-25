@@ -198,6 +198,10 @@ namespace OsEngine.Market.Servers.FinamGrpc
                         //"other" => SecurityType.None,
                         _ => SecurityType.None,
                     };
+
+                    // Если нет соответствия типу OSEngine - пропускаем тикер
+                    if (newSecurity.SecurityType == SecurityType.None) continue;
+
                     newSecurity.PriceStep = 1; // Нет данных
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
                     newSecurity.VolumeStep = 1;
@@ -579,7 +583,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         {
             _cancellationTokenSource = new CancellationTokenSource();
 
-            var httpClient = new HttpClient(new HttpClientHandler
+            HttpClient httpClient = new HttpClient(new HttpClientHandler
             {
                 Proxy = _proxy,
                 UseProxy = _proxy != null
@@ -695,8 +699,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 // TODO Проверить, что предыдущие подписки активны и данные по ним поступают
                 _orderBookStream =
                     _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
-                _latestTradesStream =
-                    _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
+                StartLatestTradesStream(security, _cancellationTokenSource);
                 // Собственные заявки и сделки
                 // Перенести, так как подписка нужна один раз
                 _myOrderTradeStream =
@@ -715,7 +718,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
-    
+
         public bool SubscribeNews()
         {
             return false;
@@ -726,7 +729,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
         //private AsyncDuplexStreamingCall<SubscribeQuoteRequest, SubscribeQuoteResponse> _marketDataStream;
         private AsyncServerStreamingCall<SubscribeQuoteResponse> _quoteStream;
         private AsyncServerStreamingCall<SubscribeOrderBookResponse> _orderBookStream;
-        private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _latestTradesStream;
+        private Dictionary<string, StreamReaderInfo> _latestTradesStreams = new Dictionary<string, StreamReaderInfo>();
+        private Dictionary<string, StreamReaderInfo> _clients = new Dictionary<string, StreamReaderInfo>();
         //private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _myOrdersStream;
         private AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> _myOrderTradeStream;
 
@@ -738,56 +742,76 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         #region 8 Reading messages from data streams
 
-        private async void TradesMessageReader()
+        private void TradesMessageReader() { /* больше не нужен, можно удалить */ }
+
+
+        // Запуск reader для конкретного инструмента
+        private void StartLatestTradesStream(Security security, CancellationTokenSource cts)
         {
-            Thread.Sleep(1000);
-
-            while (true)
+            if (_latestTradesStreams.ContainsKey(security.NameId))
             {
-                try
+                // Уже есть reader, не запускаем второй
+                return;
+            }
+            AsyncServerStreamingCall<SubscribeLatestTradesResponse> stream = _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, cts.Token);
+            Task readerTask = Task.Run(() => SingleTradesMessageReader(stream, cts.Token, security.NameId), cts.Token);
+            _latestTradesStreams[security.NameId] = new StreamReaderInfo
+            {
+                Stream = stream,
+                CancellationTokenSource = cts,
+                ReaderTask = readerTask
+            };
+        }
+
+        // Переподключение reader для конкретного инструмента
+        private void ReconnectLatestTradesStream(Security security)
+        {
+            if (_latestTradesStreams.TryGetValue(security.NameId, out StreamReaderInfo info))
+            {
+                info.CancellationTokenSource.Cancel();
+                try { info.ReaderTask.Wait(1000); } catch { }
+                info.Stream.Dispose();
+                _latestTradesStreams.Remove(security.NameId);
+            }
+            StartLatestTradesStream(security, info.CancellationTokenSource);
+        }
+
+        // Переподключение всех reader-ов
+        private void ReconnectAllLatestTradesStreams()
+        {
+            var securities = _subscribedSecurities.ToArray();
+            foreach (var sec in securities)
+            {
+                ReconnectLatestTradesStream(sec);
+            }
+        }
+
+        // Обновленный reader для стрима
+        private async Task SingleTradesMessageReader(AsyncServerStreamingCall<SubscribeLatestTradesResponse> stream, CancellationToken token, string symbol)
+        {
+            try
+            {
+                while (!token.IsCancellationRequested)
                 {
-                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    if (await stream.ResponseStream.MoveNext(token) == false)
                     {
-                        Thread.Sleep(1);
+                        await Task.Delay(10, token); // TODO определиться с параметром задержки
                         continue;
                     }
-
-                    if (_latestTradesStream == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    if (await _latestTradesStream.ResponseStream.MoveNext() == false)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    SubscribeLatestTradesResponse latestTradesResponse = _latestTradesStream.ResponseStream.Current;
-
-                    if (latestTradesResponse == null)
-                    {
-                        Thread.Sleep(1);
-                        continue;
-                    }
-
-                    _lastLatestTradesTime = DateTime.UtcNow;
-
+                    SubscribeLatestTradesResponse latestTradesResponse = stream.ResponseStream.Current;
+                    if (latestTradesResponse == null) continue;
+                    Security security = GetSecurity(latestTradesResponse.Symbol);
+                    if (security == null) continue;
                     if (latestTradesResponse.Trades != null && latestTradesResponse.Trades.Count > 0)
                     {
-                        Security security = GetSecurity(latestTradesResponse.Symbol);
-                        if (security == null) { continue; }
                         for (int i = 0; i < latestTradesResponse.Trades.Count; i++)
                         {
                             FTrade newTrade = latestTradesResponse.Trades[i];
                             if (newTrade == null) continue;
-
                             Trade trade = new Trade();
                             trade.SecurityNameCode = security.Name;
-                            //trade.Price = GetValue(newTrade.Price);
                             trade.Price = newTrade.Price.Value.ToString().ToDecimal();
-                            trade.Time = newTrade.Timestamp.ToDateTime().AddHours(_timezoneOffset); // convert to MSK
+                            trade.Time = newTrade.Timestamp.ToDateTime().AddHours(_timezoneOffset);
                             trade.Id = newTrade.TradeId;
                             trade.Side = newTrade.Side switch
                             {
@@ -796,35 +820,40 @@ namespace OsEngine.Market.Servers.FinamGrpc
                                 _ => Side.None
                             };
                             trade.Volume = newTrade.Size.Value.ToString().ToDecimal();
-
                             NewTradesEvent?.Invoke(trade);
                         }
                     }
                 }
-                catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
-                {
-                    // Handle the cancellation gracefully
-                    string message = GetGRPCErrorMessage(ex);
-                    SendLogMessage($"Trades stream was cancelled: {message}", LogMessageType.System);
-                    Thread.Sleep(5000);
-                }
-                catch (RpcException exception)
-                {
-                    SendLogMessage($"Trades stream was disconnected: {exception.Message}", LogMessageType.Error);
+            }
+            catch (OperationCanceledException) { /* Нормальное завершение */ }
+            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+            {
+                string message = GetGRPCErrorMessage(ex);
+                SendLogMessage($"OrderTrade stream was cancelled: {message}", LogMessageType.System);
 
-                    // need to reconnect everything
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent?.Invoke();
-                    }
-                    Thread.Sleep(5000);
-                }
-                catch (Exception exception)
+                if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
-                    SendLogMessage(exception.ToString(), LogMessageType.Error);
-                    Thread.Sleep(5000);
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent?.Invoke();
                 }
+                Thread.Sleep(5000);
+            }
+            catch (RpcException ex)
+            {
+                SendLogMessage($"OrderTrade stream was disconnected: {ex.Message}", LogMessageType.Error);
+
+                // need to reconnect everything
+                if (ServerStatus != ServerConnectStatus.Disconnect)
+                {
+                    ServerStatus = ServerConnectStatus.Disconnect;
+                    DisconnectEvent?.Invoke();
+                }
+                Thread.Sleep(5000);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error in SingleTradesMessageReader for {symbol}: {ex}", LogMessageType.Error);
+                Thread.Sleep(5000);
             }
         }
 
@@ -1530,6 +1559,26 @@ namespace OsEngine.Market.Servers.FinamGrpc
         public event Action<string, LogMessageType> LogMessageEvent;
         public event Action<Funding> FundingUpdateEvent;
         public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        #endregion
+
+        #region 13 Структуры
+        // Для управления потоками чтения стримов
+        private class StreamReaderInfo
+        {
+            public MarketDataService.MarketDataServiceClient MarketDataClient;
+            public AsyncServerStreamingCall<SubscribeLatestTradesResponse> Stream { get; set; }
+            public CancellationTokenSource CancellationTokenSource { get; set; }
+            public Task ReaderTask { get; set; }
+        }
+
+        private class GrpcClientsInfo
+        {
+            public AuthService.AuthServiceClient AuthClient;
+            public AssetsService.AssetsServiceClient AssetsClient;
+            public AccountsService.AccountsServiceClient AccountsClient;
+            public OrdersService.OrdersServiceClient MyOrderTradeClient;
+            public MarketDataService.MarketDataServiceClient MarketDataClient;
+        }
         #endregion
     }
 }
