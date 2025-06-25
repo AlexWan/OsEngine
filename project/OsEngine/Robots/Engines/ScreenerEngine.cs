@@ -6,23 +6,25 @@
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 
-
 namespace OsEngine.Robots.Engines
 {
     public class ScreenerEngine : BotPanel
     {
         public ScreenerEngine(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Screener);
 
-            Description = "blank strategy for manual trading";
+            Description = "Blank strategy for manual trading";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ScreenerEngine";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             

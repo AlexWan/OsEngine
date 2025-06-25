@@ -238,9 +238,10 @@ namespace OsEngine.Market.Servers.Kraken
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             KrakenApi.CancelOrder(order);
+            return true;
         }
 
         /// <summary>
@@ -257,9 +258,9 @@ namespace OsEngine.Market.Servers.Kraken
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>
@@ -577,7 +578,9 @@ namespace OsEngine.Market.Servers.Kraken
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
     }
 
     public enum KrakenLeverageType

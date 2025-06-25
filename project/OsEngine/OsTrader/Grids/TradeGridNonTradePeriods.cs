@@ -12,6 +12,8 @@ namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridNonTradePeriods
     {
+        #region Service
+
         public TradeGridNonTradePeriods()
         {
             NonTradePeriod1Start = new TimeOfDay();
@@ -35,122 +37,27 @@ namespace OsEngine.OsTrader.Grids
         public bool NonTradePeriod1OnOff;
         public TimeOfDay NonTradePeriod1Start;
         public TimeOfDay NonTradePeriod1End;
-        public TradeGridRegime NonTradePeriod1Regime;
+        public TradeGridRegime NonTradePeriod1Regime = TradeGridRegime.Off; 
 
         public bool NonTradePeriod2OnOff;
         public TimeOfDay NonTradePeriod2Start;
         public TimeOfDay NonTradePeriod2End;
-        public TradeGridRegime NonTradePeriod2Regime;
+        public TradeGridRegime NonTradePeriod2Regime = TradeGridRegime.Off;
 
         public bool NonTradePeriod3OnOff;
         public TimeOfDay NonTradePeriod3Start;
         public TimeOfDay NonTradePeriod3End;
-        public TradeGridRegime NonTradePeriod3Regime;
+        public TradeGridRegime NonTradePeriod3Regime = TradeGridRegime.Off;
 
         public bool NonTradePeriod4OnOff;
         public TimeOfDay NonTradePeriod4Start;
         public TimeOfDay NonTradePeriod4End;
-        public TradeGridRegime NonTradePeriod4Regime;
+        public TradeGridRegime NonTradePeriod4Regime = TradeGridRegime.Off;
 
         public bool NonTradePeriod5OnOff;
         public TimeOfDay NonTradePeriod5Start;
         public TimeOfDay NonTradePeriod5End;
-        public TradeGridRegime NonTradePeriod5Regime;
-
-        public bool IsBlockNonTradePeriods(DateTime curTime)
-        {
-            if (NonTradePeriod1OnOff == true)
-            {
-                if (NonTradePeriod1Start < curTime
-                 && NonTradePeriod1End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod1Start > NonTradePeriod1End)
-                { // overnight transfer
-                    if (NonTradePeriod1Start > curTime
-                        || NonTradePeriod1End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod2OnOff == true)
-            {
-                if (NonTradePeriod2Start < curTime
-                 && NonTradePeriod2End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod2Start > NonTradePeriod2End)
-                { // overnight transfer
-                    if (NonTradePeriod2Start > curTime
-                        || NonTradePeriod2End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod3OnOff == true)
-            {
-                if (NonTradePeriod3Start < curTime
-                 && NonTradePeriod3End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod3Start > NonTradePeriod3End)
-                { // overnight transfer
-                    if (NonTradePeriod3Start > curTime
-                        || NonTradePeriod3End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod4OnOff == true)
-            {
-                if (NonTradePeriod4Start < curTime
-                 && NonTradePeriod4End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod4Start > NonTradePeriod4End)
-                { // overnight transfer
-                    if (NonTradePeriod4Start > curTime
-                        || NonTradePeriod4End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            if (NonTradePeriod5OnOff == true)
-            {
-                if (NonTradePeriod5Start < curTime
-                 && NonTradePeriod5End > curTime)
-                {
-                    return true;
-                }
-
-                if (NonTradePeriod5Start > NonTradePeriod5End)
-                { // overnight transfer
-                    if (NonTradePeriod5Start > curTime
-                        || NonTradePeriod5End < curTime)
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        }
+        public TradeGridRegime NonTradePeriod5Regime = TradeGridRegime.Off;
 
         public string GetSaveString()
         {
@@ -223,6 +130,107 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(),LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Logic
+
+        public TradeGridRegime GetNonTradePeriodsRegime(DateTime curTime)
+        {
+            if (NonTradePeriod1OnOff == true)
+            {
+                if (NonTradePeriod1Start < curTime
+                 && NonTradePeriod1End > curTime)
+                {
+                    return NonTradePeriod1Regime;
+                }
+
+                if (NonTradePeriod1Start > NonTradePeriod1End)
+                { // overnight transfer
+                    if (NonTradePeriod1Start > curTime
+                        || NonTradePeriod1End < curTime)
+                    {
+                        return NonTradePeriod1Regime;
+                    }
+                }
+            }
+
+            if (NonTradePeriod2OnOff == true)
+            {
+                if (NonTradePeriod2Start < curTime
+                 && NonTradePeriod2End > curTime)
+                {
+                    return NonTradePeriod2Regime;
+                }
+
+                if (NonTradePeriod2Start > NonTradePeriod2End)
+                { // overnight transfer
+                    if (NonTradePeriod2Start > curTime
+                        || NonTradePeriod2End < curTime)
+                    {
+                        return NonTradePeriod2Regime;
+                    }
+                }
+            }
+
+            if (NonTradePeriod3OnOff == true)
+            {
+                if (NonTradePeriod3Start < curTime
+                 && NonTradePeriod3End > curTime)
+                {
+                    return NonTradePeriod3Regime;
+                }
+
+                if (NonTradePeriod3Start > NonTradePeriod3End)
+                { // overnight transfer
+                    if (NonTradePeriod3Start > curTime
+                        || NonTradePeriod3End < curTime)
+                    {
+                        return NonTradePeriod3Regime;
+                    }
+                }
+            }
+
+            if (NonTradePeriod4OnOff == true)
+            {
+                if (NonTradePeriod4Start < curTime
+                 && NonTradePeriod4End > curTime)
+                {
+                    return NonTradePeriod4Regime;
+                }
+
+                if (NonTradePeriod4Start > NonTradePeriod4End)
+                { // overnight transfer
+                    if (NonTradePeriod4Start > curTime
+                        || NonTradePeriod4End < curTime)
+                    {
+                        return NonTradePeriod4Regime;
+                    }
+                }
+            }
+
+            if (NonTradePeriod5OnOff == true)
+            {
+                if (NonTradePeriod5Start < curTime
+                 && NonTradePeriod5End > curTime)
+                {
+                    return NonTradePeriod5Regime;
+                }
+
+                if (NonTradePeriod5Start > NonTradePeriod5End)
+                { // overnight transfer
+                    if (NonTradePeriod5Start > curTime
+                        || NonTradePeriod5End < curTime)
+                    {
+                        return NonTradePeriod5Regime;
+                    }
+                }
+            }
+
+            return TradeGridRegime.On;
+        }
+
+        #endregion
 
         #region Log
 

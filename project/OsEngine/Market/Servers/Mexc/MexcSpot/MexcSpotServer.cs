@@ -1749,7 +1749,7 @@ namespace OsEngine.Market.Servers.Mexc
             //unsupported by API
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1774,6 +1774,7 @@ namespace OsEngine.Market.Servers.Mexc
                     {
                         //Everything is OK - do nothing
                         SendLogMessage("Cancel order - OK: " + content, LogMessageType.Connect);
+                        return true;
                     }
                     else
                     {
@@ -1792,6 +1793,7 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 SendLogMessage("Cancel order error." + exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()
@@ -2002,7 +2004,7 @@ namespace OsEngine.Market.Servers.Mexc
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             if (_activeSecurities.Exists(s => s == order.SecurityNameCode) == false)
             {
@@ -2013,7 +2015,7 @@ namespace OsEngine.Market.Servers.Mexc
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -2022,6 +2024,8 @@ namespace OsEngine.Market.Servers.Mexc
             {
                 UpdateTrades(myOrder);
             }
+
+            return myOrder.State;
         }
 
         private Order ConvertRestOrdersToOsEngineOrder(MexcOrderResponse baseOrder)
@@ -2286,6 +2290,10 @@ namespace OsEngine.Market.Servers.Mexc
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

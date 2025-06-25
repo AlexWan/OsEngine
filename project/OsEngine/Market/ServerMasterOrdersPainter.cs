@@ -260,14 +260,14 @@ namespace OsEngine.Market
 
         private void server_NewOrderIncomeEvent(Order order)
         {
-            if (order.ServerType == ServerType.Optimizer ||
-                order.ServerType == ServerType.Miner)
-            {
-                return;
-            }
-
             try
             {
+                if (order.ServerType == ServerType.Optimizer ||
+                order.ServerType == ServerType.Miner)
+                {
+                    return;
+                }
+
                 if (_orders == null)
                 {
                     _orders = new List<Order>();
@@ -277,7 +277,7 @@ namespace OsEngine.Market
                 {
                     Order myOrder = null;
 
-                    for(int i = 0;i < _orders.Count;i++)
+                    for (int i = 0; i < _orders.Count; i++)
                     {
                         Order curOrder = _orders[i];
 
@@ -286,14 +286,14 @@ namespace OsEngine.Market
                             continue;
                         }
 
-                        if(curOrder.NumberUser != 0 &&
-                            order.NumberUser != 0 
+                        if (curOrder.NumberUser != 0 &&
+                            order.NumberUser != 0
                             && curOrder.NumberUser == order.NumberUser)
                         {
                             myOrder = curOrder;
                             break;
                         }
-                        if(string.IsNullOrEmpty(curOrder.NumberMarket) == false &&
+                        if (string.IsNullOrEmpty(curOrder.NumberMarket) == false &&
                             string.IsNullOrEmpty(order.NumberMarket) == false &&
                             curOrder.NumberMarket == order.NumberMarket)
                         {
@@ -357,7 +357,7 @@ namespace OsEngine.Market
                         }
                     }
 
-                    
+
                     if (_orders.Count > 200)
                     {
                         _orders.RemoveAt(0);
@@ -376,28 +376,35 @@ namespace OsEngine.Market
 
         private void server_NewMyTradeEvent(MyTrade trade)
         {
-            if (_orders == null || _orders.Count == 0)
+            try
             {
-                return;
+                if (_orders == null || _orders.Count == 0)
+                {
+                    return;
+                }
+
+                lock (_lockerTrades)
+                {
+                    Order myOrder = _orders.Find(order1 => order1.NumberMarket == trade.NumberOrderParent);
+
+                    if (myOrder == null)
+                    {
+                        return;
+                    }
+
+                    if (myOrder.ServerType == ServerType.Tester ||
+                        myOrder.ServerType == ServerType.Optimizer ||
+                        myOrder.ServerType == ServerType.Miner)
+                    {
+                        return;
+                    }
+
+                    _needToPaintOrders = true;
+                }
             }
-
-            lock (_lockerTrades)
+            catch (Exception error)
             {
-                Order myOrder = _orders.Find(order1 => order1.NumberMarket == trade.NumberOrderParent);
-
-                if (myOrder == null)
-                {
-                    return;
-                }
-
-                if (myOrder.ServerType == ServerType.Tester ||
-                    myOrder.ServerType == ServerType.Optimizer ||
-                    myOrder.ServerType == ServerType.Miner)
-                {
-                    return;
-                }
-
-                _needToPaintOrders = true;
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
             }
         }
 
@@ -581,6 +588,12 @@ namespace OsEngine.Market
                     for (int i = 0; servers != null && i < servers.Count; i++)
                     {
                         IServer server = servers[i];
+
+                        if(server.ServerStatus != ServerConnectStatus.Connect)
+                        {
+                            continue;
+                        }
+
                         server.CancelAllOrders();
                     }
 

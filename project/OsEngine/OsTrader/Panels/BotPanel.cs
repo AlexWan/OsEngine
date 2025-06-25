@@ -215,7 +215,12 @@ namespace OsEngine.OsTrader.Panels
             }
             else
             {
+                if(_chartUi.WindowState == WindowState.Minimized)
+                {
+                    _chartUi.WindowState = WindowState.Normal;
+                }
                 _chartUi.Activate();
+                _chartUi.Focus();
             }
 
             return _chartUi;
@@ -977,7 +982,8 @@ position => position.State != PositionStateType.OpeningFail
             if (_parameters == null ||
                 _parameters.Count == 0)
             {
-                MessageBox.Show(OsLocalization.Trader.Label51);
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label51);
+                ui.ShowDialog();
                 return;
             }
 

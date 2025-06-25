@@ -7,68 +7,27 @@ using OsEngine.Logging;
 using OsEngine.Market;
 using System;
 
-
 namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridNonTradeDays
     {
+        #region Service
 
         public bool TradeInMonday = true;
+
         public bool TradeInTuesday = true;
+
         public bool TradeInWednesday = true;
+
         public bool TradeInThursday = true;
+
         public bool TradeInFriday = true;
+
         public bool TradeInSaturday = false;
+
         public bool TradeInSunday = false;
 
         public TradeGridRegime NonTradeDaysRegime;
-
-        public bool IsBlockNonTradePeriods(DateTime curTime)
-        {
-            if (TradeInMonday == false
-                && curTime.DayOfWeek == DayOfWeek.Monday)
-            {
-                return true;
-            }
-
-            if (TradeInTuesday == false
-                && curTime.DayOfWeek == DayOfWeek.Tuesday)
-            {
-                return true;
-            }
-
-            if (TradeInWednesday == false
-                && curTime.DayOfWeek == DayOfWeek.Wednesday)
-            {
-                return true;
-            }
-
-            if (TradeInThursday == false
-                && curTime.DayOfWeek == DayOfWeek.Thursday)
-            {
-                return true;
-            }
-
-            if (TradeInFriday == false
-                && curTime.DayOfWeek == DayOfWeek.Friday)
-            {
-                return true;
-            }
-
-            if (TradeInSaturday == false
-                && curTime.DayOfWeek == DayOfWeek.Saturday)
-            {
-                return true;
-            }
-
-            if (TradeInSunday == false
-                && curTime.DayOfWeek == DayOfWeek.Sunday)
-            {
-                return true;
-            }
-
-            return false;
-        }
 
         public string GetSaveString()
         {
@@ -108,9 +67,62 @@ namespace OsEngine.OsTrader.Grids
             }
             catch (Exception e)
             {
-                SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                SendNewLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
+
+        #endregion
+
+        #region Logic
+
+        public TradeGridRegime GetNonTradeDaysRegime(DateTime curTime)
+        {
+            if (TradeInMonday == false
+                && curTime.DayOfWeek == DayOfWeek.Monday)
+            {
+                return NonTradeDaysRegime;
+            }
+
+            if (TradeInTuesday == false
+                && curTime.DayOfWeek == DayOfWeek.Tuesday)
+            {
+                return NonTradeDaysRegime;
+            }
+
+            if (TradeInWednesday == false
+                && curTime.DayOfWeek == DayOfWeek.Wednesday)
+            {
+                return NonTradeDaysRegime;
+            }
+
+            if (TradeInThursday == false
+                && curTime.DayOfWeek == DayOfWeek.Thursday)
+            {
+                return NonTradeDaysRegime;
+            }
+
+            if (TradeInFriday == false
+                && curTime.DayOfWeek == DayOfWeek.Friday)
+            {
+                return NonTradeDaysRegime;
+            }
+
+            if (TradeInSaturday == false
+                && curTime.DayOfWeek == DayOfWeek.Saturday)
+            {
+                return NonTradeDaysRegime;
+            }
+
+            if (TradeInSunday == false
+                && curTime.DayOfWeek == DayOfWeek.Sunday)
+            {
+                return NonTradeDaysRegime;
+            }
+
+            return TradeGridRegime.On;
+        }
+
+        #endregion
 
         #region Log
 

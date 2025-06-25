@@ -393,7 +393,7 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 // https://russianinvestments.github.io/investAPI/faq_instruments/ v1.23
                 // No options still for T-Invest 
-                SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.Error);
+                //SendLogMessage("Options trading not supported by T-Invest API", LogMessageType.Error);
 
                 //_rateGateInstruments.WaitToProceed();
 
@@ -1811,9 +1811,10 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"Market data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
-                catch (RpcException exception)
+                catch (RpcException ex)
                 {
-                    SendLogMessage($"Market data stream was disconnected: {exception.Message}", LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Market data stream was disconnected: {message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2458,9 +2459,10 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"My trades data stream was cancelled: {message}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
-                catch (RpcException exception)
+                catch (RpcException ex)
                 {
-                    SendLogMessage($"My trades data stream was disconnected: {exception}", LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"My trades data stream was disconnected: {message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2620,12 +2622,14 @@ namespace OsEngine.Market.Servers.TInvest
                 catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
                 {
                     // Handle the cancellation gracefully
-                    SendLogMessage("Order state data stream was cancelled", LogMessageType.System);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Order state data stream was cancelled: {ex}", LogMessageType.System);
                     Thread.Sleep(5000);
                 }
-                catch (RpcException exception)
+                catch (RpcException ex)
                 {
-                    SendLogMessage($"Order state data stream was disconnected: {exception}", LogMessageType.Error);
+                    string message = GetGRPCErrorMessage(ex);
+                    SendLogMessage($"Order state data stream was disconnected: {message}", LogMessageType.Error);
 
                     // need to reconnect everything
                     if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -2833,7 +2837,7 @@ namespace OsEngine.Market.Servers.TInvest
 
         List<string> _cancelOrderNums = new List<string>();
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateOrders.WaitToProceed();
 
@@ -2852,7 +2856,7 @@ namespace OsEngine.Market.Servers.TInvest
                 if (countTryRevokeOrder >= 2)
                 {
                     SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
-                    return;
+                    return false;
                 }
 
                 _cancelOrderNums.Add(order.NumberMarket);
@@ -2891,12 +2895,27 @@ namespace OsEngine.Market.Servers.TInvest
                     {
                         MyOrderEvent(order);
                     }
+                    return true;
+                }
+                else
+                {
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()
@@ -2957,7 +2976,7 @@ namespace OsEngine.Market.Servers.TInvest
             }
         }
 
-        public void GetOrderStatusWithTrades(Order order, bool processTrades)
+        public OrderStateType GetOrderStatusWithTrades(Order order, bool processTrades)
         {
             _rateGateOrders.WaitToProceed();
 
@@ -2980,7 +2999,7 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage($"Error getting order state. Info: {message}", LogMessageType.Error);
 
                     Thread.Sleep(1);
-                    return;
+                    return OrderStateType.None;
                 }
                 catch (Exception ex)
                 {
@@ -2988,7 +3007,7 @@ namespace OsEngine.Market.Servers.TInvest
                     SendLogMessage("Server data was: " + state.ToString(), LogMessageType.Error);
 
                     Thread.Sleep(1);
-                    return;
+                    return OrderStateType.None;
                 }
                 Order newOrder = new Order();
 
@@ -3071,6 +3090,8 @@ namespace OsEngine.Market.Servers.TInvest
                         }
                     }
                 }
+
+                return newOrder.State;
             }
             catch (RpcException ex)
             {
@@ -3081,11 +3102,13 @@ namespace OsEngine.Market.Servers.TInvest
             {
                 SendLogMessage("Get order state request error. " + exception.ToString(), LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-            GetOrderStatusWithTrades(order, true);
+           return GetOrderStatusWithTrades(order, true);
         }
 
         private List<Order> GetAllOrdersFromExchange()
@@ -3294,6 +3317,10 @@ namespace OsEngine.Market.Servers.TInvest
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

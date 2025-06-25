@@ -260,7 +260,7 @@ namespace OsEngine.Market.Servers.BitMax
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             var guid = Guid.NewGuid().ToString().Replace('-', '0');
 
@@ -278,6 +278,7 @@ namespace OsEngine.Market.Servers.BitMax
             }
 
             _client.CancelOrder(order, needId);
+            return true;
         }
 
         /// <summary>
@@ -294,9 +295,9 @@ namespace OsEngine.Market.Servers.BitMax
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>
@@ -956,6 +957,10 @@ namespace OsEngine.Market.Servers.BitMax
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         /// <summary>
         /// an auxiliary object that combines the order number in the osEngine, the order id on the exchange and the request id to cancel the order,

@@ -1,49 +1,100 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Indicators;
-using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+
+/* Description
+Robot example from the lecture course "C# for algotreader".
+
+Buy:
+low-value from Candle < last value Sma and close-value Candle > last value Sma. Buy at market.
+
+Sell:
+high-value from Candle > last value Sma and close-value Candle < last value Sma. Sell at market.                 
+
+Exit:
+If candle time more than opening position + value parameter robot "_minutesInPosition".Close At Market.
+*/
 
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson5Bot1")]
     public class Lesson5Bot1 : BotPanel
     {
-        BotTabSimple _tabToTrade;
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterString _regime;
-        StrategyParameterInt _smaLenFast;
-        StrategyParameterInt _minutesInPosition;
+        // Basic settings
+        // Базовые настройки
+        private StrategyParameterString _mode;
+        private StrategyParameterInt _minutesInPosition;
 
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
+        // Indicator setting
+        // Настройка индикатора
+        private StrategyParameterInt _smaLenFast;
 
-        Aindicator _sma;
+        // GetVolume settings
+        // настройки метода GetVolume
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        //Indicator
+        private Aindicator _sma;
 
         public Lesson5Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            _smaLenFast = CreateParameter("Sma len", 15, 1, 10, 1);
+            // Basic settings
+            // Базовые настройки
+            _mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
             _minutesInPosition = CreateParameter("Minutes in position", 90, 30, 500, 30);
 
+            // GetVolume settings
+            // Настройки метода GetVolume
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            //Indicator setting
+            //Настройка индикатора
+            _smaLenFast = CreateParameter("Sma len", 15, 1, 10, 1);
+
+            // Create indicator Sma
+            // Создание индикатора Sma
             _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma", false);
             _sma = (Aindicator)_tabToTrade.CreateCandleIndicator(_sma, "Prime");
             _sma.ParametersDigit[0].Value = _smaLenFast.ValueInt;
 
+            // Subscribe handler to track robot parameter changes
+            // Подписка обработчик для отслеживания изменений параметров робота
             ParametrsChangeByUser += Lesson5Bot1_ParametrsChangeByUser;
+
+            // Subscribe to the candle finished event
+            // Подписка на завершение свечи
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy: low-value from Candle < last value Sma and close-value Candle > last value Sma. Buy at market." +
+                "Sell: high-value from Candle > last value Sma and close-value Candle < last value Sma. Sell at market." +
+                "Exit: If candle time more than opening position + value parameter robot \"_minutesInPosition\".Close At Market.";
         }
 
         private void Lesson5Bot1_ParametrsChangeByUser()
@@ -55,9 +106,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
+            // Сalled on each new candle
+            // Вызывается перед каждой новой свечой
 
-            if (_regime.ValueString == "Off")
+            if (_mode.ValueString == "Off")
             {
                 return;
             }
@@ -69,8 +121,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
-            if (positions.Count == 0) // позиций нет. Правда!
-            {// логика открытия позиции
+            if (positions.Count == 0) // No positions. True! // Нет позиций. Правда!
+            {   
+                // Opening the position 
+                // Открытие позиции
 
                 decimal lastSma = _sma.DataSeries[0].Last;
 
@@ -89,25 +143,36 @@ namespace OsEngine.Robots.BotsFromStartLessons
                     &&
                     closeCandle > lastSma
                     )
-                { // открываем лонг
+                {
+                    // Opening long
+                    // Открытие лонг
+
                     decimal volume = GetVolume(_tabToTrade);
                     _tabToTrade.BuyAtMarket(volume);
+
                 }
                 else if (
                     highCandle > lastSma
                     &&
                     closeCandle < lastSma)
-                { // открываем шорт
+                {
+                    // Opening short
+                    // Открытие шорта
+
                     decimal volume = GetVolume(_tabToTrade);
                     _tabToTrade.SellAtMarket(volume);
                 }
                 else
                 {
-                    // do nothin
+                    // Do nothing
+                    // Ничего не делаем
                 }
             }
             else
-            {// логика закрытия позиции
+            {   
+                // Сlosing the position
+                // Закрытие позиции
+
                 Position position = positions[0];
 
                 DateTime positionEntryTime = position.TimeOpen;
@@ -117,10 +182,14 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 DateTime candleTime = candles[candles.Count - 1].TimeStart;
 
                 if (candleTime > timeExtPosition)
-                { // выход из позиции. Время свечи больше времени открытия позиции + сколько то минут
+                {
+                    // Exit from position. If candle time more than opening position + value parameter robot "_minutesInPosition"
+                    // Выход из позиции. Если время свечи больше, чем открытие позиции + значение параметра робота "_minutesInPosition"
+
                     if (position.State == PositionStateType.Open)
                     {
                         _tabToTrade.CloseAtMarket(position, position.OpenVolume);
+                        SendNewLogMessage($"Закрыта позиция. Время закрытия позиции: {timeExtPosition}, Время открытия свечи: {candleTime}", Logging.LogMessageType.User);
                     }
                 }
             }

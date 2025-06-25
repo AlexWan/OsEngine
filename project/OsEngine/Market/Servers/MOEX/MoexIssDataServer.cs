@@ -721,9 +721,9 @@ namespace OsEngine.Market.Servers.MOEX
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
-
+            return false;
         }
 
         public void CancelAllOrders()
@@ -736,9 +736,9 @@ namespace OsEngine.Market.Servers.MOEX
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         public void Subscrible(Security security)
@@ -783,6 +783,10 @@ namespace OsEngine.Market.Servers.MOEX
         public event Action<MarketDepth> MarketDepthEvent;
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
         public event Action<Trade> NewTradesEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

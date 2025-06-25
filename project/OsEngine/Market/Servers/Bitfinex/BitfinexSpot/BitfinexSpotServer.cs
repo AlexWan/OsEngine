@@ -2571,7 +2571,7 @@ namespace OsEngine.Market.Servers.Bitfinex
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -2581,7 +2581,7 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                 if (order.State == OrderStateType.Cancel)
                 {
-                    return;
+                    return true;
                 }
 
                 string body = $"{{\"id\":{order.NumberMarket}}}";
@@ -2596,21 +2596,40 @@ namespace OsEngine.Market.Servers.Bitfinex
 
                     if (responseJson == null)
                     {
-                        GetOrderStatus(order);
-                        SendLogMessage("CancelOrder> Deserialization resulted in null", LogMessageType.Error);
-                        return;
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage("CancelOrder> Deserialization resulted in null", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
+                    return true;
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($" Error Order cancellation:  {response.Content}, {response.ErrorMessage}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($" Error Order cancellation:  {response.Content}, {response.ErrorMessage}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -2766,14 +2785,14 @@ namespace OsEngine.Market.Servers.Bitfinex
             return orders;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             try
             {
                 if (order == null || order.NumberUser == 0)
                 {
                     SendLogMessage("GetOrderStatus> Order or NumberUser is null or zero.", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
 
                 List<Order> ordersActive = GetAllOpenOrders();
@@ -2808,7 +2827,7 @@ namespace OsEngine.Market.Servers.Bitfinex
                 if (orderOnMarket == null)
                 {
                     SendLogMessage($"GetOrderStatus> Order with NumberUser {order.NumberUser} not found.", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
 
                 MyOrderEvent?.Invoke(orderOnMarket);
@@ -2818,11 +2837,15 @@ namespace OsEngine.Market.Servers.Bitfinex
                 {
                     CreateMyTrade(order.SecurityNameCode, order.NumberUser);
                 }
+
+                return orderOnMarket.State;
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         private void CreateMyTrade(string nameSec, int numberUser)
@@ -3121,6 +3144,10 @@ namespace OsEngine.Market.Servers.Bitfinex
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

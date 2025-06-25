@@ -1242,13 +1242,13 @@ namespace OsEngine.Market.Servers.Deribit
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
             if (OrderStateType.Cancel == order.State)
             {
-                return;
+                return true;
             }
 
             JsonRequest jsonRequest = new JsonRequest();
@@ -1270,7 +1270,10 @@ namespace OsEngine.Market.Servers.Deribit
             {
                 order.State = OrderStateType.Cancel;
                 MyOrderEvent(order);
+                return true;
             }
+
+            return false;
         }
 
         public void GetAllActivOrders()
@@ -1361,13 +1364,13 @@ namespace OsEngine.Market.Servers.Deribit
             return orders;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order orderFromExchange = GetOrderFromExchange(order.NumberMarket);
 
             if (orderFromExchange == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1387,7 +1390,7 @@ namespace OsEngine.Market.Servers.Deribit
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1404,7 +1407,7 @@ namespace OsEngine.Market.Servers.Deribit
 
                 if (tradesBySecurity == null)
                 {
-                    return;
+                    return orderOnMarket.State;
                 }
 
                 List<MyTrade> tradesByMyOrder = new List<MyTrade>();
@@ -1425,6 +1428,8 @@ namespace OsEngine.Market.Servers.Deribit
                     }
                 }
             }
+
+            return orderOnMarket.State;
         }
 
         private Order GetOrderFromExchange(string numberMarket)
@@ -1772,6 +1777,10 @@ namespace OsEngine.Market.Servers.Deribit
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

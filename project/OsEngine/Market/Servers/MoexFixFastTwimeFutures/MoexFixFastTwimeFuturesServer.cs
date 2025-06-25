@@ -3689,7 +3689,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         int _countTest = 0;
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3754,7 +3754,9 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                return false;
             }
+            return true;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -3975,7 +3977,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3984,7 +3986,7 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
                 if (_tradingProtocol.Equals("TWIME"))
                 {
                     SendLogMessage("You can get the status of the order only in the FIX protocol", LogMessageType.Error);
-                    return;
+                    return OrderStateType.None;
                 }
 
                 string ClOrdID = order.NumberUser.ToString();
@@ -4014,6 +4016,8 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
             {
                 SendLogMessage("Get order status request error " + exception.ToString(), LogMessageType.Error);
             }
+
+            return OrderStateType.None;
         }
 
         #endregion
@@ -4244,6 +4248,10 @@ namespace OsEngine.Market.Servers.MoexFixFastTwimeFutures
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

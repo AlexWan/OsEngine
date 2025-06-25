@@ -158,9 +158,10 @@ namespace OsEngine.Market.Servers.BitStamp
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _client.CancelOrder(order);
+            return true;
         }
 
         /// <summary>
@@ -177,9 +178,9 @@ namespace OsEngine.Market.Servers.BitStamp
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>
@@ -494,5 +495,9 @@ namespace OsEngine.Market.Servers.BitStamp
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
     }
 }

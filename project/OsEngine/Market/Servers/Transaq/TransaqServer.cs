@@ -1988,7 +1988,7 @@ namespace OsEngine.Market.Servers.Transaq
         private string _sendOrdersLocker = "sendOrdersLocker";
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -2003,11 +2003,17 @@ namespace OsEngine.Market.Servers.Transaq
                 {
                     SendLogMessage("CancelOrder method error " + res, LogMessageType.Error);
                 }
+                else
+                {
+                    return true;
+                }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
+
+            return false;
         }
 
         private RateGate _rateGateChangePriceOrder = new RateGate(1, TimeSpan.FromMilliseconds(200));
@@ -2084,9 +2090,9 @@ namespace OsEngine.Market.Servers.Transaq
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion
@@ -3154,6 +3160,10 @@ namespace OsEngine.Market.Servers.Transaq
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 

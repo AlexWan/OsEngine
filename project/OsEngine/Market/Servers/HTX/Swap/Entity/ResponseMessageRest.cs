@@ -2,6 +2,15 @@
 
 namespace OsEngine.Market.Servers.HTX.Swap.Entity
 {
+    public class ResponseRestMessage<T>
+    {
+        public string status { get; set; }
+        public string err_code { get; set; }
+        public string err_msg { get; set; }
+        public T data { get; set; }
+        public string ts { get; set; }
+    }
+
     public class ResponseMessageSecurities
     {
         public List<Data> data { get; set; }
@@ -176,5 +185,20 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
             public string amount { get; set; }
             public string direction { get; set; }
         }
+    }
+
+    public class OpenInterestInfo
+    {
+        public string volume { get; set; }
+        public string amount { get; set; }
+        public string symbol { get; set; }
+        public string value { get; set; }
+        public string contract_code { get; set; }
+        public string trade_amount { get; set; }
+        public string trade_volume { get; set; }
+        public string trade_turnover { get; set; }
+        public string business_type { get; set; }
+        public string pair { get; set; }
+        public string contract_type { get; set; }
     }
 }

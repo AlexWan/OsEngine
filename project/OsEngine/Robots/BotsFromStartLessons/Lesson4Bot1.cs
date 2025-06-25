@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -8,89 +13,148 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+This robot shows the tracking of various source events.
+
+Buy:
+SmaFast > SmaSlow. Buy at the market.
+
+Sell:
+SmaFast < SmaSlow. Close at the market.
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson4Bot1")]
     public class Lesson4Bot1 : BotPanel
     {
-        BotTabSimple _tabToTrade;
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterString _regime;
-        StrategyParameterInt _smaLenFast;
-        StrategyParameterInt _smaLenSlow;
+        // Basic settings
+        // Базовые настройки
+        private StrategyParameterString _mode;
 
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
+        // Indicator settings
+        // Настройки индикаторов
+        private StrategyParameterInt _smaLenFast;
+        private StrategyParameterInt _smaLenSlow;
 
-        Aindicator _smaFast;
-        Aindicator _smaSlow;
+        // GetVolume settings
+        // настройки метода GetVolume
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicators
+        private Aindicator _smaFast;
+        private Aindicator _smaSlow;
 
         public Lesson4Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
-            _tabToTrade.CandleUpdateEvent += _tabToTrade_CandleUpdateEvent;
-            _tabToTrade.OrderUpdateEvent += _tabToTrade_OrderUpdateEvent;
-            _tabToTrade.MarketDepthUpdateEvent += _tabToTrade_MarketDepthUpdateEvent;
 
-            _tabToTrade.PositionOpeningSuccesEvent += _tabToTrade_PositionOpeningSuccesEvent;
+            // Basic settings
+            // Базовые настройки
+            _mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
 
-            _tabToTrade.NewTickEvent += _tabToTrade_NewTickEvent;
-
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-
+            //Indicators settings
+            //Настройки индикаторов
             _smaLenFast = CreateParameter("Sma fast len", 15, 1, 10, 1);
             _smaLenSlow = CreateParameter("Sma slow len", 100, 1, 10, 1);
 
+            // GetVolume settings
+            // настройки метода GetVolume
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Create indicator SmaFast
+            // Создание индикатора SmaFast
             _smaFast = IndicatorsFactory.CreateIndicatorByName("Sma", name + "SmaFast", false);
             _smaFast = (Aindicator)_tabToTrade.CreateCandleIndicator(_smaFast, "Prime");
             _smaFast.ParametersDigit[0].Value = _smaLenFast.ValueInt;
 
+            // Create indicator SmaSlow
+            // Создание индикатора SmaSlow
             _smaSlow = IndicatorsFactory.CreateIndicatorByName("Sma", name + "SmaSlow", false);
             _smaSlow = (Aindicator)_tabToTrade.CreateCandleIndicator(_smaSlow, "Prime");
             _smaSlow.ParametersDigit[0].Value = _smaLenSlow.ValueInt;
 
+            // Subscribe handler to track robot parameter changes
+            // Подписка обработчика для отслеживания изменений параметров робота
             ParametrsChangeByUser += Lesson3Bot3_ParametrsChangeByUser;
+
+            // Subscribe handler to track _tabToTrade events
+            // Подписка обработчика для отслеживания _tabToTrade событий
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+            _tabToTrade.CandleUpdateEvent += _tabToTrade_CandleUpdateEvent;
+            _tabToTrade.OrderUpdateEvent += _tabToTrade_OrderUpdateEvent;
+            _tabToTrade.MarketDepthUpdateEvent += _tabToTrade_MarketDepthUpdateEvent;
+            _tabToTrade.PositionOpeningSuccesEvent += _tabToTrade_PositionOpeningSuccesEvent;
+            _tabToTrade.NewTickEvent += _tabToTrade_NewTickEvent;
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "This robot shows the tracking of various source events." +
+                "Buy: SmaFast > SmaSlow. Buy in the market." +
+                "Sell: SmaFast < SmaSlow. Close the market.";
         }
 
         private void _tabToTrade_PositionOpeningSuccesEvent(Position position)
-        {// событие успешного открытия позиции
+        {
+            // successful position opening event
+            // событие - успешное открытие позиции
 
-            // Можно стоп выставить.
+            // For example
+            // Для примера
 
         }
 
         private void _tabToTrade_MarketDepthUpdateEvent(MarketDepth marketDepth)
-        { // событие обновления стакана
+        {
+            // update market depth
+            // событие - обновление стакана заявок
 
-            // ничего не делаем. Для примера
+            // For example
+            // Для примера
 
         }
 
         private void _tabToTrade_OrderUpdateEvent(Order order)
-        { // событие изменения ордера по источнику
+        {
+            // order update event 
+            // событие - Обновление ордера
 
-            // ничего не делаем. Для примера
+            // For example
+            // Для примера
 
         }
 
         private void _tabToTrade_CandleUpdateEvent(List<Candle> candles)
-        {// событие обновления свечи. Вызывается очень часто. 
+        {
+            // candle update event.
+            // событие - обновление свечи
 
-            // ничего не делаем. Для примера
+            // For example
+            // Для примера
 
         }
 
         private void _tabToTrade_NewTickEvent(Trade trade)
-        {// событие нового трейда по бумаге
+        {
+            // new trade event
+            // событие - новый торговый тик
 
-            // ничего не делаем. Для примера
+            // For example
+            // Для примера
+
         }
 
         private void Lesson3Bot3_ParametrsChangeByUser()
@@ -106,9 +170,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
+            // Сalled on each new candle
+            // Вызывается перед каждой новой свечой
 
-            if (_regime.ValueString == "Off")
+            if (_mode.ValueString == "Off")
             {
                 return;
             }
@@ -121,7 +186,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
             if (positions.Count == 0)
-            {// открытие позиции
+            {   
+                // Opening the position 
+                // Открытие позиции
+
                 decimal smaFastLast = _smaFast.DataSeries[0].Last;
 
                 if (smaFastLast == 0)
@@ -143,7 +211,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 }
             }
             else
-            { // закрытие позиции
+            {   
+                // Сlosing the position
+                // Закрытие позиции
+
                 decimal smaFastLast = _smaFast.DataSeries[0].Last;
 
                 if (smaFastLast == 0)
@@ -160,7 +231,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                 if (smaFastLast < smaSlowLast)
                 {
-                    Position position = positions[0]; // берём позицию из массива
+                    // Take position from the array
+                    // Берём позицию из массива
+                    Position position = positions[0];
 
                     if (position.State == PositionStateType.Open)
                     {

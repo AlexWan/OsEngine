@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -6,6 +11,8 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /*Discription
 Trading robot for osengine.
@@ -20,6 +27,7 @@ Exit from the buy: trailing stop in % of the loy of the candle on which you ente
 
 Exit from sell: trailing stop in % of the high of the candle on which you entered.
 */
+
 namespace OsEngine.Robots.MyRobots
 {
     [Bot("IntersectionOfEmaAndEmaOffset")]//We create an attribute so that we don't write anything in the Boot factory
@@ -28,29 +36,31 @@ namespace OsEngine.Robots.MyRobots
         BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay TimeStart;
-        private StrategyParameterTimeOfDay TimeEnd;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _timeStart;
+        private StrategyParameterTimeOfDay _timeEnd;
+
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator Settings 
-        private Aindicator _ema1;
-
-        // Indicator Settings
-        private StrategyParameterInt _periodEmaFast;
+        private StrategyParameterInt _periodEmaOffset;
+        private StrategyParameterInt _offsetEma;
+        private StrategyParameterInt _periodEma;
 
         // Indicator
-        private Aindicator _ema2;
-
-        private StrategyParameterInt _periodEmaSlow;
-        private StrategyParameterInt _periodOffset;
-        private StrategyParameterDecimal TrailingValue;
+        private Aindicator _emaOffset;
+        private Aindicator _ema;
 
         // He last value of the indicators
-        private decimal _lastEmaFast;
-        private decimal _lastEmaSlow;
+        private decimal _lastEma;
+        private decimal _lastEmaOffset;
+        
+        // Exit Settings
+        private StrategyParameterDecimal TrailingValue;
 
         public IntersectionOfEmaAndEmaOffset(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -58,39 +68,43 @@ namespace OsEngine.Robots.MyRobots
             _tab = TabsSimple[0];
 
             // Basic Settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 10, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            TimeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _timeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _timeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator Settings
-            _periodEmaFast = CreateParameter("fast Ema1 period", 250, 50, 500, 50, "Indicator");
-            _periodEmaSlow = CreateParameter("slow Ema2 period", 1000, 500, 1500, 100, "Indicator");
-            _periodOffset = CreateParameter("offset Ema2 period", 0, 3, 10, 11, "Indicator");
+            _periodEma = CreateParameter("fast Ema1 period", 100, 50, 500, 50, "Indicator");
+            _periodEmaOffset = CreateParameter("slow Ema2 period", 100, 500, 1500, 100, "Indicator");
+            _offsetEma = CreateParameter("offset Ema2 period", 10, 3, 10, 11, "Indicator");
 
-            // Creating an indicator EmaFast
-            _ema1 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EMA1", false);
-            _ema1 = (Aindicator)_tab.CreateCandleIndicator(_ema1, "Prime");
-            ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _periodEmaFast.ValueInt;
-            _ema1.ParametersDigit[0].Value = _periodEmaFast.ValueInt;
-            _ema1.DataSeries[0].Color = Color.Red;
-            _ema1.Save();
+            // Creating an indicator Ema
+            _ema = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EmaOne", false);
+            _ema = (Aindicator)_tab.CreateCandleIndicator(_ema, "Prime");
+            ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _periodEma.ValueInt;
+            _ema.DataSeries[0].Color = Color.Red;
+            _ema.Save();
 
-            // Creating an indicator EmaSlow
-            _ema2 = IndicatorsFactory.CreateIndicatorByName("OffsetEma", name + "Ema2",  false);
-            _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, "Prime");
-            _ema2.ParametersDigit[0].Value = _periodEmaSlow.ValueInt;
-            _ema2.ParametersDigit[1].Value = _periodOffset.ValueInt;
-            _ema2.DataSeries[0].Color = Color.Green;
-            _ema2.Save();
+            // Creating an indicator EmaOffset
+            _emaOffset = IndicatorsFactory.CreateIndicatorByName("OffsetEma", name + "EmaOffset",  false);
+            _emaOffset = (Aindicator)_tab.CreateCandleIndicator(_emaOffset, "Prime");
+            ((IndicatorParameterInt)_emaOffset.Parameters[0]).ValueInt = _periodEmaOffset.ValueInt;
+            ((IndicatorParameterInt)_emaOffset.Parameters[1]).ValueInt = _offsetEma.ValueInt;
+            _emaOffset.DataSeries[0].Color = Color.Green;
+            _emaOffset.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += IntersectionOfEmaAndEmaOffset_ParametrsChangeByUser;
 
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            // Exit settings
             TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
 
             Description = "Trend robot at the Intersection of Ema and  Ema offset. " +
@@ -98,38 +112,47 @@ namespace OsEngine.Robots.MyRobots
                 "Sell: Fast Ema is lower than slow Ema. " +
                 "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +
                 "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
-
         }
 
         // Indicator Update event
         private void IntersectionOfEmaAndEmaOffset_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _periodEmaFast.ValueInt;
-            _ema1.Save();
-            _ema1.Reload();
-            ((IndicatorParameterInt)_ema2.Parameters[0]).ValueInt = _periodEmaSlow.ValueInt;
-            ((IndicatorParameterInt)_ema2.Parameters[1]).ValueInt = _periodOffset.ValueInt;
-            _ema2.Save();
-            _ema2.Reload();
+            ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _periodEma.ValueInt;
+            _ema.Save();
+            _ema.Reload();
+            ((IndicatorParameterInt)_emaOffset.Parameters[0]).ValueInt = _periodEmaOffset.ValueInt;
+            ((IndicatorParameterInt)_emaOffset.Parameters[1]).ValueInt = _offsetEma.ValueInt;
+            _emaOffset.Save();
+            _emaOffset.Reload();
+        }
+
+        // The name of the robot in OsEngin
+        public override string GetNameStrategyType()
+        {
+            return "IntersectionOfEmaAndEmaOffset";
+        }
+        public override void ShowIndividualSettingsDialog()
+        {
+
         }
 
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodEmaFast.ValueInt || candles.Count < _periodEmaSlow.ValueInt)
+            if (candles.Count < _periodEma.ValueInt || candles.Count < _periodEmaOffset.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (TimeStart.Value > _tab.TimeServerCurrent ||
-                TimeEnd.Value < _tab.TimeServerCurrent)
+            if (_timeStart.Value > _tab.TimeServerCurrent ||
+                _timeEnd.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -143,16 +166,16 @@ namespace OsEngine.Robots.MyRobots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles);
             }
-
         }
 
         // Opening logic
@@ -162,30 +185,29 @@ namespace OsEngine.Robots.MyRobots
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // He last value of the indicators
-                _lastEmaFast = _ema1.DataSeries[0].Last;
-                _lastEmaSlow = _ema2.DataSeries[0].Last;
+                _lastEma = _ema.DataSeries[0].Last;
+                _lastEmaOffset = _emaOffset.DataSeries[0].Last;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // if the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // if the mode is not only short, then we enter long
                 {
-
-                    if (_lastEmaFast > _lastEmaSlow)
+                    if (_lastEma > _lastEmaOffset)
                     {
                         // We put a stop on the buy
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // if the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // if the mode is not only long, then we enter short
                 {
-                    if (_lastEmaFast < _lastEmaSlow)
+                    if (_lastEma < _lastEmaOffset)
                     {
                         // putting a stop on sale
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestAsk - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestAsk - _slippage);
                     }
                 }
             }
@@ -204,13 +226,15 @@ namespace OsEngine.Robots.MyRobots
                 {
                     continue;
                 }
+
                 decimal stopPriсe;
-                if (pos.Direction == Side.Buy) // if the direction of the position is buy
+
+                if (pos.Direction == Side.Buy) // if the direction of the position is long
                 {
                     decimal low = candles[candles.Count - 1].Low;
                     stopPriсe = low - low * TrailingValue.ValueDecimal / 100;
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     decimal high = candles[candles.Count - 1].High;
                     stopPriсe = high + high * TrailingValue.ValueDecimal / 100;
@@ -219,40 +243,93 @@ namespace OsEngine.Robots.MyRobots
             }
         }
 
-        // The name of the robot in OsEngin
-        public override string GetNameStrategyType()
-        {
-            return "IntersectionOfEmaAndEmaOffset";
-        }
-
-        public override void ShowIndividualSettingsDialog()
-        {
-
-        }
-
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
-            }
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
             }
-            else
+            else if (_volumeType.ValueString == "Deposit percent")
             {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
             return volume;

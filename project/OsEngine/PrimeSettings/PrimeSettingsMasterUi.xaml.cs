@@ -5,6 +5,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -98,6 +99,12 @@ namespace OsEngine.PrimeSettings
             LabelHeader.Content = OsLocalization.PrimeSettings.LabelBotHeader;
             LabelRebootTradeUiLigth.Content = OsLocalization.PrimeSettings.LabelLightReboot;
             LabelReportCriticalErrors.Content = OsLocalization.PrimeSettings.ReportErrorsOnServer;
+
+            LabelSupportGroupRu.Content = OsLocalization.PrimeSettings.LabelSupportGroup + " RU:";
+            LabelSupportGroupEng.Content = OsLocalization.PrimeSettings.LabelSupportGroup + " ENG:";
+            
+            ButtonGoInRuSupport.Content = OsLocalization.PrimeSettings.LabelSupportGroupButtonLabel;
+            ButtonGoInEngSupport.Content = OsLocalization.PrimeSettings.LabelSupportGroupButtonLabel;
         }
 
         private void ComboBoxMemoryCleanUp_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -143,6 +150,32 @@ namespace OsEngine.PrimeSettings
         {
             if (CheckBoxReportCriticalErrors.IsChecked != null)
                 PrimeSettingsMaster.ReportCriticalErrors = CheckBoxReportCriticalErrors.IsChecked.Value;
+        }
+
+        private void ButtonGoInRuSupport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string link = "https://t.me/osengine_official_support";
+                Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ButtonGoInEngSupport_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                string link = "https://t.me/osengine_support_english";
+                Process.Start(new ProcessStartInfo(link) { UseShellExecute = true });
+            }
+            catch
+            {
+                // ignore
+            }
         }
     }
 }

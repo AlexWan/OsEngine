@@ -1719,7 +1719,7 @@ namespace OsEngine.Market.Servers.BloFin
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1749,32 +1749,51 @@ namespace OsEngine.Market.Servers.BloFin
                     if (orderResponse.code == "0")
                     {
                         // Ignore
+                        return true;
                     }
                     else
                     {
-                        GetOrderStatus(order);
+                        OrderStateType state = GetOrderStatus(order);
 
-                        if (orderResponse != null
-                            && orderResponse.data != null)
+                        if (state == OrderStateType.None)
                         {
-                            SendLogMessage($"Cancel Order error. Code: {orderResponse.data[0].code} || msg: {orderResponse.data[0].msg}", LogMessageType.Error);
+                            if (orderResponse != null
+                                && orderResponse.data != null)
+                            {
+                                SendLogMessage($"Cancel Order error. Code: {orderResponse.data[0].code} || msg: {orderResponse.data[0].msg}", LogMessageType.Error);
+                            }
+                            else
+                            {
+                                SendLogMessage($"Cancel Order error. Code: {orderResponse.code} || msg: {orderResponse.msg}", LogMessageType.Error);
+                            }
+                            return false;
                         }
                         else
                         {
-                            SendLogMessage($"Cancel Order error. Code: {orderResponse.code} || msg: {orderResponse.msg}", LogMessageType.Error);
+                            return true;
                         }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"Cancel Order error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Cancel Order error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage($"Cancel Order - {ex.Message}, {ex.StackTrace}", LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()
@@ -1881,7 +1900,7 @@ namespace OsEngine.Market.Servers.BloFin
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orderFromExchange = GetAllOpenOrders();
 
@@ -1894,7 +1913,7 @@ namespace OsEngine.Market.Servers.BloFin
             if (orderFromExchange == null
                || orderFromExchange.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1921,7 +1940,7 @@ namespace OsEngine.Market.Servers.BloFin
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1935,6 +1954,8 @@ namespace OsEngine.Market.Servers.BloFin
             {
                 FindMyTradesToOrder(order.SecurityNameCode, order.NumberMarket);
             }
+
+            return orderOnMarket.State;
         }
 
         private List<Order> GetOrderHistory(string securityName)
@@ -2166,6 +2187,10 @@ namespace OsEngine.Market.Servers.BloFin
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

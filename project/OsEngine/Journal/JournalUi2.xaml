@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Journal"
         mc:Ignorable="d"
-        Title="Journal" Height="800" Width="1370" MinWidth="1450" MinHeight="500" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Journal" Height="800" Width="1370" MinWidth="500" MinHeight="400" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
         <Grid Name="GridTabPrime" Margin="510,0,-0.333,-0.333">
 

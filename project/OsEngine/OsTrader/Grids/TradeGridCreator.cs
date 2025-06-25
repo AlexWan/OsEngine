@@ -9,13 +9,12 @@ using OsEngine.Entity;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace OsEngine.OsTrader.Grids
 {
     public class TradeGridCreator
     {
-        #region Settings
+        #region Service
 
         public Side GridSide = Side.Buy;
 
@@ -105,10 +104,7 @@ namespace OsEngine.OsTrader.Grids
 
         public void CreateNewGrid(BotTabSimple tab, TradeGridPrimeType gridType)
         {
-            if(gridType == TradeGridPrimeType.MarketMaking)
-            {
-                CreateMarketMakingGrid(tab);
-            }
+            CreateMarketMakingGrid(tab);
         }
 
         public void DeleteGrid()
@@ -124,7 +120,6 @@ namespace OsEngine.OsTrader.Grids
             TradeGridLine newLine = new TradeGridLine();
             newLine.PriceEnter = 0;
             newLine.Side = GridSide;
-            newLine.IsOn = true;
             newLine.Volume = 0;
             Lines.Add(newLine);
 
@@ -139,6 +134,13 @@ namespace OsEngine.OsTrader.Grids
                 if(curNumber >= Lines.Count)
                 {
                     continue;
+                }
+
+                TradeGridLine line = Lines[curNumber];
+
+                if(line.Position != null)
+                {
+                    SendNewLogMessage("User remove line with Position!!! \n !!!!! \n !!!!!! \n Grid is broken!!!", LogMessageType.Error);
                 }
 
                 Lines.RemoveAt(curNumber);
@@ -193,7 +195,6 @@ namespace OsEngine.OsTrader.Grids
                 }
 
                 newLine.Side = GridSide;
-                newLine.IsOn = true;
                 newLine.Volume = volumeCurrent;
 
                 if (tab.Security != null
@@ -323,15 +324,79 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        #endregion
-
-        public bool HaveOpenPositionsByGrid
+        public decimal GetVolume(TradeGridLine line, BotTabSimple tab)
         {
-            get
+            decimal volume = 0;
+            decimal volumeFromLine = line.Volume;
+            decimal priceEnterForLine = line.PriceEnter;
+
+            if (TypeVolume == TradeGridVolumeType.ContractCurrency) // "Валюта контракта"
             {
-                return false;
+                decimal contractPrice = priceEnterForLine;
+                volume = Math.Round(volumeFromLine / contractPrice, tab.Security.DecimalsVolume);
+                return volume;
+            }
+            else if (TypeVolume == TradeGridVolumeType.Contracts) // кол-во контрактов
+            {
+                return line.Volume;
+            }
+            else // if (TypeVolume == Type_Volume.DepoPercent) // процент депозита
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0
+                    || portfolioPrimeAsset == 1)
+                {
+                    SendNewLogMessage("Can`t found portfolio in Deposit Percent volume mode " + TradeAssetInPortfolio, OsEngine.Logging.LogMessageType.Error);
+                    return 0;
+                }
+                decimal moneyOnPosition = portfolioPrimeAsset * (volumeFromLine / 100);
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
         }
+
+        #endregion
 
         #region Log
 
@@ -354,25 +419,27 @@ namespace OsEngine.OsTrader.Grids
 
     public class TradeGridLine
     {
-        public bool IsOn;
-
         public decimal PriceEnter;
+
+        public decimal PriceExit;
 
         public decimal Volume;
 
         public Side Side;
 
-        public decimal PriceExit;
+        public int PositionNum = -1;
+
+        public Position Position;
 
         public string GetSaveStr()
         {
             string result = "";
 
-            result += IsOn + "|";
             result += PriceEnter + "|";
             result += Volume + "|";
             result += Side + "|";
             result += PriceExit + "|";
+            result += PositionNum + "|";
 
             return result;
         }
@@ -381,11 +448,12 @@ namespace OsEngine.OsTrader.Grids
         {
             string[] saveArray = str.Split('|');
 
-            IsOn = Convert.ToBoolean(saveArray[0]);
-            PriceEnter = saveArray[1].ToDecimal();
-            Volume = saveArray[2].ToDecimal();
-            Enum.TryParse(saveArray[3], out Side);
-            PriceExit = saveArray[4].ToDecimal();
+            PriceEnter = saveArray[0].ToDecimal();
+            Volume = saveArray[1].ToDecimal();
+            Enum.TryParse(saveArray[2], out Side);
+            PriceExit = saveArray[3].ToDecimal();
+            PositionNum = Convert.ToInt32(saveArray[4]);
         }
+
     }
 }

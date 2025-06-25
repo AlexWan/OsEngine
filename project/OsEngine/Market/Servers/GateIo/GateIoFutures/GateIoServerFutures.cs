@@ -36,6 +36,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             CreateParameterString("User ID", "");
             CreateParameterEnum("Base Wallet", "USDT", new List<string> { "USDT", "BTC" });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -90,6 +91,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             else
             {
                 _hedgeMode = false;
+            }
+
+            if (((ServerParameterBool)ServerParameters[5]).Value == true)
+            {
+                _extendedMarketData = true;
+            }
+            else
+            {
+                _extendedMarketData = false;
             }
 
             IRestResponse response = null;
@@ -175,6 +185,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
             try
             {
+                UnsubscribeFromAllWebSockets();
                 _subscribedSecurities.Clear();
                 _allDepths.Clear();
 
@@ -222,6 +233,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         private const string WEB_SOCKET_URL = "wss://fx-ws.gateio.ws/v4/ws/";
 
         private bool _hedgeMode;
+
+        private bool _extendedMarketData;
 
         public List<IServerParameter> ServerParameters { get; set; }
 
@@ -1058,6 +1071,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
             try
             {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
                 if (!_subscribedSecurities.ContainsKey(security.Name))
                 {
                     _subscribedSecurities.Add(security.Name, security);
@@ -1068,6 +1086,12 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 SubscribeTrades(security.Name);
                 SubscribeOrders(security.Name);
                 SubscribeMyTrades(security.Name);
+
+                if (_extendedMarketData)
+                {
+                    SubscribeContractStats(security.Name);
+                }
+
             }
             catch (Exception exception)
             {
@@ -1075,51 +1099,31 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
         }
 
+        private void SubscribeContractStats(string security)
+        {
+            long time = TimeManager.GetUnixTimeStampSeconds();
+            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"1m\"]}}");
+        }
+
         private void SubscribeMarketDepth(string security)
         {
             AddMarketDepth(security);
 
-            List<string> payload = new List<string>();
-            payload.Add(security);
+            string level = "1";
 
-            if (((ServerParameterBool)ServerParameters[12]).Value == true)
+            if (((ServerParameterBool)ServerParameters[13]).Value == true)
             {
-                payload.Add("20");
-            }
-            else
-            {
-                payload.Add("1");
+                level = "20";
             }
 
-            payload.Add("0");
-
-            GateFuturesWsRequest payloadMarketDepth = new GateFuturesWsRequest()
-            {
-                time = TimeManager.GetUnixTimeStampSeconds(),
-                channel = "futures.order_book",
-                @event = "subscribe",
-                payload = payload.ToArray()
-            };
-
-            string jsonRequest = JsonConvert.SerializeObject(payloadMarketDepth);
-            _webSocket?.Send(jsonRequest);
+            long time = TimeManager.GetUnixTimeStampSeconds();
+            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"subscribe\",\"payload\":[\"{security}\",\"{level}\",\"0\"]}}");
         }
 
         private void SubscribeTrades(string security)
         {
-            List<string> payload = new List<string>();
-            payload.Add(security);
-
-            GateFuturesWsRequest payloadTrades = new GateFuturesWsRequest()
-            {
-                time = TimeManager.GetUnixTimeStampSeconds(),
-                channel = "futures.trades",
-                @event = "subscribe",
-                payload = payload.ToArray()
-            };
-
-            string jsonRequest = JsonConvert.SerializeObject(payloadTrades);
-            _webSocket?.Send(jsonRequest);
+            long time = TimeManager.GetUnixTimeStampSeconds();
+            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeOrders(string security)
@@ -1217,6 +1221,39 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             _webSocket?.Send(jsonRequest);
         }
 
+        private void UnsubscribeFromAllWebSockets()
+        {
+            try
+            {
+                if (_subscribedSecurities != null)
+                {
+                    foreach (var item in _subscribedSecurities)
+                    {
+                        string name = item.Key;
+                        long time = TimeManager.GetUnixTimeStampSeconds();
+                        string level = "1";
+
+                        if (((ServerParameterBool)ServerParameters[13]).Value == true)
+                        {
+                            level = "20";
+                        }
+
+                        _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.order_book\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"{level}\",\"0\"]}}");
+                        _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.trades\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\"]}}");
+
+                        if (_extendedMarketData)
+                        {
+                            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         public bool SubscribeNews()
         {
             return false;
@@ -1291,6 +1328,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                             UpdateTrade(message);
                             continue;
                         }
+                        else if (responseWebsocketMessage.channel.Equals("futures.contract_stats") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateStats(message);
+                            continue;
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -1320,7 +1362,63 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     newTrade.Volume = Math.Abs(responseTrades.result[i].size.ToDecimal());
                     newTrade.Side = responseTrades.result[i].size.ToString().StartsWith("-") ? Side.Sell : Side.Buy;
 
+                    if (_extendedMarketData)
+                    {
+                        newTrade.OpenInterest = GetOpenInterest(newTrade.SecurityNameCode);
+                    }
+
                     NewTradesEvent(newTrade);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private decimal GetOpenInterest(string securityNameCode)
+        {
+            if (openInterestData == null
+                || openInterestData.Count == 0)
+            {
+                return 0;
+            }
+
+            foreach (var data in openInterestData)
+            {
+                if (data.Key == securityNameCode)
+                {
+                    return data.Value.ToDecimal();
+                }
+            }
+
+            return 0;
+        }
+
+        private Dictionary<string, string> openInterestData = new Dictionary<string, string>();
+
+        private void UpdateStats(string message)
+        {
+            try
+            {
+                GfContractStat responseStat = JsonConvert.DeserializeObject<GfContractStat>(message);
+
+                if (responseStat == null
+                    || responseStat.result == null)
+                {
+                    return;
+                }
+
+                string name = responseStat.result.contract;
+                string oi = responseStat.result.open_interest;
+
+                if (openInterestData.ContainsKey(name))
+                {
+                    openInterestData[name] = oi;
+                }
+                else
+                {
+                    openInterestData.Add(name, oi);
                 }
             }
             catch (Exception error)
@@ -1619,7 +1717,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1637,23 +1735,43 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         SendLogMessage($"Order num {order.NumberUser} canceled.", LogMessageType.Trade);
                         order.State = OrderStateType.Cancel;
                         MyOrderEvent(order);
+                        return true;
                     }
                     else
                     {
-                        GetOrderStatus(order);
-                        SendLogMessage($"Error on order cancel num {order.NumberUser}", LogMessageType.Error);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Error on order cancel num {order.NumberUser}", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"CancelOrder> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"CancelOrder> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.Message, LogMessageType.Error);
             }
+            return false;
         }
 
         public void GetAllActivOrders()
@@ -1681,7 +1799,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, "open");
 
@@ -1694,7 +1812,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             if (orderFromExchange == null
                || orderFromExchange.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1721,7 +1839,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1735,6 +1853,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 FindMyTradesToOrder(order.NumberUser);
             }
+
+            return orderOnMarket.State;
         }
 
         private List<Order> GetOrderFromExchange(string securityNameCode, string status)
@@ -2038,6 +2158,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

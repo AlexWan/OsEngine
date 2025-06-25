@@ -1674,7 +1674,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1708,25 +1708,44 @@ namespace OsEngine.Market.Servers.BinGxSpot
                     ResponseSpotBingX<ResponseCreateOrder> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseSpotBingX<ResponseCreateOrder>());
                     if (response.code == "0")
                     {
-
+                        return true;
                     }
                     else
                     {
-                        GetOrderStatus(order);
-                        ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
-                        SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            ResponseErrorCode responseError = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseErrorCode());
+                            SendLogMessage($"Order cancel error: code - {responseError.code} | message - {responseError.msg}", LogMessageType.Trade);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 else
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.Message, LogMessageType.Error);
             }
+            return false;
         }
 
         private void CreateOrderFail(Order order)
@@ -1854,7 +1873,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orders = GetAllOpenOrders();
 
@@ -1862,7 +1881,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 || orders.Count == 0)
             {
                 GetOrderFromExchange(order.SecurityNameCode, order.NumberUser.ToString());
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1889,7 +1908,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1897,6 +1916,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 MyOrderEvent(orderOnMarket);
             }
+
+            return orderOnMarket.State;
         }
 
         private void GetOrderFromExchange(string securityNameCode, string numberUser)
@@ -2179,6 +2200,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
         #region 12 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

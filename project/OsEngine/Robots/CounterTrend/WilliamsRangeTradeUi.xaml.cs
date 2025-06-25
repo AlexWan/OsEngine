@@ -11,7 +11,6 @@ using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.Robots.CounterTrend
 {
-
     public partial class WilliamsRangeTradeUi
     {
         private WilliamsRangeTrade _strategy;
@@ -22,19 +21,23 @@ namespace OsEngine.Robots.CounterTrend
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 
-            TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
-
-            TextBoxSlippage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
-
             ComboBoxRegime.Items.Add(BotTradeRegime.Off);
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyLong);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
-            ComboBoxRegime.SelectedItem = _strategy.Regime;
+            ComboBoxRegime.SelectedItem = _strategy._regime;
 
-            WillUp.Text = _strategy.Upline.Value.ToString(new CultureInfo("ru-RU"));
-            WillDown.Text = _strategy.Downline.Value.ToString(new CultureInfo("ru-RU"));
+            ComboBoxVolumeType.Items.Add("Deposit percent");
+            ComboBoxVolumeType.Items.Add("Contracts");
+            ComboBoxVolumeType.Items.Add("Contract currency");
+            ComboBoxVolumeType.SelectedItem = _strategy._volumeType;
+
+            TextBoxVolumeOne.Text = _strategy._volume.ToString();
+            TextBoxSlippage.Text = _strategy._slippage.ToString(new CultureInfo("ru-RU"));
+            TextBoxAssetInPortfolio.Text = "Prime";
+            WillUp.Text = _strategy._upline.Value.ToString(new CultureInfo("ru-RU"));
+            WillDown.Text = _strategy._downline.Value.ToString(new CultureInfo("ru-RU"));
 
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
@@ -42,6 +45,8 @@ namespace OsEngine.Robots.CounterTrend
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelUp.Content = OsLocalization.Trader.Label155;
             LabelLow.Content = OsLocalization.Trader.Label156;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();
@@ -65,15 +70,17 @@ namespace OsEngine.Robots.CounterTrend
                 return;
             }
 
-            _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
-            _strategy.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
-            _strategy.Upline.Value = Convert.ToDecimal(WillUp.Text);
-            _strategy.Downline.Value = Convert.ToDecimal(WillDown.Text);
+            _strategy._volumeType = Convert.ToString(ComboBoxVolumeType.Text);
+            _strategy._tradeAssetInPortfolio = Convert.ToString(TextBoxAssetInPortfolio.Text);
+            _strategy._volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
+            _strategy._slippage = Convert.ToDecimal(TextBoxSlippage.Text);
+            _strategy._upline.Value = Convert.ToDecimal(WillUp.Text);
+            _strategy._downline.Value = Convert.ToDecimal(WillDown.Text);
 
-            Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);
+            Enum.TryParse(ComboBoxRegime.Text, true, out _strategy._regime);
 
-            _strategy.Upline.Refresh();
-            _strategy.Downline.Refresh();
+            _strategy._upline.Refresh();
+            _strategy._downline.Refresh();
 
             _strategy.Save();
             Close();

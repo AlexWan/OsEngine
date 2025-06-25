@@ -1489,7 +1489,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1520,14 +1520,28 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
                 if (responseMessage.StatusCode != System.Net.HttpStatusCode.OK)
                 {
-                    GetOrderStatus(order);
-                    SendLogMessage($"CancelOrder. Error: {responseMessage.Content}", LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
+
+                    if (state == OrderStateType.None)
+                    {
+                        SendLogMessage($"CancelOrder. Error: {responseMessage.Content}", LogMessageType.Error);
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    return true;
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
             }
+            return false;
         }
 
         public void GetAllActivOrders()
@@ -1651,7 +1665,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             return null;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orderFromExchange = GetAllActivOrdersFromExchange();  //GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket, order.NumberUser, order.State);
 
@@ -1664,7 +1678,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             if (orderFromExchange == null
                || orderFromExchange.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1691,7 +1705,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1705,6 +1719,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
             {
                 FindMyTradesToOrder(order.SecurityNameCode, order.NumberUser);
             }
+
+            return orderOnMarket.State;
         }
 
         private List<Order> GetOrderFromExchange(string securityNameCode)
@@ -2030,6 +2046,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

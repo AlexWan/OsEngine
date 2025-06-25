@@ -22,6 +22,8 @@ using OsEngine.Candles;
 using OsEngine.Market.Servers;
 using OsEngine.Candles.Factory;
 using OsEngine.OsTrader.Panels.Tab.Internal;
+using System.Drawing;
+using OsEngine.Market.Servers.Tester;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -222,6 +224,15 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (row.Cells[6].Value == null
                         || row.Cells[6].Value.ToString() != curPoses)
                     {
+                        if(posCurr > 0)
+                        {
+                            row.Cells[6].Style.ForeColor = Color.Green;
+                        }
+                        else
+                        {
+                            row.Cells[6].Style.ForeColor = row.Cells[5].Style.ForeColor;
+                        }
+
                         row.Cells[6].Value = curPoses;
                     }
                 }
@@ -266,6 +277,16 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 ServerType = ServerType.Tester;
                 ServerName = ServerType.Tester.ToString();
+
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if(servers != null &&
+                    servers.Count > 0)
+                {
+                    ((TesterServer)servers[0]).TestingStartEvent += BotTabScreener_TestingStartEvent;
+                    ((TesterServer)servers[0]).TestingEndEvent += BotTabScreener_TestingEndEvent;
+                }
+
             }
             else if (startProgram == StartProgram.IsOsOptimizer)
             {
@@ -408,7 +429,7 @@ namespace OsEngine.OsTrader.Panels.Tab
                 {
                     for (int i = 0; i < Tabs.Count; i++)
                     {
-                        Tabs[i].Connector.EventsIsOn = value;
+                        Tabs[i].EventsIsOn = value;
                     }
                 }
                 catch
@@ -644,6 +665,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                 _positionViewer.Delete();
             }
 
+            if (_startProgram == StartProgram.IsTester)
+            {
+                List<IServer> servers = ServerMaster.GetServers();
+
+                if (servers != null &&
+                    servers.Count > 0)
+                {
+                    ((TesterServer)servers[0]).TestingStartEvent -= BotTabScreener_TestingStartEvent;
+                    ((TesterServer)servers[0]).TestingEndEvent -= BotTabScreener_TestingEndEvent;
+                }
+            }
+
             if (TabDeletedEvent != null)
             {
                 TabDeletedEvent();
@@ -700,6 +733,46 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return true;
             }
         }
+
+        private void BotTabScreener_TestingEndEvent()
+        {
+            if(TestOverEvent != null)
+            {
+                try
+                {
+                    TestOverEvent();
+                }
+                catch (Exception error)
+                {
+                    SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        private void BotTabScreener_TestingStartEvent()
+        {
+            if(TestStartEvent != null)
+            {
+                try
+                {
+                    TestStartEvent();
+                }
+                catch(Exception error)
+                {
+                    SendNewLogMessage(error.ToString(),LogMessageType.Error);
+                }
+            }
+        }
+
+        /// <summary>
+        /// testing finished
+        /// </summary>
+        public event Action TestOverEvent;
+
+        /// <summary>
+        /// testing started
+        /// </summary>
+        public event Action TestStartEvent;
 
         #endregion
 
@@ -1292,9 +1365,13 @@ namespace OsEngine.OsTrader.Panels.Tab
             {
                 string botName = Tabs[tabNum].TabName + "_Engine";
 
-                if (_chartEngines.Find(b => b.NameStrategyUniq == botName) != null)
+                for(int i = 0;i < _chartEngines.Count;i++)
                 {
-                    return;
+                    if (_chartEngines[i].NameStrategyUniq == botName)
+                    {
+                        _chartEngines[i].ShowChartDialog();
+                        return;
+                    }
                 }
 
                 CandleEngine bot = new CandleEngine(botName, _startProgram);
@@ -1450,9 +1527,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Trader.Label165;
+            colum0.HeaderText = "#";
             colum0.ReadOnly = true;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             newGrid.Columns.Add(colum0);
 
             DataGridViewColumn colum1 = new DataGridViewColumn();
@@ -2455,6 +2532,52 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
 
                 return positions;
+            }
+        }
+
+        /// <summary>
+        /// Number of sources with open or opening positions.
+        /// </summary>
+        public int SourceWithOpenPositionsCount
+        {
+            get
+            {
+                int result = 0;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    List<Position> curPoses = Tabs[i].PositionsOpenAll;
+
+                    if (curPoses.Count != 0)
+                    {
+                        result++;
+                    }
+                }
+
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Number of sources with grids
+        /// </summary>
+        public int SourceWithGridsCount
+        {
+            get
+            {
+                int result = 0;
+
+                for (int i = 0; i < Tabs.Count; i++)
+                {
+                    BotTabSimple tab = Tabs[i];
+
+                    if(tab.GridsMaster.TradeGrids.Count != 0)
+                    {
+                        result++;
+                    }
+                }
+
+                return result;
             }
         }
 

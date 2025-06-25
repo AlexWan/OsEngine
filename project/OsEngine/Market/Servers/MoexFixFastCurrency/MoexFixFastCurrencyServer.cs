@@ -2991,7 +2991,7 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3014,7 +3014,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                return false;
             }
+            return true;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -3130,9 +3132,9 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion
@@ -3335,6 +3337,10 @@ namespace OsEngine.Market.Servers.MoexFixFastCurrency
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

@@ -15,64 +15,76 @@ using System.Collections.Generic;
 using OsEngine.Logging;
 using System.Threading;
 
+/* Description
+trading robot for osengine
+
+Countertrend robot on bollinger indicator. 
+
+Inside of which an example of entering a position by multiple orders through its own logic is implemented.
+ */
+
 namespace OsEngine.Robots.PositionsMicromanagement
 {
-    [Bot("CustomIcebergSample")]
+    [Bot("CustomIcebergSample")] // We create an attribute so that we don't write anything to the BotFactory
     public class CustomIcebergSample : BotPanel
     {
         private BotTabSimple _tab;
 
+        // Basic setting
+        private StrategyParameterString _regime;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+        
+        // Indicator
         private Aindicator _bollinger;
 
-        public StrategyParameterString Regime;
+        // Indicator settings
+        private StrategyParameterInt _bollingerLength;
+        private StrategyParameterDecimal _bollingerDeviation;
 
-        public StrategyParameterInt BollingerLength;
+        // Exit settings
+        private StrategyParameterDecimal _profitPercent;
+        private StrategyParameterDecimal _stopPercent;
+        private StrategyParameterInt _icebergSecondsBetweenOrders;
+        private StrategyParameterInt _icebergCount;
 
-        public StrategyParameterDecimal BollingerDeviation;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterDecimal ProfitPercent;
-
-        public StrategyParameterDecimal StopPercent;
-
-        public StrategyParameterInt IcebergSecondsBetweenOrders;
-
-        public StrategyParameterInt IcebergCount;
-
-        public CustomIcebergSample(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        public CustomIcebergSample(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            // Basic setting
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
 
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            BollingerLength = CreateParameter("Bollinger length", 50, 10, 80, 3);
-            BollingerDeviation = CreateParameter("Bollinger deviation", 1.1m, 0.5m, 5, 0.1m);
+            // Indicator settings
+            _bollingerLength = CreateParameter("Bollinger length", 50, 10, 80, 3);
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 1.1m, 0.5m, 5, 0.1m);
 
-            ProfitPercent = CreateParameter("Profit percent", 0.3m, 1.0m, 50, 4);
-            StopPercent = CreateParameter("Stop percent", 0.5m, 1.0m, 50, 4);
+            // Exit settings
+            _profitPercent = CreateParameter("Profit percent", 0.3m, 1.0m, 50, 4);
+            _stopPercent = CreateParameter("Stop percent", 0.5m, 1.0m, 50, 4);
+            _icebergCount = CreateParameter("Iceberg count ", 5, 1, 50, 4);
+            _icebergSecondsBetweenOrders = CreateParameter("Iceberg seconds between orders ", 5, 1, 50, 4);
 
-            IcebergCount = CreateParameter("Iceberg count ", 5, 1, 50, 4);
-            IcebergSecondsBetweenOrders = CreateParameter("Iceberg seconds between orders ", 5, 1, 50, 4);
-
+            // Create indicator Bollinger
             _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
             _bollinger = (Aindicator)_tab.CreateCandleIndicator(_bollinger, "Prime");
-            _bollinger.ParametersDigit[0].Value = BollingerLength.ValueInt;
-            _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
+            _bollinger.ParametersDigit[0].Value = _bollingerLength.ValueInt;
+            _bollinger.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
             _bollinger.Save();
 
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
             _tab.ManualPositionSupport.DisableManualSupport();
@@ -82,31 +94,32 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
         void Event_ParametrsChangeByUser()
         {
-            if (BollingerLength.ValueInt != _bollinger.ParametersDigit[0].Value ||
-               _bollinger.ParametersDigit[1].Value != BollingerDeviation.ValueDecimal)
+            if (_bollingerLength.ValueInt != _bollinger.ParametersDigit[0].Value ||
+               _bollinger.ParametersDigit[1].Value != _bollingerDeviation.ValueDecimal)
             {
-                _bollinger.ParametersDigit[0].Value = BollingerLength.ValueInt;
-                _bollinger.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
+                _bollinger.ParametersDigit[0].Value = _bollingerLength.ValueInt;
+                _bollinger.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
                 _bollinger.Reload();
                 _bollinger.Save();
             }
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "CustomIcebergSample";
         }
 
+        // Show setting GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // logic
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -127,7 +140,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -139,6 +152,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Opening position logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal lastPrice = candles[candles.Count - 1].Close;
@@ -152,7 +166,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
 
             if (lastPrice > bollingerUp
-                && Regime.ValueString != "OnlyLong")
+                && _regime.ValueString != "OnlyLong")
             {
                 if (StartProgram == StartProgram.IsTester 
                     || StartProgram == StartProgram.IsOsOptimizer)
@@ -163,15 +177,15 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 {
                     IcebergMaker icebergMaker = new IcebergMaker();
                     icebergMaker.VolumeOnAllOrders = GetVolume(_tab);
-                    icebergMaker.OrdersCount = IcebergCount.ValueInt;
-                    icebergMaker.SecondsBetweenOrders = IcebergSecondsBetweenOrders.ValueInt;
+                    icebergMaker.OrdersCount = _icebergCount.ValueInt;
+                    icebergMaker.SecondsBetweenOrders = _icebergSecondsBetweenOrders.ValueInt;
                     icebergMaker.Tab = _tab;
                     icebergMaker.Side = Side.Sell;
                     icebergMaker.Start();
                 }
             }
             if (lastPrice < bollingerDown
-                && Regime.ValueString != "OnlyShort")
+                && _regime.ValueString != "OnlyShort")
             {
                 if (StartProgram == StartProgram.IsTester
                    || StartProgram == StartProgram.IsOsOptimizer)
@@ -182,8 +196,8 @@ namespace OsEngine.Robots.PositionsMicromanagement
                 {
                     IcebergMaker icebergMaker = new IcebergMaker();
                     icebergMaker.VolumeOnAllOrders = GetVolume(_tab);
-                    icebergMaker.OrdersCount = IcebergCount.ValueInt;
-                    icebergMaker.SecondsBetweenOrders = IcebergSecondsBetweenOrders.ValueInt;
+                    icebergMaker.OrdersCount = _icebergCount.ValueInt;
+                    icebergMaker.SecondsBetweenOrders = _icebergSecondsBetweenOrders.ValueInt;
                     icebergMaker.Tab = _tab;
                     icebergMaker.Side = Side.Buy;
                     icebergMaker.Start();
@@ -191,6 +205,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Close position logic
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if (position.State != PositionStateType.Open)
@@ -206,7 +221,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             if (position.Direction == Side.Buy)
             {
-                profitPrice = position.EntryPrice + position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+                profitPrice = position.EntryPrice + position.EntryPrice * (_profitPercent.ValueDecimal / 100);
 
                 if(lastPrice >= profitPrice)
                 {
@@ -215,7 +230,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
             else if (position.Direction == Side.Sell)
             {
-                profitPrice = position.EntryPrice - position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+                profitPrice = position.EntryPrice - position.EntryPrice * (_profitPercent.ValueDecimal / 100);
 
                 if (lastPrice <= profitPrice)
                 {
@@ -229,7 +244,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             if (position.Direction == Side.Buy)
             {
-                stopPrice = position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
+                stopPrice = position.EntryPrice - position.EntryPrice * (_stopPercent.ValueDecimal / 100);
 
                 if (lastPrice <= stopPrice)
                 {
@@ -238,7 +253,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
             else if (position.Direction == Side.Sell)
             {
-                stopPrice = position.EntryPrice + position.EntryPrice * (StopPercent.ValueDecimal / 100);
+                stopPrice = position.EntryPrice + position.EntryPrice * (_stopPercent.ValueDecimal / 100);
 
                 if (lastPrice >= stopPrice)
                 {
@@ -248,6 +263,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             
         }
 
+        // Close position
         private void ClosePos(Position position)
         {
             if(StartProgram == StartProgram.IsTester ||
@@ -258,26 +274,27 @@ namespace OsEngine.Robots.PositionsMicromanagement
             else if(StartProgram == StartProgram.IsOsTrader)
             {
                 IcebergMaker icebergMaker = new IcebergMaker();
-                icebergMaker.OrdersCount = IcebergCount.ValueInt;
-                icebergMaker.SecondsBetweenOrders = IcebergSecondsBetweenOrders.ValueInt;
+                icebergMaker.OrdersCount = _icebergCount.ValueInt;
+                icebergMaker.SecondsBetweenOrders = _icebergSecondsBetweenOrders.ValueInt;
                 icebergMaker.Tab = _tab;
                 icebergMaker.PositionToClose = position;
                 icebergMaker.Start();
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -288,7 +305,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -298,7 +315,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -309,7 +326,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -324,7 +341,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -334,11 +351,11 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
@@ -388,6 +405,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Opening position logic
         private void OpenPositionMethod()
         {
             try
@@ -449,6 +467,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             }
         }
 
+        // Close position logic
         private void ClosePositionMethod()
         {
             try

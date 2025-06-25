@@ -150,6 +150,8 @@ namespace OsEngine
 
             ChangeText();
 
+            ReloadFlagButton();
+
             this.ContentRendered += MainWindow_ContentRendered;
         }
 
@@ -160,6 +162,8 @@ namespace OsEngine
             ImageData.Visibility = Visibility.Hidden;
             ImageTests.Visibility = Visibility.Hidden;
             ImageTrading.Visibility = Visibility.Hidden;
+            ImageFlag_Ru.Visibility = Visibility.Hidden;
+            ImageFlag_Eng.Visibility = Visibility.Hidden;
 
             ImagePadlock.Visibility = Visibility.Visible;
             ImagePadlock.MouseEnter += ImagePadlock_MouseEnter;
@@ -175,6 +179,8 @@ namespace OsEngine
             ButtonMiner.IsEnabled = false;
             ButtonTesterLight.IsEnabled = false;
             ButtonRobotLight.IsEnabled = false;
+            ButtonLocal_Ru.IsEnabled = false;
+            ButtonLocal_Eng.IsEnabled = false;
         }
 
         private void ImagePadlock_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
@@ -204,6 +210,8 @@ namespace OsEngine
             ImageData.Visibility = Visibility.Visible;
             ImageTests.Visibility = Visibility.Visible;
             ImageTrading.Visibility = Visibility.Visible;
+            ImageFlag_Ru.Visibility = Visibility.Visible;
+            ImageFlag_Eng.Visibility = Visibility.Visible;
 
             ImagePadlock.Visibility = Visibility.Hidden;
             ButtonSettings.IsEnabled = true;
@@ -216,6 +224,8 @@ namespace OsEngine
             ButtonMiner.IsEnabled = true;
             ButtonTesterLight.IsEnabled = true;
             ButtonRobotLight.IsEnabled = true;
+            ButtonLocal_Ru.IsEnabled = true;
+            ButtonLocal_Eng.IsEnabled = true;
         }
 
         #endregion
@@ -340,17 +350,17 @@ namespace OsEngine
             ButtonTesterLight.Content = OsLocalization.MainWindow.OsTesterLightName;
             ButtonRobotLight.Content = OsLocalization.MainWindow.OsBotStationLightName;
 
-            if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
-            {
-                this.Height = 415;
-                ImageAlor.Visibility = Visibility.Visible;
-            }
-            else
-            {
+           // if(OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+          //  {
+          //      this.Height = 415;
+           //     ImageAlor.Visibility = Visibility.Visible;
+            //}
+            //else
+            //{
                 this.Height = 315;
                 ImageAlor.Visibility = Visibility.Collapsed;
                 ImageAlor2.Visibility = Visibility.Collapsed;
-            }
+           // }
         }
 
         /// <summary>
@@ -897,7 +907,48 @@ namespace OsEngine
                 // ignore
             }
         }
+
+        private void ButtonLocal_Click(object sender, RoutedEventArgs e)
+        {
+            OsLocalization.OsLocalType newType;
+
+            if (Enum.TryParse("Ru", out newType))
+            {
+                OsLocalization.CurLocalization = newType;
+                Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
+
+                ButtonLocal_Ru.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
+                ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF111217");
+            }
+        }
+
+        private void ButtonLocal_Eng_Click(object sender, RoutedEventArgs e)
+        {
+            OsLocalization.OsLocalType newType;
+
+            if (Enum.TryParse("Eng", out newType))
+            {
+                OsLocalization.CurLocalization = newType;
+                Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
+
+                ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
+                ButtonLocal_Ru.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#FF111217");
+            }
+        }
+
+        private void ReloadFlagButton()
+        {
+            if (OsLocalization.CurLocalization == OsLocalization.OsLocalType.Ru)
+            {
+                ButtonLocal_Ru.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
+            }
+            else
+            {
+                ButtonLocal_Eng.Background = (SolidColorBrush)new BrushConverter().ConvertFrom("#ff5500");
+            }
+        }
     }
+
 
     public static class CriticalErrorHandler
     {

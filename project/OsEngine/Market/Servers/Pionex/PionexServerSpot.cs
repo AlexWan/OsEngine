@@ -1032,7 +1032,7 @@ namespace OsEngine.Market.Servers.Pionex
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGate.WaitToProceed();
 
@@ -1053,18 +1053,20 @@ namespace OsEngine.Market.Servers.Pionex
                 if (response.result == "true")
                 {
                     SendLogMessage($"The order has been cancelled", LogMessageType.Trade);
+                    return true;
                 }
                 else
                 {
                     CreateOrderFail(order);
                     SendLogMessage($"Order cancellation error: code - {response.code} | message - {response.message}", LogMessageType.Error);
+                    return false;
                 }
             }
             else
             {
                 SendLogMessage($"Http State Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                return false;
             }
-
         }
 
         public void CancelAllOrders()
@@ -1082,9 +1084,9 @@ namespace OsEngine.Market.Servers.Pionex
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         #endregion
@@ -1377,6 +1379,10 @@ namespace OsEngine.Market.Servers.Pionex
         #region 12 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

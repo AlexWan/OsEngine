@@ -76,6 +76,8 @@ namespace OsEngine.Market.Servers
                 _serverRealization.NewsEvent += _serverRealization_NewsEvent;
 
                 _serverRealization.AdditionalMarketDataEvent += _serverRealization_AdditionalMarketDataEvent;
+                _serverRealization.FundingUpdateEvent += _serverRealization_FundingUpdateEvent;
+                _serverRealization.Volume24hUpdateEvent += _serverRealization_Volume24hUpdateEvent;
 
                 Load();
 
@@ -1464,6 +1466,26 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
+                    else if (!_fundingToSend.IsEmpty)
+                    {
+                        Funding data;
+
+                        if (_fundingToSend.TryDequeue(out data))
+                        {
+                            NewFundingEvent(data);
+                        }
+                    }
+
+                    else if (!_securityVolumesToSend.IsEmpty)
+                    {
+                        SecurityVolumes data;
+
+                        if (_securityVolumesToSend.TryDequeue(out data))
+                        {
+                            NewVolume24hUpdateEvent(data);
+                        }
+                    }
+
                     else
                     {
                         if (MainWindow.ProccesIsWorked == false)
@@ -1538,6 +1560,16 @@ namespace OsEngine.Market.Servers
         /// queue for Additional Market Data
         /// </summary>
         private ConcurrentQueue<OptionMarketDataForConnector> _additionalMarketDataToSend = new ConcurrentQueue<OptionMarketDataForConnector>();
+
+        /// <summary>
+        /// queue for Funding
+        /// </summary>
+        private ConcurrentQueue<Funding> _fundingToSend = new ConcurrentQueue<Funding>();
+
+        /// <summary>
+        /// queue for Volume24H
+        /// </summary>
+        private ConcurrentQueue<SecurityVolumes> _securityVolumesToSend = new ConcurrentQueue<SecurityVolumes>();
 
         #endregion
 
@@ -1745,7 +1777,7 @@ namespace OsEngine.Market.Servers
                     return _securities[i];
                 }
             }
-
+            
             return null;
         }
 
@@ -3058,7 +3090,28 @@ namespace OsEngine.Market.Servers
                             }
                             else if (order.OrderSendType == OrderSendType.Cancel)
                             {
-                                ServerRealization.CancelOrder(order.Order);
+                                if(IsAlreadyCancelled(order.Order) == false)
+                                {
+                                    if (ServerRealization.CancelOrder(order.Order) == false)
+                                    {
+                                        if (CancelOrderFailEvent != null)
+                                        {
+                                            CancelOrderFailEvent(order.Order);
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(string.IsNullOrEmpty(order.Order.NumberMarket) == false)
+                                        {
+                                            _cancelledOrdersNumbers.Add(order.Order.NumberMarket);
+
+                                            if(_cancelledOrdersNumbers.Count > 100)
+                                            {
+                                                _cancelledOrdersNumbers.RemoveAt(0);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             else if (order.OrderSendType == OrderSendType.ChangePrice
                                 && IsCanChangeOrderPrice)
@@ -3074,6 +3127,24 @@ namespace OsEngine.Market.Servers
                 }
             }
         }
+
+        private bool IsAlreadyCancelled(Order order)
+        {
+            if (string.IsNullOrEmpty(order.NumberMarket))
+            {
+                return false;
+            }
+            bool isCancelled = false;
+
+            if (_cancelledOrdersNumbers.Find(o => o == order.NumberMarket) != null)
+            {
+                isCancelled = true;
+            }
+
+            return isCancelled;
+        }
+
+        private List<string> _cancelledOrdersNumbers = new List<string>();
 
         /// <summary>
         /// array for storing orders to be sent to the exchange
@@ -3453,6 +3524,11 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<Order> UserSetOrderOnCancel;
 
+        /// <summary>
+        /// An attempt to revoke the order ended in an error
+        /// </summary>
+        public event Action<Order> CancelOrderFailEvent;
+
         #endregion
 
         #region Orders Hub
@@ -3725,6 +3801,60 @@ namespace OsEngine.Market.Servers
         /// new Additional Market Data
         /// </summary>
         public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
+
+        private void _serverRealization_FundingUpdateEvent(Funding obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(obj.SecurityNameCode))
+                {
+                    return;
+                }
+
+                _fundingToSend.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// new Funding data
+        /// </summary>
+        public event Action<Funding> NewFundingEvent;
+
+        private void _serverRealization_Volume24hUpdateEvent(SecurityVolumes obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(obj.SecurityNameCode))
+                {
+                    return;
+                }
+
+                _securityVolumesToSend.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// new Volumes 24h data
+        /// </summary>
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
 
         #endregion
     }

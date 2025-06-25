@@ -102,9 +102,11 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _client.CancelOrder(order);
+
+            return true;
         }
 
         public void CancelAllOrders()
@@ -117,9 +119,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         public void Subscrible(Security security)
@@ -312,5 +314,9 @@ namespace OsEngine.Market.Servers.NinjaTrader
         /// исходящее сообщение для лога
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
     }
 }

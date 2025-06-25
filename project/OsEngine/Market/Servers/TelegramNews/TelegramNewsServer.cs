@@ -502,8 +502,9 @@ namespace OsEngine.Market.Servers.TelegramNews
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
+            return true;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -528,8 +529,9 @@ namespace OsEngine.Market.Servers.TelegramNews
             return null;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
+            return OrderStateType.None;
         }
 
         public void GetPortfolios()
@@ -575,6 +577,10 @@ namespace OsEngine.Market.Servers.TelegramNews
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

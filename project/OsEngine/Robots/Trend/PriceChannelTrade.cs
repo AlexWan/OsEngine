@@ -3,98 +3,98 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Indicators;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.IO;
+
+/* Description
+Trading robot for osengine.
+
+Trend strategy on interseption PriceChannel indicator. 
+
+Buy:
+If PriceHigh > _lastPriceChUp - close position and open Long.
+
+Sell: 
+If PriceLow < _lastPriceChDown - close position and open Short.
+ */
 
 namespace OsEngine.Robots.Trend
 {
-    /// <summary>
-    /// Trend strategy on interseption PriceChannel indicator
-    /// Трендовая стратегия на пересечение индикатора PriceChannel
-    /// </summary>
-    [Bot("PriceChannelTrade")]
+    [Bot("PriceChannelTrade")] // We create an attribute so that we don't write anything to the BotFactory
     public class PriceChannelTrade : BotPanel
     {
-        public PriceChannelTrade(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Basic settings
+        public BotTradeRegime Regime;
+        public decimal Slippage;
+        
+        // GetVolume settings
+        public decimal Volume;
+        public string VolumeType;
+        public string TradeAssetInPortfolio;
+
+        // Indicator
+        private Aindicator _priceChannel;
+
+        // The last value of the indicator and price
+        private decimal _lastPriceC;
+        private decimal _lastPriceH;
+        private decimal _lastPriceL;
+        private decimal _lastPriceChUp;
+        private decimal _lastPriceChDown;
+
+        public PriceChannelTrade(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _priceCh = new PriceChannel(name + "Prime", false);
-            _priceCh = (PriceChannel)_tab.CreateCandleIndicator(_priceCh, "Prime");
-
-            _priceCh.Save();
-
-            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
-
+            // Basic settings
             Slippage = 0;
-            VolumeFix = 1;
+            VolumeType = "Deposit percent";
+            Volume = 1;
+
+            // Create indicator PriceChannel
+            _priceChannel = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PC", false);
+            _priceChannel = (Aindicator)_tab.CreateCandleIndicator(_priceChannel, "Prime");
+            _priceChannel.Save();
 
             Load();
 
+            // Subscribe to the strategy delete event
             DeleteEvent += Strategy_DeleteEvent;
+
+            // Subscribe to the candle finished event
+            _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
             Description = "Trend strategy on interseption PriceChannel indicator. " +
                 "if PriceLow < _lastPriceChDown - close position and open Short. " +
                 "if PriceHigh > _lastPriceChUp - close position and open Long.";
         }
 
-        /// <summary>
-        /// uniq strategy name
-        /// взять уникальное имя
-        /// </summary>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PriceChannelTrade";
         }
-        /// <summary>
-        /// settings GUI
-        /// показать окно настроек
-        /// </summary>
+        
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             PriceChannelTradeUi ui = new PriceChannelTradeUi(this);
             ui.ShowDialog();
         }
-        /// <summary>
-        /// tab to trade
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        private PriceChannel _priceCh;
-
-        //settings настройки публичные
-
-        /// <summary>
-        /// slippage
-        /// проскальзывание
-        /// </summary>
-        public decimal Slippage;
-
-        /// <summary>
-        /// volume
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// regime
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
+        
+        // Save settings
         public void Save()
         {
             try
@@ -102,8 +102,10 @@ namespace OsEngine.Robots.Trend
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
+                    writer.WriteLine(VolumeType);
+                    writer.WriteLine(TradeAssetInPortfolio);
+                    writer.WriteLine(Volume);
                     writer.WriteLine(Slippage);
-                    writer.WriteLine(VolumeFix);
                     writer.WriteLine(Regime);
 
                     writer.Close();
@@ -115,10 +117,7 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        /// <summary>
-        /// load settings
-        /// загрузить настройки
-        /// </summary>
+        // Load settings
         private void Load()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -129,10 +128,11 @@ namespace OsEngine.Robots.Trend
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
+                    VolumeType = reader.ReadLine();
+                    TradeAssetInPortfolio = reader.ReadLine();
+                    Volume = reader.ReadLine().ToDecimal();
                     Slippage = reader.ReadLine().ToDecimal();
-                    VolumeFix = reader.ReadLine().ToDecimal();
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
-
 
                     reader.Close();
                 }
@@ -143,10 +143,7 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        /// <summary>
-        /// delete save file
-        /// удаление файла с сохранением
-        /// </summary>
+        // Delete save file
         void Strategy_DeleteEvent()
         {
             if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -155,18 +152,7 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        private decimal _lastPriceC;
-        private decimal _lastPriceH;
-        private decimal _lastPriceL;
-        private decimal _lastPriceChUp;
-        private decimal _lastPriceChDown;
-
-        // logic логика
-
-        /// <summary>
-        /// candle finished event
-        /// событие завершения свечи
-        /// </summary>
+        // Logic
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
             if (Regime == BotTradeRegime.Off)
@@ -174,8 +160,7 @@ namespace OsEngine.Robots.Trend
                 return;
             }
 
-            if (_priceCh.ValuesUp == null || _priceCh.ValuesUp.Count < _priceCh.LengthUpLine + 3
-                || _priceCh.ValuesDown.Count < _priceCh.LengthDownLine + 3)
+            if (_priceChannel.DataSeries[0].Values == null)
             {
                 return;
             }
@@ -183,8 +168,8 @@ namespace OsEngine.Robots.Trend
             _lastPriceC = candles[candles.Count - 1].Close;
             _lastPriceH = candles[candles.Count - 1].High;
             _lastPriceL = candles[candles.Count - 1].Low;
-            _lastPriceChUp = _priceCh.ValuesUp[_priceCh.ValuesUp.Count - 2];
-            _lastPriceChDown = _priceCh.ValuesDown[_priceCh.ValuesDown.Count - 2];
+            _lastPriceChUp = _priceChannel.DataSeries[0].Values[_priceChannel.DataSeries[0].Values.Count - 2];
+            _lastPriceChDown = _priceChannel.DataSeries[1].Values[_priceChannel.DataSeries[1].Values.Count - 2];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -193,7 +178,6 @@ namespace OsEngine.Robots.Trend
                 for (int i = 0; i < openPositions.Count; i++)
                 {
                     LogicClosePosition(candles, openPositions[i]);
-
                 }
             }
 
@@ -207,10 +191,7 @@ namespace OsEngine.Robots.Trend
             }
         }
 
-        /// <summary>
-        /// logic open position
-        /// логика открытия первой позиции
-        /// </summary>
+        // Logic open position
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
             if (_lastPriceH > _lastPriceChUp &&
@@ -221,19 +202,16 @@ namespace OsEngine.Robots.Trend
 
             if (_lastPriceH > _lastPriceChUp && Regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slippage);
+                _tab.BuyAtLimit(GetVolume(_tab), _lastPriceC + Slippage);
             }
 
             if (_lastPriceL < _lastPriceChDown && Regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastPriceC - Slippage);
+                _tab.SellAtLimit(GetVolume(_tab), _lastPriceC - Slippage);
             }
         }
 
-        /// <summary>
-        /// logic close position
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if(position.State != PositionStateType.Open)
@@ -251,7 +229,7 @@ namespace OsEngine.Robots.Trend
                         && Regime != BotTradeRegime.OnlyClosePosition
                         && _tab.PositionsOpenAll.Count < 3)
                     {
-                        _tab.SellAtLimit(VolumeFix, _lastPriceC - Slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _lastPriceC - Slippage);
                     }
                 }
             }
@@ -266,10 +244,102 @@ namespace OsEngine.Robots.Trend
                         != BotTradeRegime.OnlyClosePosition
                         && _tab.PositionsOpenAll.Count < 3)
                     {
-                        _tab.BuyAtLimit(VolumeFix, _lastPriceC + Slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _lastPriceC + Slippage);
                     }
                 }
             }
+        }
+
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (VolumeType == "Contracts")
+            {
+                volume = Volume;
+            }
+            else if (VolumeType == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = Volume / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (VolumeType == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (Volume / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 }

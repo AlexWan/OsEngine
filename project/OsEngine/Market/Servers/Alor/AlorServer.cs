@@ -2542,7 +2542,7 @@ namespace OsEngine.Market.Servers.Alor
 
         List<string> _cancelOrderNums = new List<string>();
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -2563,7 +2563,7 @@ namespace OsEngine.Market.Servers.Alor
                 if(countTryRevokeOrder >= 2)
                 {
                     SendLogMessage("Order cancel request error. The order has already been revoked " + order.SecurityClassCode, LogMessageType.Error);
-                    return;
+                    return false;
                 }
 
                 _cancelOrderNums.Add(order.NumberMarket);
@@ -2594,17 +2594,28 @@ namespace OsEngine.Market.Servers.Alor
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    return;
+                    return true;
                 }
                 else
                 {
-                    SendLogMessage("Order cancel request error. Status: "
-                        + response.StatusCode + "  " + order.SecurityClassCode, LogMessageType.Error);
+                    OrderStateType state = GetOrderStatus(order);
 
-                    if (response.Content != null)
+                    if (state == OrderStateType.None)
                     {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
+                        SendLogMessage("Order cancel request error. Status: "
+                            + response.StatusCode + "  " + order.SecurityClassCode, LogMessageType.Error);
+
+                        if (response.Content != null)
+                        {
+                            SendLogMessage("Fail reasons: "
+                          + response.Content, LogMessageType.Error);
+                        }
+
+                        return false;
+                    }
+                    else
+                    {
+                        return true;
                     }
                 }
             }
@@ -2612,7 +2623,7 @@ namespace OsEngine.Market.Servers.Alor
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
-
+            return false;
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -2683,14 +2694,14 @@ namespace OsEngine.Market.Servers.Alor
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> orders = GetAllOrdersFromExchange();
 
             if(orders == null ||
                 orders.Count == 0)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -2717,7 +2728,7 @@ namespace OsEngine.Market.Servers.Alor
 
             if(orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null && 
@@ -2734,7 +2745,7 @@ namespace OsEngine.Market.Servers.Alor
 
                 if(tradesBySecurity == null)
                 {
-                    return;
+                    return orderOnMarket.State;
                 }
 
                 List<MyTrade> tradesByMyOrder = new List<MyTrade>();
@@ -2755,6 +2766,8 @@ namespace OsEngine.Market.Servers.Alor
                     }
                 }
             }
+
+            return orderOnMarket.State;
         }
 
         private List<Order> GetAllOrdersFromExchange()
@@ -3057,6 +3070,10 @@ namespace OsEngine.Market.Servers.Alor
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

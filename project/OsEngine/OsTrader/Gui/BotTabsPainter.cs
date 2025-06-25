@@ -64,7 +64,7 @@ namespace OsEngine.OsTrader.Gui
 
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
-            colum0.HeaderText = OsLocalization.Trader.Label165; //"Num";
+            colum0.HeaderText = "#"; //"Num";
             colum0.ReadOnly = true;
             colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             newGrid.Columns.Add(colum0);

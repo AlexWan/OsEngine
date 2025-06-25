@@ -555,7 +555,7 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
-            for (int i = _deals.Count - 1; i > _deals.Count - 500 && i > -1; i--)
+            for (int i = _deals.Count - 1; i > -1; i--)
             {
                 Position curPosition = null;
 
@@ -650,14 +650,25 @@ namespace OsEngine.Journal.Internal
             {
                 Position position = _deals[i];
 
+                if(position == null)
+                {
+                    continue;
+                }
+
                 bool isCloseOrder = false;
 
                 if (position.CloseOrders != null)
                 {
                     for (int indexCloseOrd = 0; indexCloseOrd < position.CloseOrders.Count; indexCloseOrd++)
                     {
-                        if (position.CloseOrders[indexCloseOrd].NumberMarket == trade.NumberOrderParent
-                            )
+                        Order closeOrder = position.CloseOrders[indexCloseOrd];
+
+                        if(closeOrder == null)
+                        {
+                            continue;
+                        }
+
+                        if (closeOrder.NumberMarket == trade.NumberOrderParent)
                         {
                             isCloseOrder = true;
                             break;
@@ -666,14 +677,20 @@ namespace OsEngine.Journal.Internal
                 }
                 bool isOpenOrder = false;
 
-                if (isCloseOrder == false ||
-                    position.OpenOrders != null && position.OpenOrders.Count > 0)
+                if (isCloseOrder == false &&
+                    position.OpenOrders != null 
+                    && position.OpenOrders.Count > 0)
                 {
                     for (int indOpenOrd = 0; indOpenOrd < position.OpenOrders.Count; indOpenOrd++)
                     {
-                        if (position.OpenOrders[indOpenOrd].NumberMarket == trade.NumberOrderParent
-                            //|| position.OpenOrders[indOpenOrd].NumberUser.ToString() == trade.NumberOrderParent
-                            )
+                        Order openOrder = position.OpenOrders[indOpenOrd];
+
+                        if(openOrder == null)
+                        {
+                            continue;
+                        }
+
+                        if (openOrder.NumberMarket == trade.NumberOrderParent)
                         {
                             isOpenOrder = true;
                             break;
@@ -792,8 +809,6 @@ namespace OsEngine.Journal.Internal
             }
 
             _needToSaveStopLimit = false;
-
-
 
             try
             {

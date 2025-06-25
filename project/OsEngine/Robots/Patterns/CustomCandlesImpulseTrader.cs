@@ -13,74 +13,76 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Globalization;
 
+/*Discription
+Trading robot for osengine
+
+Trading robot for adaptive by volatility candle series.
+if he sees a movement to one side in a short period of time, it enters the position
+*/
+
 namespace OsEngine.Robots.Patterns
 {
-    [Bot("CustomCandlesImpulseTrader")]
+    [Bot("CustomCandlesImpulseTrader")] //We create an attribute so that we don't write anything in the Boot factory
     public class CustomCandlesImpulseTrader : BotPanel
     {
-        public CustomCandlesImpulseTrader(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Basic settigs
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _candlesCountToEntry;
+        private StrategyParameterInt _secondsTimeOnCandlesToEntry;
+        private StrategyParameterDecimal _slippage;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        //Exit setting
+        private StrategyParameterInt _candlesCountToExit;
+
+        public CustomCandlesImpulseTrader(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
+            _candlesCountToEntry = CreateParameter("Candles count to entry", 2, 0, 20, 1);
+            _secondsTimeOnCandlesToEntry = CreateParameter("Seconds time on candles to entry", 120, 0, 20, 1);
+
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Exit settings
+            _candlesCountToExit = CreateParameter("Candles count to exit", 1, 0, 20, 1);
+
+            // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
-
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
-
-            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
-
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
-            Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-
-            CandlesCountToEntry = CreateParameter("Candles count to entry", 2, 0, 20, 1);
-
-            SecondsTimeOnCandlesToEntry = CreateParameter("Seconds time on candles to entry", 120, 0, 20, 1);
-
-            CandlesCountToExit = CreateParameter("Candles count to exit", 1, 0, 20, 1);
 
             Description = "Trading robot for adaptive by volatility candle series. " +
                 "if he sees a movement to one side in a short period of time, it enters the position";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "CustomCandlesImpulseTrader";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabSimple _tab;
-
-        // settings
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt CandlesCountToEntry;
-
-        public StrategyParameterInt SecondsTimeOnCandlesToEntry;
-
-        public StrategyParameterInt CandlesCountToExit;
-
-        public StrategyParameterDecimal Slippage;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        // logic
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -90,7 +92,7 @@ namespace OsEngine.Robots.Patterns
                 return;
             }
 
-            if(candles.Count < CandlesCountToEntry.ValueInt + 2)
+            if(candles.Count < _candlesCountToEntry.ValueInt + 2)
             {
                 return;
             }
@@ -99,7 +101,7 @@ namespace OsEngine.Robots.Patterns
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -111,14 +113,15 @@ namespace OsEngine.Robots.Patterns
             }
         }
 
+        // Opening position logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             //  long
-            if (Regime.ValueString != "OnlyShort")
+            if (_regime.ValueString != "OnlyShort")
             {
                 bool isLongSignal = true;
 
-                for(int i = candles.Count - 1;i >= 0 && i > candles.Count -1 - CandlesCountToEntry.ValueInt;i--)
+                for(int i = candles.Count - 1;i >= 0 && i > candles.Count -1 - _candlesCountToEntry.ValueInt;i--)
                 {
                     if (candles[i].IsUp == false)
                     {
@@ -128,9 +131,9 @@ namespace OsEngine.Robots.Patterns
 
                 if(isLongSignal == true)
                 {
-                    TimeSpan timeCandles = candles[candles.Count - 1].TimeStart - candles[candles.Count-1- CandlesCountToEntry.ValueInt].TimeStart;
+                    TimeSpan timeCandles = candles[candles.Count - 1].TimeStart - candles[candles.Count-1- _candlesCountToEntry.ValueInt].TimeStart;
 
-                    if(timeCandles.TotalSeconds > SecondsTimeOnCandlesToEntry.ValueInt)
+                    if(timeCandles.TotalSeconds > _secondsTimeOnCandlesToEntry.ValueInt)
                     {
                         isLongSignal = false;
                     }
@@ -139,17 +142,17 @@ namespace OsEngine.Robots.Patterns
                 if (isLongSignal)
                 {
                     decimal lastPrice = candles[candles.Count - 1].Close;
-                    _tab.BuyAtLimit(GetVolume(_tab), lastPrice + lastPrice * (Slippage.ValueDecimal / 100), 
+                    _tab.BuyAtLimit(GetVolume(_tab), lastPrice + lastPrice * (_slippage.ValueDecimal / 100), 
                         candles[candles.Count-1].TimeStart.ToString(CultureInfo.InvariantCulture));
                 }
             }
 
             // Short
-            if (Regime.ValueString != "OnlyLong")
+            if (_regime.ValueString != "OnlyLong")
             {
                 bool isShortSignal = true;
 
-                for (int i = candles.Count - 1; i >= 0 && i > candles.Count - 1 - CandlesCountToEntry.ValueInt; i--)
+                for (int i = candles.Count - 1; i >= 0 && i > candles.Count - 1 - _candlesCountToEntry.ValueInt; i--)
                 {
                     if (candles[i].IsDown == false)
                     {
@@ -159,9 +162,9 @@ namespace OsEngine.Robots.Patterns
 
                 if (isShortSignal == true)
                 {
-                    TimeSpan timeCandles = candles[candles.Count - 1].TimeStart - candles[candles.Count - 1 - CandlesCountToEntry.ValueInt].TimeStart;
+                    TimeSpan timeCandles = candles[candles.Count - 1].TimeStart - candles[candles.Count - 1 - _candlesCountToEntry.ValueInt].TimeStart;
 
-                    if (timeCandles.TotalSeconds > SecondsTimeOnCandlesToEntry.ValueInt)
+                    if (timeCandles.TotalSeconds > _secondsTimeOnCandlesToEntry.ValueInt)
                     {
                         isShortSignal = false;
                     }
@@ -170,12 +173,13 @@ namespace OsEngine.Robots.Patterns
                 if (isShortSignal)
                 {
                     decimal lastPrice = candles[candles.Count - 1].Close;
-                    _tab.SellAtLimit(GetVolume(_tab), lastPrice - lastPrice * (Slippage.ValueDecimal / 100), 
+                    _tab.SellAtLimit(GetVolume(_tab), lastPrice - lastPrice * (_slippage.ValueDecimal / 100), 
                         candles[candles.Count - 1].TimeStart.ToString(CultureInfo.InvariantCulture));
                 }
             }
         }
 
+        // Logic close position 
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
 
@@ -203,37 +207,38 @@ namespace OsEngine.Robots.Patterns
                 endCandlesFromOpenPosition++;
             }
 
-            if(endCandlesFromOpenPosition < CandlesCountToExit.ValueInt)
+            if(endCandlesFromOpenPosition < _candlesCountToExit.ValueInt)
             {
                 return;
             }
 
             if (position.Direction == Side.Buy)
             {
-                decimal priceExit = _tab.PriceBestBid - _tab.PriceBestBid * (Slippage.ValueDecimal / 100);
+                decimal priceExit = _tab.PriceBestBid - _tab.PriceBestBid * (_slippage.ValueDecimal / 100);
 
                 _tab.CloseAtLimit(position, priceExit, position.OpenVolume);
             }
             else
             {
-                decimal priceExit = _tab.PriceBestAsk + _tab.PriceBestAsk * (Slippage.ValueDecimal / 100);
+                decimal priceExit = _tab.PriceBestAsk + _tab.PriceBestAsk * (_slippage.ValueDecimal / 100);
 
                 _tab.CloseAtLimit(position, priceExit, position.OpenVolume);
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -244,7 +249,7 @@ namespace OsEngine.Robots.Patterns
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -254,7 +259,7 @@ namespace OsEngine.Robots.Patterns
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -265,7 +270,7 @@ namespace OsEngine.Robots.Patterns
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -280,7 +285,7 @@ namespace OsEngine.Robots.Patterns
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -290,11 +295,11 @@ namespace OsEngine.Robots.Patterns
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 

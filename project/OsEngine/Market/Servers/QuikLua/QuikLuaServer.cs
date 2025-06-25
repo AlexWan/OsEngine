@@ -963,6 +963,10 @@ namespace OsEngine.Market.Servers.QuikLua
 
         public event Action<News> NewsEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
 
         #region 7 Parsing incoming data
@@ -1643,7 +1647,7 @@ namespace OsEngine.Market.Servers.QuikLua
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             try
             {
@@ -1668,11 +1672,12 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     long res = QuikLua.Orders.KillOrder(qOrder).Result;
                 }
-
+                return true;
             }
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
+                return false;
             }
         }
 
@@ -1700,7 +1705,7 @@ namespace OsEngine.Market.Servers.QuikLua
         }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             try
             {
@@ -1719,6 +1724,19 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (foundOrder != null)
                 {
                     EventsOnOnOrder(foundOrder);
+                  
+                    if(foundOrder.State == State.Active)
+                    {
+                        return OrderStateType.Active;
+                    }
+                    else if(foundOrder.State == State.Completed)
+                    {
+                        return OrderStateType.Done;
+                    }
+                    else if(foundOrder.State == State.Canceled)
+                    {
+                        return OrderStateType.Cancel;
+                    }
                 }
                 else
                 {
@@ -1734,6 +1752,7 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 SendLogMessage(e.ToString(), LogMessageType.Error);
             }
+            return OrderStateType.None;
         }
 
         public void CancelAllOrders() { }

@@ -650,22 +650,23 @@ namespace OsEngine.Market.Servers.Quik
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             string command = ConvertToKillQuikOrder(order);
 
             int error;
             var msg = new StringBuilder(256);
 
-
             if (command == null)
             {
-                return;
+                return false;
             }
 
             Trans2Quik.QuikResult result = Trans2Quik.SEND_ASYNC_TRANSACTION(command, out error, msg, msg.Capacity);
 
             SendLogMessage(result.ToString(), LogMessageType.System);
+
+            return true;
         }
 
         /// <summary>
@@ -691,9 +692,9 @@ namespace OsEngine.Market.Servers.Quik
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>
@@ -1213,5 +1214,9 @@ namespace OsEngine.Market.Servers.Quik
         /// отправляет исключения
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
     }
 }

@@ -1374,13 +1374,13 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order myOrder = cexGetOrderFromExchange(order.SecurityNameCode, order.NumberMarket);
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -1389,6 +1389,8 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             {
                 UpdateTrades(myOrder);
             }
+
+            return myOrder.State;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -1419,7 +1421,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
             lock (_lockOrder)
@@ -1437,15 +1439,21 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                         order.TimeCancel = order.TimeCallBack;
                         MyOrderEvent?.Invoke(order);
                         SendLogMessage("Order cancelled", LogMessageType.Trade);
+                        return true;
                     }
                     else
                     {
-                        CreateOrderFail(order);
-                        string msg = string.Format("Cancel order executed, but answer is wrong! {0}cexOrder: {1}{0}order: {2}", Environment.NewLine,
-                            cexOrder.ToStringValue(),
-                            order.GetStringForSave().ToString()
-                        );
-                        SendLogMessage(msg, LogMessageType.Error);
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Cancel Order Error. Code: {order.NumberUser}.", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -1453,6 +1461,7 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
                     SendLogMessage("Cancel order error. " + exception.ToString(), LogMessageType.Error);
                 }
             }
+            return false;
         }
 
         public void CancelAllOrders()
@@ -1835,6 +1844,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         public event Action<News> NewsEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType type)
         {

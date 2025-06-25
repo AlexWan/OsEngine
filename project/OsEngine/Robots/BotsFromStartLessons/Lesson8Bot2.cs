@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Market.Servers;
@@ -7,43 +12,76 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+
+Buy:
+Buy At Stop high price channel.
+
+Exit:
+Close At Trailing Stop Market low price channel
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson8Bot2")]
     public class Lesson8Bot2 : BotPanel
     {
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку
         BotTabSimple _tabToTrade;
 
+        // Basic settings
+        // Базовые настройки
         StrategyParameterString _regime;
+
+        // GetVolume settings
+        // Настройки метода GetVolume
         StrategyParameterString _volumeType;
         StrategyParameterDecimal _volume;
         StrategyParameterString _tradeAssetInPortfolio;
 
+        // Price channel setting
+        // Настройка Price channel
         StrategyParameterInt _priceChannelLen;
-
-        // логика
-        // покупаем отложенной заявкой по хаю ценового канала
-        // выходим отложенной заявкой по лою ценового канала
 
         public Lesson8Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            // Basic settings
+            // Базовые настройки
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+
+            // GetVolume settings
+            // Настройки метода GetVolume
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Price channel setting
+            // Настройка Price channel
             _priceChannelLen = CreateParameter("Price Channel len", 40, 1, 50, 4);
 
+            // Subscribe to the candle finished event
+            // Подписка на завершение свечи
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy: Buy At Stop high price channel." +
+                "Exit: Close At Trailing Stop Market low price channel";
 
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
-
+            // Сalled on each new candle
+            // Вызывается перед каждой новой свечой
             if (_regime.ValueString == "Off")
             {
                 return;
@@ -56,15 +94,19 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
-            if (positions.Count == 0) // позиций нет. Правда!
-            {// логика открытия позиции
+            if (positions.Count == 0) // No positions. True! // Нет позиций. Правда!
+            {   
+                // Opening the position 
+                // Открытие позиции
 
                 decimal high = GetHigh(candles, _priceChannelLen.ValueInt);
                 decimal volume = GetVolume(_tabToTrade);
                 _tabToTrade.BuyAtStop(volume, high, high, StopActivateType.HigherOrEqual);
             }
             else
-            {// логика закрытия позиции
+            {   
+                // Сlosing the position
+                // Закрытие позиции
 
                 decimal low = GetLow(candles, _priceChannelLen.ValueInt);
                 _tabToTrade.CloseAtTrailingStopMarket(positions[0], low);
@@ -75,8 +117,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
         {
             decimal high = 0;
 
-            // цикл с конца. Движение назад
-
+            // From the end. Move back.
+            // Цикл с конца. Движение назад
             for (int i = candles.Count - 1; i >= 0 && i > candles.Count - 1 - len; i--)
             {
                 Candle currentCandle = candles[i];
@@ -94,7 +136,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
         {
             decimal low = decimal.MaxValue;
 
-            // цикл с конца минус длинна. Движение вперёд
+            // Цикл с конца. Движение вперёд
             for (int i = candles.Count - 1 - len; i >= 0 && i < candles.Count; i++)
             {
                 Candle currentCandle = candles[i];

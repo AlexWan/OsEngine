@@ -10,30 +10,8 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-
-
-// Разные базовые сути сеток:
-// 1) По каждому открытию отдельный выход. Как маркет-мейкинг инструмента в одну сторону.     // MarketMaking
-// 2) Как способ открытия позиции. Возможен выход по всей сетке через общий профит и стоп.    // OpenPosition
-// 3) Как способ закрытия позиции                                                             // ClosePosition
-
-// Какие бывают общие настройки у сеток
-// Объём: Мартингейл / Равномерно
-// Объём в: Контракты / Валюта контракта / Процент депозита
-// Размер сетки: Равномерный / с мультипликатором
-// Количество ордеров в рынке: int
-// Шаг сетки указывать: Абсолют / Проценты
-// Не торговые периоды: Временная блокировка по не торговым периодам + торговые дни + торговля по отведённому времени.
-// Способ входа в логику: Раз в N секунд / На каждом трейде
-// Автоочистка журнала: вкл/выкл / кол-во закрытых позиций в журнале
-
-// Переход сетки в режим только закрытие:
-// 1) Бесконечная (Циклическая). По умолчанию. Вообще не останавливается.
-// 2) В количестве сработавших ордеров / 3) Движение вверх /
-// 4) Движение вниз / 5) По времени
-
-// Переход сетки в режим выключена
-// 0) При отсутствии позиции в режиме "только закрытии". По умолчанию
+using System.Globalization;
+using System.Threading;
 
 namespace OsEngine.OsTrader.Grids
 {
@@ -44,6 +22,17 @@ namespace OsEngine.OsTrader.Grids
         public TradeGrid(StartProgram startProgram, BotTabSimple tab)
         {
             Tab = tab;
+
+            if(Tab.ManualPositionSupport != null)
+            {
+                Tab.ManualPositionSupport.DisableManualSupport();
+            }
+           
+            Tab.NewTickEvent += Tab_NewTickEvent;
+            Tab.PositionOpeningSuccesEvent += Tab_PositionOpeningSuccesEvent; 
+            Tab.PositionStopActivateEvent += Tab_PositionStopActivateEvent;
+            Tab.PositionProfitActivateEvent += Tab_PositionProfitActivateEvent;
+            Tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
             StartProgram = startProgram;
 
@@ -62,12 +51,28 @@ namespace OsEngine.OsTrader.Grids
             AutoStarter = new TradeGridAutoStarter();
             AutoStarter.LogMessageEvent += SendNewLogMessage;
 
-            Trailing = new TradeGridTrailing();
-            Trailing.LogMessageEvent += SendNewLogMessage;
-
             GridCreator = new TradeGridCreator();
             GridCreator.LogMessageEvent += SendNewLogMessage;
+
+            ErrorsReaction = new TradeGridErrorsReaction(this);
+            ErrorsReaction.LogMessageEvent += SendNewLogMessage;
+
+            TrailingUp = new TrailingUp(this);
+            TrailingUp.LogMessageEvent += SendNewLogMessage;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                Thread worker = new Thread(ThreadWorkerPlace);
+                worker.Start();
+
+                RegimeLogicEntry = TradeGridLogicEntryRegime.OncePerSecond;
+            }
+            else
+            {
+                RegimeLogicEntry = TradeGridLogicEntryRegime.OnTrade;
+            }
         }
+
 
         public StartProgram StartProgram;
 
@@ -85,9 +90,11 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridAutoStarter AutoStarter;
 
-        public TradeGridTrailing Trailing;
-
         public TradeGridCreator GridCreator;
+
+        public TradeGridErrorsReaction ErrorsReaction;
+
+        public TrailingUp TrailingUp;
 
         public string GetSaveString()
         {
@@ -98,13 +105,14 @@ namespace OsEngine.OsTrader.Grids
             result += Number + "@";
             result += GridType + "@";
             result += Regime + "@";
-            result += ClosePositionNumber + "@";
             result += RegimeLogicEntry + "@";
-            result += RegimeLogging + "@";
             result += AutoClearJournalIsOn + "@";
             result += MaxClosePositionsInJournal + "@";
             result += MaxOpenOrdersInMarket + "@";
             result += MaxCloseOrdersInMarket + "@";
+            result += _firstTradePrice + "@";
+            result +=  _openPositionsBySession + "@";
+            result += _firstTradeTime.ToString(CultureInfo.InvariantCulture) + "@";
 
             result += "%";
 
@@ -128,12 +136,16 @@ namespace OsEngine.OsTrader.Grids
             result += StopAndProfit.GetSaveString();
             result += "%";
 
-            // trailing up / down
-            result += Trailing.GetSaveString();
-            result += "%";
-
             // auto start
             result += AutoStarter.GetSaveString();
+            result += "%";
+
+            // errors reaction
+            result += ErrorsReaction.GetSaveString();
+            result += "%";
+
+            // trailing up / down
+            result += TrailingUp.GetSaveString();
             result += "%";
 
             return result;
@@ -152,13 +164,14 @@ namespace OsEngine.OsTrader.Grids
                 Number = Convert.ToInt32(values[0]);
                 Enum.TryParse(values[1], out GridType);
                 Enum.TryParse(values[2], out Regime);
-                ClosePositionNumber = Convert.ToInt32(values[3]);
-                Enum.TryParse(values[4], out RegimeLogicEntry);
-                Enum.TryParse(values[5], out RegimeLogging);
-                AutoClearJournalIsOn = Convert.ToBoolean(values[6]);
-                MaxClosePositionsInJournal = Convert.ToInt32(values[7]);
-                MaxOpenOrdersInMarket = Convert.ToInt32(values[8]);
-                MaxCloseOrdersInMarket = Convert.ToInt32(values[9]);
+                Enum.TryParse(values[3], out RegimeLogicEntry);
+                AutoClearJournalIsOn = Convert.ToBoolean(values[4]);
+                MaxClosePositionsInJournal = Convert.ToInt32(values[5]);
+                MaxOpenOrdersInMarket = Convert.ToInt32(values[6]);
+                MaxCloseOrdersInMarket = Convert.ToInt32(values[7]);
+                _firstTradePrice = values[8].ToDecimal();
+                _openPositionsBySession = Convert.ToInt32(values[9]);
+                _firstTradeTime = Convert.ToDateTime(values[10], CultureInfo.InvariantCulture);
 
                 // non trade periods
                 NonTradePeriods.LoadFromString(array[1]);
@@ -175,12 +188,14 @@ namespace OsEngine.OsTrader.Grids
                 // stop and profit 
                 StopAndProfit.LoadFromString(array[5]);
 
-                // trailing up / down
-                Trailing.LoadFromString(array[6]);
-
                 // auto start
-                AutoStarter.LoadFromString(array[7]);
+                AutoStarter.LoadFromString(array[6]);
 
+                // errors reaction
+                ErrorsReaction.LoadFromString(array[7]);
+
+                // trailing up / down
+                TrailingUp.LoadFromString(array[8]);
             }
             catch (Exception e)
             {
@@ -190,7 +205,17 @@ namespace OsEngine.OsTrader.Grids
 
         public void Delete()
         {
-            Tab = null;
+            _isDeleted = true;
+
+            if (Tab != null)
+            {
+                Tab.NewTickEvent -= Tab_NewTickEvent;
+                Tab.PositionOpeningSuccesEvent -= Tab_PositionOpeningSuccesEvent;
+                Tab.PositionStopActivateEvent -= Tab_PositionStopActivateEvent;
+                Tab.PositionProfitActivateEvent -= Tab_PositionProfitActivateEvent;
+                Tab.Connector.TestStartEvent -= Connector_TestStartEvent;
+                Tab = null;
+            }
 
             if (NonTradePeriods != null)
             {
@@ -222,18 +247,25 @@ namespace OsEngine.OsTrader.Grids
                 AutoStarter = null;
             }
 
-            if(Trailing != null)
-            {
-                Trailing.LogMessageEvent -= SendNewLogMessage;
-                Trailing = null;
-            }
-
             if(GridCreator != null)
             {
                 GridCreator.LogMessageEvent -= SendNewLogMessage;
                 GridCreator = null;
             }
 
+            if (ErrorsReaction != null)
+            {
+                ErrorsReaction.LogMessageEvent -= SendNewLogMessage;
+                ErrorsReaction.Delete();
+                ErrorsReaction = null;
+            }
+
+            if(TrailingUp != null)
+            {
+                TrailingUp.LogMessageEvent -= SendNewLogMessage;
+                TrailingUp.Delete();
+                TrailingUp = null;
+            }
         }
 
         public void Save()
@@ -244,7 +276,44 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
+        public void RePaintGrid()
+        {
+            if (RePaintSettingsEvent != null)
+            {
+                RePaintSettingsEvent();
+            }
+        }
+
+        public void FullRePaintGrid()
+        {
+            if(FullRePaintGridEvent != null)
+            {
+                FullRePaintGridEvent();
+            }
+        }
+
+        private void Connector_TestStartEvent()
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            if(lines == null)
+            {
+                return;
+            }
+
+            for(int i = 0;i < lines.Count;i++)
+            {
+                lines[i].Position = null;
+                lines[i].PositionNum = 0;
+            }
+
+        }
+
         public event Action NeedToSaveEvent;
+
+        public event Action RePaintSettingsEvent;
+
+        public event Action FullRePaintGridEvent;
 
         #endregion
 
@@ -254,11 +323,7 @@ namespace OsEngine.OsTrader.Grids
 
         public TradeGridRegime Regime;
 
-        public int ClosePositionNumber;
-
         public TradeGridLogicEntryRegime RegimeLogicEntry;
-
-        public TradeGridLoggingRegime RegimeLogging;
 
         public bool AutoClearJournalIsOn;
 
@@ -269,6 +334,8 @@ namespace OsEngine.OsTrader.Grids
         public int MaxCloseOrdersInMarket = 5;
 
         #endregion
+
+        #region Grid managment
 
         public void CreateNewGridSafe()
         {
@@ -283,7 +350,7 @@ namespace OsEngine.OsTrader.Grids
                     ui.Show();
                     return;
                 }
-                if (GridCreator.HaveOpenPositionsByGrid == true)
+                if (HaveOpenPositionsByGrid == true)
                 {
                     // По сетке есть открытые позиции. Запрет
                     CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label511);
@@ -391,13 +458,15 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
-                if (GridCreator.HaveOpenPositionsByGrid == true)
+                if (HaveOpenPositionsByGrid == true 
+                    && StartProgram == StartProgram.IsOsTrader)
                 {
                     CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label524);
                     ui.Show();
                     return;
                 }
 
+                _isDeleted = true;
                 GridCreator.DeleteGrid();
                 Save();
             }
@@ -406,6 +475,8 @@ namespace OsEngine.OsTrader.Grids
                 SendNewLogMessage(e.ToString(), LogMessageType.Error);
             }
         }
+
+        private bool _isDeleted;
 
         public void CreateNewLine()
         {
@@ -434,11 +505,1437 @@ namespace OsEngine.OsTrader.Grids
             }
         }
 
-        #region Trade logic
+        #endregion
 
+        #region Trade logic. Entry in logic
 
+        private void Tab_NewTickEvent(Trade trade)
+        {
+            if (_isDeleted == true)
+            {
+                return;
+            }
+            if (RegimeLogicEntry == TradeGridLogicEntryRegime.OnTrade)
+            {
+                Process();
+            }
+        }
 
+        private void ThreadWorkerPlace()
+        {
+            while(true)
+            {
+                try
+                {
+                    Thread.Sleep(1000);
 
+                    if(_isDeleted == true)
+                    {
+                        return;
+                    }
+
+                    if(Tab == null)
+                    {
+                        return;
+                    }
+
+                    if(RegimeLogicEntry == TradeGridLogicEntryRegime.OncePerSecond)
+                    {
+                        Process();
+                    }
+
+                    if(_needToSave)
+                    {
+                        _needToSave = false;
+                        Save();
+                    }
+                }
+                catch(Exception e)
+                {
+                    SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                }
+            }
+        }
+
+        private void Tab_PositionOpeningSuccesEvent(Position position)
+        {
+            if (Regime == TradeGridRegime.On)
+            {
+                bool isInArray = false;
+
+                for(int i = 0;i < GridCreator.Lines.Count;i++)
+                {
+                    TradeGridLine line = GridCreator.Lines[i];
+
+                    if(line.Position != null 
+                        && line.Position.Number == position.Number)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if(isInArray)
+                {
+                    _openPositionsBySession++;
+                    _needToSave = true;
+                }
+            }
+        }
+
+        private bool _needToSave;
+
+        #endregion
+
+        #region Trade logic. Main logic tree
+
+        private DateTime _vacationTime;
+
+        private void Process()
+        {
+            if (Tab.IsConnected == false 
+                || Tab.IsReadyToTrade == false)
+            {
+                return;
+            }
+
+            if(Tab.CandlesAll == null
+                || Tab.CandlesAll.Count == 0)
+            {
+                return;
+            }
+
+            if(GridCreator.Lines == null 
+                || GridCreator.Lines.Count == 0)
+            {
+                return;
+            }
+
+            if(Tab.EventsIsOn == false)
+            {
+                return;
+            }
+
+            TradeGridRegime baseRegime = Regime;
+
+            // 1 Авто-старт сетки, если выключено
+            if (baseRegime == TradeGridRegime.Off)
+            {
+                if (_openPositionsBySession != 0)
+                {
+                    _openPositionsBySession = 0;
+                    _needToSave = true;
+                }
+                if (_firstTradePrice != 0)
+                {
+                    _firstTradePrice = 0;
+                    _needToSave = true;
+                }
+
+                if (_firstTradeTime != DateTime.MinValue)
+                {
+                    _firstTradeTime = DateTime.MinValue;
+                    _needToSave = true;
+                }
+
+                _firstStopIsActivate = false;
+
+                if(ErrorsReaction.FailCancelOrdersCountFact != 0 
+                    || ErrorsReaction.FailOpenOrdersCountFact != 0)
+                {
+                    ErrorsReaction.FailCancelOrdersCountFact = 0;
+                    ErrorsReaction.FailOpenOrdersCountFact = 0;
+                    _needToSave = true;
+                }
+
+                if (GridType == TradeGridPrimeType.OpenPosition)
+                {
+                    TryDeleteDonePositions();
+                }
+
+                if (AutoStarter.AutoStartRegime == TradeGridAutoStartRegime.Off)
+                {
+                    return;
+                }
+
+                DateTime serverTime = Tab.TimeServerCurrent;
+
+                TradeGridRegime tradeDaysRegime = NonTradeDays.GetNonTradeDaysRegime(serverTime);
+                TradeGridRegime nonTradePeriodsRegime = NonTradePeriods.GetNonTradePeriodsRegime(serverTime);
+
+                if(tradeDaysRegime != TradeGridRegime.On 
+                    || nonTradePeriodsRegime != TradeGridRegime.On)
+                { // авто-старт не может быть включен, если сейчас не торговый период
+                    return;
+                }
+
+                if (AutoStarter.HaveEventToStart(this))
+                {
+                    if(AutoStarter.RebuildGridRegime == OnOffRegime.On)
+                    {// пересобираем сетку
+                        decimal newPriceStart = AutoStarter.GetNewGridPriceStart(this);
+                        
+                        if(newPriceStart != 0)
+                        {
+                            GridCreator.FirstPrice = newPriceStart;
+                            GridCreator.CreateNewGrid(Tab, GridType);
+                            Save();
+                            FullRePaintGrid();
+                        }
+                    }
+
+                    baseRegime = TradeGridRegime.On;
+                    Regime = TradeGridRegime.On;
+                    Save();
+                    RePaintGrid();
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            // 2 проверяем ошибки и реагируем на них
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                TradeGridRegime reaction = ErrorsReaction.GetReactionOnErrors(this);
+
+                if (reaction != TradeGridRegime.On)
+                {
+                    ErrorsReaction.FailCancelOrdersCountFact = 0;
+                    ErrorsReaction.FailOpenOrdersCountFact = 0;
+                    baseRegime = reaction;
+                    Regime = reaction;
+                    Save();
+                    RePaintGrid();
+                }
+            }
+
+            // 3 проверяем ожидание в бою. Только что были отозваны или выставлены N кол-во ордеров
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                if(_vacationTime > DateTime.Now)
+                {
+                    return;
+                }
+            }
+
+            // 4 проверяем наличие ордеров без номеров в маркете. Для медленных подключений
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                if (HaveOrdersWithNoMarketOrders())
+                {
+                    return;
+                }
+            }
+
+            // 5 попытка смены режима если блокировано по времени или по дням
+
+            if (baseRegime == TradeGridRegime.On)
+            {
+                DateTime serverTime = Tab.TimeServerCurrent;
+
+                TradeGridRegime tradeDaysRegime = NonTradeDays.GetNonTradeDaysRegime(serverTime);
+                TradeGridRegime nonTradePeriodsRegime = NonTradePeriods.GetNonTradePeriodsRegime(serverTime);
+
+                if(nonTradePeriodsRegime != TradeGridRegime.On)
+                {
+                    baseRegime = nonTradePeriodsRegime;
+                }
+                if(tradeDaysRegime != TradeGridRegime.On)
+                {
+                    baseRegime = tradeDaysRegime;
+                }
+            }
+
+            // 6 попытка смены режима по остановке торгов
+
+            if (baseRegime == TradeGridRegime.On)
+            {
+                TradeGridRegime stopByRegime = StopBy.GetRegime(this, Tab);
+
+                if(stopByRegime != TradeGridRegime.On)
+                {
+                    baseRegime = stopByRegime;
+                    Regime = stopByRegime;
+                    Save();
+                    RePaintGrid();
+                }
+            }
+
+            // 7 попытка сместить сетку
+
+            if (baseRegime == TradeGridRegime.On)
+            {
+                if(TrailingUp.TryTrailingGrid())
+                {
+                    _needToSave = true;
+                    RePaintGrid();
+                    FullRePaintGrid();
+                }
+            }
+
+            // 8 вход в различную логику различных сеток
+
+            if (GridType == TradeGridPrimeType.MarketMaking)
+            {
+                GridTypeMarketMakingLogic(baseRegime);
+            }
+            else if(GridType == TradeGridPrimeType.OpenPosition)
+            {
+                GridTypeOpenPositionLogic(baseRegime);
+            }
+        }
+
+        #endregion
+
+        #region Open Position end logic
+
+        private void GridTypeOpenPositionLogic(TradeGridRegime baseRegime)
+        {
+            // 1 сверям позиции в журнале и в сетке
+
+            TryFindPositionsInJournalAfterReconnect();
+            TryDeleteOpeningFailPositions();
+
+            // 2 удаляем ордера стоящие не на своём месте
+
+            int countRejectOrders = TryRemoveWrongOrders();
+
+            if (countRejectOrders > 0)
+            {
+                _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                return;
+            }
+
+            // 3 торговая логика 
+
+            if (baseRegime == TradeGridRegime.On)
+            {
+                if(_firstStopIsActivate == false)
+                {
+                    // 1 пытаемся почистить журнал от лишних сделок
+                    TryFreeJournal();
+
+                    // 2 проверяем выставлены ли ордера на открытие
+                    TrySetOpenOrders();
+
+                    // 3 проверяем выставлены ли закрытия
+                    TrySetStopAndProfit();
+                }
+                else if(_firstStopIsActivate == true)
+                {
+                    if(_firstStopActivateTime.AddSeconds(5) <DateTime.Now)
+                    {
+                        string message = "First stop by grid is activate. \n";
+                        message += "Stop trading" + "\n";
+                        message += "New regime: CloseForced";
+
+                        SendNewLogMessage(message, LogMessageType.Signal);
+
+                        Regime = TradeGridRegime.CloseForced;
+                        Save();
+                        RePaintGrid();
+                        _firstStopIsActivate = false;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
+            else
+            {
+                countRejectOrders = TryCancelOpeningOrders();
+
+                if (countRejectOrders > 0)
+                {
+                    _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                    return;
+                }
+
+                if (_openPositionsBySession != 0)
+                {
+                    _openPositionsBySession = 0;
+                    _needToSave = true;
+                }
+                if (_firstTradePrice != 0)
+                {
+                    _firstTradePrice = 0;
+                    _needToSave = true;
+                }
+                if (_firstTradeTime != DateTime.MinValue)
+                {
+                    _firstTradeTime = DateTime.MinValue;
+                    _needToSave = true;
+                }
+
+                if (baseRegime == TradeGridRegime.CloseOnly)
+                {
+                    // закрываем позиции штатно
+                    TrySetStopAndProfit();
+                }
+                else if (baseRegime == TradeGridRegime.CloseForced)
+                {
+                    countRejectOrders = TryCancelClosingOrders();
+
+                    if (countRejectOrders > 0)
+                    {
+                        _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                        return;
+                    }
+
+                    // закрываем позиции насильно
+                    TryForcedCloseGrid();
+                }
+            }
+        }
+
+        private void TrySetStopAndProfit()
+        {
+            if(StopAndProfit.ProfitRegime == OnOffRegime.Off
+                && StopAndProfit.StopRegime == OnOffRegime.Off
+                && StopAndProfit.TrailStopRegime == OnOffRegime.Off)
+            {
+                return;
+            }
+
+            StopAndProfit.Process(this);
+        }
+
+        private void TryDeleteOpeningFailPositions()
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            if (lines == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if (line.Position != null)
+                {
+                    // Открывающий ордер был отозван
+                    if (line.Position.State == PositionStateType.OpeningFail
+                        && line.Position.OpenActive == false)
+                    {
+                        line.Position = null;
+                        line.PositionNum = -1;
+                    }
+                }
+            }
+        }
+
+        private bool _firstStopIsActivate = false;
+
+        private DateTime _firstStopActivateTime;
+
+        private void Tab_PositionProfitActivateEvent(Position obj)
+        {
+            if (_firstStopIsActivate == false)
+            {
+                _firstStopIsActivate = true;
+                _firstStopActivateTime = Tab.TimeServerCurrent;
+            }
+        }
+
+        private void Tab_PositionStopActivateEvent(Position obj)
+        {
+            if(_firstStopIsActivate == false)
+            {
+                _firstStopIsActivate = true;
+                _firstStopActivateTime = Tab.TimeServerCurrent;
+            }
+        }
+
+        #endregion
+
+        #region MarketMaking end logic
+
+        private void GridTypeMarketMakingLogic(TradeGridRegime baseRegime)
+        {
+            // 1 сверям позиции в журнале и в сетке
+
+            TryFindPositionsInJournalAfterReconnect();
+            TryDeleteDonePositions();
+
+            // 2 удаляем ордера стоящие не на своём месте
+
+            int countRejectOrders = TryRemoveWrongOrders();
+
+            if (countRejectOrders > 0)
+            {
+                _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                return;
+            }
+
+            // 8 торговая логика 
+
+            if (baseRegime == TradeGridRegime.On)
+            {
+                // 1 пытаемся почистить журнал от лишних сделок
+                TryFreeJournal();
+
+                // 2 проверяем выставлены ли ордера на открытие
+                TrySetOpenOrders();
+
+                // 3 проверяем выставлены ли закрытия
+                TrySetClosingOrders();
+            }
+            else
+            {
+                countRejectOrders = TryCancelOpeningOrders();
+
+                if (countRejectOrders > 0)
+                {
+                    _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                    return;
+                }
+
+                if (_openPositionsBySession != 0)
+                {
+                    _openPositionsBySession = 0;
+                    _needToSave = true;
+                }
+                if (_firstTradePrice != 0)
+                {
+                    _firstTradePrice = 0;
+                    _needToSave = true;
+                }
+                if (_firstTradeTime != DateTime.MinValue)
+                {
+                    _firstTradeTime = DateTime.MinValue;
+                    _needToSave = true;
+                }
+
+                if (baseRegime == TradeGridRegime.CloseOnly)
+                {
+                    // закрываем позиции штатно
+                    TrySetClosingOrders();
+                }
+                else if (baseRegime == TradeGridRegime.CloseForced)
+                {
+                    countRejectOrders = TryCancelClosingOrders();
+
+                    if (countRejectOrders > 0)
+                    {
+                        _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                        return;
+                    }
+
+                    // закрываем позиции насильно
+                    TryForcedCloseGrid();
+                }
+            }
+        }
+
+        private int TryRemoveWrongOrders()
+        {
+            List<Candle> candles = Tab.CandlesAll;
+
+            if (candles == null || candles.Count == 0)
+            {
+                return 0;
+            }
+
+            decimal lastPrice = candles[candles.Count - 1].Close;
+
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            // 1 убираем ордера на открытие и закрытие с неправильной ценой.
+
+            List<Order> ordersToCancelBadPrice = GetOrdersBadPriceToGrid();
+
+            if (ordersToCancelBadPrice != null
+                && ordersToCancelBadPrice.Count > 0)
+            {
+                for (int i = 0; i < ordersToCancelBadPrice.Count; i++)
+                {
+                    Tab.CloseOrder(ordersToCancelBadPrice[i]);
+                }
+
+                return ordersToCancelBadPrice.Count;
+            }
+
+            // 2 убираем ордера лишние на открытие. Когда в сетке больше ордеров чем указал пользователь
+
+            List<Order> ordersToCancelBadLines = GetOrdersBadLinesMaxCount();
+
+            if (ordersToCancelBadLines != null
+                && ordersToCancelBadLines.Count > 0)
+            {
+                for (int i = 0; i < ordersToCancelBadLines.Count; i++)
+                {
+                    Tab.CloseOrder(ordersToCancelBadLines[i]);
+                }
+
+                return ordersToCancelBadLines.Count;
+            }
+
+            // 3 убираем ордера на открытие, если имеет место дыра в сетке
+
+            List<Order> ordersToCancelOpenOrders = GetOpenOrdersGridHole();
+
+            if (ordersToCancelOpenOrders != null
+                && ordersToCancelOpenOrders.Count > 0)
+            {
+                for (int i = 0; i < ordersToCancelOpenOrders.Count; i++)
+                {
+                    Tab.CloseOrder(ordersToCancelOpenOrders[i]);
+                }
+
+                return ordersToCancelOpenOrders.Count;
+            }
+
+            // 4 убираем ордера лишние на закрытие.
+            // Когда в сетке больше ордеров чем указал пользователь
+            // И когда объём на закрытие не совпадает с тем что в ордере закрывающем
+
+            if(GridType == TradeGridPrimeType.MarketMaking)
+            {
+                List<Order> ordersToCancelCloseOrders = GetCloseOrdersGridHole();
+
+                if (ordersToCancelCloseOrders != null
+                    && ordersToCancelCloseOrders.Count > 0)
+                {
+                    for (int i = 0; i < ordersToCancelCloseOrders.Count; i++)
+                    {
+                        Tab.CloseOrder(ordersToCancelCloseOrders[i]);
+                    }
+
+                    return ordersToCancelCloseOrders.Count;
+                }
+            }
+
+            return 0;
+        }
+
+        private List<Order> GetOrdersBadPriceToGrid()
+        {
+            // 1 смотрим совпадение цен у ордера на открытие с ценой открытия линии 
+            // 2 смотрим совпадиние цен у ордера на закрытие с ценой закрытия линии
+
+            List<Order> ordersToCancel = new List<Order>();
+
+            List<TradeGridLine> linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();
+
+            for (int i = 0; linesWithOrdersToOpenFact != null && i < linesWithOrdersToOpenFact.Count; i++)
+            {
+                Position position = linesWithOrdersToOpenFact[i].Position;
+                TradeGridLine currentLine = linesWithOrdersToOpenFact[i];
+
+                if (position.OpenActive)
+                {
+                    Order openOrder = position.OpenOrders[^1];
+
+                    if (openOrder.Price != currentLine.PriceEnter)
+                    {
+                        ordersToCancel.Add(openOrder);
+                    }
+                }
+
+                if (position.CloseActive)
+                {
+                    Order closeOrder = position.CloseOrders[^1];
+
+                    if (closeOrder.Price != currentLine.PriceExit)
+                    {
+                        ordersToCancel.Add(closeOrder);
+                    }
+                }
+            }
+
+            return ordersToCancel;
+        }
+
+        private List<Order> GetOrdersBadLinesMaxCount()
+        {
+            List<TradeGridLine> linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();
+
+            List<Order> ordersToCancel = new List<Order>();
+
+            // 1 Открытие. Смотрим чтобы не было ордеров больше чем указал пользователь
+
+            for (int i = MaxOpenOrdersInMarket; i < linesWithOrdersToOpenFact.Count; i++)
+            {
+                Position curPosition = linesWithOrdersToOpenFact[i].Position;
+                ordersToCancel.Add(curPosition.OpenOrders[^1]);
+            }
+
+            return ordersToCancel;
+        }
+
+        private List<Order> GetOpenOrdersGridHole()
+        {
+            List<Candle> candles = Tab.CandlesAll;
+
+            if (candles == null || candles.Count == 0)
+            {
+                return null;
+            }
+
+            decimal lastPrice = candles[candles.Count - 1].Close;
+
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            // 1 берём текущие линии с позициями
+
+            List<TradeGridLine> linesWithOrdersToOpenNeed = GetLinesWithOpenOrdersNeed(lastPrice);
+
+            List<TradeGridLine> linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();
+
+            if (linesWithOrdersToOpenFact == null ||
+                linesWithOrdersToOpenFact.Count == 0)
+            {
+                return null;
+            }
+
+            if (linesWithOrdersToOpenNeed == null ||
+                linesWithOrdersToOpenNeed.Count == 0)
+            {
+                return null;
+            }
+
+            List<Order> ordersToCancel = new List<Order>();
+
+            // 2 смотрим, Стоит ли первый ордер на своём месте
+
+            TradeGridLine firstLineFirstNeed = linesWithOrdersToOpenNeed[0];
+            TradeGridLine firstLineFirstFact = linesWithOrdersToOpenFact[0];
+
+            TradeGridLine firstLineLastNeed = linesWithOrdersToOpenNeed[^1];
+            TradeGridLine firstLineLastFact = linesWithOrdersToOpenFact[^1];
+
+            if (firstLineFirstFact.PriceEnter == firstLineFirstNeed.PriceEnter
+                && firstLineLastFact.PriceEnter == firstLineLastNeed.PriceEnter)
+            {// всё в порядке
+                return null;
+            }
+
+            if (linesWithOrdersToOpenFact.Count >= linesWithOrdersToOpenNeed.Count)
+            {
+                ordersToCancel.Add(linesWithOrdersToOpenFact[^1].Position.OpenOrders[^1]);
+            }
+
+            return ordersToCancel;
+        }
+
+        private List<Order> GetCloseOrdersGridHole()
+        {
+            List<TradeGridLine> linesOpenPoses = GetLinesWithOpenPosition();
+
+            List<Order> ordersToCancel = new List<Order>();
+
+            // 1 отправляем на отзыв ордера которые за пределами желаемого пользователем кол-ва
+
+            for (int i = 0; i < linesOpenPoses.Count - MaxCloseOrdersInMarket; i++)
+            {
+                Position pos = linesOpenPoses[i].Position;
+                TradeGridLine line = linesOpenPoses[i];
+
+                if (pos.CloseActive == true)
+                {
+                    ordersToCancel.Add(pos.CloseOrders[^1]);
+                }
+            }
+
+            // 2 отправляем на отзыв ордера которые с не верным объёмом
+
+            for (int i = 0; i < linesOpenPoses.Count; i++)
+            {
+                Position pos = linesOpenPoses[i].Position;
+                TradeGridLine line = linesOpenPoses[i];
+
+                if (pos.CloseActive == false)
+                {
+                    continue;
+                }
+
+                Order orderToClose = pos.CloseOrders[^1];
+
+                if (orderToClose.Volume != pos.OpenVolume)
+                {
+                    bool isInArray = false;
+
+                    for (int j = 0; j < ordersToCancel.Count; j++)
+                    {
+                        if (ordersToCancel[j].NumberUser == orderToClose.NumberUser)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+                    if (isInArray == false)
+                    {
+                        ordersToCancel.Add(orderToClose);
+                    }
+                }
+            }
+
+            return ordersToCancel;
+        }
+
+        private int TryCancelOpeningOrders()
+        {
+            List<TradeGridLine> lines = GetLinesWithOpenOrdersFact();
+
+            int cancelledOrders = 0;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if (line.Position == null
+                    || line.Position.OpenActive == false)
+                {
+                    continue;
+                }
+
+                Order order = lines[i].Position.OpenOrders[^1];
+
+                Tab.CloseOrder(order);
+                cancelledOrders++;
+            }
+
+            return cancelledOrders;
+        }
+
+        private void TrySetClosingOrders()
+        {
+            List<TradeGridLine> linesOpenPoses = GetLinesWithOpenPosition();
+
+            int startIndex = linesOpenPoses.Count - MaxCloseOrdersInMarket;
+
+            if (startIndex < 0)
+            {
+                startIndex = 0;
+            }
+
+            for (int i = startIndex; i < linesOpenPoses.Count; i++)
+            {
+                Position pos = linesOpenPoses[i].Position;
+                TradeGridLine line = linesOpenPoses[i];
+
+                if (pos.CloseActive == true)
+                {
+                    continue;
+                }
+
+                Tab.CloseAtLimit(pos, line.PriceExit, pos.OpenVolume);
+            }
+        }
+
+        private int TryCancelClosingOrders()
+        {
+            List<TradeGridLine> lines = GetLinesWithOpenPosition();
+
+            int cancelledOrders = 0;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if (line.Position == null
+                    || line.Position.CloseActive == false)
+                {
+                    continue;
+                }
+
+                Order order = lines[i].Position.CloseOrders[^1];
+
+                Tab.CloseOrder(order);
+                cancelledOrders++;
+            }
+
+            return cancelledOrders;
+        }
+
+        private void TrySetOpenOrders()
+        {
+            List<Candle> candles = Tab.CandlesAll;
+
+            if (candles == null || candles.Count == 0)
+            {
+                return;
+            }
+
+            decimal lastPrice = candles[candles.Count - 1].Close;
+
+            if(lastPrice == 0)
+            {
+                return;
+            }
+
+            if(Tab.PriceBestAsk == 0
+                || Tab.PriceBestBid == 0)
+            {
+                return;
+            }
+
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            // 1 берём текущие линии с позициями
+
+            List<TradeGridLine> linesWithOrdersToOpenNeed = GetLinesWithOpenOrdersNeed(lastPrice);
+
+            List<TradeGridLine> linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();
+
+            // 2 ничего не делаем если уже кол-во ордеров максимально
+
+            if (linesWithOrdersToOpenFact.Count >= MaxOpenOrdersInMarket)
+            {
+                return;
+            }
+
+            // 3 открываемся по новой схеме
+
+            for (int i = 0; i < linesWithOrdersToOpenNeed.Count; i++)
+            {
+                TradeGridLine curLineNeed = linesWithOrdersToOpenNeed[i];
+
+                if (curLineNeed.Position != null)
+                {
+                    continue;
+                }
+
+                // открываемся. Позиции по линии нет
+
+                decimal volume = GridCreator.GetVolume(curLineNeed, Tab);
+
+                Position newPosition = null;
+
+                if (curLineNeed.Side == Side.Buy)
+                {
+                    newPosition = Tab.BuyAtLimit(volume, curLineNeed.PriceEnter);
+                }
+                else if (curLineNeed.Side == Side.Sell)
+                {
+                    newPosition = Tab.SellAtLimit(volume, curLineNeed.PriceEnter);
+                }
+
+                if (newPosition != null)
+                {
+                    curLineNeed.Position = newPosition;
+                    curLineNeed.PositionNum = newPosition.Number;
+
+                    if (_firstTradePrice == 0)
+                    {
+                        _firstTradePrice = curLineNeed.PriceEnter;
+                        _needToSave = true;
+                    }
+
+                    if (_firstTradeTime == DateTime.MinValue)
+                    {
+                        _firstTradeTime = Tab.TimeServerCurrent;
+                        _needToSave = true;
+                    }
+                }
+
+                linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();
+
+                if (linesWithOrdersToOpenFact.Count >= MaxOpenOrdersInMarket)
+                {
+                    return;
+                }
+            }
+        }
+
+        private DateTime _lastCheckJournalTime = DateTime.MinValue;
+
+        private void TryFreeJournal()
+        {
+            if (AutoClearJournalIsOn == false)
+            {
+                return;
+            }
+
+            if (_lastCheckJournalTime.AddSeconds(10) > DateTime.Now)
+            {
+                return;
+            }
+
+            _lastCheckJournalTime = DateTime.Now;
+
+            Position[] positions = Tab.PositionsAll.ToArray();
+
+            // 1 удаляем позиции с OpeningFail без всяких условий
+
+            for (int i = 0; i < positions.Length; i++)
+            {
+                Position pos = positions[i];
+
+                if(pos == null)
+                {
+                    continue;
+                }
+
+                if (pos.State == PositionStateType.OpeningFail)
+                {
+                    TryDeletePositionsFromJournal(pos);
+                }
+            }
+
+            // 2 удаляем позиции со статусом Done, если пользователь это включил        
+
+            int curDonePosInJournal = 0;
+
+            for (int i = positions.Length - 1; i >= 0; i--)
+            {
+                Position pos = positions[i];
+
+                if (pos == null)
+                {
+                    continue;
+                }
+
+                if (pos.State != PositionStateType.Done)
+                {
+                    continue;
+                }
+
+                curDonePosInJournal++;
+
+                if (curDonePosInJournal > MaxClosePositionsInJournal)
+                {
+                    TryDeletePositionsFromJournal(pos);
+                }
+            }
+        }
+
+        private void TryDeletePositionsFromJournal(Position position)
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            bool isInGridNow = false;
+
+            for(int i = 0;lines != null && i < lines.Count;i++)
+            {
+                if (lines[i].PositionNum == position.Number)
+                {
+                    isInGridNow = true;
+                    break;
+                }
+            }
+
+            if(isInGridNow == false)
+            {
+                Tab._journal.DeletePosition(position);
+            }
+        }
+
+        private void TryDeleteDonePositions()
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            if(lines == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if (line.Position != null)
+                {
+                 // Позиция была закрыта
+                 // Открывающий ордер был отозван
+                    if (line.Position.State == PositionStateType.Done
+                        ||
+                        (line.Position.State == PositionStateType.OpeningFail
+                        && line.Position.OpenActive == false))
+                    {
+                        line.Position = null;
+                        line.PositionNum = -1;
+                    }
+                }
+            }
+        }
+
+        private void TryFindPositionsInJournalAfterReconnect()
+        {
+            List<TradeGridLine> lines = GridCreator.Lines;
+
+            List<Position> positions = Tab.PositionsAll;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                // проблема 1. Номер позиции есть - самой позиции нет. 
+                // произошёл перезапуск терминала. Ищем позу в журнале
+                if (line.PositionNum != -1
+                    && line.Position == null)
+                {
+                    bool isInArray = false;
+
+                    for (int j = 0; j < positions.Count; j++)
+                    {
+                        if (positions[j].Number == line.PositionNum)
+                        {
+                            isInArray = true;
+                            line.Position = positions[j];
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        line.Position = null;
+                        line.PositionNum = -1;
+                    }
+                }
+            }
+        }
+
+        #endregion
+
+        #region Forced Close regime logic
+
+        private void TryForcedCloseGrid()
+        {
+            List<TradeGridLine> lines = GetLinesWithOpenPosition();
+
+            bool havePositions = false;
+
+            for (int i = 0; i < lines.Count; i++)
+            {
+                TradeGridLine line = lines[i];
+
+                if (line.Position == null)
+                {
+                    continue;
+                }
+
+                Position pos = line.Position;
+
+                if (pos.State != PositionStateType.Done
+                    || pos.OpenVolume >= 0)
+                {
+                    Tab.CloseAtMarket(pos, pos.OpenVolume);
+                    havePositions = true;
+                }
+            }
+
+            if (Regime == TradeGridRegime.CloseForced
+                && havePositions == false)
+            {
+                string message = "Close Forced regime ended. No positions \n";
+                message += "New regime: Off";
+                SendNewLogMessage(message, LogMessageType.Signal);
+                Regime = TradeGridRegime.Off;
+                RePaintGrid();
+            }
+        }
+
+        #endregion
+
+        #region Public interface
+
+        public decimal FirstPriceReal
+        {
+            get
+            {
+                return _firstTradePrice;
+            }
+        }
+        private decimal _firstTradePrice;
+
+        public int OpenPositionsCount
+        {
+            get
+            {
+
+                return _openPositionsBySession;
+            }
+        }
+        private int _openPositionsBySession;
+
+        public DateTime FirstTradeTime
+        {
+            get
+            {
+                return _firstTradeTime;
+            }
+        }
+        private DateTime _firstTradeTime;
+
+        public bool HaveOrdersWithNoMarketOrders()
+        {
+            // 1 берём все уровни с позициями
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            for (int i = 0; linesAll != null && i < linesAll.Count; i++)
+            {
+                if (linesAll[i].Position != null)
+                {
+                    Position position = linesAll[i].Position;
+
+                    if (position.OpenActive)
+                    {
+                        if (string.IsNullOrEmpty(position.OpenOrders[^1].NumberMarket))
+                        {
+                            return true;
+                        }
+                    }
+
+                    if (position.CloseActive)
+                    {
+                        if (string.IsNullOrEmpty(position.CloseOrders[^1].NumberMarket))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public bool HaveCloseOrders
+        {
+            get
+            {
+                // 1 если уже есть позиции с ордерами на закрытие. Ничего не делаем
+
+                List<TradeGridLine> linesWithOpenPositions = GetLinesWithOpenPosition();
+
+                for (int i = 0; i < linesWithOpenPositions.Count; i++)
+                {
+                    Position pos = linesWithOpenPositions[i].Position;
+
+                    if (pos == null)
+                    {
+                        continue;
+                    }
+
+                    if (pos.CloseActive == true)
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+        }
+
+        public bool HaveOpenPositionsByGrid
+        {
+            get
+            {
+                List<TradeGridLine> linesWithPositions = GetLinesWithOpenPosition();
+
+                if (linesWithPositions != null &&
+                    linesWithPositions.Count != 0)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+        public decimal MiddleEntryPrice
+        {
+            get
+            {
+                // 1 берём позиции по сетке
+
+                List<Position> positions = GetPositionByGrid();
+
+                if (positions == null 
+                    || positions.Count == 0)
+                {
+                    return 0;
+                }
+
+                // 2 берём из позиций все MyTrade по открывающим ордерам
+
+                List<MyTrade> tradesOpenPos = new List<MyTrade>();
+
+                for (int i = 0; i < positions.Count; i++)
+                {
+                    List<Order> orders = positions[i].OpenOrders;
+
+                    for (int j = 0; j < orders.Count; j++)
+                    {
+                        List<MyTrade> myTrades = orders[j].MyTrades;
+
+                        if (myTrades == null || myTrades.Count == 0)
+                        {
+                            continue;
+                        }
+                        tradesOpenPos.AddRange(myTrades);
+                    }
+                }
+
+                if (tradesOpenPos.Count == 0)
+                {
+                    return 0;
+                }
+
+                // 3 считаем среднюю цену входа
+
+                decimal summ = 0;
+                decimal volume = 0;
+
+                for (int i = 0; i < tradesOpenPos.Count; i++)
+                {
+                    MyTrade trade = tradesOpenPos[i];
+
+                    if (trade == null)
+                    {
+                        continue;
+                    }
+
+                    volume += trade.Volume;
+                    summ += trade.Volume * trade.Price;
+                }
+
+                decimal result = summ / volume;
+
+                return result;
+            }
+        }
+
+        public decimal MaxGridPrice
+        {
+            get
+            {
+                try
+                {
+                    return TrailingUp.MaxGridPrice;
+                }
+                catch(Exception e)
+                {
+                    SendNewLogMessage(e.ToString(),LogMessageType.Error);
+                    return 0;
+                }
+            }
+        }
+
+        public decimal MinGridPrice
+        {
+            get
+            {
+                try
+                {
+                    return TrailingUp.MinGridPrice;
+                }
+                catch (Exception e)
+                {
+                    SendNewLogMessage(e.ToString(), LogMessageType.Error);
+                    return 0;
+                }
+            }
+        }
+
+        public List<TradeGridLine> GetLinesWithOpenPosition()
+        {
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            List<TradeGridLine> linesWithPositionFact = new List<TradeGridLine>();
+
+            for (int i = 0; linesAll != null && i < linesAll.Count; i++)
+            {
+                if (linesAll[i].Position != null
+                    && linesAll[i].Position.OpenVolume != 0)
+                {
+                    linesWithPositionFact.Add(linesAll[i]);
+                }
+            }
+            return linesWithPositionFact;
+        }
+
+        public List<Position> GetPositionByGrid()
+        {
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            List<Position> positions = new List<Position>();
+
+            if (linesAll == null ||
+                linesAll.Count == 0)
+            {
+                return positions;
+            }
+
+            for (int i = 0; linesAll != null && i < linesAll.Count; i++)
+            {
+                Position position = linesAll[i].Position;
+
+                if (position != null)
+                {
+                    positions.Add(position);
+                }
+            }
+            return positions;
+        }
+
+        public List<TradeGridLine> GetLinesWithOpenOrdersNeed(decimal lastPrice)
+        {
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            List<TradeGridLine> linesWithOrdersToOpenNeed = new List<TradeGridLine>();
+
+            if (GridCreator.GridSide == Side.Buy)
+            {
+                for (int i = 0; i < linesAll.Count; i++)
+                {
+                    TradeGridLine curLine = linesAll[i];
+
+                    if (curLine.PriceEnter < lastPrice)
+                    {
+                        linesWithOrdersToOpenNeed.Add(curLine);
+                    }
+
+                    if (linesWithOrdersToOpenNeed.Count >= MaxOpenOrdersInMarket)
+                    {
+                        break;
+                    }
+                }
+            }
+            else if (GridCreator.GridSide == Side.Sell)
+            {
+                for (int i = 0; i < linesAll.Count; i++)
+                {
+                    TradeGridLine curLine = linesAll[i];
+
+                    if (curLine.PriceEnter > lastPrice)
+                    {
+                        linesWithOrdersToOpenNeed.Add(curLine);
+                    }
+
+                    if (linesWithOrdersToOpenNeed.Count >= MaxOpenOrdersInMarket)
+                    {
+                        break;
+                    }
+                }
+            }
+            return linesWithOrdersToOpenNeed;
+        }
+
+        public List<TradeGridLine> GetLinesWithOpenOrdersFact()
+        {
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            List<TradeGridLine> linesWithOpenOrder = new List<TradeGridLine>();
+
+            for (int i = 0; linesAll != null && i < linesAll.Count; i++)
+            {
+                if (linesAll[i].Position != null
+                    && linesAll[i].Position.OpenActive)
+                {
+                    linesWithOpenOrder.Add(linesAll[i]);
+                }
+            }
+            return linesWithOpenOrder;
+        }
 
         #endregion
 
@@ -464,17 +1961,7 @@ namespace OsEngine.OsTrader.Grids
     public enum TradeGridPrimeType
     {
         MarketMaking,
-        OpenPosition,
-        ClosePosition,
-    }
-
-    public enum TradeGridCloseType
-    {
-        Cycle,
-        ActivatedOrdersCount,
-        MoveUp,
-        MoveDown,
-        ByTime
+        OpenPosition
     }
 
     public enum TradeGridRegime
@@ -489,12 +1976,6 @@ namespace OsEngine.OsTrader.Grids
     {
         OnTrade,
         OncePerSecond
-    }
-
-    public enum TradeGridLoggingRegime
-    {
-        Standard,
-        Debug
     }
 
     public enum OnOffRegime
@@ -514,12 +1995,5 @@ namespace OsEngine.OsTrader.Grids
         Contracts,
         ContractCurrency,
         DepositPercent
-    }
-
-    public enum TradeGridAutoStartRegime
-    {
-        Off,
-        HigherOrEqual,
-        LowerOrEqual
     }
 }

@@ -22,8 +22,8 @@ namespace OsEngine.Robots.Patterns
             OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
             _strategy = strategy;
 
-            TextBoxVolumeOne.Text = _strategy.VolumeFix.ToString();
-
+            TextBoxVolumeOne.Text = _strategy._volume.ToString();
+            TextBoxAssetInPortfolio.Text = "Prime";
             TextBoxSlippage.Text = _strategy.Slippage.ToString(new CultureInfo("ru-RU"));
 
             TextBoxStop.Text = _strategy.Stop.ToString(new CultureInfo("ru-RU"));
@@ -36,11 +36,18 @@ namespace OsEngine.Robots.Patterns
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyShort);
             ComboBoxRegime.SelectedItem = _strategy.Regime;
 
+            ComboBoxVolumeType.Items.Add("Deposit percent");
+            ComboBoxVolumeType.Items.Add("Contracts");
+            ComboBoxVolumeType.Items.Add("Contract currency");
+            ComboBoxVolumeType.SelectedItem = _strategy._volumeType;
+
             LabelRegime.Content = OsLocalization.Trader.Label115;
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelSlippage.Content = OsLocalization.Trader.Label92;
             ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelStopOrder.Content = OsLocalization.Trader.Label123;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();
@@ -64,8 +71,9 @@ namespace OsEngine.Robots.Patterns
                 MessageBox.Show(OsLocalization.Trader.Label13);
                 return;
             }
-
-            _strategy.VolumeFix = Convert.ToDecimal(TextBoxVolumeOne.Text);
+            _strategy._volumeType = Convert.ToString(ComboBoxVolumeType.Text);
+            _strategy._tradeAssetInPortfolio = Convert.ToString(TextBoxAssetInPortfolio.Text);
+            _strategy._volume = Convert.ToDecimal(TextBoxVolumeOne.Text);
             _strategy.Slippage = Convert.ToDecimal(TextBoxSlippage.Text);
             _strategy.Stop = Convert.ToDecimal(TextBoxStop.Text);
 

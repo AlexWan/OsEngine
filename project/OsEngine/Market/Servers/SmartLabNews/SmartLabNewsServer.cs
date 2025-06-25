@@ -486,8 +486,9 @@ namespace OsEngine.Market.Servers.SmartLabNews
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -512,8 +513,9 @@ namespace OsEngine.Market.Servers.SmartLabNews
             return null;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
+            return OrderStateType.None;
         }
 
         public void GetPortfolios()
@@ -559,6 +561,10 @@ namespace OsEngine.Market.Servers.SmartLabNews
         public event Action<Order> MyOrderEvent;
         public event Action<MyTrade> MyTradeEvent;
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
         #endregion
     }
 }

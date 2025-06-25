@@ -132,6 +132,18 @@ namespace OsEngine.Market.Servers
         /// </summary>
         event Action<Trade> NewTradesEvent;
 
+        /// <summary>
+        /// Funding data
+        /// данные по фандингу
+        /// </summary>
+        event Action<Funding> FundingUpdateEvent;
+
+        /// <summary>
+        /// Volumes 24h data
+        /// данные по объемам за 24 часа
+        /// </summary>
+        event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
 
         #region Data upload
@@ -176,7 +188,7 @@ namespace OsEngine.Market.Servers
         /// cancel order
         /// отозвать ордер
         /// </summary>
-        void CancelOrder(Order order);
+        bool CancelOrder(Order order);
 
         /// <summary>
         /// cancel all orders from trading system
@@ -198,7 +210,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// Query order status
         /// </summary>
-        void GetOrderStatus(Order order);
+        OrderStateType GetOrderStatus(Order order);
 
         /// <summary>
         /// новые мои ордера

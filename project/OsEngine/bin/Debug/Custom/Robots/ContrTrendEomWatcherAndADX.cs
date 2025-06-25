@@ -1,10 +1,17 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -22,7 +29,6 @@ and the current value is below the upper line.
 
 Exit from sell: When the previous value of the EOM Watcher indicator was below the lower standard deviation line, 
 and the current value is above the lower line.
-
  */
 
 namespace OsEngine.Robots.MyBots
@@ -33,20 +39,23 @@ namespace OsEngine.Robots.MyBots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
+
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator setting 
-        private StrategyParameterInt LengthEomW;
-        private StrategyParameterInt LengthADX;
+        private StrategyParameterInt _lengthEomW;
+        private StrategyParameterInt _lengthADX;
 
         // Indicator
-        Aindicator _EomW;
-        Aindicator _ADX;
+        private Aindicator _EomW;
+        private Aindicator _ADX;
 
         public ContrTrendEomWatcherAndADX(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -54,27 +63,30 @@ namespace OsEngine.Robots.MyBots
             _tab = TabsSimple[0];
 
             // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator setting
-            LengthEomW = CreateParameter("Length EomW", 24, 5, 100, 5, "Indicator");
-            LengthADX = CreateParameter("Length ADX", 14, 10, 300, 10, "Indicator");
+            _lengthEomW = CreateParameter("Length EomW", 24, 5, 100, 5, "Indicator");
+            _lengthADX = CreateParameter("Length ADX", 14, 10, 300, 10, "Indicator");
 
             // Create indicator EOMW
             _EomW = IndicatorsFactory.CreateIndicatorByName("EaseOfMovement_Watcher", name + "EOMW", false);
             _EomW = (Aindicator)_tab.CreateCandleIndicator(_EomW, "EomWArea");
-            ((IndicatorParameterInt)_EomW.Parameters[0]).ValueInt = LengthEomW.ValueInt;
+            ((IndicatorParameterInt)_EomW.Parameters[0]).ValueInt = _lengthEomW.ValueInt;
             _EomW.Save();
 
             // Create indicator ADX
             _ADX = IndicatorsFactory.CreateIndicatorByName("ADX", name + "ADX", false);
             _ADX = (Aindicator)_tab.CreateCandleIndicator(_ADX, "AdxArea");
-            ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = LengthADX.ValueInt;
+            ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _lengthADX.ValueInt;
             _ADX.Save();
 
             // Subscribe to the indicator update event
@@ -96,11 +108,11 @@ namespace OsEngine.Robots.MyBots
 
         private void ContrTrendEomWatcher_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_EomW.Parameters[0]).ValueInt = LengthEomW.ValueInt;
+            ((IndicatorParameterInt)_EomW.Parameters[0]).ValueInt = _lengthEomW.ValueInt;
             _EomW.Save();
             _EomW.Reload();
 
-            ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = LengthADX.ValueInt;
+            ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _lengthADX.ValueInt;
             _ADX.Save();
             _ADX.Reload();
         }
@@ -109,31 +121,30 @@ namespace OsEngine.Robots.MyBots
         {
             return "ContrTrendEomWatcherAndADX";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
+
         }
 
-        // Logic
         // Candle Finished Event
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthEomW.ValueInt ||
-                candles.Count < LengthADX.ValueInt)
+            if (candles.Count < _lengthEomW.ValueInt ||
+                candles.Count < _lengthADX.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -147,10 +158,11 @@ namespace OsEngine.Robots.MyBots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -166,7 +178,6 @@ namespace OsEngine.Robots.MyBots
             decimal lastEOMWDown = _EomW.DataSeries[1].Last;
             decimal lastSDUp = _EomW.DataSeries[2].Last;
             decimal lastSdDown = _EomW.DataSeries[3].Last;
-
             decimal lastPlus = _ADX.DataSeries[1].Last;
             decimal lastMinus = _ADX.DataSeries[2].Last;
 
@@ -181,23 +192,23 @@ namespace OsEngine.Robots.MyBots
             if (openPositions == null || openPositions.Count == 0)
             {
                 // Slippage
-                decimal slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal slippage = _slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (lastEOMWDown > lastSdDown && prevEOMWDown < prevSdDown && lastPlus > lastMinus)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (lastEOMWUp < lastSDUp && prevEOMWUp > prevSDUp && lastPlus < lastMinus)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestBid - slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - slippage);
                     }
                 }
             }
@@ -220,7 +231,7 @@ namespace OsEngine.Robots.MyBots
             decimal prevSDUp = _EomW.DataSeries[2].Values[_EomW.DataSeries[2].Values.Count - 2];
             decimal prevSdDown = _EomW.DataSeries[3].Values[_EomW.DataSeries[3].Values.Count - 2];
 
-            decimal slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal slippage = _slippage.ValueDecimal * _tab.Securiti.PriceStep;
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
@@ -250,29 +261,94 @@ namespace OsEngine.Robots.MyBots
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }

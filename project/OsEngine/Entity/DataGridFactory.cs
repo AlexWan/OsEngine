@@ -526,7 +526,8 @@ positionOpener.LifeTimeType
             colum01.CellTemplate = cell0;
             colum01.HeaderText = OsLocalization.Entity.OrderColumn2;
             colum01.ReadOnly = readOnly;
-            colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum01.Width = 60;
+            colum01.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum01);
 
             // Time Create
@@ -670,7 +671,8 @@ positionOpener.LifeTimeType
             DataGridViewColumn colum0 = new DataGridViewColumn();
             colum0.CellTemplate = cell0;
             colum0.HeaderText = OsLocalization.Entity.TradeColumn1;
-            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum0.Width = 60;
+            colum0.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum0);
 
             // 1 Order Id
@@ -679,7 +681,8 @@ positionOpener.LifeTimeType
             colum03.CellTemplate = cell0;
             colum03.HeaderText = OsLocalization.Entity.TradeColumn2;
             colum03.ReadOnly = true;
-            colum03.AutoSizeMode = DataGridViewAutoSizeColumnMode.DisplayedCells;
+            colum03.Width = 60;
+            colum03.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             newGrid.Columns.Add(colum03);
 
             // 2 Security

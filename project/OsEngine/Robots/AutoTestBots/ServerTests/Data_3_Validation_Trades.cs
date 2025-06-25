@@ -257,8 +257,11 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
 
                 if (tradeLast.Time == tradeNow.Time)
                 {
-                    SetNewError("Error 9. Trades time is equal!");
-                    return;
+                    if (tradeLast.Id == tradeNow.Id)
+                    {
+                        SetNewError("Error 9. Trades time is equal!");
+                        return;
+                    }
                 }
             }
 

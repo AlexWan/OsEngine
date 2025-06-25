@@ -1974,7 +1974,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            public void CancelOrder(Order order)
+            public bool CancelOrder(Order order)
             {
                 _rateGateCancelOrder.WaitToProceed();
 
@@ -1991,6 +1991,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                         if (stateResponse.rc.Equals("0") && stateResponse.mc.Equals("SUCCESS", StringComparison.OrdinalIgnoreCase))
                         {
                             SendLogMessage($"Successfully canceled the order, order Id: {stateResponse.result.cancelId}", LogMessageType.Trade);
+                            return true;
                         }
                         else
                         {
@@ -2015,6 +2016,8 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 {
                     SendLogMessage("CancelOrder error: " + exception.ToString(), LogMessageType.Error);
                 }
+
+                return false;
             }
 
             private void CreateOrderFail(Order order)
@@ -2150,7 +2153,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                 }
             }
 
-            public void GetOrderStatus(Order order)
+            public OrderStateType GetOrderStatus(Order order)
             {
                 _rateGateOpenOrder.WaitToProceed();
 
@@ -2172,7 +2175,7 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     if (res.StatusCode != HttpStatusCode.OK)
                     {
                         SendLogMessage(contentStr, LogMessageType.Error);
-                        return;
+                        return OrderStateType.None;
                     }
 
                     ResponseMessageRest<OrderResponse> OrderResponse = JsonConvert.DeserializeAnonymousType(contentStr, new ResponseMessageRest<OrderResponse>());
@@ -2181,14 +2184,14 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         SendLogMessage($"GetOrderStatus error, code: {OrderResponse.rc}\n"
                             + $"Message code: {OrderResponse.mc}", LogMessageType.Error);
-                        return;
+                        return OrderStateType.None;
                     }
 
                     Order newOrder = OrderUpdate(OrderResponse.result, GetOrderState(OrderResponse.result.state));
 
                     if (newOrder == null)
                     {
-                        return;
+                        return OrderStateType.None;
                     }
 
                     Order myOrder = newOrder;
@@ -2200,11 +2203,15 @@ namespace OsEngine.Market.Servers.XT.XTSpot
                     {
                         CreateQueryMyTrade(myOrder.SecurityNameCode, myOrder.NumberMarket, 1);
                     }
+
+                    return myOrder.State;
                 }
                 catch (Exception exception)
                 {
                     SendLogMessage("GetOrderStatus error: " + exception.ToString(), LogMessageType.Error);
                 }
+
+                return OrderStateType.None;
             }
 
             #endregion
@@ -2606,6 +2613,10 @@ namespace OsEngine.Market.Servers.XT.XTSpot
             }
 
             public event Action<string, LogMessageType> LogMessageEvent;
+
+            public event Action<Funding> FundingUpdateEvent;
+
+            public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
             #endregion
         }

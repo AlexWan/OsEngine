@@ -12,125 +12,136 @@ using System;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Attributes;
+using System.Windows.Forms.DataVisualization.Charting;
+
+/* Description
+trading robot for osengine
+
+The trend robot on LinearRegressionFast Screener.
+
+Buy:
+1. If the ADX filter is active, and the value is zero — no entry occurs.
+2. If the SMA filter is active, and the current candle close price (candleClose) is below the SMA — no entry occurs.
+3. If the last candle's close price (candleClose) is above this line (lrUp) — a buy is initiated.
+
+Exit: via iceberg order.
+ */
 
 namespace OsEngine.Robots.Screeners
 {
-    [Bot("LinearRegressionFastScreener")]
+    [Bot("LinearRegressionFastScreener")] // We create an attribute so that we don't write anything to the BotFactory
     public class LinearRegressionFastScreener : BotPanel
     {
+        private BotTabScreener _screenerTab;
+
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _maxPoses;
+        private StrategyParameterInt _icebergOrdersCount;
+        private StrategyParameterTimeOfDay _timeStart;
+        private StrategyParameterTimeOfDay _timeEnd;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterBool _adxFilterIsOn;
+        private StrategyParameterInt _adxFilterLength;
+        private StrategyParameterDecimal _minAdxValue;
+        private StrategyParameterDecimal _maxAdxValue;
+        private StrategyParameterInt _lrLength;
+        private StrategyParameterDecimal _lrDeviation;
+        private StrategyParameterBool _smaFilterIsOn;
+        private StrategyParameterInt _smaFilterLen;
+
         public LinearRegressionFastScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
             _screenerTab = TabsScreener[0];
+
+            // Subscribe to the candle finished event
             _screenerTab.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            MaxPoses = CreateParameter("Max poses", 5, 1, 20, 1);
-            IcebergOrdersCount = CreateParameter("Iceberg orders count", 1, 1, 20, 1);
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _maxPoses = CreateParameter("Max poses", 5, 1, 20, 1);
+            _icebergOrdersCount = CreateParameter("Iceberg orders count", 1, 1, 20, 1);
+            _timeStart = CreateParameterTimeOfDay("Start Trade Time", 10, 32, 0, 0);
+            _timeEnd = CreateParameterTimeOfDay("End Trade Time", 18, 25, 0, 0);
 
-            TimeStart = CreateParameterTimeOfDay("Start Trade Time", 10, 32, 0, 0);
-            TimeEnd = CreateParameterTimeOfDay("End Trade Time", 18, 25, 0, 0);
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            AdxFilterIsOn = CreateParameter("ADX filter is on", true);
-            AdxFilterLength = CreateParameter("ADX filter Len", 30, 10, 100, 3);
-            MinAdxValue = CreateParameter("ADX min value", 10, 20, 90, 1m);
-            MaxAdxValue = CreateParameter("ADX max value", 40, 20, 90, 1m);
-            _screenerTab.CreateCandleIndicator(1,
-                "ADX", new List<string>() { AdxFilterLength.ValueInt.ToString()}, "Second");
+            // Indicator settings
+            _adxFilterIsOn = CreateParameter("ADX filter is on", true);
+            _adxFilterLength = CreateParameter("ADX filter Len", 30, 10, 100, 3);
+            _minAdxValue = CreateParameter("ADX min value", 10, 20, 90, 1m);
+            _maxAdxValue = CreateParameter("ADX max value", 40, 20, 90, 1m);
+            _smaFilterIsOn = CreateParameter("Sma filter is on", true);
+            _smaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
+            _lrLength = CreateParameter("Linear regression Length", 50, 20, 300, 10);
+            _lrDeviation = CreateParameter("Linear regression deviation", 2, 1, 4, 0.1m);
 
-            LrLength = CreateParameter("Linear regression Length", 50, 20, 300, 10);
-            LrDeviation = CreateParameter("Linear regression deviation", 2, 1, 4, 0.1m);
+            // Create indicator ADX
+            _screenerTab.CreateCandleIndicator(1, "ADX", new List<string>() { _adxFilterLength.ValueInt.ToString()}, "Second");
 
-            _screenerTab.CreateCandleIndicator(2,
-            "LinearRegressionChannelFast_Indicator", 
-             new List<string>() 
-             { 
-                 LrLength.ValueInt.ToString(), 
-                 "Close",
-                 LrDeviation.ValueDecimal.ToString(),
-                 LrDeviation.ValueDecimal.ToString()
-             }, 
-             "Prime");
+            // Create indicator LinearRegressionChannelFast_Indicator
+            _screenerTab.CreateCandleIndicator(2, "LinearRegressionChannelFast_Indicator",new List<string>() {_lrLength.ValueInt.ToString(), "Close", _lrDeviation.ValueDecimal.ToString(), _lrDeviation.ValueDecimal.ToString()}, "Prime");
 
-            SmaFilterIsOn = CreateParameter("Sma filter is on", true);
-            SmaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
+            // Create indicator Sma
+            _screenerTab.CreateCandleIndicator(3, "Sma", new List<string>() { _smaFilterLen.ValueInt.ToString(), "Close" }, "Prime");
 
-            _screenerTab.CreateCandleIndicator(3,
-                    "Sma", new List<string>() { SmaFilterLen.ValueInt.ToString(), "Close" }, "Prime");
-
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
+
+            Description = "The trend robot on LinearRegressionFast Screener. " +
+                "Buy: " +
+                "1. If the ADX filter is active, and the value is zero — no entry occurs. " +
+                "2. If the SMA filter is active, and the current candle close price (candleClose) is below the SMA — no entry occurs. " +
+                "3. If the last candle's close price (candleClose) is above this line (lrUp) — a buy is initiated. " +
+                "Exit: via iceberg order.";
         }
 
         private void SmaScreener_ParametrsChangeByUser()
         {
             _screenerTab._indicators[0].Parameters 
-                = new List<string>() { AdxFilterLength.ValueInt.ToString()};
+                = new List<string>() { _adxFilterLength.ValueInt.ToString()};
 
             _screenerTab._indicators[1].Parameters
               = new List<string>()
              {
-                 LrLength.ValueInt.ToString(),
+                 _lrLength.ValueInt.ToString(),
                  "Close",
-                 LrDeviation.ValueDecimal.ToString(),
-                 LrDeviation.ValueDecimal.ToString()
+                 _lrDeviation.ValueDecimal.ToString(),
+                 _lrDeviation.ValueDecimal.ToString()
              };
 
             _screenerTab._indicators[2].Parameters 
-                = new List<string>() { SmaFilterLen.ValueInt.ToString(), "Close" };
+                = new List<string>() { _smaFilterLen.ValueInt.ToString(), "Close" };
 
             _screenerTab.UpdateIndicatorsParameters();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "LinearRegressionFastScreener";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabScreener _screenerTab;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt MaxPoses;
-
-        public StrategyParameterInt IcebergOrdersCount;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterBool AdxFilterIsOn;
-
-        public StrategyParameterInt AdxFilterLength;
-
-        public StrategyParameterDecimal MinAdxValue;
-
-        public StrategyParameterDecimal MaxAdxValue;
-
-        public StrategyParameterInt LrLength;
-
-        public StrategyParameterDecimal LrDeviation;
-
-        public StrategyParameterBool SmaFilterIsOn;
-
-        public StrategyParameterInt SmaFilterLen;
-
-        private StrategyParameterTimeOfDay TimeStart;
-
-        private StrategyParameterTimeOfDay TimeEnd;
-
+        // Logic
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -140,8 +151,8 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
-            if (TimeStart.Value > tab.TimeServerCurrent ||
-                TimeEnd.Value < tab.TimeServerCurrent)
+            if (_timeStart.Value > tab.TimeServerCurrent ||
+                _timeEnd.Value < tab.TimeServerCurrent)
             {
                 return;
             }
@@ -149,16 +160,16 @@ namespace OsEngine.Robots.Screeners
             List<Position> positions = tab.PositionsOpenAll;
 
             if (positions.Count == 0)
-            { // логика открытия
+            { // Opening logic
 
                 int allPosesInAllTabs = _screenerTab.PositionsOpenAll.Count;
 
-                if (allPosesInAllTabs >= MaxPoses.ValueInt)
+                if (allPosesInAllTabs >= _maxPoses.ValueInt)
                 {
                     return;
                 }
 
-                if(AdxFilterIsOn.ValueBool == true)
+                if(_adxFilterIsOn.ValueBool == true)
                 {// Adx filter
                     Aindicator adx = (Aindicator)tab.Indicators[0];
 
@@ -169,8 +180,8 @@ namespace OsEngine.Robots.Screeners
                         return;
                     }
 
-                    if (adxLast < MinAdxValue.ValueDecimal
-                        || adxLast > MaxAdxValue.ValueDecimal)
+                    if (adxLast < _minAdxValue.ValueDecimal
+                        || adxLast > _maxAdxValue.ValueDecimal)
                     {
                         return;
                     }
@@ -178,7 +189,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal candleClose = candles[candles.Count - 1].Close;
 
-                if (SmaFilterIsOn.ValueBool == true)
+                if (_smaFilterIsOn.ValueBool == true)
                 {// Sma filter
                     Aindicator sma = (Aindicator)tab.Indicators[2];
 
@@ -201,11 +212,11 @@ namespace OsEngine.Robots.Screeners
 
                 if (candleClose > lrUp)
                 {
-                    tab.BuyAtIcebergMarket(GetVolume(tab), IcebergOrdersCount.ValueInt, 2000);
+                    tab.BuyAtIcebergMarket(GetVolume(tab), _icebergOrdersCount.ValueInt, 2000);
                 }
             }
-            else
-            {// логика закрытия
+            else // Logic close position
+            {
                 Position pos = positions[0];
 
                 if (pos.State != PositionStateType.Open)
@@ -226,23 +237,24 @@ namespace OsEngine.Robots.Screeners
 
                 if (lastCandleClose < lrDown)
                 {
-                    tab.CloseAtIcebergMarket(pos, pos.OpenVolume, IcebergOrdersCount.ValueInt, 2000);
+                    tab.CloseAtIcebergMarket(pos, pos.OpenVolume, _icebergOrdersCount.ValueInt, 2000);
                 }
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -253,7 +265,7 @@ namespace OsEngine.Robots.Screeners
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -263,7 +275,7 @@ namespace OsEngine.Robots.Screeners
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -274,7 +286,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -289,7 +301,7 @@ namespace OsEngine.Robots.Screeners
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -299,11 +311,11 @@ namespace OsEngine.Robots.Screeners
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 

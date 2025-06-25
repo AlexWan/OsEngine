@@ -1401,7 +1401,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             rateGateCancelOrder.WaitToProceed();
 
@@ -1413,6 +1413,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 if (stateResponse.code.Equals("200000") == true)
                 {
+                    return true;
                     // ignore
                 }
                 else
@@ -1433,6 +1434,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
                         + $"Message: {stateResponse.msg}", LogMessageType.Error);
                 }
             }
+            return false;
         }
 
         public void ResearchTradesToOrders(List<Order> orders)
@@ -1550,13 +1552,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             return null;
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket, order.NumberUser);
 
             if (orderFromExchange == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order orderOnMarket = null;
@@ -1576,7 +1578,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
 
             if (orderOnMarket == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (orderOnMarket != null &&
@@ -1590,6 +1592,8 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
             {
                 CreateQueryMyTrade(order.SecurityNameCode, order.NumberMarket, Convert.ToInt64(order.TimeDone));
             }
+
+            return orderOnMarket.State;
         }
 
         private Order GetOrderFromExchange(string securityNameCode, string numberMarket, int numberUser)
@@ -1925,6 +1929,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

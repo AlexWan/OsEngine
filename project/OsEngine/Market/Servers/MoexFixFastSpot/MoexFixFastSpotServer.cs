@@ -3663,7 +3663,7 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateForOrders.WaitToProceed();
 
@@ -3691,7 +3691,10 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             catch (Exception exception)
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
+                return false;
             }
+
+            return true;
         }              
 
         public void CancelAllOrders()
@@ -3756,8 +3759,9 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
             // Торговый сервер не дает возможности запросить все активные ордера
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
+            return OrderStateType.None;
             // Order Status Request (H) - запрос не реализован на серверах MFIX Trade и MFIX Trade Capture (в документации зачеркнуто)
         }
 
@@ -3835,7 +3839,11 @@ namespace OsEngine.Market.Servers.MoexFixFastSpot
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-                
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
     }
 

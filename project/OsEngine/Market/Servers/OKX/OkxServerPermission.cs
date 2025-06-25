@@ -85,7 +85,7 @@ namespace OsEngine.Market.Servers.OKX
         }
         public bool DataFeedTfTickCanLoad
         {
-            get { return false; }
+            get { return true; }
         }
         public bool DataFeedTfMarketDepthCanLoad
         {

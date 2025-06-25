@@ -1235,9 +1235,10 @@ contract =>
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _client.CancelOrder(order);
+            return false;
         }
 
         public void CancelAllOrders()
@@ -1260,9 +1261,9 @@ contract =>
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         private void _ibClient_NewOrderEvent(Order order)
@@ -1305,6 +1306,10 @@ contract =>
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

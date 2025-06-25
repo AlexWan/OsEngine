@@ -791,7 +791,7 @@ namespace OsEngine.Market.Servers.BitMex
 
                 if (newTrades != null && trades.Count != 0 && newTrades.Count != 0)
                 {
-                    for (int j = 0; j < newTrades.Count; j++)
+                    for (int j = 0; j < trades.Count; j++)
                     {
                         for (int i = 0; i < newTrades.Count; i++)
                         {
@@ -1801,7 +1801,7 @@ namespace OsEngine.Market.Servers.BitMex
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateOrder.WaitToProceed();
 
@@ -1830,11 +1830,16 @@ namespace OsEngine.Market.Servers.BitMex
                 {
                     SendLogMessage($"Cancel order failed. Status: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                 }
+                else
+                {
+                    return true;
+                }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void CancelAllOrders()
@@ -1875,13 +1880,13 @@ namespace OsEngine.Market.Servers.BitMex
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order orderFromExchange = GetOrderFromExchange(order.NumberUser.ToString());
 
             if (orderFromExchange == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (MyOrderEvent != null)
@@ -1894,6 +1899,8 @@ namespace OsEngine.Market.Servers.BitMex
             {
                 FindMyTradesToOrder(orderFromExchange);
             }
+
+            return orderFromExchange.State;
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -2337,6 +2344,10 @@ namespace OsEngine.Market.Servers.BitMex
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

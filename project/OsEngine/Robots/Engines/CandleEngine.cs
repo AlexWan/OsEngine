@@ -10,34 +10,25 @@ using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.Robots.Engines
 {
-    /// <summary>
-    /// blank strategy for manual trading
-    /// пустая стратегия для ручной торговли
-    /// </summary>
+    // Blank strategy for manual trading
     public class CandleEngine : BotPanel
     {
         public CandleEngine(string name, StartProgram startProgram)
             : base(name, startProgram)
         {
-            //создание вкладки
+            // Create tabs
             TabCreate(BotTabType.Simple);
 
             Description = "blank strategy for manual trading";
         }
 
-        /// <summary>
-        /// unique name
-        /// уникальное имя стратегии
-        /// </summary>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "Engine";
         }
 
-        /// <summary>
-        /// show settings GUI
-        /// показать настройки
-        /// </summary>
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             MessageBox.Show(OsLocalization.Trader.Label57);

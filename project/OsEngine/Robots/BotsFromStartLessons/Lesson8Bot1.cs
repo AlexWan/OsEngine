@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Market.Servers;
@@ -8,25 +13,51 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Threading;
 
+/* Description
+Robot example from the lecture course "C# for algotreader".
+
+Buy:
+If best bid volume bigger on value of _percentInFirstBid, than volume in the summary bid below. Buy at limit price
+
+Exit:
+Close At Stop Market and Close At Profit Market;
+*/
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson8Bot1")]
     public class Lesson8Bot1 : BotPanel
     {
-        BotTabSimple _tabToTrade;
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterString _regime;
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
+        // Basic settings
+        // Базовые настройки
+        private StrategyParameterString _regime;
 
-        StrategyParameterInt _millisecondsToSleepWorker;
-        StrategyParameterInt _countBidsToCheck;
-        StrategyParameterDecimal _percentInFirstBid;
-        StrategyParameterInt _slippagePriceStep;
+        // GetVolume settings
+        // настройки метода GetVolume
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        StrategyParameterInt _stopPriceStep;
-        StrategyParameterInt _profitPriceStep;
+        // Thread setting
+        // Настройка потока
+        private StrategyParameterInt _millisecondsToSleepWorker;
+
+        // Depth of Market settings
+        // Настройки стакана заявок
+        private StrategyParameterInt _countBidsToCheck;
+        private StrategyParameterDecimal _percentInFirstBid;
+
+        // Price settings
+        // Настройки для цены
+        private StrategyParameterInt _slippagePriceStep;
+        private StrategyParameterInt _stopPriceStep;
+        private StrategyParameterInt _profitPriceStep;
 
         // Логика
         // 1 Мы смотрим лучший бид. Объём в нём. 
@@ -35,29 +66,50 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         public Lesson8Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
+
+            // Basic settings
+            // Базовые настройки
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+
+            // GetVolume settings
+            // настройки метода GetVolume
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Thread setting
+            // Настройка потока
             _millisecondsToSleepWorker = CreateParameter("Worker milliseconds to sleep", 1000, 1, 50, 5);
 
+            // Depth of Market settings
+            // Настройки стакана заявок
             _countBidsToCheck = CreateParameter("Count bids to check", 3, 1, 50, 5);
             _percentInFirstBid = CreateParameter("Percent in first bid", 100m, 10, 50, 5);
-            _slippagePriceStep = CreateParameter("Slippage to entry. Price step", -2, 1, 10, 1);
 
+            // Price settings
+            // Настройки для цены
+            _slippagePriceStep = CreateParameter("Slippage to entry. Price step", -2, 1, 10, 1);
             _stopPriceStep = CreateParameter("Stop. Price step", 15, 10, 50, 1);
             _profitPriceStep = CreateParameter("Profit. Price step", 5, 10, 50, 1);
 
+            //Create a new thread that works in WorkerPlace()
             Thread worker = new Thread(WorkerPlace);
             worker.Start();
+
+            Description = "Robot example from the lecture course \"C# for algotreader\"." +
+                "Buy: If best bid volume bigger on value of _percentInFirstBid, than volume in the summary bid below. Buy at limit price." +
+                "Exit: Close At Stop Market and Close At Profit Market.";
         }
 
         private void WorkerPlace()
         {
-            while (true) // Цикл с условием в скобках. Если в скобках true, то цикл - продолжается
+            // Loop with condition in brackets. If true, the loop continues
+            // Цикл с условием в скобках. Если в скобках true, то цикл - продолжается
+            while (true)
             {
                 try
                 {
@@ -69,19 +121,28 @@ namespace OsEngine.Robots.BotsFromStartLessons
                     }
 
                     if (_tabToTrade.IsConnected == false)
-                    { // если источник ещё не готов. И не подключен к данным
+                    {   
+                        // if the source is not ready yet. And not connected to data
+                        // если источник ещё не готов. И не подключен к данным
+
                         continue;
                     }
 
                     if (_tabToTrade.IsReadyToTrade == false)
-                    { // если источник не готов торговать
+                    {
+                        // if the source is not willing to trade
+                        // если источник не готов торговать
+
                         continue;
                     }
 
                     List<Position> positions = _tabToTrade.PositionsOpenAll;
 
                     if (positions.Count == 0)
-                    { // логика открытия
+                    {
+                        // opening logic
+                        // логика открытия
+
                         MarketDepth md = _tabToTrade.MarketDepth;
 
                         if (md == null)
@@ -97,15 +158,21 @@ namespace OsEngine.Robots.BotsFromStartLessons
                             continue;
                         }
 
-                        decimal firstBidVolume = md.Bids[0].Bid; // берём объём в лучшем уровне покупки стакана
+                        // take volume best bid from market depth
+                        // берём объём в лучшем уровне покупки стакана
+                        decimal firstBidVolume = md.Bids[0].Bid; 
 
                         decimal checkBidsVolume = 0;
 
                         for (int i = 1; i < _countBidsToCheck.ValueInt; i++)
-                        {// считаем суммарный объём в бидах под лучшим, на глубину countBidsToCheck
+                        {
+                            // total volume in bids under best, to depth countBidsToCheck
+                            // считаем суммарный объём в бидах под лучшим, на глубину countBidsToCheck
                             checkBidsVolume += md.Bids[i].Bid;
                         }
 
+                        // If the volume of the first bid is X% or more of all bids, and this X is greater than value of parameter _percentInFirstBid, we enter the position.
+                        // Если объём первой ставки равен X% или больше всех ставок, и эта X больше значения параметра _percentInFirstBid, мы входим позицию.
                         if (firstBidVolume / (checkBidsVolume / 100) >= _percentInFirstBid.ValueDecimal)
                         {
                             decimal volume = GetVolume(_tabToTrade);
@@ -116,7 +183,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
                         }
                     }
                     else
-                    {// логика закрытия
+                    {
+                        // Exit
+                        // Выход
+
                         Position pos = positions[0];
 
                         if (pos.OpenVolume == 0)

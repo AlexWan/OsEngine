@@ -24,20 +24,24 @@
 
         <CheckBox Name="CheckBoxExtraLogWindow" Margin="0,130,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23" />
         <Label Name="ShowExtraLogWindowLabel" Content="Show emergency log window" HorizontalAlignment="Left" Margin="79,130,0,0" VerticalAlignment="Top"/>
-        
+
         <CheckBox Name="CheckBoxExtraLogSound" Margin="0,158,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
         <Label Name="ExtraLogSound" Content="Emergency log sound" HorizontalAlignment="Left" Margin="79,158,0,0" VerticalAlignment="Top"/>
-        
+
         <CheckBox Name="CheckBoxTransactionSound" Margin="0,186,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
         <Label Name="TransactionSoundLabel" Content="Transaction sound" HorizontalAlignment="Left" Margin="79,186,0,0" VerticalAlignment="Top"/>
-        
+
         <Label Name="LabelRebootTradeUiLigth" Content="Reboot Ligth on error" HorizontalAlignment="Left" Margin="79,213,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxRebootTradeUiLigth" Margin="0,213,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
 
         <Label Name="LabelReportCriticalErrors" Content="Report critical errors" HorizontalAlignment="Left" Margin="79,241,0,0" VerticalAlignment="Top"/>
         <CheckBox Name="CheckBoxReportCriticalErrors" Margin="0,241,56,0" VerticalAlignment="Top" HorizontalAlignment="Right" Width="23"/>
 
-        <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" HorizontalAlignment="Center" Margin="0,280,0,0" TextWrapping="Wrap" Text="Our company has made the translation of this program due to its capabilities. We apologize for any inconvenience this may cause. &#xD;&#xA;Support our common Open Source project and it will become better." VerticalAlignment="Top" Width="323" Height="97" />
+        <TextBox Name="TextBoxMessageToUsers" IsReadOnly="True" Margin="40,280,40,0" TextWrapping="Wrap" Text="Support our common Open Source project and it will become better." VerticalAlignment="Top" Height="56" />
+        <Label Name="LabelSupportGroupRu" Content="Support group RU:" HorizontalAlignment="Left" Margin="47,350,0,0" VerticalAlignment="Top"/>
+        <Label Name="LabelSupportGroupEng" Content="Support group ENG:" HorizontalAlignment="Left" Margin="47,378,0,0" VerticalAlignment="Top"/>
+        <Button Name="ButtonGoInRuSupport" Content="Go to" HorizontalAlignment="Right" Margin="0,344,40,0" VerticalAlignment="Top" Width="142" Click="ButtonGoInRuSupport_Click"/>
+        <Button Name="ButtonGoInEngSupport" Content="Go to" HorizontalAlignment="Right" Margin="0,374,40,0" VerticalAlignment="Top" Width="142" Click="ButtonGoInEngSupport_Click"/>
 
     </Grid>
 </Window>

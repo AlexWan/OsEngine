@@ -22,7 +22,7 @@ namespace OsEngine.Market.Servers.Tester
     {
         #region Service and base settings
 
-        private static readonly CultureInfo CultureInfo = new CultureInfo("ru-RU");
+        private static readonly CultureInfo CultureInfo = CultureInfo.InvariantCulture;
 
         public TesterServer()
         {
@@ -1765,6 +1765,8 @@ namespace OsEngine.Market.Servers.Tester
 
         public event Action<Order> NewOrderIncomeEvent;
 
+        public event Action<Order> CancelOrderFailEvent;
+
         #endregion
 
         #region Orders 3. Internal operations of the "exchange" on orders
@@ -2421,6 +2423,21 @@ namespace OsEngine.Market.Servers.Tester
                     }
                 }
             }
+
+            for (int i = 0; i < Securities.Count; i++)
+            {
+                Security etalonSecurity = Securities[i];
+
+                for (int j = 0; j < SecuritiesTester.Count; j++)
+                {
+                    Security currentSecurity = SecuritiesTester[j].Security;
+                    if (currentSecurity.Name == etalonSecurity.Name
+                        && currentSecurity.NameClass == etalonSecurity.NameClass)
+                    {
+                        currentSecurity.LoadFromString(etalonSecurity.GetSaveStr());
+                    }
+                }
+            }
         }
 
         private List<string[]> LoadSecurityDopSettings(string path)
@@ -2496,14 +2513,8 @@ namespace OsEngine.Market.Servers.Tester
 
                 if (saves[i][0] == securityToSave.Name)
                 {
-                    saves.Remove(saves[i]);
-                    saves.Add(new[] { securityToSave.Name,
-                    securityToSave.Lot.ToString(culture),
-                    securityToSave.Go.ToString(culture),
-                    securityToSave.PriceStepCost.ToString(culture),
-                    securityToSave.PriceStep.ToString(culture),
-                    securityToSave.DecimalsVolume.ToString(culture)
-                    });
+                    saves.RemoveAt(i);
+                    i--;
                 }
             }
 
@@ -2886,41 +2897,41 @@ namespace OsEngine.Market.Servers.Tester
                         decimal lowD = (decimal)Convert.ToDouble(candleN.Low);
                         decimal closeD = (decimal)Convert.ToDouble(candleN.Close);
 
-                        string open = openD.ToString().Replace(".", ",");
-                        string high = highD.ToString().Replace(".", ",");
-                        string low = lowD.ToString().Replace(".", ",");
-                        string close = closeD.ToString().Replace(".", ",");
+                        string open = openD.ToString().Replace(",", ".");
+                        string high = highD.ToString().Replace(",", ".");
+                        string low = lowD.ToString().Replace(",", ".");
+                        string close = closeD.ToString().Replace(",", ".");
 
-                        if (open.Split(',').Length > 1 ||
-                            high.Split(',').Length > 1 ||
-                            low.Split(',').Length > 1 ||
-                            close.Split(',').Length > 1)
+                        if (open.Split('.').Length > 1 ||
+                            high.Split('.').Length > 1 ||
+                            low.Split('.').Length > 1 ||
+                            close.Split('.').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
                             int length = 1;
 
-                            if (open.Split(',').Length > 1 &&
-                                open.Split(',')[1].Length > length)
+                            if (open.Split('.').Length > 1 &&
+                                open.Split('.')[1].Length > length)
                             {
-                                length = open.Split(',')[1].Length;
+                                length = open.Split('.')[1].Length;
                             }
 
-                            if (high.Split(',').Length > 1 &&
-                                high.Split(',')[1].Length > length)
+                            if (high.Split('.').Length > 1 &&
+                                high.Split('.')[1].Length > length)
                             {
-                                length = high.Split(',')[1].Length;
+                                length = high.Split('.')[1].Length;
                             }
 
-                            if (low.Split(',').Length > 1 &&
-                                low.Split(',')[1].Length > length)
+                            if (low.Split('.').Length > 1 &&
+                                low.Split('.')[1].Length > length)
                             {
-                                length = low.Split(',')[1].Length;
+                                length = low.Split('.')[1].Length;
                             }
 
-                            if (close.Split(',').Length > 1 &&
-                                close.Split(',')[1].Length > length)
+                            if (close.Split('.').Length > 1 &&
+                                close.Split('.')[1].Length > length)
                             {
-                                length = close.Split(',')[1].Length;
+                                length = close.Split('.')[1].Length;
                             }
 
                             if (length == 1 && minPriceStep > 0.1m)
@@ -3199,15 +3210,15 @@ namespace OsEngine.Market.Servers.Tester
                         decimal open = (decimal)Convert.ToDouble(tradeN.Price);
 
 
-                        if (open.ToString(culture).Split(',').Length > 1)
+                        if (open.ToString(culture).Split('.').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
                             int length = 1;
 
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > length)
+                            if (open.ToString(culture).Split('.').Length > 1 &&
+                                open.ToString(culture).Split('.')[1].Length > length)
                             {
-                                length = open.ToString(culture).Split(',')[1].Length;
+                                length = open.ToString(culture).Split('.')[1].Length;
                             }
 
 
@@ -3459,15 +3470,15 @@ namespace OsEngine.Market.Servers.Tester
                             open = (decimal)Convert.ToDouble(tradeN.Asks[0].Price);
                         }
 
-                        if (open.ToString(culture).Split(',').Length > 1)
+                        if (open.ToString(culture).Split('.').Length > 1)
                         {
                             // if the real part takes place / если имеет место вещественная часть
                             int length = 1;
 
-                            if (open.ToString(culture).Split(',').Length > 1 &&
-                                open.ToString(culture).Split(',')[1].Length > length)
+                            if (open.ToString(culture).Split('.').Length > 1 &&
+                                open.ToString(culture).Split('.')[1].Length > length)
                             {
-                                length = open.ToString(culture).Split(',')[1].Length;
+                                length = open.ToString(culture).Split('.')[1].Length;
                             }
 
 
@@ -4438,6 +4449,12 @@ namespace OsEngine.Market.Servers.Tester
         private Log _logMaster;
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<Funding> NewFundingEvent;
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
 
         #endregion
     }

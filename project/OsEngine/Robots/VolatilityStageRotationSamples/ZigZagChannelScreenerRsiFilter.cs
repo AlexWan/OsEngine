@@ -14,66 +14,101 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
 using OsEngine.Market.Servers.Tester;
 
+/* Description
+trading robot for osengine
+
+The trend robot on ZigZagChannel Screener RsiFilter.
+
+Buy:
+1. The total number of open positions is below the maximum allowed.
+2. The last candle’s close is above the upper ZigZag line.
+3. The SMA is rising.
+
+Exit:
+1. The position is open and not already being closed.
+2. If stop is greater than the current price.
+3. Otherwise, place a trailing stop order using the calculated levels.
+ */
+
 namespace OsEngine.Robots.VolatilityStageRotationSamples
 {
-    [Bot("ZigZagChannelScreenerRsiFilter")]
+    [Bot("ZigZagChannelScreenerRsiFilter")] // We create an attribute so that we don't write anything to the BotFactory
     public class ZigZagChannelScreenerRsiFilter : BotPanel
     {
-        BotTabScreener _tabScreener;
+        private BotTabScreener _tabScreener;
 
-        public StrategyParameterString Regime;
-        public StrategyParameterInt MaxPositions;
-        public StrategyParameterInt ZigZagChannelLen;
-        public StrategyParameterInt RsiLen;
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _maxPositions;
+        private StrategyParameterDecimal _slippage;
 
-        public StrategyParameterDecimal Slippage;
-        public StrategyParameterString VolumeType;
-        public StrategyParameterDecimal Volume;
-        public StrategyParameterString TradeAssetInPortfolio;
-        public StrategyParameterDecimal TrailStop;
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        public StrategyParameterInt MaxSecuritiesToTrade;
-        public StrategyParameterInt TopVolumeSecurities;
-        public StrategyParameterInt TopVolumeDaysLookBack;
-        public StrategyParameterString SecuritiesToTrade;
+        // Securities settings
+        private StrategyParameterInt _maxSecuritiesToTrade;
+        private StrategyParameterInt _topVolumeSecurities;
+        private StrategyParameterInt _topVolumeDaysLookBack;
+        private StrategyParameterString _securitiesToTrade;
+
+        // Indicator settings
+        private StrategyParameterInt _zigZagChannelLen;
+        private StrategyParameterInt _rsiLen;
+
+        // Exit setting
+        private StrategyParameterDecimal _trailStop;
 
         public ZigZagChannelScreenerRsiFilter(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
-
             _tabScreener = TabsScreener[0];
 
-            _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
+            _maxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            _slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            // Securities settings
+            _topVolumeSecurities = CreateParameter("Top volume securities", 15, 0, 20, 1);
+            _topVolumeDaysLookBack = CreateParameter("Top volume days look back", 3, 0, 20, 1);
+            _maxSecuritiesToTrade = CreateParameter("Max securities to trade", 5, 0, 20, 1);
+            _securitiesToTrade = CreateParameter("Securities to trade", "");
 
-            TopVolumeSecurities = CreateParameter("Top volume securities", 15, 0, 20, 1);
-            TopVolumeDaysLookBack = CreateParameter("Top volume days look back", 3, 0, 20, 1);
-
-            MaxSecuritiesToTrade = CreateParameter("Max securities to trade", 5, 0, 20, 1);
-            SecuritiesToTrade = CreateParameter("Securities to trade", "");
             StrategyParameterButton button = CreateParameterButton("Check securities rating");
             button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
 
-            ZigZagChannelLen = CreateParameter("ZigZag channel length", 50, 0, 20, 1);
+            // Indicator settings
+            _zigZagChannelLen = CreateParameter("ZigZag channel length", 50, 0, 20, 1);
+            _rsiLen = CreateParameter("Rsi length", 25, 0, 20, 1);
 
-            RsiLen = CreateParameter("Rsi length", 25, 0, 20, 1);
+            // Exit setting
+            _trailStop = CreateParameter("Trail stop %", 2.9m, 0, 20, 1m);
 
-            TrailStop = CreateParameter("Trail stop %", 2.9m, 0, 20, 1m);
+            // Subscribe to the candle finished event
+            _tabScreener.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            // Create indicator ZizZagChannel
+            _tabScreener.CreateCandleIndicator(1, "ZigZagChannel_indicator", new List<string>() { _zigZagChannelLen.ValueInt.ToString() }, "Prime");
 
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            // Create indicator Rsi
+            _tabScreener.CreateCandleIndicator(2, "RSI", new List<string>() { _rsiLen.ValueInt.ToString() }, "Second");
 
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
-            Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-
-            _tabScreener.CreateCandleIndicator(1, "ZigZagChannel_indicator", new List<string>() { ZigZagChannelLen.ValueInt.ToString() }, "Prime");
-
-            _tabScreener.CreateCandleIndicator(2, "RSI", new List<string>() { RsiLen.ValueInt.ToString() }, "Second");
+            Description = "The trend robot on ZigZagChannel Screener RsiFilter. " +
+                "Buy: " +
+                "1. The total number of open positions is below the maximum allowed. " +
+                "2. The last candle’s close is above the upper ZigZag line. " +
+                "3. The SMA is rising. " +
+                "Exit: " +
+                "1. The position is open and not already being closed. " +
+                "2. If stop is greater than the current price. " +
+                "3. Otherwise, place a trailing stop order using the calculated levels.";
 
             if (StartProgram == StartProgram.IsTester && ServerMaster.GetServers() != null)
             {
@@ -91,21 +126,23 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
         private void Server_TestingStartEvent()
         {
-            SecuritiesToTrade.ValueString = "";
+            _securitiesToTrade.ValueString = "";
             _lastTimeRating = DateTime.MinValue;
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ZigZagChannelScreenerRsiFilter";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // securities rating
+        // Securities rating
 
         DateTime _lastTimeRating = DateTime.MinValue;
 
@@ -134,7 +171,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             {
                 SecurityRatingData newData = new SecurityRatingData();
                 newData.SecurityName = tabs[i].Security.Name;
-                newData.Volume = CalculateVolume(TopVolumeDaysLookBack.ValueInt,tabs[i]);
+                newData.Volume = CalculateVolume(_topVolumeDaysLookBack.ValueInt,tabs[i]);
                 newData.Rsi = GetRsi(tabs[i]);
 
                 if(newData.Volume == 0
@@ -164,7 +201,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 }
             }
 
-            securityRatingData = securityRatingData.GetRange(0, TopVolumeSecurities.ValueInt);
+            securityRatingData = securityRatingData.GetRange(0, _topVolumeSecurities.ValueInt);
 
             for (int i = 0; i < securityRatingData.Count; i++)
             {
@@ -179,7 +216,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 }
             }
 
-            securityRatingData = securityRatingData.GetRange(0, MaxSecuritiesToTrade.ValueInt);
+            securityRatingData = securityRatingData.GetRange(0, _maxSecuritiesToTrade.ValueInt);
 
             string securitiesInTrade = "";
 
@@ -188,9 +225,10 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 securitiesInTrade += securityRatingData[i].SecurityName + " ";
             }
 
-            SecuritiesToTrade.ValueString = securitiesInTrade;
+            _securitiesToTrade.ValueString = securitiesInTrade;
         }
 
+        // Method for calculating volume
         public decimal CalculateVolume(int daysCount,BotTabSimple tab)
         {
             List<Candle> candles = tab.CandlesAll;
@@ -230,13 +268,14 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             return volume;
         }
 
+        // Method get value Rsi
         private decimal GetRsi(BotTabSimple tab)
         {
             Aindicator rsi = (Aindicator)tab.Indicators[1];
 
-            if (rsi.ParametersDigit[0].Value != RsiLen.ValueInt)
+            if (rsi.ParametersDigit[0].Value != _rsiLen.ValueInt)
             {
-                rsi.ParametersDigit[0].Value = RsiLen.ValueInt;
+                rsi.ParametersDigit[0].Value = _rsiLen.ValueInt;
                 rsi.Save();
                 rsi.Reload();
             }
@@ -259,10 +298,9 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
         }
 
         // logic
-
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -278,7 +316,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -290,23 +328,24 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles, BotTabSimple tab)
         {
-            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
+            if (_tabScreener.PositionsOpenAll.Count >= _maxPositions.ValueInt)
             {
                 return;
             }
 
-            if (SecuritiesToTrade.ValueString.Contains(tab.Security.Name) == false)
+            if (_securitiesToTrade.ValueString.Contains(tab.Security.Name) == false)
             {
                 return;
             }
 
             Aindicator zigZag = (Aindicator)tab.Indicators[0];
 
-            if (zigZag.ParametersDigit[0].Value != ZigZagChannelLen.ValueInt)
+            if (zigZag.ParametersDigit[0].Value != _zigZagChannelLen.ValueInt)
             {
-                zigZag.ParametersDigit[0].Value = ZigZagChannelLen.ValueInt;
+                zigZag.ParametersDigit[0].Value = _zigZagChannelLen.ValueInt;
                 zigZag.Save();
                 zigZag.Reload();
             }
@@ -332,6 +371,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles, BotTabSimple tab, Position position)
         {
             if (position.State != PositionStateType.Open
@@ -348,8 +388,8 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             decimal stop = 0;
             decimal stopWithSlippage = 0;
 
-            stop = lastClose - lastClose * (TrailStop.ValueDecimal / 100);
-            stopWithSlippage = stop - stop * (Slippage.ValueDecimal / 100);
+            stop = lastClose - lastClose * (_trailStop.ValueDecimal / 100);
+            stopWithSlippage = stop - stop * (_slippage.ValueDecimal / 100);
 
             if(stop > lastClose)
             {
@@ -377,18 +417,19 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -399,7 +440,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -409,7 +450,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -420,7 +461,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -435,7 +476,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -445,11 +486,11 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
@@ -468,6 +509,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             return volume;
         }
 
+        // Method for calculating sma
         private decimal Sma(List<Candle> candles, int len, int index)
         {
             if (candles.Count == 0

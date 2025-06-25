@@ -1,88 +1,95 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using OsEngine.Charts.CandleChart.Indicators;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Indicators;
-using OsEngine.Market.Servers;
-using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
+using System.Drawing;
 
 /* Description
-trading robot for osengine
+Trading robot for OsEngine.
 
-The trend robot on AD indicator divergence and price
+This trend-following robot detects divergence between price and the AD (Accumulation/Distribution) indicator using ZigZag patterns.
 
-Buy: 
-at the price, the minimum for a certain period of time is below the previous
-minimum, and on the indicator, the minimum is higher than the previous one.
+Buy conditions:
+1) Price forms a lower low based on ZigZag.
+2) AD indicator forms a higher low based on ZigZagAD.
+3) Divergence appears before the most recent AD high.
 
-Sell: 
-on the price the maximum for a certain period of time is higher than the 
-previous maximum, and on the indicator the maximum is lower than the previous one.
+Sell conditions:
+1) Price forms a higher high based on ZigZag.
+2) AD indicator forms a lower high based on ZigZagAD.
+3) Divergence appears before the most recent AD low.
 
-Exit: after n number of candles.
- 
- */
+Exit:
+Position is closed after a fixed number of candles (N bars) from entry.
+*/
 
-namespace OsEngine.Robots.Mybots
+namespace OsEngine.Robots
 {
-    // We create an attribute so that we don't write anything to the BotFactory
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     [Bot("ADDivergence")]
     public class ADDivergence : BotPanel
     {
+        // Reference to the main trading tab
         BotTabSimple _tab;
 
         // Basic Settings
-        StrategyParameterString _regime;
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
-        StrategyParameterDecimal _slippage;
-        StrategyParameterTimeOfDay _startTradeTime;
-        StrategyParameterTimeOfDay _endTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Setting indicator
-        StrategyParameterInt _fastLineLengthAO;
-        StrategyParameterInt _slowLineLengthAO;
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator
-        Aindicator _ZZ;
-        Aindicator _ZigZagAD;
+        // Indicators
+        private Aindicator _ZZ;
+        private Aindicator _ZigZagAD;
 
         // Divergence
-        StrategyParameterInt _lenghtZig;
-        StrategyParameterInt _lenghtZigAO;
+        private StrategyParameterInt _lenghtZig;
+        private StrategyParameterInt _lenghtZigAD;
 
-        // Exit 
-        StrategyParameterInt _exitCandlesCount;
+        // Exit setting
+        private StrategyParameterInt _exitCandlesCount;
 
         public ADDivergence(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
-            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Setting indicator
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Base");
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4, "Base");
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Base");
+
+            // Indicator settings
             _lenghtZig = CreateParameter("Period Zig", 30, 10, 300, 10, "Indicator");
-            _lenghtZigAO = CreateParameter("Period Zig AO", 30, 10, 300, 10, "Indicator");
+            _lenghtZigAD = CreateParameter("Period Zig AD", 30, 10, 300, 10, "Indicator");
 
-
-            // Create indicator ZigZagAO
+            // Create indicator ZigZagAD
             _ZigZagAD = IndicatorsFactory.CreateIndicatorByName("ZigZagAD", name + "ZigZagAD", false);
             _ZigZagAD = (Aindicator)_tab.CreateCandleIndicator(_ZigZagAD, "NewArea");
-            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAO.ValueInt;
+            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAD.ValueInt;
             _ZigZagAD.Save();
 
             // Create indicator ZigZag
@@ -91,7 +98,7 @@ namespace OsEngine.Robots.Mybots
             ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = _lenghtZig.ValueInt;
             _ZZ.Save();
 
-            // Exit
+            // Exit setting
             _exitCandlesCount = CreateParameter("Exit Candles", 10, 5, 1000, 10, "Exit");
 
             // Subscribe to the indicator update event
@@ -100,18 +107,24 @@ namespace OsEngine.Robots.Mybots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on AD indicator divergence and price. " +
-                "Buy: at the price, the minimum for a certain period of time is below the previous minimum," +
-                " and on the indicator, the minimum is higher than the previous one. " +
-                "Sell: on the price the maximum for a certain period of time is higher than the previous maximum," +
-                " and on the indicator the maximum is lower than the previous one." +
-                "Exit: after n number of candles.";
+            Description = "Trading robot for OsEngine." +
+                "This trend-following robot detects divergence between price and the AD (Accumulation/Distribution) indicator using ZigZag patterns." +
+                "Buy conditions:" +
+                "1) Price forms a lower low based on ZigZag." +
+                "2) AD indicator forms a higher low based on ZigZagAD." +
+                "3) Divergence appears before the most recent AD high." +
+                "Sell conditions:" +
+                "1) Price forms a higher high based on ZigZag." +
+                "2) AD indicator forms a lower high based on ZigZagAD." +
+                "3) Divergence appears before the most recent AD low." +
+                "Exit:" +
+                "Position is closed after a fixed number of candles (N bars) from entry.";
         }
 
         // Indicator Update event
         private void ADDivergence_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAO.ValueInt;
+            ((IndicatorParameterInt)_ZigZagAD.Parameters[0]).ValueInt = _lenghtZigAD.ValueInt;
             _ZigZagAD.Save();
             _ZigZagAD.Reload();
 
@@ -125,6 +138,7 @@ namespace OsEngine.Robots.Mybots
         {
             return "ADDivergence";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -159,6 +173,7 @@ namespace OsEngine.Robots.Mybots
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -177,12 +192,11 @@ namespace OsEngine.Robots.Mybots
             List<decimal> zzADLow = _ZigZagAD.DataSeries[4].Values;
             List<decimal> zzADHigh = _ZigZagAD.DataSeries[3].Values;
 
-
             if (openPositions == null || openPositions.Count == 0)
             {
-
                 decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
                 decimal lastPrice = candles[candles.Count - 1].Close;
+
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
@@ -201,11 +215,11 @@ namespace OsEngine.Robots.Mybots
                         var time = candles.Last().TimeStart;
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage, time.ToString());
                     }
-
                 }
                 return;
             }
         }
+
         //  logic close position
         private void LogicClosePosition(List<Candle> candles)
         {
@@ -231,11 +245,11 @@ namespace OsEngine.Robots.Mybots
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
                     _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     _tab.CloseAtLimit(pos, lastPrice + _slippage, pos.OpenVolume);
                 }
@@ -316,10 +330,12 @@ namespace OsEngine.Robots.Mybots
             }
 
             decimal cntLow = 0;
+
             if (zzLowOne < zzLowTwo && zzLowOne != 0 && indexTwo < indexHigh)
             {
                 cntLow++;
             }
+
             if (zzADLowOne > zzADLowTwo && zzADLowOne != 0)
             {
                 cntLow++;
@@ -340,9 +356,7 @@ namespace OsEngine.Robots.Mybots
             decimal zzADHighTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexLow = 0;
 
             for (int i = zzADLow.Count - 1; i >= 0; i--)
@@ -408,10 +422,12 @@ namespace OsEngine.Robots.Mybots
             }
 
             decimal cntHigh = 0;
+
             if (zzHighOne > zzHighTwo && zzHighTwo != 0 && indexTwo < indexLow)
             {
                 cntHigh++;
             }
+
             if (zzADHighOne < zzADHighTwo && zzADHighOne != 0)
             {
                 cntHigh++;
@@ -420,6 +436,32 @@ namespace OsEngine.Robots.Mybots
             if (cntHigh == 2)
             {
                 return true;
+            }
+            return false;
+        }
+
+        private bool NeedClosePosition(Position position, List<Candle> candles)
+        {
+            if (position == null || position.OpenVolume == 0)
+            {
+                return false;
+            }
+
+            DateTime openTime = DateTime.Parse(position.SignalTypeOpen);
+
+            int counter = 0;
+
+            for (int i = candles.Count - 1; i >= 0; i--)
+            {
+                counter++;
+                DateTime candelTime = candles[i].TimeStart;
+                if (candelTime == openTime)
+                {
+                    if (counter >= _exitCandlesCount.ValueInt + 1)
+                    {
+                        return true;
+                    }
+                }
             }
             return false;
         }
@@ -515,32 +557,5 @@ namespace OsEngine.Robots.Mybots
 
             return volume;
         }
-
-        private bool NeedClosePosition(Position position, List<Candle> candles)
-        {
-            if (position == null || position.OpenVolume == 0)
-            {
-                return false;
-            }
-
-            DateTime openTime = DateTime.Parse(position.SignalTypeOpen);
-
-            int counter = 0;
-
-            for (int i = candles.Count - 1; i >= 0; i--)
-            {
-                counter++;
-                DateTime candelTime = candles[i].TimeStart;
-                if (candelTime == openTime)
-                {
-                    if (counter >= _exitCandlesCount.ValueInt + 1)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
     }
 }
-

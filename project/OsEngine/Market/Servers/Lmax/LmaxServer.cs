@@ -176,10 +176,11 @@ namespace OsEngine.Market.Servers.Lmax
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             string securityId = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameId;
             _client.CancelOrder(securityId, order);
+            return true;
         }
 
         /// <summary>
@@ -196,9 +197,9 @@ namespace OsEngine.Market.Servers.Lmax
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         /// <summary>
@@ -516,5 +517,8 @@ namespace OsEngine.Market.Servers.Lmax
         /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
     }
 }

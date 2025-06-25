@@ -117,4 +117,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot.Entity
         public string feeCoin;
         public string totalFee;
     }
+
+    public class TradeData
+    {
+        public string symbol { get; set; }
+        public string tradeId { get; set; }
+        public string side { get; set; }
+        public string price { get; set; }
+        public string size { get; set; }
+        public string ts { get; set; }
+    }
 }

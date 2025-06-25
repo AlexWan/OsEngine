@@ -1,4 +1,4 @@
-![image](https://github.com/AlexWan/OsEngine/assets/26077466/dd61c155-6d9b-46ff-864a-f902130f9e01)
+![image](https://github.com/user-attachments/assets/b6bf4744-8e63-4cf3-8910-d0ca57ffd427)
 
 # Open Source Algo Trading Platform
 

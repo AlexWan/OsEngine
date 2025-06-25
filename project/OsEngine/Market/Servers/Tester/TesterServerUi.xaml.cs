@@ -1549,6 +1549,8 @@ namespace OsEngine.Market.Servers.Tester
                 ProgressBar.Minimum = (_server.TimeMin - DateTime.MinValue).TotalMinutes;
                 ProgressBar.Value = (_server.TimeNow - DateTime.MinValue).TotalMinutes;
 
+                int displayedRow = _securitiesGrid.FirstDisplayedScrollingRowIndex;
+
                 _securitiesGrid.Rows.Clear();
 
                 List<SecurityTester> securities = _server.SecuritiesTester;
@@ -1628,6 +1630,12 @@ namespace OsEngine.Market.Servers.Tester
 
                 SliderFrom.ValueChanged += SliderFrom_ValueChanged;
                 SliderTo.ValueChanged += SliderTo_ValueChanged;
+
+                if(displayedRow > 0
+                    && displayedRow < _securitiesGrid.Rows.Count)
+                {
+                    _securitiesGrid.FirstDisplayedScrollingRowIndex = displayedRow;
+                }
             }
             catch (Exception error)
             {
@@ -1690,6 +1698,7 @@ namespace OsEngine.Market.Servers.Tester
             if (ui.IsChanged)
             {
                 _server.SaveSecurityDopSettings(security);
+                PaintGrid();
             }
         }
 

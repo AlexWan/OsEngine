@@ -1318,7 +1318,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             return orders;
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1331,12 +1331,12 @@ namespace OsEngine.Market.Servers.FinamGrpc
             {
                 string message = GetGRPCErrorMessage(ex);
                 SendLogMessage($"Cancel order request error. Info: {message}", LogMessageType.Error);
-                return;
+                return false;
             }
             catch (Exception exception)
             {
                 SendLogMessage($"Cancel order request error: {exception.Message}", LogMessageType.Error);
-                return;
+                return false;
             }
 
             if (orderCancelResponse != null)
@@ -1344,7 +1344,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 order.State = GetOrderStateType(orderCancelResponse.Status);
 
                 MyOrderEvent?.Invoke(order);
+                return true;
             }
+            return false;
         }
 
         public void GetOrderStatus(Order order)
@@ -1520,7 +1522,14 @@ namespace OsEngine.Market.Servers.FinamGrpc
             LogMessageEvent?.Invoke(message, messageType);
         }
 
+        OrderStateType IServerRealization.GetOrderStatus(Order order)
+        {
+            throw new NotImplementedException();
+        }
+
         public event Action<string, LogMessageType> LogMessageEvent;
+        public event Action<Funding> FundingUpdateEvent;
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
         #endregion
     }
 }

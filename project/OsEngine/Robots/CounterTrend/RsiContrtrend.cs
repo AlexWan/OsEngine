@@ -14,6 +14,10 @@ using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
+using OsEngine.Indicators;
+
 /* Description
 Overbought / Oversold RSI Countertrend Strategy with Trend Filtering via MovingAverage
 Buy:
@@ -25,139 +29,115 @@ Sale:
 Exit:
 By return signal
 */
+
 namespace OsEngine.Robots.CounterTrend
 {
-    /// <summary>
-    /// Overbought / Oversold RSI countertrend Strategy with Trend Filtering via MovingAverage
-    /// контртрендовая стратегия по перекупленности / перепроданности RSI с фильтром по тренду через MovingAverage
-    /// </summary>
-    [Bot("RsiContrtrend")]
+    [Bot("RsiContrtrend")] // We create an attribute so that we don't write anything to the BotFactory
     public class RsiContrtrend : BotPanel
     {
-        public RsiContrtrend(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        // Tab to trade
+        private BotTabSimple _tab;
+
+        // Basic settings
+        public decimal _slippage;
+        public BotTradeRegime _regime;
+        
+        // GetVolume settings
+        public decimal _volume;
+        public string _volumeType;
+        public string _tradeAssetInPortfolio;
+        
+        // Indicator
+        private Aindicator _sma;
+        private Aindicator _rsi;
+
+        // Up and Down line on Rsi
+        public LineHorisontal _upline;
+        public LineHorisontal _downline;
+
+        // The last value of the indicator and price
+        private decimal _lastPrice;
+        private decimal _lastSma;
+        private decimal _lastRsi;
+
+        public RsiContrtrend(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _ma = new MovingAverage(name + "MA", false) { Length = 50, ColorBase = Color.CornflowerBlue, };
-            _ma = (MovingAverage)_tab.CreateCandleIndicator(_ma, "Prime");
+            // Create indicator Sma
+            _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma", false);
+            _sma = (Aindicator)_tab.CreateCandleIndicator(_sma, "Prime");
+            ((IndicatorParameterInt)_sma.Parameters[0]).ValueInt = 50;
+            _sma.DataSeries[0].Color = Color.CornflowerBlue;
+            _sma.Save();
 
-            _rsi = new Rsi(name + "RSI", false) { Length = 20, ColorBase = Color.Gold, };
-            _rsi = (Rsi)_tab.CreateCandleIndicator(_rsi, "RsiArea");
+            // Create indicator RSI
+            _rsi = IndicatorsFactory.CreateIndicatorByName("RSI", name + "RSI", false);
+            _rsi = (Aindicator)_tab.CreateCandleIndicator(_rsi, "RsiArea");
+            ((IndicatorParameterInt)_rsi.Parameters[0]).ValueInt = 20;
+            _rsi.DataSeries[0].Color = Color.Gold;
+            _rsi.Save();
 
-            Upline = new LineHorisontal("upline", "RsiArea", false)
+            _upline = new LineHorisontal("upline", "RsiArea", false)
             {
                 Color = Color.Green,
                 Value = 0,
             };
-            _tab.SetChartElement(Upline);
+            _tab.SetChartElement(_upline);
+            _upline.TimeEnd = DateTime.Now;
 
-            Downline = new LineHorisontal("downline", "RsiArea", false)
+            _downline = new LineHorisontal("downline", "RsiArea", false)
             {
                 Color = Color.Yellow,
                 Value = 0
 
             };
-            _tab.SetChartElement(Downline);
-
-            _rsi.Save();
-            _ma.Save();
+            _tab.SetChartElement(_downline);
+            _downline.TimeEnd = DateTime.Now;
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
+            
+            DeleteEvent += Strategy_DeleteEvent;
 
-            Slippage = 0;
-            VolumeFix = 1;
-            Upline.Value = 65;
-            Downline.Value = 35;
-
+            _volumeType = "Deposit percent";
+            _slippage = 0;
+            _volume = 1;
+            _upline.Value = 65;
+            _downline.Value = 35;
 
             Load();
-
-            Upline.TimeEnd = DateTime.Now;
-            Downline.TimeEnd = DateTime.Now;
-
-            DeleteEvent += Strategy_DeleteEvent;
 
             Description = OsLocalization.Trader.Label299;
         }
 
-        /// <summary>
-        /// uniq name
-        /// взять уникальное имя
-        /// </summary>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "RsiContrtrend";
         }
-        /// <summary>
-        /// show settings GUI
-        /// показать окно настроек
-        /// </summary>
+
+        // show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             RsiContrtrendUi ui = new RsiContrtrendUi(this);
             ui.ShowDialog();
         }
 
-        /// <summary>
-        /// tab to trade
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        private MovingAverage _ma;
-
-        private Rsi _rsi;
-
-        // settings / настройки публичные
-
-        /// <summary>
-        /// slippage
-        /// проскальзывание
-        /// </summary>
-        public decimal Slippage;
-
-        /// <summary>
-        /// volume
-        /// фиксированный объем для входа
-        /// </summary>
-        public decimal VolumeFix;
-
-        /// <summary>
-        /// regime
-        /// режим работы
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// up line
-        /// верхняя линия для отрисовки
-        /// </summary>
-        public LineHorisontal Upline;
-
-        /// <summary>
-        /// down line
-        /// нижняя линия для отрисовки
-        /// </summary>
-        public LineHorisontal Downline;
-
-        /// <summary>
-        /// save settings
-        /// сохранить настройки
-        /// </summary>
+        // save settings in .txt file
         public void Save()
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
-                    )
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false))
                 {
-                    writer.WriteLine(Regime);
-                    writer.WriteLine(Slippage);
-                    writer.WriteLine(VolumeFix);
-                    writer.WriteLine(Upline.Value);
-                    writer.WriteLine(Downline.Value);
+                    writer.WriteLine(_regime);
+                    writer.WriteLine(_volumeType);
+                    writer.WriteLine(_tradeAssetInPortfolio);
+                    writer.WriteLine(_slippage);
+                    writer.WriteLine(_volume);
+                    writer.WriteLine(_upline.Value);
+                    writer.WriteLine(_downline.Value);
 
                     writer.Close();
                 }
@@ -168,10 +148,7 @@ namespace OsEngine.Robots.CounterTrend
             }
         }
 
-        /// <summary>
-        /// load settins
-        /// загрузить настройки
-        /// </summary>
+        // load settins from .txt file
         private void Load()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -182,11 +159,13 @@ namespace OsEngine.Robots.CounterTrend
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
-                    Enum.TryParse(reader.ReadLine(), true, out Regime);
-                    Slippage = Convert.ToDecimal(reader.ReadLine());
-                    VolumeFix = Convert.ToDecimal(reader.ReadLine());
-                    Upline.Value = Convert.ToDecimal(reader.ReadLine());
-                    Downline.Value = Convert.ToDecimal(reader.ReadLine());
+                    Enum.TryParse(reader.ReadLine(), true, out _regime);
+                    _volumeType =Convert.ToString(reader.ReadLine());
+                    _tradeAssetInPortfolio = Convert.ToString(reader.ReadLine());
+                    _slippage = Convert.ToDecimal(reader.ReadLine());
+                    _volume = Convert.ToDecimal(reader.ReadLine());
+                    _upline.Value = Convert.ToDecimal(reader.ReadLine());
+                    _downline.Value = Convert.ToDecimal(reader.ReadLine());
                     reader.Close();
                 }
             }
@@ -196,10 +175,7 @@ namespace OsEngine.Robots.CounterTrend
             }
         }
 
-        /// <summary>
-        /// delete save file
-        /// удаление файла с сохранением
-        /// </summary>
+        // delete save file
         void Strategy_DeleteEvent()
         {
             if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -208,38 +184,28 @@ namespace OsEngine.Robots.CounterTrend
             }
         }
 
-        private decimal _lastPrice;
-        private decimal _lastMa;
-        private decimal _lastRsi;
-
-
-        // logic логика
-
-        /// <summary>
-        /// candle finished event
-        /// событие завершения свечи
-        /// </summary>
+        // logic
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime == BotTradeRegime.Off)
+            if (_regime == BotTradeRegime.Off)
             {
                 return;
             }
 
-            if (_ma.Values == null || _rsi.Values == null)
+            if (_sma.DataSeries[0].Values == null || _rsi.DataSeries[0].Values == null)
             {
                 return;
             }
 
             _lastPrice = candles[candles.Count - 1].Close;
-            _lastMa = _ma.Values[_ma.Values.Count - 1];
-            _lastRsi = _rsi.Values[_rsi.Values.Count - 1];
+            _lastSma = _sma.DataSeries[0].Last;
+            _lastRsi = _rsi.DataSeries[0].Last;
 
 
-            if (_ma.Values.Count < _ma.Length + 1 || _rsi.Values == null || _rsi.Values.Count < _rsi.Length + 5)
+            if (_sma.DataSeries[0].Values.Count < ((IndicatorParameterInt)_sma.Parameters[0]).ValueInt + 1 || 
+                _rsi.DataSeries[0].Values == null || _rsi.DataSeries[0].Values.Count < ((IndicatorParameterInt)_rsi.Parameters[0]).ValueInt + 5)
             {
                 return;
-
             }
 
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -250,63 +216,147 @@ namespace OsEngine.Robots.CounterTrend
                 {
                     LogicClosePosition(candles, openPositions[i]);
 
-                    Upline.Refresh();
-                    Downline.Refresh();
+                    _upline.Refresh();
+                    _downline.Refresh();
                 }
             }
 
-            if (Regime == BotTradeRegime.OnlyClosePosition)
+            if (_regime == BotTradeRegime.OnlyClosePosition)
             {
                 return;
             }
+
             if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles, openPositions);
             }
         }
 
-        /// <summary>
-        /// logic open position
-        /// логика открытия первой позиции
-        /// </summary>
+        // logic open position
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
             decimal lastClose = candles[candles.Count - 1].Close;
-            if (_lastMa > lastClose && _lastRsi > Upline.Value && Regime != BotTradeRegime.OnlyLong)
+            if (_lastSma > lastClose && _lastRsi > _upline.Value && _regime != BotTradeRegime.OnlyLong)
             {
-                _tab.SellAtLimit(VolumeFix, _lastPrice - Slippage);
+                _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _slippage);
             }
-            if (_lastMa < lastClose && _lastRsi < Downline.Value && Regime != BotTradeRegime.OnlyShort)
+            if (_lastSma < lastClose && _lastRsi < _downline.Value && _regime != BotTradeRegime.OnlyShort)
             {
-                _tab.BuyAtLimit(VolumeFix, _lastPrice + Slippage);
+                _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _slippage);
             }
         }
 
-        /// <summary>
-        /// logic close position
-        /// логика зыкрытия позиции и открытие по реверсивной системе
-        /// </summary>
+        // logic close position
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             decimal lastClose = candles[candles.Count - 1].Close;
             if (position.Direction == Side.Buy)
             {
-                if (lastClose < _lastMa || _lastRsi > Upline.Value)
+                if (lastClose < _lastSma || _lastRsi > _upline.Value)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice - Slippage, position.OpenVolume);
+                    _tab.CloseAtLimit(position, _lastPrice - _slippage, position.OpenVolume);
 
                 }
             }
             if (position.Direction == Side.Sell)
             {
-                if (lastClose > _lastMa || _lastRsi < Downline.Value)
+                if (lastClose > _lastSma || _lastRsi < _downline.Value)
                 {
-                    _tab.CloseAtLimit(position, _lastPrice + Slippage, position.OpenVolume);
-
+                    _tab.CloseAtLimit(position, _lastPrice + _slippage, position.OpenVolume);
                 }
             }
         }
 
-    }
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
 
+            if (_volumeType == "Contracts")
+            {
+                volume = _volume;
+            }
+            else if (_volumeType == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
+        }
+    }
 }

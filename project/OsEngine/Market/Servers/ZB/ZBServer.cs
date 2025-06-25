@@ -2,6 +2,7 @@
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
+using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.ZB.EntityCreators;
 using OsEngine.Market.Services;
@@ -268,9 +269,9 @@ namespace OsEngine.Market.Servers.ZB
 
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
-
+            return OrderStateType.None;
         }
 
         private void StartMessageReader()
@@ -441,7 +442,7 @@ namespace OsEngine.Market.Servers.ZB
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             JsonObject jsonContent = new JsonObject();
 
@@ -456,6 +457,7 @@ namespace OsEngine.Market.Servers.ZB
             jsonContent.Add("sign", sign);
 
             _wsSource?.SendMessage(jsonContent.ToString());
+            return true;
         }
 
         private string SingData(string secretKey, string data)
@@ -619,6 +621,10 @@ namespace OsEngine.Market.Servers.ZB
         }
 
         public event Action<News> NewsEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
     }
 }
 

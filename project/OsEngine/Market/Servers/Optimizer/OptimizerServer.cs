@@ -1404,6 +1404,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public event Action<Order> NewOrderIncomeEvent;
 
+        public event Action<Order> CancelOrderFailEvent;
+
         #endregion
 
         #region Orders 3. Internal operations of the "exchange" on orders
@@ -2166,6 +2168,12 @@ namespace OsEngine.Market.Servers.Optimizer
         private Log _logMaster;
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+        public event Action<Funding> NewFundingEvent;
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
 
         #endregion
     }

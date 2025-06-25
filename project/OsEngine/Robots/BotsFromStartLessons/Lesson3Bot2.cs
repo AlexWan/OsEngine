@@ -1,44 +1,76 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license http://o-s-a.net/doc/license_simple_engine.pdf
+ *Ваши права на использования кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Robot-example from the course of lectures "C# for algotreader".
+the robot is called when the candle is closed.
+
+Buy:
+if low-value from Last Candle < Sma and close-value from Last Candle > Sma. Buy At Limit.
+
+Sell:
+position is open and close-value from Last Candle < sma. Close At Market.
+ */
+
 namespace OsEngine.Robots.BotsFromStartLessons
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
+    // Вместо того, чтобы добавлять вручную через BotFactory, мы используем атрибут для упрощения процесса.
     [Bot("Lesson3Bot2")]
     public class Lesson3Bot2 : BotPanel
-    {
-        BotTabSimple _tabToTrade;
+    {   
+        // Reference to the main trading tab
+        // Ссылка на главную вкладку 
+        private BotTabSimple _tabToTrade;
 
-        StrategyParameterString _regime;
+        // Basic settings
+        // Базовые настройки
+        private StrategyParameterString _mode;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterDecimal _slippage;
 
-        StrategyParameterDecimal _volume;
-
-        StrategyParameterDecimal _slippage;
-
-        Aindicator _sma;
+        // Indicator
+        private Aindicator _sma;
 
         public Lesson3Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
+            // Создаём главную вкладку для торговли
             TabCreate(BotTabType.Simple);
             _tabToTrade = TabsSimple[0];
-            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            // Basic settings
+            // Базовые настройки
+            _mode = CreateParameter("Mode", "Off", new[] { "Off", "On" });
             _volume = CreateParameter("Volume", 10m, 1, 10, 1);
             _slippage = CreateParameter("Slippage percent", 0.1m, 0, 10, 1);
 
+            // Indicator Sma
             _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma", false);
             _sma = (Aindicator)_tabToTrade.CreateCandleIndicator(_sma, "Prime");
+
+            _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
+                "the robot is called when the candle is closed." +
+                "Buy: if low-value from Last Candle < Sma and close-value from Last Candle > Sma. Buy At Limit." +
+                "Sell: position is open and close-value from Last Candle < sma. Close At Market.";
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
         {
-            // вызывается на каждой новой свече
-
-            if (_regime.ValueString == "Off")
+            // called on each new candle
+            // вызывается перед каждой новой свечой
+            if (_mode.ValueString == "Off")
             {
                 return;
             }
@@ -51,7 +83,10 @@ namespace OsEngine.Robots.BotsFromStartLessons
             List<Position> positions = _tabToTrade.PositionsOpenAll;
 
             if (positions.Count == 0)
-            {// открытие позиции
+            {
+                // opening the position 
+                // открытие позиции
+
                 decimal valueSma = _sma.DataSeries[0].Last;
 
                 if (valueSma == 0)
@@ -65,13 +100,16 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                 if (lowLastCandle < valueSma
                     && closeLastCandle > valueSma)
-                {// событие открытия позиции произошло
+                {
                     decimal entryPrice = closeLastCandle + closeLastCandle * (_slippage.ValueDecimal / 100);
                     _tabToTrade.BuyAtLimit(_volume.ValueDecimal, entryPrice);
                 }
             }
             else
-            { // закрытие позиции
+            {
+                // closing the position
+                // закрытие позиции
+
                 decimal valueSma = _sma.DataSeries[0].Last;
                 if (valueSma == 0)
                 {
@@ -80,7 +118,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                 Candle lastCandle = candles[candles.Count - 1];
                 decimal closeLastCandle = lastCandle.Close;
-                Position position = positions[0]; // берём позицию из массива
+                Position position = positions[0];
 
                 if (closeLastCandle < valueSma)
                 {

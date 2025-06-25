@@ -313,7 +313,19 @@ namespace OsEngine.Market.Servers.AE
                 newTrade.SecurityNameCode = q.Ticker;
                 newTrade.Side = q.LastVolume > 0 ? Side.Buy : Side.Sell;
 
-                if (q.Ask != null)
+                if (q.Volatility != null) // needs to be before orderbook so MarkIV already available
+                {
+                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                    data.MarkIV = q.Volatility.ToString();
+                    data.SecurityName = q.Ticker;
+                    data.TimeCreate = new DateTimeOffset(q.Timestamp).ToUnixTimeMilliseconds().ToString();
+                    data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
+
+                    AdditionalMarketDataEvent!(data);
+                }
+
+                if (q.Ask != null) // orderbook DTO construction
                 {
                     newTrade.Ask = q.Ask ?? 0;
                     newTrade.AsksVolume = q.AskVolume ?? 0;
@@ -333,7 +345,7 @@ namespace OsEngine.Market.Servers.AE
                     newMarketDepth.Bids.Add(bidLevel);
 
                     newMarketDepth.SecurityNameCode = q.Ticker;
-                    newMarketDepth.Time = DateTime.UtcNow;
+                    newMarketDepth.Time = q.Timestamp;
 
                     if (newMarketDepth.Time == _lastMDTime)
                     {
@@ -343,18 +355,6 @@ namespace OsEngine.Market.Servers.AE
                     _lastMDTime = newMarketDepth.Time;
 
                     MarketDepthEvent!(newMarketDepth);
-                }
-
-                if (q.Volatility != null)
-                {
-                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
-
-                    data.MarkIV = q.Volatility.ToString();
-                    data.SecurityName = q.Ticker;
-                    data.TimeCreate = q.Timestamp.ToString();
-                    data.UnderlyingAsset = sec?.UnderlyingAsset ?? "";
-
-                    AdditionalMarketDataEvent(data);
                 }
 
                 NewTradesEvent!(newTrade);
@@ -625,13 +625,6 @@ namespace OsEngine.Market.Servers.AE
             {
                 _ws.Send(json);
             }
-        }
-
-        private enum SslProtocolsHack
-        {
-            Tls = 192,
-            Tls11 = 768,
-            Tls12 = 3072
         }
 
         private void CreateWebSocketConnection()
@@ -1031,7 +1024,7 @@ namespace OsEngine.Market.Servers.AE
         {
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateCancelOrder.WaitToProceed();
 
@@ -1048,6 +1041,7 @@ namespace OsEngine.Market.Servers.AE
             {
                 SendLogMessage("Order cancel request error " + exception.ToString(), LogMessageType.Error);
             }
+            return true;
         }
 
         public void GetOrdersState(List<Order> orders)
@@ -1109,8 +1103,9 @@ namespace OsEngine.Market.Servers.AE
             });
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
+            return OrderStateType.None;
         }
 
         #endregion
@@ -1155,6 +1150,10 @@ namespace OsEngine.Market.Servers.AE
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

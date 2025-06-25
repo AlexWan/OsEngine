@@ -628,6 +628,9 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 case 120:
                     needTf = "2h";
                     break;
+                case 240:
+                    needTf = "4h";
+                    break;
                 case 1440:
                     needTf = "1d";
                     break;
@@ -2218,7 +2221,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             lock (_lockOrder)
             {
@@ -2237,7 +2240,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 MyOrderEvent(order);
                             }
-                            return;
+                            return true;
                         }
                         else if (onBoard.State == OrderStateType.Cancel)
                         {
@@ -2247,7 +2250,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 MyOrderEvent(order);
                             }
-                            return;
+                            return true;
                         }
                         else if (onBoard.State == OrderStateType.Fail)
                         {
@@ -2257,7 +2260,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 MyOrderEvent(order);
                             }
-                            return;
+                            return true;
                         }
 
                         order.NumberMarket = onBoard.NumberMarket;
@@ -2287,6 +2290,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
                 {
                     SendLogMessage(ex.ToString(), LogMessageType.Error);
                 }
+                return true;
             }
         }
 
@@ -2401,13 +2405,13 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             List<Order> allSecurityOrders = GetAllOrdersToSecurity(order.SecurityNameCode);
 
             if (allSecurityOrders == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             Order myOrderActualOnBoard = null;
@@ -2435,7 +2439,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             if (myOrderActualOnBoard == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             if (MyOrderEvent != null)
@@ -2460,6 +2464,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
                     }
                 }
             }
+
+            return myOrderActualOnBoard.State;
         }
 
         public void CancelAllOrdersToSecurity(Security security)
@@ -2841,6 +2847,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

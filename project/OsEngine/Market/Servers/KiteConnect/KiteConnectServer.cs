@@ -1647,7 +1647,7 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
-        public void CancelOrder(Order order)
+        public bool CancelOrder(Order order)
         {
             _rateGateOrder.WaitToProceed();
 
@@ -1667,11 +1667,16 @@ namespace OsEngine.Market.Servers.KiteConnect
                     SendLogMessage("Cancel order failed. Status: "
                          + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
                 }
+                else
+                {
+                    return true;
+                }
             }
             catch (Exception exception)
             {
                 SendLogMessage("Cancel order failed " + exception.ToString(), LogMessageType.Error);
             }
+            return false;
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -1753,13 +1758,13 @@ namespace OsEngine.Market.Servers.KiteConnect
             }
         }
 
-        public void GetOrderStatus(Order order)
+        public OrderStateType GetOrderStatus(Order order)
         {
             Order myOrder = GetOrderFromExchange(order.NumberUser.ToString());
 
             if (myOrder == null)
             {
-                return;
+                return OrderStateType.None;
             }
 
             MyOrderEvent?.Invoke(myOrder);
@@ -1768,6 +1773,8 @@ namespace OsEngine.Market.Servers.KiteConnect
             {
                 FindMyTradesToOrder(myOrder);
             }
+
+            return myOrder.State;
         }
 
         private List<Order> GetAllOpenOrders()
@@ -2120,6 +2127,10 @@ namespace OsEngine.Market.Servers.KiteConnect
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion 12
     }

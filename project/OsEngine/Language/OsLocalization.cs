@@ -299,5 +299,7 @@ namespace OsEngine.Language
 
         public static TraderLocal Trader = new TraderLocal();
 
+        public static HintMessage Message = new HintMessage();
+
     }
 }

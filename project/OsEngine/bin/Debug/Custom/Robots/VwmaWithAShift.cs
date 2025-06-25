@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using OsEngine.Charts.CandleChart.Indicators;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -18,10 +24,9 @@ Buy: Fast Vwma is higher than slow Vwma.
 Sell: Fast Vwma is lower than slow Vwma.
 
 Exit: stop and profit in % of the entry price.
-
 */
 
-namespace OsEngine.Robots.Vwma
+namespace OsEngine.Robots
 {
     [Bot("VwmaWithAShift")] // We create an attribute so that we don't write anything to the BotFactory
     public class VwmaWithAShift : BotPanel
@@ -29,65 +34,71 @@ namespace OsEngine.Robots.Vwma
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Setting indicator
-        private StrategyParameterInt PeriodVwmaFast;
-        private StrategyParameterInt PeriodOvwmaSlow;
-        private StrategyParameterInt Offset;
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _periodVwmaFast;
+        private StrategyParameterInt _periodOvwmaSlow;
+        private StrategyParameterInt _offset;
 
         // Indicator
-        private Aindicator _VwmaFast;
-        private Aindicator _OvwmaSlow;
+        private Aindicator _vwmaFast;
+        private Aindicator _oVwmaSlow;
 
         // The last value of the indicators
         private decimal _lastVwmaFast;
         private decimal _lastOvwmaSlow;
 
-        // Exit
-        private StrategyParameterDecimal StopValue;
-        private StrategyParameterDecimal ProfitValue;
+        // Exit settings
+        private StrategyParameterDecimal _stopValue;
+        private StrategyParameterDecimal _profitValue;
 
         public VwmaWithAShift(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Setting indicator
-            PeriodVwmaFast = CreateParameter("Period Vwma Fast", 100, 10, 300, 10, "Indicator");
-            PeriodOvwmaSlow = CreateParameter("Period Vwma Slow", 200, 10, 300, 10, "Indicator");
-            Offset = CreateParameter("Offset", 3, 1, 20, 1, "Indicator");
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Indicator settings
+            _periodVwmaFast = CreateParameter("Period Vwma Fast", 100, 10, 300, 10, "Indicator");
+            _periodOvwmaSlow = CreateParameter("Period Vwma Slow", 200, 10, 300, 10, "Indicator");
+            _offset = CreateParameter("Offset", 3, 1, 20, 1, "Indicator");
 
             // Create indicator VwmaFast
-            _VwmaFast = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "VwmaFast", false);
-            _VwmaFast = (Aindicator)_tab.CreateCandleIndicator(_VwmaFast, "Prime");
-            ((IndicatorParameterInt)_VwmaFast.Parameters[0]).ValueInt = PeriodVwmaFast.ValueInt;
-            _VwmaFast.Save();
+            _vwmaFast = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "VwmaFast", false);
+            _vwmaFast = (Aindicator)_tab.CreateCandleIndicator(_vwmaFast, "Prime");
+            ((IndicatorParameterInt)_vwmaFast.Parameters[0]).ValueInt = _periodVwmaFast.ValueInt;
+            _vwmaFast.Save();
 
             // Create indicator VwmaSlow
-            _OvwmaSlow = IndicatorsFactory.CreateIndicatorByName("OffsetVwma", name + "OsmaSlow", false);
-            _OvwmaSlow = (Aindicator)_tab.CreateCandleIndicator(_OvwmaSlow, "Prime");
-            _OvwmaSlow.DataSeries[0].Color = System.Drawing.Color.Yellow;
-            ((IndicatorParameterInt)_OvwmaSlow.Parameters[0]).ValueInt = PeriodOvwmaSlow.ValueInt;
-            ((IndicatorParameterInt)_OvwmaSlow.Parameters[1]).ValueInt = Offset.ValueInt;
-            _OvwmaSlow.Save();
+            _oVwmaSlow = IndicatorsFactory.CreateIndicatorByName("OffsetVwma", name + "OsmaSlow", false);
+            _oVwmaSlow = (Aindicator)_tab.CreateCandleIndicator(_oVwmaSlow, "Prime");
+            _oVwmaSlow.DataSeries[0].Color = System.Drawing.Color.Yellow;
+            ((IndicatorParameterInt)_oVwmaSlow.Parameters[0]).ValueInt = _periodOvwmaSlow.ValueInt;
+            ((IndicatorParameterInt)_oVwmaSlow.Parameters[1]).ValueInt = _offset.ValueInt;
+            _oVwmaSlow.Save();
 
-            // Exit
-            StopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
-            ProfitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
+            // Exit settings
+            _stopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
+            _profitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += VwmaWithAShift_ParametrsChangeByUser;
@@ -104,13 +115,13 @@ namespace OsEngine.Robots.Vwma
         // Indicator Update event
         private void VwmaWithAShift_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_VwmaFast.Parameters[0]).ValueInt = PeriodVwmaFast.ValueInt;
-            _VwmaFast.Save();
-            _VwmaFast.Reload();
-            ((IndicatorParameterInt)_OvwmaSlow.Parameters[0]).ValueInt = PeriodOvwmaSlow.ValueInt;
-            ((IndicatorParameterInt)_OvwmaSlow.Parameters[1]).ValueInt = Offset.ValueInt;
-            _OvwmaSlow.Save();
-            _OvwmaSlow.Reload();
+            ((IndicatorParameterInt)_vwmaFast.Parameters[0]).ValueInt = _periodVwmaFast.ValueInt;
+            _vwmaFast.Save();
+            _vwmaFast.Reload();
+            ((IndicatorParameterInt)_oVwmaSlow.Parameters[0]).ValueInt = _periodOvwmaSlow.ValueInt;
+            ((IndicatorParameterInt)_oVwmaSlow.Parameters[1]).ValueInt = _offset.ValueInt;
+            _oVwmaSlow.Save();
+            _oVwmaSlow.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -118,7 +129,6 @@ namespace OsEngine.Robots.Vwma
         {
             return "VwmaWithAShift";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -127,27 +137,24 @@ namespace OsEngine.Robots.Vwma
         // Candle Finished Event
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodVwmaFast.ValueInt || candles.Count < PeriodOvwmaSlow.ValueInt)
+            if (candles.Count < _periodVwmaFast.ValueInt || candles.Count < _periodOvwmaSlow.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
-
-
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -158,10 +165,11 @@ namespace OsEngine.Robots.Vwma
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -177,25 +185,26 @@ namespace OsEngine.Robots.Vwma
             if (openPositions == null || openPositions.Count == 0)
             {
                 // The last value of the indicators
-                _lastVwmaFast = _VwmaFast.DataSeries[0].Last;
-                _lastOvwmaSlow = _OvwmaSlow.DataSeries[0].Last;
+                _lastVwmaFast = _vwmaFast.DataSeries[0].Last;
+                _lastOvwmaSlow = _oVwmaSlow.DataSeries[0].Last;
 
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (_lastVwmaFast > _lastOvwmaSlow)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (_lastVwmaFast < _lastOvwmaSlow)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestAsk - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestAsk - _slippage);
                     }
                 }
             }
@@ -206,7 +215,7 @@ namespace OsEngine.Robots.Vwma
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
            
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -217,18 +226,18 @@ namespace OsEngine.Robots.Vwma
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
-                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * ProfitValue.ValueDecimal / 100;
-                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * StopValue.ValueDecimal / 100;
+                    decimal profitActivation = pos.EntryPrice + pos.EntryPrice * _profitValue.ValueDecimal / 100;
+                    decimal stopActivation = pos.EntryPrice - pos.EntryPrice * _stopValue.ValueDecimal / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
-                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * ProfitValue.ValueDecimal / 100;
-                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * StopValue.ValueDecimal / 100;
+                    decimal profitActivation = pos.EntryPrice - pos.EntryPrice * _profitValue.ValueDecimal / 100;
+                    decimal stopActivation = pos.EntryPrice + pos.EntryPrice * _stopValue.ValueDecimal / 100;
 
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);
@@ -237,33 +246,95 @@ namespace OsEngine.Robots.Vwma
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
-            }
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
             }
-            else
+            else if (_volumeType.ValueString == "Deposit percent")
             {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
             return volume;
         }
-
-
     }
 }

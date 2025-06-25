@@ -1,12 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing.Drawing2D;
-using OsEngine.Charts.CandleChart.Indicators;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using OsEngine.Market.Servers;
+using OsEngine.Market;
 
 /* Description
 trading robot for osengine
@@ -29,7 +35,7 @@ Exit from sell: Sma1, Sma2 and Sma3 are growing.
 
 */
 
-namespace OsEngine.Robots.SMA
+namespace OsEngine.Robots
 {
     [Bot("StrategyFiveSma")] // We create an attribute so that we don't write anything to the BotFactory
     public class StrategyFiveSma : BotPanel
@@ -37,26 +43,29 @@ namespace OsEngine.Robots.SMA
         public BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterString VolumeRegime;
-        private StrategyParameterDecimal VolumeOnPosition;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Setting indicator
-        private StrategyParameterInt PeriodSma1;
-        private StrategyParameterInt PeriodSma2;
-        private StrategyParameterInt PeriodSma3;
-        private StrategyParameterInt PeriodSma4;
-        private StrategyParameterInt PeriodSma5;
+        // GetVolume Settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator settings
+        private StrategyParameterInt _periodSma1;
+        private StrategyParameterInt _periodSma2;
+        private StrategyParameterInt _periodSma3;
+        private StrategyParameterInt _periodSma4;
+        private StrategyParameterInt _periodSma5;
 
         // Indicator
-        private Aindicator _Sma1;
-        private Aindicator _Sma2;
-        private Aindicator _Sma3;
-        private Aindicator _Sma4;
-        private Aindicator _Sma5;
+        private Aindicator _sma1;
+        private Aindicator _sma2;
+        private Aindicator _sma3;
+        private Aindicator _sma4;
+        private Aindicator _sma5;
 
         // The last value of the indicators
         private decimal _lastSma1;
@@ -77,55 +86,58 @@ namespace OsEngine.Robots.SMA
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            VolumeRegime = CreateParameter("Volume type", "Number of contracts", new[] { "Number of contracts", "Contract currency" }, "Base");
-            VolumeOnPosition = CreateParameter("Volume", 1, 1.0m, 50, 4, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Setting indicator
-            PeriodSma1 = CreateParameter("Period SMA1", 50, 10, 300, 1, "Indicator");
-            PeriodSma2 = CreateParameter("Period SMA2", 100, 10, 300, 1, "Indicator");
-            PeriodSma3 = CreateParameter("Period SMA3", 150, 10, 300, 1, "Indicator");
-            PeriodSma4 = CreateParameter("Period SMA4", 200, 10, 300, 1, "Indicator");
-            PeriodSma5 = CreateParameter("Period SMA5", 250, 10, 300, 1, "Indicator");
+            // GetVolume Settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Indicator settings
+            _periodSma1 = CreateParameter("Period SMA1", 50, 10, 300, 1, "Indicator");
+            _periodSma2 = CreateParameter("Period SMA2", 100, 10, 300, 1, "Indicator");
+            _periodSma3 = CreateParameter("Period SMA3", 150, 10, 300, 1, "Indicator");
+            _periodSma4 = CreateParameter("Period SMA4", 200, 10, 300, 1, "Indicator");
+            _periodSma5 = CreateParameter("Period SMA5", 250, 10, 300, 1, "Indicator");
 
             // Create indicator Sma1
-            _Sma1 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma1", false);
-            _Sma1 = (Aindicator)_tab.CreateCandleIndicator(_Sma1, "Prime");
-            _Sma1.DataSeries[0].Color = System.Drawing.Color.Blue;
-            ((IndicatorParameterInt)_Sma1.Parameters[0]).ValueInt = PeriodSma1.ValueInt;
-            _Sma1.Save();
+            _sma1 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma1", false);
+            _sma1 = (Aindicator)_tab.CreateCandleIndicator(_sma1, "Prime");
+            _sma1.DataSeries[0].Color = System.Drawing.Color.Blue;
+            ((IndicatorParameterInt)_sma1.Parameters[0]).ValueInt = _periodSma1.ValueInt;
+            _sma1.Save();
 
             // Create indicator Sma2
-            _Sma2 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma2", false);
-            _Sma2 = (Aindicator)_tab.CreateCandleIndicator(_Sma2, "Prime");
-            _Sma2.DataSeries[0].Color = System.Drawing.Color.Pink;
-            ((IndicatorParameterInt)_Sma2.Parameters[0]).ValueInt = PeriodSma2.ValueInt;
-            _Sma2.Save();
+            _sma2 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma2", false);
+            _sma2 = (Aindicator)_tab.CreateCandleIndicator(_sma2, "Prime");
+            _sma2.DataSeries[0].Color = System.Drawing.Color.Pink;
+            ((IndicatorParameterInt)_sma2.Parameters[0]).ValueInt = _periodSma2.ValueInt;
+            _sma2.Save();
 
             // Create indicator Sma3
-            _Sma3 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma3", false);
-            _Sma3 = (Aindicator)_tab.CreateCandleIndicator(_Sma3, "Prime");
-            _Sma3.DataSeries[0].Color = System.Drawing.Color.Yellow;
-            ((IndicatorParameterInt)_Sma3.Parameters[0]).ValueInt = PeriodSma3.ValueInt;
-            _Sma3.Save();
+            _sma3 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma3", false);
+            _sma3 = (Aindicator)_tab.CreateCandleIndicator(_sma3, "Prime");
+            _sma3.DataSeries[0].Color = System.Drawing.Color.Yellow;
+            ((IndicatorParameterInt)_sma3.Parameters[0]).ValueInt = _periodSma3.ValueInt;
+            _sma3.Save();
 
             // Create indicator Sma4
-            _Sma4 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma4", false);
-            _Sma4 = (Aindicator)_tab.CreateCandleIndicator(_Sma4, "Prime");
-            _Sma4.DataSeries[0].Color = System.Drawing.Color.Gray;
-            ((IndicatorParameterInt)_Sma4.Parameters[0]).ValueInt = PeriodSma4.ValueInt;
-            _Sma4.Save();
+            _sma4 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma4", false);
+            _sma4 = (Aindicator)_tab.CreateCandleIndicator(_sma4, "Prime");
+            _sma4.DataSeries[0].Color = System.Drawing.Color.Gray;
+            ((IndicatorParameterInt)_sma4.Parameters[0]).ValueInt = _periodSma4.ValueInt;
+            _sma4.Save();
 
             // Create indicator Sma5
-            _Sma5 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma5", false);
-            _Sma5 = (Aindicator)_tab.CreateCandleIndicator(_Sma5, "Prime");
-            _Sma5.DataSeries[0].Color = System.Drawing.Color.Green;
-            ((IndicatorParameterInt)_Sma5.Parameters[0]).ValueInt = PeriodSma5.ValueInt;
-            _Sma5.Save();
+            _sma5 = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Sma5", false);
+            _sma5 = (Aindicator)_tab.CreateCandleIndicator(_sma5, "Prime");
+            _sma5.DataSeries[0].Color = System.Drawing.Color.Green;
+            ((IndicatorParameterInt)_sma5.Parameters[0]).ValueInt = _periodSma5.ValueInt;
+            _sma5.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += StrategyFiveSma_ParametrsChangeByUser;
@@ -147,21 +159,21 @@ namespace OsEngine.Robots.SMA
         // Indicator Update event
         private void StrategyFiveSma_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_Sma1.Parameters[0]).ValueInt = PeriodSma1.ValueInt;
-            _Sma1.Save();
-            _Sma1.Reload();
-            ((IndicatorParameterInt)_Sma2.Parameters[0]).ValueInt = PeriodSma2.ValueInt;
-            _Sma2.Save();
-            _Sma2.Reload();
-            ((IndicatorParameterInt)_Sma3.Parameters[0]).ValueInt = PeriodSma3.ValueInt;
-            _Sma3.Save();
-            _Sma3.Reload();
-            ((IndicatorParameterInt)_Sma4.Parameters[0]).ValueInt = PeriodSma4.ValueInt;
-            _Sma4.Save();
-            _Sma4.Reload();
-            ((IndicatorParameterInt)_Sma5.Parameters[0]).ValueInt = PeriodSma5.ValueInt;
-            _Sma5.Save();
-            _Sma5.Reload();
+            ((IndicatorParameterInt)_sma1.Parameters[0]).ValueInt = _periodSma1.ValueInt;
+            _sma1.Save();
+            _sma1.Reload();
+            ((IndicatorParameterInt)_sma2.Parameters[0]).ValueInt = _periodSma2.ValueInt;
+            _sma2.Save();
+            _sma2.Reload();
+            ((IndicatorParameterInt)_sma3.Parameters[0]).ValueInt = _periodSma3.ValueInt;
+            _sma3.Save();
+            _sma3.Reload();
+            ((IndicatorParameterInt)_sma4.Parameters[0]).ValueInt = _periodSma4.ValueInt;
+            _sma4.Save();
+            _sma4.Reload();
+            ((IndicatorParameterInt)_sma5.Parameters[0]).ValueInt = _periodSma5.ValueInt;
+            _sma5.Save();
+            _sma5.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -169,7 +181,6 @@ namespace OsEngine.Robots.SMA
         {
             return "StrategyFiveSma";
         }
-
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -179,24 +190,24 @@ namespace OsEngine.Robots.SMA
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodSma1.ValueInt
-                || candles.Count < PeriodSma2.ValueInt
-                || candles.Count < PeriodSma3.ValueInt
-                || candles.Count < PeriodSma4.ValueInt
-                || candles.Count < PeriodSma5.ValueInt)
+            if (candles.Count < _periodSma1.ValueInt
+                || candles.Count < _periodSma2.ValueInt
+                || candles.Count < _periodSma3.ValueInt
+                || candles.Count < _periodSma4.ValueInt
+                || candles.Count < _periodSma5.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -210,10 +221,11 @@ namespace OsEngine.Robots.SMA
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -229,24 +241,25 @@ namespace OsEngine.Robots.SMA
             if (openPositions == null || openPositions.Count == 0)
             {
                 // We find the last value and the penultimate value of the indicator
-                _prevSma1 = _Sma1.DataSeries[0].Values[_Sma1.DataSeries[0].Values.Count - 2];
-                _prevSma2 = _Sma2.DataSeries[0].Values[_Sma2.DataSeries[0].Values.Count - 2];
-                _prevSma3 = _Sma3.DataSeries[0].Values[_Sma3.DataSeries[0].Values.Count - 2];
-                _prevSma4 = _Sma4.DataSeries[0].Values[_Sma4.DataSeries[0].Values.Count - 2];
-                _prevSma5 = _Sma5.DataSeries[0].Values[_Sma5.DataSeries[0].Values.Count - 2];
-                _lastSma1 = _Sma1.DataSeries[0].Last;
-                _lastSma2 = _Sma2.DataSeries[0].Last;
-                _lastSma3 = _Sma3.DataSeries[0].Last;
-                _lastSma4 = _Sma4.DataSeries[0].Last;
-                _lastSma5 = _Sma5.DataSeries[0].Last;
+                _prevSma1 = _sma1.DataSeries[0].Values[_sma1.DataSeries[0].Values.Count - 2];
+                _prevSma2 = _sma2.DataSeries[0].Values[_sma2.DataSeries[0].Values.Count - 2];
+                _prevSma3 = _sma3.DataSeries[0].Values[_sma3.DataSeries[0].Values.Count - 2];
+                _prevSma4 = _sma4.DataSeries[0].Values[_sma4.DataSeries[0].Values.Count - 2];
+                _prevSma5 = _sma5.DataSeries[0].Values[_sma5.DataSeries[0].Values.Count - 2];
+                _lastSma1 = _sma1.DataSeries[0].Last;
+                _lastSma2 = _sma2.DataSeries[0].Last;
+                _lastSma3 = _sma3.DataSeries[0].Last;
+                _lastSma4 = _sma4.DataSeries[0].Last;
+                _lastSma5 = _sma5.DataSeries[0].Last;
 
-                    decimal high = candles[candles.Count - 1].High;
-                    decimal low = candles[candles.Count - 1].Low;
-                    decimal highminuslow = (high - low)/2;
+                decimal high = candles[candles.Count - 1].High;
+                decimal low = candles[candles.Count - 1].Low;
+                decimal highminuslow = (high - low)/2;
 
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (_lastSma1 > _prevSma1 + highminuslow 
                         && _lastSma2 > _prevSma2 + highminuslow
@@ -254,12 +267,12 @@ namespace OsEngine.Robots.SMA
                         && _lastSma4 > _prevSma4 + highminuslow
                         && _lastSma5 > _prevSma5 + highminuslow)
                     {
-                        _tab.BuyAtLimit(GetVolume(), _tab.PriceBestAsk + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (_lastSma1 < _prevSma1 - highminuslow
                         && _lastSma2 < _prevSma2 - highminuslow
@@ -267,7 +280,7 @@ namespace OsEngine.Robots.SMA
                         && _lastSma4 < _prevSma4 - highminuslow
                         && _lastSma5 < _prevSma5 - highminuslow)
                     {
-                        _tab.SellAtLimit(GetVolume(), _tab.PriceBestAsk - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestAsk - _slippage);
                     }
                 }
             }
@@ -278,27 +291,25 @@ namespace OsEngine.Robots.SMA
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 // We find the last value and the penultimate value of the indicator
-                _prevSma1 = _Sma1.DataSeries[0].Values[_Sma1.DataSeries[0].Values.Count - 2];
-                _prevSma2 = _Sma2.DataSeries[0].Values[_Sma2.DataSeries[0].Values.Count - 2];
-                _prevSma3 = _Sma3.DataSeries[0].Values[_Sma3.DataSeries[0].Values.Count - 2];
-                _lastSma1 = _Sma1.DataSeries[0].Last;
-                _lastSma2 = _Sma2.DataSeries[0].Last;
-                _lastSma3 = _Sma3.DataSeries[0].Last;
+                _prevSma1 = _sma1.DataSeries[0].Values[_sma1.DataSeries[0].Values.Count - 2];
+                _prevSma2 = _sma2.DataSeries[0].Values[_sma2.DataSeries[0].Values.Count - 2];
+                _prevSma3 = _sma3.DataSeries[0].Values[_sma3.DataSeries[0].Values.Count - 2];
+                _lastSma1 = _sma1.DataSeries[0].Last;
+                _lastSma2 = _sma2.DataSeries[0].Last;
+                _lastSma3 = _sma3.DataSeries[0].Last;
 
                 if (openPositions[i].State != PositionStateType.Open)
                 {
                     continue;
                 }
 
-                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
+                if (openPositions[i].Direction == Side.Buy) // If the direction of the position is long
                 {
-                    
-
                     if (_lastSma1 < _prevSma1 
                         && _lastSma2 < _prevSma2
                         && _lastSma3 < _prevSma3)
@@ -307,7 +318,7 @@ namespace OsEngine.Robots.SMA
                         _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is short
                 {
                     if (_lastSma1 > _prevSma1
                         && _lastSma2 > _prevSma2
@@ -321,29 +332,94 @@ namespace OsEngine.Robots.SMA
         }
 
         // Method for calculating the volume of entry into a position
-        private decimal GetVolume()
+        private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeRegime.ValueString == "Contract currency")
+            if (_volumeType.ValueString == "Contracts")
             {
-                decimal contractPrice = _tab.PriceBestAsk;
-                volume = VolumeOnPosition.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeRegime.ValueString == "Number of contracts")
+            else if (_volumeType.ValueString == "Contract currency")
             {
-                volume = VolumeOnPosition.ValueDecimal;
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
             }
 
-            // If the robot is running in the tester
-            if (StartProgram == StartProgram.IsTester)
-            {
-                volume = Math.Round(volume, 6);
-            }
-            else
-            {
-                volume = Math.Round(volume, _tab.Securiti.DecimalsVolume);
-            }
             return volume;
         }
     }
