@@ -54,10 +54,10 @@ namespace OsEngine.Robots.MarketMaker
             LabelSlippage1.Content = OsLocalization.Trader.Label92 + 1;
             LabelVolume2.Content = OsLocalization.Trader.Label30 + 2;
             LabelSlippage2.Content = OsLocalization.Trader.Label92 + 2;
-            LabelVolumeType1.Content = OsLocalization.Trader.Label531 + 1;
-            LabelAssetInPortfolio1.Content = OsLocalization.Trader.Label532 + 1;
-            LabelVolumeType2.Content = OsLocalization.Trader.Label531 + 2;
-            LabelAssetInPortfolio2.Content = OsLocalization.Trader.Label532 + 2;
+            LabelVolumeType1.Content = OsLocalization.Trader.Label554 + 1;
+            LabelAssetInPortfolio1.Content = OsLocalization.Trader.Label555 + 1;
+            LabelVolumeType2.Content = OsLocalization.Trader.Label554 + 2;
+            LabelAssetInPortfolio2.Content = OsLocalization.Trader.Label555 + 2;
 
             this.Activate();
             this.Focus();
