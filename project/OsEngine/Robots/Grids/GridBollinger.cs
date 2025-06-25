@@ -51,20 +51,17 @@ namespace OsEngine.Robots.Grids
             _tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
-            
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start trade time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End trade time", 24, 0, 0, 0, "Base");
+            _bollingerLength = CreateParameter("Bollinger length", 21, 7, 48, 1, "Base");
+            _bollingerDeviation = CreateParameter("Bollinger deviation", 1.0m, 1, 5, 0.1m, "Base");
 
             _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.1m, 10m, 300, 10, "Grid");
-            _profitValue = CreateParameter("Profit percent", 0.05m, 1, 5, 0.1m, "Grid");
+            _linesStep = CreateParameter("Grid lines step", 0.05m, 1, 2, 0.1m, "Grid");
+            _profitValue = CreateParameter("Profit percent", 0.05m, 1, 2, 0.1m, "Grid");
             _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Grid");
             _volume = CreateParameter("Volume on one line", 1, 1.0m, 50, 4, "Grid");
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Grid");
-
-            // Indicator settings
-            _bollingerLength = CreateParameter("Bollinger Length", 21, 7, 48, 7, "Indicator");
-            _bollingerDeviation = CreateParameter("Bollinger Deviation", 1.0m, 1, 5, 0.1m, "Indicator");
 
             // Create indicator Bollinger
             _bollinger = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
@@ -196,7 +193,9 @@ namespace OsEngine.Robots.Grids
                     grid.GridCreator.GridSide = Side.Buy;
                 }
                 grid.GridCreator.CreateNewGrid(_tab, TradeGridPrimeType.MarketMaking);
+
                 grid.Save();
+
                 grid.Regime = TradeGridRegime.On;
             }
         }

@@ -55,8 +55,8 @@ namespace OsEngine.Robots.Grids
             _atrLookBack = CreateParameter("Atr lookBack", 20, 7, 48, 7, "Base");
             _atrMult = CreateParameter("Atr mult percent", 30m, 7, 48, 7, "Base");
 
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start trade time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End trade time", 24, 0, 0, 0, "Base");
 
             _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
             _linesStep = CreateParameter("Grid lines step", 0.05m, 10m, 300, 10, "Grid");

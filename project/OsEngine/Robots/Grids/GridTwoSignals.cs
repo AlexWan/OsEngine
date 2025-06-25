@@ -10,6 +10,7 @@ using OsEngine.OsTrader.Grids;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
 
 /*Description
 Ejection of two grids in one direction
@@ -26,21 +27,27 @@ namespace OsEngine.Robots.Grids
     public class GridTwoSignals : BotPanel
     {
         private StrategyParameterString _regime;
+        private StrategyParameterInt _priceChannelLength;
         private StrategyParameterTimeOfDay _startTradeTime;
         private StrategyParameterTimeOfDay _endTradeTime;
 
-        private StrategyParameterInt _lifeTimeSeconds;
-        private StrategyParameterInt _closePositionsCountToCloseGrid;
+        private StrategyParameterInt _linesCountGrid1;
+        private StrategyParameterDecimal _linesStepGrid1;
+        private StrategyParameterDecimal _profitValueGrid1;
+        private StrategyParameterString _volumeTypeGrid1;
+        private StrategyParameterDecimal _volumeGrid1;
+        private StrategyParameterString _tradeAssetInPortfolioGrid1;
+        private StrategyParameterInt _lifeTimeSecondsGrid1;
+        private StrategyParameterInt _closePositionsCountToCloseGrid1;
 
-        private StrategyParameterString _volumeType;
-        private StrategyParameterDecimal _volume;
-        private StrategyParameterString _tradeAssetInPortfolio;
-
-        private StrategyParameterInt _priceChannelLength;
-
-        private StrategyParameterInt _linesCount;
-        private StrategyParameterDecimal _linesStep;
-        private StrategyParameterDecimal _profitValue;
+        private StrategyParameterInt _linesCountGrid2;
+        private StrategyParameterDecimal _linesStepGrid2;
+        private StrategyParameterDecimal _profitValueGrid2;
+        private StrategyParameterString _volumeTypeGrid2;
+        private StrategyParameterDecimal _volumeGrid2;
+        private StrategyParameterString _tradeAssetInPortfolioGrid2;
+        private StrategyParameterInt _lifeTimeSecondsGrid2;
+        private StrategyParameterInt _closePositionsCountToCloseGrid2;
 
         private Aindicator _priceChannel;
 
@@ -54,23 +61,27 @@ namespace OsEngine.Robots.Grids
             _tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
+            _priceChannelLength = CreateParameter("Price channel length", 21, 7, 48, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start trade time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End trade time", 24, 0, 0, 0, "Base");
 
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _linesCountGrid1 = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid 1");
+            _linesStepGrid1 = CreateParameter("Grid lines step", 0.05m, 1, 5, 0.1m, "Grid 1");
+            _profitValueGrid1 = CreateParameter("Profit percent", 0.05m, 1, 5, 0.1m, "Grid 1");
+            _volumeTypeGrid1 = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Grid 1");
+            _volumeGrid1 = CreateParameter("Volume on one line", 1, 1.0m, 50, 4, "Grid 1");
+            _tradeAssetInPortfolioGrid1 = CreateParameter("Asset in portfolio", "Prime", "Grid 1");
+            _lifeTimeSecondsGrid1 = CreateParameter("Grid life time seconds", 1200, 60, 30000, 60, "Grid 1");
+            _closePositionsCountToCloseGrid1 = CreateParameter("Grid close positions max", 50, 10, 300, 10, "Grid 1");
 
-            _lifeTimeSeconds = CreateParameter("Grid life time seconds", 1200, 10, 300, 10, "Base");
-            _closePositionsCountToCloseGrid = CreateParameter("Grid close positions max", 50, 10, 300, 10, "Base");
-
-            _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.1m, 10m, 300, 10, "Grid");
-            _profitValue = CreateParameter("Profit percent", 0.05m, 1, 5, 0.1m, "Grid");
-
-            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Grid");
-            _volume = CreateParameter("Volume on one line", 1, 1.0m, 50, 4, "Grid");
-            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Grid");
-
-            // Indicator settings
-            _priceChannelLength = CreateParameter("Price channel length", 21, 7, 48, 7, "Indicator");
+            _linesCountGrid2 = CreateParameter("Grid lines count 2", 10, 10, 300, 10, "Grid 2");
+            _linesStepGrid2 = CreateParameter("Grid lines step 2", 0.05m, 1, 5, 0.1m, "Grid 2");
+            _profitValueGrid2 = CreateParameter("Profit percent 2", 0.05m, 1, 5, 0.1m, "Grid 2");
+            _volumeTypeGrid2 = CreateParameter("Volume type 2", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Grid 2");
+            _volumeGrid2 = CreateParameter("Volume on one line 2", 1, 1.0m, 50, 4, "Grid 2");
+            _tradeAssetInPortfolioGrid2 = CreateParameter("Asset in portfolio 2", "Prime", "Grid 2");
+            _lifeTimeSecondsGrid2 = CreateParameter("Grid life time seconds 2", 1200, 60, 30000, 60, "Grid 2");
+            _closePositionsCountToCloseGrid2 = CreateParameter("Grid close positions max 2", 50, 10, 300, 10, "Grid 2");
 
             // Create indicator Bollinger
             _priceChannel = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
@@ -167,17 +178,17 @@ namespace OsEngine.Robots.Grids
             if (_tab.GridsMaster.TradeGrids.Count == 0
                 && lastPrice < lastDownLine)
             {
-                ThrowGrid(lastPrice);
+                ThrowGridOne(lastPrice);
             }
             else if(_tab.GridsMaster.TradeGrids.Count == 1
                 && _tab.GridsMaster.TradeGrids[0].Number == 1
                 && lastPrice > (lastDownLine + lastUpLine) / 2)
             {
-                ThrowGrid(lastPrice);
+                ThrowGridTwo(lastPrice);
             }
         }
 
-        private void ThrowGrid(decimal lastPrice)
+        private void ThrowGridOne(decimal lastPrice)
         {
             // 1 создаём сетку
             TradeGrid grid = _tab.GridsMaster.CreateNewTradeGrid();
@@ -186,17 +197,17 @@ namespace OsEngine.Robots.Grids
             grid.GridType = TradeGridPrimeType.MarketMaking;
 
             // 3 устанавливаем объёмы
-            grid.GridCreator.StartVolume = _volume.ValueDecimal;
-            grid.GridCreator.TradeAssetInPortfolio = _tradeAssetInPortfolio.ValueString;
-            if (_volumeType.ValueString == "Contracts")
+            grid.GridCreator.StartVolume = _volumeGrid1.ValueDecimal;
+            grid.GridCreator.TradeAssetInPortfolio = _tradeAssetInPortfolioGrid1.ValueString;
+            if (_volumeTypeGrid1.ValueString == "Contracts")
             {
                 grid.GridCreator.TypeVolume = TradeGridVolumeType.Contracts;
             }
-            else if (_volumeType.ValueString == "Contract currency")
+            else if (_volumeTypeGrid1.ValueString == "Contract currency")
             {
                 grid.GridCreator.TypeVolume = TradeGridVolumeType.ContractCurrency;
             }
-            else if (_volumeType.ValueString == "Deposit percent")
+            else if (_volumeTypeGrid1.ValueString == "Deposit percent")
             {
                 grid.GridCreator.TypeVolume = TradeGridVolumeType.DepositPercent;
             }
@@ -204,36 +215,102 @@ namespace OsEngine.Robots.Grids
             // 4 генерируем линии
 
             grid.GridCreator.FirstPrice = lastPrice;
-            grid.GridCreator.LineCountStart = _linesCount.ValueInt;
-            grid.GridCreator.LineStep = _linesStep.ValueDecimal;
+            grid.GridCreator.LineCountStart = _linesCountGrid1.ValueInt;
+            grid.GridCreator.LineStep = _linesStepGrid1.ValueDecimal;
             grid.GridCreator.TypeStep = TradeGridValueType.Percent;
             grid.GridCreator.TypeProfit = TradeGridValueType.Percent;
-            grid.GridCreator.ProfitStep = _profitValue.ValueDecimal;
+            grid.GridCreator.ProfitStep = _profitValueGrid1.ValueDecimal;
             grid.GridCreator.GridSide = Side.Buy;
             grid.GridCreator.CreateNewGrid(_tab, TradeGridPrimeType.MarketMaking);
 
             // 5 устанавливаем Trailing Up
 
-            grid.TrailingUp.TrailingUpStep = _tab.Security.PriceStep * 20;
+            grid.TrailingUp.TrailingUpStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Buy);
             grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
             grid.TrailingUp.TrailingUpIsOn = true;
 
             // 6 устанавливаем Trailing Down
 
-            grid.TrailingUp.TrailingDownStep = _tab.Security.PriceStep * 20;
+            grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Sell);
             grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
             grid.TrailingUp.TrailingDownIsOn = true;
 
             // 7 устанавливаем закрытие сетки по времени
  
             grid.StopBy.StopGridByLifeTimeReaction = TradeGridRegime.CloseForced;
-            grid.StopBy.StopGridByLifeTimeSecondsToLife = _lifeTimeSeconds.ValueInt;
+            grid.StopBy.StopGridByLifeTimeSecondsToLife = _lifeTimeSecondsGrid1.ValueInt;
             grid.StopBy.StopGridByLifeTimeIsOn = true;
 
             // 8 устанавливаем закрытие сетки по количеству сделок
 
             grid.StopBy.StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
-            grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid.ValueInt;
+            grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid1.ValueInt;
+            grid.StopBy.StopGridByPositionsCountIsOn = true;
+
+            // сохраняем
+            grid.Save();
+
+            // включаем
+            grid.Regime = TradeGridRegime.On;
+        }
+
+        private void ThrowGridTwo(decimal lastPrice)
+        {
+            // 1 создаём сетку
+            TradeGrid grid = _tab.GridsMaster.CreateNewTradeGrid();
+
+            // 2 устанавливаем её тип
+            grid.GridType = TradeGridPrimeType.MarketMaking;
+
+            // 3 устанавливаем объёмы
+            grid.GridCreator.StartVolume = _volumeGrid2.ValueDecimal;
+            grid.GridCreator.TradeAssetInPortfolio = _tradeAssetInPortfolioGrid2.ValueString;
+            if (_volumeTypeGrid2.ValueString == "Contracts")
+            {
+                grid.GridCreator.TypeVolume = TradeGridVolumeType.Contracts;
+            }
+            else if (_volumeTypeGrid2.ValueString == "Contract currency")
+            {
+                grid.GridCreator.TypeVolume = TradeGridVolumeType.ContractCurrency;
+            }
+            else if (_volumeTypeGrid2.ValueString == "Deposit percent")
+            {
+                grid.GridCreator.TypeVolume = TradeGridVolumeType.DepositPercent;
+            }
+
+            // 4 генерируем линии
+
+            grid.GridCreator.FirstPrice = lastPrice;
+            grid.GridCreator.LineCountStart = _linesCountGrid2.ValueInt;
+            grid.GridCreator.LineStep = _linesStepGrid2.ValueDecimal;
+            grid.GridCreator.TypeStep = TradeGridValueType.Percent;
+            grid.GridCreator.TypeProfit = TradeGridValueType.Percent;
+            grid.GridCreator.ProfitStep = _profitValueGrid2.ValueDecimal;
+            grid.GridCreator.GridSide = Side.Buy;
+            grid.GridCreator.CreateNewGrid(_tab, TradeGridPrimeType.MarketMaking);
+
+            // 5 устанавливаем Trailing Up
+
+            grid.TrailingUp.TrailingUpStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Buy);
+            grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
+            grid.TrailingUp.TrailingUpIsOn = true;
+
+            // 6 устанавливаем Trailing Down
+
+            grid.TrailingUp.TrailingDownStep = _tab.RoundPrice(lastPrice * 0.005m, _tab.Security, Side.Sell);
+            grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
+            grid.TrailingUp.TrailingDownIsOn = true;
+
+            // 7 устанавливаем закрытие сетки по времени
+
+            grid.StopBy.StopGridByLifeTimeReaction = TradeGridRegime.CloseForced;
+            grid.StopBy.StopGridByLifeTimeSecondsToLife = _lifeTimeSecondsGrid2.ValueInt;
+            grid.StopBy.StopGridByLifeTimeIsOn = true;
+
+            // 8 устанавливаем закрытие сетки по количеству сделок
+
+            grid.StopBy.StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
+            grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid2.ValueInt;
             grid.StopBy.StopGridByPositionsCountIsOn = true;
 
             // сохраняем

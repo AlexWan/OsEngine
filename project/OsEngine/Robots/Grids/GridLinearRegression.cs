@@ -140,7 +140,6 @@ namespace OsEngine.Robots.Grids
             {
                 LogicCloseGrid();
             }
-
         }
 
         private void LogicCreateGrid(List<Candle> candles)
@@ -191,7 +190,6 @@ namespace OsEngine.Robots.Grids
                 grid.Regime = TradeGridRegime.On;
 
             }
-
         }
 
         private void LogicCloseGrid()

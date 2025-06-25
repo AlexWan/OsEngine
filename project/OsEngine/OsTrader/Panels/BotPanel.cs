@@ -1688,6 +1688,11 @@ position => position.State != PositionStateType.OpeningFail
                     return;
                 }
 
+                if(_tabControlControl == null)
+                {
+                    return;
+                }
+
                 if (ActiveTab.TabType == BotTabType.Simple)
                 {
                    ((BotTabSimple)ActiveTab).SelectedControlTab = _tabControlControl.SelectedIndex;
