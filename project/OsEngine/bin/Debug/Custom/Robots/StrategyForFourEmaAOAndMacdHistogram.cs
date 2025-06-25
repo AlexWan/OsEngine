@@ -31,16 +31,19 @@ Sell:
  3. AO falling;
  4. Macd < 0.
 
-Exit from buy:trailing stop in % of the loy of the candle on which you entered.
+Exit from buy:
+trailing stop in % of the low of the candle on which you entered.
 
-Exit from sell: trailing stop in % of the high of the candle on which you entered.
- */
+Exit from sell:
+trailing stop in % of the high of the candle on which you entered.
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyForFourEmaAOAndMacdHistogram")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyForFourEmaAOAndMacdHistogram")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyForFourEmaAOAndMacdHistogram : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -54,7 +57,7 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _periodEmaFastLoc;
         private StrategyParameterInt _periodEmaSlowLoc;
         private StrategyParameterInt _periodEmaFastGlob;
@@ -65,7 +68,7 @@ namespace OsEngine.Robots
         private StrategyParameterInt _fastLineLengthAO;
         private StrategyParameterInt _slowLineLengthAO;
 
-        // Indicator
+        // Indicators
         private Aindicator _macd;
         private Aindicator _AO;
         private Aindicator _emaFastLoc;
@@ -89,6 +92,7 @@ namespace OsEngine.Robots
 
         public StrategyForFourEmaAOAndMacdHistogram(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -103,7 +107,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator settings
+            // Indicators settings
             _periodEmaFastLoc = CreateParameter("Period Ema Fast Loc", 36, 10, 300, 10, "Indicator");
             _periodEmaSlowLoc = CreateParameter("Period Ema Slow Loc", 44, 10, 300, 10, "Indicator");
             _periodEmaFastGlob = CreateParameter("Period Ema Fast Glob", 144, 10, 300, 10, "Indicator");
@@ -187,20 +191,25 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_emaFastLoc.Parameters[0]).ValueInt = _periodEmaFastLoc.ValueInt;
             _emaFastLoc.Save();
             _emaFastLoc.Reload();
+
             ((IndicatorParameterInt)_emaSlowLoc.Parameters[0]).ValueInt = _periodEmaSlowLoc.ValueInt;
             _emaSlowLoc.Save();
             _emaSlowLoc.Reload();
+
             ((IndicatorParameterInt)_emaFastGlob.Parameters[0]).ValueInt = _periodEmaFastGlob.ValueInt;
             _emaFastGlob.Save();
             _emaFastGlob.Reload();
+
             ((IndicatorParameterInt)_emaSlowGlob.Parameters[0]).ValueInt = _periodEmaSlowGlob.ValueInt;
             _emaSlowGlob.Save();
             _emaSlowGlob.Reload();
+
             ((IndicatorParameterInt)_macd.Parameters[0]).ValueInt = _fastLineLengthMacd.ValueInt;
             ((IndicatorParameterInt)_macd.Parameters[1]).ValueInt = _slowLineLengthMacd.ValueInt;
             ((IndicatorParameterInt)_macd.Parameters[2]).ValueInt = _signalLineLengthMacd.ValueInt;
             _macd.Save();
             _macd.Reload();
+
             ((IndicatorParameterInt)_AO.Parameters[0]).ValueInt = _fastLineLengthAO.ValueInt;
             ((IndicatorParameterInt)_AO.Parameters[1]).ValueInt = _slowLineLengthAO.ValueInt;
             _AO.Save();
@@ -212,6 +221,7 @@ namespace OsEngine.Robots
         {
             return "StrategyForFourEmaAOAndMacdHistogram";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -283,7 +293,7 @@ namespace OsEngine.Robots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastEmaFastLoc > _lastEmaSlowLoc && 
+                    if (_lastEmaFastLoc > _lastEmaSlowLoc &&
                         _lastEmaFastGlob > _lastEmaSlowGlob &&
                         _lastAO > _prevAO &&
                         _lastMacd > 0)
@@ -310,7 +320,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
@@ -361,7 +371,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
