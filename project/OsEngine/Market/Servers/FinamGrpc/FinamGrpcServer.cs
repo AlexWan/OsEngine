@@ -730,7 +730,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private AsyncServerStreamingCall<SubscribeQuoteResponse> _quoteStream;
         private AsyncServerStreamingCall<SubscribeOrderBookResponse> _orderBookStream;
         private Dictionary<string, StreamReaderInfo> _latestTradesStreams = new Dictionary<string, StreamReaderInfo>();
-        private Dictionary<string, StreamReaderInfo> _clients = new Dictionary<string, StreamReaderInfo>();
         //private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _myOrdersStream;
         private AsyncDuplexStreamingCall<OrderTradeRequest, OrderTradeResponse> _myOrderTradeStream;
 
@@ -753,14 +752,14 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 // Уже есть reader, не запускаем второй
                 return;
             }
-            AsyncServerStreamingCall<SubscribeLatestTradesResponse> stream = _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, cts.Token);
-            Task readerTask = Task.Run(() => SingleTradesMessageReader(stream, cts.Token, security.NameId), cts.Token);
-            _latestTradesStreams[security.NameId] = new StreamReaderInfo
-            {
-                Stream = stream,
-                CancellationTokenSource = cts,
-                ReaderTask = readerTask
-            };
+
+            StreamReaderInfo streamReaderInfo = new StreamReaderInfo();
+            streamReaderInfo.CancellationTokenSource = cts;
+
+            streamReaderInfo.Stream = _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, cts.Token);
+            streamReaderInfo.ReaderTask = Task.Run(() => SingleTradesMessageReader(streamReaderInfo.Stream, cts.Token, security.NameId), cts.Token);
+
+            _latestTradesStreams[security.NameId] = streamReaderInfo;
         }
 
         // Переподключение reader для конкретного инструмента
@@ -793,11 +792,24 @@ namespace OsEngine.Market.Servers.FinamGrpc
             {
                 while (!token.IsCancellationRequested)
                 {
-                    if (await stream.ResponseStream.MoveNext(token) == false)
+                    bool hasData;
+                    try
                     {
-                        await Task.Delay(10, token); // TODO определиться с параметром задержки
-                        continue;
+                        hasData = await stream.ResponseStream.MoveNext();
                     }
+                    catch (Exception ex)
+                    {
+                        SendLogMessage($"Error in MoveNext for {symbol}: {ex}", LogMessageType.Error);
+                        break; // выход из reader, чтобы можно было переподключить
+                    }
+
+                    if (!hasData)
+                    {
+                        // Сервер закрыл стрим — выход из reader
+                        SendLogMessage($"Stream closed by server for {symbol}", LogMessageType.System);
+                        break;
+                    }
+
                     SubscribeLatestTradesResponse latestTradesResponse = stream.ResponseStream.Current;
                     if (latestTradesResponse == null) continue;
                     Security security = GetSecurity(latestTradesResponse.Symbol);
@@ -842,7 +854,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
             {
                 SendLogMessage($"OrderTrade stream was disconnected: {ex.Message}", LogMessageType.Error);
 
-                // need to reconnect everything
                 if (ServerStatus != ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Disconnect;
@@ -1571,14 +1582,14 @@ namespace OsEngine.Market.Servers.FinamGrpc
             public Task ReaderTask { get; set; }
         }
 
-        private class GrpcClientsInfo
-        {
-            public AuthService.AuthServiceClient AuthClient;
-            public AssetsService.AssetsServiceClient AssetsClient;
-            public AccountsService.AccountsServiceClient AccountsClient;
-            public OrdersService.OrdersServiceClient MyOrderTradeClient;
-            public MarketDataService.MarketDataServiceClient MarketDataClient;
-        }
+        //private class GrpcClientsInfo
+        //{
+        //    public AuthService.AuthServiceClient AuthClient;
+        //    public AssetsService.AssetsServiceClient AssetsClient;
+        //    public AccountsService.AccountsServiceClient AccountsClient;
+        //    public OrdersService.OrdersServiceClient MyOrderTradeClient;
+        //    public MarketDataService.MarketDataServiceClient MarketDataClient;
+        //}
         #endregion
     }
 }
