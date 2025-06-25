@@ -26,9 +26,15 @@ namespace OsEngine.Robots.MarketMaker
             ComboBoxRegime.Items.Add(BotTradeRegime.On);
             ComboBoxRegime.Items.Add(BotTradeRegime.OnlyClosePosition);
 
+            ComboBoxVolumeType.Items.Add("Deposit percent");
+            ComboBoxVolumeType.Items.Add("Contracts");
+            ComboBoxVolumeType.Items.Add("Contract currency");
+            ComboBoxVolumeType.SelectedItem = _strategy.VolumeType;
+
             ComboBoxRegime.SelectedItem = _strategy.Regime;
             TextBoxVolumeOne.Text = _strategy.Volume.ToString();
             TextBoxSpreadBeetwenLine.Text = _strategy.PersentToSpreadLines.ToString();
+            TextBoxAssetInPortfolio.Text = "Prime";
 
             CheckBoxNeedToPaint.IsChecked = _strategy.PaintOn;
 
@@ -37,6 +43,8 @@ namespace OsEngine.Robots.MarketMaker
             LabelBetweenLines.Content = OsLocalization.Trader.Label130;
             CheckBoxNeedToPaint.Content = OsLocalization.Trader.Label131;
             ButtonAccept.Content = OsLocalization.Trader.Label117;
+            LabelVolumeType.Content = OsLocalization.Trader.Label554;
+            LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 
             this.Activate();
             this.Focus();
@@ -58,6 +66,8 @@ namespace OsEngine.Robots.MarketMaker
                 return;
             }
 
+            _strategy.VolumeType = Convert.ToString(ComboBoxVolumeType.Text);
+            _strategy.TradeAssetInPortfolio = Convert.ToString(TextBoxAssetInPortfolio.Text);
             _strategy.Volume = TextBoxVolumeOne.Text.ToDecimal();
             _strategy.PersentToSpreadLines = TextBoxSpreadBeetwenLine.Text.ToDecimal();
             Enum.TryParse(ComboBoxRegime.Text, true, out _strategy.Regime);

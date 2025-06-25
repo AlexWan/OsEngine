@@ -1,25 +1,49 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace OsEngine.Robots.MarketMaker
 {
-
-    /// <summary>
-    /// robot for pair trading. trading two papers based on their acceleration to each other by candle
-    ///  робот для парного трейдинга. торговля двумя бумагами на основе их ускорения друг к другу по свечкам
-    /// </summary>
-    [Bot("PairTraderSimple")]
+    [Bot("PairTraderSimple")] // We create an attribute so that we don't write anything to the BotFactory
     public class PairTraderSimple : BotPanel
     {
+        private BotTabSimple _tab1;
+        private BotTabSimple _tab2;
 
-        public PairTraderSimple(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        // Basic settings
+        public BotTradeRegime Regime;
+        public int CountCandles;
+        public decimal Slippage1;
+        public decimal Slippage2;
+        public decimal SpreadDeviation;
+
+        // GetVolume settings
+        public decimal Volume1;
+        public decimal Volume2;
+        public string TradeAssetInPortfolio1;
+        public string TradeAssetInPortfolio2;
+        public string VolumeType1;
+        public string VolumeType2;
+        
+        // Exit settings
+        public decimal Loss;
+        public decimal Profit;
+
+        // Position list
+        private List<PairDealStausSaver> _positionNumbers;
+
+        // Ready candles tab1 and tab2
+        private List<Candle> _candles1;
+        private List<Candle> _candles2;
+
+        public PairTraderSimple(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab1 = TabsSimple[0];
@@ -31,6 +55,9 @@ namespace OsEngine.Robots.MarketMaker
 
             Volume1 = 1;
             Volume2 = 1;
+
+            VolumeType1 = "Deposit percent";
+            VolumeType2 = "Deposit percent";
 
             Slippage1 = 0;
             Slippage2 = 0;
@@ -49,29 +76,20 @@ namespace OsEngine.Robots.MarketMaker
                 " based on their acceleration to each other by candle";
         }
 
-        /// <summary>
-        /// uniq name
-        /// взять уникальное имя стратегии
-        /// </summary>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PairTraderSimple";
         }
 
-        /// <summary>
-        /// settings GUI
-        /// показать индивидуальное окно настроек
-        /// </summary>
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             PairTraderSimpleUi ui = new PairTraderSimpleUi(this);
             ui.ShowDialog();
         }
 
-        /// <summary>
-        /// save settings
-        /// сохранить публичные настройки
-        /// </summary>
+        // save settings in .txt file
         public void Save()
         {
             try
@@ -79,6 +97,12 @@ namespace OsEngine.Robots.MarketMaker
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
+                    writer.WriteLine(VolumeType1);
+                    writer.WriteLine(TradeAssetInPortfolio1);
+
+                    writer.WriteLine(VolumeType2);
+                    writer.WriteLine(TradeAssetInPortfolio2);
+
                     writer.WriteLine(Regime);
                     writer.WriteLine(Volume1);
                     writer.WriteLine(Volume2);
@@ -110,10 +134,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// save settings
-        /// загрузить публичные настройки из файла
-        /// </summary>
+        // load settins from .txt file
         private void Load()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -124,6 +145,12 @@ namespace OsEngine.Robots.MarketMaker
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
+                    VolumeType1 = Convert.ToString(reader.ReadLine());
+                    TradeAssetInPortfolio1 = Convert.ToString(reader.ReadLine());
+
+                    VolumeType2 = Convert.ToString(reader.ReadLine());
+                    TradeAssetInPortfolio2 = Convert.ToString(reader.ReadLine());
+
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Volume1 = Convert.ToDecimal(reader.ReadLine());
                     Volume2 = Convert.ToDecimal(reader.ReadLine());
@@ -164,10 +191,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// delete save files
-        /// удаление файла с сохранением
-        /// </summary>
+        // delete save file
         void Strategy_DeleteEvent()
         {
             if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -176,70 +200,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        //settings публичные настройки
-
-        /// <summary>
-        /// regime
-        /// режим работы робота
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// candles count to backlook
-        /// количество свечей смотрим назад 
-        /// </summary>
-        public int CountCandles;
-
-        /// <summary>
-        /// discrepancy after which we start to gain a position
-        /// расхождение после которого начинаем набирать позицию
-        /// </summary>
-        public decimal SpreadDeviation;
-
-        public decimal Volume1;
-
-        public decimal Volume2;
-
-        public decimal Slippage1;
-
-        public decimal Slippage2;
-
-        public decimal Loss;
-
-        public decimal Profit;
-
-        private List<PairDealStausSaver> _positionNumbers;
-
-        // logic торговля
-
-        /// <summary>
-        /// trade tab 1
-        /// вкладка с первым инструметом
-        /// </summary>
-        private BotTabSimple _tab1;
-
-        /// <summary>
-        /// trade tab 2
-        /// вкладка со вторым инструментом
-        /// </summary>
-        private BotTabSimple _tab2;
-
-        /// <summary>
-        /// ready candles tab1
-        /// готовые свечи первого инструмента
-        /// </summary>
-        private List<Candle> _candles1;
-
-        /// <summary>
-        /// ready candles tab2
-        /// готовые свечи второго инструмента
-        /// </summary>
-        private List<Candle> _candles2;
-
-        /// <summary>
-        /// new candles in tab1
-        /// в первой вкладке новая свеча
-        /// </summary>
+        // New candles in tab1
         void _tab1_CandleFinishedEvent(List<Candle> candles)
         {
             _candles1 = candles;
@@ -254,10 +215,7 @@ namespace OsEngine.Robots.MarketMaker
             Trade();
         }
 
-        /// <summary>
-        /// new candles tab2
-        /// во второй вкладки новая свеча
-        /// </summary>
+        // New candles tab2
         void _tab2_CandleFinishedEvent(List<Candle> candles)
         {
             _candles2 = candles;
@@ -272,13 +230,10 @@ namespace OsEngine.Robots.MarketMaker
             CheckExit();
         }
 
-        /// <summary>
-        /// enter position logic
-        /// логика входа в позицию
-        /// </summary>
+        // Enter position logic
         private void Trade()
         {
-            if (_candles1.Count - 1 - CountCandles <= 0)
+            if (_candles1.Count - 1 - CountCandles < 1)
             {
                 return;
             }
@@ -307,8 +262,8 @@ namespace OsEngine.Robots.MarketMaker
 
                 if (positons1 == null || positons1.Count == 0)
                 {
-                    Position pos1 = _tab1.SellAtLimit(Volume1, _candles1[_candles1.Count - 1].Close - Slippage1);
-                    Position pos2 = _tab2.BuyAtLimit(Volume2, _candles2[_candles2.Count - 1].Close + Slippage2);
+                    Position pos1 = _tab1.SellAtLimit(GetVolume(_tab1, Volume1, VolumeType1, TradeAssetInPortfolio1), _candles1[_candles1.Count - 1].Close - Slippage1);
+                    Position pos2 = _tab2.BuyAtLimit(GetVolume(_tab2, Volume2, VolumeType2, TradeAssetInPortfolio2), _candles2[_candles2.Count - 1].Close + Slippage2);
 
                     PairDealStausSaver saver = new PairDealStausSaver();
                     saver.Spred = movePersent1 - movePersent2;
@@ -325,8 +280,8 @@ namespace OsEngine.Robots.MarketMaker
 
                 if (positons2 == null || positons2.Count == 0)
                 {
-                    Position pos1 = _tab2.SellAtLimit(Volume2, _candles2[_candles2.Count - 1].Close - Slippage2);
-                    Position pos2 = _tab1.BuyAtLimit(Volume1, _candles1[_candles1.Count - 1].Close + Slippage1);
+                    Position pos1 = _tab2.SellAtLimit(GetVolume(_tab2, Volume2, VolumeType2, TradeAssetInPortfolio2), _candles2[_candles2.Count - 1].Close - Slippage2);
+                    Position pos2 = _tab1.BuyAtLimit(GetVolume(_tab1, Volume1, VolumeType1, TradeAssetInPortfolio1), _candles1[_candles1.Count - 1].Close + Slippage1);
 
                     PairDealStausSaver saver = new PairDealStausSaver();
                     saver.Spred = movePersent2 - movePersent1;
@@ -337,13 +292,10 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// exit position logic
-        /// логика выхода из позиции
-        /// </summary>
+        // Exit position logic
         private void CheckExit()
         {
-            if (_candles1.Count - 1 - CountCandles < 0)
+            if (_candles1.Count - 1 - CountCandles < 1)
             {
                 return;
             }
@@ -381,10 +333,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// close position
-        /// закрываем позицию по номеру
-        /// </summary>
+        // Close position
         private void NeedToClose(int positionNum)
         {
             Position pos;
@@ -427,20 +376,106 @@ namespace OsEngine.Robots.MarketMaker
                 _tab2.CloseAtLimit(pos, price, pos.OpenVolume);
             }
         }
+
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab, decimal Volume, string VolumeType, string TradeAssetInPortfolio)
+        {
+            decimal volume = 0;
+
+            if (VolumeType == "Contracts")
+            {
+                volume = Volume;
+            }
+            else if (VolumeType == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = Volume / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (VolumeType == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (Volume / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
+        }
     }
 
     public class PairDealStausSaver
     {
-        /// <summary>
-        /// num position
-        /// номера позиции
-        /// </summary>
+        // num position
         public List<int> NumberPositions = new List<int>();
 
-        /// <summary>
-        /// spread in time inter
-        /// спред на момент входа
-        /// </summary>
+        // spread in time inter
         public decimal Spred;
     }
 }
