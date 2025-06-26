@@ -11,18 +11,82 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         public string ts { get; set; }
     }
 
-    public class ResponseMessageSecurities
+    public class SecuritiesInfo
     {
-        public List<Data> data { get; set; }
+        public string symbol { get; set; }
+        public string contract_code { get; set; }
+        public string contract_size { get; set; }
+        public string price_tick { get; set; }
+        public string delivery_date { get; set; }
+        public string delivery_time { get; set; }
+        public string create_date { get; set; }
+        public string contract_status { get; set; }
+        public List<string> adjust { get; set; }
+        public List<string> price_estimated { get; set; }
+        public string settlement_date { get; set; }
+        public string support_margin_mode { get; set; }
+        public string business_type { get; set; }
+        public string pair { get; set; }
+        public string contract_type { get; set; }
+        public string trade_partition { get; set; }
+    }
 
-        public class Data
-        {
-            public string symbol { get; set; }
-            public string contract_code { get; set; }
-            public string contract_size { get; set; }
-            public string price_tick { get; set; }
-            public string contract_status { get; set; }
-        }
+    public class ResponseRest<T>
+    {
+        public string code { get; set; }
+        public T data { get; set; }
+        public string msg { get; set; }
+        public string ts { get; set; }
+    }
+
+    public class PortfoliosUsdt
+    {
+        public List<CrossFutureRest> cross_future { get; set; }
+        public string cross_margin_static { get; set; }
+        public string cross_profit_unreal { get; set; }
+        public string cross_risk_rate { get; set; }
+        public List<CrossSwapRest> cross_swap { get; set; }
+        public List<IsolatedSwapRest> isolated_swap { get; set; }
+        public string margin_asset { get; set; }
+        public string margin_balance { get; set; }
+        public string margin_frozen { get; set; }
+        public string margin_static { get; set; }
+        public string userId { get; set; }
+        public string withdraw_available { get; set; }
+    }
+
+    public class CrossFutureRest
+    {
+        public string business_type { get; set; }
+        public string contract_code { get; set; }
+        public string contract_type { get; set; }
+        public string cross_max_available { get; set; }
+        public string lever_rate { get; set; }
+        public string margin_available { get; set; }
+        public string margin_mode { get; set; }
+        public string symbol { get; set; }
+    }
+
+    public class CrossSwapRest
+    {
+        public string business_type { get; set; }
+        public string contract_code { get; set; }
+        public string contract_type { get; set; }
+        public string cross_max_available { get; set; }
+        public string lever_rate { get; set; }
+        public string margin_available { get; set; }
+        public string margin_mode { get; set; }
+        public string symbol { get; set; }
+    }
+
+    public class IsolatedSwapRest
+    {
+        public string contract_code { get; set; }
+        public string lever_rate { get; set; }
+        public string margin_available { get; set; }
+        public string margin_mode { get; set; }
+        public string symbol { get; set; }
+        public string withdraw_available { get; set; }
     }
 
     public class ResponseMessagePortfoliosCoin
@@ -56,20 +120,6 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         }
     }
 
-    public class ResponseMessagePortfoliosUsdt
-    {
-        public List<Data> data { get; set; }
-
-        public class Data
-        {
-            public string margin_static { get; set; }
-            public string margin_asset { get; set; }
-            public string margin_frozen { get; set; }
-            public string margin_balance { get; set; }
-            public string cross_profit_unreal { get; set; }
-        }
-    }
-
     public class ResponseMessageCandles
     {
         public List<Data> data { get; set; }
@@ -98,7 +148,6 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
 
     public class ResponseMessageAllOrders
     {
-
         public Data data { get; set; }
 
         public class Data
@@ -124,7 +173,6 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
 
     public class ResponseMessageGetOrder
     {
-
         public List<Data> data { get; set; }
 
         public class Data
