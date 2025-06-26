@@ -804,6 +804,20 @@ namespace OsEngine.Market.Servers.FinamGrpc
             StartLatestTradesStream(security);
         }
 
+        private void ReconnectOrderBookStream(Security security)
+        {
+            if (_orderBookStreams.TryGetValue(security.NameId, out OrderBookStreamReaderInfo info))
+            {
+                // Отменяем токен только для этого ридера
+                info.CancellationTokenSource.Cancel();
+                try { info.ReaderTask.Wait(1000); } catch { }
+                info.Stream.Dispose();
+                _latestTradesStreams.Remove(security.NameId);
+            }
+            // Запускаем новый ридер со своим новым токеном
+            StartOrderBookStream(security);
+        }
+
         // Переподключение всех reader-ов
         private void ReconnectAllLatestTradesStreams()
         {
@@ -811,6 +825,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             foreach (var sec in securities)
             {
                 ReconnectLatestTradesStream(sec);
+                ReconnectOrderBookStream(sec);
             }
         }
 
