@@ -1427,14 +1427,14 @@ namespace OsEngine.OsTrader.Grids
                     if (_firstTradePrice == 0)
                     {
                         _firstTradePrice = curLineNeed.PriceEnter;
-                        _needToSave = true;
                     }
 
                     if (_firstTradeTime == DateTime.MinValue)
                     {
                         _firstTradeTime = Tab.TimeServerCurrent;
-                        _needToSave = true;
                     }
+
+                    _needToSave = true;
                 }
 
                 linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();
