@@ -1,3 +1,8 @@
+/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Р’Р°С€Рё РїСЂР°РІР° РЅР° РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РєРѕРґР° СЂРµРіСѓР»РёСЂСѓСЋС‚СЃСЏ РґР°РЅРЅРѕР№ Р»РёС†РµРЅР·РёРµР№ http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -9,39 +14,73 @@ using OsEngine.Market.Servers;
 using OsEngine.Logging;
 using OsEngine.Market;
 
-/// <summary>
-/// Trend Strategy Based on Breaking Bollinger Lines
-/// Трендовая стратегия на основе пробития линий болинджера
-/// </summary>
-[Bot("BollingerRevers")]
+/* Description
+trading robot for osengine
+
+Trend Strategy Based on Breaking Bollinger Lines
+
+Buy: The price is more than BollingerUpLine.
+
+Sell: Price below BollingerDownLine.
+
+Exit: At the intersection of Sma with the price.
+ */
+
+[Bot("BollingerRevers")] // We create an attribute so that we don't write anything to the BotFactory
 public class BollingerRevers : BotPanel
 {
-    public BollingerRevers(string name, StartProgram startProgram)
-        : base(name, startProgram)
+    private BotTabSimple _tab;
+
+    // Indicators
+    private Aindicator _bol;
+
+    // Basic settings
+    private StrategyParameterString _regime;
+    private StrategyParameterInt _slippage;
+
+    // Indicator settings
+    private StrategyParameterDecimal _bollingerDeviation;
+    private StrategyParameterInt _bollingerLength;
+
+    // GetVolume settings
+    private StrategyParameterString _volumeType;
+    private StrategyParameterDecimal _volume;
+    private StrategyParameterString _tradeAssetInPortfolio;
+
+    // The last value of the indicator
+    private decimal _lastPrice;
+    private decimal _bolLastUp;
+    private decimal _bolLastDown;
+
+    public BollingerRevers(string name, StartProgram startProgram) : base(name, startProgram)
     {
         TabCreate(BotTabType.Simple);
         _tab = TabsSimple[0];
 
-        Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+        // Basic settings
+        _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+        _slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
-        VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-        Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-        TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+        // GetVolume settings
+        _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+        _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+        _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-        Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
+        // Indicator settings
+        _bollingerLength = CreateParameter("Bollinger Length", 12, 4, 100, 2);
+        _bollingerDeviation = CreateParameter("Bollinger Deviation", 2, 0.5m, 4, 0.1m);
 
-        BollingerLength = CreateParameter("Bollinger Length", 12, 4, 100, 2);
-        BollingerDeviation = CreateParameter("Bollinger Deviation", 2, 0.5m, 4, 0.1m);
-
+        // Create indicator Bollinger
         _bol = IndicatorsFactory.CreateIndicatorByName("Bollinger", name + "Bollinger", false);
         _bol = (Aindicator)_tab.CreateCandleIndicator(_bol, "Prime");
-
-        _bol.ParametersDigit[0].Value = BollingerLength.ValueInt;
-        _bol.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
-
+        _bol.ParametersDigit[0].Value = _bollingerLength.ValueInt;
+        _bol.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
         _bol.Save();
 
+        // Subscribe to the candle finished event
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
+
+        // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
         Description = "Trend Strategy Based on Breaking Bollinger Lines " +
@@ -55,62 +94,27 @@ public class BollingerRevers : BotPanel
 
     void Event_ParametrsChangeByUser()
     {
-        _bol.ParametersDigit[0].Value = BollingerLength.ValueInt;
-        _bol.ParametersDigit[1].Value = BollingerDeviation.ValueDecimal;
+        _bol.ParametersDigit[0].Value = _bollingerLength.ValueInt;
+        _bol.ParametersDigit[1].Value = _bollingerDeviation.ValueDecimal;
         _bol.Reload();
     }
 
-    /// <summary>
-    /// bot name
-    /// взять уникальное имя
-    /// </summary>
+    // The name of the robot in OsEngine
     public override string GetNameStrategyType()
     {
         return "BollingerRevers";
     }
 
-    /// <summary>
-    /// strategy name
-    /// показать окно настроек
-    /// </summary>
+    // Show settings GUI
     public override void ShowIndividualSettingsDialog()
     {
 
     }
 
-    /// <summary>
-    /// trade tab
-    /// вкладка для торговли
-    /// </summary>
-    private BotTabSimple _tab;
-
-    //indicators индикаторы
-
-    private Aindicator _bol;
-
-    //settings настройки публичные
-
-    public StrategyParameterInt Slippage;
-    public StrategyParameterString VolumeType;
-    public StrategyParameterDecimal Volume;
-    public StrategyParameterString TradeAssetInPortfolio;
-    public StrategyParameterString Regime;
-    public StrategyParameterDecimal BollingerDeviation;
-    public StrategyParameterInt BollingerLength;
-
-    private decimal _lastPrice;
-    private decimal _bolLastUp;
-    private decimal _bolLastDown;
-
-    // logic логика
-
-    /// <summary>
-    /// candle finished event
-    /// событие завершения свечи
-    /// </summary>
+    // Logic
     private void Strateg_CandleFinishedEvent(List<Candle> candles)
     {
-        if (Regime.ValueString == "Off")
+        if (_regime.ValueString == "Off")
         {
             return;
         }
@@ -134,40 +138,34 @@ public class BollingerRevers : BotPanel
             }
         }
 
-        if (Regime.ValueString == "OnlyClosePosition")
+        if (_regime.ValueString == "OnlyClosePosition")
         {
             return;
         }
+
         if (openPositions == null || openPositions.Count == 0)
         {
             LogicOpenPosition(candles, openPositions);
         }
     }
 
-    /// <summary>
-    /// logic open position
-    /// логика открытия первой позиции
-    /// </summary>
+    // Logic open position
     private void LogicOpenPosition(List<Candle> candles, List<Position> position)
     {
         if (_lastPrice > _bolLastUp
-            && Regime.ValueString != "OnlyShort")
+            && _regime.ValueString != "OnlyShort")
         {
-            _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+            _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep);
         }
 
         if (_lastPrice < _bolLastDown
-            && Regime.ValueString != "OnlyLong")
+            && _regime.ValueString != "OnlyLong")
         {
-            _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+            _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
         }
-
     }
 
-    /// <summary>
-    /// logic close position
-    /// логика зыкрытия позиции и открытие по реверсивной системе
-    /// </summary>
+    // Logic close position
     private void LogicClosePosition(List<Candle> candles, Position position)
     {
         if (position.State == PositionStateType.Closing ||
@@ -181,49 +179,44 @@ public class BollingerRevers : BotPanel
         {
             if (_lastPrice < _bolLastDown)
             {
-                _tab.CloseAtLimit(
-                    position,
-                    _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep,
-                    position.OpenVolume);
+                _tab.CloseAtLimit(position,_lastPrice - _slippage.ValueInt * _tab.Security.PriceStep,position.OpenVolume);
 
-                if (Regime.ValueString != "OnlyLong"
-                    && Regime.ValueString != "OnlyClosePosition")
+                if (_regime.ValueString != "OnlyLong"
+                    && _regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+                    _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
+
         if (position.Direction == Side.Sell)
         {
             if (_lastPrice > _bolLastUp)
             {
-                _tab.CloseAtLimit(
-                    position,
-                    _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep,
-                    position.OpenVolume);
+                _tab.CloseAtLimit(position,_lastPrice + _slippage.ValueInt * _tab.Security.PriceStep,position.OpenVolume);
 
-                if (Regime.ValueString != "OnlyShort"
-                    && Regime.ValueString != "OnlyClosePosition")
+                if (_regime.ValueString != "OnlyShort"
+                    && _regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+                    _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep);
                 }
-
             }
         }
     }
 
+    // Method for calculating the volume of entry into a position
     private decimal GetVolume(BotTabSimple tab)
     {
         decimal volume = 0;
 
-        if (VolumeType.ValueString == "Contracts")
+        if (_volumeType.ValueString == "Contracts")
         {
-            volume = Volume.ValueDecimal;
+            volume = _volume.ValueDecimal;
         }
-        else if (VolumeType.ValueString == "Contract currency")
+        else if (_volumeType.ValueString == "Contract currency")
         {
             decimal contractPrice = tab.PriceBestAsk;
-            volume = Volume.ValueDecimal / contractPrice;
+            volume = _volume.ValueDecimal / contractPrice;
 
             if (StartProgram == StartProgram.IsOsTrader)
             {
@@ -234,7 +227,7 @@ public class BollingerRevers : BotPanel
                 tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
-                    volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                 }
 
                 volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -244,7 +237,7 @@ public class BollingerRevers : BotPanel
                 volume = Math.Round(volume, 6);
             }
         }
-        else if (VolumeType.ValueString == "Deposit percent")
+        else if (_volumeType.ValueString == "Deposit percent")
         {
             Portfolio myPortfolio = tab.Portfolio;
 
@@ -255,7 +248,7 @@ public class BollingerRevers : BotPanel
 
             decimal portfolioPrimeAsset = 0;
 
-            if (TradeAssetInPortfolio.ValueString == "Prime")
+            if (_tradeAssetInPortfolio.ValueString == "Prime")
             {
                 portfolioPrimeAsset = myPortfolio.ValueCurrent;
             }
@@ -270,7 +263,7 @@ public class BollingerRevers : BotPanel
 
                 for (int i = 0; i < positionOnBoard.Count; i++)
                 {
-                    if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                    if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                     {
                         portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                         break;
@@ -280,10 +273,11 @@ public class BollingerRevers : BotPanel
 
             if (portfolioPrimeAsset == 0)
             {
-                SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, LogMessageType.Error);
+                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, LogMessageType.Error);
                 return 0;
             }
-            decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+
+            decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
             decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 

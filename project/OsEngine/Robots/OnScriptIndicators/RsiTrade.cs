@@ -1,63 +1,118 @@
+/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Р’Р°С€Рё РїСЂР°РІР° РЅР° РёСЃРїРѕР»СЊР·РѕРІР°РЅРёРµ РєРѕРґР° СЂРµРіСѓР»РёСЂСѓСЋС‚СЃСЏ РґР°РЅРЅРѕР№ Р»РёС†РµРЅР·РёРµР№ http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Charts.CandleChart.Elements;
+using OsEngine.Entity;
+using OsEngine.Indicators;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using OsEngine.Charts.CandleChart.Elements;
-using OsEngine.Entity;
-using OsEngine.Indicators;
-using OsEngine.OsTrader.Panels.Tab;
-using OsEngine.OsTrader.Panels;
-using OsEngine.OsTrader.Panels.Attributes;
 
-/// <summary>
-/// RSI's concurrent overbought and oversold strategy
-/// конттрендовая стратегия RSI на перекупленность и перепроданность
-/// </summary>
+/* Description
+trading robot for osengine
+
+RSI's concurrent overbought and oversold strategy.
+
+Logic: if RsiSecond <= DownLine - close position and open Long. 
+
+Logic: if RsiSecond >= UpLine - close position and open Short.
+ */
+
 [Bot("RsiTrade")]
 public class RsiTrade : BotPanel
 {
-    public RsiTrade(string name, StartProgram startProgram)
-        : base(name, startProgram)
+    private BotTabSimple _tab;
+
+    // Basic settings
+    private StrategyParameterString _regime;
+    private StrategyParameterInt _slippage;
+
+    // GetVolume settings
+    private StrategyParameterString _volumeType;
+    private StrategyParameterDecimal _volume;
+    private StrategyParameterString _tradeAssetInPortfolio;
+
+    // Line settings
+    private StrategyParameterDecimal _upLineValue;
+    private StrategyParameterDecimal _downLineValue;
+
+    // Indicator setting
+    private StrategyParameterInt _rsiLength;
+
+    // Indicator area line
+    private LineHorisontal _upline;
+    private LineHorisontal _downline;
+    
+    // Indicator
+    private Aindicator _rsi;
+    
+    // The last value of the indicator and price
+    private decimal _lastPrice;
+    private decimal _firstRsi;
+    private decimal _secondRsi;
+
+    public RsiTrade(string name, StartProgram startProgram) : base(name, startProgram)
     {
         TabCreate(BotTabType.Simple);
         _tab = TabsSimple[0];
 
-        _rsi = IndicatorsFactory.CreateIndicatorByName("RSI",name + "RSI", false);
-        _rsi = (Aindicator)_tab.CreateCandleIndicator(_rsi, "RsiArea");
+        // Basic settings
+        _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+        _slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
-        Upline = new LineHorisontal("upline", "RsiArea", false)
+        // GetVolume settings
+        _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+        _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+        _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+        // Line settings
+        _upLineValue = CreateParameter("Up Line Value", 65, 60.0m, 90, 0.5m);
+        _downLineValue = CreateParameter("Down Line Value", 35, 10.0m, 40, 0.5m);
+
+        // Indicator setting
+        _rsiLength = CreateParameter("Rsi Length", 20, 10, 40, 2);
+
+        // Create indicator Rsi
+        _rsi = IndicatorsFactory.CreateIndicatorByName("RSI", name + "RSI", false);
+        _rsi = (Aindicator)_tab.CreateCandleIndicator(_rsi, "RsiArea");
+        _rsi.ParametersDigit[0].Value = _rsiLength.ValueInt;
+        _rsi.Save();
+
+        // Create UpLine 
+        _upline = new LineHorisontal("upline", "RsiArea", false)
         {
             Color = Color.Green,
             Value = 0,
         };
-        _tab.SetChartElement(Upline);
+        _tab.SetChartElement(_upline);
+        _upline.Value = _upLineValue.ValueDecimal;
+        _upline.TimeEnd = DateTime.Now;
 
-        Downline = new LineHorisontal("downline", "RsiArea", false)
+        // Create DownLine
+        _downline = new LineHorisontal("downline", "RsiArea", false)
         {
             Color = Color.Yellow,
             Value = 0
         };
-        _tab.SetChartElement(Downline);
+        _tab.SetChartElement(_downline);
+        _downline.Value = _downLineValue.ValueDecimal;
+        _downline.TimeEnd = DateTime.Now;
 
-        Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-        Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
-        Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
-        RsiLength = CreateParameter("Rsi Length", 20, 10, 40, 2);
-        UpLineValue = CreateParameter("Up Line Value", 65, 60.0m, 90, 0.5m);
-        DownLineValue = CreateParameter("Down Line Value", 35, 10.0m, 40, 0.5m);
-
-        _rsi.ParametersDigit[0].Value = RsiLength.ValueInt;
-
-        _rsi.Save();
-
-        Upline.Value = UpLineValue.ValueDecimal;
-        Downline.Value = DownLineValue.ValueDecimal;
-
-        Upline.TimeEnd = DateTime.Now;
-        Downline.TimeEnd = DateTime.Now;
-
+        // Subscribe to the candle finished event
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
+
+        // Subscribe to the delete event
         DeleteEvent += Strategy_DeleteEvent;
+
+        // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
         Description = "RSI's concurrent overbought and oversold strategy " +
@@ -67,71 +122,31 @@ public class RsiTrade : BotPanel
 
     void Event_ParametrsChangeByUser()
     {
-        if (_rsi.ParametersDigit[0].Value != RsiLength.ValueInt)
+        if (_rsi.ParametersDigit[0].Value != _rsiLength.ValueInt)
         {
-            _rsi.ParametersDigit[0].Value = RsiLength.ValueInt;
+            _rsi.ParametersDigit[0].Value = _rsiLength.ValueInt;
             _rsi.Reload();
         }
 
-        Upline.Value = UpLineValue.ValueDecimal;
-        Upline.Refresh();
-        Downline.Value = DownLineValue.ValueDecimal;
-        Downline.Refresh();
+        _upline.Value = _upLineValue.ValueDecimal;
+        _upline.Refresh();
+        _downline.Value = _downLineValue.ValueDecimal;
+        _downline.Refresh();
     }
 
-    /// <summary>
-    /// uniq name
-    /// взять уникальное имя
-    /// </summary>
+    // The name of the robot in OsEngine
     public override string GetNameStrategyType()
     {
         return "RsiTrade";
     }
 
-    /// <summary>
-    /// settings GUI
-    /// показать окно настроек
-    /// </summary>
+    // Show settings GUI
     public override void ShowIndividualSettingsDialog()
     {
+
     }
 
-    /// <summary>
-    /// tab to trade
-    /// вкладка для торговли
-    /// </summary>
-    private BotTabSimple _tab;
-
-    private Aindicator _rsi;
-
-    //settings настройки публичные
-
-    public StrategyParameterInt Slippage;
-
-    public StrategyParameterDecimal Volume;
-
-    public StrategyParameterString Regime;
-
-    public StrategyParameterDecimal UpLineValue;
-
-    public StrategyParameterDecimal DownLineValue;
-
-    public StrategyParameterInt RsiLength;
-
-    /// <summary>
-    /// верхняя линия для отрисовки
-    /// </summary>
-    public LineHorisontal Upline;
-
-    /// <summary>
-    /// нижняя линия для отрисовки
-    /// </summary>
-    public LineHorisontal Downline;
-
-    /// <summary>
-    /// delete save file
-    /// удаление файла с сохранением
-    /// </summary>
+    // Delete save file
     void Strategy_DeleteEvent()
     {
         if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -140,19 +155,10 @@ public class RsiTrade : BotPanel
         }
     }
 
-    private decimal _lastPrice;
-    private decimal _firstRsi;
-    private decimal _secondRsi;
-
-    //logic логика
-
-    /// <summary>
-    /// candles finished event
-    /// событие завершения свечи
-    /// </summary>
+    // Logic
     private void Strateg_CandleFinishedEvent(List<Candle> candles)
     {
-        if (Regime.ValueString == "Off")
+        if (_regime.ValueString == "Off")
         {
             return;
         }
@@ -172,9 +178,6 @@ public class RsiTrade : BotPanel
         _firstRsi = _rsi.DataSeries[0].Values[_rsi.DataSeries[0].Values.Count - 1];
         _secondRsi = _rsi.DataSeries[0].Values[_rsi.DataSeries[0].Values.Count - 2];
 
-
-
-
         List<Position> openPositions = _tab.PositionsOpenAll;
 
         if (openPositions != null && openPositions.Count != 0)
@@ -183,12 +186,12 @@ public class RsiTrade : BotPanel
             {
                 LogicClosePosition(candles, openPositions[i]);
 
-                Upline.Refresh();
-                Downline.Refresh();
+                _upline.Refresh();
+                _downline.Refresh();
             }
         }
 
-        if (Regime.ValueString == "OnlyClosePosition")
+        if (_regime.ValueString == "OnlyClosePosition")
         {
             return;
         }
@@ -198,30 +201,27 @@ public class RsiTrade : BotPanel
         }
     }
 
-    /// <summary>
-    /// logic open first position
-    /// логика открытия первой позиции
-    /// </summary>
+    // Logic open first position
     private void LogicOpenPosition(List<Candle> candles, List<Position> position)
     {
-        if (_secondRsi < Downline.Value && _firstRsi > Downline.Value
-                                            && Regime.ValueString != "OnlyShort")
+        if (_secondRsi < _downline.Value && _firstRsi > _downline.Value
+                                            && _regime.ValueString != "OnlyShort")
         {
-            _tab.BuyAtLimit(Volume.ValueDecimal,
-                _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+            _tab.BuyAtLimit(GetVolume(_tab),
+                _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep);
         }
 
-        if (_secondRsi > Upline.Value && _firstRsi < Upline.Value
-                                          && Regime.ValueString != "OnlyLong")
+        if (_secondRsi > _upline.Value && _firstRsi < _upline.Value
+                                          && _regime.ValueString != "OnlyLong")
         {
-            _tab.SellAtLimit(Volume.ValueDecimal,
-                _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+            _tab.SellAtLimit(GetVolume(_tab),
+                _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
         }
     }
 
     /// <summary>
     /// logic close position
-    /// логика зыкрытия позиции и открытие по реверсивной системе
+    /// Г«Г®ГЈГЁГЄГ  Г§Г»ГЄГ°Г»ГІГЁГї ГЇГ®Г§ГЁГ¶ГЁГЁ ГЁ Г®ГІГЄГ°Г»ГІГЁГҐ ГЇГ® Г°ГҐГўГҐГ°Г±ГЁГўГ­Г®Г© Г±ГЁГ±ГІГҐГ¬ГҐ
     /// </summary>
     private void LogicClosePosition(List<Candle> candles, Position position)
     {
@@ -232,31 +232,123 @@ public class RsiTrade : BotPanel
         }
         if (position.Direction == Side.Buy)
         {
-            if (_secondRsi >= Upline.Value && _firstRsi <= Upline.Value)
+            if (_secondRsi >= _upline.Value && _firstRsi <= _upline.Value)
             {
                 _tab.CloseAtLimit(position,
-                    _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
+                    _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
-                if (Regime.ValueString != "OnlyLong" && Regime.ValueString != "OnlyClosePosition")
+                if (_regime.ValueString != "OnlyLong" && _regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.SellAtLimit(Volume.ValueDecimal,
-                        _lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+                    _tab.SellAtLimit(GetVolume(_tab),
+                        _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
         if (position.Direction == Side.Sell)
         {
-            if (_secondRsi <= Downline.Value && _firstRsi >= Downline.Value)
+            if (_secondRsi <= _downline.Value && _firstRsi >= _downline.Value)
             {
                 _tab.CloseAtLimit(position,
-                    _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
+                    _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep, position.OpenVolume);
 
-                if (Regime.ValueString != "OnlyShort" && Regime.ValueString != "OnlyClosePosition")
+                if (_regime.ValueString != "OnlyShort" && _regime.ValueString != "OnlyClosePosition")
                 {
-                    _tab.BuyAtLimit(Volume.ValueDecimal,
-                        _lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+                    _tab.BuyAtLimit(GetVolume(_tab),
+                        _lastPrice + _slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
         }
+    }
+
+    // Method for calculating the volume of entry into a position
+    private decimal GetVolume(BotTabSimple tab)
+    {
+        decimal volume = 0;
+
+        if (_volumeType.ValueString == "Contracts")
+        {
+            volume = _volume.ValueDecimal;
+        }
+        else if (_volumeType.ValueString == "Contract currency")
+        {
+            decimal contractPrice = tab.PriceBestAsk;
+            volume = _volume.ValueDecimal / contractPrice;
+
+            if (StartProgram == StartProgram.IsOsTrader)
+            {
+                IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                if (serverPermission != null &&
+                    serverPermission.IsUseLotToCalculateProfit &&
+                tab.Security.Lot != 0 &&
+                    tab.Security.Lot > 1)
+                {
+                    volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                }
+
+                volume = Math.Round(volume, tab.Security.DecimalsVolume);
+            }
+            else // Tester or Optimizer
+            {
+                volume = Math.Round(volume, 6);
+            }
+        }
+        else if (_volumeType.ValueString == "Deposit percent")
+        {
+            Portfolio myPortfolio = tab.Portfolio;
+
+            if (myPortfolio == null)
+            {
+                return 0;
+            }
+
+            decimal portfolioPrimeAsset = 0;
+
+            if (_tradeAssetInPortfolio.ValueString == "Prime")
+            {
+                portfolioPrimeAsset = myPortfolio.ValueCurrent;
+            }
+            else
+            {
+                List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                if (positionOnBoard == null)
+                {
+                    return 0;
+                }
+
+                for (int i = 0; i < positionOnBoard.Count; i++)
+                {
+                    if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                    {
+                        portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                        break;
+                    }
+                }
+            }
+
+            if (portfolioPrimeAsset == 0)
+            {
+                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, OsEngine.Logging.LogMessageType.Error);
+                return 0;
+            }
+
+            decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+            decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+            if (tab.StartProgram == StartProgram.IsOsTrader)
+            {
+                qty = Math.Round(qty, tab.Security.DecimalsVolume);
+            }
+            else
+            {
+                qty = Math.Round(qty, 7);
+            }
+
+            return qty;
+        }
+
+        return volume;
     }
 }
