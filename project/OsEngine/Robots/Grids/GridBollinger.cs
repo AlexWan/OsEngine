@@ -129,13 +129,14 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
+            if (_tab.GridsMaster.TradeGrids.Count != 0)
+            {
+                LogicCloseGrid(candles);
+            }
+
             if (_tab.GridsMaster.TradeGrids.Count == 0)
             {
                 LogicCreateGrid(candles);
-            }
-            else
-            {
-                LogicCloseGrid(candles);
             }
 
         }

@@ -152,14 +152,16 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
+            if (_tab.GridsMaster.TradeGrids.Count != 0)
+            {
+                LogicDeleteGrid(candles);
+            }
+
             if (_tab.GridsMaster.TradeGrids.Count == 0
                 || _tab.GridsMaster.TradeGrids.Count == 1)
             {
                 LogicCreateGrid(candles);
             }
-
-            LogicDeleteGrid(candles);
-
         }
 
         private void LogicCreateGrid(List<Candle> candles)
