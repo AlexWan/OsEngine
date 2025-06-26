@@ -1055,7 +1055,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="tabName">name of the tab in the parameter window </param>
         public StrategyParameterDecimal CreateParameter(string name, decimal value, decimal start, decimal stop, decimal step, string tabControlName = null)
         {
-            StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step, tabControlName);
+            StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step, tabControlName); 
 
             if (_parameters.Find(p => p.Name == name) != null)
             {

@@ -249,10 +249,10 @@ namespace OsEngine.Robots.Grids
             grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid1.ValueInt;
             grid.StopBy.StopGridByPositionsCountIsOn = true;
 
-            // сохраняем
+            // 9 сохраняем
             grid.Save();
 
-            // включаем
+            // 10 включаем
             grid.Regime = TradeGridRegime.On;
         }
 

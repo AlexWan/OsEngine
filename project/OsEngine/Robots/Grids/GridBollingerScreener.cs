@@ -58,12 +58,11 @@ namespace OsEngine.Robots.Grids
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
             _bollingerLen = CreateParameter("Bollinger length", 50, 15, 20, 1);
-            _bollingerDev = CreateParameter("Bollinger deviation", 2m, 1.2m, 20, 1m);
-
-            _adxFilterLength = CreateParameter("ADX filter Len", 30, 10, 100, 3);
-            _minAdxValue = CreateParameter("ADX min value", 10, 20, 90, 1m);
-            _maxAdxValue = CreateParameter("ADX max value", 20, 20, 90, 1m);
-            _closePositionsCountToCloseGrid = CreateParameter("Grid close positions max", 50, 10, 300, 10);
+            _bollingerDev = CreateParameter("Bollinger deviation", 1.5m, 0.7m, 2.5m, 0.1m);
+            _adxFilterLength = CreateParameter("ADX filter length", 30, 10, 100, 3);
+            _minAdxValue = CreateParameter("ADX min value", 10, 5, 90, 1m);
+            _maxAdxValue = CreateParameter("ADX max value", 30, 20, 90, 1m);
+           
 
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4);
@@ -71,8 +70,9 @@ namespace OsEngine.Robots.Grids
 
             _maxGridsCount = CreateParameter("Max grids count", 5, 0, 20, 1, "Grid");
             _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.1m, 10m, 300, 10, "Grid");
-            _profitValue = CreateParameter("Profit percent", 0.1m, 1, 5, 0.1m, "Grid");
+            _linesStep = CreateParameter("Grid lines step", 0.1m, 0.1m, 5, 0.1m, "Grid");
+            _profitValue = CreateParameter("Profit percent", 0.1m, 0.1m, 5, 0.1m, "Grid");
+            _closePositionsCountToCloseGrid = CreateParameter("Grid close positions max", 50, 10, 300, 10, "Grid");
 
             _tabScreener.CreateCandleIndicator(1, "Bollinger", new List<string>() { "100", "2" }, "Prime");
             _tabScreener.CreateCandleIndicator(2, "ADX", new List<string>() { _adxFilterLength.ValueInt.ToString() }, "Second");
@@ -176,13 +176,14 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
+            if (tab.GridsMaster.TradeGrids.Count != 0)
+            {
+                LogicCloseGrid(candles, tab);
+            }
+
             if (tab.GridsMaster.TradeGrids.Count == 0)
             {
                 LogicCreateGrid(candles, tab);
-            }
-            else
-            {
-                LogicCloseGrid(candles, tab);
             }
         }
 
@@ -250,89 +251,90 @@ namespace OsEngine.Robots.Grids
 
             decimal lastPrice = candles[^1].Close;
 
-            bool upGrid = false;
-
-            bool downGrid = false;
-
             if(lastPrice > lastUpLine 
                 && _regime.ValueString != "OnlyLong")
             {
-                downGrid = true;
+                ThrowGrid(lastPrice, Side.Sell, tab);
             }
             if(lastPrice < lastDownLine
                 && _regime.ValueString != "OnlyShort")
             {
-                upGrid = true;
+                ThrowGrid(lastPrice, Side.Buy, tab);
             }
+        }
 
-            if (downGrid
-                || upGrid)
+        private void ThrowGrid(decimal lastPrice, Side side, BotTabSimple tab)
+        {
+            // 1 создаём сетку
+            TradeGrid grid = tab.GridsMaster.CreateNewTradeGrid();
+
+            // 2 устанавливаем её тип
+            grid.GridType = TradeGridPrimeType.MarketMaking;
+
+            // 3 устанавливаем объёмы
+            grid.GridCreator.StartVolume = _volume.ValueDecimal;
+            grid.GridCreator.TradeAssetInPortfolio = _tradeAssetInPortfolio.ValueString;
+
+            if (_volumeType.ValueString == "Contracts")
             {
-                TradeGrid grid = tab.GridsMaster.CreateNewTradeGrid();
-
-                grid.GridType = TradeGridPrimeType.MarketMaking;
-
-                grid.GridCreator.StartVolume = _volume.ValueDecimal;
-                grid.GridCreator.TradeAssetInPortfolio = _tradeAssetInPortfolio.ValueString;
-
-                if (_volumeType.ValueString == "Contracts")
-                {
-                    grid.GridCreator.TypeVolume = TradeGridVolumeType.Contracts;
-                }
-                else if (_volumeType.ValueString == "Contract currency")
-                {
-                    grid.GridCreator.TypeVolume = TradeGridVolumeType.ContractCurrency;
-                }
-                else if (_volumeType.ValueString == "Deposit percent")
-                {
-                    grid.GridCreator.TypeVolume = TradeGridVolumeType.DepositPercent;
-                }
-
-                grid.GridCreator.FirstPrice = lastPrice;
-                grid.GridCreator.LineCountStart = _linesCount.ValueInt;
-                grid.GridCreator.LineStep = _linesStep.ValueDecimal;
-                grid.GridCreator.TypeStep = TradeGridValueType.Percent;
-
-                grid.GridCreator.TypeProfit = TradeGridValueType.Percent;
-                grid.GridCreator.ProfitStep = _profitValue.ValueDecimal;
-
-                if (downGrid)
-                {
-                    grid.GridCreator.GridSide = Side.Sell;
-                }
-                else if (upGrid)
-                {
-                    grid.GridCreator.GridSide = Side.Buy;
-                }
-                grid.GridCreator.CreateNewGrid(tab, TradeGridPrimeType.MarketMaking);
-
-                CopyNonTradePeriodsSettingsInGrid(grid);
-
-                // устанавливаем Trailing Up
-
-                grid.TrailingUp.TrailingUpStep = tab.Security.PriceStep * 20;
-                grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
-                grid.TrailingUp.TrailingUpIsOn = true;
-
-                // устанавливаем Trailing Down
-
-                grid.TrailingUp.TrailingDownStep = tab.Security.PriceStep * 20;
-                grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
-                grid.TrailingUp.TrailingDownIsOn = true;
-
-                // устанавливаем закрытие сетки по количеству сделок
-
-                grid.StopBy.StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
-                grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid.ValueInt;
-                grid.StopBy.StopGridByPositionsCountIsOn = true;
-
-                grid.Save();
-                grid.Regime = TradeGridRegime.On;
+                grid.GridCreator.TypeVolume = TradeGridVolumeType.Contracts;
             }
+            else if (_volumeType.ValueString == "Contract currency")
+            {
+                grid.GridCreator.TypeVolume = TradeGridVolumeType.ContractCurrency;
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                grid.GridCreator.TypeVolume = TradeGridVolumeType.DepositPercent;
+            }
+
+            // 4 генерируем линии
+
+            grid.GridCreator.FirstPrice = lastPrice;
+            grid.GridCreator.LineCountStart = _linesCount.ValueInt;
+            grid.GridCreator.LineStep = _linesStep.ValueDecimal;
+            grid.GridCreator.TypeStep = TradeGridValueType.Percent;
+
+            grid.GridCreator.TypeProfit = TradeGridValueType.Percent;
+            grid.GridCreator.ProfitStep = _profitValue.ValueDecimal;
+
+            grid.GridCreator.GridSide = side;
+
+            grid.GridCreator.CreateNewGrid(tab, TradeGridPrimeType.MarketMaking);
+
+            // 5 устанавливаем не торговые периоды на сетку
+
+            CopyNonTradePeriodsSettingsInGrid(grid);
+
+            // 6 устанавливаем Trailing Up
+
+            grid.TrailingUp.TrailingUpStep = tab.RoundPrice(lastPrice * 0.005m, tab.Security, Side.Sell);
+            grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
+            grid.TrailingUp.TrailingUpIsOn = true;
+
+            // 7 устанавливаем Trailing Down
+
+            grid.TrailingUp.TrailingDownStep = tab.RoundPrice(lastPrice * 0.005m, tab.Security, Side.Buy);
+            grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
+            grid.TrailingUp.TrailingDownIsOn = true;
+
+            // 8 устанавливаем закрытие сетки по количеству сделок
+
+            grid.StopBy.StopGridByPositionsCountReaction = TradeGridRegime.CloseForced;
+            grid.StopBy.StopGridByPositionsCountValue = _closePositionsCountToCloseGrid.ValueInt;
+            grid.StopBy.StopGridByPositionsCountIsOn = true;
+
+            // 9 сохраняем
+            grid.Save();
+
+            // 10 включаем
+            grid.Regime = TradeGridRegime.On;
         }
 
         private void LogicCloseGrid(List<Candle> candles, BotTabSimple tab)
         {
+            // 1 проверяем всё ли в порядке с индикатором
+
             Aindicator bollinger = (Aindicator)tab.Indicators[0];
 
             if (bollinger.ParametersDigit[0].Value != _bollingerLen.ValueInt
@@ -354,7 +356,7 @@ namespace OsEngine.Robots.Grids
 
             TradeGrid grid = tab.GridsMaster.TradeGrids[0];
 
-            // 1 проверяем сетку на то что она уже прекратила работать и её надо удалить
+            // 2 проверяем сетку на то что она уже прекратила работать и её надо удалить
 
             if (grid.HaveOpenPositionsByGrid == false
                 && grid.Regime == TradeGridRegime.Off)
@@ -368,7 +370,7 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
-            // 2 проверяем сетку на обратную сторону канала. Может пора её закрывать
+            // 3 проверяем сетку на обратную сторону канала. Может пора её закрывать
 
             decimal lastUpLine = bollinger.DataSeries[0].Last;
             decimal lastDownLine = bollinger.DataSeries[1].Last;
