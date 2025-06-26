@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.Transaq.TransaqEntity;
 using System;
 using System.Collections.Generic;
 using System.Net;
@@ -26,6 +27,7 @@ using FPosition = Grpc.Tradeapi.V1.Accounts.Position;
 using FSide = Grpc.Tradeapi.V1.Side;
 using FTimeFrame = Grpc.Tradeapi.V1.Marketdata.TimeFrame;
 using FTrade = Grpc.Tradeapi.V1.Marketdata.Trade;
+using FAsset = Grpc.Tradeapi.V1.Assets.Asset;
 using Order = OsEngine.Entity.Order;
 using Portfolio = OsEngine.Entity.Portfolio;
 using Security = OsEngine.Entity.Security;
@@ -83,6 +85,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
         {
             try
             {
+                _myPortfolios.Clear();
+                _subscribedSecurities.Clear();
+
                 SendLogMessage("Start Finam gRPC Connection", LogMessageType.System);
 
                 _proxy = proxy;
@@ -111,6 +116,33 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public void Dispose()
         {
+            if (_myOrderTradeStream != null)
+            {
+                try
+                {
+                    _myOrderTradeStream.RequestStream.CompleteAsync().Wait();
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"Error cancelling stream: {ex}", LogMessageType.Error);
+                }
+
+                SendLogMessage("Completed exchange with my orders and trades stream", LogMessageType.System);
+            }
+
+
+            try
+            {
+                DisconnectAllDataStreams();
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Error cancelling stream: {ex}", LogMessageType.Error);
+            }
+
+            SendLogMessage("Completed exchange with data streams (orderbook and trades)", LogMessageType.System);
+
+
             SendLogMessage("Connection to Finam gRPC closed. Data streams Closed Event", LogMessageType.System);
 
             if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -181,7 +213,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             {
                 for (int i = 0; i < assetsResponse.Assets.Count; i++)
                 {
-                    Asset item = assetsResponse.Assets[i];
+                    FAsset item = assetsResponse.Assets[i];
 
                     Security newSecurity = new Security();
                     newSecurity.Name = item.Symbol;
@@ -659,7 +691,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private CancellationTokenSource _cancellationTokenSource;
         private WebProxy _proxy;
 
-        private AsyncDuplexStreamingCall<SubscribeQuoteRequest, SubscribeQuoteResponse> _marketDataStream;
+        //private AsyncDuplexStreamingCall<SubscribeQuoteRequest, SubscribeQuoteResponse> _marketDataStream;
         private AsyncServerStreamingCall<SubscribeQuoteResponse> _quoteStream;
         private Dictionary<string, OrderBookStreamReaderInfo> _orderBookStreams = new Dictionary<string, OrderBookStreamReaderInfo>();
         private Dictionary<string, TradesStreamReaderInfo> _latestTradesStreams = new Dictionary<string, TradesStreamReaderInfo>();
@@ -736,7 +768,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public event Action<News> NewsEvent;
 
-        //private AsyncDuplexStreamingCall<SubscribeQuoteRequest, SubscribeQuoteResponse> _marketDataStream;
         private AsyncServerStreamingCall<SubscribeOrderBookResponse> _orderBookStream;
         //private AsyncServerStreamingCall<SubscribeLatestTradesResponse> _myOrdersStream;
         private RateGate _rateGateSubscribeOrderBook = new RateGate(60, TimeSpan.FromMinutes(1));
@@ -746,9 +777,6 @@ namespace OsEngine.Market.Servers.FinamGrpc
         #endregion
 
         #region 8 Reading messages from data streams
-
-        private void TradesMessageReader() { /* больше не нужен, можно удалить */ }
-
 
         // Запуск reader для конкретного инструмента
         private void StartLatestTradesStream(Security security)
@@ -795,44 +823,63 @@ namespace OsEngine.Market.Servers.FinamGrpc
         // Переподключение reader для конкретного инструмента
         private void ReconnectLatestTradesStream(Security security)
         {
+            DisconnectLatestTradesStream(security);
+            // Запускаем новый ридер со своим новым токеном
+            StartLatestTradesStream(security);
+        }
+
+        private void DisconnectLatestTradesStream(Security security)
+        {
             if (_latestTradesStreams.TryGetValue(security.NameId, out TradesStreamReaderInfo info))
             {
                 // Отменяем токен только для этого ридера
                 info.CancellationTokenSource.Cancel();
                 try { info.ReaderTask.Wait(1000); } catch { }
-                info.Stream.Dispose();
+                if(info.Stream != null) info.Stream.Dispose();
                 _latestTradesStreams.Remove(security.NameId);
             }
-            // Запускаем новый ридер со своим новым токеном
-            StartLatestTradesStream(security);
         }
 
         private void ReconnectOrderBookStream(Security security)
+        {
+            DisconnectOrderBookStream(security);
+            // Запускаем новый ридер со своим новым токеном
+            StartOrderBookStream(security);
+        }
+
+        private void DisconnectOrderBookStream(Security security)
         {
             if (_orderBookStreams.TryGetValue(security.NameId, out OrderBookStreamReaderInfo info))
             {
                 // Отменяем токен только для этого ридера
                 info.CancellationTokenSource.Cancel();
                 try { info.ReaderTask.Wait(1000); } catch { }
-                info.Stream.Dispose();
+                if(info.Stream != null) info.Stream.Dispose();
                 _latestTradesStreams.Remove(security.NameId);
             }
-            // Запускаем новый ридер со своим новым токеном
-            StartOrderBookStream(security);
         }
 
         // Переподключение всех reader-ов
-        private void ReconnectAllLatestTradesStreams()
+        private void ReconnectAllDataStreams()
         {
-            var securities = _subscribedSecurities.ToArray();
-            foreach (var sec in securities)
+            //var securities = _subscribedSecurities.ToArray();
+            foreach (Security sec in _subscribedSecurities)
             {
                 ReconnectLatestTradesStream(sec);
                 ReconnectOrderBookStream(sec);
             }
         }
 
-        // Обновленный reader для стрима
+        private void DisconnectAllDataStreams()
+        {
+            foreach (Security sec in _subscribedSecurities)
+            {
+                DisconnectLatestTradesStream(sec);
+                DisconnectOrderBookStream(sec);
+            }
+        }
+
+        // Reader для стрима
         private async Task SingleTradesMessageReader(AsyncServerStreamingCall<SubscribeLatestTradesResponse> stream, CancellationToken token, string symbol)
         {
             SendLogMessage($"[DEBUG] Start reader for {symbol}", LogMessageType.System);
@@ -1007,6 +1054,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
+        /*
         private async void MarketDepthMessageReader()
         {
             Thread.Sleep(1000);
@@ -1129,7 +1177,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     Thread.Sleep(5000);
                 }
             }
-        }
+        }*/
 
         private async void MyOrderTradeKeepAlive()
         {
