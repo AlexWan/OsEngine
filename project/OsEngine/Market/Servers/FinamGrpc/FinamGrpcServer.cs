@@ -62,17 +62,21 @@ namespace OsEngine.Market.Servers.FinamGrpc
             worker0.Name = "CheckAliveFinamGrpc";
             worker0.Start();
 
-            Thread worker1 = new Thread(TradesMessageReader);
-            worker1.Name = "TradesMessageReaderFinamGrpc";
-            worker1.Start();
+            //Thread worker1 = new Thread(TradesMessageReader);
+            //worker1.Name = "TradesMessageReaderFinamGrpc";
+            //worker1.Start();
 
-            Thread worker2 = new Thread(MarketDepthMessageReader);
-            worker2.Name = "MarketDepthMessageReaderFinamGrpc";
-            worker2.Start();
+            //Thread worker2 = new Thread(MarketDepthMessageReader);
+            //worker2.Name = "MarketDepthMessageReaderFinamGrpc";
+            //worker2.Start();
 
             Thread worker3 = new Thread(MyOrderTradeMessageReader);
             worker3.Name = "MyOrderTradeMessageReaderFinamGrpc";
             worker3.Start();
+
+            Thread worker3s = new Thread(MyOrderTradeKeepAlive);
+            worker3s.Name = "MyOrderTradeSubscriberFinamGrpc";
+            worker3s.Start();
         }
 
         public void Connect(WebProxy proxy)
@@ -618,6 +622,9 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 _gRpcMetadata = new Metadata();
                 _gRpcMetadata.Add("x-app-name", "OsEngine");
                 _gRpcMetadata.Add("Authorization", auth.Token);
+
+                // Подписка один раз
+                _myOrderTradeStream = _myOrderTradeClient.SubscribeOrderTrade(_gRpcMetadata, null, _cancellationTokenSource.Token);
             }
             catch (RpcException ex)
             {
@@ -702,18 +709,14 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 //quoteResponse.ResponseStream.ReadAllAsync(); //.ConfigureAwait(false);
 
                 _rateGateSubscribeOrderBook.WaitToProceed();
-                // TODO Проверить, что предыдущие подписки активны и данные по ним поступают
-                _orderBookStream =
-                    _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
+                //// TODO Проверить, что предыдущие подписки активны и данные по ним поступают
+                //_orderBookStream =
+                //    _marketDataClient.SubscribeOrderBook(new SubscribeOrderBookRequest { Symbol = security.NameId }, _gRpcMetadata, null, _cancellationTokenSource.Token);
                 StartLatestTradesStream(security);
                 StartOrderBookStream(security);
-                // Собственные заявки и сделки
-                // Перенести, так как подписка нужна один раз
-                _myOrderTradeStream =
-                    //_myOrdersClient.SubscribeOrderTrade(new OrderTradeRequest { Action = OrderTradeRequest.Types.Action.Subscribe, AccountId = _accountId, DataType = OrderTradeRequest.Types.DataType.All }, _gRpcMetadata, null, _cancellationTokenSource.Token);
-                    _myOrderTradeClient.SubscribeOrderTrade(_gRpcMetadata, null, _cancellationTokenSource.Token);
 
-                // Получаем стакан
+
+                // Получаем начальный стакан
                 MarketDepth depth = GetMarketDepth(security);
                 MarketDepthEvent?.Invoke(depth);
 
@@ -762,7 +765,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
             // Свой CTS токен для каждого потока
             CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(_cancellationTokenSource.Token);
             streamReaderInfo.CancellationTokenSource = cts;
-            
+
             streamReaderInfo.Stream = _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, cts.Token);
             streamReaderInfo.ReaderTask = Task.Run(() => SingleTradesMessageReader(streamReaderInfo.Stream, cts.Token, security.NameId), cts.Token);
 
@@ -833,7 +836,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         private async Task SingleTradesMessageReader(AsyncServerStreamingCall<SubscribeLatestTradesResponse> stream, CancellationToken token, string symbol)
         {
             SendLogMessage($"[DEBUG] Start reader for {symbol}", LogMessageType.System);
-            Thread.Sleep(1000);
+            await Task.Delay(1000, token);
 
             try
             {
@@ -841,7 +844,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 {
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
-                        Thread.Sleep(10);
+                        await Task.Delay(5, token);
                         continue;
                     }
 
@@ -866,13 +869,13 @@ namespace OsEngine.Market.Servers.FinamGrpc
                     SubscribeLatestTradesResponse latestTradesResponse = stream.ResponseStream.Current;
                     if (latestTradesResponse == null)
                     {
-                        Thread.Sleep(1);
+                        await Task.Delay(1, token);
                         continue;
                     }
                     Security security = GetSecurity(latestTradesResponse.Symbol);
                     if (security == null)
                     {
-                        Thread.Sleep(1);
+                        await Task.Delay(1, token);
                         continue;
                     }
                     if (latestTradesResponse.Trades != null && latestTradesResponse.Trades.Count > 0)
@@ -1128,6 +1131,31 @@ namespace OsEngine.Market.Servers.FinamGrpc
             }
         }
 
+        private async void MyOrderTradeKeepAlive()
+        {
+            // Собственные заявки и сделки
+            // Повторящаяся подписка, так как нет пинга и поток отваливается без реанимации
+            // Пример для duplex stream
+            while (_cancellationTokenSource == null)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30)); // TODO временное решение. Пренести запуск потока в место, когда токен уже создан
+            }
+
+            while (!_cancellationTokenSource.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(30), _cancellationTokenSource.Token);
+                try
+                {
+                    await _myOrderTradeStream.RequestStream.WriteAsync(new OrderTradeRequest { AccountId = _accountId, Action = OrderTradeRequest.Types.Action.Subscribe, DataType = OrderTradeRequest.Types.DataType.All });
+                }
+                catch (Exception ex)
+                {
+                    SendLogMessage($"[DEBUG] OrderTrade keepalive failed: {ex}", LogMessageType.Error);
+                    break;
+                }
+            }
+        }
+
         private async void MyOrderTradeMessageReader()
         {
             Thread.Sleep(1000);
@@ -1153,6 +1181,8 @@ namespace OsEngine.Market.Servers.FinamGrpc
                         Thread.Sleep(1);
                         continue;
                     }
+
+                    //_myOrderTradeStream.RequestStream.WriteAsync(new OrderTradeRequest { AccountId = _accountId, Action = OrderTradeRequest.Types.Action.Subscribe, DataType = OrderTradeRequest.Types.DataType.All });
 
                     OrderTradeResponse myOrderTradeResponse = _myOrderTradeStream.ResponseStream.Current;
 
