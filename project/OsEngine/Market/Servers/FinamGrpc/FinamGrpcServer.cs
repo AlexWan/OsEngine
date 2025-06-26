@@ -753,10 +753,13 @@ namespace OsEngine.Market.Servers.FinamGrpc
                 return;
             }
 
+            SendLogMessage($"[DEBUG] StartLatestTradesStream called for {security.NameId}", LogMessageType.System);
+
             StreamReaderInfo streamReaderInfo = new StreamReaderInfo();
             streamReaderInfo.CancellationTokenSource = cts;
 
-            streamReaderInfo.Stream = _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, cts.Token);
+            //streamReaderInfo.Stream = _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata, null, cts.Token);
+            streamReaderInfo.Stream = _marketDataClient.SubscribeLatestTrades(new SubscribeLatestTradesRequest { Symbol = security.NameId }, _gRpcMetadata);
             streamReaderInfo.ReaderTask = Task.Run(() => SingleTradesMessageReader(streamReaderInfo.Stream, cts.Token, security.NameId), cts.Token);
 
             _latestTradesStreams[security.NameId] = streamReaderInfo;
@@ -788,32 +791,50 @@ namespace OsEngine.Market.Servers.FinamGrpc
         // Обновленный reader для стрима
         private async Task SingleTradesMessageReader(AsyncServerStreamingCall<SubscribeLatestTradesResponse> stream, CancellationToken token, string symbol)
         {
+            SendLogMessage($"[DEBUG] Start reader for {symbol}", LogMessageType.System);
+            Thread.Sleep(1000);
+
             try
             {
                 while (!token.IsCancellationRequested)
                 {
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(10);
+                        continue;
+                    }
+
                     bool hasData;
                     try
                     {
+                        SendLogMessage($"[DEBUG] MoveNext called for {symbol}", LogMessageType.System);
                         hasData = await stream.ResponseStream.MoveNext();
                     }
                     catch (Exception ex)
                     {
-                        SendLogMessage($"Error in MoveNext for {symbol}: {ex}", LogMessageType.Error);
-                        break; // выход из reader, чтобы можно было переподключить
+                        SendLogMessage($"[DEBUG] Exception in reader for {symbol}: {ex}", LogMessageType.Error);
+                        break;
                     }
 
                     if (!hasData)
                     {
-                        // Сервер закрыл стрим — выход из reader
-                        SendLogMessage($"Stream closed by server for {symbol}", LogMessageType.System);
+                        SendLogMessage($"[DEBUG] Stream closed by server for {symbol}", LogMessageType.System);
                         break;
                     }
 
-                    SubscribeLatestTradesResponse latestTradesResponse = stream.ResponseStream.Current;
-                    if (latestTradesResponse == null) continue;
+                    //SubscribeLatestTradesResponse latestTradesResponse = stream.ResponseStream.Current;
+                    SubscribeLatestTradesResponse latestTradesResponse = stream.ResponseStream.ReadAllAsync();
+                    if (latestTradesResponse == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
                     Security security = GetSecurity(latestTradesResponse.Symbol);
-                    if (security == null) continue;
+                    if (security == null)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
                     if (latestTradesResponse.Trades != null && latestTradesResponse.Trades.Count > 0)
                     {
                         for (int i = 0; i < latestTradesResponse.Trades.Count; i++)
@@ -834,37 +855,15 @@ namespace OsEngine.Market.Servers.FinamGrpc
                             trade.Volume = newTrade.Size.Value.ToString().ToDecimal();
                             NewTradesEvent?.Invoke(trade);
                         }
+                        SendLogMessage($"[DEBUG] Received trades for {symbol}: {latestTradesResponse.Trades?.Count ?? 0}", LogMessageType.System);
                     }
                 }
             }
-            catch (OperationCanceledException) { /* Нормальное завершение */ }
-            catch (RpcException ex) when (ex.StatusCode == StatusCode.Cancelled)
+            catch (OperationCanceledException) { SendLogMessage($"[DEBUG] Reader for {symbol} cancelled", LogMessageType.System); }
+            catch (Exception ex) { SendLogMessage($"[DEBUG] Reader for {symbol} exception: {ex}", LogMessageType.Error); }
+            finally
             {
-                string message = GetGRPCErrorMessage(ex);
-                SendLogMessage($"OrderTrade stream was cancelled: {message}", LogMessageType.System);
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
-                }
-                Thread.Sleep(5000);
-            }
-            catch (RpcException ex)
-            {
-                SendLogMessage($"OrderTrade stream was disconnected: {ex.Message}", LogMessageType.Error);
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent?.Invoke();
-                }
-                Thread.Sleep(5000);
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Error in SingleTradesMessageReader for {symbol}: {ex}", LogMessageType.Error);
-                Thread.Sleep(5000);
+                SendLogMessage($"[DEBUG] Reader for {symbol} finished", LogMessageType.System);
             }
         }
 
@@ -1576,7 +1575,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
         // Для управления потоками чтения стримов
         private class StreamReaderInfo
         {
-            public MarketDataService.MarketDataServiceClient MarketDataClient;
+            //public MarketDataService.MarketDataServiceClient MarketDataClient;
             public AsyncServerStreamingCall<SubscribeLatestTradesResponse> Stream { get; set; }
             public CancellationTokenSource CancellationTokenSource { get; set; }
             public Task ReaderTask { get; set; }
