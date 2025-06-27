@@ -93,12 +93,16 @@
     <Reference Include="TInvestApi">
       <HintPath>..\..\related projects\TInvestApi\bin\Debug\TInvestApi.dll</HintPath>
     </Reference>
+    <Reference Include="FinamApi">
+      <HintPath>..\..\related projects\FinamApi\bin\Debug\net9.0\FinamApi.dll</HintPath>
+    </Reference>
     <Reference Include="WebSocket4Net">
       <HintPath>bin\Debug\WebSocket4Net.dll</HintPath>
     </Reference>
     <Reference Update="System.Runtime.Serialization">
       <Private>True</Private>
     </Reference>
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
