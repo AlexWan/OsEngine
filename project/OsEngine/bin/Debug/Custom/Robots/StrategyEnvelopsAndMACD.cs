@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -34,13 +34,14 @@ The trailing stop is placed at the minimum for the period specified for the trai
 Exit from the sell:
 The trailing stop is placed at the maximum for the period specified for the trailing stop
 and is transferred (slides) over the new maximum price, also for the specified period.
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyEnvelopsAndMACD")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyEnvelopsAndMACD")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyEnvelopsAndMACD : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -54,14 +55,14 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _envelopsLength;
         private StrategyParameterDecimal _envelopsDeviation;
         private StrategyParameterInt _fastLineLengthMACD;
         private StrategyParameterInt _slowLineLengthMACD;
         private StrategyParameterInt _signalLineLengthMACD;
 
-        // Indicator
+        // Indicators
         private Aindicator _envelops;
         private Aindicator _MACD;
 
@@ -69,13 +70,14 @@ namespace OsEngine.Robots
         private decimal _lastUpLine;
         private decimal _lastDownLine;
         private decimal _lastMACD;
-        private decimal _SignalLineLengthMACD;
+        private decimal _lastSignalLineMACD;
 
         // Exit setting
         private StrategyParameterInt _trailCandles;
 
         public StrategyEnvelopsAndMACD(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -123,7 +125,7 @@ namespace OsEngine.Robots
 
             Description = "The trend robot on StrategyEnvelopsAndMACD." +
                 "Buy:" +
-                " 1.The price is above the upper Envelopes line." +
+                "1.The price is above the upper Envelopes line." +
                 "2.MACD histogram < 0 and Moving average > MACD." +
                 "Sell: " +
                 "1.The price is below the lower envelop line" +
@@ -142,6 +144,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterDecimal)_envelops.Parameters[1]).ValueDecimal = _envelopsDeviation.ValueDecimal;
             _envelops.Save();
             _envelops.Reload();
+
             ((IndicatorParameterInt)_MACD.Parameters[0]).ValueInt = _fastLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[1]).ValueInt = _slowLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[2]).ValueInt = _signalLineLengthMACD.ValueInt;
@@ -154,6 +157,7 @@ namespace OsEngine.Robots
         {
             return "StrategyEnvelopsAndMACD";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -169,8 +173,11 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _envelopsDeviation.ValueDecimal ||
-                candles.Count < _envelopsLength.ValueInt)
+            if (candles.Count <= _envelopsDeviation.ValueDecimal ||
+                candles.Count <= _envelopsLength.ValueInt ||
+                candles.Count <= _fastLineLengthMACD.ValueInt ||
+                candles.Count <= _slowLineLengthMACD.ValueInt ||
+                candles.Count <= _signalLineLengthMACD.ValueInt)
             {
                 return;
             }
@@ -208,9 +215,9 @@ namespace OsEngine.Robots
         {
             // The last value of the indicator
             _lastUpLine = _envelops.DataSeries[0].Last;
-            _lastDownLine = _envelops.DataSeries[1].Last;
+            _lastDownLine = _envelops.DataSeries[2].Last;
             _lastMACD = _MACD.DataSeries[0].Last;
-            _SignalLineLengthMACD = _MACD.DataSeries[2].Last;
+            _lastSignalLineMACD = _MACD.DataSeries[2].Last;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -224,7 +231,7 @@ namespace OsEngine.Robots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (lastPrice > _lastUpLine && _lastMACD < 0 && _SignalLineLengthMACD > _lastMACD)
+                    if (lastPrice > _lastUpLine && _lastMACD < 0 && _lastSignalLineMACD > _lastMACD)
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
@@ -233,7 +240,7 @@ namespace OsEngine.Robots
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (lastPrice < _lastDownLine && _lastMACD > 0 && _SignalLineLengthMACD < _lastMACD)
+                    if (lastPrice < _lastDownLine && _lastMACD > 0 && _lastSignalLineMACD < _lastMACD)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
@@ -262,19 +269,23 @@ namespace OsEngine.Robots
                 if (position.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is short
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
             }

@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -20,26 +20,26 @@ trading robot for osengine
 The trend robot on of five Sma
 
 Buy:
-
 All Smas are rising (when all five moving averages are larger than they were one bar ago) + 
 half of the difference between the high and low of the previous bar.
 
 Sell:
-
 All Smas fall (when all five moving averages are less than they were one bar ago) - 
 half the difference between the high and low of the previous bar.
 
-Exit from buy: Sma1, Sma2 and Sma3 are falling.
+Exit from buy:
+Sma1, Sma2 and Sma3 are falling.
 
-Exit from sell: Sma1, Sma2 and Sma3 are growing.
-
+Exit from sell:
+Sma1, Sma2 and Sma3 are growing.
 */
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyFiveSma")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyFiveSma")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyFiveSma : BotPanel
     {
+        // Reference to the main trading tab
         public BotTabSimple _tab;
 
         // Basic Settings
@@ -53,14 +53,14 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _periodSma1;
         private StrategyParameterInt _periodSma2;
         private StrategyParameterInt _periodSma3;
         private StrategyParameterInt _periodSma4;
         private StrategyParameterInt _periodSma5;
 
-        // Indicator
+        // Indicators
         private Aindicator _sma1;
         private Aindicator _sma2;
         private Aindicator _sma3;
@@ -74,7 +74,7 @@ namespace OsEngine.Robots
         private decimal _lastSma4;
         private decimal _lastSma5;
 
-        // The penultimate value of the indicators
+        // The previous value of the indicators
         private decimal _prevSma1;
         private decimal _prevSma2;
         private decimal _prevSma3;
@@ -83,6 +83,7 @@ namespace OsEngine.Robots
 
         public StrategyFiveSma(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -97,7 +98,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator settings
+            // Indicators settings
             _periodSma1 = CreateParameter("Period SMA1", 50, 10, 300, 1, "Indicator");
             _periodSma2 = CreateParameter("Period SMA2", 100, 10, 300, 1, "Indicator");
             _periodSma3 = CreateParameter("Period SMA3", 150, 10, 300, 1, "Indicator");
@@ -162,15 +163,19 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_sma1.Parameters[0]).ValueInt = _periodSma1.ValueInt;
             _sma1.Save();
             _sma1.Reload();
+
             ((IndicatorParameterInt)_sma2.Parameters[0]).ValueInt = _periodSma2.ValueInt;
             _sma2.Save();
             _sma2.Reload();
+
             ((IndicatorParameterInt)_sma3.Parameters[0]).ValueInt = _periodSma3.ValueInt;
             _sma3.Save();
             _sma3.Reload();
+
             ((IndicatorParameterInt)_sma4.Parameters[0]).ValueInt = _periodSma4.ValueInt;
             _sma4.Save();
             _sma4.Reload();
+
             ((IndicatorParameterInt)_sma5.Parameters[0]).ValueInt = _periodSma5.ValueInt;
             _sma5.Save();
             _sma5.Reload();
@@ -181,6 +186,7 @@ namespace OsEngine.Robots
         {
             return "StrategyFiveSma";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -254,14 +260,14 @@ namespace OsEngine.Robots
 
                 decimal high = candles[candles.Count - 1].High;
                 decimal low = candles[candles.Count - 1].Low;
-                decimal highminuslow = (high - low)/2;
+                decimal highminuslow = (high - low) / 2;
 
                 decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastSma1 > _prevSma1 + highminuslow 
+                    if (_lastSma1 > _prevSma1 + highminuslow
                         && _lastSma2 > _prevSma2 + highminuslow
                         && _lastSma3 > _prevSma3 + highminuslow
                         && _lastSma4 > _prevSma4 + highminuslow
@@ -280,7 +286,7 @@ namespace OsEngine.Robots
                         && _lastSma4 < _prevSma4 - highminuslow
                         && _lastSma5 < _prevSma5 - highminuslow)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestAsk - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
             }
@@ -310,7 +316,7 @@ namespace OsEngine.Robots
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is long
                 {
-                    if (_lastSma1 < _prevSma1 
+                    if (_lastSma1 < _prevSma1
                         && _lastSma2 < _prevSma2
                         && _lastSma3 < _prevSma3)
                     {
