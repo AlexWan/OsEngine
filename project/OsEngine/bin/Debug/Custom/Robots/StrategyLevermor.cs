@@ -58,7 +58,6 @@ public class StrategyLevermor : BotPanel
     private StrategyParameterTimeOfDay _startTradeTime;
     private StrategyParameterTimeOfDay _endTradeTime;
 
-
     // GetVolume Settings
     private StrategyParameterString _volumeType;
     private StrategyParameterDecimal _volume;
@@ -90,7 +89,6 @@ public class StrategyLevermor : BotPanel
         _percentDopSell = CreateParameter("PersentDopSell", 0.5m, 0.1m, 2, 0.1m, "Base");
         _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
         _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
-
 
         // GetVolume Settings
         _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
