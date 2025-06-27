@@ -2014,6 +2014,9 @@ namespace OsEngine.OsTrader.Panels.Tab
             Tab1.CandleFinishedEvent += Tab1_CandleFinishedEvent;
             Tab2.CandleFinishedEvent += Tab2_CandleFinishedEvent;
 
+            Tab1.CandleUpdateEvent += Tab1_CandleUpdateEvent;
+            Tab2.CandleUpdateEvent += Tab2_CandleUpdateEvent;
+
             Tab1.Connector.ConnectorStartedReconnectEvent += Connector_ConnectorStartedReconnectEvent;
             Tab2.Connector.ConnectorStartedReconnectEvent += Connector_ConnectorStartedReconnectEvent1;
 
@@ -2136,6 +2139,9 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             Tab1.CandleFinishedEvent -= Tab1_CandleFinishedEvent;
             Tab2.CandleFinishedEvent -= Tab2_CandleFinishedEvent;
+
+            Tab1.CandleUpdateEvent -= Tab1_CandleUpdateEvent;
+            Tab2.CandleUpdateEvent -= Tab2_CandleUpdateEvent;
 
             Tab1.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent;
             Tab2.Connector.ConnectorStartedReconnectEvent -= Connector_ConnectorStartedReconnectEvent1;
@@ -2879,6 +2885,101 @@ namespace OsEngine.OsTrader.Panels.Tab
 
         #endregion
 
+        #region Fast start indicators in real
+
+        private bool _isStarted;
+
+        private DateTime _timeToRebuildIndicators;
+
+        private void Tab2_CandleUpdateEvent(List<Candle> candles)
+        {
+            if(Tab2.StartProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
+            if (_isStarted == true)
+            {
+                return;
+            }
+
+            List<Candle> candles1 = Tab1.CandlesAll;
+            List<Candle> candles2 = Tab2.CandlesAll;
+
+            if(candles1 == null 
+                || candles1.Count == 0 
+                || candles2 == null
+                || candles2.Count == 0)
+            {
+                return;
+            }
+
+            if (candles1[^1].TimeStart == candles2[^1].TimeStart)
+            {
+                if(_timeToRebuildIndicators == DateTime.MinValue)
+                {
+                    _timeToRebuildIndicators = DateTime.Now.AddSeconds(10);
+                    return;
+                }
+
+                if(_timeToRebuildIndicators > DateTime.Now)
+                {
+                    return;
+                }
+
+                _candles1 = Tab1.CandlesFinishedOnly;
+                _candles2 = Tab2.CandlesFinishedOnly;
+                _isStarted = true;
+                TryReloadIndicators(false);
+            }
+        }
+
+        private void Tab1_CandleUpdateEvent(List<Candle> candles)
+        {
+            if (Tab1.StartProgram != StartProgram.IsOsTrader)
+            {
+                return;
+            }
+
+            if (_isStarted == true)
+            {
+                return;
+            }
+
+            List<Candle> candles1 = Tab1.CandlesAll;
+            List<Candle> candles2 = Tab2.CandlesAll;
+
+            if (candles1 == null
+                || candles1.Count == 0
+                || candles2 == null
+                || candles2.Count == 0)
+            {
+                return;
+            }
+
+            if (candles1[^1].TimeStart == candles2[^1].TimeStart)
+            {
+                if (_timeToRebuildIndicators == DateTime.MinValue)
+                {
+                    _timeToRebuildIndicators = DateTime.Now.AddSeconds(10);
+                    return;
+                }
+
+                if (_timeToRebuildIndicators > DateTime.Now)
+                {
+                    return;
+                }
+
+                _candles1 = Tab1.CandlesFinishedOnly;
+                _candles2 = Tab2.CandlesFinishedOnly;
+
+                _isStarted = true;
+                TryReloadIndicators(false);
+            }
+        }
+
+        #endregion
+
         #region Event processing and indicator recalculation call
 
         /// <summary>
@@ -2892,7 +2993,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void Tab1_CandleFinishedEvent(List<Candle> candles1)
         {
             _candles1 = candles1;
-            TryReloadIndicators();
+            TryReloadIndicators(true);
         }
 
         /// <summary>
@@ -2906,7 +3007,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void Tab2_CandleFinishedEvent(List<Candle> candles2)
         {
             _candles2 = candles2;
-            TryReloadIndicators();
+            TryReloadIndicators(true);
         }
 
         /// <summary>
@@ -2915,6 +3016,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void Connector_ConnectorStartedReconnectEvent1(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, string arg5)
         {
             ClearIndicators();
+            _isStarted = false;
+            _timeToRebuildIndicators = DateTime.MinValue;
+            _timeLastReloadIndicators = DateTime.MinValue;
         }
 
         /// <summary>
@@ -2923,6 +3027,9 @@ namespace OsEngine.OsTrader.Panels.Tab
         private void Connector_ConnectorStartedReconnectEvent(string arg1, TimeFrame arg2, TimeSpan arg3, string arg4, string arg5)
         {
             ClearIndicators();
+            _isStarted = false;
+            _timeToRebuildIndicators = DateTime.MinValue;
+            _timeLastReloadIndicators = DateTime.MinValue;
         }
 
         /// <summary>
@@ -2933,7 +3040,7 @@ namespace OsEngine.OsTrader.Panels.Tab
         /// <summary>
         /// Recalculate indicators
         /// </summary>
-        private void TryReloadIndicators()
+        private void TryReloadIndicators(bool canSendEvent)
         {
             if (_candles1 == null ||
                 _candles2 == null)
@@ -2976,9 +3083,12 @@ namespace OsEngine.OsTrader.Panels.Tab
                 ReloadCointegration(_candles1, _candles2);
             }
 
-            if (CandlesInPairSyncFinishedEvent != null)
+            if(canSendEvent == true)
             {
-                CandlesInPairSyncFinishedEvent(_candles1, Tab1, _candles2, Tab2, this);
+                if (CandlesInPairSyncFinishedEvent != null)
+                {
+                    CandlesInPairSyncFinishedEvent(_candles1, Tab1, _candles2, Tab2, this);
+                }
             }
         }
 
