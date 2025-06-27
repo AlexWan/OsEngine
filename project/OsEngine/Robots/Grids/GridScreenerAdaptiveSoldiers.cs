@@ -26,6 +26,8 @@ namespace OsEngine.Robots.Grids
     [Bot("GridScreenerAdaptiveSoldiers")]
     public class GridScreenerAdaptiveSoldiers : BotPanel
     {
+        #region Constructor, settings, service
+
         private StrategyParameterString _regime;
         private StrategyParameterInt _maxGridsCount;
 
@@ -63,18 +65,17 @@ namespace OsEngine.Robots.Grids
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort" });
 
-            _daysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 3, 0, 20, 1);
-
-            _heightSoldiersVolaPercent = CreateParameter("Height soldiers volatility percent", 50, 0, 20, 1m);
-
-            _minHeightOneSoldiersVolaPercent = CreateParameter("Min height one soldier volatility percent", 10, 0, 20, 1m);
+            _daysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 3, 1, 20, 1);
+            _heightSoldiersVolaPercent = CreateParameter("Height soldiers volatility percent", 50, 10, 70, 1m);
+            _minHeightOneSoldiersVolaPercent = CreateParameter("Min height one soldier volatility percent", 10, 5, 20, 1m);
 
             _smaFilterIsOn = CreateParameter("Sma filter is on", true);
-            _smaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
+            _smaFilterLen = CreateParameter("Sma filter length", 100, 100, 300, 10);
+
             _maxGridsCount = CreateParameter("Max grids count", 5, 0, 20, 1, "Grid");
-            _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.05m, 10m, 300, 10, "Grid");
-            _profitValue = CreateParameter("Profit % ", 0.3m, 0.3m, 20, 1m, "Grid");
+            _linesCount = CreateParameter("Grid lines count", 10, 10, 100, 10, "Grid");
+            _linesStep = CreateParameter("Grid lines step", 0.05m, 0.05m, 1, 0.05m, "Grid");
+            _profitValue = CreateParameter("Profit % ", 0.05m, 0.05m, 1, 0.05m, "Grid");
             _closePositionsCountToCloseGrid = CreateParameter("Grid close positions max", 50, 10, 300, 10, "Grid");
             _gridSecondsToLife = CreateParameter("Grid life time seconds", 172800, 172800, 2000000, 10000, "Grid");
 
@@ -157,7 +158,9 @@ namespace OsEngine.Robots.Grids
             }
         }
 
-        // volatility adaptation
+        #endregion
+
+        #region Volatility adaptation
 
         private List<SecuritiesTradeSettings> _tradeSettings = new List<SecuritiesTradeSettings>();
 
@@ -319,10 +322,17 @@ namespace OsEngine.Robots.Grids
             settings.LastUpdateTime = candles[candles.Count - 1].TimeStart;
         }
 
-        // logic
+        #endregion
+
+        #region Logic
 
         private void _tab_CandleFinishedEvent1(List<Candle> candles, BotTabSimple tab)
         {
+            if (_regime.ValueString == "Off")
+            {
+                return;
+            }
+
             if (candles.Count < 150)
             {
                 return;
@@ -364,25 +374,14 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
-            Logic(candles, tab, mySettings);
-        }
-
-        private void Logic(List<Candle> candles, BotTabSimple tab, SecuritiesTradeSettings settings)
-        {
-            if (_regime.ValueString == "Off")
+            if (tab.GridsMaster.TradeGrids.Count != 0)
             {
-                return;
+                LogicCloseGrid(candles, tab);
             }
-
-            List<Position> openPositions = tab.PositionsOpenAll;
 
             if (tab.GridsMaster.TradeGrids.Count == 0)
             {
-                LogicCreateGrid(candles, tab, settings);
-            }
-            else
-            {
-                LogicCloseGrid(candles, tab);
+                LogicCreateGrid(candles, tab, mySettings);
             }
         }
 
@@ -466,7 +465,6 @@ namespace OsEngine.Robots.Grids
                     ThrowGrid(lastPrice, Side.Sell, tab);
                 }
             }
-            return;
         }
 
         private void ThrowGrid(decimal lastPrice, Side side, BotTabSimple tab)
@@ -509,13 +507,13 @@ namespace OsEngine.Robots.Grids
 
             // 6 устанавливаем Trailing Up
 
-            grid.TrailingUp.TrailingUpStep = tab.Security.PriceStep * 20;
+            grid.TrailingUp.TrailingUpStep = tab.RoundPrice(lastPrice * 0.005m, tab.Security, Side.Sell);
             grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
             grid.TrailingUp.TrailingUpIsOn = true;
 
             // 7 устанавливаем Trailing Down
 
-            grid.TrailingUp.TrailingDownStep = tab.Security.PriceStep * 20;
+            grid.TrailingUp.TrailingDownStep = tab.RoundPrice(lastPrice * 0.005m, tab.Security, Side.Buy);
             grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
             grid.TrailingUp.TrailingDownIsOn = true;
 
@@ -578,6 +576,8 @@ namespace OsEngine.Robots.Grids
 
             return summ / countPoints;
         }
+
+        #endregion
 
         #region Non trade periods
 

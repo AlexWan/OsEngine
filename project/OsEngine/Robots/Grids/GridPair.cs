@@ -22,6 +22,9 @@ namespace OsEngine.Robots.Grids
     [Bot("GridPair")]
     public class GridPair : BotPanel
     {
+
+        #region Constructor, settings, service
+
         private StrategyParameterString _regime;
         private StrategyParameterInt _deviationChartLen;
 
@@ -52,15 +55,15 @@ namespace OsEngine.Robots.Grids
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
             _deviationChartLen = CreateParameter("Deviation chart length", 150, 15, 200, 1);
-            _deviationToStartTrading = CreateParameter("Deviation to trading", 1.5m, 1.5m, 5, 3);
+            _deviationToStartTrading = CreateParameter("Standard deviation value", 1.5m, 1m, 3, 0.1m);
 
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 0.5m, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.1m, 10m, 300, 10, "Grid");
-            _profitValue = CreateParameter("Profit percent", 0.1m, 1, 5, 0.1m, "Grid");
+            _linesStep = CreateParameter("Grid lines step", 0.1m, 0.1m, 3, 0.01m, "Grid");
+            _profitValue = CreateParameter("Profit percent", 0.1m, 0.1m, 3, 0.01m, "Grid");
 
             // non trade periods
 
@@ -94,13 +97,7 @@ namespace OsEngine.Robots.Grids
             _tradeInSaturday = CreateParameter("Trade in Saturday. Is on", true, " Trade periods ");
             _tradeInSunday = CreateParameter("Trade in Sunday. Is on", true, " Trade periods ");
 
-            this.ParametrsChangeByUser += GridBollingerScreener_ParametrsChangeByUser;
-
-            /* Description
-            Market maker's grid for trading in a pair.
-            A graph of minimum residuals from the difference of two price series with an optimal multiplier is calculated.
-            Extreme deviations of two securities from each other are traded.
-             */
+            this.ParametrsChangeByUser += GridPair_ParametrsChangeByUser;
 
             Description =
                 " Market maker's grid for trading in a pair. "
@@ -108,7 +105,7 @@ namespace OsEngine.Robots.Grids
               + " Extreme deviations of two securities from each other are traded. ";
         }
 
-        private void GridBollingerScreener_ParametrsChangeByUser()
+        private void GridPair_ParametrsChangeByUser()
         {
             for (int i = 0; i < _tabScreener.Tabs.Count; i++)
             {
@@ -152,7 +149,9 @@ namespace OsEngine.Robots.Grids
             }
         }
 
-        // logic
+        #endregion
+
+        #region Logic
 
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
@@ -188,67 +187,20 @@ namespace OsEngine.Robots.Grids
                 return;
             }
 
-            if (tab1.GridsMaster.TradeGrids.Count == 0
-                &&
-                tab2.GridsMaster.TradeGrids.Count == 0)
-            {
-                LogicCreateGrid(candles1, candles2, tab1, tab2);
-            }
-            else
+            if (tab1.GridsMaster.TradeGrids.Count != 0
+                ||
+                tab2.GridsMaster.TradeGrids.Count != 0)
             {
                 LogicDeleteGrid(candles, tab1);
                 LogicDeleteGrid(candles, tab2);
                 LogicStopGridTrading(candles1, candles2, tab1, tab2);
             }
-        }
 
-        private void LogicStopGridTrading(List<Candle> candles1, List<Candle> candles2,
-    BotTabSimple tab1, BotTabSimple tab2)
-        {
-            if(tab1.GridsMaster.TradeGrids == null || tab2.GridsMaster.TradeGrids == null)
+            if (tab1.GridsMaster.TradeGrids.Count == 0
+                &&
+                tab2.GridsMaster.TradeGrids.Count == 0)
             {
-                return;
-            }
-
-            if (tab1.GridsMaster.TradeGrids.Count == 0 
-                || tab2.GridsMaster.TradeGrids.Count == 0)
-            {
-
-
-                return;
-            }
-
-            TradeGrid grid1 = tab1.GridsMaster.TradeGrids[0];
-            TradeGrid grid2 = tab2.GridsMaster.TradeGrids[0];
-
-            if(grid1.Regime != TradeGridRegime.On
-                || grid2.Regime != TradeGridRegime.On)
-            {
-                return;
-            }
-
-            CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
-            cointegrationIndicator.CointegrationLookBack = _deviationChartLen.ValueInt;
-            cointegrationIndicator.CointegrationDeviation = _deviationToStartTrading.ValueDecimal;
-            cointegrationIndicator.ReloadCointegration(candles1, candles2, false);
-
-            if (cointegrationIndicator.Cointegration == null
-                || cointegrationIndicator.Cointegration.Count == 0)
-            {
-                return;
-            }
-
-            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down
-                && grid1.GridCreator.GridSide != Side.Buy)
-            {
-                grid1.Regime = TradeGridRegime.CloseForced;
-                grid2.Regime = TradeGridRegime.CloseForced;
-            }
-            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up
-                && grid1.GridCreator.GridSide != Side.Sell)
-            {
-                grid1.Regime = TradeGridRegime.CloseForced;
-                grid2.Regime = TradeGridRegime.CloseForced;
+                LogicCreateGrid(candles1, candles2, tab1, tab2);
             }
         }
 
@@ -326,14 +278,14 @@ namespace OsEngine.Robots.Grids
 
             // 6 устанавливаем Trailing Up
 
-            grid.TrailingUp.TrailingUpStep = tab.Security.PriceStep * 20;
-            grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.1m;
+            grid.TrailingUp.TrailingUpStep = tab.RoundPrice(lastPrice * 0.002m, tab.Security, Side.Buy);
+            grid.TrailingUp.TrailingUpLimit = lastPrice + lastPrice * 0.25m;
             grid.TrailingUp.TrailingUpIsOn = true;
 
             // 7 устанавливаем Trailing Down
 
-            grid.TrailingUp.TrailingDownStep = tab.Security.PriceStep * 20;
-            grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.1m;
+            grid.TrailingUp.TrailingDownStep = tab.RoundPrice(lastPrice * 0.002m, tab.Security, Side.Sell);
+            grid.TrailingUp.TrailingDownLimit = lastPrice - lastPrice * 0.25m;
             grid.TrailingUp.TrailingDownIsOn = true;
 
             // 8 сохраняем
@@ -341,6 +293,54 @@ namespace OsEngine.Robots.Grids
 
             // 9 включаем
             grid.Regime = TradeGridRegime.On;
+        }
+
+        private void LogicStopGridTrading(List<Candle> candles1, List<Candle> candles2,
+BotTabSimple tab1, BotTabSimple tab2)
+        {
+            if (tab1.GridsMaster.TradeGrids == null || tab2.GridsMaster.TradeGrids == null)
+            {
+                return;
+            }
+
+            if (tab1.GridsMaster.TradeGrids.Count == 0
+                || tab2.GridsMaster.TradeGrids.Count == 0)
+            {
+                return;
+            }
+
+            TradeGrid grid1 = tab1.GridsMaster.TradeGrids[0];
+            TradeGrid grid2 = tab2.GridsMaster.TradeGrids[0];
+
+            if (grid1.Regime != TradeGridRegime.On
+                || grid2.Regime != TradeGridRegime.On)
+            {
+                return;
+            }
+
+            CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
+            cointegrationIndicator.CointegrationLookBack = _deviationChartLen.ValueInt;
+            cointegrationIndicator.CointegrationDeviation = _deviationToStartTrading.ValueDecimal;
+            cointegrationIndicator.ReloadCointegration(candles1, candles2, false);
+
+            if (cointegrationIndicator.Cointegration == null
+                || cointegrationIndicator.Cointegration.Count == 0)
+            {
+                return;
+            }
+
+            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down
+                && grid1.GridCreator.GridSide != Side.Buy)
+            {
+                grid1.Regime = TradeGridRegime.CloseForced;
+                grid2.Regime = TradeGridRegime.CloseForced;
+            }
+            if (cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up
+                && grid1.GridCreator.GridSide != Side.Sell)
+            {
+                grid1.Regime = TradeGridRegime.CloseForced;
+                grid2.Regime = TradeGridRegime.CloseForced;
+            }
         }
 
         private void LogicDeleteGrid(List<Candle> candles, BotTabSimple tab)
@@ -361,6 +361,8 @@ namespace OsEngine.Robots.Grids
                 return;
             }
         }
+
+        #endregion
 
         #region Non trade periods
 
