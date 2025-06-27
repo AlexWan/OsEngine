@@ -289,9 +289,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 {
                     _tabToTrade.BuyAtIcebergMarket(volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt, "User click button buy iceberg Market");
                 }
-
             }
-
 
             else if (_icebergMarket.ValueBool == false)
             { // Limit iceberg
@@ -304,7 +302,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 {
                     _tabToTrade.BuyAtIceberg(volume, price, ordersCount, "User click button buy iceberg Limit");
                 }
-
             }
         }
 
@@ -328,7 +325,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             int ordersCount = _icebergCount.ValueInt;
 
-
             if (_icebergMarket.ValueBool == true)
             { // Market iceberg
 
@@ -340,9 +336,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 {
                     _tabToTrade.SellAtIcebergMarket(volume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt, "User click button sell iceberg Market");
                 }
-
             }
-
 
             else if (_icebergMarket.ValueBool == false)
             { // Limit iceberg
@@ -355,7 +349,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 {
                     _tabToTrade.SellAtIceberg(volume, price, ordersCount, "User click button sell iceberg Limit");
                 }
-
             }
         }
 
@@ -556,7 +549,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
                 return;
             }
-
 
             if (_openAtStopExpiresBars.ValueInt == 0)
             {// lifetime of the order - one candle

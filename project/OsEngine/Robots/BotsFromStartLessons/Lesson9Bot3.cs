@@ -362,7 +362,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 {
                     _tabToTrade.CloseAtIceberg(position, price, position.OpenVolume, ordersCount, "User click close at Iceberg Limit");
                 }
-
             }
             else if(_icebergMarket.ValueBool == true)
             { // Market
@@ -375,7 +374,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 {
                     _tabToTrade.CloseAtIcebergMarket(position, position.OpenVolume, ordersCount, _icebergMarketMinMillisecondsDistance.ValueInt, "User click close at Iceberg Market");
                 }
-
             }
         }
 

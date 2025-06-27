@@ -61,7 +61,7 @@ namespace OsEngine.Robots
         private Aindicator _lR;
         private Aindicator _eR;
 
-        // Exit
+        // Exit settings
         private StrategyParameterInt _trailCandlesLong;
         private StrategyParameterInt _trailCandlesShort;
 
@@ -115,7 +115,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_eR.Parameters[0]).ValueInt = _lengthER.ValueInt;
             _eR.Save();
 
-            // Exit
+            // Exit settings
             _trailCandlesLong = CreateParameter("Trail Candles Long", 5, 5, 200, 5, "Exit");
             _trailCandlesShort = CreateParameter("Trail Candles Short", 5, 5, 200, 5, "Exit");
 
@@ -289,7 +289,6 @@ namespace OsEngine.Robots
 
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
-
             }
         }
 
