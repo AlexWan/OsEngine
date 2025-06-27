@@ -125,7 +125,6 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_rangeIvashov.Parameters[1]).ValueInt = _lengthRangeIvashov.ValueInt;
             _rangeIvashov.Save();
             _rangeIvashov.Reload();
-
         }
 
         // The name of the robot in OsEngine
@@ -345,11 +344,9 @@ namespace OsEngine.Robots
                 }
 
                 return qty;
-
             }
 
             return volume;
-
         }
     }
 }

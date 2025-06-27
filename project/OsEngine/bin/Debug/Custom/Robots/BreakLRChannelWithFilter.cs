@@ -30,7 +30,6 @@ The trailing stop is placed at the maximum for the period specified for the trai
 stop and is transferred(slides) to the new maximum of the price, also for the specified period.
  */
 
-
 namespace OsEngine.Robots
 {
     [Bot("BreakLRChannelWithFilter")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
@@ -213,8 +212,6 @@ namespace OsEngine.Robots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-
-
                     if (_lastUpLine < lastPrice && _lastCenterLine > _prevCenterLine)
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
@@ -224,7 +221,6 @@ namespace OsEngine.Robots
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
                     if (_lastDownLine > lastPrice && _lastCenterLine < _prevCenterLine)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
@@ -260,7 +256,6 @@ namespace OsEngine.Robots
                     }
 
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
-                
                 }
                 else // If the direction of the position is sale
                 {
@@ -271,9 +266,7 @@ namespace OsEngine.Robots
                     }
 
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
-                
                 }
-
             }
         }
 
@@ -297,7 +290,6 @@ namespace OsEngine.Robots
                 }
 
                 return price;
-
             }
 
             if (side == Side.Sell)
@@ -316,7 +308,6 @@ namespace OsEngine.Robots
             }
 
             return 0;
-
         }
 
         // Method for calculating the volume of entry into a position
@@ -409,8 +400,6 @@ namespace OsEngine.Robots
             }
 
             return volume;
-
         }
-
     }
 }

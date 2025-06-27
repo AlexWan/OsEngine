@@ -114,7 +114,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             // For example
             // Для примера
-
         }
 
         private void _tabToTrade_MarketDepthUpdateEvent(MarketDepth marketDepth)
@@ -124,7 +123,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             // For example
             // Для примера
-
         }
 
         private void _tabToTrade_OrderUpdateEvent(Order order)
@@ -134,7 +132,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             // For example
             // Для примера
-
         }
 
         private void _tabToTrade_CandleUpdateEvent(List<Candle> candles)
@@ -144,7 +141,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             // For example
             // Для примера
-
         }
 
         private void _tabToTrade_NewTickEvent(Trade trade)
@@ -154,7 +150,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             // For example
             // Для примера
-
         }
 
         private void Lesson3Bot3_ParametrsChangeByUser()
@@ -343,6 +338,5 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             return volume;
         }
-
     }
 }

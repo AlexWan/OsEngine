@@ -193,10 +193,12 @@ namespace OsEngine.Robots.BotsFromStartLessons
                         {
                             continue;
                         }
+
                         if (pos.State != PositionStateType.Open)
                         {
                             continue;
                         }
+
                         if (pos.StopOrderPrice != 0)
                         {
                             continue;
@@ -320,6 +322,5 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             return volume;
         }
-
     }
 }

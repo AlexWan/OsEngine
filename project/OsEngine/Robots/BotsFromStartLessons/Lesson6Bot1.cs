@@ -25,7 +25,6 @@ Sell:
 Close all positions using a Trailing Stop along the lower Bollinger Band.
 */
 
-
 namespace OsEngine.Robots.BotsFromStartLessons
 {
     // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
@@ -315,6 +314,5 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             return volume;
         }
-
     }
 }
