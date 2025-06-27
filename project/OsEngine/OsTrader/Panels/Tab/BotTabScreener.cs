@@ -275,18 +275,24 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             if (startProgram == StartProgram.IsTester)
             {
-                ServerType = ServerType.Tester;
-                ServerName = ServerType.Tester.ToString();
-
                 List<IServer> servers = ServerMaster.GetServers();
 
-                if(servers != null &&
-                    servers.Count > 0)
+                if (servers != null &&
+                    servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
                 {
                     ((TesterServer)servers[0]).TestingStartEvent += BotTabScreener_TestingStartEvent;
                     ((TesterServer)servers[0]).TestingEndEvent += BotTabScreener_TestingEndEvent;
+                    ServerType = ServerType.Tester;
+                    ServerName = ServerType.Tester.ToString();
                 }
-
+                else if(servers != null &&
+                    servers.Count > 0
+                    && servers[0].ServerType == ServerType.Optimizer)
+                {
+                    ServerType = ServerType.Optimizer;
+                    ServerName = ServerType.Optimizer.ToString();
+                }
             }
             else if (startProgram == StartProgram.IsOsOptimizer)
             {
@@ -670,7 +676,8 @@ namespace OsEngine.OsTrader.Panels.Tab
                 List<IServer> servers = ServerMaster.GetServers();
 
                 if (servers != null &&
-                    servers.Count > 0)
+                    servers.Count > 0
+                    && servers[0].ServerType == ServerType.Tester)
                 {
                     ((TesterServer)servers[0]).TestingStartEvent -= BotTabScreener_TestingStartEvent;
                     ((TesterServer)servers[0]).TestingEndEvent -= BotTabScreener_TestingEndEvent;
