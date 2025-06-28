@@ -13,6 +13,7 @@ using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
+using System.Windows.Media;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
@@ -57,6 +58,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
 
+            SearchTextBox.Text = OsLocalization.Market.Label64;
             _gridViewIndicators.ReadOnly = true;
             _gridViewIndicators.ScrollBars = ScrollBars.Vertical;
             HostNames.Child = _gridViewIndicators;
@@ -117,7 +119,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Volume Oscillator");
             _gridViewIndicators.Rows.Add("Volume");
             _gridViewIndicators.Rows.Add("VWAP");
-            _gridViewIndicators.Rows.Add("WilliamsRange");          
+            _gridViewIndicators.Rows.Add("WilliamsRange");
 
             _gridViewIndicators.Click += delegate { _lastScriptGrid = false; };
 
@@ -128,12 +130,18 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             _gridViewAreas.ReadOnly = true;
 
-
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.HeaderText = OsLocalization.Charts.LabelIndicatorAreasOnChart;
             column1.CellTemplate = new DataGridViewTextBoxCell();
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridViewAreas.Columns.Add(column1);
+
+            DataGridViewButtonColumn buttonColumn = new DataGridViewButtonColumn();
+            buttonColumn.HeaderText = "Подсказка";
+            buttonColumn.Text = "?";
+            buttonColumn.UseColumnTextForButtonValue = true;
+            buttonColumn.Width = 30;
+            _gridViewAreas.Columns.Add(buttonColumn);
 
             List<string> areas = chartMaster.GetChartAreas();
 
@@ -141,9 +149,34 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 if (areas[i] != "TradeArea")
                 {
-                    _gridViewAreas.Rows.Add(areas[i]);
+                    int rowIndex = _gridViewAreas.Rows.Add();
+                    _gridViewAreas.Rows[rowIndex].Cells[0].Value = areas[i];
                 }
             }
+
+            _gridViewAreas.CellContentClick += (sender, e) =>
+            {
+                if (e.ColumnIndex == 1 && e.RowIndex >= 0)
+                {
+                    string areaName = _gridViewAreas.Rows[e.RowIndex].Cells[0].Value.ToString();
+
+                    if(areaName == "Prime")
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel5);
+                        ui.ShowDialog();
+                    }
+                    else if(areaName == "NewArea")
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel6);
+                        ui.ShowDialog();
+                    }
+                    else
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel7);
+                        ui.ShowDialog();
+                    }
+                }
+            };
 
             _gridViewAreas.Rows.Add("NewArea");
 
@@ -1056,6 +1089,58 @@ namespace OsEngine.Charts.CandleChart.Indicators
             if (IndicatorCandle != null)
             {
                 IndicatorCandle.ShowDialog();
+            }
+        }
+
+        private void SearchTextBox_TextChanged(object sender, EventArgs e)
+        {
+            if(SearchTextBox.Text == OsLocalization.Market.Label64)
+            {
+                return;
+            }
+
+            string searchText = SearchTextBox.Text.ToLower();
+
+            FilterGrid(_gridNamesScript, searchText);
+            FilterGrid(_gridViewIndicators, searchText);
+        }
+
+        private void FilterGrid(DataGridView grid, string searchText)
+        {
+            if (grid == null) return;
+
+            searchText = searchText.ToLower();
+
+            for (int i = 0; i < grid.Rows.Count; i++)
+            {
+                var cellValue = grid.Rows[i].Cells[0].Value;
+                if (cellValue != null)
+                {
+                    string cellText = cellValue.ToString().ToLower();
+                    grid.Rows[i].Visible = cellText.Contains(searchText);
+                }
+                else
+                {
+                    grid.Rows[i].Visible = false;
+                }
+            }
+        }
+
+        private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (SearchTextBox.Text == OsLocalization.Market.Label64)
+            {
+                SearchTextBox.Text = "";
+                SearchTextBox.Foreground = Brushes.White;
+            }
+        }
+
+        private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(SearchTextBox.Text))
+            {
+                SearchTextBox.Text = OsLocalization.Market.Label64;
+                SearchTextBox.Foreground = Brushes.Gray;
             }
         }
     }
