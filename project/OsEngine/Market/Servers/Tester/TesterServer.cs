@@ -441,7 +441,8 @@ namespace OsEngine.Market.Servers.Tester
                     return;
                 }
 
-                TimeNow = TimeStart;
+                TimeNow = new DateTime(TimeStart.Year, TimeStart.Month, TimeStart.Day, 
+                    TimeStart.Hour, TimeStart.Minute, TimeStart.Second);
 
                 while (TimeNow.Minute != 0)
                 {
