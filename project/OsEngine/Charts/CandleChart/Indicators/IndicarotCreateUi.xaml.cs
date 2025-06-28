@@ -5,50 +5,24 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
-using OsEngine.OsTrader.Panels;
 using System.Windows.Media;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
-
-    /// <summary>
-    /// Interaction logic  for IndicarotCreateUi.xaml
-    /// Логика взаимодействия для IndicarotCreateUi.xaml
-    /// </summary>
-    public partial class IndicarotCreateUi
+    public partial class IndicatorCreateUi
     {
-
-        /// <summary>
-        /// indicator drawing element
-        /// элемент для прорисовки индикаторов
-        /// </summary>
         private DataGridView _gridViewIndicators;
 
-        /// <summary>
-        /// data area drawing element
-        /// элемент для прорисовки областей данных
-        /// </summary>
         private DataGridView _gridViewAreas;
 
-        /// <summary>
-        /// class indicator manager
-        /// класс менеджер индикаторов
-        /// </summary>
         private ChartCandleMaster _chartMaster;
 
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
-        /// <param name="chartMaster">class indicator manager/класс менеджер индикаторов</param>
-        public IndicarotCreateUi(ChartCandleMaster chartMaster)
+        public IndicatorCreateUi(ChartCandleMaster chartMaster)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -137,7 +111,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewAreas.Columns.Add(column1);
 
             DataGridViewButtonColumn buttonColumn = new DataGridViewButtonColumn();
-            buttonColumn.HeaderText = "Подсказка";
             buttonColumn.Text = "?";
             buttonColumn.UseColumnTextForButtonValue = true;
             buttonColumn.Width = 30;
@@ -208,10 +181,6 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         public IIndicator IndicatorCandle;
 
-        /// <summary>
-        /// accept button
-        /// кнопка принять
-        /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
             try

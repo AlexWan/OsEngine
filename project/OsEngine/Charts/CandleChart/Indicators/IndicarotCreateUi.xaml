@@ -1,4 +1,4 @@
-﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.IndicarotCreateUi"
+﻿<Window x:Class="OsEngine.Charts.CandleChart.Indicators.IndicatorCreateUi"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Добавить индикатор" Height="484" Width="563" ResizeMode="NoResize" Style="{StaticResource WindowStyleNoResize}" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico" Topmost="True">
