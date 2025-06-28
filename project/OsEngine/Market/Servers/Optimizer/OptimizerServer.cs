@@ -167,27 +167,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
             TimeNow = _storages[0].TimeStart;
 
-            while (TimeNow.Hour != 10)
-            {
-                TimeNow = TimeNow.AddHours(-1);
-            }
-
-            while (TimeNow.Minute != 0)
-            {
-                TimeNow = TimeNow.AddMinutes(-1);
-            }
-
-            while (TimeNow.Second != 0)
-            {
-                TimeNow = TimeNow.AddSeconds(-1);
-            }
-
-            while (TimeNow.Millisecond != 0)
-            {
-                TimeNow = TimeNow.AddMilliseconds(-1);
-            }
-
-
+            TimeNow = new DateTime(TimeNow.Year, TimeNow.Month, TimeNow.Day, 
+                10, 0, 0);
 
             if (TypeTesterData == TesterDataType.TickAllCandleState ||
     TypeTesterData == TesterDataType.TickOnlyReadyCandle)
