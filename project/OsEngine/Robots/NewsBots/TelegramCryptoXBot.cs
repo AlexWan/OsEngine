@@ -246,7 +246,7 @@ namespace OsEngine.Robots.NewsBots
         {
             try
             {
-                string firstLinePattern = @"🚀\s*#([A-Z]+)\s+(LONG|SHORT)";
+                string firstLinePattern = @"🚀\s*#([A-Z0-9]+)\s+(LONG|SHORT)";
                 string entryPattern = @"Диапазон входа:s*([^⏺️]+)";
                 string takeProfitPattern = @"Тейки:s*([^⏺️]+)";
                 string stopPattern = @"[СCсc][тТ][оО][пП]:\s*([^\r\n]*)";
