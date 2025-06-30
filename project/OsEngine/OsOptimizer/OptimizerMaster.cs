@@ -1515,6 +1515,13 @@ namespace OsEngine.OsOptimizer
 
             bool onParametersReady = false;
 
+            if(_parametersOn == null)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Optimizer.Message44);
+                ui.ShowDialog();
+                return false;
+            }
+
             for (int i = 0; i < _parametersOn.Count; i++)
             {
                 if (_parametersOn[i])
