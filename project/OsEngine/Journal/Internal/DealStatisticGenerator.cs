@@ -915,34 +915,9 @@ namespace OsEngine.Journal.Internal
 
         public static List<Position> SortByTime(List<Position> positionsAll)
         {
-            List<Position> newPositionsAll = new List<Position>();
+            positionsAll = positionsAll.OrderBy(x => x.TimeOpen).ToList();
 
-            for (int i = 0; i < positionsAll.Count; i++)
-            {
-                if (newPositionsAll.Count == 0 ||
-                    newPositionsAll[newPositionsAll.Count - 1].TimeCreate < positionsAll[i].TimeCreate)
-                {
-                    newPositionsAll.Add(positionsAll[i]);
-                }
-                else if (newPositionsAll[0].TimeCreate >= positionsAll[i].TimeCreate)
-                {
-                    newPositionsAll.Insert(0, positionsAll[i]);
-                }
-                else
-                {
-                    for (int i2 = 0; i2 < newPositionsAll.Count - 1; i2++)
-                    {
-                        if (newPositionsAll[i2].TimeCreate <= positionsAll[i].TimeCreate &&
-                            newPositionsAll[i2 + 1].TimeCreate >= positionsAll[i].TimeCreate)
-                        {
-                            newPositionsAll.Insert(i2 + 1, positionsAll[i]);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            return newPositionsAll;
+            return positionsAll;
         }
 
         private static decimal Round(decimal number)
