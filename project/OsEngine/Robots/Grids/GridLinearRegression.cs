@@ -33,8 +33,7 @@ namespace OsEngine.Robots.Grids
         private StrategyParameterString _tradeAssetInPortfolio;
 
         private StrategyParameterInt _lrLength;
-        private StrategyParameterDecimal _upDeviation;
-        private StrategyParameterDecimal _downDeviation;
+        private StrategyParameterDecimal _lrDeviation;
 
         private StrategyParameterInt _linesCount;
         private StrategyParameterDecimal _linesStep;
@@ -51,26 +50,26 @@ namespace OsEngine.Robots.Grids
             _tab.Connector.TestStartEvent += Connector_TestStartEvent;
 
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Base");
-            _trailStopValuePercent = CreateParameter("Trail", 1.5m, 1, 5, 0.1m, "Base");
-            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+           
+            _startTradeTime = CreateParameterTimeOfDay("Start trade time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End trade time", 24, 0, 0, 0, "Base");
+            _lrLength = CreateParameter("LR length", 10, 10, 300, 10, "Base");
+            _lrDeviation = CreateParameter("LR deviation", 2.0m, 1, 5, 0.1m, "Base");
 
             _linesCount = CreateParameter("Grid lines count", 10, 10, 300, 10, "Grid");
-            _linesStep = CreateParameter("Grid lines step", 0.1m, 10m, 300, 10, "Grid");
+            _linesStep = CreateParameter("Grid lines step percent", 0.1m, 10m, 300, 10, "Grid");
+            _trailStopValuePercent = CreateParameter("Trail", 1.5m, 1, 5, 0.1m, "Grid");
             _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, "Grid");
             _volume = CreateParameter("Volume on one line", 1, 1.0m, 50, 4, "Grid");
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", "Grid");
 
-            _lrLength = CreateParameter("LR Length", 10, 10, 300, 10, "Indicator");
-            _upDeviation = CreateParameter("Up Deviation", 3.0m, 1, 5, 0.1m, "Indicator");
-            _downDeviation = CreateParameter("Down Deviation", 3.0m, 1, 5, 0.1m, "Indicator");
 
             // Create indicator LR
             _linearRegression = IndicatorsFactory.CreateIndicatorByName("LinearRegressionChannel", name + "LinearRegressionChannel", false);
             _linearRegression = (Aindicator)_tab.CreateCandleIndicator(_linearRegression, "Prime");
             ((IndicatorParameterInt)_linearRegression.Parameters[0]).ValueInt = _lrLength.ValueInt;
-            ((IndicatorParameterDecimal)_linearRegression.Parameters[2]).ValueDecimal = _upDeviation.ValueDecimal;
-            ((IndicatorParameterDecimal)_linearRegression.Parameters[3]).ValueDecimal = _downDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[2]).ValueDecimal = _lrDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[3]).ValueDecimal = _lrDeviation.ValueDecimal;
             _linearRegression.Save();
 
             ParametrsChangeByUser += ParametersChangeByUser;
@@ -84,8 +83,8 @@ namespace OsEngine.Robots.Grids
         private void ParametersChangeByUser()
         {
             ((IndicatorParameterInt)_linearRegression.Parameters[0]).ValueInt = _lrLength.ValueInt;
-            ((IndicatorParameterDecimal)_linearRegression.Parameters[2]).ValueDecimal = _upDeviation.ValueDecimal;
-            ((IndicatorParameterDecimal)_linearRegression.Parameters[3]).ValueDecimal = _downDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[2]).ValueDecimal = _lrDeviation.ValueDecimal;
+            ((IndicatorParameterDecimal)_linearRegression.Parameters[3]).ValueDecimal = _lrDeviation.ValueDecimal;
             _linearRegression.Save();
             _linearRegression.Reload();
         }
@@ -141,7 +140,6 @@ namespace OsEngine.Robots.Grids
             {
                 LogicCloseGrid();
             }
-
         }
 
         private void LogicCreateGrid(List<Candle> candles)
@@ -192,7 +190,6 @@ namespace OsEngine.Robots.Grids
                 grid.Regime = TradeGridRegime.On;
 
             }
-
         }
 
         private void LogicCloseGrid()
@@ -208,6 +205,5 @@ namespace OsEngine.Robots.Grids
                 return;
             }
         }
-
     }
 }

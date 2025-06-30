@@ -19,20 +19,25 @@ trading robot for osengine
 
 Trend robot based on Envelopes and EOM Watcher indicators.
 
-Buy: When the candle closes above the upper line of the Envelopes indicator, and the EOM Watcher indicator is above zero.
+Buy:
+When the candle closes above the upper line of the Envelopes indicator, and the EOM Watcher indicator is above zero.
 
-Sell: When the candle closes below the lower line of the Envelopes indicator, and the EOM Watcher indicator is below zero.
+Sell:
+When the candle closes below the lower line of the Envelopes indicator, and the EOM Watcher indicator is below zero.
 
-Exit from buy: When the candle closed below the lower line of the Envelopes indicator.
+Exit from buy:
+When the candle closed below the lower line of the Envelopes indicator.
 
-Exit from sell: When the candle closed above the upper line of the Envelopes indicator.
- */
+Exit from sell:
+When the candle closed above the upper line of the Envelopes indicator.
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyEomWatcherAndEnvelopes")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyEomWatcherAndEnvelopes")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class StrategyEomWatcherAndEnvelopes : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -46,17 +51,18 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _lengthEomW;
         private StrategyParameterInt _envelopsLength;
         private StrategyParameterDecimal _envelopsDeviation;
 
-        // Indicator
+        // Indicators
         private Aindicator _eomW;
         private Aindicator _envelop;
 
         public StrategyEomWatcherAndEnvelopes(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -107,6 +113,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_eomW.Parameters[0]).ValueInt = _lengthEomW.ValueInt;
             _eomW.Save();
             _eomW.Reload();
+
             ((IndicatorParameterInt)_envelop.Parameters[0]).ValueInt = _envelopsLength.ValueInt;
             ((IndicatorParameterDecimal)_envelop.Parameters[1]).ValueDecimal = _envelopsDeviation.ValueDecimal;
             _envelop.Save();
@@ -117,6 +124,7 @@ namespace OsEngine.Robots
         {
             return "StrategyEomWatcherAndEnvelopes";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -132,8 +140,8 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthEomW.ValueInt ||
-                candles.Count < _envelopsLength.ValueInt)
+            if (candles.Count <= _lengthEomW.ValueInt ||
+                candles.Count <= _envelopsLength.ValueInt)
             {
                 return;
             }
@@ -170,8 +178,8 @@ namespace OsEngine.Robots
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicator
-            decimal lastEOMWUp = _eomW.DataSeries[0].Last;
-            decimal lastEOMWDown = _eomW.DataSeries[1].Last;
+            decimal lastEOMWUp = _eomW.DataSeries[0].Last; // Series EaseOfMovement Up
+            decimal lastEOMWDown = _eomW.DataSeries[1].Last; // Series EaseOfMovement Down
             decimal lastUpLine = _envelop.DataSeries[0].Last;
             decimal lastDownLine = _envelop.DataSeries[2].Last;
 
@@ -208,7 +216,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-         
+
             // The last value of the indicator
             decimal lastUpLine = _envelop.DataSeries[0].Last;
             decimal lastDownLine = _envelop.DataSeries[2].Last;

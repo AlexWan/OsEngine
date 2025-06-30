@@ -19,20 +19,25 @@ trading robot for osengine
 
 Trend robot based on MassIndex and Trix indicators.
 
-Buy: When the MassIndex indicator value is above the lower line, and the Trix indicator is greater than zero.
+Buy:
+When the MassIndex indicator value is above the lower line, and the Trix indicator is greater than zero.
 
-Sell: When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero.
+Sell:
+When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero.
 
-Exit from buy: When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero.
+Exit from buy:
+When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero.
 
-Exit from sell: When the MassIndex indicator value is above the lower line, and the Trix indicator is greater than zero.
- */
+Exit from sell:
+When the MassIndex indicator value is above the lower line, and the Trix indicator is greater than zero.
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyMiAndTrix")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyMiAndTrix")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class StrategyMiAndTrix : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -46,18 +51,19 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings 
+        // Indicators settings 
         private StrategyParameterInt _miLength;
         private StrategyParameterInt _miSumLength;
         private StrategyParameterDecimal _miLine;
         private StrategyParameterInt _lengthTrix;
 
-        // Indicator
+        // Indicators
         private Aindicator _mi;
         private Aindicator _trix;
 
         public StrategyMiAndTrix(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -104,7 +110,7 @@ namespace OsEngine.Robots
                 "Sell: When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero." +
                 "Exit from buy: When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero. " +
                 "Exit from sell: When the MassIndex indicator value is above the lower line, and the Trix indicator is greater than zero.";
-        }       
+        }
 
         private void StrategyMi_ParametrsChangeByUser()
         {
@@ -114,6 +120,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterDecimal)_mi.Parameters[3]).ValueDecimal = _miLine.ValueDecimal;
             _mi.Save();
             _mi.Reload();
+
             ((IndicatorParameterInt)_trix.Parameters[0]).ValueInt = _lengthTrix.ValueInt;
             _trix.Save();
             _trix.Reload();
@@ -123,6 +130,7 @@ namespace OsEngine.Robots
         {
             return "StrategyMiAndTrix";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -210,7 +218,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // The last value of the indicator
             decimal lastMi = _mi.DataSeries[2].Last;
             decimal lastTrix = _trix.DataSeries[0].Last;

@@ -3,12 +3,12 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
 using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
@@ -23,22 +23,23 @@ Buy:
 1. The price is higher than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from the bottom up.
 2. The value of the force index indicator is higher than MaxValueFi.
 3. The value of the Er indicator is higher than MaxValueEr.
-4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount.
+4. The signal is valid only if the current price is higher than the Parabolic value from ParabolicCount candles ago.
 
 Sell:
 1. The price is lower than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from top to bottom.
 2. The value of the force index indicator is lower than MinValueFi.
 3. The value of the Er indicator is higher than MaxValueEr.
-4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount.
+4. The signal is valid only if the current price is lower (for short) than the Parabolic value from ParabolicCount candles ago.
 
 Exit: on the opposite Parabolic signal.
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyFIParabolicAndER")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyFIParabolicAndER")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyFIParabolicAndER : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -74,6 +75,7 @@ namespace OsEngine.Robots
 
         public StrategyFIParabolicAndER(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -91,11 +93,11 @@ namespace OsEngine.Robots
             // Indicator settings
             _lengthFI = CreateParameter("FI Length", 13, 7, 48, 7, "Indicator");
             _step = CreateParameter("Step", 0.1m, 0.01m, 0.1m, 0.01m, "Indicator");
-            _maxStep = CreateParameter("Max Step", 0.1m, 0.01m, 0.1m, 0.01m, "Indicator");
+            _maxStep = CreateParameter("Max Step", 0.1m, 0.01m, 5.0m, 0.01m, "Indicator");
             _lengthER = CreateParameter("ER Length", 14, 7, 48, 7, "Indicator");
-            _maxValueFi = CreateParameter("Max Value Fi", 0.5m, 0.01m, 0.1m, 0.01m, "Indicator");
-            _minValueFi = CreateParameter("Min Value Fi", 0.5m, 0.01m, 0.1m, 0.01m, "Indicator");
-            _maxValueER = CreateParameter("Max Value ER", 0.7m, 0.01m, 0.1m, 0.01m, "Indicator");
+            _maxValueFi = CreateParameter("Max Value Fi", 0.5m, 0.01m, 1.0m, 0.01m, "Indicator");//для лонга
+            _minValueFi = CreateParameter("Min Value Fi", -0.5m, -5.0m, 0.0m, 0.01m, "Indicator");//для шорта 
+            _maxValueER = CreateParameter("Max Value ER", 0.7m, 0.01m, 1.0m, 0.01m, "Indicator");
             _parabolicCount = CreateParameter("Parabolic Count", 5, 5, 50, 5, "Indicator");
 
             // Create indicator FI
@@ -128,12 +130,12 @@ namespace OsEngine.Robots
                 "1. The price is higher than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from the bottom up. " +
                 "2. The value of the force index indicator is higher than MaxValueFi. " +
                 "3. The value of the Er indicator is higher than MaxValueEr. " +
-                "4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount. " +
+                "4. The signal is valid only if the current price is higher (for long) than the Parabolic value from ParabolicCount candles ago." +
                 "Sell: " +
                 "1. The price is lower than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from top to bottom. " +
                 "2. The value of the force index indicator is lower than MinValueFi. " +
                 "3. The value of the Er indicator is higher than MaxValueEr. " +
-                "4. The values of the indicators are valid only if the points of the parabolic are no more than ParabolicCount. " +
+                "4. The signal is valid only if the current price is lower (for short) than the Parabolic value from ParabolicCount candles ago." +
                 "Exit: on the opposite Parabolic signal.";
         }
 
@@ -142,10 +144,12 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_FI.Parameters[0]).ValueInt = _lengthFI.ValueInt;
             _FI.Save();
             _FI.Reload();
+
             ((IndicatorParameterDecimal)_parabolic.Parameters[0]).ValueDecimal = _step.ValueDecimal;
             ((IndicatorParameterDecimal)_parabolic.Parameters[1]).ValueDecimal = _maxStep.ValueDecimal;
             _parabolic.Save();
             _parabolic.Reload();
+
             ((IndicatorParameterInt)_ER.Parameters[0]).ValueInt = _lengthER.ValueInt;
             _ER.Save();
             _ER.Reload();
@@ -156,6 +160,7 @@ namespace OsEngine.Robots
         {
             return "StrategyFIParabolicAndER";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -171,9 +176,9 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthER.ValueInt ||
-                candles.Count < _lengthFI.ValueInt || 
-                candles.Count < _parabolicCount.ValueInt)
+            if (candles.Count <= _lengthER.ValueInt + 1 ||
+                candles.Count <= _lengthFI.ValueInt ||
+                candles.Count <= _parabolicCount.ValueInt)
             {
                 return;
             }
@@ -225,10 +230,10 @@ namespace OsEngine.Robots
 
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
-                { 
+                {
                     if (lastPrice > _lastParabolic && _lastFI > _maxValueFi.ValueDecimal && _lastER > _maxValueER.ValueDecimal)
                     {
-                        if(_parabolic.DataSeries[0].Values[_parabolic.DataSeries[0].Values.Count - _parabolicCount.ValueInt] < lastPrice)
+                        if (_parabolic.DataSeries[0].Values[_parabolic.DataSeries[0].Values.Count - _parabolicCount.ValueInt] < lastPrice)
                         {
                             return;
                         }
@@ -257,7 +262,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // The last value of the indicator
             _lastParabolic = _parabolic.DataSeries[0].Last;
 

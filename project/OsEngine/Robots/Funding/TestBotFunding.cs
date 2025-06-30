@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
@@ -6,9 +11,8 @@ using OsEngine.OsTrader.Panels.Attributes;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using System.Collections.Generic;
 
-namespace OsEngine.Robots.AutoTestBots
+namespace OsEngine.Robots.Funding
 {
     [Bot("TestBotFunding")]
     public class TestBotFunding : BotPanel
@@ -31,9 +35,9 @@ namespace OsEngine.Robots.AutoTestBots
 
             _regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" });
 
-            this.ParamGuiSettings.Title = "Funding";
-            this.ParamGuiSettings.Height = 800;
-            this.ParamGuiSettings.Width = 1200;
+            ParamGuiSettings.Title = "Funding";
+            ParamGuiSettings.Height = 800;
+            ParamGuiSettings.Width = 1200;
 
             CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab("Funding");
 
@@ -130,7 +134,7 @@ namespace OsEngine.Robots.AutoTestBots
             string[] columns =
             [
                 "Name", "Class", "Full Name", "Name ID", "Current Funding", "Time next funding", "Funding Interval Hours", "Max Funding Rate", "Min Funding Rate",
-                "Volume 24h", "Turnover 24h", "Open Interest", "Time Update"
+                "Volume 24h", "Volume 24h USDT", "Open Interest", "Time Update"
             ];
 
             for (int i = 0; i < columns.Length; i++)
@@ -156,7 +160,7 @@ namespace OsEngine.Robots.AutoTestBots
 
             if (MainWindow.GetDispatcher.CheckAccess() == false)
             {
-                MainWindow.GetDispatcher.Invoke((Action<BotTabSimple>)_tab_NewTabCreateEvent, tab);
+                MainWindow.GetDispatcher.Invoke(_tab_NewTabCreateEvent, tab);
                 return;
             }
 
@@ -178,7 +182,7 @@ namespace OsEngine.Robots.AutoTestBots
         {
             if (MainWindow.GetDispatcher.CheckAccess() == false)
             {
-                MainWindow.GetDispatcher.Invoke((Action<BotTabSimple, int>)SetDataInTable, tab, row);
+                MainWindow.GetDispatcher.Invoke(SetDataInTable, tab, row);
                 return;
             }
 
@@ -218,15 +222,15 @@ namespace OsEngine.Robots.AutoTestBots
             }
 
             if (_grid.Rows[row].Cells[9].Value == null ||
-                _grid.Rows[row].Cells[9].Value.ToString() != tab.Volume24h.ToString())
+                _grid.Rows[row].Cells[9].Value.ToString() != tab.SecurityVolumes.Volume24h.ToString())
             {
-                _grid.Rows[row].Cells[9].Value = tab.Volume24h;
+                _grid.Rows[row].Cells[9].Value = tab.SecurityVolumes.Volume24h;
             }
 
             if (_grid.Rows[row].Cells[10].Value == null ||
-                _grid.Rows[row].Cells[10].Value.ToString() != tab.Turnover24h.ToString())
+                _grid.Rows[row].Cells[10].Value.ToString() != tab.SecurityVolumes.Volume24hUSDT.ToString())
             {
-                _grid.Rows[row].Cells[10].Value = tab.Turnover24h;
+                _grid.Rows[row].Cells[10].Value = tab.SecurityVolumes.Volume24hUSDT;
             }
 
             if (_grid.Rows[row].Cells[11].Value == null ||

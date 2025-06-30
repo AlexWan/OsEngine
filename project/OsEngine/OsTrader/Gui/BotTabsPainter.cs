@@ -793,7 +793,14 @@ namespace OsEngine.OsTrader.Gui
 
                 for (int i = 0; _master.PanelsArray != null && i < _master.PanelsArray.Count; i++)
                 {
-                    _grid.Rows.Add(GetRow(_master.PanelsArray[i], i + 1));
+                    BotPanel bot = _master.PanelsArray[i];
+
+                    if(bot == null)
+                    {
+                        continue;
+                    }
+
+                    _grid.Rows.Add(GetRow(bot, i + 1));
                 }
 
                 _grid.Rows.Add(GetNullRow());
@@ -997,6 +1004,11 @@ colum9.HeaderText = "Journal";
                     DataGridViewRow row = _grid.Rows[i];
 
                     BotPanel bot = _master.PanelsArray[i];
+
+                    if(bot == null)
+                    {
+                        continue;
+                    }
 
                     if (bot.TabsSimple.Count != 0 &&
                         bot.TabsSimple[0].Security != null)

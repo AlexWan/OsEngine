@@ -458,7 +458,8 @@ namespace OsEngine.OsTrader.Grids
         {
             try
             {
-                if (HaveOpenPositionsByGrid == true)
+                if (HaveOpenPositionsByGrid == true 
+                    && StartProgram == StartProgram.IsOsTrader)
                 {
                     CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label524);
                     ui.Show();
@@ -1426,14 +1427,14 @@ namespace OsEngine.OsTrader.Grids
                     if (_firstTradePrice == 0)
                     {
                         _firstTradePrice = curLineNeed.PriceEnter;
-                        _needToSave = true;
                     }
 
                     if (_firstTradeTime == DateTime.MinValue)
                     {
                         _firstTradeTime = Tab.TimeServerCurrent;
-                        _needToSave = true;
                     }
+
+                    _needToSave = true;
                 }
 
                 linesWithOrdersToOpenFact = GetLinesWithOpenOrdersFact();

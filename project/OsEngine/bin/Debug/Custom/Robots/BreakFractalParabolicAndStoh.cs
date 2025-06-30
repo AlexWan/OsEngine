@@ -35,9 +35,10 @@ Exit: by the opposite signal of the parabolic.
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakFractalParabolicAndStoh")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakFractalParabolicAndStoh")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakFractalParabolicAndStoh : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -76,6 +77,7 @@ namespace OsEngine.Robots
 
         public BreakFractalParabolicAndStoh(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -89,7 +91,7 @@ namespace OsEngine.Robots
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-            
+
             // Indicator settings
             _step = CreateParameter("Step", 0.1m, 0.01m, 0.1m, 0.01m, "Indicator");
             _maxStep = CreateParameter("Max Step", 0.1m, 0.01m, 0.1m, 0.01m, "Indicator");
@@ -141,6 +143,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterDecimal)_parabolic.Parameters[1]).ValueDecimal = _maxStep.ValueDecimal;
             _parabolic.Save();
             _parabolic.Reload();
+
             ((IndicatorParameterInt)_stoh.Parameters[0]).ValueInt = _stochPeriod1.ValueInt;
             ((IndicatorParameterInt)_stoh.Parameters[1]).ValueInt = _stochPeriod1.ValueInt;
             ((IndicatorParameterInt)_stoh.Parameters[2]).ValueInt = _stochPeriod1.ValueInt;
@@ -153,6 +156,7 @@ namespace OsEngine.Robots
         {
             return "BreakFractalParabolicAndStoh";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -268,7 +272,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // The last value of the indicator
             _lastParabolic = _parabolic.DataSeries[0].Last;
 

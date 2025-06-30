@@ -15,66 +15,60 @@ trading robot for osengine
 
 Bot - trading pairs in the trend
 If the correlation is below -0.8 and we are on some side of the cointegration - enter counting on a further spread
+
 Exit - when correlation rises above 0.8
-
-Ru
-Бот - ловящий кочергу в парах в тренд
-Суть идеи - если корреляция ниже -0.8 и мы с какой-то стороны коинтеграции - входим рассчитывая на дальнейшее раздвижение
-Выход - когда корреляция повышается больше 0.8. Т.е. раздвижение инструментов закончено
-
 */
 
 namespace OsEngine.Robots.PairArbitrage
 {
-    [Bot("PairCorrelationNegative")]
+    [Bot("PairCorrelationNegative")] //We create an attribute so that we don't write anything in the Boot factory
     public class PairCorrelationNegative : BotPanel
     {
+        BotTabPair _pairTrader;
+
+        // Basic settings
+        private StrategyParameterInt _maxPositionsCount;
+        private StrategyParameterDecimal _maxCorrelationToEntry;
+        private StrategyParameterDecimal _minCorrelationToExit;
+        private StrategyParameterString _regime;
+
         public PairCorrelationNegative(string name, StartProgram startProgram)
           : base(name, startProgram)
         {
             TabCreate(BotTabType.Pair);
             _pairTrader = this.TabsPair[0];
 
+            // Subscribe to the cointegration change event
             _pairTrader.CorrelationChangeEvent += _pairTrader_CorrelationChangeEvent;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-
-            MaxPositionsCount = CreateParameter("Max poses count", 5, 5, 5, 5);
-
-            MaxCorrelationToEntry = CreateParameter("Max Correlation To Entry", -0.8m, -0.1m, 5,0.1m);
-
-            MinCorrelationToExit = CreateParameter("Min Correlation To Exit", 0.8m, 0.1m, 1, 0.1m);
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _maxPositionsCount = CreateParameter("Max poses count", 5, 5, 5, 5);
+            _maxCorrelationToEntry = CreateParameter("Max Correlation To Entry", -0.8m, -0.1m, 5,0.1m);
+            _minCorrelationToExit = CreateParameter("Min Correlation To Exit", 0.8m, 0.1m, 1, 0.1m);
 
             Description = "Bot - trading pairs in the trend " +
                 "If the correlation is below -0.8 and we are on some side of the cointegration -" +
                 " enter counting on a further spread. " +
                 "Exit - when correlation rises above 0.8";
-
         }
 
-        BotTabPair _pairTrader;
-
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "PairCorrelationNegative";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private StrategyParameterInt MaxPositionsCount;
-
-        private StrategyParameterDecimal MaxCorrelationToEntry;
-
-        private StrategyParameterDecimal MinCorrelationToExit;
-
-        public StrategyParameterString Regime;
-
+        // Logic
         private void _pairTrader_CorrelationChangeEvent(System.Collections.Generic.List<PairIndicatorValue> correlation, PairToTrade pair)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -89,22 +83,24 @@ namespace OsEngine.Robots.PairArbitrage
             }
         }
 
+        // Position close logic
         private void ClosePositionLogic(PairToTrade pair)
         {
-            if (pair.CorrelationLast > MinCorrelationToExit.ValueDecimal)
+            if (pair.CorrelationLast > _minCorrelationToExit.ValueDecimal)
             {
                 pair.ClosePositions();
             }
         }
 
+        // Position open logic
         private void OpenPositionLogic(PairToTrade pair)
         {
-            if (pair.CorrelationLast > MaxCorrelationToEntry.ValueDecimal)
+            if (pair.CorrelationLast > _maxCorrelationToEntry.ValueDecimal)
             {
                 return;
             }
 
-            if (_pairTrader.PairsWithPositionsCount >= MaxPositionsCount.ValueInt)
+            if (_pairTrader.PairsWithPositionsCount >= _maxPositionsCount.ValueInt)
             {
                 return;
             }
@@ -118,6 +114,5 @@ namespace OsEngine.Robots.PairArbitrage
                 pair.SellSec1BuySec2();
             }
         }
-
     }
 }

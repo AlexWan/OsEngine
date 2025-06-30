@@ -29,9 +29,10 @@ Exit: stop and profit in % of the entry price.
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakExtremumsChaikin")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakExtremumsChaikin")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakExtremumsChaikin : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -65,6 +66,7 @@ namespace OsEngine.Robots
 
         public BreakExtremumsChaikin(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -123,6 +125,7 @@ namespace OsEngine.Robots
         {
             return "BreakExtremumsChaikin";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 

@@ -296,6 +296,5 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             return volume;
         }
-
     }
 }

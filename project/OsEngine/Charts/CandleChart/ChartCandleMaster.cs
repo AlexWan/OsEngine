@@ -953,7 +953,7 @@ namespace OsEngine.Charts.CandleChart
                     indicatorsOld = Indicators.Count;
                 }
 
-                IndicarotCreateUi ui = new IndicarotCreateUi(this);
+                IndicatorCreateUi ui = new IndicatorCreateUi(this);
                 ui.ShowDialog();
 
                 if (IndicatorUpdateEvent != null)

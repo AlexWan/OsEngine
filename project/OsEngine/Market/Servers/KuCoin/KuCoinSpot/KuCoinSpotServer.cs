@@ -1929,7 +1929,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
-        public event Action<PublicMarketData> PublicMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

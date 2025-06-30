@@ -448,6 +448,11 @@ namespace OsEngine.OsTrader
 
         private void TryRePaint(Position position, DataGridViewRow nRow)
         {
+            if(position == null)
+            {
+                return;
+            }
+
             if (nRow.Cells[1].Value == null
                 || nRow.Cells[1].Value.ToString() != position.TimeCreate.ToString(_currentCulture))// == false) //AVP убрал, потому что  во вкладке все позиции, дату позиции не обновляло
             {
@@ -771,6 +776,12 @@ namespace OsEngine.OsTrader
                 for (int i1 = 0; i1 < positions.Count; i1++)
                 {
                     Position position = positions[i1];
+
+                    if(position == null)
+                    {
+                        continue;
+                    }
+
                     bool isIn = false;
 
                     for (int i = 0; i < grid.Rows.Count; i++)
@@ -797,7 +808,7 @@ namespace OsEngine.OsTrader
 
                 for (int i = 0; i < grid.Rows.Count; i++)
                 {
-                    if (positions.Find(pos => pos.Number == (int)grid.Rows[i].Cells[0].Value) == null)
+                    if (positions.Find(pos => pos != null && pos.Number == (int)grid.Rows[i].Cells[0].Value) == null)
                     {
                         grid.Rows.Remove(grid.Rows[i]);
                     }

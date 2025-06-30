@@ -3,23 +3,38 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.IO;
 using OsEngine.Charts.CandleChart.Elements;
+using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Market;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using System;
+using System.Collections.Generic;
+using System.IO;
 
 namespace OsEngine.Robots.MarketMaker
 {
-    [Bot("MarketMakerBot")]
+    [Bot("MarketMakerBot")] // We create an attribute so that we don't write anything to the BotFactory
     public class MarketMakerBot : BotPanel
     {
-        public MarketMakerBot(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Basic setting
+        public BotTradeRegime Regime;
+
+        // GetVolume settings
+        public decimal Volume;
+        public string VolumeType;
+        public string TradeAssetInPortfolio;
+
+        // Line settings
+        public decimal PersentToSpreadLines;
+        public bool PaintOn;
+
+        public MarketMakerBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
@@ -27,6 +42,7 @@ namespace OsEngine.Robots.MarketMaker
             Regime = BotTradeRegime.On;
             PersentToSpreadLines = 0.5m;
             Volume = 1;
+            VolumeType = "Deposit percent";
 
             Load();
 
@@ -35,57 +51,20 @@ namespace OsEngine.Robots.MarketMaker
             DeleteEvent += Strategy_DeleteEvent;
         }
 
-        /// <summary>
-        /// strategy name /
-        /// имя стратегии
-        /// </summary>
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "MarketMakerBot";
         }
 
-        /// <summary>
-        /// show settings /
-        /// показать окно настроек
-        /// </summary>
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             MarketMakerBotUi ui = new MarketMakerBotUi(this);
             ui.ShowDialog();
         }
 
-        /// <summary>
-        /// tab through which trade is conducted / 
-        /// вкладка через которую ведётся торговля
-        /// </summary>
-        private BotTabSimple _tab;
-
-        // default settings / настройки стандартные
-
-        /// <summary>
-        /// robot mode /
-        /// режим работы робота
-        /// </summary>
-        public BotTradeRegime Regime;
-
-        /// <summary>
-        /// volume executed in a single transaction /
-        /// объём исполняемый в одной сделке
-        /// </summary>
-        public decimal Volume;
-
-        /// <summary>
-        /// distance between lines in% /
-        /// расстояние между линиями в %
-        /// </summary>
-        public decimal PersentToSpreadLines;
-
-        /// <summary>
-        /// do I need to draw lines /
-        /// нужно ли прорисовывать линии
-        /// </summary>
-        public bool PaintOn;
-
+        // save settings in .txt file
         public void Save()
         {
             try
@@ -93,6 +72,8 @@ namespace OsEngine.Robots.MarketMaker
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt", false)
                     )
                 {
+                    writer.WriteLine(VolumeType);
+                    writer.WriteLine(TradeAssetInPortfolio);
                     writer.WriteLine(Regime);
                     writer.WriteLine(Volume);
                     writer.WriteLine(PersentToSpreadLines);
@@ -106,6 +87,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
+        // Load settins from .txt file
         private void Load()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -116,6 +98,8 @@ namespace OsEngine.Robots.MarketMaker
             {
                 using (StreamReader reader = new StreamReader(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
                 {
+                    VolumeType = Convert.ToString(reader.ReadLine());
+                    TradeAssetInPortfolio = Convert.ToString(reader.ReadLine());
                     Enum.TryParse(reader.ReadLine(), true, out Regime);
                     Volume = Convert.ToDecimal(reader.ReadLine());
                     PersentToSpreadLines = Convert.ToDecimal(reader.ReadLine());
@@ -129,10 +113,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// delete file with save / 
-        /// удаление файла с сохранением
-        /// </summary>
+        // Delete save file
         void Strategy_DeleteEvent()
         {
             if (File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -141,7 +122,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        //variables needed for trading / переменные, нужные для торговли
+        //variables needed for trading
 
         private DateTime _lastReloadLineTime = DateTime.MinValue;
 
@@ -149,12 +130,7 @@ namespace OsEngine.Robots.MarketMaker
 
         private List<LineHorisontal> _lineElements;
 
-        // logic / логика
-
-        /// <summary>
-        /// candle completion event /
-        /// событие завершения свечи
-        /// </summary>
+        // Logic
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
             if (Regime == BotTradeRegime.Off)
@@ -172,7 +148,7 @@ namespace OsEngine.Robots.MarketMaker
 
             if (candles[candles.Count - 1].TimeStart.DayOfWeek == DayOfWeek.Friday &&
              candles[candles.Count - 1].TimeStart.Hour >= 18)
-            {//if we have friday evening  если у нас пятница вечер
+            {//if we have friday evening
                 if (openPosition != null && openPosition.Count != 0)
                 {
                     _tab.CloseAllAtMarket();
@@ -184,7 +160,7 @@ namespace OsEngine.Robots.MarketMaker
                 candles[candles.Count - 1].TimeStart.DayOfWeek == DayOfWeek.Monday &&
                 candles[candles.Count - 1].TimeStart.Hour < 11 &&
                 _lastReloadLineTime.Day != candles[candles.Count - 1].TimeStart.Day)
-            {//if we have monday morning если у нас понедельник утро
+            {//if we have monday morning
                 _lastReloadLineTime = candles[candles.Count - 1].TimeStart;
                 ReloadLines(candles);
             }
@@ -201,18 +177,13 @@ namespace OsEngine.Robots.MarketMaker
             if (Regime == BotTradeRegime.OnlyClosePosition)
             {
                 // if the bot has the "close only" mode enabled
-                // если у бота включен режим "только закрытие"
                 return;
             }
 
             LogicOpenPosition(candles);
-
         }
 
-        /// <summary>
-        /// reload lines /
-        /// перезагрузить линии
-        /// </summary>
+        // Reload lines
         private void ReloadLines(List<Candle> candles)
         {
             _lines = new List<decimal>();
@@ -232,10 +203,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// redraw lines /
-        /// перерисовать линии
-        /// </summary>
+        // Redraw lines
         private void RepaintLines()
         {
             if (_lineElements == null ||
@@ -262,10 +230,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// clear lines from the chart /
-        /// очистить линии с графика
-        /// </summary>
+        // Clear lines from the chart
         private void ClearLines()
         {
             if (_lineElements == null ||
@@ -280,11 +245,7 @@ namespace OsEngine.Robots.MarketMaker
             }
         }
 
-        /// <summary>
-        /// trade logic / 
-        /// логика торговли
-        /// </summary>
-        /// <param name="candles"></param>
+        // Trade logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             if (_lines == null ||
@@ -292,8 +253,9 @@ namespace OsEngine.Robots.MarketMaker
             {
                 return;
             }
+
             // 1 find out how much and in what direction we need to go
-            // 1 выясняем каким объёмом и в какую сторону нам надо заходить
+
             decimal totalDeal = 0;
 
             decimal lastPrice = candles[candles.Count - 2].Close;
@@ -304,13 +266,13 @@ namespace OsEngine.Robots.MarketMaker
                 if (lastPrice < _lines[i] &&
                     nowPrice > _lines[i])
                 { 
-                    totalDeal -= Volume;
+                    totalDeal -= GetVolume(_tab);
                 }
 
                 if (lastPrice > _lines[i] &&
                     nowPrice < _lines[i])
                 { 
-                    totalDeal += Volume;
+                    totalDeal += GetVolume(_tab);
                 }
             }
 
@@ -320,7 +282,6 @@ namespace OsEngine.Robots.MarketMaker
             }
 
             // 2 go in the right direction
-            // 2 заходим в нужную сторону
 
             if (totalDeal > 0)
             { 
@@ -394,6 +355,98 @@ namespace OsEngine.Robots.MarketMaker
                     }
                 }
             }
+        }
+
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (VolumeType == "Contracts")
+            {
+                volume = Volume;
+            }
+            else if (VolumeType == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = Volume / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = Volume / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (VolumeType == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (TradeAssetInPortfolio == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (Volume / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 }

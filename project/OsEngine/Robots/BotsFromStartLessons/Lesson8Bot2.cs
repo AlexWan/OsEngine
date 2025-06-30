@@ -31,21 +31,21 @@ namespace OsEngine.Robots.BotsFromStartLessons
     {
         // Reference to the main trading tab
         // Ссылка на главную вкладку
-        BotTabSimple _tabToTrade;
+        private BotTabSimple _tabToTrade;
 
         // Basic settings
         // Базовые настройки
-        StrategyParameterString _regime;
+        private StrategyParameterString _regime;
 
         // GetVolume settings
         // Настройки метода GetVolume
-        StrategyParameterString _volumeType;
-        StrategyParameterDecimal _volume;
-        StrategyParameterString _tradeAssetInPortfolio;
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Price channel setting
         // Настройка Price channel
-        StrategyParameterInt _priceChannelLen;
+        private StrategyParameterInt _priceChannelLen;
 
         public Lesson8Bot2(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -75,7 +75,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
             Description = "Robot example from the lecture course \"C# for algotreader\"." +
                 "Buy: Buy At Stop high price channel." +
                 "Exit: Close At Trailing Stop Market low price channel";
-
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)
@@ -250,6 +249,5 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             return volume;
         }
-
     }
 }

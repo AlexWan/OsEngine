@@ -194,4 +194,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
     {
         public BalanceInfoBingXFutures balance { get; set; }
     }
+
+    public class OpenInterestInfo
+    {
+        public string openInterest { get; set; }
+        public string symbol { get; set; }
+        public long time { get; set; }
+    }
 }

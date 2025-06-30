@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GoogleApiCommonProtosDir>$(NuGetPackageRoot)google.api.commonprotos\2.16.0\content\protos</GoogleApiCommonProtosDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Protobuf Include="finam-trade-api\proto\grpc\tradeapi\v1\*.proto" GrpcServices="Client" ProtoRoot="finam-trade-api\proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
+    <Protobuf Include="finam-trade-api\proto\grpc\tradeapi\v1\accounts\*.proto" GrpcServices="Client" ProtoRoot="finam-trade-api\proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
+    <Protobuf Include="finam-trade-api\proto\grpc\tradeapi\v1\assets\*.proto" GrpcServices="Client" ProtoRoot="finam-trade-api\proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
+    <Protobuf Include="finam-trade-api\proto\grpc\tradeapi\v1\auth\*.proto" GrpcServices="Client" ProtoRoot="finam-trade-api\proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
+    <Protobuf Include="finam-trade-api\proto\grpc\tradeapi\v1\marketdata\*.proto" GrpcServices="Client" ProtoRoot="finam-trade-api\proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
+    <Protobuf Include="finam-trade-api\proto\grpc\tradeapi\v1\orders\*.proto" GrpcServices="Client" ProtoRoot="finam-trade-api\proto" AdditionalImportDirs="$(PkgGoogleProtobuf_ProtobufRoot);$(GoogleApiCommonProtosDir)" />
+    
+    <PackageReference Include="Google.Protobuf" Version="3.31.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
+  </ItemGroup>
+
+</Project>

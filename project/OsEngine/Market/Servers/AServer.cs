@@ -76,7 +76,8 @@ namespace OsEngine.Market.Servers
                 _serverRealization.NewsEvent += _serverRealization_NewsEvent;
 
                 _serverRealization.AdditionalMarketDataEvent += _serverRealization_AdditionalMarketDataEvent;
-                _serverRealization.PublicMarketDataEvent += _serverRealization_PublicMarketDataEvent;
+                _serverRealization.FundingUpdateEvent += _serverRealization_FundingUpdateEvent;
+                _serverRealization.Volume24hUpdateEvent += _serverRealization_Volume24hUpdateEvent;
 
                 Load();
 
@@ -1465,13 +1466,23 @@ namespace OsEngine.Market.Servers
                         }
                     }
 
-                    else if (!_publicMarketDataToSend.IsEmpty)
+                    else if (!_fundingToSend.IsEmpty)
                     {
-                        PublicMarketData data;
+                        Funding data;
 
-                        if (_publicMarketDataToSend.TryDequeue(out data))
+                        if (_fundingToSend.TryDequeue(out data))
                         {
-                            NewPublicMarketDataEvent(data);
+                            NewFundingEvent(data);
+                        }
+                    }
+
+                    else if (!_securityVolumesToSend.IsEmpty)
+                    {
+                        SecurityVolumes data;
+
+                        if (_securityVolumesToSend.TryDequeue(out data))
+                        {
+                            NewVolume24hUpdateEvent(data);
                         }
                     }
 
@@ -1551,9 +1562,14 @@ namespace OsEngine.Market.Servers
         private ConcurrentQueue<OptionMarketDataForConnector> _additionalMarketDataToSend = new ConcurrentQueue<OptionMarketDataForConnector>();
 
         /// <summary>
-        /// queue for Public Market Data
+        /// queue for Funding
         /// </summary>
-        private ConcurrentQueue<PublicMarketData> _publicMarketDataToSend = new ConcurrentQueue<PublicMarketData>();
+        private ConcurrentQueue<Funding> _fundingToSend = new ConcurrentQueue<Funding>();
+
+        /// <summary>
+        /// queue for Volume24H
+        /// </summary>
+        private ConcurrentQueue<SecurityVolumes> _securityVolumesToSend = new ConcurrentQueue<SecurityVolumes>();
 
         #endregion
 
@@ -3786,7 +3802,7 @@ namespace OsEngine.Market.Servers
         /// </summary>
         public event Action<OptionMarketData> NewAdditionalMarketDataEvent;
 
-        private void _serverRealization_PublicMarketDataEvent(PublicMarketData obj)
+        private void _serverRealization_FundingUpdateEvent(Funding obj)
         {
             try
             {
@@ -3795,12 +3811,12 @@ namespace OsEngine.Market.Servers
                     return;
                 }
 
-                if (string.IsNullOrEmpty(obj.SecurityName))
+                if (string.IsNullOrEmpty(obj.SecurityNameCode))
                 {
                     return;
                 }
 
-                _publicMarketDataToSend.Enqueue(obj);
+                _fundingToSend.Enqueue(obj);
             }
             catch (Exception ex)
             {
@@ -3809,9 +3825,36 @@ namespace OsEngine.Market.Servers
         }
 
         /// <summary>
-        /// new Public Market Data
+        /// new Funding data
         /// </summary>
-        public event Action<PublicMarketData> NewPublicMarketDataEvent;
+        public event Action<Funding> NewFundingEvent;
+
+        private void _serverRealization_Volume24hUpdateEvent(SecurityVolumes obj)
+        {
+            try
+            {
+                if (obj == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(obj.SecurityNameCode))
+                {
+                    return;
+                }
+
+                _securityVolumesToSend.Enqueue(obj);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        /// <summary>
+        /// new Volumes 24h data
+        /// </summary>
+        public event Action<SecurityVolumes> NewVolume24hUpdateEvent;
 
         #endregion
     }

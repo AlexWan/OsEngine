@@ -19,7 +19,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using OsEngine.Entity.WebSocketOsEngine;
-using static Kraken.WebSockets.KrakenApi;
 
 
 namespace OsEngine.Market.Servers.Bybit
@@ -39,8 +38,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum(OsLocalization.Market.ServerParam4, MarginMode.Cross.ToString(), new List<string>() { MarginMode.Cross.ToString(), MarginMode.Isolated.ToString() });
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
-            CreateParameterEnum("Public Market Data", "On", new List<string> { "On", "Off" });
-
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -126,13 +124,13 @@ namespace OsEngine.Market.Servers.Bybit
 
                 _leverage = ((ServerParameterString)ServerParameters[5]).Value.Replace(",", ".");
 
-                if (((ServerParameterEnum)ServerParameters[6]).Value == "On")
+                if (((ServerParameterBool)ServerParameters[6]).Value == true)
                 {
-                    _oi = true;
+                    _extendedMarketData = true;
                 }
                 else
                 {
-                    _oi = false;
+                    _extendedMarketData = false;
                 }
 
                 if (!CheckApiKeyInformation(PublicKey))
@@ -349,7 +347,7 @@ namespace OsEngine.Market.Servers.Bybit
 
         private string _leverage;
 
-        private bool _oi;
+        private bool _extendedMarketData;
 
         private List<string> _listLinearCurrency = new List<string>() { "USDC", "USDT" };
 
@@ -1940,7 +1938,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".P", "")}\" ] }}");
                         webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".P", "")}\" ] }}");
 
-                        if (_oi)
+                        if (_extendedMarketData)
                         {
                             webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".P", "")}\" ] }}");
                             GetFundingData(security.Name.Replace(".P", ""));
@@ -2003,7 +2001,7 @@ namespace OsEngine.Market.Servers.Bybit
                         webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name.Replace(".I", "")}\" ] }}");
                         webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name.Replace(".I", "")}\" ] }}");
 
-                        if (_oi)
+                        if (_extendedMarketData)
                         {
                             webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name.Replace(".I", "")}\" ] }}");
                         }
@@ -2035,16 +2033,15 @@ namespace OsEngine.Market.Servers.Bybit
 
                     string sec = item.symbol + ".P";
 
-                    PublicMarketData data = new PublicMarketData();
+                    Funding data = new Funding();
 
-                    data.SecurityName = sec;
-                    int.TryParse(item.fundingInterval, out data.Funding.FundingIntervalHours);
-                    data.Funding.MaxFundingRate = item.upperFundingRate.ToDecimal();
-                    data.Funding.MinFundingRate = item.lowerFundingRate.ToDecimal();
+                    data.SecurityNameCode = sec;
+                    int.TryParse(item.fundingInterval, out data.FundingIntervalHours);
+                    data.MaxFundingRate = item.upperFundingRate.ToDecimal();
+                    data.MinFundingRate = item.lowerFundingRate.ToDecimal();
+                    data.FundingIntervalHours = data.FundingIntervalHours / 60;
 
-                    data.Funding.FundingIntervalHours = data.Funding.FundingIntervalHours / 60;
-
-                    PublicMarketDataEvent?.Invoke(data);
+                    FundingUpdateEvent?.Invoke(data);
                 }
                 else
                 {
@@ -2152,7 +2149,7 @@ namespace OsEngine.Market.Servers.Bybit
                                 webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
                                 webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
-                                if (_oi)
+                                if (_extendedMarketData)
                                 {
                                     webSocketPublicLinear?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
@@ -2199,7 +2196,7 @@ namespace OsEngine.Market.Servers.Bybit
                                 webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
                                 webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
-                                if (_oi)
+                                if (_extendedMarketData)
                                 {
                                     webSocketPublicInverse?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
@@ -3029,7 +3026,7 @@ namespace OsEngine.Market.Servers.Bybit
                     Category category = Category.linear;
                     UpdateTrade(message, category);
 
-                    if (_oi)
+                    if (_extendedMarketData)
                     {
                         if (_concurrentQueueTickersLinear == null
                         || _concurrentQueueTickersLinear.IsEmpty
@@ -3082,7 +3079,7 @@ namespace OsEngine.Market.Servers.Bybit
                     Category category = Category.inverse;
                     UpdateTrade(message, category);
 
-                    if (_oi)
+                    if (_extendedMarketData)
                     {
                         if (_concurrentQueueTickersInverse == null
                         || _concurrentQueueTickersInverse.IsEmpty
@@ -3142,7 +3139,7 @@ namespace OsEngine.Market.Servers.Bybit
                             trade.SecurityNameCode = item.s;
                         }
 
-                        if (_oi)
+                        if (_extendedMarketData && category != Category.spot)
                         {
                             trade.OpenInterest = GetOpenInterest(trade.SecurityNameCode);
                         }
@@ -3228,18 +3225,24 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }                
 
-                PublicMarketData data = new PublicMarketData();
+                Funding funding = new Funding();
 
                 ResponseTicker item = responseTicker.data;
 
-                data.SecurityName = tickers.SecutityName;
-                data.Funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
-                data.Funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
-                data.Volume24h = item.volume24h.ToDecimal();
-                data.Turnover24h = item.turnover24h.ToDecimal();
-                data.Funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
+                funding.SecurityNameCode = tickers.SecutityName;
+                funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
+                funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());                
+                funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
 
-                PublicMarketDataEvent?.Invoke(data);
+                FundingUpdateEvent?.Invoke(funding);
+
+                SecurityVolumes volume = new SecurityVolumes();
+
+                volume.SecurityNameCode = tickers.SecutityName;
+                volume.Volume24h = item.volume24h.ToDecimal();
+                volume.Volume24hUSDT = item.turnover24h.ToDecimal();
+
+                Volume24hUpdateEvent?.Invoke(volume);
             }
             catch (Exception ex)
             {
@@ -3249,7 +3252,10 @@ namespace OsEngine.Market.Servers.Bybit
 
         public event Action<Trade> NewTradesEvent;
 
-        public event Action<PublicMarketData> PublicMarketDataEvent;
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
 
         #endregion 10
 
@@ -4354,7 +4360,7 @@ namespace OsEngine.Market.Servers.Bybit
         #region 13 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
+        
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent?.Invoke(message, messageType);

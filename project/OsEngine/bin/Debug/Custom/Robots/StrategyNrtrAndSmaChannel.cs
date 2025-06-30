@@ -19,22 +19,27 @@ trading robot for osengine
 
 Trend robot on the NRTR and SmaChannel indicators.
 
-Buy: When the candle closed above the upper SmaChannel line and above the NRTR line.
+Buy:
+When the candle closed above the upper SmaChannel line and above the NRTR line.
 
-Sell: When the candle closed below the lower SmaChannel line and below the NRTR line.
+Sell:
+When the candle closed below the lower SmaChannel line and below the NRTR line.
 
-Exit from buy: Set a trailing stop along the NRTR line and at the lower border of the SmaChannel indicator. 
+Exit from buy:
+Set a trailing stop along the NRTR line and at the lower border of the SmaChannel indicator. 
 The calculation method that is further from the current price is selected.
 
-Exit from sell: Set a trailing stop along the NRTR line and at the upper border of the SmaChannel indicator. 
+Exit from sell:
+Set a trailing stop along the NRTR line and at the upper border of the SmaChannel indicator. 
 The calculation method that is further from the current price is selected.
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyNrtrAndSmaChannel")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyNrtrAndSmaChannel")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class StrategyNrtrAndSmaChannel : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -48,18 +53,19 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _lengthNrtr;
         private StrategyParameterDecimal _deviationNrtr;
         private StrategyParameterInt _smaLength;
         private StrategyParameterDecimal _smaDeviation;
 
-        // Indicator
+        // Indicators
         private Aindicator _nrtr;
         private Aindicator _smaChannel;
 
         public StrategyNrtrAndSmaChannel(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -74,7 +80,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator settings
+            // Indicators settings
             _lengthNrtr = CreateParameter("Length NRTR", 24, 5, 100, 5, "Indicator");
             _deviationNrtr = CreateParameter("Deviation NRTR", 1, 1m, 10, 1, "Indicator");
             _smaLength = CreateParameter("Length Sma", 10, 10, 300, 10, "Indicator");
@@ -107,7 +113,7 @@ namespace OsEngine.Robots
                 " The calculation method that is further from the current price is selected." +
                 "Exit from sell: Set a trailing stop along the NRTR line and at the upper border of the SmaChannel indicator." +
                 " The calculation method that is further from the current price is selected. ";
-        }       
+        }
 
         private void StrategyNrtrAndAdx_ParametrsChangeByUser()
         {
@@ -115,6 +121,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterDecimal)_nrtr.Parameters[1]).ValueDecimal = _deviationNrtr.ValueDecimal;
             _nrtr.Save();
             _nrtr.Reload();
+
             ((IndicatorParameterInt)_smaChannel.Parameters[0]).ValueInt = _smaLength.ValueInt;
             ((IndicatorParameterDecimal)_smaChannel.Parameters[1]).ValueDecimal = _smaDeviation.ValueDecimal;
             _smaChannel.Save();
@@ -125,6 +132,7 @@ namespace OsEngine.Robots
         {
             return "StrategyNrtrAndSmaChannel";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -194,7 +202,7 @@ namespace OsEngine.Robots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (lastPrice > lastNRTR  && lastPrice > lastUpSma)
+                    if (lastPrice > lastNRTR && lastPrice > lastUpSma)
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + slippage);
                     }
@@ -203,7 +211,7 @@ namespace OsEngine.Robots
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (lastPrice < lastNRTR  && lastPrice < lastDownSma)
+                    if (lastPrice < lastNRTR && lastPrice < lastDownSma)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - slippage);
                     }
@@ -215,7 +223,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             // The last value of the indicator
             decimal lastNRTR = _nrtr.DataSeries[2].Last;
             decimal lastUpSma = _smaChannel.DataSeries[0].Last;
@@ -232,11 +240,11 @@ namespace OsEngine.Robots
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is Buy
                 {
                     stop_level = lastNRTR < lastDownSma ? lastNRTR : lastDownSma;
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is Sell
                 {
                     stop_level = lastNRTR > lastUpSma ? lastNRTR : lastUpSma;
                 }

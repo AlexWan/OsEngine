@@ -12,79 +12,74 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Trading robot Three Soldiers.
+
+When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop.
+ */
+
 namespace OsEngine.Robots.Patterns
 {
-    [Bot("ThreeSoldier")]
+    [Bot("ThreeSoldier")] // We create an attribute so that we don't write anything to the BotFactory
     public class ThreeSoldier : BotPanel
     {
-        public ThreeSoldier(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterDecimal _heightSoldiers;
+        private StrategyParameterDecimal _minHeightOneSoldier;
+        private StrategyParameterDecimal _procHeightTake;
+        private StrategyParameterDecimal _procHeightStop;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        public ThreeSoldier(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
+            _heightSoldiers = CreateParameter("Height soldiers %", 1, 0, 20, 1m);
+            _minHeightOneSoldier = CreateParameter("Min height one soldier %", 0.2m, 0, 20, 1m);
+            _procHeightTake = CreateParameter("Profit % from height of pattern", 50m, 0, 20, 1m);
+            _procHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
+
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
-
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
-
-            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
-
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
-            Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-
-            HeightSoldiers = CreateParameter("Height soldiers %", 1, 0, 20, 1m);
-
-            MinHeightOneSoldier = CreateParameter("Min height one soldier %", 0.2m, 0, 20, 1m);
-
-            ProcHeightTake = CreateParameter("Profit % from height of pattern", 50m, 0, 20, 1m);
-
-            ProcHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
 
             Description = "Trading robot Three Soldiers. " +
                 "When forming a pattern of three growing / falling candles, " +
                 "the entrance to the countertrend with a fixation on a profit or a stop";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ThreeSoldier";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabSimple _tab;
-
-        // settings
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterDecimal HeightSoldiers;
-
-        public StrategyParameterDecimal MinHeightOneSoldier;
-
-        public StrategyParameterDecimal ProcHeightTake;
-
-        public StrategyParameterDecimal ProcHeightStop;
-
-        public StrategyParameterDecimal Slippage;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        // logic
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -98,7 +93,7 @@ namespace OsEngine.Robots.Patterns
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -110,62 +105,64 @@ namespace OsEngine.Robots.Patterns
             }
         }
 
+        // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             decimal _lastPrice = candles[candles.Count - 1].Close;
 
             if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 1].Close) 
-                / (candles[candles.Count - 1].Close / 100) < HeightSoldiers.ValueDecimal)
+                / (candles[candles.Count - 1].Close / 100) < _heightSoldiers.ValueDecimal)
             {
                 return;
             }
             if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 3].Close) 
-                / (candles[candles.Count - 3].Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                / (candles[candles.Count - 3].Close / 100) < _minHeightOneSoldier.ValueDecimal)
             {
                 return;
             }
             if (Math.Abs(candles[candles.Count - 2].Open - candles[candles.Count - 2].Close) 
-                / (candles[candles.Count - 2].Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                / (candles[candles.Count - 2].Close / 100) < _minHeightOneSoldier.ValueDecimal)
             {
                 return;
             }
             if (Math.Abs(candles[candles.Count - 1].Open - candles[candles.Count - 1].Close) 
-                / (candles[candles.Count - 1].Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                / (candles[candles.Count - 1].Close / 100) < _minHeightOneSoldier.ValueDecimal)
             {
                 return;
             }
 
             //  long
-            if (Regime.ValueString != "OnlyShort")
+            if (_regime.ValueString != "OnlyShort")
             {
                 if (candles[candles.Count - 3].Open < candles[candles.Count - 3].Close 
                     && candles[candles.Count - 2].Open < candles[candles.Count - 2].Close 
                     && candles[candles.Count - 1].Open < candles[candles.Count - 1].Close)
                 {
-                    _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _lastPrice * (Slippage.ValueDecimal / 100));
+                    _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _lastPrice * (_slippage.ValueDecimal / 100));
                 }
             }
 
             // Short
-            if (Regime.ValueString != "OnlyLong")
+            if (_regime.ValueString != "OnlyLong")
             {
                 if (candles[candles.Count - 3].Open > candles[candles.Count - 3].Close 
                     && candles[candles.Count - 2].Open > candles[candles.Count - 2].Close 
                     && candles[candles.Count - 1].Open > candles[candles.Count - 1].Close)
                 {
-                    _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _lastPrice * (Slippage.ValueDecimal / 100));
+                    _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _lastPrice * (_slippage.ValueDecimal / 100));
                 }
             }
 
             return;
-
         }
 
+        // Logic close position
         private void LogicClosePosition(List<Candle> candles)
         {
             decimal _lastPrice = candles[candles.Count - 1].Close;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
+
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 if (openPositions[i].State != PositionStateType.Open)
@@ -180,37 +177,38 @@ namespace OsEngine.Robots.Patterns
 
                 if (openPositions[i].Direction == Side.Buy)
                 {
-                    decimal heightPattern = 
-                        Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 4].Open - _tab.CandlesAll[_tab.CandlesAll.Count - 2].Close);
+                    decimal heightPattern = Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 4].Open - _tab.CandlesAll[_tab.CandlesAll.Count - 2].Close);
+                    decimal priceStop = _lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
+                    decimal priceTake = _lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
 
-                    decimal priceStop = _lastPrice - (heightPattern * ProcHeightStop.ValueDecimal) / 100;
-                    decimal priceTake = _lastPrice + (heightPattern * ProcHeightTake.ValueDecimal) / 100;
-                    _tab.CloseAtStop(openPositions[i], priceStop, priceStop - priceStop * (Slippage.ValueDecimal / 100));
-                    _tab.CloseAtProfit(openPositions[i], priceTake, priceTake - priceStop * (Slippage.ValueDecimal / 100));
+                    _tab.CloseAtStop(openPositions[i], priceStop, priceStop - priceStop * (_slippage.ValueDecimal / 100));
+                    _tab.CloseAtProfit(openPositions[i], priceTake, priceTake - priceStop * (_slippage.ValueDecimal / 100));
                 }
                 else
                 {
                     decimal heightPattern = Math.Abs(_tab.CandlesAll[_tab.CandlesAll.Count - 2].Close - _tab.CandlesAll[_tab.CandlesAll.Count - 4].Open);
-                    decimal priceStop = _lastPrice + (heightPattern * ProcHeightStop.ValueDecimal) / 100;
-                    decimal priceTake = _lastPrice - (heightPattern * ProcHeightTake.ValueDecimal) / 100;
-                    _tab.CloseAtStop(openPositions[i], priceStop, priceStop + priceStop * (Slippage.ValueDecimal / 100));
-                    _tab.CloseAtProfit(openPositions[i], priceTake, priceTake + priceStop * (Slippage.ValueDecimal / 100));
+                    decimal priceStop = _lastPrice + (heightPattern * _procHeightStop.ValueDecimal) / 100;
+                    decimal priceTake = _lastPrice - (heightPattern * _procHeightTake.ValueDecimal) / 100;
+
+                    _tab.CloseAtStop(openPositions[i], priceStop, priceStop + priceStop * (_slippage.ValueDecimal / 100));
+                    _tab.CloseAtProfit(openPositions[i], priceTake, priceTake + priceStop * (_slippage.ValueDecimal / 100));
                 }
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -221,7 +219,7 @@ namespace OsEngine.Robots.Patterns
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -231,7 +229,7 @@ namespace OsEngine.Robots.Patterns
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if(VolumeType.ValueString == "Deposit percent")
+            else if(_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -242,7 +240,7 @@ namespace OsEngine.Robots.Patterns
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -257,7 +255,7 @@ namespace OsEngine.Robots.Patterns
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -267,11 +265,11 @@ namespace OsEngine.Robots.Patterns
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 

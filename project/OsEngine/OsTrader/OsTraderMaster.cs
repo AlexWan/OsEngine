@@ -1540,6 +1540,11 @@ namespace OsEngine.OsTrader
 
                 BotPanel newRobot = BotFactory.GetStrategyForName(ui.NameStrategy, ui.NameBot, _startProgram, ui.IsScript);
 
+                if(newRobot == null)
+                {
+                    return;
+                }
+
                 if (PanelsArray == null)
                 {
                     PanelsArray = new List<BotPanel>();

@@ -2200,7 +2200,10 @@ namespace OsEngine.Market.Servers.BinGxSpot
         #region 12 Log
 
         public event Action<string, LogMessageType> LogMessageEvent;
-        public event Action<PublicMarketData> PublicMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType messageType)
         {

@@ -61,9 +61,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
         // service fields for values.
         // сервисные поля для значений.
-        private StrategyParameterDecimal HeightSoldiers;
-        private StrategyParameterDecimal MinHeightOneSoldier;
-        private StrategyParameterDecimal TrailingStopReal;
+        private StrategyParameterDecimal _heightSoldiers;
+        private StrategyParameterDecimal _minHeightOneSoldier;
+        private StrategyParameterDecimal _trailingStopReal;
 
         public Lesson7Bot1(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -97,9 +97,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             // Service fields for values
             // Поля обслуживания для значений.
-            HeightSoldiers = CreateParameter("Height soldiers", 1, 0, 20, 1m);
-            MinHeightOneSoldier = CreateParameter("Min height one soldier", 0.2m, 0, 20, 1m);
-            TrailingStopReal = CreateParameter("Trail stop real", 0.2m, 0, 20, 1m);
+            _heightSoldiers = CreateParameter("Height soldiers", 1, 0, 20, 1m);
+            _minHeightOneSoldier = CreateParameter("Min height one soldier", 0.2m, 0, 20, 1m);
+            _trailingStopReal = CreateParameter("Trail stop real", 0.2m, 0, 20, 1m);
 
             // Subscribe to the candle finished event
             // Подписка на завершение свечи
@@ -168,25 +168,25 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 decimal _lastPrice = candleFirst.Close;
 
                 if (Math.Abs(candleThird.Open - candleFirst.Close)
-                    / (candleFirst.Close / 100) < HeightSoldiers.ValueDecimal)
+                    / (candleFirst.Close / 100) < _heightSoldiers.ValueDecimal)
                 {
                     return;
                 }
 
                 if (Math.Abs(candleThird.Open - candleThird.Close)
-                    / (candleThird.Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                    / (candleThird.Close / 100) < _minHeightOneSoldier.ValueDecimal)
                 {
                     return;
                 }
 
                 if (Math.Abs(candleSecond.Open - candleSecond.Close)
-                    / (candleSecond.Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                    / (candleSecond.Close / 100) < _minHeightOneSoldier.ValueDecimal)
                 {
                     return;
                 }
 
                 if (Math.Abs(candleFirst.Open - candleFirst.Close)
-                    / (candleFirst.Close / 100) < MinHeightOneSoldier.ValueDecimal)
+                    / (candleFirst.Close / 100) < _minHeightOneSoldier.ValueDecimal)
                 {
                     return;
                 }
@@ -202,7 +202,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
                 // Close At Trailing Stop
                 // Закрытие по trailing Stop
 
-                decimal stopPrice = candles[candles.Count - 1].Close - TrailingStopReal.ValueDecimal;
+                decimal stopPrice = candles[candles.Count - 1].Close - _trailingStopReal.ValueDecimal;
                 _tabToTrade.CloseAtTrailingStopMarket(positions[0], stopPrice);
             }
         }
@@ -239,7 +239,6 @@ namespace OsEngine.Robots.BotsFromStartLessons
                     decimal volaPercentToday = volaAbsToday / (minValueInDay / 100);
 
                     volaInDaysPercent.Add(volaPercentToday);
-
 
                     minValueInDay = decimal.MaxValue;
                     maxValueInDay = decimal.MinValue;
@@ -293,9 +292,9 @@ namespace OsEngine.Robots.BotsFromStartLessons
             decimal oneSoldiersHeight = volaPercentSma * (_oneHeightSoldier.ValueDecimal / 100);
             decimal trail = volaPercentSma * (_trailingStopMult.ValueDecimal / 100);
 
-            HeightSoldiers.ValueDecimal = allSoldiersHeight;
-            MinHeightOneSoldier.ValueDecimal = oneSoldiersHeight;
-            TrailingStopReal.ValueDecimal = trail;
+            _heightSoldiers.ValueDecimal = allSoldiersHeight;
+            _minHeightOneSoldier.ValueDecimal = oneSoldiersHeight;
+            _trailingStopReal.ValueDecimal = trail;
         }
 
         private decimal Sma(List<Candle> candles, int len, int index)

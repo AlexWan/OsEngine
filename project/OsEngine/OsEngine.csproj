@@ -26,9 +26,15 @@
     <ApplicationIcon>OsLogo.ico</ApplicationIcon>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <AssemblyVersion>2.0.0.2</AssemblyVersion>
+    <PackageOutputPath>$(OutputPath)\</PackageOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
    <OutputPath>bin\Debug\</OutputPath>
+   <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+   <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+   <OutputPath>bin\Release\</OutputPath>
    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
   </PropertyGroup>
@@ -62,6 +68,9 @@
     <Reference Include="cgate_net64">
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
+    <Reference Include="FinamApi">
+      <HintPath>bin\Debug\FinamApi.dll</HintPath>
+    </Reference>
     <Reference Include="Jayrock.Json">
       <HintPath>bin\Debug\Jayrock.Json.dll</HintPath>
     </Reference>
@@ -85,7 +94,7 @@
       <HintPath>bin\Debug\SuperSocket.ClientEngine.dll</HintPath>
     </Reference>
     <Reference Include="TInvestApi">
-      <HintPath>..\..\related projects\TInvestApi\bin\Debug\TInvestApi.dll</HintPath>
+      <HintPath>bin\Debug\TInvestApi.dll</HintPath>
     </Reference>
     <Reference Include="WebSocket4Net">
       <HintPath>bin\Debug\WebSocket4Net.dll</HintPath>
@@ -93,6 +102,7 @@
     <Reference Update="System.Runtime.Serialization">
       <Private>True</Private>
     </Reference>
+    <PackageReference Include="Google.Api.CommonProtos" Version="2.16.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.71.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />

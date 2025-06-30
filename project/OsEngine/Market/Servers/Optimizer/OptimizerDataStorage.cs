@@ -1745,6 +1745,27 @@ namespace OsEngine.Market.Servers.Optimizer
                     _storages.Add(storage);
                     return storage;
                 }
+                if (_typeTesterData == TesterDataType.TickAllCandleState)
+                {
+                    DataStorage storage =
+                                   _storages.Find(s => s.Security.Name == security.Name &&
+                                                              s.TimeStart == timeStart && s.TimeEnd == timeEnd && s.StorageType == TesterDataType.TickAllCandleState);
+
+                    if (storage != null)
+                    {
+                        return storage;
+                    }
+                    storage = LoadTradesFromFolder(security, timeStart, timeEnd);
+
+                    if (storage == null)
+                    {
+                        SendLogMessage(OsLocalization.Market.Message29 + security.Name + OsLocalization.Market.Message30 + _typeTesterData, LogMessageType.Error);
+                        return null;
+                    }
+
+                    _storages.Add(storage);
+                    return storage;
+                }
                 if (_typeTesterData == TesterDataType.MarketDepthOnlyReadyCandle)
                 {
                     DataStorage storage =

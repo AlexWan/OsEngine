@@ -21,22 +21,27 @@ The trend robot on Strategy Four Ema With MACD.
 
 Buy:
 1. Ema1 is higher than Ema2 and the price is higher than Ema3 and Ema4;
-2. MACD histogram> 0.
+2. MACD histogram > 0.
+
 Sell:
 1. Ema1 is lower than Ema2 and the price is lower than Ema3 and Ema4;
-2. MACD histogram< 0.
+2. MACD histogram < 0.
 
-Exit from a long position: The trailing stop is placed at the minimum 
+Exit from a long position:
+The trailing stop is placed at the minimum 
 for the period specified for the trailing stop and transferred (slides) to new price lows, also for the specified period.
-Exit from the short position: The trailing stop is placed at the maximum 
+
+Exit from the short position:
+The trailing stop is placed at the maximum 
 for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyFourEmaWithMACD")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyFourEmaWithMACD")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyFourEmaWithMACD : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -50,7 +55,7 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _emaPeriod1;
         private StrategyParameterInt _emaPeriod2;
         private StrategyParameterInt _emaPeriod3;
@@ -59,7 +64,7 @@ namespace OsEngine.Robots
         private StrategyParameterInt _slowLineLengthMACD;
         private StrategyParameterInt _signalLineLengthMACD;
 
-        // Indicator
+        // Indicators
         private Aindicator _ema1;
         private Aindicator _ema2;
         private Aindicator _ema3;
@@ -78,6 +83,7 @@ namespace OsEngine.Robots
 
         public StrategyFourEmaWithMACD(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -92,7 +98,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator settings
+            // Indicators settings
             _emaPeriod1 = CreateParameter("Ema Length 1", 10, 7, 48, 7, "Indicator");
             _emaPeriod2 = CreateParameter("Ema Length 2", 20, 7, 48, 7, "Indicator");
             _emaPeriod3 = CreateParameter("Ema Length 3", 30, 7, 48, 7, "Indicator");
@@ -107,19 +113,19 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _emaPeriod1.ValueInt;
             _ema1.Save();
 
-            // Create indicator Ema1
+            // Create indicator Ema2
             _ema2 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EMA2", false);
             _ema2 = (Aindicator)_tab.CreateCandleIndicator(_ema2, "Prime");
             ((IndicatorParameterInt)_ema2.Parameters[0]).ValueInt = _emaPeriod2.ValueInt;
             _ema2.Save();
 
-            // Create indicator Ema1
+            // Create indicator Ema3
             _ema3 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EMA3", false);
             _ema3 = (Aindicator)_tab.CreateCandleIndicator(_ema3, "Prime");
             ((IndicatorParameterInt)_ema3.Parameters[0]).ValueInt = _emaPeriod3.ValueInt;
             _ema3.Save();
 
-            // Create indicator Ema1
+            // Create indicator Ema4
             _ema4 = IndicatorsFactory.CreateIndicatorByName("Ema", name + "EMA4", false);
             _ema4 = (Aindicator)_tab.CreateCandleIndicator(_ema4, "Prime");
             ((IndicatorParameterInt)_ema4.Parameters[0]).ValueInt = _emaPeriod4.ValueInt;
@@ -132,7 +138,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_MACD.Parameters[1]).ValueInt = _slowLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[2]).ValueInt = _signalLineLengthMACD.ValueInt;
             _MACD.Save();
-            
+
             // Exit setting
             _trailBars = CreateParameter("Trail Bars", 5, 1, 50, 1, "Exit");
 
@@ -145,10 +151,10 @@ namespace OsEngine.Robots
             Description = "The trend robot on Strategy Four Ema With MACD. " +
                 "Buy: " +
                 "1. Ema1 is higher than Ema2 and the price is higher than Ema3 and Ema4; " +
-                "2. MACD histogram> 0. " +
+                "2. MACD histogram > 0. " +
                 "Sell: " +
                 "1. Ema1 is lower than Ema2 and the price is lower than Ema3 and Ema4; " +
-                "2. MACD histogram< 0. " +
+                "2. MACD histogram < 0. " +
                 "Exit from a long position: The trailing stop is placed at the minimum  " +
                 "for the period specified for the trailing stop and transferred (slides) to new price lows, also for the specified period. " +
                 "Exit from the short position: The trailing stop is placed at the maximum  " +
@@ -160,15 +166,19 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_ema1.Parameters[0]).ValueInt = _emaPeriod1.ValueInt;
             _ema1.Save();
             _ema1.Reload();
+
             ((IndicatorParameterInt)_ema2.Parameters[0]).ValueInt = _emaPeriod2.ValueInt;
             _ema2.Save();
             _ema2.Reload();
+
             ((IndicatorParameterInt)_ema3.Parameters[0]).ValueInt = _emaPeriod3.ValueInt;
             _ema3.Save();
             _ema3.Reload();
+
             ((IndicatorParameterInt)_ema4.Parameters[0]).ValueInt = _emaPeriod4.ValueInt;
             _ema4.Save();
             _ema4.Reload();
+
             ((IndicatorParameterInt)_MACD.Parameters[0]).ValueInt = _fastLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[1]).ValueInt = _slowLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[2]).ValueInt = _signalLineLengthMACD.ValueInt;
@@ -181,6 +191,7 @@ namespace OsEngine.Robots
         {
             return "StrategyFourEmaWithMACD";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -196,10 +207,13 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _emaPeriod1.ValueInt ||
-                candles.Count < _fastLineLengthMACD.ValueInt ||
-                candles.Count < _slowLineLengthMACD.ValueInt + 6 ||
-                candles.Count < _signalLineLengthMACD.ValueInt)
+            if (candles.Count <= _emaPeriod1.ValueInt ||
+                candles.Count <= _emaPeriod2.ValueInt ||
+                candles.Count <= _emaPeriod3.ValueInt ||
+                candles.Count <= _emaPeriod4.ValueInt ||
+                candles.Count <= _fastLineLengthMACD.ValueInt ||
+                candles.Count <= _slowLineLengthMACD.ValueInt + 6 ||
+                candles.Count <= _signalLineLengthMACD.ValueInt)
             {
                 return;
             }
@@ -238,9 +252,9 @@ namespace OsEngine.Robots
             // The last value of the indicator
             _lastMACD = _MACD.DataSeries[0].Last;
             _OnelastEma = _ema1.DataSeries[0].Last;
-            _TwolastEma = _ema2.DataSeries[0].Values[_ema2.DataSeries[0].Values.Count - 2];
-            _ThreelastEma = _ema3.DataSeries[0].Values[_ema3.DataSeries[0].Values.Count - 3];
-            _FourlastEma = _ema4.DataSeries[0].Values[_ema4.DataSeries[0].Values.Count - 4];
+            _TwolastEma = _ema2.DataSeries[0].Last;
+            _ThreelastEma = _ema3.DataSeries[0].Last;
+            _FourlastEma = _ema4.DataSeries[0].Last;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -275,14 +289,14 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-                Position pos = openPositions[0];
+                Position pos = openPositions[i];
 
                 if (pos.State != PositionStateType.Open)
                 {
@@ -372,7 +386,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

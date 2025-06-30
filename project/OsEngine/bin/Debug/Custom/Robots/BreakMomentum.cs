@@ -63,7 +63,7 @@ namespace OsEngine.Robots
         // The last value of the indicator
         private decimal _lastMomentum;
 
-        // Exit
+        // Exit settings
         private StrategyParameterDecimal _stopValue;
         private StrategyParameterDecimal _profitValue;
 
@@ -242,7 +242,6 @@ namespace OsEngine.Robots
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation - _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation + _slippage);
                 }
-
             }
         }
 

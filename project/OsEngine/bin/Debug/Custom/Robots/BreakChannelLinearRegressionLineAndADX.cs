@@ -34,9 +34,10 @@ After a certain number of candles.
 
 namespace OsEngine.Robots
 {
-    [Bot( "BreakChannelLinearRegressionLineAndADX")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot( "BreakChannelLinearRegressionLineAndADX")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakChannelLinearRegressionLineAndADX : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -54,7 +55,7 @@ namespace OsEngine.Robots
         private StrategyParameterInt _periodADX;
         private StrategyParameterInt _periodLRMAChannel;
 
-        // Indicator
+        // Indicators
         private Aindicator _ADX;
         private Aindicator _LRMAUp;
         private Aindicator _LRMADown;
@@ -70,6 +71,7 @@ namespace OsEngine.Robots
 
         public BreakChannelLinearRegressionLineAndADX(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -128,15 +130,17 @@ namespace OsEngine.Robots
                 "After a certain number of candles.";
         }
 
-        // Indicator Update event
+        // Indicators Update event
         private void BreakChannelLinearRegressionLineAndADX_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _periodADX.ValueInt;
             _ADX.Save();
             _ADX.Reload();
+
             ((IndicatorParameterInt)_LRMAUp.Parameters[0]).ValueInt = _periodLRMAChannel.ValueInt;
             _LRMAUp.Save();
             _LRMAUp.Reload();
+
             ((IndicatorParameterInt)_LRMADown.Parameters[0]).ValueInt = _periodLRMAChannel.ValueInt;
             _LRMADown.Save();
             _LRMADown.Reload();
@@ -147,6 +151,7 @@ namespace OsEngine.Robots
         {
             return "BreakChannelLinearRegressionLineAndADX";
         }
+        
         public override void ShowIndividualSettingsDialog()
         {
 

@@ -1844,7 +1844,10 @@ namespace OsEngine.Market.Servers.CoinEx.Spot
         public event Action<News> NewsEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-        public event Action<PublicMarketData> PublicMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         private void SendLogMessage(string message, LogMessageType type)
         {
