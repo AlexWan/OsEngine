@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
@@ -12,7 +13,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.BitGet.BitGetFutures
@@ -1647,6 +1647,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{security.NameClass}\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
+
+                    if (_extendedMarketData)
+                    {
+                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                    }
                 }
             }
             catch (Exception ex)
@@ -1691,8 +1696,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 {
                                     for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+                                        }
                                     }
                                 }
                             }
@@ -1812,9 +1822,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 UpdateDepth(message);
                                 continue;
                             }
+
                             if (action.arg.channel.Equals("trade"))
                             {
                                 UpdateTrade(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("ticker"))
+                            {
+                                UpdateTicker(message);
                                 continue;
                             }
                         }
@@ -2355,6 +2372,44 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        private void UpdateTicker(string message)
+        {
+            try
+            {
+                ResponseWebSocketMessageAction<List<ResponseTicker>> responseTicker = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseTicker>>());
+
+                if (responseTicker == null
+                    || responseTicker.data == null
+                    || responseTicker.data[0] == null)
+                {
+                    return;
+                }
+
+                Funding funding = new Funding();
+
+                ResponseTicker item = responseTicker.data[0];
+
+                funding.SecurityNameCode = item.instId;
+                funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
+                funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
+                funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
+
+                FundingUpdateEvent?.Invoke(funding);
+
+                SecurityVolumes volume = new SecurityVolumes();
+
+                volume.SecurityNameCode = item.instId;
+                volume.Volume24h = item.baseVolume.ToDecimal();
+                volume.Volume24hUSDT = item.quoteVolume.ToDecimal();
+
+                Volume24hUpdateEvent?.Invoke(volume);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
         private DateTime _lastTimeMd = DateTime.MinValue;
 
         public event Action<Order> MyOrderEvent;
@@ -2366,6 +2421,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         public event Action<Trade> NewTradesEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2921,6 +2980,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     continue;
                 }
 
+                if (!_extendedMarketData)
+                {
+                    continue;
+                }
+
                 if (_subscribledSecutiries == null
                     || _subscribledSecutiries.Count == 0)
                 {
@@ -2928,11 +2992,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
 
                 if (_timeLast.AddSeconds(20) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                if (!_extendedMarketData)
                 {
                     continue;
                 }
@@ -3071,10 +3130,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }
