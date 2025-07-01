@@ -3,45 +3,69 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-
+using OsEngine.Charts.CandleChart.Indicators;
+using OsEngine.Entity;
+using OsEngine.Market;
+using OsEngine.Market.Servers;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using OsEngine.Entity;
-using OsEngine.Market;
-using OsEngine.OsTrader.Panels;
-using OsEngine.OsTrader.Panels.Attributes;
-using OsEngine.OsTrader.Panels.Tab;
 
 namespace OsEngine.Robots.High_Frequency
 {
-    /// <summary>
-    /// robot analyzing the density of the market depth / 
-    /// робот анализирующий плотность стакана
-    /// </summary>
-    [Bot("HighFrequencyTrader")]
+    // Robot analyzing the density of the market depth
+    [Bot("HighFrequencyTrader")] // We create an attribute so that we don't write anything to the BotFactory
     public class HighFrequencyTrader : BotPanel
     {
+        // Tab to trade
+        private BotTabSimple _tab;
 
-        public HighFrequencyTrader(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        // Basic settings
+        private StrategyParameterString _regime;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Levels to marketDepth analyze
+        private StrategyParameterInt _maxLevelsInMarketDepth;
+
+        // Exit settings
+        private StrategyParameterInt _stop;
+        private StrategyParameterInt _profit;
+
+        public HighFrequencyTrader(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
-            Volume = CreateParameter("Volume", 1, 1.0m, 100, 2);
-            Stop = CreateParameter("Stop", 5, 5, 15, 1);
-            Profit = CreateParameter("Profit", 5, 5, 20, 1);
+            // Basic setting
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
 
-            MaxLevelsInMarketDepth = CreateParameter("MaxLevelsInMarketDepth", 5, 3, 15, 1);
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
+            // Levels to marketDepth analyze
+            _maxLevelsInMarketDepth = CreateParameter("MaxLevelsInMarketDepth", 5, 3, 15, 1);
+
+            // Exit settings
+            _stop = CreateParameter("Stop", 5, 5, 15, 1);
+            _profit = CreateParameter("Profit", 5, 5, 20, 1);
+
+            // Subscribe event
             _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;
-
             _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
             _tab.PositionClosingFailEvent += _tab_PositionClosingFailEvent;
 
+            // Create worker area
             Task task = new Task(ClosePositionThreadArea);
             task.Start();
 
@@ -50,70 +74,31 @@ namespace OsEngine.Robots.High_Frequency
             DeleteEvent += HighFrequencyTrader_DeleteEvent;
         }
 
-        /// <summary>
-        /// tab to trade
-        /// вкладка для торговли
-        /// </summary>
-        private BotTabSimple _tab;
-
-        /// <summary>
-        /// regime
-        /// режим работы
-        /// </summary>
-        public StrategyParameterString Regime;
-
-        /// <summary>
-        /// volume
-        /// объем
-        /// </summary>
-        public StrategyParameterDecimal Volume;
-
-        /// <summary>
-        /// levels to marketDepth analyze
-        /// глубина анализа стакана
-        /// </summary>
-        public StrategyParameterInt MaxLevelsInMarketDepth;
-
-        /// <summary>
-        /// stop order length
-        /// длинна стопа
-        /// </summary>
-        public StrategyParameterInt Stop;
-
-        /// <summary>
-        /// profit order length
-        /// длинна профита
-        /// </summary>
-        public StrategyParameterInt Profit;
-
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "HighFrequencyTrader";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // logic / логики
+        // Logic
 
-        /// <summary>
-        /// last time check marketDepth
-        /// последнее время проверки стакана
-        /// </summary>
+        // Last time check marketDepth
         private DateTime _lastCheckTime = DateTime.MinValue;
 
-        /// <summary>
-        /// new marketDepth event
-        /// новый входящий стакан
-        /// </summary>
+        // New marketDepth event
         void _tab_MarketDepthUpdateEvent(MarketDepth marketDepth)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
+
             if (marketDepth.Asks == null || marketDepth.Asks.Count == 0 ||
                 marketDepth.Bids == null || marketDepth.Bids.Count == 0)
             {
@@ -130,7 +115,6 @@ namespace OsEngine.Robots.High_Frequency
             if (StartProgram == StartProgram.IsOsTrader &&
                 _lastCheckTime.AddSeconds(1) > DateTime.Now)
             { // in real trade, check marketDepth once at second
-              // в реальной торговле, проверяем стакан раз в секунду
                 return;
             }
 
@@ -139,12 +123,12 @@ namespace OsEngine.Robots.High_Frequency
             Position positionBuy = _tab.PositionsOpenAll.Find(pos => pos.Direction == Side.Buy);
             Position positionSell = _tab.PositionsOpenAll.Find(pos => pos.Direction == Side.Sell);
 
-            // buy / покупка
+            // Buy
 
             decimal buyPrice = 0;
             int lastVolume = 0;
 
-            for (int i = 0; i < marketDepth.Bids.Count && i < MaxLevelsInMarketDepth.ValueInt; i++)
+            for (int i = 0; i < marketDepth.Bids.Count && i < _maxLevelsInMarketDepth.ValueInt; i++)
             {
                 if (marketDepth.Bids[i].Bid > lastVolume)
                 {
@@ -166,19 +150,20 @@ namespace OsEngine.Robots.High_Frequency
                 {
                     _tab.CloseAllOrderToPosition(positionBuy);
                 }
-                _tab.BuyAtLimit(Volume.ValueDecimal, buyPrice);
-            }
-            if (positionBuy == null)
-            {
-                _tab.BuyAtLimit(Volume.ValueDecimal, buyPrice);
+                _tab.BuyAtLimit(GetVolume(_tab), buyPrice);
             }
 
-            // sell продажа
+            if (positionBuy == null)
+            {
+                _tab.BuyAtLimit(GetVolume(_tab), buyPrice);
+            }
+
+            // Sell
 
             decimal sellPrice = 0;
             int lastVolumeInAsk = 0;
 
-            for (int i = 0; i < marketDepth.Asks.Count && i < MaxLevelsInMarketDepth.ValueInt; i++)
+            for (int i = 0; i < marketDepth.Asks.Count && i < _maxLevelsInMarketDepth.ValueInt; i++)
             {
                 if (marketDepth.Asks[i].Ask > lastVolumeInAsk)
                 {
@@ -201,29 +186,28 @@ namespace OsEngine.Robots.High_Frequency
                     _tab.CloseAllOrderToPosition(positionSell);
                 }
 
-                _tab.SellAtLimit(Volume.ValueDecimal, sellPrice);
+                _tab.SellAtLimit(GetVolume(_tab), sellPrice);
             }
+
             if (positionSell == null)
             {
-                _tab.SellAtLimit(Volume.ValueDecimal, sellPrice);
+                _tab.SellAtLimit(GetVolume(_tab), sellPrice);
             }
         }
 
-        /// <summary>
-        /// successful position opening
-        /// успешное открытие позиции
-        /// </summary>
+        // Successful position opening
         void _tab_PositionOpeningSuccesEvent(Position position)
         {
             if (position.Direction == Side.Buy)
             {
-                _tab.CloseAtStop(position, position.EntryPrice - Stop.ValueInt * _tab.Security.PriceStep, position.EntryPrice - Stop.ValueInt * _tab.Security.PriceStep);
-                _tab.CloseAtProfit(position, position.EntryPrice + Profit.ValueInt * _tab.Security.PriceStep, position.EntryPrice + Profit.ValueInt * _tab.Security.PriceStep);
+                _tab.CloseAtStop(position, position.EntryPrice - _stop.ValueInt * _tab.Security.PriceStep, position.EntryPrice - _stop.ValueInt * _tab.Security.PriceStep);
+                _tab.CloseAtProfit(position, position.EntryPrice + _profit.ValueInt * _tab.Security.PriceStep, position.EntryPrice + _profit.ValueInt * _tab.Security.PriceStep);
             }
+
             if (position.Direction == Side.Sell)
             {
-                _tab.CloseAtStop(position, position.EntryPrice + Stop.ValueInt * _tab.Security.PriceStep, position.EntryPrice + Stop.ValueInt * _tab.Security.PriceStep);
-                _tab.CloseAtProfit(position, position.EntryPrice - Profit.ValueInt * _tab.Security.PriceStep, position.EntryPrice - Profit.ValueInt * _tab.Security.PriceStep);
+                _tab.CloseAtStop(position, position.EntryPrice + _stop.ValueInt * _tab.Security.PriceStep, position.EntryPrice + _stop.ValueInt * _tab.Security.PriceStep);
+                _tab.CloseAtProfit(position, position.EntryPrice - _profit.ValueInt * _tab.Security.PriceStep, position.EntryPrice - _profit.ValueInt * _tab.Security.PriceStep);
             }
 
             List<Position> positions = _tab.PositionsOpenAll;
@@ -234,6 +218,7 @@ namespace OsEngine.Robots.High_Frequency
                 {
                     continue;
                 }
+
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
                     _positionsToClose.Add(positions[i]);
@@ -245,10 +230,7 @@ namespace OsEngine.Robots.High_Frequency
             }
         }
 
-        /// <summary>
-        /// the position is not closed and warrants are withdrawn from it
-        /// позиция не закрылась и у неё отозваны ордера
-        /// </summary>
+        // The position is not closed and warrants are withdrawn from it
         void _tab_PositionClosingFailEvent(Position position)
         {
             if (position.CloseActive)
@@ -259,7 +241,6 @@ namespace OsEngine.Robots.High_Frequency
         }
 
         // withdrawal orders in real connection
-
         private void HighFrequencyTrader_DeleteEvent()
         {
             _isDeleted = true;
@@ -267,16 +248,10 @@ namespace OsEngine.Robots.High_Frequency
 
         private bool _isDeleted = false;
 
-        /// <summary>
-        /// positions to be recalled
-        /// позиции которые нужно отозвать
-        /// </summary>
+        // Positions to be recalled
         List<Position> _positionsToClose = new List<Position>();
 
-        /// <summary>
-        /// place of work where orders are recalled in a real connection
-        /// место работы потока где отзываются заявки в реальном подключении
-        /// </summary>
+        // Place of work where orders are recalled in a real connection
         private async void ClosePositionThreadArea()
         {
             while (true)
@@ -320,6 +295,98 @@ namespace OsEngine.Robots.High_Frequency
                     _tab.SetNewLogMessage(e.ToString(),Logging.LogMessageType.Error);
                 }
             }
+        }
+
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab)
+        {
+            decimal volume = 0;
+
+            if (_volumeType.ValueString == "Contracts")
+            {
+                volume = _volume.ValueDecimal;
+            }
+            else if (_volumeType.ValueString == "Contract currency")
+            {
+                decimal contractPrice = tab.PriceBestAsk;
+                volume = _volume.ValueDecimal / contractPrice;
+
+                if (StartProgram == StartProgram.IsOsTrader)
+                {
+                    IServerPermission serverPermission = ServerMaster.GetServerPermission(tab.Connector.ServerType);
+
+                    if (serverPermission != null &&
+                        serverPermission.IsUseLotToCalculateProfit &&
+                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot > 1)
+                    {
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                    }
+
+                    volume = Math.Round(volume, tab.Security.DecimalsVolume);
+                }
+                else // Tester or Optimizer
+                {
+                    volume = Math.Round(volume, 6);
+                }
+            }
+            else if (_volumeType.ValueString == "Deposit percent")
+            {
+                Portfolio myPortfolio = tab.Portfolio;
+
+                if (myPortfolio == null)
+                {
+                    return 0;
+                }
+
+                decimal portfolioPrimeAsset = 0;
+
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
+                {
+                    portfolioPrimeAsset = myPortfolio.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                    if (positionOnBoard == null)
+                    {
+                        return 0;
+                    }
+
+                    for (int i = 0; i < positionOnBoard.Count; i++)
+                    {
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                        {
+                            portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+
+                if (portfolioPrimeAsset == 0)
+                {
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    return 0;
+                }
+
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
+
+                decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
+
+                if (tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    qty = Math.Round(qty, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    qty = Math.Round(qty, 7);
+                }
+
+                return qty;
+            }
+
+            return volume;
         }
     }
 }
