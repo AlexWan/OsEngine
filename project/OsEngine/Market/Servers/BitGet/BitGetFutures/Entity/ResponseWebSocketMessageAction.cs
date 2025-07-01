@@ -4,9 +4,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
 {
     public class ResponseWebSocketMessageAction<T>
     {
-        public string action;
-        public ResponseWebSocketMessageArg arg;
-        public T data;
+        public string action { get; set; }
+        public ResponseWebSocketMessageArg arg { get; set; }
+        public T data { get; set; }
+        public string ts { get; set; }
     }
 
     public class ResponseWebsocketTrade
@@ -94,5 +95,31 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures.Entity
         public string deductedFee;
         public string uTime;
         public string autoMargin;
+    }
+
+    public class ResponseTicker
+    {
+        public string instId { get; set; }
+        public string lastPr { get; set; }
+        public string bidPr { get; set; }
+        public string askPr { get; set; }
+        public string bidSz { get; set; }
+        public string askSz { get; set; }
+        public string open24h { get; set; }
+        public string high24h { get; set; }
+        public string low24h { get; set; }
+        public string change24h { get; set; }
+        public string fundingRate { get; set; }
+        public string nextFundingTime { get; set; }
+        public string markPrice { get; set; }
+        public string indexPrice { get; set; }
+        public string holdingAmount { get; set; }
+        public string baseVolume { get; set; }
+        public string quoteVolume { get; set; }
+        public string openUtc { get; set; }
+        public string symbolType { get; set; }
+        public string symbol { get; set; }
+        public string deliveryPrice { get; set; }
+        public string ts { get; set; }
     }
 }
