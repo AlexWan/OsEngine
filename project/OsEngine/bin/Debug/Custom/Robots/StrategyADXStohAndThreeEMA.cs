@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -20,30 +20,26 @@ trading robot for osengine
 The trend robot on strategy ADX, Stochastic and three Ema.
 
 Buy:
-1. fast Ema is higher than the average Ema and the average is higher than the slow one.
-
+1. fast Ema is higher than the middle Ema and the middle is higher than the slow one.
 2. Stochastic crosses the level 50 and is growing (from bottom to top).
-
 3. Adx is rising and crosses level 20 upwards (growing).
 
 Sell:
-1. fast Ema is below the average Ema and the average is below the slow one.
-
+1. fast Ema is below the middle Ema and the middle is below the slow one.
 2. Stochastic crosses the level 50 and falls (from top to bottom).
-
 3. Adx is rising and crosses level 20 upwards (growing).
 
 Exit:
-From buy: fast Ema below average Ema.
-
-From sell: fast Ema above average Ema.
- */
+From buy: fast Ema below middle Ema.
+From sell: fast Ema above middle Ema.
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyADXStohAndThreeEMA")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyADXStohAndThreeEMA")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyADXStohAndThreeEMA : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -57,7 +53,7 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _periodEmaFast;
         private StrategyParameterInt _periodEmaMiddle;
         private StrategyParameterInt _periodEmaSlow;
@@ -66,10 +62,10 @@ namespace OsEngine.Robots
         private StrategyParameterInt _stochasticPeriod2;
         private StrategyParameterInt _stochasticPeriod3;
 
-        // Indicator
+        // Indicators
         private Aindicator _emaFast;
         private Aindicator _emaMiddle;
-        private Aindicator _emaSlow;   
+        private Aindicator _emaSlow;
         private Aindicator _ADX;
         private Aindicator _stoh;
 
@@ -86,6 +82,7 @@ namespace OsEngine.Robots
 
         public StrategyADXStohAndThreeEMA(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -100,7 +97,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator settings
+            // Indicators settings
             _periodEmaFast = CreateParameter("Period Ema Fast", 10, 10, 100, 10, "Indicator");
             _periodEmaMiddle = CreateParameter("Period Ema Middle", 20, 10, 300, 10, "Indicator");
             _periodEmaSlow = CreateParameter("Period Ema Slow", 30, 10, 100, 10, "Indicator");
@@ -152,16 +149,16 @@ namespace OsEngine.Robots
 
             Description = "The trend robot on strategy ADX, Stochastic and three Ema. " +
                 "Buy: " +
-                "1. fast Ema is higher than the average Ema and the average is higher than the slow one. " +
+                "1. fast Ema is higher than the middle Ema and the middle is higher than the slow one. " +
                 "2. Stochastic crosses the level 50 and is growing (from bottom to top). " +
                 "3. Adx is rising and crosses level 20 upwards (growing). " +
                 "Sell: " +
-                "1. fast Ema is below the average Ema and the average is below the slow one. " +
+                "1. fast Ema is below the middle Ema and the middle is below the slow one. " +
                 "2. Stochastic crosses the level 50 and falls (from top to bottom). " +
                 "3. Adx is rising and crosses level 20 upwards (growing). " +
                 "Exit: " +
-                "From buy: fast Ema below average Ema. " +
-                "From sell: fast Ema above average Ema.";
+                "From buy: fast Ema below middle Ema. " +
+                "From sell: fast Ema above middle Ema.";
         }
 
         private void StrategyADXStohAndThreeEMA_ParametrsChangeByUser()
@@ -169,15 +166,19 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_emaFast.Parameters[0]).ValueInt = _periodEmaFast.ValueInt;
             _emaFast.Save();
             _emaFast.Reload();
+
             ((IndicatorParameterInt)_emaMiddle.Parameters[0]).ValueInt = _periodEmaMiddle.ValueInt;
             _emaMiddle.Save();
             _emaMiddle.Reload();
+
             ((IndicatorParameterInt)_emaSlow.Parameters[0]).ValueInt = _periodEmaSlow.ValueInt;
             _emaSlow.Save();
             _emaSlow.Reload();
+
             ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _periodADX.ValueInt;
             _ADX.Save();
             _ADX.Reload();
+
             ((IndicatorParameterInt)_stoh.Parameters[0]).ValueInt = _stochasticPeriod1.ValueInt;
             ((IndicatorParameterInt)_stoh.Parameters[1]).ValueInt = _stochasticPeriod2.ValueInt;
             ((IndicatorParameterInt)_stoh.Parameters[2]).ValueInt = _stochasticPeriod3.ValueInt;
@@ -190,6 +191,7 @@ namespace OsEngine.Robots
         {
             return "StrategyADXStohAndThreeEMA";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -205,13 +207,13 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodEmaFast.ValueInt || 
-                candles.Count < _periodEmaMiddle.ValueInt ||
-                candles.Count < _periodEmaSlow.ValueInt || 
-                candles.Count < _periodADX.ValueInt || 
-                candles.Count < _stochasticPeriod1.ValueInt ||
-                candles.Count < _stochasticPeriod2.ValueInt ||
-                candles.Count < _stochasticPeriod3.ValueInt)
+            if (candles.Count <= _periodEmaFast.ValueInt ||
+                candles.Count <= _periodEmaMiddle.ValueInt ||
+                candles.Count <= _periodEmaSlow.ValueInt ||
+                candles.Count <= _periodADX.ValueInt ||
+                candles.Count <= _stochasticPeriod1.ValueInt ||
+                candles.Count <= _stochasticPeriod2.ValueInt ||
+                candles.Count <= _stochasticPeriod3.ValueInt)
             {
                 return;
             }
@@ -299,7 +301,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-           
+
             // The last value of the indicator
             _lastEmaFast = _emaFast.DataSeries[0].Last;
             _lastEmaMiddle = _emaMiddle.DataSeries[0].Last;
@@ -319,7 +321,7 @@ namespace OsEngine.Robots
 
                 if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
-                    if(_lastEmaFast < _lastEmaMiddle)
+                    if (_lastEmaFast < _lastEmaMiddle)
                     {
                         _tab.CloseAtLimit(pos, lastPrice - _slippage, pos.OpenVolume);
                     }

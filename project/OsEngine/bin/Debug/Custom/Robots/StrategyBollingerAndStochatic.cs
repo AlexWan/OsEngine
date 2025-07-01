@@ -22,6 +22,7 @@ The trend robot on Strategy Bollinger And Stochatic.
 Buy:
 1. The stochastic line (blue) is above the signal line (red).
 2. The price was below the lower bollinger band, and then returned and closed above the lower line.
+
 Sell:
 1. The stochastic line (blue) is below the signal line (red).
 2. The price was above the upper bollinger band, and then returned and closed below the upper line.
@@ -32,9 +33,10 @@ Exit from Sell: The trailing stop is placed at the maximum for the period specif
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyBollingerAndStochatic")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyBollingerAndStochatic")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyBollingerAndStochatic : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -48,14 +50,14 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator Settings 
+        // Indicators Settings 
         private StrategyParameterInt _bollingerLength;
         private StrategyParameterDecimal _bollingerDeviation;
         private StrategyParameterInt _stochasticPeriod1;
         private StrategyParameterInt _stochasticPeriod2;
         private StrategyParameterInt _stochasticPeriod3;
 
-        // Indicator
+        // Indicators
         private Aindicator _bollinger;
         private Aindicator _stochastic;
 
@@ -75,6 +77,7 @@ namespace OsEngine.Robots
 
         public StrategyBollingerAndStochatic(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -89,7 +92,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator Settings
+            // Indicators Settings
             _bollingerLength = CreateParameter("Bollinger Length", 21, 7, 48, 7, "Indicator");
             _bollingerDeviation = CreateParameter("Bollinger Deviation", 1.0m, 1, 5, 0.1m, "Indicator");
             _stochasticPeriod1 = CreateParameter("Stochastic Period One", 10, 10, 300, 10, "Indicator");
@@ -138,6 +141,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterDecimal)_bollinger.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
             _bollinger.Save();
             _bollinger.Reload();
+
             ((IndicatorParameterInt)_stochastic.Parameters[0]).ValueInt = _stochasticPeriod1.ValueInt;
             ((IndicatorParameterInt)_stochastic.Parameters[1]).ValueInt = _stochasticPeriod2.ValueInt;
             ((IndicatorParameterInt)_stochastic.Parameters[2]).ValueInt = _stochasticPeriod3.ValueInt;
@@ -150,6 +154,7 @@ namespace OsEngine.Robots
         {
             return "StrategyBollingerAndStochatic";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -165,8 +170,10 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _bollingerDeviation.ValueDecimal ||
-                candles.Count < _bollingerLength.ValueInt)
+            if (candles.Count <= _bollingerLength.ValueInt ||
+                candles.Count <= _stochasticPeriod1.ValueInt ||
+                candles.Count <= _stochasticPeriod2.ValueInt ||
+                candles.Count <= _stochasticPeriod3.ValueInt)
             {
                 return;
             }
