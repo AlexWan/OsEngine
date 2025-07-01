@@ -14,21 +14,43 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+Trading robot for osengine.
+
+The trend robot on MarketDepth Screener.
+
+Buy:
+1. Step First: Analyze the latest Momentum value: if it is below the minimum 
+acceptable value (MinMomentumValue), proceed to the next entry step.
+
+2. Step Second: Check the volume ratio of the bids: if the volume of the best bid is too 
+small compared to other bids (ratio below the threshold BestBidMinRatioToAll), do not enter.
+
+Exit: by stop and profit.
+*/
+
 namespace OsEngine.Robots.High_Frequency
 {
-    [Bot("MarketDepthScreener")]
+    [Bot("MarketDepthScreener")] // We create an attribute so that we don't write anything to the BotFactory
     public class MarketDepthScreener : BotPanel
     {
         BotTabScreener _tabScreener;
+        
+        // Basic settings
+        private StrategyParameterString Regime;
+        public StrategyParameterInt MaxPositions; 
+        public StrategyParameterDecimal MinMomentumValue;
+        public StrategyParameterDecimal BestBidMinRatioToAll;
 
-        public StrategyParameterString Regime;
-        public StrategyParameterInt MaxPositions;
+        // Indicator settings
         public StrategyParameterInt MomentumLen;
+
+        // GetVolume settings
         public StrategyParameterString VolumeType;
         public StrategyParameterDecimal Volume;
         public StrategyParameterString TradeAssetInPortfolio;
-        public StrategyParameterDecimal MinMomentumValue;
-        public StrategyParameterDecimal BestBidMinRatioToAll;
+
+        // Exit settings
         public StrategyParameterDecimal ProfitPercent;
         public StrategyParameterDecimal StopPercent;
         public StrategyParameterInt OrderLifeTime;
@@ -40,37 +62,53 @@ namespace OsEngine.Robots.High_Frequency
             _tabScreener = TabsScreener[0];
             _tabScreener.CreateCandleIndicator(2, "Momentum", new List<string>() { "15" }, "Second");
 
+            // Basic settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" });
             MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
             MinMomentumValue = CreateParameter("Min momentum value", 95m, 0, 20, 1m);
-            MomentumLen = CreateParameter("Momentum length", 50, 0, 20, 1);
+            BestBidMinRatioToAll = CreateParameter("Best bid min ratio", 5m, 0, 20, 1m);
+            
+            // GetVolume settings
             VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            BestBidMinRatioToAll = CreateParameter("Best bid min ratio", 5m, 0, 20, 1m);
+            // Indicator settings
+            MomentumLen = CreateParameter("Momentum length", 50, 0, 20, 1);
+
+            // Exit settings
             ProfitPercent = CreateParameter("Profit percent", 0.05m, 0, 20, 1m);
             StopPercent = CreateParameter("Stop percent", 0.05m, 0, 20, 1m);
             OrderLifeTime = CreateParameter("Order life time milliseconds", 2000, 0, 20, 1);
 
-            DeleteEvent += MarketDepthScreener_DeleteEvent;
-
+            // Create worker area
             Thread worker = new Thread(WorkerPlace);
             worker.Start();
+            
+            DeleteEvent += MarketDepthScreener_DeleteEvent;
+
+            Description = "The trend robot on MarketDepth Screener. " +
+                "Buy: " +
+                "1. Step First: Analyze the latest Momentum value: if it is below the minimum  " +
+                "acceptable value (MinMomentumValue), proceed to the next entry step. " +
+                "2. Step Second: Check the volume ratio of the bids: if the volume of the best bid is too  " +
+                "small compared to other bids (ratio below the threshold BestBidMinRatioToAll), do not enter. " +
+                "Exit: by stop and profit.";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "MarketDepthScreener";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // logic
-
+        // Logic
         private void MarketDepthScreener_DeleteEvent()
         {
             _botIsDelete = true;
@@ -78,6 +116,7 @@ namespace OsEngine.Robots.High_Frequency
 
         private bool _botIsDelete = false;
 
+        // Worker place
         public void WorkerPlace()
         {
             while(true)
@@ -113,6 +152,7 @@ namespace OsEngine.Robots.High_Frequency
             }
         }
 
+        // Trade logic Entry
         private void TradeLogicEntry(BotTabSimple tab)
         {
             if (Regime.ValueString == "Off")
@@ -145,6 +185,7 @@ namespace OsEngine.Robots.High_Frequency
             }
         }
 
+        // Trade logic entry first Step
         private void LogicEntryFirstStep(BotTabSimple tab)
         {
             if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
@@ -175,6 +216,7 @@ namespace OsEngine.Robots.High_Frequency
             }
         }
 
+        // Trade logic Entry second step
         private void LogicEntrySecondStep(BotTabSimple tab)
         {
             if(tab.MarketDepth == null)
@@ -195,9 +237,9 @@ namespace OsEngine.Robots.High_Frequency
 
             for(int i = 1; i < md.Bids.Count; i++)
             {
-                // если отношение объёма в лучшем биде к любому другому биду
-                // больше чем указанное значение - то не входим
-                // нам нужна плита
+                // if the ratio of the volume in the best bid to any other bid
+                // more than the specified value - then we do not enter
+                // we need a stove
 
                 decimal curVolume = md.Bids[i].Bid;
                 decimal ratio = bestBidVolume / curVolume;
@@ -212,19 +254,19 @@ namespace OsEngine.Robots.High_Frequency
             decimal volume = GetVolume(tab);
 
             tab.ManualPositionSupport.DisableManualSupport();
+
             tab.BuyAtLimit(volume, openOrderPrice);
         }
 
+        // Close position logic
         private void LogicClosePosition(BotTabSimple tab, Position position)
         {
             if (position.OpenOrders[0].State == OrderStateType.Active)
-            { // ордер ещё не исполнен на открытие
+            { // the order has not yet been executed for opening
                 Order order = position.OpenOrders[0];
 
                 if(position.SignalTypeOpen == "Canceled")
                 { 
-                    // уже отозвали открывающий орде по позиции в прошлые заходы в метод
-                    // ждём пока коннектор отработает и отзовёт ордер
                     return;
                 }
 
@@ -239,33 +281,33 @@ namespace OsEngine.Robots.High_Frequency
                 if (position.OpenOrders[0].MyTrades == null
                     || position.OpenOrders[0].MyTrades.Count == 0)
                 {
-                    // трейды по ордеру ещё не пришли. Рано обрабатывать позицию
+                    // trades on the order have not arrived yet. It is too early to process the position
                     return;
                 }
 
                 if(position.StopOrderRedLine == 0)
                 {
-                    // 1 рассчитываем стоп, один раз. И выставляем закрывающий ордер.
-                    // это значит что с этой позицией в этой ветке логики мы впервые
+                    // 1 We calculate the stop once. And we place a closing order.
+                    // this means that with this position in this branch of logic we are for the first time
 
                     decimal stopPrice = 
                         position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
                     position.StopOrderRedLine = stopPrice;
 
-                    // выставляем ордер на закрытие позиции
+                    // we place an order to close the position
                     decimal profitOrderPrice = 
                         position.EntryPrice + position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
                     tab.CloseAtLimit(position, profitOrderPrice, position.OpenVolume);
                 }
 
-                // 2 выход по стопу
+                // 2 exit by stop
 
                 decimal bestSellPrice = tab.PriceBestAsk;
 
                 if(bestSellPrice <= position.StopOrderRedLine
                     || position.SignalTypeClose == "Stop")
                 {
-                    // отзываем ордер на закрытие по профиту
+                    // we recall the order to close at profit
                     if (position.CloseActive == true 
                         && position.SignalTypeClose != "Stop")
                     {
@@ -287,6 +329,7 @@ namespace OsEngine.Robots.High_Frequency
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;

@@ -11,6 +11,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Attributes;
+
 /* Description
 Fisher based on multithreading
 
@@ -20,29 +21,49 @@ by the specified number of percent from the edge of the order book.
 Exit a position when the price rolls back by 50 percent or more of the entry
 price. Those. if the price has returned half or more of the original movement.
  */
+
 namespace OsEngine.Robots.High_Frequency
 {
-    [Bot("Fisher")]
+    [Bot("Fisher")] // We create an attribute so that we don't write anything to the BotFactory
     public class Fisher : BotPanel
     {
-        public Fisher(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        private BotTabSimple _tab;
+        
+        // Basic settings
+        public StrategyParameterString Regime;
+        public StrategyParameterDecimal PersentFromBorder;
+        public StrategyParameterInt TimeRebuildOrder;
+        public StrategyParameterInt PriceDecimals;
+
+        // GetVolume settings
+        public StrategyParameterDecimal Volume;
+
+        // Indicator
+        private Aindicator _sma;
+
+        public Fisher(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Bollinger", false);
-            _sma = (Aindicator)_tab.CreateCandleIndicator(_sma, "Prime");
-
+            // Basic settings
             Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             TimeRebuildOrder = CreateParameter("Time Rebuild Order", 30, 0, 20, 5);
-            Volume = CreateParameter("Volume", 0.1m, 0.1m, 50, 0.1m);
             PersentFromBorder = CreateParameter("Persent From Border ", 2m, 0.3m, 4, 0.3m);
             PriceDecimals = CreateParameter("Price Decimals", 0, 0, 20, 1);
 
+            // GetVolume settings
+            Volume = CreateParameter("Volume", 0.1m, 0.1m, 50, 0.1m);
+
+            // Create worker Area
             Thread worker = new Thread(Logic);
             worker.IsBackground = true;
             worker.Start();
+            
+            // Create indicator Sma
+            _sma = IndicatorsFactory.CreateIndicatorByName("Sma", name + "Bollinger", false);
+            _sma = (Aindicator)_tab.CreateCandleIndicator(_sma, "Prime");
 
             DeleteEvent += Fisher_DeleteEvent;
 
@@ -60,32 +81,19 @@ namespace OsEngine.Robots.High_Frequency
 
         private bool _isDisposed;
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "Fisher";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabSimple _tab;
-
-        private Aindicator _sma;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterDecimal PersentFromBorder;
-
-        public StrategyParameterInt TimeRebuildOrder;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterInt PriceDecimals;
-
-        // logic логика
-
+        // Logic
         private void Logic()
         {
             while(true)
@@ -122,6 +130,7 @@ namespace OsEngine.Robots.High_Frequency
             }
         }
 
+        // Cansel all orders
         private void CanselAllOrders()
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -148,6 +157,7 @@ namespace OsEngine.Robots.High_Frequency
             }
         }
 
+        // Close all position logic
         private void CloseAllPositions()
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -166,11 +176,11 @@ namespace OsEngine.Robots.High_Frequency
                     {
                         continue;
                     }
+
                     if (poses[i].Direction == Side.Buy)
                     {
                         decimal price = lastBestSell;
-                        decimal priceToPercent = 
-                            poses[i].EntryPrice + poses[i].EntryPrice * (PersentFromBorder.ValueDecimal / 100 / 2); 
+                        decimal priceToPercent = poses[i].EntryPrice + poses[i].EntryPrice * (PersentFromBorder.ValueDecimal / 100 / 2); 
 
                         if((poses[i].CloseOrders == null ||
                             poses[i].CloseOrders.Count < 3) &&
@@ -178,8 +188,10 @@ namespace OsEngine.Robots.High_Frequency
                         {
                             price = priceToPercent;
                         }
+
                         _tab.CloseAtLimit(poses[i], price, poses[i].OpenVolume);
                     }
+
                     if (poses[i].Direction == Side.Sell)
                     {
                         decimal price = lastBestBuy;
@@ -194,13 +206,13 @@ namespace OsEngine.Robots.High_Frequency
 
                         _tab.CloseAtLimit(poses[i], price, poses[i].OpenVolume);
                     }
-
                 }
             }
 
             Thread.Sleep(200);
         }
 
+        // Open orders logic
         private void OpenOrders()
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -221,10 +233,9 @@ namespace OsEngine.Robots.High_Frequency
                 return;
             }
 
+            // we check that prices are no further than 1% from Sma
 
-            // проверяем чтобы цены были не дальше 1% от машки
-
-            if(Math.Abs(lastMa / lastBestBuy) > 1.01m ||
+            if (Math.Abs(lastMa / lastBestBuy) > 1.01m ||
                 Math.Abs(lastMa / lastBestBuy) < 0.99m)
             {
                 return;
