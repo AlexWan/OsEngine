@@ -7,26 +7,37 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 
+/* Description
+TestBot for OsEngine.
+
+Do not turn on - robot for Option testing.
+*/
+
 namespace OsEngine.Robots.AutoTestBots
 {
-    [Bot("TestBotOption")]
+    [Bot("TestBotOption")] //We create an attribute so that we don't write anything in the Boot factory
     public class TestBotOption : BotPanel
     {
         private BotTabScreener _screener;
+
         private StrategyParameterString _regime;
+
         private WindowsFormsHost _host;
+
         private DataGridView _grid;    
         
         public TestBotOption(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            TabCreate(BotTabType.Screener);
+            _screener = TabsScreener[0];
+
+            Description = "Do not turn on - robot for Option testing";
+
             if(startProgram == StartProgram.IsOsOptimizer 
                 || startProgram == StartProgram.IsTester)
             {
                 return;
             }
-
-            TabCreate(BotTabType.Screener);
-            _screener = TabsScreener[0];
 
             _regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" });
 
@@ -264,7 +275,6 @@ namespace OsEngine.Robots.AutoTestBots
                 MainWindow.GetDispatcher.Invoke((Action<OptionMarketData, int>)SetDataInTable, obj, row);
                 return;
             }
-            
 
             if ((_grid.Rows[row].Cells[13].Value == null ||
                 _grid.Rows[row].Cells[13].Value.ToString() != obj.TimeCreate.ToString()))
@@ -281,56 +291,67 @@ namespace OsEngine.Robots.AutoTestBots
             {
                 _grid.Rows[row].Cells[1].Value = obj.UnderlyingAsset;
             }
+
             if (_grid.Rows[row].Cells[2].Value == null ||
                 _grid.Rows[row].Cells[2].Value.ToString() != obj.UnderlyingPrice.ToString())
             {
                 _grid.Rows[row].Cells[2].Value = obj.UnderlyingPrice;
             }
+
             if (_grid.Rows[row].Cells[3].Value == null ||
                 _grid.Rows[row].Cells[3].Value.ToString() != obj.MarkPrice.ToString())
             {
                 _grid.Rows[row].Cells[3].Value = obj.MarkPrice;
             }
+
             if (_grid.Rows[row].Cells[4].Value == null ||
                 _grid.Rows[row].Cells[4].Value.ToString() != obj.MarkIV.ToString())
             {
                 _grid.Rows[row].Cells[4].Value = obj.MarkIV;
-            }            
+            }    
+            
             if (_grid.Rows[row].Cells[5].Value == null ||
                 _grid.Rows[row].Cells[5].Value.ToString() != obj.BidIV.ToString())
             {
                 _grid.Rows[row].Cells[5].Value = obj.BidIV;
             }
+
             if (_grid.Rows[row].Cells[6].Value == null ||
                 _grid.Rows[row].Cells[6].Value.ToString() != obj.AskIV.ToString())
             {
                 _grid.Rows[row].Cells[6].Value = obj.AskIV;
-            }            
+            }    
+            
             if (_grid.Rows[row].Cells[7].Value == null ||
                 _grid.Rows[row].Cells[7].Value.ToString() != obj.Delta.ToString())
             {
                 _grid.Rows[row].Cells[7].Value = obj.Delta;
             }
+
             if (_grid.Rows[row].Cells[8].Value == null ||
                 _grid.Rows[row].Cells[8].Value.ToString() != obj.Gamma.ToString())
             {
                 _grid.Rows[row].Cells[8].Value = obj.Gamma;
             }
+
             if (_grid.Rows[row].Cells[9].Value == null ||
                 _grid.Rows[row].Cells[9].Value.ToString() != obj.Vega.ToString())
             {
                 _grid.Rows[row].Cells[9].Value = obj.Vega;
             }
+
             if (_grid.Rows[row].Cells[10].Value == null ||
                 _grid.Rows[row].Cells[10].Value.ToString() != obj.Theta.ToString())
             {
                 _grid.Rows[row].Cells[10].Value = obj.Theta;
             }
+
             if (_grid.Rows[row].Cells[11].Value == null ||
                 _grid.Rows[row].Cells[11].Value.ToString() != obj.Rho.ToString())
             {
                 _grid.Rows[row].Cells[11].Value = obj.Rho;
             }
+
             if (_grid.Rows[row].Cells[12].Value == null ||
                 _grid.Rows[row].Cells[12].Value.ToString() != obj.OpenInterest.ToString())
             {
@@ -338,13 +359,16 @@ namespace OsEngine.Robots.AutoTestBots
             }                       
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "TestBotOption";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
+
         }
     }
 }

@@ -9,13 +9,23 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Threading;
 
+/* Description
+TestBot for OsEngine.
+
+Do not enable - robot for testing the opening and closing of orders.
+*/
+
 namespace OsEngine.Robots.AutoTestBots
 {
-    [Bot("TestBotOpenAndCanselOrders")]
+    [Bot("TestBotOpenAndCanselOrders")] //We create an attribute so that we don't write anything in the Boot factory
     public class TestBotOpenAndCanselOrders : BotPanel
     {
         public TestBotOpenAndCanselOrders(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            TabCreate(BotTabType.Simple);
+            _tab = TabsSimple[0];
+
+            Description = "Do not enable - robot for testing the opening and closing of orders";
 
             if (startProgram != StartProgram.IsOsTrader)
             {
@@ -30,13 +40,8 @@ namespace OsEngine.Robots.AutoTestBots
             Delay = CreateParameter("Time delay action sec", 1, 1, 500, 1);
             Volume = CreateParameter("Volume", 1m, 1, 50, 1);
 
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
             Thread worker = new Thread(WorkerThreadArea);
             worker.Start();
-
-            Description = "Do not enable - robot for testing the opening and closing of orders";
         }
 
         BotTabSimple _tab;
@@ -49,11 +54,13 @@ namespace OsEngine.Robots.AutoTestBots
 
         public StrategyParameterDecimal Distance;
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "TestBotOpenAndCanselOrders";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -71,6 +78,7 @@ namespace OsEngine.Robots.AutoTestBots
 
         bool _needToWork;
 
+        // Worker thread Area
         private void WorkerThreadArea()
         {
             while(true)
@@ -107,6 +115,7 @@ namespace OsEngine.Robots.AutoTestBots
             }
         }
 
+        // Open buy position
         private Position OpenBuyPosition()
         {
             decimal volume = Volume.ValueDecimal;
@@ -117,6 +126,7 @@ namespace OsEngine.Robots.AutoTestBots
             return pos;
         }
 
+        // Open sell position
         private Position OpenSellPosition()
         {
             decimal volume = Volume.ValueDecimal;
@@ -127,10 +137,10 @@ namespace OsEngine.Robots.AutoTestBots
             return pos;
         }
 
+        // Cansel all position
         private void CanselOrderByPosition(Position pos)
         {
             _tab.CloseAllOrderToPosition(pos);
         }
-
     }
 }
