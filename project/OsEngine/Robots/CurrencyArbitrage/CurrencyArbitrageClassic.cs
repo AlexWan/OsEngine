@@ -9,66 +9,80 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 
+/* Description
+Arbitrage robot for OsEngine.
+
+A robot for classic currency arbitrage.
+*/
+
 namespace OsEngine.Robots.CurrencyArbitrage
 {
-    [Bot("CurrencyArbitrageClassic")]
+    [Bot("CurrencyArbitrageClassic")] // We create an attribute so that we don't write anything to the BotFactory
     public class CurrencyArbitrageClassic : BotPanel
     {
+        private BotTabPolygon _tabPolygon;
+
+        // Basic setting
+        private StrategyParameterString _regime;
+
+        // GetVolume setting
+        private StrategyParameterDecimal _volume;
+
+        // Order setting
+        private StrategyParameterString _orderType;
+
+        // Commission settings
+        private StrategyParameterString _commissionType;
+        private StrategyParameterDecimal _commissionValue;
+        private StrategyParameterBool _substractCommission;
+
+        // Delay settings
+        private StrategyParameterString _delayType;
+        private StrategyParameterInt _delayMls;
+
         public CurrencyArbitrageClassic(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Polygon);
             _tabPolygon = this.TabsPolygon[0];
             _tabPolygon.ProfitGreaterThanSignalValueEvent += _tabPolygon_ProfitGreaterThanSignalValueEvent;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            Volume = CreateParameter("Volume", 0.1m, 0.1m, 50, 0.1m);
+            // Basic setting
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
-            OrderType = CreateParameter("Orders type", OrderPriceType.Limit.ToString(), new[] 
+            // GetVolume setting
+            _volume = CreateParameter("Volume", 0.1m, 0.1m, 50, 0.1m);
+
+            // Order setting
+            _orderType = CreateParameter("Orders type", OrderPriceType.Limit.ToString(), new[] 
             { OrderPriceType.Limit.ToString(), OrderPriceType.Market.ToString()});
 
-            CommissionType = CreateParameter("Commission type", CommissionPolygonType.Percent.ToString(), new[] 
+            // Commission settings
+            _commissionType = CreateParameter("Commission type", CommissionPolygonType.Percent.ToString(), new[] 
             { CommissionPolygonType.None.ToString(), CommissionPolygonType.Percent.ToString() });
+            _commissionValue = CreateParameter("Commission value %", 0.1m, 0.1m, 50, 0.1m);
+            _substractCommission = CreateParameter("SubstractCommission", true);
 
-            CommissionValue = CreateParameter("Commission value %", 0.1m, 0.1m, 50, 0.1m);
-
-            SubstractCommission = CreateParameter("SubstractCommission", true);
-
-            DelayType = CreateParameter("Delay Type", DelayPolygonType.ByExecution.ToString() , new[] 
+            // Delay settings
+            _delayType = CreateParameter("Delay Type", DelayPolygonType.ByExecution.ToString() , new[] 
             { DelayPolygonType.ByExecution.ToString(), DelayPolygonType.InMLS.ToString(), DelayPolygonType.Instantly.ToString() });
-
-            DelayMls = CreateParameter("Delay MLS", 200, 200, 2000, 100);
+            _delayMls = CreateParameter("Delay MLS", 200, 200, 2000, 100);
 
             Description = "A robot for classic currency arbitrage";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "CurrencyArbitrageClassic";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabPolygon _tabPolygon;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString OrderType;
-
-        public StrategyParameterString CommissionType;
-
-        public StrategyParameterDecimal CommissionValue;
-
-        public StrategyParameterBool SubstractCommission;
-
-        public StrategyParameterString DelayType;
-
-        public StrategyParameterInt DelayMls;
-
+        // Logic
         private void _tabPolygon_ProfitGreaterThanSignalValueEvent(decimal profit, PolygonToTrade sequence)
         {
             if (sequence.HavePositions == true)
@@ -76,33 +90,33 @@ namespace OsEngine.Robots.CurrencyArbitrage
                 return;
             }
 
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
-            sequence.QtyStart = Volume.ValueDecimal;
-            sequence.DelayMls = DelayMls.ValueInt;
-            sequence.CommissionValue = CommissionValue.ValueDecimal;
-            sequence.CommissionIsSubstract = SubstractCommission.ValueBool;
+            sequence.QtyStart = _volume.ValueDecimal;
+            sequence.DelayMls = _delayMls.ValueInt;
+            sequence.CommissionValue = _commissionValue.ValueDecimal;
+            sequence.CommissionIsSubstract = _substractCommission.ValueBool;
 
             OrderPriceType orderType;
 
-            if (Enum.TryParse(OrderType.ValueString, out orderType))
+            if (Enum.TryParse(_orderType.ValueString, out orderType))
             {
                 sequence.OrderPriceType = orderType;
             }
 
             CommissionPolygonType cType;
 
-            if (Enum.TryParse(CommissionType.ValueString, out cType))
+            if (Enum.TryParse(_commissionType.ValueString, out cType))
             {
                 sequence.CommissionType= cType;
             }
 
             DelayPolygonType delayType;
 
-            if (Enum.TryParse(DelayType.ValueString, out delayType))
+            if (Enum.TryParse(_delayType.ValueString, out delayType))
             {
                 sequence.DelayType = delayType;
             }
