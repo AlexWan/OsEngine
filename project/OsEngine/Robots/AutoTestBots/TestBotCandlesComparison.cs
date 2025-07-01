@@ -12,17 +12,30 @@ using OsEngine.Market.Servers;
 using OsEngine.Charts.CandleChart;
 using System;
 using System.Threading;
+using OsEngine.Market;
+using OsEngine.Market.Connectors;
+
+/* Description
+TestBot for OsEngine.
+
+Do not turn on - a robot for testing the synchronism of candles created inside OsEngine and requested from the exchange.
+*/
 
 namespace OsEngine.Robots.AutoTestBots
 {
-    /// <summary>
-    /// Робот созданный для тестирования синхронности свечек созданных внутри OsEngine и запрошенных с биржи
-    /// </summary>
-    [Bot("TestBotCandlesComparison")]
+    [Bot("TestBotCandlesComparison")] //We create an attribute so that we don't write anything in the Boot factory
     public class TestBotCandlesComparison : BotPanel
     {
+        BotTabSimple _tab;
+
         public TestBotCandlesComparison(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            TabCreate(BotTabType.Simple);
+            _tab = TabsSimple[0];
+
+            Description = "TestBot for OsEngine. " +
+                "Do not turn on - a robot for testing the synchronism of " +
+                "candles created inside OsEngine and requested from the exchange";
 
             if (startProgram != StartProgram.IsOsTrader)
             {
@@ -34,21 +47,15 @@ namespace OsEngine.Robots.AutoTestBots
 
             StrategyParameterButton button2 = CreateParameterButton("Compare candles Volume");
             button2.UserClickOnButtonEvent += ButtonVolume_UserClickOnButtonEvent;
-
-            TabCreate(BotTabType.Simple);
-            _tab = TabsSimple[0];
-
-            Description = "Do not turn on - a robot for testing the synchronism of " +
-                "candles created inside OsEngine and requested from the exchange";
         }
 
-        BotTabSimple _tab;
-
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "TestBotCandlesComparison";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -56,6 +63,7 @@ namespace OsEngine.Robots.AutoTestBots
 
         private DateTime _lastClickTime;
 
+        // User click on Button event
         private void Button_UserClickOnButtonEvent()
         {
             if (_uiOsEngineCandles != null ||
@@ -69,9 +77,10 @@ namespace OsEngine.Robots.AutoTestBots
             {
                 return;
             }
+
             _lastClickTime = DateTime.Now;
 
-            // 1 запрашиваем свечи
+            // 1 request candles
 
             List<Candle> candlesFromOsEngine = _tab.CandlesAll;
 
@@ -100,9 +109,9 @@ namespace OsEngine.Robots.AutoTestBots
                 return;
             }
 
-            // 2 создаём отдельные чарты для свечных графиков
+            // 2 Create separate charts for candle charts
 
-            if(_uiOsEngineCandles == null)
+            if (_uiOsEngineCandles == null)
             {
                 _uiOsEngineCandles = new CandleChartUi("myCandlesTestBot", this.StartProgram);
                 _uiOsEngineCandles.Show();
@@ -135,27 +144,22 @@ namespace OsEngine.Robots.AutoTestBots
 
             Thread worker = new Thread(RePaintDiffCandles);
             worker.Start();
-
         }
 
         List<Candle> _osCandles;
         List<Candle> _servCandles;
 
+        // RePaint candles
         private void RePaintDiffCandles()
         {
             Thread.Sleep(5000);
 
-            // 3 раскрашиваем не совпадающие свечи
+            // 3 coloring mismatched candles
 
             for (int indexMyC = 0, indexServC = 0; indexMyC < _osCandles.Count && indexServC < _servCandles.Count;)
             {
                 Candle osCandle = _osCandles[indexMyC];
                 Candle servCandle = _servCandles[indexServC];
-
-                if(indexMyC +1 == _osCandles.Count)
-                {
-
-                }
 
                 if (osCandle.TimeStart < servCandle.TimeStart)
                 {
@@ -197,9 +201,7 @@ namespace OsEngine.Robots.AutoTestBots
 
         CandleChartUi _uiOsServerCandles;
 
-
-
-
+        // User click on Button event
         private void ButtonVolume_UserClickOnButtonEvent()
         {
             if(_uiOsEngineCandles != null ||
@@ -213,9 +215,10 @@ namespace OsEngine.Robots.AutoTestBots
             {
                 return;
             }
+
             _lastClickTime = DateTime.Now;
 
-            // 1 запрашиваем свечи
+            // 1 request candles
 
             List<Candle> candlesFromOsEngine = _tab.CandlesAll;
 
@@ -244,7 +247,7 @@ namespace OsEngine.Robots.AutoTestBots
                 return;
             }
 
-            // 2 создаём отдельные чарты для свечных графиков
+            // 2 create separate charts for candles charts
 
             if (_uiOsEngineCandles == null)
             {
@@ -279,25 +282,19 @@ namespace OsEngine.Robots.AutoTestBots
 
             Thread worker = new Thread(RePaintDiffVolume);
             worker.Start();
-
-
         }
 
+        // RePaint candles
         private void RePaintDiffVolume()
         {
             Thread.Sleep(5000);
 
-            // 3 раскрашиваем не совпадающие свечи
+            // 3 coloring mismatched candles
 
             for (int indexMyC = 0, indexServC = 0; indexMyC < _osCandles.Count && indexServC < _servCandles.Count;)
             {
                 Candle osCandle = _osCandles[indexMyC];
                 Candle servCandle = _servCandles[indexServC];
-
-                if (indexMyC + 1 == _osCandles.Count)
-                {
-
-                }
 
                 if (osCandle.TimeStart < servCandle.TimeStart)
                 {
@@ -321,7 +318,5 @@ namespace OsEngine.Robots.AutoTestBots
                 indexServC++;
             }
         }
-
-
     }
 }
