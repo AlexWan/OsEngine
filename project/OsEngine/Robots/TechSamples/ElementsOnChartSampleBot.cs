@@ -12,25 +12,49 @@ using OsEngine.OsTrader.Panels.Attributes;
 using System.Drawing;
 using OsEngine.Charts.CandleChart.Elements;
 
+/* Description
+TechSample robot for OsEngine
+
+An example of a robot going short after a false upside breakout.
+ */
 
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("ElementsOnChartSampleBot")]
+    [Bot("ElementsOnChartSampleBot")] // We create an attribute so that we don't write anything to the BotFactory
     public class ElementsOnChartSampleBot : BotPanel
     {
+        // Simple tab
+        BotTabSimple _tab;
+
+        // Buttons
+        StrategyParameterButton _buttonAddPointOnPrimeArea;
+
+        StrategyParameterButton _buttonAddLineOnPrimeArea;
+
+        StrategyParameterButton _buttonAddSegmentOnPrimeArea;
+
+        StrategyParameterButton _buttonAddLineOnSecondArea;
+
+        StrategyParameterButton _buttonAddInclinedLineOnPrimeArea;
+
+        StrategyParameterButton _buttonClearAllElementsButton;
+        
+        // Indicator
+        private Aindicator _macd;
+
         public ElementsOnChartSampleBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
-            // создание источника / creating a source
+            // creating a source
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            // создание индикатора на второй области графика (MacdArea) / create an indicator on the second chart area (MacdArea)
+            // create an indicator on the second chart area (MacdArea)
             _macd = IndicatorsFactory.CreateIndicatorByName("MACD", name + "MacdArea", false);
             _macd = (Aindicator)_tab.CreateCandleIndicator(_macd, "MacdArea");
             _macd.Save();
 
-            // создание кнопок и подписка на событие нажатия / create buttons and subscribe to the event of clicking on them
+            // create buttons and subscribe to the event of clicking on them
             _buttonAddPointOnPrimeArea = CreateParameterButton("Point on prime chart");
             _buttonAddPointOnPrimeArea.UserClickOnButtonEvent += _buttonAddPointOnPrimeArea_UserClickOnButtonEvent;
 
@@ -49,38 +73,26 @@ namespace OsEngine.Robots.TechSamples
             _buttonClearAllElementsButton = CreateParameterButton("Remove all elements");
             _buttonClearAllElementsButton.UserClickOnButtonEvent += _buttonClearAllElementsButton_UserClickOnButtonEvent;
 
+            Description = "An example of a robot going short after a false upside breakout.";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ElementsOnChartSampleBot";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        BotTabSimple _tab;
-
-        private Aindicator _macd;
-
-        StrategyParameterButton _buttonAddPointOnPrimeArea;
-
-        StrategyParameterButton _buttonAddLineOnPrimeArea;
-
-        StrategyParameterButton _buttonAddSegmentOnPrimeArea;
-
-        StrategyParameterButton _buttonAddLineOnSecondArea;
-
-        StrategyParameterButton _buttonAddInclinedLineOnPrimeArea;
-
-        StrategyParameterButton _buttonClearAllElementsButton;
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            // на завершении свечи - нужно обновить время конца линии и обновить линии / at the end of the candle, you need to update the end time of the line and refresh the lines
-            // иначе обновляться линия не будет. По умолчанию - всё отрезки / otherwise the line will not be updated. By default, all segments
+            // at the end of the candle, you need to update the end time of the line and refresh the lines
+            // otherwise the line will not be updated. By default, all segments
             if (_lineOnPrimeChart != null)
             {
                 _lineOnPrimeChart.TimeEnd = candles[candles.Count - 1].TimeStart;
@@ -94,14 +106,14 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        // обработчики кнопок / button handlers
+        // button handlers
 
         PointElement _point;
 
         private void _buttonAddPointOnPrimeArea_UserClickOnButtonEvent()
         {
             if (_tab.IsConnected == false)
-            {// если источник не готов. Выйти / if the source isn't ready. Go out
+            {// if the source isn't ready. Go out
                 return;
             }
 
@@ -109,7 +121,7 @@ namespace OsEngine.Robots.TechSamples
 
             if(candles.Count == 0 ||
                 candles.Count < 10)
-            {// если слишком мало свечей. Выйти / if there are too few candles. Go out
+            {// if there are too few candles. Go out
                 return;
             }
 
@@ -164,7 +176,7 @@ namespace OsEngine.Robots.TechSamples
             line.TimeEnd = candles[candles.Count-1].TimeStart;
             line.CanResize = true;
             line.Color = Color.White;
-            line.LineWidth = 3; // Толщина линии / line thickness
+            line.LineWidth = 3; // line thickness
 
             line.Label = "Some label on Line";
             line.Font = new Font("Arial", 10);
@@ -204,7 +216,7 @@ namespace OsEngine.Robots.TechSamples
             line.TimeStart = candles[candles.Count - 10].TimeStart;
             line.TimeEnd = candles[candles.Count - 5].TimeStart;
             line.Color = Color.Green;
-            line.LineWidth = 1; // Толщина линии / line thickness
+            line.LineWidth = 1; // line thickness
 
             line.Label = "Some label on segment";
 
@@ -217,7 +229,6 @@ namespace OsEngine.Robots.TechSamples
 
         private void _buttonAddLineOnSecondArea_UserClickOnButtonEvent()
         {
-
             if (_tab.IsConnected == false)
             {
                 return;

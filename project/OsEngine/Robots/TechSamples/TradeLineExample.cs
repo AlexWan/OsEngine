@@ -14,28 +14,31 @@ using OsEngine.Charts.CandleChart.Elements;
 using System.Windows.Forms.DataVisualization.Charting;
 using Line = OsEngine.Charts.CandleChart.Elements.Line;
 
+/* Description
+TechSample robot for osengine.
+
+Example of trading on sloping levels.
+*/
+
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("TradeLineExample")]
+    [Bot("TradeLineExample")] // We create an attribute so that we don't write anything to the BotFactory
     public class TradeLineExample : BotPanel
     {
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
+        private StrategyParameterString _regime;
 
-        public StrategyParameterInt CandlesForPcLevel;
-        public StrategyParameterDecimal GoodDif;
-
-        private StrategyParameterDecimal ProfitPercent;
-        private StrategyParameterDecimal StopPercent;
-
-        // Indicator setting 
-        public StrategyParameterInt PeriodPC;
-        private StrategyParameterInt LengthZig;
+        // Indicator setting
+        private StrategyParameterInt _lengthZig;
 
         // Indicator
-        Aindicator _ZZ;
+        private Aindicator _ZZ;
+
+        // Exit settings
+        private StrategyParameterDecimal _profitPercent;
+        private StrategyParameterDecimal _stopPercent;
 
         private bool _signalBuy;
         private bool _signalBuyClose;
@@ -46,20 +49,19 @@ namespace OsEngine.Robots.TechSamples
             _tab = TabsSimple[0];
 
             // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" },
-                "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
 
-            ProfitPercent = CreateParameter("Profit percent", 1, 0.5m, 5, 0.1m);
-            StopPercent = CreateParameter("Stop percent", 0.3m, 0.2m, 2, 0.1m);
+            // Indicator setting
+            _lengthZig = CreateParameter("Period Zig", 16, 1, 20, 1, "Indicators");
 
-            // Setting indicator 
-
-            LengthZig = CreateParameter("Period Zig", 16, 1, 20, 1, "Indicators");
+            // Exit settings
+            _profitPercent = CreateParameter("Profit percent", 1, 0.5m, 5, 0.1m);
+            _stopPercent = CreateParameter("Stop percent", 0.3m, 0.2m, 2, 0.1m);
 
             // Create indicator ZigZag
             _ZZ = IndicatorsFactory.CreateIndicatorByName("ZigZag", name + "ZigZag", false);
             _ZZ = (Aindicator)_tab.CreateCandleIndicator(_ZZ, "Prime");
-            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = LengthZig.ValueInt;
+            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = _lengthZig.ValueInt;
             _ZZ.Save();
 
             // Events           
@@ -69,26 +71,28 @@ namespace OsEngine.Robots.TechSamples
 
             this.Description = "Example of trading on sloping levels";
         }
+        
+        // Indicator Update event
+        private void TradeLineExample_ParametrsChangeByUser()
+        {
+            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = _lengthZig.ValueInt;
+            _ZZ.Save();
+            _ZZ.Reload();
+        }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "TradeLineExample";
         }
 
+        // Show settings GUI 
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        //Indicator Update event
-        private void TradeLineExample_ParametrsChangeByUser()
-        {
-            ((IndicatorParameterInt)_ZZ.Parameters[0]).ValueInt = LengthZig.ValueInt;
-            _ZZ.Save();
-            _ZZ.Reload();
-        }
-
-        //Lists of variable
+        // Lists of variable
         Line _lineInclinedOnPrimeChart;
 
         List<decimal> zzHighClear = new List<decimal>();
@@ -97,24 +101,20 @@ namespace OsEngine.Robots.TechSamples
 
         List<decimal> PointEndList = new List<decimal>();
 
-        ////////////////////////////
-        // LOGIC
-        ////////////////////////////
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthZig.ValueInt + 50)
+            if (candles.Count < _lengthZig.ValueInt + 50)
             {
                 return;
             }
-
 
             // Charts Points and Line Methods call
             PointH1();
@@ -124,7 +124,6 @@ namespace OsEngine.Robots.TechSamples
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-
             // If there are positions, then go to the position closing method
             if (openPositions != null && openPositions.Count != 0)
             {
@@ -132,7 +131,7 @@ namespace OsEngine.Robots.TechSamples
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -144,13 +143,10 @@ namespace OsEngine.Robots.TechSamples
             }
 
             //If there are no positions, then go to the position opening method
-            if (openPositions == null ||
-                openPositions.Count == 0)
+            if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles);
             }
-
-
         }
 
         // TradeLine Method
@@ -179,10 +175,13 @@ namespace OsEngine.Robots.TechSamples
             // HighPoints and Indexes from Lists
             decimal zzHighClearV2 = zzHighClear[zzHighClear.Count - 2];
             int zzHighClearIi2 = zzHighClearI[zzHighClearI.Count - 2];
+
             decimal zzHighClearV3 = zzHighClear[zzHighClear.Count - 3];
             int zzHighClearIi3 = zzHighClearI[zzHighClearI.Count - 3];
+
             decimal zzHighClearV4 = zzHighClear[zzHighClear.Count - 4];
             int zzHighClearIi4 = zzHighClearI[zzHighClearI.Count - 4];
+
             decimal zzHighClearV5 = zzHighClear[zzHighClear.Count - 5];
             int zzHighClearIi5 = zzHighClearI[zzHighClearI.Count - 5];
 
@@ -203,29 +202,22 @@ namespace OsEngine.Robots.TechSamples
                 zzHighClearIi3 = zzHighClearIi5;
             }
 
-
             // 2 calculate indicator movement per candlestick on this TF
-            // 2 рассчитываем движение индикатора за свечу на данном ТФ
 
-            decimal stepCorner; // how long our line goes by candle //сколько наша линия проходит за свечку
+            decimal stepCorner; // how long our line goes by candle
 
             stepCorner = (zzHighClearV3 - zzHighClearV2) / (zzHighClearIi3 - zzHighClearIi2 + 1);
             // 3 now build an array of line values parallel to candlestick array
-            // 3 теперь строим массив значений линии параллельный свечному массиву
 
             decimal point = zzHighClearV2;
 
             for (int i = zzHighClearIi2 + 1; i < candles.Count; i++)
-            {
-                // running ahead of array.
-                // бежим вперёд по массиву
-                //lineDecimals[i] = point;
+            {// running ahead of array.
                 point += stepCorner;
                 PointEndList.Add(point);
             }
 
             decimal endPoint1 = PointEndList[PointEndList.Count - 1];
-
 
             // Line on Chart
             Line line = new Line("Inclined line", "Prime");
@@ -237,9 +229,7 @@ namespace OsEngine.Robots.TechSamples
             line.TimeEnd = candles[candles.Count - 1].TimeStart;
 
             line.Color = Color.Bisque;
-            line.LineWidth = 2; // Толщина линии
-
-            //line.Label = "Some label on Line Inclined";
+            line.LineWidth = 2; // Line thickness
 
             _tab.SetChartElement(line);
 
@@ -252,7 +242,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        // ChartPoints of Highs
+        // ChartPoints of Highs one
         void PointH1()
         {
             if (zzHighClear.Count <= 7)
@@ -264,8 +254,6 @@ namespace OsEngine.Robots.TechSamples
 
             decimal zzHighClearV1 = zzHighClear[zzHighClear.Count - 1];
             int zzHighClearIi1 = zzHighClearI[zzHighClearI.Count - 1];
-
-
 
             PointElement point = new PointElement("PointH1", "Prime");
 
@@ -279,6 +267,7 @@ namespace OsEngine.Robots.TechSamples
             _tab.SetChartElement(point);
         }
 
+        // ChartPoints of Highs two
         void PointH2(List<Candle> candles)
         {
             if (zzHighClear.Count <= 7)
@@ -301,6 +290,7 @@ namespace OsEngine.Robots.TechSamples
             _tab.SetChartElement(point);
         }
 
+        // ChartPoints of Highs three
         void PointH3(List<Candle> candles)
         {
             if (zzHighClear.Count <= 7)
@@ -339,16 +329,16 @@ namespace OsEngine.Robots.TechSamples
 
             _signalBuy = lastCandle.Close > endPoint1 && lastCandleMinus1.Close < endPoint1;
 
-            if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+            if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
             {
                 if (_signalBuy)
                 {
                     _tab.BuyAtMarket(1);
                 }
             }
-
         }
 
+        // Close position logic
         void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -357,9 +347,7 @@ namespace OsEngine.Robots.TechSamples
             // The last value of the indicators
             Candle lastCandle = candles[candles.Count - 1];
 
-
             _signalBuyClose = lastCandle.Low > candles[candles.Count - 2].Low;
-
 
             if (pos.StopOrderIsActive == true)
             {
@@ -368,8 +356,9 @@ namespace OsEngine.Robots.TechSamples
 
             if (pos.Direction == Side.Buy)
             {
-                decimal priceStop = pos.EntryPrice - pos.EntryPrice * (StopPercent.ValueDecimal / 100);
-                decimal priceProfit = pos.EntryPrice + pos.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+                decimal priceStop = pos.EntryPrice - pos.EntryPrice * (_stopPercent.ValueDecimal / 100);
+                decimal priceProfit = pos.EntryPrice + pos.EntryPrice * (_profitPercent.ValueDecimal / 100);
+
                 _tab.CloseAtStopMarket(pos, priceStop);
                 _tab.CloseAtProfitMarket(pos, priceProfit);
 
@@ -378,14 +367,13 @@ namespace OsEngine.Robots.TechSamples
                     _tab.CloseAtMarket(pos, lastCandle.Close);
                 }
             }
-
             else
             {
-                decimal priceStop = pos.EntryPrice + pos.EntryPrice * (StopPercent.ValueDecimal / 100);
-                decimal priceProfit = pos.EntryPrice - pos.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+                decimal priceStop = pos.EntryPrice + pos.EntryPrice * (_stopPercent.ValueDecimal / 100);
+                decimal priceProfit = pos.EntryPrice - pos.EntryPrice * (_profitPercent.ValueDecimal / 100);
+
                 _tab.CloseAtStopMarket(pos, priceStop);
                 _tab.CloseAtProfitMarket(pos, priceProfit);
-
             }
         }
     }

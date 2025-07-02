@@ -1,4 +1,9 @@
-﻿using System.Collections.Generic;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
@@ -7,80 +12,93 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Charts.CandleChart.Elements;
 
-namespace OsEngine.Robots._MyRobots
+/* Description
+TechSample robot for OsEngine
+
+An example of a robot going short after a false upside breakout.
+ */
+
+namespace OsEngine.Robots
 {
-    [Bot("FakeOutExample")]
+    [Bot("FakeOutExample")] // We create an attribute so that we don't write anything to the BotFactory
     internal class FakeOutExample : BotPanel
-    {        
+    {
+        // Simple tab
+        private BotTabSimple _tab;
+
+        // Basic Settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _candlesForPcLevel;
+
+        // Indicator setting 
+        private StrategyParameterInt _periodPC;
+
+        // Indicator
+        private Aindicator _PC;
+
+        // Exit setting
+        private StrategyParameterInt _minutsForExit;
+
+        private bool _signalSell;
+        private decimal _hLevelOne;
+
         public FakeOutExample(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" }, "Base");
-            MinutsForExit = CreateParameter("MinutsForExit", 75, 5, 240, 1, "Base");
-            CandlesForPcLevel = CreateParameter("CandlesForPcLevel", 10, 3, 24, 1, "Base");
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyClosePosition" }, "Base");
+            _candlesForPcLevel = CreateParameter("CandlesForPcLevel", 10, 3, 24, 1, "Base");
            
-            // Setting indicator 
-            PeriodPC = CreateParameter("PeriodPC", 10, 5, 40, 1, "Base");
+            // Indicator settings
+            _periodPC = CreateParameter("PeriodPC", 10, 5, 40, 1, "Base");
+            
+            // Exit setting
+            _minutsForExit = CreateParameter("MinutsForExit", 75, 5, 240, 1, "Base");
 
             // Create indicator PC
             _PC = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PC", false);
             _PC = (Aindicator)_tab.CreateCandleIndicator(_PC, "Prime");
-            ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = PeriodPC.ValueInt;
-            ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = PeriodPC.ValueInt;
+            ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = _periodPC.ValueInt;
+            ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = _periodPC.ValueInt;
             _PC.Save();
 
-            // Events           
+            // Subscribe to the candle finished event     
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
+
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += FakeOutExample_ParametrsChangeByUser;
 
             Description = "An example of a robot going short after a false upside breakout.";
         }
-        
+
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "FakeOutExample";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        private BotTabSimple _tab;
-
-        // Basic Settings
-        private StrategyParameterString Regime;
-
-        public StrategyParameterInt CandlesForPcLevel;
-
-        public StrategyParameterInt MinutsForExit;
-
-        // Indicator setting 
-        public StrategyParameterInt PeriodPC;
-
-        // Indicator
-        Aindicator _PC;
-
-        private bool _signalSell;
-
-        private decimal _hLevelOne;
-
-        //Indicator Update event
+        // Indicator Update event
         private void FakeOutExample_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = PeriodPC.ValueInt;
-            ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = PeriodPC.ValueInt;
+            ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = _periodPC.ValueInt;
+            ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = _periodPC.ValueInt;
             _PC.Save();
             _PC.Reload();
         }
 
-        //Line
+        // Line
         LineHorisontal _lineOnPrimeChart;
 
-        //Lists of Extremums
+        // Lists of Extremums
 
         List<decimal> methodsH = new List<decimal>();
 
@@ -88,24 +106,22 @@ namespace OsEngine.Robots._MyRobots
 
         List<int> localHighI = new List<int>();
 
-
-// LOGIC
-
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodPC.ValueInt + 30)
+            if (candles.Count < _periodPC.ValueInt + 30)
             {
                 return;
             }
 
-            if (CandlesForPcLevel.ValueInt == 0)
+            if (_candlesForPcLevel.ValueInt == 0)
             {
                 return;
             }
@@ -114,7 +130,6 @@ namespace OsEngine.Robots._MyRobots
             LocalExtremums(candles);
             
             // Levels from PC Method Initialization 
-
             LevelsFromPc();
             
             List<Position> openPositions = _tab.PositionsOpenAll;
@@ -126,13 +141,12 @@ namespace OsEngine.Robots._MyRobots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
             //If there are no positions, then go to the position opening method
-            if (openPositions == null ||
-                openPositions.Count == 0)
+            if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles);
             }
@@ -141,30 +155,29 @@ namespace OsEngine.Robots._MyRobots
             LineH1(); // Local High Level line
             PointH1(); // Local High Marker
 
-
             // Lines refresh
             if (_lineOnPrimeChart != null)
             {
                 _lineOnPrimeChart.TimeEnd = candles[candles.Count - 1].TimeStart;
                 _lineOnPrimeChart.Refresh();
             }
-
         }
 
+        // Level from PriceChannel
         private void LevelsFromPc()
         {
             List<decimal> pcHigh = _PC.DataSeries[0].Values;
 
-            var t = CandlesForPcLevel.ValueInt;
+            var t = _candlesForPcLevel.ValueInt;
 
-            if (pcHigh.Count - CandlesForPcLevel.ValueInt <= 1)
+            if (pcHigh.Count - _candlesForPcLevel.ValueInt <= 1)
             {
                 return;
             }
 
             // PC value 
             decimal LastPcH = pcHigh[pcHigh.Count - 1];
-            decimal LastPcHPlus = pcHigh[pcHigh.Count - CandlesForPcLevel.ValueInt];
+            decimal LastPcHPlus = pcHigh[pcHigh.Count - _candlesForPcLevel.ValueInt];
 
             // If Last PC value and PC value minus variable equal - adding to List
             if (LastPcH == LastPcHPlus)
@@ -200,12 +213,13 @@ namespace OsEngine.Robots._MyRobots
             }
         }
 
+        // Local extremums
         private void LocalExtremums(List<Candle> candles)
         {
             localHighV.Clear();
             localHighI.Clear();
 
-            int _candlesCountMinus = candles.Count - CandlesForPcLevel.ValueInt;
+            int _candlesCountMinus = candles.Count - _candlesForPcLevel.ValueInt;
 
             decimal _localHighV = candles[candles.Count - 1].High;
 
@@ -233,9 +247,10 @@ namespace OsEngine.Robots._MyRobots
             localHighV.Add(_localHighV);
         }
         
-        // Chart Visual Elements
-
-        private void LineH1() // Local High Level line
+        // Chart Visual Elements //
+        
+        // Local High Level line
+        private void LineH1() 
         {
             List<Candle> candles = _tab.CandlesFinishedOnly;
 
@@ -251,7 +266,7 @@ namespace OsEngine.Robots._MyRobots
             line.TimeStart = candles[0].TimeStart;
             line.TimeEnd = candles[candles.Count - 1].TimeStart;
             line.Color = Color.Green;
-            line.LineWidth = 2; // Толщина линии
+            line.LineWidth = 2; // Line thickness
 
             _tab.SetChartElement(line);
 
@@ -263,14 +278,14 @@ namespace OsEngine.Robots._MyRobots
                 _lineOnPrimeChart.Refresh();
             }
         }
-
-        private void PointH1() //Local High Marker
+        
+        // Local High Marker
+        private void PointH1() 
         {
             List<Candle> candles = _tab.CandlesFinishedOnly;
 
             decimal _localHighV = localHighV[localHighV.Count - 1];
             int _localHighI = localHighI[localHighI.Count - 1];
-
 
             PointElement point = new PointElement("Some label", "Prime");
 
@@ -284,7 +299,7 @@ namespace OsEngine.Robots._MyRobots
             _tab.SetChartElement(point);
         }
 
-        //Opening logic
+        // Opening position logic
         private void LogicOpenPosition(List<Candle> candles)
         {
             // The last value of the indicators
@@ -292,9 +307,8 @@ namespace OsEngine.Robots._MyRobots
             decimal lastCandleClose = lastCandle.Close;
             decimal _localHighV = localHighV[localHighV.Count - 1];
 
-            //Short
-            _signalSell = lastCandleClose < _hLevelOne &&
-                          _localHighV > _hLevelOne;
+            // Short
+            _signalSell = lastCandleClose < _hLevelOne && _localHighV > _hLevelOne;
 
             if (_signalSell)
             {
@@ -302,13 +316,13 @@ namespace OsEngine.Robots._MyRobots
             }
         }
 
+        // Close position logic
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
             Position pos = openPositions[0];
             
-            
-            if (pos.TimeOpen.AddMinutes(MinutsForExit.ValueInt) <= candles[candles.Count - 1].TimeStart)
+            if (pos.TimeOpen.AddMinutes(_minutsForExit.ValueInt) <= candles[candles.Count - 1].TimeStart)
             {
                 _tab.CloseAllAtMarket();
             }
