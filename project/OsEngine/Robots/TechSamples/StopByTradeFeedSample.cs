@@ -13,85 +13,112 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 
+/* Description
+TechSample robot for OsEngine
+
+Buy: price is above the upper line of the PriceChannel.  
+Sell: price is below the lower line of the PriceChannel.  
+Exit: by trailing stop.
+
+An example of a robot that pulls up the stop for a position based on changes in the deals feed. IMPORTANT! 
+Tests of this robot should be conducted on the deals feed.
+ */
+
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("StopByTradeFeedSample")]
+    [Bot("StopByTradeFeedSample")] // We create an attribute so that we don't write anything to the BotFactory
     public class StopByTradeFeedSample : BotPanel
     {
+        // Simple tabs
         private BotTabSimple _tab;
 
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _slippage;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Indicator setting
+        private StrategyParameterInt _indLength;
+        
+        // Indicator
         private Aindicator _pc;
 
-        public StrategyParameterString Regime;
+        // Exit setting
+        private StrategyParameterDecimal _trailStopPercent;
 
-        public StrategyParameterInt IndLength;
-
-        public StrategyParameterDecimal TrailStopPercent;
-
-        public StrategyParameterInt Slippage;
-
-        public StrategyParameterString VolumeType;
-
-        public StrategyParameterDecimal Volume;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StopByTradeFeedSample(string name, StartProgram startProgram)
-      : base(name, startProgram)
+        public StopByTradeFeedSample(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            Slippage = CreateParameter("Slippage in price step", 0, 0, 20, 1);
-            IndLength = CreateParameter("Price channel length", 10, 10, 80, 3);
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _slippage = CreateParameter("Slippage in price step", 0, 0, 20, 1);
+            _indLength = CreateParameter("Price channel length", 10, 10, 80, 3);
 
-            TrailStopPercent = CreateParameter("Trail stop percent", 0.2m, 0.5m, 5, 4);
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 10, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 10, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // Exit setting
+            _trailStopPercent = CreateParameter("Trail stop percent", 0.2m, 0.5m, 5, 4);
 
+            // Create indicator PriceChannel
             _pc = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
             _pc = (Aindicator)_tab.CreateCandleIndicator(_pc, "Prime");
-            _pc.ParametersDigit[0].Value = IndLength.ValueInt;
-            _pc.ParametersDigit[1].Value = IndLength.ValueInt;
+            _pc.ParametersDigit[0].Value = _indLength.ValueInt;
+            _pc.ParametersDigit[1].Value = _indLength.ValueInt;
             _pc.Save();
 
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
+            // Subscribe to the new tick event
             _tab.NewTickEvent += _tab_NewTickEvent;
 
+            // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-            Description = "An example of a robot that pulls up the stop for a position based on changes in the deals feed. IMPORTANT! Tests of this robot should be conducted on the deals feed.";
+            Description = "TechSample robot for OsEngine " +
+                "Buy: price is above the upper line of the PriceChannel.   " +
+                "Sell: price is below the lower line of the PriceChannel.   " +
+                "Exit: by trailing stop. " +
+                "An example of a robot that pulls up the stop for a position based on changes in the deals feed. IMPORTANT!  " +
+                "Tests of this robot should be conducted on the deals feed.";
         }
 
         void Event_ParametrsChangeByUser()
         {
-            if (IndLength.ValueInt != _pc.ParametersDigit[0].Value ||
-                IndLength.ValueInt != _pc.ParametersDigit[1].Value)
+            if (_indLength.ValueInt != _pc.ParametersDigit[0].Value ||
+                _indLength.ValueInt != _pc.ParametersDigit[1].Value)
             {
-                _pc.ParametersDigit[0].Value = IndLength.ValueInt;
-                _pc.ParametersDigit[1].Value = IndLength.ValueInt;
-
+                _pc.ParametersDigit[0].Value = _indLength.ValueInt;
+                _pc.ParametersDigit[1].Value = _indLength.ValueInt;
                 _pc.Reload();
             }
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "StopByTradeFeedSample";
         }
 
+        // Show setting GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -108,43 +135,43 @@ namespace OsEngine.Robots.TechSamples
                 return;
             }
 
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            if (openPositions == null
-                || openPositions.Count == 0)
+            if (openPositions == null || openPositions.Count == 0)
             {// no positions
                 decimal lastPrice = candles[candles.Count - 1].Close;
                 decimal lastPcUp = _pc.DataSeries[0].Values[_pc.DataSeries[0].Values.Count - 2];
                 decimal lastPcDown = _pc.DataSeries[1].Values[_pc.DataSeries[1].Values.Count - 2];
 
                 // long
-                if (Regime.ValueString != "OnlyShort")
+                if (_regime.ValueString != "OnlyShort")
                 {
                     if (lastPrice > lastPcUp)
                     {
-                        _tab.BuyAtLimit(GetVolume(_tab), lastPrice + Slippage.ValueInt * _tab.Security.PriceStep);
+                        _tab.BuyAtLimit(GetVolume(_tab), lastPrice + _slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong")
+                if (_regime.ValueString != "OnlyLong")
                 {
                     if (lastPrice < lastPcDown)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), lastPrice - Slippage.ValueInt * _tab.Security.PriceStep);
+                        _tab.SellAtLimit(GetVolume(_tab), lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
                     }
                 }
             }
         }
 
+        // Close position logic
         private void _tab_NewTickEvent(Trade trade)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -169,31 +196,31 @@ namespace OsEngine.Robots.TechSamples
 
             if (myPos.Direction == Side.Buy)
             {
-                stopPrice = trade.Price - (trade.Price * (TrailStopPercent.ValueDecimal/100));
-                orderPrice = stopPrice - Slippage.ValueInt * _tab.Security.PriceStep;
+                stopPrice = trade.Price - (trade.Price * (_trailStopPercent.ValueDecimal/100));
+                orderPrice = stopPrice - _slippage.ValueInt * _tab.Security.PriceStep;
             }
             else if(myPos.Direction == Side.Sell)
             {
-                stopPrice = trade.Price + (trade.Price * (TrailStopPercent.ValueDecimal / 100));
-                orderPrice = stopPrice + Slippage.ValueInt * _tab.Security.PriceStep;
+                stopPrice = trade.Price + (trade.Price * (_trailStopPercent.ValueDecimal / 100));
+                orderPrice = stopPrice + _slippage.ValueInt * _tab.Security.PriceStep;
             }
 
             _tab.CloseAtTrailingStop(myPos,stopPrice,orderPrice);
-
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -201,10 +228,10 @@ namespace OsEngine.Robots.TechSamples
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security .Lot != 0 &&
+                        tab.Security .Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -214,7 +241,7 @@ namespace OsEngine.Robots.TechSamples
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -225,7 +252,7 @@ namespace OsEngine.Robots.TechSamples
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -240,7 +267,7 @@ namespace OsEngine.Robots.TechSamples
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -250,11 +277,11 @@ namespace OsEngine.Robots.TechSamples
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
