@@ -14,62 +14,71 @@ using System;
 
 /* Description
 An example of a robot requesting open interest in its logic.
+
 Enter Long when OI falls to the specified value.
+
 Exit by stop and profit orders.
  */
 
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("OpenInterestBotSample")]
+    [Bot("OpenInterestBotSample")] // We create an attribute so that we don't write anything to the BotFactory
     public class OpenInterestBotSample : BotPanel
     {
-        private StrategyParameterString _regime;
-
-        private StrategyParameterString _volumeType;
-
-        private StrategyParameterDecimal _volume;
-
-        private StrategyParameterString _tradeAssetInPortfolio;
-
-        private StrategyParameterDecimal _oiDownsizeToEntry;
-
-        private StrategyParameterDecimal _profitPercent;
-
-        private StrategyParameterDecimal _stopPercent;
-
+        // Simple tab
         private BotTabSimple _tab;
 
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _oiDownsizeToEntry;
+
+        // GetVolume settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Exit settings
+        private StrategyParameterDecimal _profitPercent;
+        private StrategyParameterDecimal _stopPercent;
 
         public OpenInterestBotSample(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             _oiDownsizeToEntry = CreateParameter("OI downsizing for entry", 50, 10m, 300, 10);
-            _profitPercent = CreateParameter("Profit percent", 0.1m, 10m, 300, 10);
-            _stopPercent = CreateParameter("Stop percent", 0.1m, 10m, 300, 10);
-
+            
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume on one line", 1, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            
+            // Exit settings
+            _profitPercent = CreateParameter("Profit percent", 0.1m, 10m, 300, 10);
+            _stopPercent = CreateParameter("Stop percent", 0.1m, 10m, 300, 10);
 
             Description = "An example of a robot requesting open interest in its logic. " +
                   "Enter Long when OI falls to the specified value. " +
                   "Exit by stop and profit orders.";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "OpenInterestBotSample";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
+        // Logic
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             if (_regime.ValueString == "Off")
@@ -94,6 +103,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
+        // Opening position logic
         private void LogicEntry(List<Candle> candles)
         {
             Candle currentCandle = candles[^1];
@@ -109,11 +119,11 @@ namespace OsEngine.Robots.TechSamples
             decimal prevOi = prevCandle.OpenInterest;
 
             if(currentOi >= prevOi)
-            { // если OI растёт, ничего не делаем
+            { // if OI grows, do nothing
                 return;
             }
 
-            // считаем на сколько контрактов уменьшился OI
+            // we calculate by how many contracts OI has decreased
             decimal oiDownSize = prevOi - currentOi;
 
             if(oiDownSize > _oiDownsizeToEntry.ValueDecimal)
@@ -122,6 +132,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
+        // Close position logic
         private void LogicClosePosition(List<Candle> candles, Position position)
         {
             if(position.State != PositionStateType.Open)
@@ -141,6 +152,7 @@ namespace OsEngine.Robots.TechSamples
             _tab.CloseAtProfitMarket(position, profit);
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
