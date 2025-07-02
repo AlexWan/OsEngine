@@ -210,6 +210,7 @@ namespace OsEngine.Robots
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -305,19 +306,23 @@ namespace OsEngine.Robots
                 if (position.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is short
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
             }
@@ -341,6 +346,7 @@ namespace OsEngine.Robots
                         price = candles[i].Low;
                     }
                 }
+
                 return price;
             }
 
@@ -358,12 +364,14 @@ namespace OsEngine.Robots
 
                 return price;
             }
+
             return 0;
         }
 
         private decimal MaxValueOnPeriodInddicator(List<decimal> Value, int period)
         {
             decimal max = 0;
+
             for (int i = 2; i <= period; i++)
             {
                 if(max < Value[Value.Count - i])
@@ -371,12 +379,14 @@ namespace OsEngine.Robots
                     max = Value[Value.Count - i];
                 }
             }
+
             return max;
         }
 
         private decimal MinValueOnPeriodInddicator(List<decimal> Value, int period)
         {
             decimal min = 99999;
+
             for (int i = 2; i <= period; i++)
             {
                 if (min > Value[Value.Count - i])
@@ -384,6 +394,7 @@ namespace OsEngine.Robots
                     min = Value[Value.Count - i];
                 }
             }
+
             return min;
         }
 
@@ -395,6 +406,7 @@ namespace OsEngine.Robots
             {
                 sum += Volume[Volume.Count - i];
             }
+
             if (sum > 0)
             {
                 return sum / period;
@@ -411,6 +423,7 @@ namespace OsEngine.Robots
             {
                 sum += Volume[Volume.Count - i];
             }
+
             if (sum > 0)
             {
                 return sum / period;

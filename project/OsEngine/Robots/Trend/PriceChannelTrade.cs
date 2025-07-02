@@ -185,6 +185,7 @@ namespace OsEngine.Robots.Trend
             {
                 return;
             }
+
             if (openPositions == null || openPositions.Count == 0)
             {
                 LogicOpenPosition(candles, openPositions);

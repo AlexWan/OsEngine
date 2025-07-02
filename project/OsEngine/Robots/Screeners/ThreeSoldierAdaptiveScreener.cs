@@ -14,62 +14,70 @@ using OsEngine.OsTrader.Panels.Tab;
 using System.IO;
 using System.Globalization;
 
+/* Description
+trading robot for osengine
+
+Trading robot Three Soldiers adaptive by volatility.
+
+When forming a pattern of three growing / falling candles, the entrance to the countertrend with a fixation on a profit or a stop.
+*/
+
 namespace OsEngine.Robots.Screeners
 {
-    [Bot("ThreeSoldierAdaptiveScreener")]
+    [Bot("ThreeSoldierAdaptiveScreener")] // We create an attribute so that we don't write anything to the BotFactory
     public class ThreeSoldierAdaptiveScreener : BotPanel
     {
-        public StrategyParameterString Regime;
-        public StrategyParameterInt MaxPositions;
-        public StrategyParameterDecimal ProcHeightTake;
-        public StrategyParameterDecimal ProcHeightStop;
-        public StrategyParameterDecimal Slippage;
-        public StrategyParameterString VolumeType;
-        public StrategyParameterDecimal Volume;
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterInt DaysVolatilityAdaptive;
-        public StrategyParameterDecimal HeightSoldiersVolaPercent;
-        public StrategyParameterDecimal MinHeightOneSoldiersVolaPercent;
-
-        public StrategyParameterBool SmaFilterIsOn;
-        public StrategyParameterInt SmaFilterLen;
-
         private BotTabScreener _tabScreener;
 
-        public ThreeSoldierAdaptiveScreener(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _maxPositions;
+        private StrategyParameterDecimal _procHeightTake;
+        private StrategyParameterDecimal _procHeightStop;
+        private StrategyParameterDecimal _slippage;
+
+        // Basic settings
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Volatility settings
+        private StrategyParameterInt _daysVolatilityAdaptive;
+        private StrategyParameterDecimal _heightSoldiersVolaPercent;
+        private StrategyParameterDecimal _minHeightOneSoldiersVolaPercent;
+
+        // SmaFilter settings
+        private StrategyParameterBool _smaFilterIsOn;
+        private StrategyParameterInt _smaFilterLen;
+
+        public ThreeSoldierAdaptiveScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Screener);
             _tabScreener = TabsScreener[0];
 
+            // Subscribe to the candle finished event
             _tabScreener.CandleFinishedEvent += _tab_CandleFinishedEvent1;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _maxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            _slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
+            _procHeightTake = CreateParameter("Profit % from height of pattern", 50m, 0, 20, 1m);
+            _procHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
+            
+            // GetVolume settings
+            _volumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
+            // Volatility settings
+            _daysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 1, 0, 20, 1);
+            _heightSoldiersVolaPercent = CreateParameter("Height soldiers volatility percent", 5, 0, 20, 1m);
+            _minHeightOneSoldiersVolaPercent = CreateParameter("Min height one soldier volatility percent", 1, 0, 20, 1m);
 
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" });
-
-            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4);
-
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
-
-            Slippage = CreateParameter("Slippage %", 0, 0, 20, 1m);
-
-            ProcHeightTake = CreateParameter("Profit % from height of pattern", 50m, 0, 20, 1m);
-
-            ProcHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
-
-            DaysVolatilityAdaptive = CreateParameter("Days volatility adaptive", 1, 0, 20, 1);
-
-            HeightSoldiersVolaPercent = CreateParameter("Height soldiers volatility percent", 5, 0, 20, 1m);
-
-            MinHeightOneSoldiersVolaPercent = CreateParameter("Min height one soldier volatility percent", 1, 0, 20, 1m);
-
-            SmaFilterIsOn = CreateParameter("Sma filter is on", true);
-
-            SmaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
+            // SmaFilter settings
+            _smaFilterIsOn = CreateParameter("Sma filter is on", true);
+            _smaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
 
             Description = "Trading robot Three Soldiers adaptive by volatility. " +
                 "When forming a pattern of three growing / falling candles, " +
@@ -83,20 +91,23 @@ namespace OsEngine.Robots.Screeners
             this.DeleteEvent += ThreeSoldierAdaptiveScreener_DeleteEvent;
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ThreeSoldierAdaptiveScreener";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        // volatility adaptation
+        // Volatility adaptation
 
         private List<SecuritiesTradeSettings> _tradeSettings = new List<SecuritiesTradeSettings>();
 
+        // save settings in .txt file
         private void SaveTradeSettings()
         {
             try
@@ -118,6 +129,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Load settins from .txt file
         private void LoadTradeSettings()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"SettingsBot.txt"))
@@ -151,6 +163,7 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Delete save file
         private void ThreeSoldierAdaptiveScreener_DeleteEvent()
         {
             try
@@ -168,14 +181,14 @@ namespace OsEngine.Robots.Screeners
 
         private void AdaptSoldiersHeight(List<Candle> candles, SecuritiesTradeSettings settings)
         {
-            if (DaysVolatilityAdaptive.ValueInt <= 0
-                || HeightSoldiersVolaPercent.ValueDecimal <= 0
-                || MinHeightOneSoldiersVolaPercent.ValueDecimal <= 0)
+            if (_daysVolatilityAdaptive.ValueInt <= 0
+                || _heightSoldiersVolaPercent.ValueDecimal <= 0
+                || _minHeightOneSoldiersVolaPercent.ValueDecimal <= 0)
             {
                 return;
             }
 
-            // 1 рассчитываем движение от хая до лоя внутри N дней
+            // 1 we calculate the movement from high to low within N days
 
             decimal minValueInDay = decimal.MaxValue;
             decimal maxValueInDay = decimal.MinValue;
@@ -200,12 +213,11 @@ namespace OsEngine.Robots.Screeners
 
                     volaInDaysPercent.Add(volaPercentToday);
 
-
                     minValueInDay = decimal.MaxValue;
                     maxValueInDay = decimal.MinValue;
                 }
 
-                if (days >= DaysVolatilityAdaptive.ValueInt)
+                if (days >= _daysVolatilityAdaptive.ValueInt)
                 {
                     break;
                 }
@@ -214,6 +226,7 @@ namespace OsEngine.Robots.Screeners
                 {
                     maxValueInDay = curCandle.High;
                 }
+
                 if (curCandle.Low < minValueInDay)
                 {
                     minValueInDay = curCandle.Low;
@@ -234,7 +247,7 @@ namespace OsEngine.Robots.Screeners
                 return;
             }
 
-            // 2 усредняем это движение. Нужна усреднённая волатильность. процент
+            // 2 we average this movement. We need average volatility percentage
 
             decimal volaPercentSma = 0;
 
@@ -245,10 +258,10 @@ namespace OsEngine.Robots.Screeners
 
             volaPercentSma = volaPercentSma / volaInDaysPercent.Count;
 
-            // 3 считаем размер свечей с учётом этой волатильности
+            // 3 we calculate the size of the candles taking this volatility into account
 
-            decimal allSoldiersHeight = volaPercentSma * (HeightSoldiersVolaPercent.ValueDecimal / 100);
-            decimal oneSoldiersHeight = volaPercentSma * (MinHeightOneSoldiersVolaPercent.ValueDecimal / 100);
+            decimal allSoldiersHeight = volaPercentSma * (_heightSoldiersVolaPercent.ValueDecimal / 100);
+            decimal oneSoldiersHeight = volaPercentSma * (_minHeightOneSoldiersVolaPercent.ValueDecimal / 100);
 
             settings.HeightSoldiers = allSoldiersHeight;
             settings.MinHeightOneSoldier = oneSoldiersHeight;
@@ -298,9 +311,10 @@ namespace OsEngine.Robots.Screeners
             Logic(candles, tab, mySettings);
         }
 
+        // Logic
         private void Logic(List<Candle> candles, BotTabSimple tab, SecuritiesTradeSettings settings)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -314,7 +328,7 @@ namespace OsEngine.Robots.Screeners
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -326,9 +340,10 @@ namespace OsEngine.Robots.Screeners
             }
         }
 
+        // Opening position logic
         private void LogicOpenPosition(List<Candle> candles, BotTabSimple tab, SecuritiesTradeSettings settings)
         {
-            if (_tabScreener.PositionsOpenAll.Count >= MaxPositions.ValueInt)
+            if (_tabScreener.PositionsOpenAll.Count >= _maxPositions.ValueInt)
             {
                 return;
             }
@@ -340,16 +355,19 @@ namespace OsEngine.Robots.Screeners
             {
                 return;
             }
+
             if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 3].Close)
                 / (candles[candles.Count - 3].Close / 100) < settings.MinHeightOneSoldier)
             {
                 return;
             }
+
             if (Math.Abs(candles[candles.Count - 2].Open - candles[candles.Count - 2].Close)
                 / (candles[candles.Count - 2].Close / 100) < settings.MinHeightOneSoldier)
             {
                 return;
             }
+
             if (Math.Abs(candles[candles.Count - 1].Open - candles[candles.Count - 1].Close)
                 / (candles[candles.Count - 1].Close / 100) < settings.MinHeightOneSoldier)
             {
@@ -357,16 +375,16 @@ namespace OsEngine.Robots.Screeners
             }
 
             //  long
-            if (Regime.ValueString != "OnlyShort")
+            if (_regime.ValueString != "OnlyShort")
             {
                 if (candles[candles.Count - 3].Open < candles[candles.Count - 3].Close
                     && candles[candles.Count - 2].Open < candles[candles.Count - 2].Close
                     && candles[candles.Count - 1].Open < candles[candles.Count - 1].Close)
                 {
-                    if (SmaFilterIsOn.ValueBool == true)
+                    if (_smaFilterIsOn.ValueBool == true)
                     {
-                        decimal smaValue = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 1);
-                        decimal smaPrev = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 2);
+                        decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
+                        decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
 
                         if (smaValue < smaPrev)
                         {
@@ -374,21 +392,21 @@ namespace OsEngine.Robots.Screeners
                         }
                     }
 
-                    tab.BuyAtLimit(GetVolume(tab), _lastPrice + _lastPrice * (Slippage.ValueDecimal / 100));
+                    tab.BuyAtLimit(GetVolume(tab), _lastPrice + _lastPrice * (_slippage.ValueDecimal / 100));
                 }
             }
 
             // Short
-            if (Regime.ValueString != "OnlyLong")
+            if (_regime.ValueString != "OnlyLong")
             {
                 if (candles[candles.Count - 3].Open > candles[candles.Count - 3].Close
                     && candles[candles.Count - 2].Open > candles[candles.Count - 2].Close
                     && candles[candles.Count - 1].Open > candles[candles.Count - 1].Close)
                 {
-                    if (SmaFilterIsOn.ValueBool == true)
+                    if (_smaFilterIsOn.ValueBool == true)
                     {
-                        decimal smaValue = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 1);
-                        decimal smaPrev = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 2);
+                        decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
+                        decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
 
                         if (smaValue > smaPrev)
                         {
@@ -396,19 +414,20 @@ namespace OsEngine.Robots.Screeners
                         }
                     }
 
-                    tab.SellAtLimit(GetVolume(tab), _lastPrice - _lastPrice * (Slippage.ValueDecimal / 100));
+                    tab.SellAtLimit(GetVolume(tab), _lastPrice - _lastPrice * (_slippage.ValueDecimal / 100));
                 }
             }
 
             return;
-
         }
 
+        // Close position logic
         private void LogicClosePosition(List<Candle> candles, BotTabSimple tab)
         {
             decimal _lastPrice = candles[candles.Count - 1].Close;
 
             List<Position> openPositions = tab.PositionsOpenAll;
+
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
                 if (openPositions[i].State != PositionStateType.Open)
@@ -426,34 +445,35 @@ namespace OsEngine.Robots.Screeners
                     decimal heightPattern =
                         Math.Abs(tab.CandlesAll[tab.CandlesAll.Count - 4].Open - tab.CandlesAll[tab.CandlesAll.Count - 2].Close);
 
-                    decimal priceStop = _lastPrice - (heightPattern * ProcHeightStop.ValueDecimal) / 100;
-                    decimal priceTake = _lastPrice + (heightPattern * ProcHeightTake.ValueDecimal) / 100;
-                    tab.CloseAtStop(openPositions[i], priceStop, priceStop - priceStop * (Slippage.ValueDecimal / 100));
-                    tab.CloseAtProfit(openPositions[i], priceTake, priceTake - priceStop * (Slippage.ValueDecimal / 100));
+                    decimal priceStop = _lastPrice - (heightPattern * _procHeightStop.ValueDecimal) / 100;
+                    decimal priceTake = _lastPrice + (heightPattern * _procHeightTake.ValueDecimal) / 100;
+                    tab.CloseAtStop(openPositions[i], priceStop, priceStop - priceStop * (_slippage.ValueDecimal / 100));
+                    tab.CloseAtProfit(openPositions[i], priceTake, priceTake - priceStop * (_slippage.ValueDecimal / 100));
                 }
                 else
                 {
                     decimal heightPattern = Math.Abs(tab.CandlesAll[tab.CandlesAll.Count - 2].Close - tab.CandlesAll[tab.CandlesAll.Count - 4].Open);
-                    decimal priceStop = _lastPrice + (heightPattern * ProcHeightStop.ValueDecimal) / 100;
-                    decimal priceTake = _lastPrice - (heightPattern * ProcHeightTake.ValueDecimal) / 100;
-                    tab.CloseAtStop(openPositions[i], priceStop, priceStop + priceStop * (Slippage.ValueDecimal / 100));
-                    tab.CloseAtProfit(openPositions[i], priceTake, priceTake + priceStop * (Slippage.ValueDecimal / 100));
+                    decimal priceStop = _lastPrice + (heightPattern * _procHeightStop.ValueDecimal) / 100;
+                    decimal priceTake = _lastPrice - (heightPattern * _procHeightTake.ValueDecimal) / 100;
+                    tab.CloseAtStop(openPositions[i], priceStop, priceStop + priceStop * (_slippage.ValueDecimal / 100));
+                    tab.CloseAtProfit(openPositions[i], priceTake, priceTake + priceStop * (_slippage.ValueDecimal / 100));
                 }
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -464,7 +484,7 @@ namespace OsEngine.Robots.Screeners
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -474,7 +494,7 @@ namespace OsEngine.Robots.Screeners
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -485,7 +505,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -500,7 +520,7 @@ namespace OsEngine.Robots.Screeners
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -510,11 +530,11 @@ namespace OsEngine.Robots.Screeners
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
@@ -533,6 +553,7 @@ namespace OsEngine.Robots.Screeners
             return volume;
         }
 
+        // Method for calculating MovingAverage
         private decimal Sma(List<Candle> candles, int len, int index)
         {
             if (candles.Count == 0
