@@ -1,9 +1,20 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
+/* Description
+Tech sample for OsEngine.
+Example bot that initializes all available source types in OsEngine: Simple, Index, Pair, Screener, Polygon, Cluster, and News.
+*/
+
 namespace OsEngine.Robots.TechSamples
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     [Bot("AllSourcesInOneSample")]
     public class AllSourcesInOneSample : BotPanel
     {
@@ -26,7 +37,7 @@ namespace OsEngine.Robots.TechSamples
             // TabsCluster[0].
             // TabsNews[0].
 
-            Description = "Example in which all types of sources are created in OsEngine";
+            Description = "Example bot that initializes all available source types in OsEngine: Simple, Index, Pair, Screener, Polygon, Cluster, and News";
         }
 
         public override string GetNameStrategyType()
@@ -36,7 +47,6 @@ namespace OsEngine.Robots.TechSamples
 
         public override void ShowIndividualSettingsDialog()
         {
-            
 
         }
     }
