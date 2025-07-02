@@ -1882,6 +1882,11 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name}\" ] }}");
                         webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name}\" ] }}");
+
+                        if (_extendedMarketData)
+                        {
+                            webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name}\" ] }}");
+                        }
                     }
                 }
                 else if (security.Name.EndsWith(".P"))
@@ -2107,6 +2112,11 @@ namespace OsEngine.Market.Servers.Bybit
                                 string s = SubscribeSecuritySpot[i2].Split('.')[0];
                                 webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
                                 webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+
+                                if (_extendedMarketData)
+                                {
+                                    webSocketPublicSpot?.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                }
                             }
                         }
                     }
@@ -2326,6 +2336,10 @@ namespace OsEngine.Market.Servers.Bybit
                             else if (category == Category.inverse)
                             {
                                 _concurrentQueueTickersInverse.Enqueue(message);
+                            }
+                            else if (category == Category.spot)
+                            {
+                                _concurrentQueueTickersSpot.Enqueue(message);
                             }
 
                             continue;
@@ -2990,6 +3004,24 @@ namespace OsEngine.Market.Servers.Bybit
 
                     Category category = Category.spot;
                     UpdateTrade(message, category);
+
+                    if (_extendedMarketData)
+                    {
+                        if (_concurrentQueueTickersSpot == null
+                        || _concurrentQueueTickersSpot.IsEmpty
+                        || _concurrentQueueTickersSpot.Count == 0)
+                        {
+                            Thread.Sleep(1);
+                            continue;
+                        }
+
+                        if (!_concurrentQueueTickersSpot.TryDequeue(out string message2))
+                        {
+                            continue;
+                        }
+
+                        UpdateTicker(message2, category);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -3177,6 +3209,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         private ConcurrentQueue<string> _concurrentQueueTickersInverse = new ConcurrentQueue<string>();
 
+        private ConcurrentQueue<string> _concurrentQueueTickersSpot = new ConcurrentQueue<string>();
+
         private List<Tickers> _allTickers = new List<Tickers>();
 
         private void UpdateTicker(string message, Category category)
@@ -3201,6 +3235,10 @@ namespace OsEngine.Market.Servers.Bybit
                 else if (category == Category.inverse)
                 {
                     tickers.SecutityName = responseTicker.data.symbol + ".I";
+                }
+                else if (category == Category.spot)
+                {
+                    tickers.SecutityName = responseTicker.data.symbol;
                 }
 
                 if (responseTicker.data.openInterestValue != null)
