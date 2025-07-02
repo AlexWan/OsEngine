@@ -5,7 +5,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
     public class ResponseRestMessage<T>
     {
         public string code;
-        public string msg;        
+        public string msg;
         public T data;
     }
 
@@ -118,7 +118,7 @@ namespace OsEngine.Market.Servers.OKX.Entity
         public string cTime;
         public string uTime;
     }
-        
+
     public class DataOrderStatus
     {
         public string symbol;
@@ -150,19 +150,30 @@ namespace OsEngine.Market.Servers.OKX.Entity
     }
     public class FillList
     {
-        public string tradeId; 
-        public string symbol; 
-        public string orderId; 
-        public string price; 
-        public string baseVolume; 
-        public string fee; 
-        public string side; 
+        public string tradeId;
+        public string symbol;
+        public string orderId;
+        public string price;
+        public string baseVolume;
+        public string fee;
+        public string side;
         public string fillAmount;
-        public string profit; 
-        public string enterPointSource; 
+        public string profit;
+        public string enterPointSource;
         public string tradeSide;
-        public string holdMode; 
-        public string takerMakerFlag; 
-        public string cTime; 
+        public string holdMode;
+        public string takerMakerFlag;
+        public string cTime;
+    }
+
+    public class FundingItemHistory
+    {
+        public string formulaType { get; set; }
+        public string fundingRate { get; set; }
+        public string fundingTime { get; set; }
+        public string instId { get; set; }
+        public string instType { get; set; }
+        public string method { get; set; }
+        public string realizedRate { get; set; }
     }
 }
