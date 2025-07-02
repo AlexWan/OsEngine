@@ -100,7 +100,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterDecimal)_bollinger.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
             _bollinger.Save();
 
-            // Create indicator RSI
+            // Create indicator StdDev
             _stdDev = IndicatorsFactory.CreateIndicatorByName("StdDev", name + "StdDev", false);
             _stdDev = (Aindicator)_tab.CreateCandleIndicator(_stdDev, "NewArea");
             ((IndicatorParameterInt)_stdDev.Parameters[0]).ValueInt = _lengthStdDev.ValueInt;
@@ -250,19 +250,23 @@ namespace OsEngine.Robots
                 if (position.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is short
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
             }
@@ -303,6 +307,7 @@ namespace OsEngine.Robots
 
                 return price;
             }
+
             return 0;
         }
 

@@ -287,6 +287,7 @@ namespace OsEngine.Robots
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValue.ValueInt / 100;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
         }
@@ -294,6 +295,7 @@ namespace OsEngine.Robots
         private decimal MaxValueOnPeriodInddicator(List<decimal> Value, int period)
         {
             decimal max = 0;
+
             for (int i = 2; i <= period; i++)
             {
                 if (max < Value[Value.Count - i])
@@ -301,6 +303,7 @@ namespace OsEngine.Robots
                     max = Value[Value.Count - i];
                 }
             }
+
             return max;
         }
 
@@ -326,12 +329,14 @@ namespace OsEngine.Robots
                     }
                 }
             }
+
             return true;
         }
 
         private decimal MinValueOnPeriodInddicator(List<decimal> Value, int period)
         {
             decimal min = 999999;
+
             for (int i = 2; i <= period; i++)
             {
                 if (min > Value[Value.Count - i])
@@ -339,6 +344,7 @@ namespace OsEngine.Robots
                     min = Value[Value.Count - i];
                 }
             }
+
             return min;
         }
 
