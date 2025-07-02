@@ -1,4 +1,9 @@
-﻿using OsEngine.Charts.CandleChart.Indicators;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Market;
@@ -210,6 +215,7 @@ namespace OsEngine.Robots.patt
                 CancelStopsAndProfits();
                 return;
             }
+
             if (!GetValueVariables(candles))
             {
                 return;
@@ -240,6 +246,7 @@ namespace OsEngine.Robots.patt
 
                 _tab.BuyAtMarket(GetVolume(_tab), candles[candles.Count - 1].TimeStart.ToString());
             }
+
             if (CheckSignalDown(candles))
             {
                 if (SellSignalIsFiltered(candles) == true)
@@ -264,7 +271,6 @@ namespace OsEngine.Robots.patt
             if (position.State == PositionStateType.Open ||
                 position.State == PositionStateType.ClosingFail)
             {
-
                 if (position.CloseActiv == true ||
                     (position.CloseOrders != null && position.CloseOrders.Count > 0))
                 {
@@ -278,6 +284,7 @@ namespace OsEngine.Robots.patt
                         decimal slippage = _slippage.ValueDecimal * _lastVGDevDown / 100;
                         _tab.CloseAtTrailingStop(position, _lastVGDevDown, _lastVGDevDown - slippage);
                     }
+
                     if (position.Direction == Side.Sell)
                     {
                         decimal slippage = _slippage.ValueDecimal * _lastVGDevUp / 100;
@@ -311,6 +318,7 @@ namespace OsEngine.Robots.patt
                             decimal slippage = _slippage.ValueDecimal * _lastVGDevDown / 100;
                             _tab.CloseAtLimit(position, _tab.PriceBestBid - slippage, position.OpenVolume);
                         }
+
                         if (position.Direction == Side.Sell)
                         {
                             decimal slippage = _slippage.ValueDecimal * _lastVGDevUp / 100;
@@ -336,6 +344,7 @@ namespace OsEngine.Robots.patt
             {
                 return false;
             }
+
             return true;
         }
 
@@ -457,8 +466,8 @@ namespace OsEngine.Robots.patt
                 {
                     return true;
                 }
-
             }
+
             if (_smaSlopeFilterIsOn.ValueBool)
             {
                 // if the last sma is lower than the previous sma - return to the top true     
@@ -469,6 +478,7 @@ namespace OsEngine.Robots.patt
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -505,8 +515,8 @@ namespace OsEngine.Robots.patt
                 {
                     return true;
                 }
-
             }
+
             return false;
         }
 
@@ -601,6 +611,5 @@ namespace OsEngine.Robots.patt
 
             return volume;
         }
-
     }
 }
