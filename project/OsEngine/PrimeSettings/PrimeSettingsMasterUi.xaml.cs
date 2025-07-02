@@ -102,7 +102,7 @@ namespace OsEngine.PrimeSettings
 
             LabelSupportGroupRu.Content = OsLocalization.PrimeSettings.LabelSupportGroup + " RU:";
             LabelSupportGroupEng.Content = OsLocalization.PrimeSettings.LabelSupportGroup + " ENG:";
-            
+
             ButtonGoInRuSupport.Content = OsLocalization.PrimeSettings.LabelSupportGroupButtonLabel;
             ButtonGoInEngSupport.Content = OsLocalization.PrimeSettings.LabelSupportGroupButtonLabel;
         }
@@ -111,7 +111,7 @@ namespace OsEngine.PrimeSettings
         {
             MemoryCleanerRegime newRegime = new MemoryCleanerRegime();
 
-            if(Enum.TryParse(ComboBoxMemoryCleanUp.SelectedItem.ToString(), out newRegime))
+            if (Enum.TryParse(ComboBoxMemoryCleanUp.SelectedItem.ToString(), out newRegime))
             {
                 PrimeSettingsMaster.MemoryCleanerRegime = newRegime;
             }

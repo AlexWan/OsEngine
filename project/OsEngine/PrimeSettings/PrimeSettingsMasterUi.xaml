@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.PrimeSettings"
         mc:Ignorable="d"
-        Title="Configuration" Style="{StaticResource WindowStyleNoResize}" Height="447" Width="404" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
+              Title="Configuration" Style="{StaticResource WindowStyleNoResize}" Height="447" Width="404" ResizeMode="CanMinimize" WindowStartupLocation="CenterScreen" Icon="/Images/OsLogo.ico">
     <Grid>
         <ComboBox Name="ComboBoxLocalization" Margin="196,10,56,0" VerticalAlignment="Top" Height="23"/>
         <Label Name="LanguageLabel" Content="Language" HorizontalAlignment="Left" Margin="79,10,0,0" VerticalAlignment="Top"/>

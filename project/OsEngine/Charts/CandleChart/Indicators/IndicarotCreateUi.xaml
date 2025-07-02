@@ -22,7 +22,7 @@
             </TabItem>
         </TabControl>
         <TextBox
-        x:Name="SearchTextBox"
+        Name="SearchTextBox"
         Width="150"
         Margin="190,47,0,0"
         HorizontalAlignment="Left"
