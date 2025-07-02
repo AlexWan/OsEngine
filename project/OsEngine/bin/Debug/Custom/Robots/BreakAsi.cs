@@ -18,20 +18,24 @@ trading robot for osengine
 
 The trend robot on Break Asi.
 
-Buy: When the ASI indicator has broken through the maximum for a certain number of candles and the ASI line is above the Sma line.
+Buy:
+When the ASI indicator has broken through the maximum for a certain number of candles and the ASI line is above the Sma line.
 
-Sell: When the ASI indicator has broken through the minimum for a certain number of candles and the ASI line is below the Sma line.
+Sell:
+When the ASI indicator has broken through the minimum for a certain number of candles and the ASI line is below the Sma line.
 
-Exit from buy: trailing stop in % of the loy of the candle on which you entered.
-
-Exit from sell: trailing stop in % of the high of the candle on which you entered.
- */
+Exit from buy:
+trailing stop in % of the low of the candle on which you entered.
+Exit from sell:
+trailing stop in % of the high of the candle on which you entered.
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakAsi")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakAsi")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class BreakAsi : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -61,10 +65,11 @@ namespace OsEngine.Robots
 
         public BreakAsi(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
@@ -75,7 +80,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator setting
+            // Indicator settings
             _asiLimit = CreateParameter("Asi Limit", 10000.0m, 100, 100000m, 1000m, "Indicator");
             _asiSmaLength = CreateParameter("Sma Length", 21, 7, 48, 7, "Indicator");
 
@@ -94,7 +99,7 @@ namespace OsEngine.Robots
             _asi.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += BreakAsi_ParametrsChangeByUser;
+            ParametrsChangeByUser += _breakAsi_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -106,7 +111,7 @@ namespace OsEngine.Robots
                 "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
         }
 
-        private void BreakAsi_ParametrsChangeByUser()
+        private void _breakAsi_ParametrsChangeByUser()
         {
             ((IndicatorParameterDecimal)_asi.Parameters[0]).ValueDecimal = _asiLimit.ValueDecimal;
             ((IndicatorParameterInt)_asi.Parameters[1]).ValueInt = _asiSmaLength.ValueInt;
@@ -118,6 +123,7 @@ namespace OsEngine.Robots
         {
             return "BreakAsi";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -133,7 +139,8 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _entryCandlesShort.ValueInt + 10 || candles.Count < _entryCandlesLong.ValueInt + 10)
+            if (candles.Count <= _asiSmaLength.ValueInt + _entryCandlesShort.ValueInt ||
+                candles.Count <= _asiSmaLength.ValueInt + _entryCandlesLong.ValueInt)
             {
                 return;
             }
@@ -206,7 +213,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-           
+
             decimal stopPrice;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
@@ -282,7 +289,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

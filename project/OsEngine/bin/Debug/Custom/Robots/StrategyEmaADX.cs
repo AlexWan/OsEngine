@@ -21,22 +21,22 @@ The trend robot on strategy Ema with ADX.
 
 Buy:
 The previous candle was above Ema, the last candle was lower or equal to Ema, 
-and Adx must be above 25. We set a litka for purchase at the price of the high of this candle.
+and Adx must be above 25. We set a limit for buy at the price of the high of this candle.
 
 Sell:
 The previous candle was below Ema, the last high candle is higher than or equal to Ema,
-and Adx must be above 25. We set a litka for purchase at the price of this candle's loy.
+and Adx must be above 25. We set a limit for sell at the price of this candle's low.
 
 Buy exit: trailing stop in % of the line of the candle on which you entered.
-
 Sell ​​exit: trailing stop in % of the high of the candle where you entered.
  */
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyEmaADX")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyEmaADX")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyEmaADX : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -67,6 +67,7 @@ namespace OsEngine.Robots
 
         public StrategyEmaADX(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -102,7 +103,7 @@ namespace OsEngine.Robots
             _trailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyEmaADX_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += _strategyEmaADX_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -118,11 +119,12 @@ namespace OsEngine.Robots
                 "Sell ​​exit: trailing stop in % of the high of the candle where you entered.";
         }
 
-        private void StrategyEmaADX_ParametrsChangeByUser()
+        private void _strategyEmaADX_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _periodEma.ValueInt;
             _ema.Save();
-            _ema.Reload();    
+            _ema.Reload();
+
             ((IndicatorParameterInt)_ADX.Parameters[0]).ValueInt = _periodADX.ValueInt;
             _ADX.Save();
             _ADX.Reload();
@@ -133,6 +135,7 @@ namespace OsEngine.Robots
         {
             return "StrategyEmaADX";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -148,7 +151,7 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodADX.ValueInt || candles.Count < _periodEma.ValueInt)
+            if (candles.Count <= _periodADX.ValueInt || candles.Count <= _periodEma.ValueInt)
             {
                 return;
             }
@@ -188,9 +191,10 @@ namespace OsEngine.Robots
             _lastEma = _ema.DataSeries[0].Last;
             _lastADX = _ADX.DataSeries[0].Last;
 
-            decimal prevCandel = candles[candles.Count - 2].Low;
-            decimal lastCandel = candles[candles.Count - 1].Low;
-            decimal lastHigh = candles[candles.Count - 1].High;
+            decimal prevCandleLow = candles[candles.Count - 2].Low;
+            decimal prevEma = _ema.DataSeries[0].Values[_ema.DataSeries[0].Values.Count - 2];
+            decimal lastCandleLow = candles[candles.Count - 1].Low;
+            decimal lastCandleHigh = candles[candles.Count - 1].High;
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -206,18 +210,18 @@ namespace OsEngine.Robots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastEma < prevCandel && _lastEma >= lastCandel && _lastADX > 25)
+                    if (prevEma < prevCandleLow && _lastEma >= lastCandleLow && _lastADX > 25)
                     {
-                        _tab.BuyAtLimit(GetVolume(_tab), lastHigh + _slippage);
+                        _tab.BuyAtLimit(GetVolume(_tab), lastCandleHigh + _slippage);
                     }
                 }
 
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (_lastEma > prevCandel && lastHigh >= _lastEma && _lastADX > 25)
+                    if (prevEma > prevCandleLow && lastCandleHigh >= _lastEma && _lastADX > 25)
                     {
-                        _tab.SellAtLimit(GetVolume(_tab), lastCandel - _slippage);
+                        _tab.SellAtLimit(GetVolume(_tab), lastCandleLow - _slippage);
                     }
                 }
             }
@@ -227,7 +231,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-           
+
             decimal stopPrice;
 
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
@@ -277,7 +281,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
