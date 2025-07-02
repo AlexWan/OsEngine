@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Market;
@@ -13,8 +12,6 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Windows.Forms;
 
 /* Description
 trading robot for osengine
@@ -225,6 +222,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                 _tab.BuyAtMarket(GetVolume(_tab));
             }
+
             if (lastPrice < lastPcDown
                 && _regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
             {
@@ -294,7 +292,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

@@ -201,7 +201,14 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 }
             }
 
-            securityRatingData = securityRatingData.GetRange(0, _topVolumeSecurities.ValueInt);
+            int count = _topVolumeSecurities.ValueInt;
+
+            if (count > securityRatingData.Count)
+            {
+                count = securityRatingData.Count;
+            }
+
+            securityRatingData = securityRatingData.GetRange(0, count);
 
             for (int i = 0; i < securityRatingData.Count; i++)
             {
@@ -216,7 +223,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
                 }
             }
 
-            securityRatingData = securityRatingData.GetRange(0, _maxSecuritiesToTrade.ValueInt);
+            securityRatingData = securityRatingData.GetRange(0, count);
 
             string securitiesInTrade = "";
 
