@@ -10,42 +10,58 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Threading;
 
+/* Description
+Arbitrage robot for OsEngine.
+
+Robot for research. Saves slices of the situation on the bundle of instruments 
+within 3 seconds after receiving a signal that there is profit on the sequence.
+*/
+
 namespace OsEngine.Robots.CurrencyArbitrage
 {
-    [Bot("CurrencyMoveExplorer")]
+    [Bot("CurrencyMoveExplorer")] // We create an attribute so that we don't write anything to the BotFactory
     public class CurrencyMoveExplorer : BotPanel
     {
         public CurrencyMoveExplorer(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Polygon);
             _tabPolygon = this.TabsPolygon[0];
             _tabPolygon.ProfitGreaterThanSignalValueEvent += _tabPolygon_ProfitGreaterThanSignalValueEvent;
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            // Basic setting
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
 
+            // Create worker Area
             Thread worker = new Thread(ThreadWorkerArea);
             worker.Start();
 
-            Description = "Robot for research. Saves slices of the situation on the bundle of instruments within 3 seconds after receiving a signal that there is profit on the sequence.";
+            Description = "Robot for research. Saves slices of the situation on the bundle of instruments " +
+                "within 3 seconds after receiving a signal that there is profit on the sequence.";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "CurrencyMoveExplorer";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
+        // Tabs
         private BotTabPolygon _tabPolygon;
 
-        public StrategyParameterString Regime;
+        // Basic setting
+        private StrategyParameterString _regime;
 
+        // Trade logic
         private void _tabPolygon_ProfitGreaterThanSignalValueEvent(decimal profit, PolygonToTrade sequence)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -71,6 +87,7 @@ namespace OsEngine.Robots.CurrencyArbitrage
 
         DateTime _lastTimePolygonStartWatch;
 
+        // Worker area
         private void ThreadWorkerArea()
         {
             while(true)
