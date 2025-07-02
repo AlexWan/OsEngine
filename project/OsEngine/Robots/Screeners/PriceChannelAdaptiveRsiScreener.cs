@@ -35,21 +35,21 @@ namespace OsEngine.Robots.Screeners
         private BotTabScreener _screenerTab;
 
         // Basic settings
-        private StrategyParameterString Regime;
-        private StrategyParameterInt MaxPoses;
-        private StrategyParameterDecimal MinRsiValueToEntry;
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _maxPoses;
+        private StrategyParameterDecimal _minRsiValueToEntry;
 
         // GetVolume settings
-        private StrategyParameterString VolumeType;
-        private StrategyParameterDecimal Volume;
-        private StrategyParameterString TradeAssetInPortfolio;
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator settings
-        private StrategyParameterInt RsiLength;
-        private StrategyParameterInt PcAdxLength;
-        private StrategyParameterInt PcRatio;
-        private StrategyParameterBool SmaFilterIsOn;
-        private StrategyParameterInt SmaFilterLen;
+        private StrategyParameterInt _rsiLength;
+        private StrategyParameterInt _pcAdxLength;
+        private StrategyParameterInt _pcRatio;
+        private StrategyParameterBool _smaFilterIsOn;
+        private StrategyParameterInt _smaFilterLen;
 
         public PriceChannelAdaptiveRsiScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -60,32 +60,32 @@ namespace OsEngine.Robots.Screeners
             _screenerTab.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
 
             // Basic settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            MaxPoses = CreateParameter("Max poses", 1, 1, 20, 1);
-            MinRsiValueToEntry = CreateParameter("Min Rsi value to entry", 80, 1.0m, 95, 4);
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _maxPoses = CreateParameter("Max poses", 1, 1, 20, 1);
+            _minRsiValueToEntry = CreateParameter("Min Rsi value to entry", 80, 1.0m, 95, 4);
 
             // GetVolume settings
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator settings
-            RsiLength = CreateParameter("Rsi length", 100, 5, 300, 1);
-            PcAdxLength = CreateParameter("Pc adx length", 10, 5, 300, 1);
-            PcRatio = CreateParameter("Pc ratio", 80, 5, 300, 1);
-            SmaFilterIsOn = CreateParameter("Sma filter is on", true);
-            SmaFilterLen = CreateParameter("Sma filter Len", 150, 100, 300, 10);
+            _rsiLength = CreateParameter("Rsi length", 100, 5, 300, 1);
+            _pcAdxLength = CreateParameter("Pc adx length", 10, 5, 300, 1);
+            _pcRatio = CreateParameter("Pc ratio", 80, 5, 300, 1);
+            _smaFilterIsOn = CreateParameter("Sma filter is on", true);
+            _smaFilterLen = CreateParameter("Sma filter Len", 150, 100, 300, 10);
 
             // Create indicator RSI
             _screenerTab.CreateCandleIndicator(1,
                 "RSI",
-                new List<string>() { RsiLength.ValueInt.ToString() },
+                new List<string>() { _rsiLength.ValueInt.ToString() },
                 "Second");
 
             // Create indicator PriceChannelAdaptive
             _screenerTab.CreateCandleIndicator(2,
                 "PriceChannelAdaptive",
-                new List<string>() { PcAdxLength.ValueInt.ToString(), PcRatio.ValueInt.ToString() },
+                new List<string>() { _pcAdxLength.ValueInt.ToString(), _pcRatio.ValueInt.ToString() },
                 "Prime");
 
             // Subscribe to the indicator update event
@@ -102,8 +102,8 @@ namespace OsEngine.Robots.Screeners
 
         private void SmaScreener_ParametrsChangeByUser()
         {
-            _screenerTab._indicators[0].Parameters = new List<string>() { RsiLength.ValueInt.ToString() };
-            _screenerTab._indicators[1].Parameters = new List<string>() { PcAdxLength.ValueInt.ToString(), PcRatio.ValueInt.ToString() };
+            _screenerTab._indicators[0].Parameters = new List<string>() { _rsiLength.ValueInt.ToString() };
+            _screenerTab._indicators[1].Parameters = new List<string>() { _pcAdxLength.ValueInt.ToString(), _pcRatio.ValueInt.ToString() };
             _screenerTab.UpdateIndicatorsParameters();
         }
 
@@ -122,11 +122,11 @@ namespace OsEngine.Robots.Screeners
         // Logic
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
-            // 1 Если поза есть, то по трейлинг стопу закрываем
+            // 1 If there is a position, then we close the trailing stop
 
-            // 2 Позы нет. Открывать лонг, если последние N свечей мы были над скользящей средней
+            // 2 There is no pose. Open long if the last N candles we were above the moving average
 
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -142,14 +142,14 @@ namespace OsEngine.Robots.Screeners
             { 
                 int allPosesInAllTabs = this.PositionsCount;
 
-                if (allPosesInAllTabs >= MaxPoses.ValueInt)
+                if (allPosesInAllTabs >= _maxPoses.ValueInt)
                 {
                     return;
                 }
 
                 Aindicator rsi = (Aindicator)tab.Indicators[0];
 
-                if (rsi.DataSeries[0].Last < MinRsiValueToEntry.ValueDecimal) // Rsi filter
+                if (rsi.DataSeries[0].Last < _minRsiValueToEntry.ValueDecimal) // Rsi filter
                 {
                     return;
                 }
@@ -168,10 +168,10 @@ namespace OsEngine.Robots.Screeners
                 if (candleClose > pcUp)
                 {
 
-                    if (SmaFilterIsOn.ValueBool == true)
+                    if (_smaFilterIsOn.ValueBool == true)
                     {
-                        decimal smaValue = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 1);
-                        decimal smaPrev = Sma(candles, SmaFilterLen.ValueInt, candles.Count - 2);
+                        decimal smaValue = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 1);
+                        decimal smaPrev = Sma(candles, _smaFilterLen.ValueInt, candles.Count - 2);
 
                         if (smaValue < smaPrev)
                         {
@@ -237,14 +237,14 @@ namespace OsEngine.Robots.Screeners
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -255,7 +255,7 @@ namespace OsEngine.Robots.Screeners
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -265,7 +265,7 @@ namespace OsEngine.Robots.Screeners
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -276,7 +276,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -291,7 +291,7 @@ namespace OsEngine.Robots.Screeners
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -301,11 +301,11 @@ namespace OsEngine.Robots.Screeners
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 

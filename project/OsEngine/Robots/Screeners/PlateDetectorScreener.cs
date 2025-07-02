@@ -31,19 +31,18 @@ namespace OsEngine.Robots.Screeners
         private BotTabScreener _tabScreener;
 
         // Basic settings
-        private StrategyParameterString Regime;
-        private StrategyParameterInt MaxPositions;
-        private StrategyParameterDecimal BestBidMinRatioToAll;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _bestBidMinRatioToAll;
 
         // GetVolume settings
-        private StrategyParameterString VolumeType;
-        private StrategyParameterDecimal Volume;
-        private StrategyParameterString TradeAssetInPortfolio;
+        private StrategyParameterString _volumeType;
+        private StrategyParameterDecimal _volume;
+        private StrategyParameterString _tradeAssetInPortfolio;
 
         // Exit settings
-        private StrategyParameterDecimal ProfitPercent;
-        private StrategyParameterDecimal StopPercent;
-        private StrategyParameterInt OrderLifeTime;
+        private StrategyParameterDecimal _profitPercent;
+        private StrategyParameterDecimal _stopPercent;
+        private StrategyParameterInt _orderLifeTime;
 
         public PlateDetectorScreener(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -54,19 +53,18 @@ namespace OsEngine.Robots.Screeners
             _tabScreener.MarketDepthUpdateEvent += _tabScreener_MarketDepthUpdateEvent;
 
             // Basic settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
-            MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1);
-            BestBidMinRatioToAll = CreateParameter("Best bid min ratio", 5m, 0, 20, 1m);
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _bestBidMinRatioToAll = CreateParameter("Best bid min ratio", 5m, 0, 20, 1m);
 
             // GetVolume settings
-            VolumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
-            Volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
+            _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Exit settings
-            ProfitPercent = CreateParameter("Profit percent", 1.5m, 0, 20, 1m);
-            StopPercent = CreateParameter("Stop percent", 0.5m, 0, 20, 1m);
-            OrderLifeTime = CreateParameter("Order life time milliseconds", 2000, 0, 20, 1);
+            _profitPercent = CreateParameter("Profit percent", 1.5m, 0, 20, 1m);
+            _stopPercent = CreateParameter("Stop percent", 0.5m, 0, 20, 1m);
+            _orderLifeTime = CreateParameter("Order life time milliseconds", 2000, 0, 20, 1);
 
             Description = "The trend robot on Plate Detector Screener. " +
                 "Buy: " +
@@ -89,7 +87,7 @@ namespace OsEngine.Robots.Screeners
         // Trade logic
         private void _tabScreener_MarketDepthUpdateEvent(MarketDepth marketDepth, BotTabSimple tab)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -104,7 +102,7 @@ namespace OsEngine.Robots.Screeners
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                if (Regime.ValueString == "OnlyClosePosition")
+                if (_regime.ValueString == "OnlyClosePosition")
                 {
                     return;
                 }
@@ -140,14 +138,14 @@ namespace OsEngine.Robots.Screeners
 
             for (int i = 1; i < md.Bids.Count; i++)
             {
-                // если отношение объёма в лучшем биде к любому другому биду
-                // больше чем указанное значение - то не входим
-                // нам нужна плита
+                // if the ratio of the volume in the best bid to any other bid
+                // more than the specified value - then we do not enter
+                // we need a stove
 
                 decimal curVolume = md.Bids[i].Bid;
                 decimal ratio = bestBidVolume / curVolume;
 
-                if (ratio < BestBidMinRatioToAll.ValueDecimal)
+                if (ratio < _bestBidMinRatioToAll.ValueDecimal)
                 {
                     return;
                 }
@@ -172,7 +170,7 @@ namespace OsEngine.Robots.Screeners
                     return;
                 }
 
-                if (order.TimeCreate.AddMilliseconds(OrderLifeTime.ValueInt) < tab.TimeServerCurrent)
+                if (order.TimeCreate.AddMilliseconds(_orderLifeTime.ValueInt) < tab.TimeServerCurrent)
                 {
                     position.SignalTypeOpen = "Canceled";
                     tab.CloseAllOrderToPosition(position);
@@ -193,12 +191,12 @@ namespace OsEngine.Robots.Screeners
                     // This means that with this position in this branch of logic we are for the first time
 
                     decimal stopPrice =
-                        position.EntryPrice - position.EntryPrice * (StopPercent.ValueDecimal / 100);
+                        position.EntryPrice - position.EntryPrice * (_stopPercent.ValueDecimal / 100);
                     position.StopOrderRedLine = stopPrice;
 
                     // we place an order to close the position
                     decimal profitOrderPrice =
-                        position.EntryPrice + position.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+                        position.EntryPrice + position.EntryPrice * (_profitPercent.ValueDecimal / 100);
                     tab.CloseAtLimit(position, profitOrderPrice, position.OpenVolume);
                 }
 
@@ -236,14 +234,14 @@ namespace OsEngine.Robots.Screeners
         {
             decimal volume = 0;
 
-            if (VolumeType.ValueString == "Contracts")
+            if (_volumeType.ValueString == "Contracts")
             {
-                volume = Volume.ValueDecimal;
+                volume = _volume.ValueDecimal;
             }
-            else if (VolumeType.ValueString == "Contract currency")
+            else if (_volumeType.ValueString == "Contract currency")
             {
                 decimal contractPrice = tab.PriceBestAsk;
-                volume = Volume.ValueDecimal / contractPrice;
+                volume = _volume.ValueDecimal / contractPrice;
 
                 if (StartProgram == StartProgram.IsOsTrader)
                 {
@@ -254,7 +252,7 @@ namespace OsEngine.Robots.Screeners
                     tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
-                        volume = Volume.ValueDecimal / (contractPrice * tab.Security.Lot);
+                        volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
                     }
 
                     volume = Math.Round(volume, tab.Security.DecimalsVolume);
@@ -264,7 +262,7 @@ namespace OsEngine.Robots.Screeners
                     volume = Math.Round(volume, 6);
                 }
             }
-            else if (VolumeType.ValueString == "Deposit percent")
+            else if (_volumeType.ValueString == "Deposit percent")
             {
                 Portfolio myPortfolio = tab.Portfolio;
 
@@ -275,7 +273,7 @@ namespace OsEngine.Robots.Screeners
 
                 decimal portfolioPrimeAsset = 0;
 
-                if (TradeAssetInPortfolio.ValueString == "Prime")
+                if (_tradeAssetInPortfolio.ValueString == "Prime")
                 {
                     portfolioPrimeAsset = myPortfolio.ValueCurrent;
                 }
@@ -290,7 +288,7 @@ namespace OsEngine.Robots.Screeners
 
                     for (int i = 0; i < positionOnBoard.Count; i++)
                     {
-                        if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                        if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                         {
                             portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                             break;
@@ -300,11 +298,11 @@ namespace OsEngine.Robots.Screeners
 
                 if (portfolioPrimeAsset == 0)
                 {
-                    SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                    SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                     return 0;
                 }
 
-                decimal moneyOnPosition = portfolioPrimeAsset * (Volume.ValueDecimal / 100);
+                decimal moneyOnPosition = portfolioPrimeAsset * (_volume.ValueDecimal / 100);
 
                 decimal qty = moneyOnPosition / tab.PriceBestAsk / tab.Security.Lot;
 
