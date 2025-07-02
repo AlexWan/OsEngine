@@ -1,15 +1,48 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 
+/* Description
+Index Arbitrage robot for OsEngine.
+
+Arbitrage of several currency pairs on the index.
+*/
+
 namespace OsEngine.Robots.IndexArbitrage
 {
-    [Bot("MultiExchangePairArbitrageOnTheIndex")]
+    [Bot("MultiExchangePairArbitrageOnTheIndex")] // We create an attribute so that we don't write anything to the BotFactory
     public class MultiExchangePairArbitrageOnTheIndex : BotPanel
     {
+        // Index tabs
+        private BotTabIndex _index;
+
+        // Simple tabs
+        private BotTabSimple _sec1Tab;
+        private BotTabSimple _sec2Tab;
+        private BotTabSimple _sec3Tab;
+        private BotTabSimple _sec4Tab;
+        private BotTabSimple _sec5Tab;
+
+        // Basic settings
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _moneyPercentFromDepoOnPosition;
+
+        // GetVolume setting
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Deviation settings
+        private StrategyParameterDecimal _minDeviationSecToIndexToEntry;
+        private StrategyParameterDecimal _minDeviationSecToSecToEntry;
+        private StrategyParameterDecimal _minDeviationToExit;
+
         public MultiExchangePairArbitrageOnTheIndex(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Index);
@@ -28,60 +61,37 @@ namespace OsEngine.Robots.IndexArbitrage
             _sec4Tab = TabsSimple[3];
             _sec5Tab = TabsSimple[4];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _moneyPercentFromDepoOnPosition = CreateParameter("Percent depo on position", 25m, 0.1m, 50, 0.1m);
 
-            MoneyPercentFromDepoOnPosition = CreateParameter("Percent depo on position", 25m, 0.1m, 50, 0.1m);
+            // GetVolume setting
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // Deviation settings
+            _minDeviationSecToIndexToEntry = CreateParameter("Min Deviation SecToIndex To Entry", 0.15m, 0.15m, 5, 0.1m);
+            _minDeviationSecToSecToEntry = CreateParameter("Min Deviation SecToSec ToEntry", 0.5m, 0.1m, 5, 0.1m);
+            _minDeviationToExit = CreateParameter("Min Deviation To Exit", 0.1m, 0.1m, 5, 0.1m);
 
-            MinDeviationSecToIndexToEntry = CreateParameter("Min Deviation SecToIndex To Entry", 0.15m, 0.15m, 5, 0.1m);
-
-            MinDeviationSecToSecToEntry = CreateParameter("Min Deviation SecToSec ToEntry", 0.5m, 0.1m, 5, 0.1m);
-
-            MinDeviationToExit = CreateParameter("Min Deviation To Exit", 0.1m, 0.1m, 5, 0.1m);
-
+            Description = "Arbitrage of several currency pairs on the index";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "MultiExchangePairArbitrageOnTheIndex";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
-        {
-            
+        { 
 
         }
 
-        private BotTabIndex _index;
-
-        private BotTabSimple _sec1Tab;
-
-        private BotTabSimple _sec2Tab;
-
-        private BotTabSimple _sec3Tab;
-
-        private BotTabSimple _sec4Tab;
-
-        private BotTabSimple _sec5Tab;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterDecimal MoneyPercentFromDepoOnPosition;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterDecimal MinDeviationSecToIndexToEntry;
-
-        public StrategyParameterDecimal MinDeviationSecToSecToEntry;
-
-        public StrategyParameterDecimal MinDeviationToExit;
-
-        // logic open poses
-
+        // Logic open position
         private void _index_SpreadChangeEvent(List<Candle> index)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -101,9 +111,10 @@ namespace OsEngine.Robots.IndexArbitrage
             }
         }
 
+        // Logic open position
         private void TryOpenPositions(List<Candle> index)
         {
-            // берём список бумаг сверху и снизу индекса. 
+            // we take a list of security from the top and bottom of the index.
 
             List<BotTabSimple> secsUpperIndex = new List<BotTabSimple>();
 
@@ -115,18 +126,22 @@ namespace OsEngine.Robots.IndexArbitrage
             {
                 secsUpperIndex.Add(_sec1Tab);
             }
+
             if (IsUpperThenIndex(lastIndexPrice, _sec2Tab))
             {
                 secsUpperIndex.Add(_sec2Tab);
             }
+
             if (IsUpperThenIndex(lastIndexPrice, _sec3Tab))
             {
                 secsUpperIndex.Add(_sec3Tab);
             }
+
             if (IsUpperThenIndex(lastIndexPrice, _sec4Tab))
             {
                 secsUpperIndex.Add(_sec4Tab);
             }
+
             if (IsUpperThenIndex(lastIndexPrice, _sec5Tab))
             {
                 secsUpperIndex.Add(_sec5Tab);
@@ -136,18 +151,22 @@ namespace OsEngine.Robots.IndexArbitrage
             {
                 secLowerIndex.Add(_sec1Tab);
             }
+
             if (IsLowerThenIndex(lastIndexPrice, _sec2Tab))
             {
                 secLowerIndex.Add(_sec2Tab);
             }
+
             if (IsLowerThenIndex(lastIndexPrice, _sec3Tab))
             {
                 secLowerIndex.Add(_sec3Tab);
             }
+
             if (IsLowerThenIndex(lastIndexPrice, _sec4Tab))
             {
                 secLowerIndex.Add(_sec4Tab);
             }
+
             if (IsLowerThenIndex(lastIndexPrice, _sec5Tab))
             {
                 secLowerIndex.Add(_sec5Tab);
@@ -159,7 +178,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 return;
             }
 
-            // выбираем самые высокие сверху
+            // we choose the highest ones from the top
 
             BotTabSimple upSec = null;
 
@@ -170,13 +189,14 @@ namespace OsEngine.Robots.IndexArbitrage
                     upSec = secsUpperIndex[i];
                     continue;
                 }
+
                 if (secsUpperIndex[i].PriceBestBid > upSec.PriceBestBid)
                 {
                     upSec = secsUpperIndex[i];
                 }
             }
 
-            // выбираем самые низкие снизу
+            // we select the lowest ones from the bottom
 
             BotTabSimple downSec = null;
 
@@ -187,6 +207,7 @@ namespace OsEngine.Robots.IndexArbitrage
                     downSec = secLowerIndex[i];
                     continue;
                 }
+
                 if (secLowerIndex[i].PriceBestAsk < downSec.PriceBestAsk)
                 {
                     downSec = secLowerIndex[i];
@@ -212,7 +233,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal percentMove = absDiff / (lowPrice / 100);
 
-            if(percentMove >= MinDeviationSecToSecToEntry.ValueDecimal)
+            if(percentMove >= _minDeviationSecToSecToEntry.ValueDecimal)
             {
                 decimal volumeOnUpperSec = GetVolume(upSec);
                 decimal volumeOnLowerSec = GetVolume(downSec);
@@ -246,7 +267,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal diffPercent = diff / (lastIndexPrice / 100);
 
-            if(diffPercent < MinDeviationSecToIndexToEntry.ValueDecimal)
+            if(diffPercent < _minDeviationSecToIndexToEntry.ValueDecimal)
             {
                 return false;
             }
@@ -278,7 +299,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal diffPercent = diff / (lastAsk / 100);
 
-            if (diffPercent < MinDeviationSecToIndexToEntry.ValueDecimal)
+            if (diffPercent < _minDeviationSecToIndexToEntry.ValueDecimal)
             {
                 return false;
             }
@@ -286,6 +307,7 @@ namespace OsEngine.Robots.IndexArbitrage
             return true;
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             Portfolio myPortfolio = tab.Portfolio;
@@ -297,7 +319,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal portfolioPrimeAsset = 0;
 
-            if (TradeAssetInPortfolio.ValueString == "Prime")
+            if (_tradeAssetInPortfolio.ValueString == "Prime")
             {
                 portfolioPrimeAsset = myPortfolio.ValueCurrent;
             }
@@ -312,7 +334,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
                 for (int i = 0; i < positionOnBoard.Count; i++)
                 {
-                    if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
+                    if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
                     {
                         portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
                         break;
@@ -322,11 +344,11 @@ namespace OsEngine.Robots.IndexArbitrage
 
             if (portfolioPrimeAsset == 0)
             {
-                SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
                 return 0;
             }
 
-            decimal moneyOnPosition = portfolioPrimeAsset * (MoneyPercentFromDepoOnPosition.ValueDecimal / 100);
+            decimal moneyOnPosition = portfolioPrimeAsset * (_moneyPercentFromDepoOnPosition.ValueDecimal / 100);
 
             decimal qty = moneyOnPosition / tab.PriceBestAsk;
 
@@ -342,6 +364,7 @@ namespace OsEngine.Robots.IndexArbitrage
             return qty;
         }
 
+        // Get opening position
         private List<OpenPosByTab> GetOpenPoses()
         {
             List<OpenPosByTab> openPoses = new List<OpenPosByTab>();
@@ -353,6 +376,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 newPos.Tab = _sec1Tab;
                 openPoses.Add(newPos);
             }
+
             if (_sec2Tab.PositionsOpenAll.Count > 0)
             {
                 OpenPosByTab newPos = new OpenPosByTab();
@@ -360,6 +384,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 newPos.Tab = _sec2Tab;
                 openPoses.Add(newPos);
             }
+
             if (_sec3Tab.PositionsOpenAll.Count > 0)
             {
                 OpenPosByTab newPos = new OpenPosByTab();
@@ -367,6 +392,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 newPos.Tab = _sec3Tab;
                 openPoses.Add(newPos);
             }
+
             if (_sec4Tab.PositionsOpenAll.Count > 0)
             {
                 OpenPosByTab newPos = new OpenPosByTab();
@@ -374,6 +400,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 newPos.Tab = _sec4Tab;
                 openPoses.Add(newPos);
             }
+
             if (_sec5Tab.PositionsOpenAll.Count > 0)
             {
                 OpenPosByTab newPos = new OpenPosByTab();
@@ -385,7 +412,7 @@ namespace OsEngine.Robots.IndexArbitrage
             return openPoses;
         }
 
-        // logic close poses
+        // logic close position
 
         private void TryClosePositions(List<OpenPosByTab> openPoses)
         {
@@ -417,14 +444,14 @@ namespace OsEngine.Robots.IndexArbitrage
 
             decimal percentMove = absDiff / (lowPrice / 100);
 
-            if (percentMove <= MinDeviationToExit.ValueDecimal)
+            if (percentMove <= _minDeviationToExit.ValueDecimal)
             {
                 CloseAtMarket(upPosition);
                 CloseAtMarket(downPosition);
             }
-
         }
 
+        // Close at market
         private void CloseAtMarket(OpenPosByTab pos)
         {
             if (pos.Position.State != PositionStateType.Open)
