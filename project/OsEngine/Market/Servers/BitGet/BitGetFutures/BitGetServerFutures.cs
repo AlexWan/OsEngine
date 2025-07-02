@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Com.Lmax.Api;
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
@@ -1651,12 +1652,114 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     if (_extendedMarketData)
                     {
                         webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                        GetFundingData(security.Name, security.NameClass);
+                        GetFundingHistory(security.Name, security.NameClass);
                     }
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private readonly RateGate _rgFunding = new RateGate(1, TimeSpan.FromMilliseconds(110));
+
+        private void GetFundingData(string securityName, string productType)
+        {
+            _rgFunding.WaitToProceed();
+
+            try
+            {
+                string requestStr = $"/api/v2/mix/market/current-fund-rate?symbol={securityName}&productType={productType}";
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<FundingItem>> responseFunding = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<FundingItem>>());
+
+                    if (responseFunding.code == "00000")
+                    {
+                        FundingItem item = responseFunding.data[0];
+
+                        Funding data = new Funding();
+
+                        data.SecurityNameCode = item.symbol;
+                        data.MaxFundingRate = item.maxFundingRate.ToDecimal();
+                        data.MinFundingRate = item.minFundingRate.ToDecimal();
+                        data.FundingIntervalHours = int.Parse(item.fundingRateInterval);
+
+                        FundingUpdateEvent?.Invoke(data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingData error. Code:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetFundingData error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetFundingData error. {ex.ToString()}", LogMessageType.Error);
+            }
+        }
+
+        private void GetFundingHistory(string securityName, string productType)
+        {
+            _rgFunding.WaitToProceed();
+
+            try
+            {
+                string requestStr = $"/api/v2/mix/market/history-fund-rate?symbol={securityName}&productType={productType}";
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<FundingItemHistory>> responseFunding = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<FundingItemHistory>>());
+
+                    if (responseFunding.code == "00000")
+                    {
+                        FundingItemHistory item = responseFunding.data[0];
+
+                        Funding data = new Funding();
+
+                        data.SecurityNameCode = item.symbol;
+                        data.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal());
+
+                        FundingUpdateEvent?.Invoke(data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingHistory error. Code:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetFundingHistory error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetFundingHistory error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
