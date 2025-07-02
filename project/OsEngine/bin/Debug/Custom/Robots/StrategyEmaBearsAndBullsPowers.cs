@@ -13,7 +13,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
-/*Discription
+/*Description
 Trading robot for osengine.
 
 Trend strategy on Bears Power, Bulls Power and Ema.
