@@ -2583,7 +2583,7 @@ namespace OsEngine.Market.Servers.OKX
 
                     funding.SecurityNameCode = item.instId;
                     funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
-                    funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
+                    funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal());
                     funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.ts.ToDecimal());
                     funding.MinFundingRate = item.minFundingRate.ToDecimal();
                     funding.MaxFundingRate = item.maxFundingRate.ToDecimal();
