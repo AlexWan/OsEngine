@@ -33,7 +33,7 @@ namespace OsEngine.Robots
     [Bot("OverbougthOversoldWilliamsRange")] //We create an attribute so that we don't write anything in the Boot factory
     public class OverbougthOversoldWilliamsRange : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -54,7 +54,7 @@ namespace OsEngine.Robots
         private Aindicator _ssma;
         private Aindicator _Williams;
 
-        // Exit
+        // Exit settings
         private StrategyParameterDecimal _stopValue;
         private StrategyParameterDecimal _profitValue;
 
@@ -98,7 +98,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_Williams.Parameters[0]).ValueInt = _periodWilliams.ValueInt;
             _Williams.Save();
 
-            // Exit
+            // Exit settings
             _stopValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
             _profitValue = CreateParameter("Profit Value", 1.0m, 5, 200, 5, "Exit");
 
@@ -278,7 +278,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

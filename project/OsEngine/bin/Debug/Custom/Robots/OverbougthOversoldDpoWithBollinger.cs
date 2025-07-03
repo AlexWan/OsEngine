@@ -127,6 +127,7 @@ namespace OsEngine.Robots
             _bollinger.Reload();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "OverbougthOversoldDpoWithBollinger";
@@ -179,6 +180,7 @@ namespace OsEngine.Robots
                 LogicOpenPosition(candles);
             }
         }
+
         // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
@@ -253,6 +255,7 @@ namespace OsEngine.Robots
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValue.ValueDecimal / 100;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
         }
@@ -277,7 +280,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
