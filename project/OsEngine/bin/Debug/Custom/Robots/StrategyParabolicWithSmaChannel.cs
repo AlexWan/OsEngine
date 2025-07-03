@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -22,18 +22,22 @@ The trend robot on Strategy Parabolic With Sma Channel.
 Buy:
 1. The price is higher than the Parabolic value. 
 2. The price is higher than SmaHigh.
+
 Sell:
 1. The price is lower than the Parabolic value. 
 2. The price is lower than SmaLow.
-Exit the position: the opposite boundary of the Sma channel.
- */
+
+Exit:
+the opposite boundary of the Sma channel.
+*/
 
 namespace OsEngine.Robots
 {
-    // We create an attribute so that we don't write anything to the BotFactory
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     [Bot("StrategyParabolicWithSmaChannel")]
     public class StrategyParabolicWithSmaChannel : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -52,7 +56,7 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _maxStep;
         private StrategyParameterInt _periodSmaChannel;
 
-        // Indicator
+        // Indicators
         private Aindicator _parabolic;
         private Aindicator _smaUp;
         private Aindicator _smaDown;
@@ -64,6 +68,7 @@ namespace OsEngine.Robots
 
         public StrategyParabolicWithSmaChannel(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -81,7 +86,7 @@ namespace OsEngine.Robots
             // Indicator settings
             _step = CreateParameter("Step", 10, 10.0m, 300, 10, "Indicator");
             _maxStep = CreateParameter("Max Step", 20, 10.0m, 300, 10, "Indicator");
-            _periodSmaChannel = CreateParameter("EMA Channel Length", 10, 50, 50, 400, "Indicator");
+            _periodSmaChannel = CreateParameter("EMA Channel Length", 10, 10, 50, 400, "Indicator");
 
             // Create indicator Parabolic
             _parabolic = IndicatorsFactory.CreateIndicatorByName("ParabolicSAR", name + "Parabolic", false);
@@ -105,7 +110,7 @@ namespace OsEngine.Robots
             _smaDown.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyParabolicWithSmaChannel_ParametrsChangeByUser;
+            ParametrsChangeByUser += _strategyParabolicWithSmaChannel_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -121,15 +126,17 @@ namespace OsEngine.Robots
         }
 
         // Indicator Update event
-        private void StrategyParabolicWithSmaChannel_ParametrsChangeByUser()
+        private void _strategyParabolicWithSmaChannel_ParametrsChangeByUser()
         {
             ((IndicatorParameterDecimal)_parabolic.Parameters[0]).ValueDecimal = _step.ValueDecimal;
             ((IndicatorParameterDecimal)_parabolic.Parameters[1]).ValueDecimal = _maxStep.ValueDecimal;
             _parabolic.Save();
             _parabolic.Reload();
+
             ((IndicatorParameterInt)_smaUp.Parameters[0]).ValueInt = _periodSmaChannel.ValueInt;
             _smaUp.Save();
             _smaUp.Reload();
+
             ((IndicatorParameterInt)_smaDown.Parameters[0]).ValueInt = _periodSmaChannel.ValueInt;
             _smaDown.Save();
             _smaDown.Reload();
@@ -140,6 +147,7 @@ namespace OsEngine.Robots
         {
             return "StrategyParabolicWithSmaChannel";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -155,7 +163,7 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodSmaChannel.ValueInt)
+            if (candles.Count <= _periodSmaChannel.ValueInt)
             {
                 return;
             }
@@ -280,7 +288,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
