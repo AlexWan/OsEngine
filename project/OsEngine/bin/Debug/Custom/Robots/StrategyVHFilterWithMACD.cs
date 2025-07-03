@@ -95,7 +95,6 @@ namespace OsEngine.Robots
             _slowLineLengthMACD = CreateParameter("MACD Slow Length", 32, 10, 300, 10, "Indicator");
             _signalLineLengthMACD = CreateParameter("MACD Signal Length", 8, 10, 300, 10, "Indicator");
 
-
             // Create indicator VHF
             _VHF = IndicatorsFactory.CreateIndicatorByName("VHFilter", name + "VHFilter", false);
             _VHF = (Aindicator)_tab.CreateCandleIndicator(_VHF, "NewArea");
@@ -299,6 +298,7 @@ namespace OsEngine.Robots
                         price = candles[i].Low;
                     }
                 }
+
                 return price;
             }
 
@@ -316,6 +316,7 @@ namespace OsEngine.Robots
 
                 return price;
             }
+
             return 0;
         }
 

@@ -35,13 +35,13 @@ namespace OsEngine.Robots
     [Bot("StrategyTwoEmaAndRVI")]//We create an attribute so that we don't write anything in the Boot factory
     class StrategyTwoEmaAndRVI : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay TimeStart;
-        private StrategyParameterTimeOfDay TimeEnd;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _timeStart;
+        private StrategyParameterTimeOfDay _timeEnd;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -70,10 +70,10 @@ namespace OsEngine.Robots
             _tab = TabsSimple[0];
 
             // Basic Settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            TimeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            TimeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _timeStart = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _timeEnd = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // GetVolume Settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -149,7 +149,7 @@ namespace OsEngine.Robots
         // Candle Completion Event
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -161,8 +161,8 @@ namespace OsEngine.Robots
             }
 
             // If the time does not match, we leave
-            if (TimeStart.Value > _tab.TimeServerCurrent ||
-                TimeEnd.Value < _tab.TimeServerCurrent)
+            if (_timeStart.Value > _tab.TimeServerCurrent ||
+                _timeEnd.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -176,7 +176,7 @@ namespace OsEngine.Robots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -203,10 +203,10 @@ namespace OsEngine.Robots
 
             if (openPositions == null || openPositions.Count == 0)
             {
-                decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (_lastEmaFast > _lastEmaSlow && _lastRedRVI > _lastSignalRVI)
                     {
@@ -216,7 +216,7 @@ namespace OsEngine.Robots
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (_lastEmaFast < _lastEmaSlow && _lastRedRVI < _lastSignalRVI)
                     {
@@ -232,7 +232,7 @@ namespace OsEngine.Robots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             // The last value of the indicators
             _lastSignalRVI = _RVI.DataSeries[1].Last;
@@ -284,7 +284,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
