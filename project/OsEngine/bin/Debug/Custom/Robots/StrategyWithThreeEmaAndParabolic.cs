@@ -34,7 +34,7 @@ namespace OsEngine.Robots
     [Bot("StrategyWithThreeEmaAndParabolic")]//We create an attribute so that we don't write anything in the Boot factory
     class StrategyWithThreeEmaAndParabolic : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
