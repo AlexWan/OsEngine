@@ -157,6 +157,7 @@ public class OneLegArbitrage : BotPanel
     private void LogicClosePosition(List<Candle> candles, List<Position> position)
     {
         List<Position> openPositions = _tab2.PositionsOpenAll;
+
         for (int i = 0; openPositions != null && i < openPositions.Count; i++)
         {
             if (openPositions[i].Direction == Side.Buy)
@@ -170,6 +171,7 @@ public class OneLegArbitrage : BotPanel
                     else
                     {
                         _tab2.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
+
                         if (openPositions.Count < 2)
                         {
                             _tab2.SellAtLimit(GetVolume(_tab2), _lastPrice - _tab2.Security.PriceStep * _slippage.ValueInt);
@@ -188,6 +190,7 @@ public class OneLegArbitrage : BotPanel
                     else
                     {
                         _tab2.CloseAtMarket(openPositions[i], openPositions[i].OpenVolume);
+
                         if(openPositions.Count < 2)
                         {
                             _tab2.BuyAtLimit(GetVolume(_tab2), _lastPrice + _tab2.Security.PriceStep * _slippage.ValueInt);
@@ -218,7 +221,7 @@ public class OneLegArbitrage : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
+                    tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
                     volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

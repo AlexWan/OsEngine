@@ -3,9 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-﻿using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
-using OsEngine.Indicators;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -22,9 +20,9 @@ namespace OsEngine.Robots.OnScriptIndicators
         private BotTabSimple _tab;
 
         // Basic settings
-        private StrategyParameterString Regime;
-        private StrategyParameterTimeOfDay TimeToInter;
-        private StrategyParameterDecimal Slippage;
+        private StrategyParameterString _regime;
+        private StrategyParameterTimeOfDay _timeToInter;
+        private StrategyParameterDecimal _slippage;
 
         // GetVolume settings
         private StrategyParameterString _volumeType;
@@ -32,8 +30,8 @@ namespace OsEngine.Robots.OnScriptIndicators
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Exit settings
-        private StrategyParameterDecimal Stop;
-        private StrategyParameterDecimal Profit;
+        private StrategyParameterDecimal _stop;
+        private StrategyParameterDecimal _profit;
 
         public TimeOfDayBot(string name, StartProgram startProgram) : base(name, startProgram)
         {
@@ -41,9 +39,9 @@ namespace OsEngine.Robots.OnScriptIndicators
             _tab = TabsSimple[0];
 
             // Basic settings
-            Regime = CreateParameter("Regime", "Off", new[] {"Off", "Buy", "Sell"});
-            Slippage = CreateParameter("Slippage", 0, 0, 20m, 0.1m);
-            TimeToInter = CreateParameterTimeOfDay("Time to Inter", 10, 0, 1, 0);
+            _regime = CreateParameter("Regime", "Off", new[] {"Off", "Buy", "Sell"});
+            _slippage = CreateParameter("Slippage", 0, 0, 20m, 0.1m);
+            _timeToInter = CreateParameterTimeOfDay("Time to Inter", 10, 0, 1, 0);
 
             // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -51,8 +49,8 @@ namespace OsEngine.Robots.OnScriptIndicators
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Exit settings
-            Stop = CreateParameter("Stop", 1, 1.0m, 10, 0.1m);
-            Profit = CreateParameter("Profit", 1, 1.0m, 10, 0.1m);
+            _stop = CreateParameter("Stop", 1, 1.0m, 10, 0.1m);
+            _profit = CreateParameter("Profit", 1, 1.0m, 10, 0.1m);
 
             // Subscribe to the tab on new tick event
             _tab.NewTickEvent += TabOnNewTickEvent;
@@ -80,7 +78,7 @@ namespace OsEngine.Robots.OnScriptIndicators
         // Logic
         private void TabOnNewTickEvent(Trade trade)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -92,7 +90,7 @@ namespace OsEngine.Robots.OnScriptIndicators
                 return;
             }
 
-            if (TimeToInter.Value < trade.Time)
+            if (_timeToInter.Value < trade.Time)
             {
                 LogicOpenPosition();
             }
@@ -101,18 +99,19 @@ namespace OsEngine.Robots.OnScriptIndicators
         // Open position logic
         private void LogicOpenPosition()
         {
-            if (Regime.ValueString == "Buy")
+            if (_regime.ValueString == "Buy")
             {
                 _tab.BuyAtLimit(GetVolume(_tab),
-                    _tab.PriceBestAsk + _tab.PriceBestAsk * (Slippage.ValueDecimal / 100));
-            }
-            if (Regime.ValueString == "Sell")
-            {
-                _tab.SellAtLimit(GetVolume(_tab),
-                    _tab.PriceBestBid - _tab.PriceBestBid * (Slippage.ValueDecimal / 100));
+                    _tab.PriceBestAsk + _tab.PriceBestAsk * (_slippage.ValueDecimal / 100));
             }
 
-            Regime.ValueString = "Off";
+            if (_regime.ValueString == "Sell")
+            {
+                _tab.SellAtLimit(GetVolume(_tab),
+                    _tab.PriceBestBid - _tab.PriceBestBid * (_slippage.ValueDecimal / 100));
+            }
+
+            _regime.ValueString = "Off";
         }
 
         // Close position logic
@@ -125,17 +124,19 @@ namespace OsEngine.Robots.OnScriptIndicators
 
             if (position.Direction == Side.Buy)
             {
-                stopActivationPrice  = position.EntryPrice - position.EntryPrice * (Stop.ValueDecimal / 100);
-                stopPrice = stopPrice - stopPrice * (Slippage.ValueDecimal / 100);
-                profitActivationPrice = position.EntryPrice + position.EntryPrice * (Profit.ValueDecimal / 100);
-                profitPrice = profitPrice - stopPrice * (Slippage.ValueDecimal / 100);
+                stopActivationPrice  = position.EntryPrice - position.EntryPrice * (_stop.ValueDecimal / 100);
+                stopPrice = stopPrice - stopPrice * (_slippage.ValueDecimal / 100);
+
+                profitActivationPrice = position.EntryPrice + position.EntryPrice * (_profit.ValueDecimal / 100);
+                profitPrice = profitPrice - stopPrice * (_slippage.ValueDecimal / 100);
             }
             if (position.Direction == Side.Sell)
             {
-                stopActivationPrice  = position.EntryPrice + position.EntryPrice * (Stop.ValueDecimal / 100);
-                stopPrice = stopPrice + stopPrice * (Slippage.ValueDecimal / 100);
-                profitActivationPrice  = position.EntryPrice - position.EntryPrice * (Profit.ValueDecimal / 100);
-                profitPrice = profitPrice + stopPrice * (Slippage.ValueDecimal / 100);
+                stopActivationPrice  = position.EntryPrice + position.EntryPrice * (_stop.ValueDecimal / 100);
+                stopPrice = stopPrice + stopPrice * (_slippage.ValueDecimal / 100);
+
+                profitActivationPrice  = position.EntryPrice - position.EntryPrice * (_profit.ValueDecimal / 100);
+                profitPrice = profitPrice + stopPrice * (_slippage.ValueDecimal / 100);
             }
 
             _tab.CloseAtStop(position, stopActivationPrice, stopPrice);
@@ -162,7 +163,7 @@ namespace OsEngine.Robots.OnScriptIndicators
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
