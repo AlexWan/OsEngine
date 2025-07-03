@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Robots"
         mc:Ignorable="d"
-           Title="Add robot" Height="668" Width="571" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
+        Title="Add robot" Height="668" Width="571" Icon="/Images/OsLogo.ico" Style="{StaticResource WindowStyleNoResize}" ResizeMode="NoResize" WindowStartupLocation="CenterScreen" Topmost="True">
     <Grid>
         <Rectangle  Margin="2,2,2,32"/>
         <Button Name="ButtonAccept" Content="Accept" Height="22" Margin="0,0,5,5" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="280" Click="ButtonAccept_Click"/>

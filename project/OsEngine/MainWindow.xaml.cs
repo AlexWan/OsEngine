@@ -28,6 +28,7 @@ using OsEngine.Entity;
 using System.Net.Sockets;
 using System.Text;
 using OsEngine.OsTrader.Gui.BlockInterface;
+using OsEngine.OsTrader.SystemAnalyze;
 
 namespace OsEngine
 {
@@ -117,6 +118,7 @@ namespace OsEngine
             _window = this;
 
             ServerMaster.Activate();
+            SystemUsageAnalyzeMaster.Activate();
 
             Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 

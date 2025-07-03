@@ -2122,5 +2122,25 @@ namespace OsEngine.Language
         public string Label555 => OsLocalization.ConvertToLocString(
         "Eng:Asset in portfolio_" +
         "Ru:Актив в портфеле");
+
+        public string Label556 => OsLocalization.ConvertToLocString(
+        "Eng:System strain indicators_" +
+        "Ru:Показатели нагрузки на систему");
+
+        public string Label557 => OsLocalization.ConvertToLocString(
+        "Eng:Collect data_" +
+        "Ru:Собирать данные");
+
+        public string Label558 => OsLocalization.ConvertToLocString(
+        "Eng:Go to file_" +
+        "Ru:К файлу");
+
+        public string Label559 => OsLocalization.ConvertToLocString(
+        "Eng:Save period_" +
+        "Ru:Храним период");
+
+        public string Label560 => OsLocalization.ConvertToLocString(
+        "Eng:System stress_" +
+        "Ru:Нагрузка на систему");
     }
 }
