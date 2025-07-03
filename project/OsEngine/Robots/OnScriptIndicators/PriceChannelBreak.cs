@@ -150,6 +150,7 @@ public class PriceChannelBreak : BotPanel
     private void LogicOpenPosition(List<Candle> candles, List<Position> position)
     {
         List<Position> openPositions = _tab.PositionsOpenAll;
+
         if (openPositions == null || openPositions.Count == 0)
         {
             // long
@@ -176,11 +177,13 @@ public class PriceChannelBreak : BotPanel
     private void Strateg_PositionOpen(Position position)
     {
         List<Position> openPositions = _tab.PositionsOpenAll;
+
         for (int i = 0; openPositions != null && i < openPositions.Count; i++)
         {
             if (openPositions[i].Direction == Side.Buy)
             {
                 decimal lowCandle = _tab.CandlesAll[_tab.CandlesAll.Count - 2].Low;
+
                 _tab.CloseAtStop(openPositions[i], lowCandle, lowCandle - _slippage.ValueInt * _tab.Security.PriceStep);
 
                 _tab.CloseAtProfit(
@@ -190,6 +193,7 @@ public class PriceChannelBreak : BotPanel
             else
             {
                 decimal highCandle = _tab.CandlesAll[_tab.CandlesAll.Count - 2].High;
+
                 _tab.CloseAtStop(openPositions[i], highCandle, highCandle + _slippage.ValueInt * _tab.Security.PriceStep);
 
                 _tab.CloseAtProfit(
@@ -219,7 +223,7 @@ public class PriceChannelBreak : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
+                    tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
                     volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
