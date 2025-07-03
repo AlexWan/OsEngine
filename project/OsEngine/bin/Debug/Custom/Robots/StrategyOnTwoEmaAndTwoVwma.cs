@@ -19,20 +19,22 @@ trading robot for osengine
 
 The trend robot on strategy on two Ema and two Vwma
 
-Buy: Fast Vwma and slow Vwma punch up (above) both Emas (also fast and slow).
+Buy:
+Fast Vwma and slow Vwma higher than both Emas (also fast and slow).
 
-Sell: Fast Vwma and slow Vwma punch down (below) both Emas (also fast and slow).
+Sell:
+Fast Vwma and slow Vwma Lower than both Emas (also fast and slow).
 
-Exit from buy: Fast Vwma below slow Vwma.
-
-Exit from sell: Fast Vwma above slow Vwma.
+Exit:
+The reverse conditions
 */
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyOnTwoEmaAndTwoVwma")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyOnTwoEmaAndTwoVwma")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyOnTwoEmaAndTwoVwma : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -66,6 +68,7 @@ namespace OsEngine.Robots
 
         public StrategyOnTwoEmaAndTwoVwma(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -112,30 +115,32 @@ namespace OsEngine.Robots
             _vwmaSlow.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += VwmaWithAShift_ParametrsChangeByUser;
+            ParametrsChangeByUser += _vwmaWithAShift_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "The trend robot on strategy on two Ema and two Vwma " +
-                "Buy: Fast Vwma and slow Vwma punch up (above) both Emas (also fast and slow). " +
-                "Sell: Fast Vwma and slow Vwma punch down (below) both Emas (also fast and slow). " +
-                "Exit from buy: Fast Vwma below slow Vwma. " +
-                "Exit from sell: Fast Vwma above slow Vwma.";
+                "Buy: Fast Vwma and slow Vwma higher than both Emas (also fast and slow). " +
+                "Sell: Fast Vwma and slow Vwma lower than both Emas (also fast and slow). " +
+                "Exit: The reverse conditions. ";
         }
 
         // Indicator Update event
-        private void VwmaWithAShift_ParametrsChangeByUser()
+        private void _vwmaWithAShift_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_vwmaFast.Parameters[0]).ValueInt = _periodVwmaFast.ValueInt;
             _vwmaFast.Save();
             _vwmaFast.Reload();
+
             ((IndicatorParameterInt)_vwmaSlow.Parameters[0]).ValueInt = _periodVwmaSlow.ValueInt;
             _vwmaSlow.Save();
             _vwmaSlow.Reload();
+
             ((IndicatorParameterInt)_emaFast.Parameters[0]).ValueInt = _periodEmaFast.ValueInt;
             _emaFast.Save();
             _emaFast.Reload();
+
             ((IndicatorParameterInt)_emaSlow.Parameters[0]).ValueInt = _periodEmaSlow.ValueInt;
             _emaSlow.Save();
             _emaSlow.Reload();
@@ -146,6 +151,7 @@ namespace OsEngine.Robots
         {
             return "StrategyOnTwoEmaAndTwoVwma";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -161,7 +167,10 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodVwmaFast.ValueInt || candles.Count < _periodVwmaSlow.ValueInt)
+            if (candles.Count <= _periodVwmaFast.ValueInt ||
+                candles.Count <= _periodVwmaSlow.ValueInt ||
+                candles.Count <= _periodEmaFast.ValueInt ||
+                candles.Count <= _periodEmaSlow.ValueInt)
             {
                 return;
             }
@@ -294,7 +303,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
