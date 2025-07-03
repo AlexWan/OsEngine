@@ -18,24 +18,28 @@ trading robot for osengine
 
 The trend robot on Strategy Price Channel With Rsi And CoG.
 
-Buy:When the Rsi indicator is above 50 and CoG is above the level from the parameters, 
+Buy:
+When the Rsi indicator is above 50 and CoG is above the level from the parameters, 
 we place a pending buy order along the top line of the PriceChannel indicator.
 
-Sell:When the Rsi indicator is below 50 and CoG is below the level from the parameters, 
+Sell:
+When the Rsi indicator is below 50 and CoG is below the level from the parameters, 
 we place a pending sell order along the lower line of the PriceChannel indicator.
 
-Exit from buy: We set a trailing stop as a percentage of the low of the candle at which we entered and along the lower border of the PriceChannel indicator.
+Exit from buy: 
+We set a trailing stop as a percentage of the low of the candle at which we entered and along the lower border of the PriceChannel indicator.
 The calculation method that is closest to the current price is selected.
-
-Exit from sell: We set a trailing stop as a percentage of the high of the candle at which we entered and along the upper border of the PriceChannel indicator. 
+Exit from sell: 
+We set a trailing stop as a percentage of the high of the candle at which we entered and along the upper border of the PriceChannel indicator. 
 The calculation method that is closest to the current price is selected.
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyPCRsiAndCoG")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyPCRsiAndCoG")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class StrategyPCRsiAndCoG : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -66,6 +70,7 @@ namespace OsEngine.Robots
 
         public StrategyPCRsiAndCoG(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -110,7 +115,7 @@ namespace OsEngine.Robots
             _trailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyPCRsiAndCoG_ParametrsChangeByUser;
+            ParametrsChangeByUser += _strategyPCRsiAndCoG_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -135,14 +140,16 @@ namespace OsEngine.Robots
             _tab.BuyAtStopCancel();
         }
 
-        private void StrategyPCRsiAndCoG_ParametrsChangeByUser()
+        private void _strategyPCRsiAndCoG_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_RSI.Parameters[0]).ValueInt = _lengthRSI.ValueInt;
             _RSI.Save();
             _RSI.Reload();
+
             ((IndicatorParameterInt)_cog.Parameters[0]).ValueInt = _lengthCog.ValueInt;
             _cog.Save();
             _cog.Reload();
+
             ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = _pcUpLength.ValueInt;
             ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = _pcDownLength.ValueInt;
             _PC.Save();
@@ -153,6 +160,7 @@ namespace OsEngine.Robots
         {
             return "StrategyPCRsiAndCoG";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -168,8 +176,8 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthRSI.ValueInt ||candles.Count < _lengthCog.ValueInt ||
-                candles.Count < _pcUpLength.ValueInt || candles.Count < _pcDownLength.ValueInt)
+            if (candles.Count <= _lengthRSI.ValueInt +21 ||candles.Count <= _lengthCog.ValueInt ||
+                candles.Count <= _pcUpLength.ValueInt || candles.Count <= _pcDownLength.ValueInt)
             {
                 return;
             }
@@ -234,7 +242,7 @@ namespace OsEngine.Robots
                     if (lastCog < _entryLevel.ValueDecimal && lastRSI < 50)
                     {
                         _tab.SellAtStopCancel();
-                        _tab.SellAtStop(GetVolume(_tab), downChannel - _slippage, downChannel, StopActivateType.LowerOrEqyal);
+                        _tab.SellAtStop(GetVolume(_tab), downChannel - _slippage, downChannel, StopActivateType.LowerOrEqual);
                     }
                 }
             }
@@ -296,7 +304,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

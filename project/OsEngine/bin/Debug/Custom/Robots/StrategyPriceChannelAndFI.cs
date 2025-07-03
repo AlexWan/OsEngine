@@ -20,7 +20,8 @@ The trend robot on PriceChannel And Force Index.
 
 Buy:
 1. The price is above the top line of the PC.
- 2. the value of the force index indicator is higher than BuyValue.
+2. the value of the force index indicator is higher than BuyValue.
+
 Sell:
 1. The price is below the bottom line of the PC.
 2. the value of the force index indicator is below SellValue.
@@ -32,13 +33,14 @@ The stop is placed at the minimum for the period specified for the stop (StopCan
 Exit from sell: Stop and profit.
 The stop is placed at the maximum for the period specified for the stop (StopCandles). Profit is equal to the size of the stop * CoefProfit 
 (CoefProfit – how many times the size of the profit is greater than the size of the stop).
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyPriceChannelAndFI")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyPriceChannelAndFI")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyPriceChannelAndFI : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -76,6 +78,7 @@ namespace OsEngine.Robots
 
         public StrategyPriceChannelAndFI(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -115,7 +118,7 @@ namespace OsEngine.Robots
             _stopCandles = CreateParameter("Stop Candles", 1, 2, 10, 1, "Exit settings");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyPriceChannelAndFI_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += _strategyPriceChannelAndFI_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -135,11 +138,12 @@ namespace OsEngine.Robots
                 "(CoefProfit – how many times the size of the profit is greater than the size of the stop).";
         }
 
-        private void StrategyPriceChannelAndFI_ParametrsChangeByUser()
+        private void _strategyPriceChannelAndFI_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_FI.Parameters[0]).ValueInt = _lengthFI.ValueInt;
             _FI.Save();
             _FI.Reload();
+
             ((IndicatorParameterInt)_PC.Parameters[0]).ValueInt = _pcUpLength.ValueInt;
             ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = _pcDownLength.ValueInt;
             _PC.Save();
@@ -151,6 +155,7 @@ namespace OsEngine.Robots
         {
             return "StrategyPriceChannelAndFI";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -166,10 +171,10 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthFI.ValueInt ||
-                candles.Count < _stopCandles.ValueInt ||
-                candles.Count < _pcUpLength.ValueInt ||
-                candles.Count < _pcDownLength.ValueInt)
+            if (candles.Count <= _lengthFI.ValueInt + 1 ||
+                candles.Count <= _stopCandles.ValueInt ||
+                candles.Count <= _pcUpLength.ValueInt + 1 ||
+                candles.Count <= _pcDownLength.ValueInt + 1)
             {
                 return;
             }
@@ -245,7 +250,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             decimal profitActivation;
@@ -260,7 +265,7 @@ namespace OsEngine.Robots
                     continue;
                 }
 
-                if (pos.Direction == Side.Buy) // If the direction of the position is purchase
+                if (pos.Direction == Side.Buy) // If the direction of the position is Buy
                 {
                     decimal stopActivation = GetPriceStop(pos.TimeCreate, Side.Buy, candles, candles.Count - 1);
 
@@ -275,7 +280,7 @@ namespace OsEngine.Robots
                     _tab.CloseAtProfit(pos, profitActivation, profitActivation + _slippage);
                     _tab.CloseAtStop(pos, stopActivation, stopActivation - _slippage);
                 }
-                else // If the direction of the position is sale
+                else // If the direction of the position is sell
                 {
                     decimal stopActivation = GetPriceStop(pos.TimeCreate, Side.Sell, candles, candles.Count - 1);
 
