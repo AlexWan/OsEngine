@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
+using OsEngine.Language;
+using OsEngine.Charts.CandleChart.Indicators;
 
 namespace OsEngine.OsTrader.SystemAnalyze
 {
@@ -74,18 +76,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
-        public static SavePeriod RamSavePeriod
-        {
-            get
-            {
-                return _ramMemoryUsageAnalyze.RamSavePeriod;
-            }
-            set
-            {
-                _ramMemoryUsageAnalyze.RamSavePeriod = value;
-            }
-        }
-
         public static bool CpuCollectDataIsOn
         {
             get
@@ -98,26 +88,20 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
-        public static SavePeriod CpuSavePeriod
+        public static List<SystemUsagePoint> ValuesRam
         {
             get
             {
-                return _cpuUsageAnalyze.CpuSavePeriod;
+                return _ramMemoryUsageAnalyze.Values;
             }
-            set
+        }
+
+        public static List<SystemUsagePoint> ValuesCpu
+        {
+            get
             {
-                _cpuUsageAnalyze.CpuSavePeriod = value;
+                return _cpuUsageAnalyze.Values;
             }
-        }
-
-        public static void ShowFileRamCollection()
-        {
-
-        }
-
-        public static void ShowFileCpuCollection()
-        {
-
         }
 
         private static RamMemoryUsageAnalyze _ramMemoryUsageAnalyze;
@@ -137,7 +121,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
                         return;
                     }
 
-                    Thread.Sleep(10000);
+                    Thread.Sleep(5000);
 
                     _ramMemoryUsageAnalyze.CalculateData();
                     _cpuUsageAnalyze.CalculateData();
@@ -206,7 +190,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 using (StreamReader reader = new StreamReader(@"Engine\SystemStress\RamMemorySettings.txt"))
                 {
                     _ramCollectDataIsOn = Convert.ToBoolean(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), out _ramSavePeriod);
 
                     reader.Close();
                 }
@@ -229,7 +212,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 using (StreamWriter writer = new StreamWriter(@"Engine\SystemStress\RamMemorySettings.txt", false))
                 {
                     writer.WriteLine(_ramCollectDataIsOn);
-                    writer.WriteLine(_ramSavePeriod);
 
                     writer.Close();
                 }
@@ -259,26 +241,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
         }
         private bool _ramCollectDataIsOn;
 
-        public SavePeriod RamSavePeriod
-        {
-            get
-            {
-                return _ramSavePeriod;
-            }
-            set
-            {
-                if (_ramSavePeriod == value)
-                {
-                    return;
-                }
-
-                _ramSavePeriod = value;
-                Save();
-            }
-        }
-
-        private SavePeriod _ramSavePeriod;
-
         public void CalculateData()
         {
             if(_ramCollectDataIsOn == false)
@@ -305,21 +267,25 @@ namespace OsEngine.OsTrader.SystemAnalyze
             SystemUsagePoint newPoint = new SystemUsagePoint();
             newPoint.Time = DateTime.Now;
             newPoint.ProgramUsed = myMegaBytes;
-            newPoint.SystemMax = maxMegabytes;
-            newPoint.SystemFree = freeRam;
+            newPoint.SystemTotal = maxMegabytes;
+            newPoint.SystemFree = freeMegabytes;
 
             SaveNewPoint(newPoint);
+        }
+
+        private void SaveNewPoint(SystemUsagePoint point)
+        {
+            Values.Add(point);
+
+            if(Values.Count > 10000)
+            {
+                Values.RemoveAt(0);
+            }
 
             if (RamUsageCollectionChange != null)
             {
                 RamUsageCollectionChange(Values);
             }
-        }
-
-        private void SaveNewPoint(SystemUsagePoint point)
-        {
-
-            Values.Add(point);
         }
 
         public event Action<List<SystemUsagePoint>> RamUsageCollectionChange;
@@ -346,7 +312,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 using (StreamReader reader = new StreamReader(@"Engine\SystemStress\CpuMemorySettings.txt"))
                 {
                     _cpuCollectDataIsOn = Convert.ToBoolean(reader.ReadLine());
-                    Enum.TryParse(reader.ReadLine(), out _cpuSavePeriod);
 
                     reader.Close();
                 }
@@ -369,7 +334,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 using (StreamWriter writer = new StreamWriter(@"Engine\SystemStress\CpuMemorySettings.txt", false))
                 {
                     writer.WriteLine(_cpuCollectDataIsOn);
-                    writer.WriteLine(_cpuSavePeriod);
 
                     writer.Close();
                 }
@@ -399,26 +363,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
         }
         private bool _cpuCollectDataIsOn;
 
-        public SavePeriod CpuSavePeriod
-        {
-            get
-            {
-                return _cpuSavePeriod;
-            }
-            set
-            {
-                if (_cpuSavePeriod == value)
-                {
-                    return;
-                }
-
-                _cpuSavePeriod = value;
-                Save();
-            }
-        }
-
-        private SavePeriod _cpuSavePeriod;
-
         public void CalculateData()
         {
             if (_cpuCollectDataIsOn == false)
@@ -428,24 +372,54 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
         }
 
+        private void SaveNewPoint(SystemUsagePoint point)
+        {
+            Values.Add(point);
+
+            if (Values.Count > 10000)
+            {
+                Values.RemoveAt(0);
+            }
+
+            if (CpuUsageCollectionChange != null)
+            {
+                CpuUsageCollectionChange(Values);
+            }
+        }
+
         public event Action<List<SystemUsagePoint>> CpuUsageCollectionChange;
     }
 
     public class SystemUsagePoint
     {
+        public string ToolTip
+        {
+            get
+            {
+                if(_toolTip != null)
+                {
+                    return _toolTip;
+                }
+
+                string result = Time.ToString(OsLocalization.CurCulture) + "\n";
+
+                result += "Total: " + SystemTotal + "\n";
+                result += "Free: " + SystemFree + "\n";
+                result += "My: " + ProgramUsed ;
+
+                _toolTip = result;
+
+                return result;
+            }
+        }
+        private string _toolTip;
+
         public DateTime Time;
 
         public decimal ProgramUsed;
 
-        public decimal SystemMax;
+        public decimal SystemTotal;
 
         public decimal SystemFree;
-    }
-
-    public enum SavePeriod
-    {
-        OneHour,
-        OneDay,
-        FiveDays
     }
 }
