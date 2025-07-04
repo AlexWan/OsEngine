@@ -219,6 +219,7 @@ namespace OsEngine.Robots.My_bots
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -268,6 +269,7 @@ namespace OsEngine.Robots.My_bots
         private void LogicClosePosition(List<Candle> candles)
         {
             _lastRangeIvashov = _rangeIvashov.DataSeries[0].Last;
+
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
@@ -286,19 +288,23 @@ namespace OsEngine.Robots.My_bots
                 if (position.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1) - _lastRangeIvashov * _multIvashov.ValueDecimal;
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is sale
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1) + _lastRangeIvashov * _multIvashov.ValueDecimal; 
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
             }
@@ -322,6 +328,7 @@ namespace OsEngine.Robots.My_bots
                         price = candles[i].Low;
                     }
                 }
+
                 return price;
             }
 
@@ -339,6 +346,7 @@ namespace OsEngine.Robots.My_bots
 
                 return price;
             }
+
             return 0;
         }
 
@@ -362,7 +370,7 @@ namespace OsEngine.Robots.My_bots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

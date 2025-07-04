@@ -32,7 +32,7 @@ Sell:
 Exit: after a certain number of candles.
  */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("DevergenceTrix")] // We create an attribute so that we don't write anything to the BotFactory
     public class DevergenceTrix : BotPanel
@@ -264,7 +264,9 @@ namespace OsEngine.Robots.AO
             for (int i = candles.Count - 1; i >= 0; i--)
             {
                 counter++;
+
                 DateTime candelTime = candles[i].TimeStart;
+
                 if (candelTime == openTime)
                 {
                     if (counter >= _exitCandles.ValueInt + 1)
@@ -273,6 +275,7 @@ namespace OsEngine.Robots.AO
                     }
                 }
             }
+
             return false;
         }
 
@@ -484,7 +487,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

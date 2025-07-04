@@ -240,6 +240,7 @@ namespace OsEngine.Robots.Vwma
                     if (_lastVwmaFast < _lastVwmaMiddle && _lastVwmaMiddle < _lastVwmaSlow)
                     {
                         decimal lastPrice = candles[candles.Count - 1].Close;
+
                         _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
                 }
@@ -248,6 +249,7 @@ namespace OsEngine.Robots.Vwma
                     if (_lastVwmaFast > _lastVwmaMiddle && _lastVwmaMiddle > _lastVwmaSlow)
                     {
                         decimal lastPrice = candles[candles.Count - 1].Close;
+
                         _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                     }
                 }
@@ -274,7 +276,7 @@ namespace OsEngine.Robots.Vwma
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
