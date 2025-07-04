@@ -35,10 +35,10 @@ namespace OsEngine.Robots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterDecimal Slippage;
-        private StrategyParameterTimeOfDay StartTradeTime;
-        private StrategyParameterTimeOfDay EndTradeTime;
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _slippage;
+        private StrategyParameterTimeOfDay _startTradeTime;
+        private StrategyParameterTimeOfDay _endTradeTime;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -46,15 +46,15 @@ namespace OsEngine.Robots
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator Settings
-        private StrategyParameterInt PeriodVwmaFast;
-        private StrategyParameterInt PeriodVwmaSlow;
-        private StrategyParameterInt PeriodALB;
-        private StrategyParameterDecimal CoefEntryALB;
+        private StrategyParameterInt _periodVwmaFast;
+        private StrategyParameterInt _periodVwmaSlow;
+        private StrategyParameterInt _periodALB;
+        private StrategyParameterDecimal _coefEntryALB;
 
         // Indicator
-        private Aindicator ALB;
-        private Aindicator Vwma1;
-        private Aindicator Vwma2;
+        private Aindicator _ALB;
+        private Aindicator _vwma1;
+        private Aindicator _vwma2;
 
         // The last value of the indicators      
         private decimal _lastALB;
@@ -67,10 +67,10 @@ namespace OsEngine.Robots
             _tab = TabsSimple[0];
 
             // Basic Settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
-            Slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
-            StartTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
-            EndTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
+            _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
+            _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
+            _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
             // GetVolume Settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -78,29 +78,29 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator Settings
-            PeriodALB = CreateParameter("Adaptive Look Back", 5, 1, 10, 1 , "Indicator");
-            CoefEntryALB = CreateParameter("CoefEntryALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
-            PeriodVwmaFast = CreateParameter("Fast Vwma1 period", 250, 50, 500, 20, "Indicator");
-            PeriodVwmaSlow = CreateParameter("Slow Vwma2 period", 1000, 500, 1500, 100, "Indicator");
+            _periodALB = CreateParameter("Adaptive Look Back", 5, 1, 10, 1 , "Indicator");
+            _coefEntryALB = CreateParameter("CoefEntryALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
+            _periodVwmaFast = CreateParameter("Fast Vwma1 period", 250, 50, 500, 20, "Indicator");
+            _periodVwmaSlow = CreateParameter("Slow Vwma2 period", 1000, 500, 1500, 100, "Indicator");
 
             // Create indicator Adaptive Look Back
-            ALB = IndicatorsFactory.CreateIndicatorByName("AdaptiveLookBack", name + "ALB", false);
-            ALB = (Aindicator)_tab.CreateCandleIndicator(ALB, "NewArea");
-            ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = PeriodALB.ValueInt;
-            ALB.Save();
+            _ALB = IndicatorsFactory.CreateIndicatorByName("AdaptiveLookBack", name + "ALB", false);
+            _ALB = (Aindicator)_tab.CreateCandleIndicator(_ALB, "NewArea");
+            ((IndicatorParameterInt)_ALB.Parameters[0]).ValueInt = _periodALB.ValueInt;
+            _ALB.Save();
 
             // Create indicator Vwma1
-            Vwma1 = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma1", false);
-            Vwma1 = (Aindicator)_tab.CreateCandleIndicator(Vwma1, "Prime");
-            ((IndicatorParameterInt)Vwma1.Parameters[0]).ValueInt = PeriodVwmaFast.ValueInt;
-            Vwma1.DataSeries[0].Color = Color.Red;
-            Vwma1.Save();
+            _vwma1 = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma1", false);
+            _vwma1 = (Aindicator)_tab.CreateCandleIndicator(_vwma1, "Prime");
+            ((IndicatorParameterInt)_vwma1.Parameters[0]).ValueInt = _periodVwmaFast.ValueInt;
+            _vwma1.DataSeries[0].Color = Color.Red;
+            _vwma1.Save();
            
             // Create indicator Vwma2
-            Vwma2 = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma2", false);
-            Vwma2 = (Aindicator)_tab.CreateCandleIndicator(Vwma2, "Prime");
-            ((IndicatorParameterInt)Vwma2.Parameters[0]).ValueInt = PeriodVwmaSlow.ValueInt;
-            Vwma2.Save();
+            _vwma2 = IndicatorsFactory.CreateIndicatorByName("VWMA", name + "Vwma2", false);
+            _vwma2 = (Aindicator)_tab.CreateCandleIndicator(_vwma2, "Prime");
+            ((IndicatorParameterInt)_vwma2.Parameters[0]).ValueInt = _periodVwmaSlow.ValueInt;
+            _vwma2.Save();
 
             // Subscribe to the indicator update event
             ParametrsChangeByUser += IntersectionOfTwoVwmaAndAdaptiveLookBack_ParametrsChangeByUser;
@@ -110,24 +110,24 @@ namespace OsEngine.Robots
 
             Description = "Trend robot at the intersection of two Vwma (all cars and different outputs) and Adaptive Look Back." +
              "Buy: fast Ema is higher than slow Vwma and price is higher than fast Vwma +entry coefficient* Adaptive Look Back." +
-            "Sell: fast Ema is lower than average Vvma and price is lower than fast Ma -entry coefficient* Adaptive Look back ." +
+             "Sell: fast Ema is lower than average Vvma and price is lower than fast Ma -entry coefficient* Adaptive Look back ." +
              "Exit: reverse intersection of Wma.";
         }
 
         // Indicator Update event
         private void IntersectionOfTwoVwmaAndAdaptiveLookBack_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = PeriodALB.ValueInt;
-            ALB.Save();
-            ALB.Reload();
+            ((IndicatorParameterInt)_ALB.Parameters[0]).ValueInt = _periodALB.ValueInt;
+            _ALB.Save();
+            _ALB.Reload();
 
-            ((IndicatorParameterInt)Vwma1.Parameters[0]).ValueInt = PeriodVwmaFast.ValueInt;
-            Vwma1.Save();
-            Vwma1.Reload();
+            ((IndicatorParameterInt)_vwma1.Parameters[0]).ValueInt = _periodVwmaFast.ValueInt;
+            _vwma1.Save();
+            _vwma1.Reload();
 
-            ((IndicatorParameterInt)Vwma2.Parameters[0]).ValueInt = PeriodVwmaSlow.ValueInt;
-            Vwma2.Save();
-            Vwma2.Reload();
+            ((IndicatorParameterInt)_vwma2.Parameters[0]).ValueInt = _periodVwmaSlow.ValueInt;
+            _vwma2.Save();
+            _vwma2.Reload();
         }
 
         // The name of the robot in OsEngine
@@ -144,20 +144,20 @@ namespace OsEngine.Robots
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PeriodALB.ValueInt || candles.Count < CoefEntryALB.ValueDecimal || candles.Count < PeriodVwmaFast.ValueInt || candles.Count < PeriodVwmaSlow.ValueInt)
+            if (candles.Count < _periodALB.ValueInt || candles.Count < _coefEntryALB.ValueDecimal || candles.Count < _periodVwmaFast.ValueInt || candles.Count < _periodVwmaSlow.ValueInt)
             {
                 return;
             }
 
             // If the time does not match, we leave
-            if (StartTradeTime.Value > _tab.TimeServerCurrent ||
-                EndTradeTime.Value < _tab.TimeServerCurrent)
+            if (_startTradeTime.Value > _tab.TimeServerCurrent ||
+                _endTradeTime.Value < _tab.TimeServerCurrent)
             {
                 return;
             }
@@ -171,7 +171,7 @@ namespace OsEngine.Robots
             }
 
             // If the position closing mode, then exit the method
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -189,29 +189,29 @@ namespace OsEngine.Robots
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             // The last value of the indicators
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             // He last value of the indicator           
-            _lastALB = ALB.DataSeries[0].Last;
-            _lastVwmaFasts = Vwma1.DataSeries[0].Last;
-            _lastVwmaSlow = Vwma2.DataSeries[0].Last;
+            _lastALB = _ALB.DataSeries[0].Last;
+            _lastVwmaFasts = _vwma1.DataSeries[0].Last;
+            _lastVwmaSlow = _vwma2.DataSeries[0].Last;
             
             if (openPositions == null || openPositions.Count == 0)
             {
                 // Long
-                if (Regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
+                if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if (_lastVwmaFasts > _lastVwmaSlow && lastPrice > _lastVwmaFasts + CoefEntryALB.ValueDecimal * _lastALB)
+                    if (_lastVwmaFasts > _lastVwmaSlow && lastPrice > _lastVwmaFasts + _coefEntryALB.ValueDecimal * _lastALB)
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
 
                 // Short
-                if (Regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
+                if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-                    if (_lastVwmaFasts < _lastVwmaSlow && lastPrice < _lastVwmaFasts - CoefEntryALB.ValueDecimal * _lastALB)
+                    if (_lastVwmaFasts < _lastVwmaSlow && lastPrice < _lastVwmaFasts - _coefEntryALB.ValueDecimal * _lastALB)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
@@ -225,11 +225,11 @@ namespace OsEngine.Robots
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             decimal lastPrice = candles[candles.Count - 1].Close;
-            decimal _slippage = Slippage.ValueDecimal * _tab.Securiti.PriceStep;
+            decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
             // He last value of the indicator
-            _lastVwmaFasts = Vwma1.DataSeries[0].Last;
-            _lastVwmaSlow = Vwma2.DataSeries[0].Last;
+            _lastVwmaFasts = _vwma1.DataSeries[0].Last;
+            _lastVwmaSlow = _vwma2.DataSeries[0].Last;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
@@ -275,7 +275,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
@@ -348,4 +348,3 @@ namespace OsEngine.Robots
         }
     }
 }
-

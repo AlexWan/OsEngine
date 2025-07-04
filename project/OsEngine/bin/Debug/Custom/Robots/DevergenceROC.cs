@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -23,7 +28,7 @@ Sell:
 Exit: after a certain number of candles.
  */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("DevergenceROC")] // We create an attribute so that we don't write anything to the BotFactory
     public class DevergenceROC : BotPanel
@@ -36,12 +41,12 @@ namespace OsEngine.Robots.AO
         private StrategyParameterTimeOfDay _startTradeTime;
         private StrategyParameterTimeOfDay _endTradeTime;
 
-        // GetVolume Parameter
+        // GetVolume settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator setting 
+        // Indicator settings
         private StrategyParameterInt _periodZigZag;
         private StrategyParameterInt _periodROC;
 
@@ -49,7 +54,7 @@ namespace OsEngine.Robots.AO
         private Aindicator _zigZag;
         private Aindicator _zigZagROC;
 
-        // Exit 
+        // Exit setting
         private StrategyParameterInt _exitCandles;
 
         public DevergenceROC(string name, StartProgram startProgram) : base(name, startProgram)
@@ -57,18 +62,18 @@ namespace OsEngine.Robots.AO
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // GetVolume Parameter
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator setting
+            // Indicator settings
             _periodZigZag = CreateParameter("Period ZigZag", 10, 10, 300, 10, "Indicator");
             _periodROC = CreateParameter("Period ROC", 10, 10, 300, 10, "Indicator");
 
@@ -78,14 +83,14 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
             _zigZag.Save();
 
-            // Create indicator ZigZag Rsi
+            // Create indicator ZigZag Roc
             _zigZagROC = IndicatorsFactory.CreateIndicatorByName("ZigZagROC", name + "ZigZagROC", false);
             _zigZagROC = (Aindicator)_tab.CreateCandleIndicator(_zigZagROC, "NewArea");
             ((IndicatorParameterInt)_zigZagROC.Parameters[0]).ValueInt = _periodROC.ValueInt;
             ((IndicatorParameterInt)_zigZagROC.Parameters[1]).ValueInt = _periodZigZag.ValueInt;
             _zigZagROC.Save();
 
-            // Exit
+            // Exit setting
             _exitCandles = CreateParameter("Exit Candles", 10, 5, 1000, 10, "Exit");
 
             // Subscribe to the indicator update event
@@ -240,7 +245,6 @@ namespace OsEngine.Robots.AO
                 {
                     _tab.CloseAtLimit(position, lastPrice + _slippage, position.OpenVolume);
                 }
-
             }
         }
 
@@ -259,6 +263,7 @@ namespace OsEngine.Robots.AO
             {
                 counter++;
                 DateTime candelTime = candles[i].TimeStart;
+
                 if (candelTime == openTime)
                 {
                     if (counter >= _exitCandles.ValueInt + 1)
@@ -280,9 +285,7 @@ namespace OsEngine.Robots.AO
             decimal zzRsiLowTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexHigh = 0;
 
             for (int i = zzRsiHigh.Count - 1; i >= 0; i--)
@@ -376,9 +379,7 @@ namespace OsEngine.Robots.AO
             decimal zzRsiHighTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexLow = 0;
 
             for (int i = zzRsiLow.Count - 1; i >= 0; i--)
@@ -466,6 +467,7 @@ namespace OsEngine.Robots.AO
         private decimal MaxPrice(List<Candle> candles, int period)
         {
             decimal max = 0;
+
             for (int i = 1; i <= period; i++)
             {
                 if (max < candles[candles.Count - i].Close)
@@ -473,12 +475,14 @@ namespace OsEngine.Robots.AO
                     max = candles[candles.Count - i].Close;
                 }
             }
+
             return max;
         }
 
         private decimal MinPrice(List<Candle> candles, int period)
         {
             decimal min = decimal.MaxValue;
+
             for (int i = 1; i <= period; i++)
             {
                 if (min > candles[candles.Count - i].Close)
@@ -486,6 +490,7 @@ namespace OsEngine.Robots.AO
                     min = candles[candles.Count - i].Close;
                 }
             }
+
             return min;
         }
 
@@ -509,7 +514,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

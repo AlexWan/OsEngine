@@ -174,6 +174,7 @@ namespace OsEngine.Robots
         private void LogicOpenPosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
+
             List<decimal> zzHigh = _zz.DataSeries[2].Values;
             List<decimal> zzBullsPowerLow = _zzBullsPower.DataSeries[4].Values;
             List<decimal> zzBullsPowerHigh = _zzBullsPower.DataSeries[3].Values;
@@ -334,7 +335,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

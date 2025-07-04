@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using OsEngine.Charts.CandleChart.Indicators;
@@ -21,11 +26,9 @@ Buy: The price is higher than the indicator value.
 Sell: The price is lower than the indicator value.
 
 Exit the position: on the opposite signal.
- 
  */
 
-
-namespace OsEngine.Robots.Aligator
+namespace OsEngine.Robots
 {
     // We create an attribute so that we don't write anything to the BotFactory
     [Bot("BreakParabolicSAR")]
@@ -39,11 +42,11 @@ namespace OsEngine.Robots.Aligator
         private StrategyParameterTimeOfDay _startTradeTime;
         private StrategyParameterTimeOfDay _endTradeTime;
 
-        // Setting indicator
+        // Indicator settings
         private StrategyParameterDecimal _step;
         private StrategyParameterDecimal _maxStep;
 
-        // GetVolume Parametr
+        // GetVolume settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
@@ -54,23 +57,22 @@ namespace OsEngine.Robots.Aligator
         // The last value of the indicators
         private decimal _lastParabolic;
 
-
         public BreakParabolicSAR(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // Setting indicator
+            // Indicator settings
             _step = CreateParameter("Step", 10, 10.0m, 300, 10, "Indicator");
             _maxStep = CreateParameter("Max Step", 20, 10.0m, 300, 10, "Indicator");
 
-            // GetVolume Parametr
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
@@ -143,6 +145,7 @@ namespace OsEngine.Robots.Aligator
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -162,6 +165,7 @@ namespace OsEngine.Robots.Aligator
 
                 decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
                 decimal lastPrice = candles[candles.Count - 1].Close;
+
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
@@ -174,7 +178,6 @@ namespace OsEngine.Robots.Aligator
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
                     if (lastPrice < _lastParabolic)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
@@ -197,12 +200,10 @@ namespace OsEngine.Robots.Aligator
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)
             {
-
                 if (openPositions[i].State != PositionStateType.Open)
                 {
                     continue;
                 }
-
 
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is purchase
                 {
@@ -217,7 +218,6 @@ namespace OsEngine.Robots.Aligator
                     {
                         _tab.CloseAtLimit(openPositions[i], lastPrice + _slippage, openPositions[i].OpenVolume);
                     }
-
                 }
             }
         }
@@ -242,7 +242,7 @@ namespace OsEngine.Robots.Aligator
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

@@ -197,6 +197,7 @@ namespace OsEngine.Robots
                 _lastSmaSlow = _smaSlow.DataSeries[0].Last;
 
                 decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
+
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
@@ -243,7 +244,6 @@ namespace OsEngine.Robots
                         decimal lastPrice = candles[candles.Count - 1].Close;
                         _tab.CloseAtLimit(openPositions[i], lastPrice - _slippage, openPositions[i].OpenVolume);
                     }
-
                 }
                 else // If the direction of the position is short
                 {
@@ -276,7 +276,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
