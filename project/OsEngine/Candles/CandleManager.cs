@@ -213,7 +213,15 @@ namespace OsEngine.Entity
                             }
                             else
                             {
-                                List<Candle> candles = _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, 500);
+                                AServer aServer = (AServer)_server;
+                                int candlesToRequestCount = ((OsEngine.Market.Servers.Entity.ServerParameterInt)aServer.GetStandardServerParameter(3)).Value; // query CandlesToLoad parameter
+
+                                if (candlesToRequestCount < 50)
+                                {
+                                    candlesToRequestCount = 50;
+                                }
+                                
+                                List<Candle> candles = _server.GetLastCandleHistory(series.Security, series.TimeFrameBuilder, candlesToRequestCount);
 
                                 if (candles != null)
                                 {
