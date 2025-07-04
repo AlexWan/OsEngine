@@ -36,7 +36,7 @@ Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many ti
 size of the profit is greater than the size of the stop).
  */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("ContertrendVHFilterAndPC")] // We create an attribute so that we don't write anything to the BotFactory
     public class ContertrendVHFilterAndPC : BotPanel
@@ -54,7 +54,7 @@ namespace OsEngine.Robots.AO
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator setting 
+        // Indicator settings
         private StrategyParameterInt _lengthVHF;
         private StrategyParameterInt _pcUpLength;
         private StrategyParameterInt _pcDownLength;
@@ -73,7 +73,7 @@ namespace OsEngine.Robots.AO
         private decimal _prevUpPC;
         private decimal _prevDownPC;
 
-        // Exit
+        // Exit settings
         private StrategyParameterDecimal _coefProfit;
         private StrategyParameterInt _stopCandles;
 
@@ -82,7 +82,7 @@ namespace OsEngine.Robots.AO
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
@@ -93,7 +93,7 @@ namespace OsEngine.Robots.AO
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator setting
+            // Indicator settings
             _lengthVHF = CreateParameter("Length VHF", 10, 1, 50, 1, "Indicator");
             _pcUpLength = CreateParameter("Up Line Length", 21, 7, 48, 7, "Indicator");
             _pcDownLength = CreateParameter("Down Line Length", 21, 7, 48, 7, "Indicator");
@@ -112,7 +112,7 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_PC.Parameters[1]).ValueInt = _pcDownLength.ValueInt;
             _PC.Save();
 
-            // Exit
+            // Exit settings
             _coefProfit = CreateParameter("Coef Profit", 1, 1m, 10, 1, "Exit settings");
             _stopCandles = CreateParameter("Stop Candles", 1, 2, 10, 1, "Exit settings");
 
@@ -402,7 +402,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

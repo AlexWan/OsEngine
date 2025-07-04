@@ -31,7 +31,7 @@ We set the stop to the maximum for the period specified for the stop,
 and the profit is equal to the size of the stop multiplied by the coefficient from the parameters.
 */
 
-namespace OsEngine.Robots.MyBots
+namespace OsEngine.Robots
 {
     [Bot("DivergenceAsi")] // We create an attribute so that we don't write anything to the BotFactory
     internal class DivergenceAsi : BotPanel
@@ -124,6 +124,7 @@ namespace OsEngine.Robots.MyBots
             _zigZagAsi.Reload();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "DivergenceAsi";
@@ -553,7 +554,7 @@ namespace OsEngine.Robots.MyBots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
