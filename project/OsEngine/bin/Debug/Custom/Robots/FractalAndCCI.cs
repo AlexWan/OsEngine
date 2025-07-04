@@ -36,7 +36,7 @@ Exit from buy: trailing stop in % of the High of the candle on which you entered
 Exit from sell: trailing stop in % of the Low candle on which you entered.
  */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("FractalAndCCI")] // We create an attribute so that we don't write anything to the BotFactory
     public class FractalAndCCI : BotPanel
@@ -270,6 +270,7 @@ namespace OsEngine.Robots.AO
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValueShort.ValueInt / 100;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
         }
@@ -294,7 +295,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing;
@@ -30,7 +35,7 @@ The stop is placed at the maximum for the period specified for the stop (StopCan
 Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop).
  */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("DevergenceMomentum")] // We create an attribute so that we don't write anything to the BotFactory
     public class DevergenceMomentum : BotPanel
@@ -43,12 +48,12 @@ namespace OsEngine.Robots.AO
         private StrategyParameterTimeOfDay _startTradeTime;
         private StrategyParameterTimeOfDay _endTradeTime;
 
-        // GetVolume Parameter
+        // GetVolume settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator setting 
+        // Indicator settings
         private StrategyParameterInt _periodZigZag;
         private StrategyParameterInt _periodMomentum;
 
@@ -56,7 +61,7 @@ namespace OsEngine.Robots.AO
         private Aindicator _zigZag;
         private Aindicator _zigZagMomentum;
 
-        // Exit
+        // Exit settings
         private StrategyParameterInt _trailCandlesLong;
         private StrategyParameterInt _trailCandlesShort;
 
@@ -65,18 +70,18 @@ namespace OsEngine.Robots.AO
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // GetVolume Parameter
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator setting
+            // Indicator settings
             _periodZigZag = CreateParameter("Period ZigZag", 10, 10, 300, 10, "Indicator");
             _periodMomentum = CreateParameter("PeriodMomentum", 10, 20, 300, 1, "Indicator");
 
@@ -86,14 +91,14 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
             _zigZag.Save();
 
-            // Create indicator ZigZag MFI
+            // Create indicator ZigZag Momentum
             _zigZagMomentum = IndicatorsFactory.CreateIndicatorByName("ZigZagMomentum", name + "ZigZagMomentum", false);
             _zigZagMomentum = (Aindicator)_tab.CreateCandleIndicator(_zigZagMomentum, "NewArea");
             ((IndicatorParameterInt)_zigZagMomentum.Parameters[0]).ValueInt = _periodMomentum.ValueInt;
             ((IndicatorParameterInt)_zigZagMomentum.Parameters[1]).ValueInt = _periodZigZag.ValueInt;
             _zigZagMomentum.Save();
 
-            // Exit
+            // Exit settings
             _trailCandlesLong = CreateParameter("Trail Candles Long", 5, 5, 200, 5, "Exit");
             _trailCandlesShort = CreateParameter("Trail Candles Short", 5, 5, 200, 5, "Exit");
 
@@ -236,19 +241,23 @@ namespace OsEngine.Robots.AO
                 if (position.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is sale
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
             }
@@ -272,6 +281,7 @@ namespace OsEngine.Robots.AO
                         price = candles[i].Low;
                     }
                 }
+
                 return price;
             }
 
@@ -289,6 +299,7 @@ namespace OsEngine.Robots.AO
 
                 return price;
             }
+
             return 0;
         }
 
@@ -301,9 +312,7 @@ namespace OsEngine.Robots.AO
             decimal zzAOLowTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexHigh = 0;
 
             for (int i = zzAOHigh.Count - 1; i >= 0; i--)
@@ -397,9 +406,7 @@ namespace OsEngine.Robots.AO
             decimal zzAOHighTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexLow = 0;
 
             for (int i = zzAOLow.Count - 1; i >= 0; i--)
@@ -504,7 +511,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

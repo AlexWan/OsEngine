@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Market;
@@ -15,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 /* Description 
 Pair trading based on index analysis.
@@ -253,6 +251,7 @@ namespace OsEngine.Robots.MarketMaker
             {
                 tab.SellAtLimit(GetVolume(tab), tab.PriceBestBid - _slippage.ValueInt * tab.Security.PriceStep);
             }
+
             if (lastRsi < _downline.ValueInt && _regime.ValueString != "OnlyShort")
             {
                 tab.BuyAtLimit(GetVolume(tab), tab.PriceBestAsk + _slippage.ValueInt * tab.Security.PriceStep);
@@ -269,6 +268,7 @@ namespace OsEngine.Robots.MarketMaker
                     tab.CloseAtLimit(position, tab.PriceBestBid - _slippage.ValueInt * tab.Security.PriceStep, position.OpenVolume);
                 }
             }
+
             if (position.Direction == Side.Sell)
             {
                 if (lastRsi < _downline.ValueInt)
@@ -298,7 +298,7 @@ namespace OsEngine.Robots.MarketMaker
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

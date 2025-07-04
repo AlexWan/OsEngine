@@ -3,7 +3,6 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Market;
@@ -15,7 +14,6 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 /*
 pair trading robot building spread and trading based on the intersection of MA on the spread chart
@@ -55,7 +53,6 @@ namespace OsEngine.Robots.MarketMaker
         private List<Candle> _candlesSpread;
 
         // Indicator
-
         private Aindicator _smaLong;
         private Aindicator _smaShort;
 
@@ -342,12 +339,14 @@ namespace OsEngine.Robots.MarketMaker
                 if (positions1 != null && positions1.Count != 0)
                 {
                     Position pos1 = positions1[0];
+
                     _tab1.CloseAtLimit(pos1, _tab1.PriceBestAsk + Slippage1, pos1.OpenVolume);
                 }
 
                 if (positions2 != null && positions2.Count != 0)
                 {
                     Position pos2 = positions2[0];
+
                     _tab2.CloseAtLimit(pos2, _tab2.PriceBestBid - Slippage1, pos2.OpenVolume);
                 }
             }
@@ -373,7 +372,7 @@ namespace OsEngine.Robots.MarketMaker
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = Volume / (contractPrice * tab.Security.Lot);
