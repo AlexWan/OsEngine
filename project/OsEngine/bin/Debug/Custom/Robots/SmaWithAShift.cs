@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -28,9 +28,10 @@ Exit: on the opposite signal
 
 namespace OsEngine.Robots
 {
-    [Bot("SmaWithAShift")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("SmaWithAShift")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class SmaWithAShift : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -59,6 +60,7 @@ namespace OsEngine.Robots
 
         public SmaWithAShift(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -110,6 +112,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_smaFast.Parameters[0]).ValueInt = _periodSmaFast.ValueInt;
             _smaFast.Save();
             _smaFast.Reload();
+
             ((IndicatorParameterInt)_osmaSlow.Parameters[0]).ValueInt = _periodOsmaSlow.ValueInt;
             ((IndicatorParameterInt)_osmaSlow.Parameters[1]).ValueInt = _offset.ValueInt;
             _osmaSlow.Save();
@@ -120,6 +123,7 @@ namespace OsEngine.Robots
         {
             return "SmaWithAShift";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -135,11 +139,11 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodSmaFast.ValueInt || candles.Count < _periodOsmaSlow.ValueInt)
+            if (candles.Count <= _periodSmaFast.ValueInt || candles.Count <= _periodOsmaSlow.ValueInt + 3)
             {
                 return;
             }
-
+            SendNewLogMessage($"{_smaFast.DataSeries[0].Last} {_osmaSlow.DataSeries[0].Last}", Logging.LogMessageType.User);
             // If the time does not match, we leave
             if (_startTradeTime.Value > _tab.TimeServerCurrent ||
                 _endTradeTime.Value < _tab.TimeServerCurrent)
@@ -258,7 +262,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
