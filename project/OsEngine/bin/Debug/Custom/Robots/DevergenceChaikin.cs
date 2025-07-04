@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using System.Drawing;
@@ -25,9 +30,7 @@ Sell: the highs on the chart are rising, while the indicator is falling.
 Buy exit: trailing stop as a % of the Low of the candle where you entered.
 
 Sell ​​exit: trailing stop as a % of the High of the candle where you entered.
-
  */
-
 
 namespace OsEngine.Robots.AO
 {
@@ -42,12 +45,12 @@ namespace OsEngine.Robots.AO
         private StrategyParameterTimeOfDay _startTradeTime;
         private StrategyParameterTimeOfDay _endTradeTime;
 
-        // GetVolume Parameter
+        // GetVolume settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator setting 
+        // Indicator settings
         private StrategyParameterInt _periodZigZag;
         private StrategyParameterInt _periodChaikinShort;
         private StrategyParameterInt _periodChaikinLong;
@@ -56,7 +59,7 @@ namespace OsEngine.Robots.AO
         private Aindicator _zigZag;
         private Aindicator _zigZagChaikin;
 
-        // Exit
+        // Exit settings
         private StrategyParameterDecimal _trailingValue;
 
         public DevergenceChaikin(string name, StartProgram startProgram) : base(name, startProgram)
@@ -64,18 +67,18 @@ namespace OsEngine.Robots.AO
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
             _endTradeTime = CreateParameterTimeOfDay("End Trade Time", 24, 0, 0, 0, "Base");
 
-            // GetVolume Parameter
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator setting
+            // Indicator settings
             _periodZigZag = CreateParameter("Period ZigZag", 10, 10, 300, 10, "Indicator");
             _periodChaikinShort = CreateParameter("Period Chaikin Short", 3, 10, 300, 10, "Indicator");
             _periodChaikinLong = CreateParameter("Period Chaikin Long", 10, 10, 300, 10, "Indicator");
@@ -86,7 +89,7 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
             _zigZag.Save();
 
-            // Create indicator ZigZag CCI
+            // Create indicator ZigZag Chaikin
             _zigZagChaikin = IndicatorsFactory.CreateIndicatorByName("ZigZagChaikin", name + "ZigZagChaikin", false);
             _zigZagChaikin = (Aindicator)_tab.CreateCandleIndicator(_zigZagChaikin, "NewArea");
             ((IndicatorParameterInt)_zigZagChaikin.Parameters[0]).ValueInt = _periodChaikinShort.ValueInt;
@@ -94,7 +97,7 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_zigZagChaikin.Parameters[2]).ValueInt = _periodZigZag.ValueInt;
             _zigZagChaikin.Save();
 
-            // Exit
+            // Exit setting
             _trailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
@@ -108,7 +111,6 @@ namespace OsEngine.Robots.AO
                 "Sell: the highs on the chart are rising, while the indicator is falling. " +
                 "Buy exit: trailing stop as a % of the Low of the candle where you entered. " +
                 "Sell ​​exit: trailing stop as a % of the High of the candle where you entered.";
-
         }
 
         private void DevergenceChaikin_ParametrsChangeByUser()
@@ -168,6 +170,7 @@ namespace OsEngine.Robots.AO
             {
                 return;
             }
+
             // If there are no positions, then go to the position opening method
             if (openPositions == null || openPositions.Count == 0)
             {
@@ -178,7 +181,6 @@ namespace OsEngine.Robots.AO
         // Opening logic
         private void LogicOpenPosition(List<Candle> candles)
         {
-
             List<Position> openPositions = _tab.PositionsOpenAll;
 
             if (openPositions == null || openPositions.Count == 0)
@@ -206,7 +208,6 @@ namespace OsEngine.Robots.AO
                 // Short
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
-
                     if (DevirgenceSell(zzHigh, zzAOHigh, zzAOLow) == true)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
@@ -245,8 +246,8 @@ namespace OsEngine.Robots.AO
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValue.ValueDecimal / 100;
                 }
-                _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
 
+                _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
         }
 
@@ -259,9 +260,7 @@ namespace OsEngine.Robots.AO
             decimal zzAOLowTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexHigh = 0;
 
             for (int i = zzAOHigh.Count - 1; i >= 0; i--)
@@ -278,13 +277,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzLow.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzLow[i] != 0 && zzLowOne == 0)
                 {
@@ -303,13 +300,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzAOLow.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzAOLow[i] != 0 && zzAOLowOne == 0)
                 {
@@ -328,14 +323,15 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             decimal cntLow = 0;
+
             if (zzLowOne < zzLowTwo && zzLowOne != 0 && indexTwo < indexHigh)
             {
                 cntLow++;
             }
+
             if (zzAOLowOne > zzAOLowTwo && zzAOLowOne != 0)
             {
                 cntLow++;
@@ -352,16 +348,13 @@ namespace OsEngine.Robots.AO
         // Method for finding divergence
         private bool DevirgenceSell(List<decimal> zzHigh, List<decimal> zzAOHigh, List<decimal> zzAOLow)
         {
-
             decimal zzHighOne = 0;
             decimal zzHighTwo = 0;
             decimal zzAOHighOne = 0;
             decimal zzAOHighTwo = 0;
 
             int indexOne = 0;
-
             int indexTwo = 0;
-
             int indexLow = 0;
 
             for (int i = zzAOLow.Count - 1; i >= 0; i--)
@@ -378,13 +371,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzHigh.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzHigh[i] != 0 && zzHighOne == 0)
                 {
@@ -403,13 +394,11 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             for (int i = zzAOHigh.Count - 1; i >= 0; i--)
             {
                 int cnt = 0;
-
 
                 if (zzAOHigh[i] != 0 && zzAOHighOne == 0)
                 {
@@ -428,14 +417,15 @@ namespace OsEngine.Robots.AO
                 {
                     break;
                 }
-
             }
 
             decimal cntHigh = 0;
+
             if (zzHighOne > zzHighTwo && zzHighTwo != 0 && indexTwo < indexLow)
             {
                 cntHigh++;
             }
+
             if (zzAOHighOne < zzAOHighTwo && zzAOHighOne != 0)
             {
                 cntHigh++;
@@ -469,7 +459,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

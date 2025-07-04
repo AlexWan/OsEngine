@@ -35,7 +35,7 @@ The stop is placed at the maximum for the period specified for the stop (StopCan
 Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop).
  */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("DevergenceVolume")] // We create an attribute so that we don't write anything to the BotFactory
     public class DevergenceVolume : BotPanel
@@ -93,7 +93,7 @@ namespace OsEngine.Robots.AO
             ((IndicatorParameterInt)_zigZag.Parameters[0]).ValueInt = _periodZigZag.ValueInt;
             _zigZag.Save();
 
-            // Create indicator ZigZag CCI
+            // Create indicator ZigZag Volume
             _zigZagVolume = IndicatorsFactory.CreateIndicatorByName("ZigZagVolume", name + "ZigZagVolume", false);
             _zigZagVolume = (Aindicator)_tab.CreateCandleIndicator(_zigZagVolume, "NewArea");
             ((IndicatorParameterInt)_zigZagVolume.Parameters[0]).ValueInt = _lenghtVolOsSlow.ValueInt;
@@ -566,7 +566,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
