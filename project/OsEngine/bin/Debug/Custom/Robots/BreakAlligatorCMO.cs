@@ -28,15 +28,18 @@ Sell:
 1. The value of the CMO indicator crosses level 0 from top to bottom.
 2. fast line (lips) below the midline (teeth), middle line below the slow one (jaw).
 
-Buy exit: trailing stop in % of the line of the candle on which you entered.
-Sell ​​exit: trailing stop in % of the high of the candle where you entered.
+Buy exit:
+trailing stop in % of the line of the candle on which you entered.
+Sell ​​exit:
+trailing stop in % of the high of the candle where you entered.
  */
 
 namespace OsEngine.Robots
 {
-    [Bot("BreakAlligatorCMO")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("BreakAlligatorCMO")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class BreakAlligatorCMO : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -51,10 +54,10 @@ namespace OsEngine.Robots
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Indicator Settings 
-        private StrategyParameterInt LengthCMO;
-        private StrategyParameterInt AlligatorFastLineLength;
-        private StrategyParameterInt AlligatorMiddleLineLength;
-        private StrategyParameterInt AlligatorSlowLineLength;
+        private StrategyParameterInt _lengthCMO;
+        private StrategyParameterInt _alligatorFastLineLength;
+        private StrategyParameterInt _alligatorMiddleLineLength;
+        private StrategyParameterInt _alligatorSlowLineLength;
 
         // Indicator
         private Aindicator _CMO;
@@ -74,6 +77,7 @@ namespace OsEngine.Robots
 
         public BreakAlligatorCMO(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -89,30 +93,30 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Indicator Settings
-            LengthCMO = CreateParameter("CMO Length", 14, 7, 48, 7, "Indicator");
-            AlligatorFastLineLength = CreateParameter("Alligator Fast Line Length", 10, 10, 300, 10, "Indicator");
-            AlligatorMiddleLineLength = CreateParameter("Alligator Middle Line Length", 20, 10, 300, 10, "Indicator");
-            AlligatorSlowLineLength = CreateParameter("Alligator Slow Line Length", 30, 10, 300, 10, "Indicator");
+            _lengthCMO = CreateParameter("CMO Length", 14, 7, 48, 7, "Indicator");
+            _alligatorFastLineLength = CreateParameter("Alligator Fast Line Length", 10, 10, 300, 10, "Indicator");
+            _alligatorMiddleLineLength = CreateParameter("Alligator Middle Line Length", 20, 10, 300, 10, "Indicator");
+            _alligatorSlowLineLength = CreateParameter("Alligator Slow Line Length", 30, 10, 300, 10, "Indicator");
 
             // Create indicator Alligator
             _Alligator = IndicatorsFactory.CreateIndicatorByName("Alligator", name + "Alligator", false);
             _Alligator = (Aindicator)_tab.CreateCandleIndicator(_Alligator, "Prime");
-            ((IndicatorParameterInt)_Alligator.Parameters[0]).ValueInt = AlligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[2]).ValueInt = AlligatorMiddleLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[1]).ValueInt = AlligatorFastLineLength.ValueInt;
+            ((IndicatorParameterInt)_Alligator.Parameters[0]).ValueInt = _alligatorSlowLineLength.ValueInt;
+            ((IndicatorParameterInt)_Alligator.Parameters[1]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_Alligator.Parameters[2]).ValueInt = _alligatorFastLineLength.ValueInt;
             _Alligator.Save();
 
             // Create indicator CMO
             _CMO = IndicatorsFactory.CreateIndicatorByName("CMO", name + "CMO", false);
             _CMO = (Aindicator)_tab.CreateCandleIndicator(_CMO, "NewArea");
-            ((IndicatorParameterInt)_CMO.Parameters[0]).ValueInt = LengthCMO.ValueInt;
+            ((IndicatorParameterInt)_CMO.Parameters[0]).ValueInt = _lengthCMO.ValueInt;
             _CMO.Save();
 
             // Exit Settings
             TrailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += BreakAlligatorCMO_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += _breakAlligatorCMO_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -128,14 +132,15 @@ namespace OsEngine.Robots
                 "Sell ​​exit: trailing stop in % of the high of the candle where you entered.";
         }
 
-        private void BreakAlligatorCMO_ParametrsChangeByUser()
+        private void _breakAlligatorCMO_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_CMO.Parameters[0]).ValueInt = LengthCMO.ValueInt;
+            ((IndicatorParameterInt)_CMO.Parameters[0]).ValueInt = _lengthCMO.ValueInt;
             _CMO.Save();
             _CMO.Reload();
-            ((IndicatorParameterInt)_Alligator.Parameters[0]).ValueInt = AlligatorSlowLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[2]).ValueInt = AlligatorMiddleLineLength.ValueInt;
-            ((IndicatorParameterInt)_Alligator.Parameters[1]).ValueInt = AlligatorFastLineLength.ValueInt;
+
+            ((IndicatorParameterInt)_Alligator.Parameters[0]).ValueInt = _alligatorSlowLineLength.ValueInt;
+            ((IndicatorParameterInt)_Alligator.Parameters[1]).ValueInt = _alligatorMiddleLineLength.ValueInt;
+            ((IndicatorParameterInt)_Alligator.Parameters[2]).ValueInt = _alligatorFastLineLength.ValueInt;
             _Alligator.Save();
             _Alligator.Reload();
         }
@@ -160,7 +165,10 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < LengthCMO.ValueInt)
+            if (candles.Count <= _lengthCMO.ValueInt ||
+                candles.Count <= _alligatorSlowLineLength.ValueInt + 8 ||
+                candles.Count <= _alligatorMiddleLineLength.ValueInt ||
+                candles.Count <= _alligatorFastLineLength.ValueInt)
             {
                 return;
             }
@@ -361,4 +369,3 @@ namespace OsEngine.Robots
         }
     }
 }
-
