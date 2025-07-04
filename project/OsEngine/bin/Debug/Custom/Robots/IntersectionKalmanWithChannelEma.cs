@@ -69,7 +69,6 @@ namespace OsEngine.Robots.AO
         private decimal _lastEmaHigh;
         private decimal _lastEmaLow;
 
-
         public IntersectionKalmanWithChannelEma(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
@@ -295,7 +294,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

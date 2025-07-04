@@ -275,6 +275,7 @@ namespace OsEngine.Robots.AO
                     max = Value[Value.Count - i];
                 }
             }
+
             return max;
         }
 
@@ -289,6 +290,7 @@ namespace OsEngine.Robots.AO
                     min = Value[Value.Count - i];
                 }
             }
+
             return min;
         }
 
@@ -312,7 +314,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
