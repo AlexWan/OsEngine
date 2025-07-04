@@ -31,23 +31,67 @@ namespace OsEngine.OsTrader.SystemAnalyze
             CheckBoxCpuCollectDataIsOn.Checked += CheckBoxCpuCollectDataIsOn_Checked;
             CheckBoxCpuCollectDataIsOn.Unchecked += CheckBoxCpuCollectDataIsOn_Checked;
 
+            CheckBoxEcqCollectDataIsOn.IsChecked = SystemUsageAnalyzeMaster.EcqCollectDataIsOn;
+            CheckBoxEcqCollectDataIsOn.Checked += CheckBoxEcqCollectDataIsOn_Checked;
+            CheckBoxEcqCollectDataIsOn.Unchecked += CheckBoxEcqCollectDataIsOn_Checked;
+
+
+            ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.OneSecond.ToString());
+            ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.TenSeconds.ToString());
+            ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.Minute.ToString());
+            ComboBoxRamPeriodSavePoint.SelectedItem = SystemUsageAnalyzeMaster.RamPeriodSavePoint.ToString();
+            ComboBoxRamPeriodSavePoint.SelectionChanged += ComboBoxRamPeriodSavePoint_SelectionChanged;
+
+            ComboBoxCpuPeriodSavePoint.Items.Add(SavePointPeriod.OneSecond.ToString());
+            ComboBoxCpuPeriodSavePoint.Items.Add(SavePointPeriod.TenSeconds.ToString());
+            ComboBoxCpuPeriodSavePoint.Items.Add(SavePointPeriod.Minute.ToString());
+            ComboBoxCpuPeriodSavePoint.SelectedItem = SystemUsageAnalyzeMaster.CpuPeriodSavePoint.ToString();
+            ComboBoxCpuPeriodSavePoint.SelectionChanged += ComboBoxCpuPeriodSavePoint_SelectionChanged;
+
+            ComboBoxEcqPeriodSavePoint.Items.Add(SavePointPeriod.OneSecond.ToString());
+            ComboBoxEcqPeriodSavePoint.Items.Add(SavePointPeriod.TenSeconds.ToString());
+            ComboBoxEcqPeriodSavePoint.Items.Add(SavePointPeriod.Minute.ToString());
+            ComboBoxEcqPeriodSavePoint.SelectedItem = SystemUsageAnalyzeMaster.EcqPeriodSavePoint.ToString();
+            ComboBoxEcqPeriodSavePoint.SelectionChanged += ComboBoxEcqPeriodSavePoint_SelectionChanged;
+
+            TextBoxRamPointsMax.Text = SystemUsageAnalyzeMaster.RamPointsMax.ToString();
+            TextBoxRamPointsMax.TextChanged += TextBoxRamPointsMax_TextChanged;
+
+            TextBoxCpuPointsMax.Text = SystemUsageAnalyzeMaster.CpuPointsMax.ToString();
+            TextBoxCpuPointsMax.TextChanged += TextBoxCpuPointsMax_TextChanged;
+             
+            TextBoxEcqPointsMax.Text = SystemUsageAnalyzeMaster.EcqPointsMax.ToString();
+            TextBoxEcqPointsMax.TextChanged += TextBoxEcqPointsMax_TextChanged;
+
             this.Closed += SystemAnalyzeUi_Closed;
 
             Title = OsLocalization.Trader.Label556 + " В РАБОТЕ";
             CheckBoxRamCollectDataIsOn.Content = OsLocalization.Trader.Label557;
             CheckBoxCpuCollectDataIsOn.Content = OsLocalization.Trader.Label557;
+            CheckBoxEcqCollectDataIsOn.Content = OsLocalization.Trader.Label557;
+
+            LabelRamPeriod.Content = OsLocalization.Trader.Label559;
+            LabelCpuPeriod.Content = OsLocalization.Trader.Label559;
+            LabelEcqPeriod.Content = OsLocalization.Trader.Label559;
+
+            LabelRamPointsMaxCount.Content = OsLocalization.Trader.Label561;
+            LabelCpuPointsMaxCount.Content = OsLocalization.Trader.Label561;
+            LabelEcqPointsMaxCount.Content = OsLocalization.Trader.Label561;
+
+            LabelTotalRamOccupied.Content = OsLocalization.Trader.Label562;
+            LabelOsEngineRamOccupied.Content = OsLocalization.Trader.Label563;
 
             CreateRamChart();
             CreateCpuChart();
 
-            RePaintRamChart(SystemUsageAnalyzeMaster.ValuesRam);
+            RePaintRamValues(SystemUsageAnalyzeMaster.ValuesRam);
             RePaintCpuChart(SystemUsageAnalyzeMaster.ValuesCpu);
 
             SystemUsageAnalyzeMaster.RamUsageCollectionChange += SystemUsageAnalyzeMaster_RamUsageCollectionChange;
             SystemUsageAnalyzeMaster.CpuUsageCollectionChange += SystemUsageAnalyzeMaster_CpuUsageCollectionChange;
 
-            OsEngine.Layout.StickyBorders.Listen(this);
-            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+            Layout.StickyBorders.Listen(this);
+            Layout.StartupLocation.Start_MouseInCentre(this);
         }
 
         private void SystemAnalyzeUi_Closed(object sender, EventArgs e)
@@ -60,6 +104,14 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
             CheckBoxCpuCollectDataIsOn.Checked -= CheckBoxCpuCollectDataIsOn_Checked;
             CheckBoxCpuCollectDataIsOn.Unchecked -= CheckBoxCpuCollectDataIsOn_Checked;
+
+            ComboBoxRamPeriodSavePoint.SelectionChanged -= ComboBoxRamPeriodSavePoint_SelectionChanged;
+            ComboBoxCpuPeriodSavePoint.SelectionChanged -= ComboBoxCpuPeriodSavePoint_SelectionChanged;
+            ComboBoxEcqPeriodSavePoint.SelectionChanged -= ComboBoxEcqPeriodSavePoint_SelectionChanged;
+
+            TextBoxRamPointsMax.TextChanged -= TextBoxRamPointsMax_TextChanged;
+            TextBoxCpuPointsMax.TextChanged -= TextBoxCpuPointsMax_TextChanged;
+            TextBoxEcqPointsMax.TextChanged -= TextBoxEcqPointsMax_TextChanged;
         }
 
         private void CheckBoxCpuCollectDataIsOn_Checked(object sender, RoutedEventArgs e)
@@ -79,6 +131,141 @@ namespace OsEngine.OsTrader.SystemAnalyze
             try
             {
                 SystemUsageAnalyzeMaster.RamCollectDataIsOn = CheckBoxRamCollectDataIsOn.IsChecked.Value;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void CheckBoxEcqCollectDataIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                SystemUsageAnalyzeMaster.EcqCollectDataIsOn = CheckBoxEcqCollectDataIsOn.IsChecked.Value;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void ComboBoxRamPeriodSavePoint_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                SavePointPeriod period;
+
+                if (Enum.TryParse(ComboBoxRamPeriodSavePoint.SelectedItem.ToString(), out period))
+                {
+                    SystemUsageAnalyzeMaster.RamPeriodSavePoint = period;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxCpuPeriodSavePoint_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                SavePointPeriod period;
+
+                if (Enum.TryParse(ComboBoxCpuPeriodSavePoint.SelectedItem.ToString(), out period))
+                {
+                    SystemUsageAnalyzeMaster.CpuPeriodSavePoint = period;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ComboBoxEcqPeriodSavePoint_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            try
+            {
+                SavePointPeriod period;
+
+                if (Enum.TryParse(ComboBoxEcqPeriodSavePoint.SelectedItem.ToString(), out period))
+                {
+                    SystemUsageAnalyzeMaster.EcqPeriodSavePoint = period;
+                }
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxRamPointsMax_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(TextBoxRamPointsMax.Text))
+                {
+                    return;
+                }
+
+                int result = Convert.ToInt32(TextBoxRamPointsMax.Text);
+
+                if(result <= 0)
+                {
+                    result = 10;
+                }
+
+                SystemUsageAnalyzeMaster.RamPointsMax = result;
+            }
+            catch
+            {
+               // ignore
+            }
+        }
+
+        private void TextBoxCpuPointsMax_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxCpuPointsMax.Text))
+                {
+                    return;
+                }
+
+                int result = Convert.ToInt32(TextBoxCpuPointsMax.Text);
+
+                if (result <= 0)
+                {
+                    result = 10;
+                }
+
+                SystemUsageAnalyzeMaster.CpuPointsMax = result;
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxEcqPointsMax_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxEcqPointsMax.Text))
+                {
+                    return;
+                }
+
+                int result = Convert.ToInt32(TextBoxEcqPointsMax.Text);
+
+                if (result <= 0)
+                {
+                    result = 10;
+                }
+
+                SystemUsageAnalyzeMaster.EcqPointsMax = result;
             }
             catch
             {
@@ -116,7 +303,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
             Series seriesTotalRam = new Series("SeriesTotalRam");
             seriesTotalRam.ChartType = SeriesChartType.RangeColumn;
-            seriesTotalRam.Color = Color.DarkRed;
+            seriesTotalRam.Color = Color.Green;
             seriesTotalRam.YAxisType = AxisType.Secondary;
             seriesTotalRam.ChartArea = "ChartAreaSystemValues";
             seriesTotalRam.ShadowOffset = 2;
@@ -126,7 +313,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
             Series seriesFreeRam = new Series("SeriesFreeRam");
             seriesFreeRam.ChartType = SeriesChartType.Column;
-            seriesFreeRam.Color = Color.Green;
+            seriesFreeRam.Color = Color.Red;
             seriesFreeRam.YAxisType = AxisType.Secondary;
             seriesFreeRam.ChartArea = "ChartAreaSystemValues";
             seriesFreeRam.ShadowOffset = 2;
@@ -171,11 +358,11 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
-        private void RePaintRamChart(List<SystemUsagePoint> values)
+        private void RePaintRamValues(List<SystemUsagePointRam> values)
         {
             if (_chartReport.InvokeRequired)
             {
-                _chartReport.Invoke(new Action<List<SystemUsagePoint>>(RePaintRamChart),values);
+                _chartReport.Invoke(new Action<List<SystemUsagePointRam>>(RePaintRamValues),values);
                 return;
             }
 
@@ -192,29 +379,33 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                 for (int i = 0; i < values.Count; i++)
                 {
-                    SystemUsagePoint usagePoint = values[i];
+                    SystemUsagePointRam usagePoint = values[i];
 
-                    _chartReport.Series[0].Points.AddXY(i, usagePoint.SystemTotal);
-                    _chartReport.Series[0].Points[^1].ToolTip = usagePoint.ToolTip;
+                    _chartReport.Series[0].Points.AddXY(i, 100);
+                    _chartReport.Series[0].Points[^1].ToolTip = OsLocalization.Trader.Label564 + ": " + (100 - usagePoint.SystemUsedPercent) + "%";
 
-                    _chartReport.Series[1].Points.AddXY(i, usagePoint.SystemFree);
-                    _chartReport.Series[1].Points[^1].ToolTip = usagePoint.ToolTip;
+                    _chartReport.Series[1].Points.AddXY(i, usagePoint.SystemUsedPercent);
+                    _chartReport.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label565 + ": " + usagePoint.SystemUsedPercent + "%";
 
-                    _chartReport.Series[2].Points.AddXY(i, usagePoint.ProgramUsed);
-                    _chartReport.Series[2].Points[^1].ToolTip = usagePoint.ToolTip;
+                    _chartReport.Series[2].Points.AddXY(i, usagePoint.ProgramUsedPercent);
+                    _chartReport.Series[2].Points[^1].ToolTip = "OsEngine: " + usagePoint.ProgramUsedPercent + "%";
                 }
+
+                SystemUsagePointRam lastPoint = values[^1];
+
+                TextBoxTotalRamOccupied.Text = lastPoint.SystemUsedPercent.ToString() + "%";
+                TextBoxOsEngineRamOccupied.Text = lastPoint.ProgramUsedPercent.ToString() + "%";
             }
             catch (Exception ex)
             {
                 ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
                 return;
             }
-
         }
 
-        private void SystemUsageAnalyzeMaster_RamUsageCollectionChange(List<SystemUsagePoint> values)
+        private void SystemUsageAnalyzeMaster_RamUsageCollectionChange(List<SystemUsagePointRam> values)
         {
-            RePaintRamChart(values);
+            RePaintRamValues(values);
         }
 
         #endregion
@@ -228,19 +419,21 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
         }
 
-        private void RePaintCpuChart(List<SystemUsagePoint> values)
+        private void RePaintCpuChart(List<SystemUsagePointCpu> values)
         {
 
         }
 
-        private void SystemUsageAnalyzeMaster_CpuUsageCollectionChange(List<SystemUsagePoint> values)
+        private void SystemUsageAnalyzeMaster_CpuUsageCollectionChange(List<SystemUsagePointCpu> values)
         {
             RePaintCpuChart(values);
         }
 
         #endregion
 
-        #region Emergency clearing of queues in servers
+        #region ECQ. Emergency clearing of queues in servers 
+
+
 
 
 
