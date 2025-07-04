@@ -96,7 +96,7 @@ namespace OsEngine.Market.Servers
                 _needToSaveCandlesParam.ValueChange += SaveCandleHistoryParam_ValueChange;
                 ServerParameters[2].Comment = OsLocalization.Market.Label89;
 
-                CreateParameterInt(OsLocalization.Market.ServerParam6, 300);
+                CreateParameterInt(OsLocalization.Market.ServerParam6, 500);
                 _needToLoadCandlesCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
                 _needToLoadCandlesCountParam.ValueChange += _needToLoadCandlesCountParam_ValueChange;
                 ServerParameters[3].Comment = OsLocalization.Market.Label90;
@@ -326,6 +326,15 @@ namespace OsEngine.Market.Servers
         public List<IServerParameter> ServerParameters = new List<IServerParameter>();
 
         private int _serverStandardParamsCount = 12;
+        public IServerParameter GetStandardServerParameter(int index)
+        {
+            if (index < 0 || index >= _serverStandardParamsCount)
+            {
+                throw new Exception("Index out of range");
+            }
+
+            return ServerParameters[^(_serverStandardParamsCount - index)];
+        }
 
         /// <summary>
         /// create STRING server parameter
