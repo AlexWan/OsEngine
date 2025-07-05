@@ -18,7 +18,6 @@ using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
-using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
 using OsEngine.PrimeSettings;
@@ -710,25 +709,6 @@ namespace OsEngine
                 _startProgram = StartProgram.IsOsOptimizer;
                 Hide();
                 OptimizerUi ui = new OptimizerUi();
-                ui.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-            Process.GetCurrentProcess().Kill();
-        }
-
-        private void ButtonMiner_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                _startProgram = StartProgram.IsOsMiner;
-                Hide();
-                OsMinerUi ui = new OsMinerUi();
                 ui.ShowDialog();
                 Close();
                 ProccesIsWorked = false;
