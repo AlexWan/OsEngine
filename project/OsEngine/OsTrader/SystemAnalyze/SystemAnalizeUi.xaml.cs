@@ -78,8 +78,12 @@ namespace OsEngine.OsTrader.SystemAnalyze
             LabelCpuPointsMaxCount.Content = OsLocalization.Trader.Label561;
             LabelEcqPointsMaxCount.Content = OsLocalization.Trader.Label561;
 
+            LabelFreeRam.Content = OsLocalization.Trader.Label564;
             LabelTotalRamOccupied.Content = OsLocalization.Trader.Label562;
             LabelOsEngineRamOccupied.Content = OsLocalization.Trader.Label563;
+
+            LabelCpuTotalOccupiedPercent.Content = OsLocalization.Trader.Label562;
+            LabelCpuProgramOccupiedPercent.Content = OsLocalization.Trader.Label563;
 
             CreateRamChart();
             CreateCpuChart();
@@ -277,16 +281,16 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
         #region RAM
 
-        private Chart _chartReport;
+        private Chart _chartRam; 
 
         private void CreateRamChart()
         {
-            _chartReport = new Chart();
-            HostRam.Child = _chartReport;
+            _chartRam = new Chart();
+            HostRam.Child = _chartRam;
             HostRam.Child.Show();
 
-            _chartReport.Series.Clear();
-            _chartReport.ChartAreas.Clear();
+            _chartRam.Series.Clear();
+            _chartRam.ChartAreas.Clear();
 
             // 1 chart area system values
 
@@ -297,7 +301,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             areaSystemValues.CursorX.IsUserSelectionEnabled = false;
             areaSystemValues.CursorX.IsUserEnabled = false;
             areaSystemValues.AxisX.Enabled = AxisEnabled.False;
-            _chartReport.ChartAreas.Add(areaSystemValues);
+            _chartRam.ChartAreas.Add(areaSystemValues);
 
             // 2 series total ram
 
@@ -307,7 +311,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesTotalRam.YAxisType = AxisType.Secondary;
             seriesTotalRam.ChartArea = "ChartAreaSystemValues";
             seriesTotalRam.ShadowOffset = 2;
-            _chartReport.Series.Add(seriesTotalRam);
+            _chartRam.Series.Add(seriesTotalRam);
 
             // 3 series free ram
 
@@ -317,7 +321,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesFreeRam.YAxisType = AxisType.Secondary;
             seriesFreeRam.ChartArea = "ChartAreaSystemValues";
             seriesFreeRam.ShadowOffset = 2;
-            _chartReport.Series.Add(seriesFreeRam);
+            _chartRam.Series.Add(seriesFreeRam);
 
             // 4 chart area my values
 
@@ -327,7 +331,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
             areaMyRam.Position.Width = 100;
             areaMyRam.Position.Y = 70;
             areaMyRam.AxisX.Enabled = AxisEnabled.False;
-            _chartReport.ChartAreas.Add(areaMyRam);
+            _chartRam.ChartAreas.Add(areaMyRam);
 
             // 5 series my ram
 
@@ -337,21 +341,21 @@ namespace OsEngine.OsTrader.SystemAnalyze
             seriesMyRam.Color = Color.DarkOrange;
             seriesMyRam.ChartArea = "ChartAreaMyValues";
             seriesMyRam.ShadowOffset = 2;
-            _chartReport.Series.Add(seriesMyRam);
+            _chartRam.Series.Add(seriesMyRam);
 
             // 6 colors
 
-            _chartReport.BackColor = Color.FromArgb(-15395563);
+            _chartRam.BackColor = Color.FromArgb(-15395563);
 
-            for (int i = 0; _chartReport.ChartAreas != null && i < _chartReport.ChartAreas.Count; i++)
+            for (int i = 0; _chartRam.ChartAreas != null && i < _chartRam.ChartAreas.Count; i++)
             {
-                _chartReport.ChartAreas[i].BackColor = Color.FromArgb(-15395563);
-                _chartReport.ChartAreas[i].BorderColor = Color.FromArgb(-16701360);
-                _chartReport.ChartAreas[i].CursorY.LineColor = Color.DimGray;
-                _chartReport.ChartAreas[i].CursorX.LineColor = Color.DimGray;
-                _chartReport.ChartAreas[i].AxisX.TitleForeColor = Color.DimGray;
+                _chartRam.ChartAreas[i].BackColor = Color.FromArgb(-15395563);
+                _chartRam.ChartAreas[i].BorderColor = Color.FromArgb(-16701360);
+                _chartRam.ChartAreas[i].CursorY.LineColor = Color.DimGray;
+                _chartRam.ChartAreas[i].CursorX.LineColor = Color.DimGray;
+                _chartRam.ChartAreas[i].AxisX.TitleForeColor = Color.DimGray;
 
-                foreach (var axe in _chartReport.ChartAreas[i].Axes)
+                foreach (var axe in _chartRam.ChartAreas[i].Axes)
                 {
                     axe.LabelStyle.ForeColor = Color.DimGray;
                 }
@@ -360,41 +364,48 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
         private void RePaintRamValues(List<SystemUsagePointRam> values)
         {
-            if (_chartReport.InvokeRequired)
-            {
-                _chartReport.Invoke(new Action<List<SystemUsagePointRam>>(RePaintRamValues),values);
-                return;
-            }
-
             try
             {
-                if (_chartReport == null)
+                if (_chartRam.InvokeRequired)
+                {
+                    _chartRam.Invoke(new Action<List<SystemUsagePointRam>>(RePaintRamValues), values);
+                    return;
+                }
+
+                if (_chartRam == null)
                 {
                     return;
                 }
 
-                _chartReport.Series[0].Points.ClearFast();
-                _chartReport.Series[1].Points.ClearFast();
-                _chartReport.Series[2].Points.ClearFast();
+                _chartRam.Series[0].Points.ClearFast();
+                _chartRam.Series[1].Points.ClearFast();
+                _chartRam.Series[2].Points.ClearFast();
+
+                if(values == null 
+                    || values.Count == 0)
+                {
+                    return;
+                }
 
                 for (int i = 0; i < values.Count; i++)
                 {
                     SystemUsagePointRam usagePoint = values[i];
 
-                    _chartReport.Series[0].Points.AddXY(i, 100);
-                    _chartReport.Series[0].Points[^1].ToolTip = OsLocalization.Trader.Label564 + ": " + (100 - usagePoint.SystemUsedPercent) + "%";
+                    _chartRam.Series[0].Points.AddXY(i, 100);
+                    _chartRam.Series[0].Points[^1].ToolTip = OsLocalization.Trader.Label564 + ": " + (100 - usagePoint.SystemUsedPercent) + "%";
 
-                    _chartReport.Series[1].Points.AddXY(i, usagePoint.SystemUsedPercent);
-                    _chartReport.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label565 + ": " + usagePoint.SystemUsedPercent + "%";
+                    _chartRam.Series[1].Points.AddXY(i, usagePoint.SystemUsedPercent);
+                    _chartRam.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label565 + ": " + usagePoint.SystemUsedPercent + "%";
 
-                    _chartReport.Series[2].Points.AddXY(i, usagePoint.ProgramUsedPercent);
-                    _chartReport.Series[2].Points[^1].ToolTip = "OsEngine: " + usagePoint.ProgramUsedPercent + "%";
+                    _chartRam.Series[2].Points.AddXY(i, usagePoint.ProgramUsedPercent);
+                    _chartRam.Series[2].Points[^1].ToolTip = "OsEngine: " + usagePoint.ProgramUsedPercent + "%";
                 }
 
                 SystemUsagePointRam lastPoint = values[^1];
 
                 TextBoxTotalRamOccupied.Text = lastPoint.SystemUsedPercent.ToString() + "%";
                 TextBoxOsEngineRamOccupied.Text = lastPoint.ProgramUsedPercent.ToString() + "%";
+                TextBoxFreeRam.Text = (100 - lastPoint.SystemUsedPercent).ToString() + "%";
             }
             catch (Exception ex)
             {
@@ -412,16 +423,112 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
         #region CPU
 
+        private Chart _chartCpu;
+
         private void CreateCpuChart()
         {
+            _chartCpu = new Chart();
+            HostCpu.Child = _chartCpu;
+            HostCpu.Child.Show();
 
+            _chartCpu.Series.Clear();
+            _chartCpu.ChartAreas.Clear();
 
+            // 1 chart area system values
 
+            ChartArea areaSystemValues = new ChartArea("ChartAreaSystemValues");
+            areaSystemValues.Position.Height = 100;
+            areaSystemValues.Position.Width = 100;
+            areaSystemValues.Position.Y = 0;
+            areaSystemValues.CursorX.IsUserSelectionEnabled = false;
+            areaSystemValues.CursorX.IsUserEnabled = false;
+            areaSystemValues.AxisX.Enabled = AxisEnabled.False;
+            _chartCpu.ChartAreas.Add(areaSystemValues);
+
+            // 2 series total cpu
+
+            Series seriesTotalCpu = new Series("SeriesTotalCpu");
+            seriesTotalCpu.ChartType = SeriesChartType.Line;
+            seriesTotalCpu.BorderWidth = 3;
+            seriesTotalCpu.Color = Color.Green;
+            seriesTotalCpu.YAxisType = AxisType.Secondary;
+            seriesTotalCpu.ChartArea = "ChartAreaSystemValues";
+            seriesTotalCpu.ShadowOffset = 2;
+            _chartCpu.Series.Add(seriesTotalCpu);
+
+            // 3 series osEngine cpu
+
+            Series seriesOsEngineCpu = new Series("SeriesFreeCpu");
+            seriesOsEngineCpu.ChartType = SeriesChartType.Line;
+            seriesOsEngineCpu.BorderWidth = 3;
+            seriesOsEngineCpu.Color = Color.Red;
+            seriesOsEngineCpu.YAxisType = AxisType.Secondary;
+            seriesOsEngineCpu.ChartArea = "ChartAreaSystemValues";
+            seriesOsEngineCpu.ShadowOffset = 2;
+            _chartCpu.Series.Add(seriesOsEngineCpu);
+
+            _chartCpu.BackColor = Color.FromArgb(-15395563);
+
+            for (int i = 0; _chartCpu.ChartAreas != null && i < _chartCpu.ChartAreas.Count; i++)
+            {
+                _chartCpu.ChartAreas[i].BackColor = Color.FromArgb(-15395563);
+                _chartCpu.ChartAreas[i].BorderColor = Color.FromArgb(-16701360);
+                _chartCpu.ChartAreas[i].CursorY.LineColor = Color.DimGray;
+                _chartCpu.ChartAreas[i].CursorX.LineColor = Color.DimGray;
+                _chartCpu.ChartAreas[i].AxisX.TitleForeColor = Color.DimGray;
+
+                foreach (var axe in _chartCpu.ChartAreas[i].Axes)
+                {
+                    axe.LabelStyle.ForeColor = Color.DimGray;
+                }
+            }
         }
 
         private void RePaintCpuChart(List<SystemUsagePointCpu> values)
         {
+            try
+            {
+                if (_chartCpu.InvokeRequired)
+                {
+                    _chartCpu.Invoke(new Action<List<SystemUsagePointCpu>>(RePaintCpuChart), values);
+                    return;
+                }
 
+                if (_chartCpu == null)
+                {
+                    return;
+                }
+
+                if(values == null
+                    || values.Count == 0)
+                {
+                    return;
+                }
+
+                _chartCpu.Series[0].Points.ClearFast();
+                _chartCpu.Series[1].Points.ClearFast();
+
+                for (int i = 0; i < values.Count; i++)
+                {
+                    SystemUsagePointCpu usagePoint = values[i];
+
+                    _chartCpu.Series[0].Points.AddXY(i, usagePoint.TotalOccupiedPercent);
+                    _chartCpu.Series[0].Points[^1].ToolTip = OsLocalization.Trader.Label562 + ": " + usagePoint.TotalOccupiedPercent + "%";
+
+                    _chartCpu.Series[1].Points.AddXY(i, usagePoint.ProgramOccupiedPercent);
+                    _chartCpu.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label563 + ": " + usagePoint.ProgramOccupiedPercent + "%";
+                }
+
+                SystemUsagePointCpu lastPoint = values[^1];
+
+                TextBoxCpuTotalOccupiedPercent.Text = lastPoint.TotalOccupiedPercent.ToString() + "%";
+                TextBoxCpuProgramOccupiedPercent.Text = lastPoint.ProgramOccupiedPercent.ToString() + "%";
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                return;
+            }
         }
 
         private void SystemUsageAnalyzeMaster_CpuUsageCollectionChange(List<SystemUsagePointCpu> values)
@@ -432,6 +539,10 @@ namespace OsEngine.OsTrader.SystemAnalyze
         #endregion
 
         #region ECQ. Emergency clearing of queues in servers 
+
+
+
+
 
 
 

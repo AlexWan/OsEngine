@@ -599,6 +599,8 @@ namespace OsEngine.OsTrader.SystemAnalyze
         }
         private int _cpuPointsMax = 100;
 
+        private DateTime _nextCalculateTime;
+
         public void CalculateData()
         {
             if (_cpuCollectDataIsOn == false)
@@ -606,13 +608,48 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 return;
             }
 
+            if (_nextCalculateTime != DateTime.MinValue
+                && _nextCalculateTime > DateTime.Now)
+            {
+                return;
+            }
+
+            if (_cpuPeriodSavePoint == SavePointPeriod.OneSecond)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(1);
+            }
+            else if (_cpuPeriodSavePoint == SavePointPeriod.TenSeconds)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(10);
+            }
+            else //if (_cpuPeriodSavePoint == SavePointPeriod.Minute)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(60);
+            }
+
+            if(_cpuCounterTotal == null)
+            {
+                _cpuCounterTotal = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                _cpuCounterOsEngine = new PerformanceCounter("Process", "% Processor Time", "OsEngine");
+            }
+           
+            SystemUsagePointCpu newPoint = new SystemUsagePointCpu();
+            newPoint.Time = DateTime.Now;
+            newPoint.TotalOccupiedPercent = Math.Round(Convert.ToDecimal(_cpuCounterTotal.NextValue()),3);
+            newPoint.ProgramOccupiedPercent = Math.Round(Convert.ToDecimal(_cpuCounterOsEngine.NextValue() / Environment.ProcessorCount), 3);
+
+            SaveNewPoint(newPoint);
         }
+
+        private PerformanceCounter _cpuCounterTotal;
+
+        private PerformanceCounter _cpuCounterOsEngine;
 
         private void SaveNewPoint(SystemUsagePointCpu point)
         {
             Values.Add(point);
 
-            if (Values.Count > 10000)
+            if (Values.Count > _cpuPointsMax)
             {
                 Values.RemoveAt(0);
             }
@@ -780,7 +817,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
     {
         public DateTime Time;
 
-        public decimal ProgramPercent;
+        public decimal ProgramOccupiedPercent;
 
         public decimal TotalOccupiedPercent;
     }
