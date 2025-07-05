@@ -6,8 +6,8 @@
         <Rectangle Margin="429,7,10,0" Height="205" VerticalAlignment="Top" />
         <Rectangle Margin="222,7,202,0" Height="205" VerticalAlignment="Top" />
         <Rectangle Margin="10,7,409,0" Height="205" VerticalAlignment="Top" />
-        <Button  Name="ButtonRobot" Content="Bot Station" Margin="448,138,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28" />
-        <Button  Name="ButtonTester" Content="Tester" Margin="248,105,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28"   />
+        <Button  Name="ButtonRobot" Content="Bot Station" Margin="448,171,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28" />
+        <Button  Name="ButtonTester" Content="Tester" Margin="248,138,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28"   />
         <Button  Name="ButtonData" Content="Data" Margin="37,105,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="28" />
         <Button  Name="ButtonCandleConverter" Content="Candle Converter" HorizontalAlignment="Left" Margin="37,172,0,0" VerticalAlignment="Top" Width="145" Click="CandleConverter_Click"/>
         <Button  Name="ButtonConverter" Content="Converter" Margin="37,138,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
@@ -22,8 +22,8 @@
         <Button Name="ButtonSettings" HorizontalAlignment="Left" Margin="268,231,0,0" VerticalAlignment="Top" Width="100" Height="28" Click="ButtonSettings_Click">
             <Image Name="ImageGear" HorizontalAlignment="Left" Source="Images/MainWIndow/gear.png" Width="24" Height="24"/>
         </Button>
-        <Button  Name="ButtonTesterLight" Content="Tester Light" Margin="248,138,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonTesterLight_Click"   />
-        <Button  Name="ButtonRobotLight" Content="Bot Station Light" Margin="448,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonRobotLight_Click" />
+        <Button  Name="ButtonTesterLight" Content="Tester Light" Margin="248,105,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonTesterLight_Click"   />
+        <Button  Name="ButtonRobotLight" Content="Bot Station Light" Margin="448,138,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonRobotLight_Click" />
         <Image Name="ImageAlor" Source="/Images/MainWIndow/alor1.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
         <Image Name="ImageAlor2" Source="/Images/MainWIndow/alor2.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
         <Image Name="ImagePadlock" HorizontalAlignment="Left" Source="/Images/padlockClosed.png" Height="60" Margin="292,7,0,0" VerticalAlignment="Top" Width="60"/>
