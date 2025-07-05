@@ -178,7 +178,6 @@ namespace OsEngine
             ButtonCandleConverter.IsEnabled = false;
             ButtonConverter.IsEnabled = false;
             ButtonOptimizer.IsEnabled = false;
-            ButtonMiner.IsEnabled = false;
             ButtonTesterLight.IsEnabled = false;
             ButtonRobotLight.IsEnabled = false;
             ButtonLocal_Ru.IsEnabled = false;
@@ -223,7 +222,6 @@ namespace OsEngine
             ButtonCandleConverter.IsEnabled = true;
             ButtonConverter.IsEnabled = true;
             ButtonOptimizer.IsEnabled = true;
-            ButtonMiner.IsEnabled = true;
             ButtonTesterLight.IsEnabled = true;
             ButtonRobotLight.IsEnabled = true;
             ButtonLocal_Ru.IsEnabled = true;
@@ -344,7 +342,6 @@ namespace OsEngine
             ButtonConverter.Content = OsLocalization.MainWindow.OsConverter;
             ButtonTester.Content = OsLocalization.MainWindow.OsTesterName;
             ButtonOptimizer.Content = OsLocalization.MainWindow.OsOptimizerName;
-            ButtonMiner.Content = OsLocalization.MainWindow.OsMinerName;
 
             ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
             ButtonCandleConverter.Content = OsLocalization.MainWindow.OsCandleConverter;
