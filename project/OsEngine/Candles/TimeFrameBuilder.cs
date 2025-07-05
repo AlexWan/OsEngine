@@ -362,6 +362,18 @@ namespace OsEngine.Entity
                             Simple simple = CandleSeriesRealization as Simple;
                             simple.TimeFrame = value;
                         }
+                        else if (CandleSeriesRealization != null
+                            && CandleSeriesRealization.GetType().Name == "HeikenAshi")
+                        {
+                            HeikenAshi simple = CandleSeriesRealization as HeikenAshi;
+                            simple.TimeFrame = value;
+                        }
+                        else if (CandleSeriesRealization != null
+                            && CandleSeriesRealization.GetType().Name == "TimeShiftCandle")
+                        {
+                            TimeShiftCandle simple = CandleSeriesRealization as TimeShiftCandle;
+                            simple.TimeFrame = value;
+                        }
 
                         Save();
                     }
