@@ -1,5 +1,9 @@
-﻿using OsEngine.Entity;
-using OsEngine.OsMiner.Patterns;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -18,48 +22,53 @@ It shows:
 • Dynamic graph: The graph updates in real time as new data becomes available.
 • User interaction: The user can change the scale of the graph and get values ​​at specific points.
 • Customizable parameters: Ability to select the spread calculation method and the maximum number of points on the chart.
-
 */
 
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("CustomChartInParamWindowSample")]
+    [Bot("CustomChartInParamWindowSample")] // We create an attribute so that we don't write anything to the BotFactory
     public class CustomChartInParamWindowSample : BotPanel
     {
+        // Simple tabs
         private BotTabSimple _tab0;
-
         private BotTabSimple _tab1;
 
+        // Basic settings
         private StrategyParameterString _regimeSpread;
-
         private StrategyParameterInt _maxCountDotInLine;
 
+        // Host chart
         private WindowsFormsHost _host;
-
+        
+        // Chart
         private Chart _chart;
 
         private TextAnnotation _annotation;
 
         public CustomChartInParamWindowSample(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create tabs
             TabCreate(BotTabType.Simple);
             TabCreate(BotTabType.Simple);
 
             _tab0 = TabsSimple[0];
             _tab1 = TabsSimple[1];
 
+            // Basic settings
             _regimeSpread = CreateParameter("Regime calculation spread", "Subtraction", new string[] { "Subtraction", "Division" });
-
             _maxCountDotInLine = CreateParameter("Max count dot in line",10,10,100,10);
 
+            // Customization param ui
             this.ParamGuiSettings.Title = "CustomChartInParamWindowSample Parameters";
             this.ParamGuiSettings.Height = 300;
             this.ParamGuiSettings.Width = 600;
             CustomTabToParametersUi customTab = ParamGuiSettings.CreateCustomTab("Chart Spread");
 
+            // Create chart
             CreateChart();
             customTab.AddChildren(_host);
 
+            // Worker area
             Thread worker = new Thread(StartPaintChart);
             worker.Start();
 
@@ -70,19 +79,19 @@ namespace OsEngine.Robots.TechSamples
                 "• Customizable parameters: Ability to select the spread calculation method and the maximum number of points on the chart.";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "CustomChartInParamWindowSample";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        /// <summary>
-        /// Prime thread work area / место работы потока прорисовывающего чарт
-        /// </summary>
+        // Prime thread work area
         private void StartPaintChart()
         {
             long countCandlesTab0 = 0;
@@ -104,7 +113,6 @@ namespace OsEngine.Robots.TechSamples
                                 countCandlesTab1 = _tab1.CandlesFinishedOnly.Count;
 
                                 LoadValueOnChart();
-
                             }
                         }
                     }
@@ -117,9 +125,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// create chart / создаем чарт 
-        /// </summary>
+        // Create chart
         private void CreateChart()
         {
             if (MainWindow.GetDispatcher.CheckAccess() == false)
@@ -138,7 +144,7 @@ namespace OsEngine.Robots.TechSamples
                 _chart.Series.Clear();
                 _chart.ChartAreas.Clear();
 
-                ChartArea spreadArea = new ChartArea("ChartAreaSpread"); // создаём область на графике / create area on the chart
+                ChartArea spreadArea = new ChartArea("ChartAreaSpread"); // Create area on the chart
                 spreadArea.CursorX.IsUserSelectionEnabled = true;
                 spreadArea.CursorX.IsUserEnabled = true;
                 spreadArea.CursorY.AxisType = AxisType.Secondary;
@@ -149,20 +155,20 @@ namespace OsEngine.Robots.TechSamples
                 spreadArea.AxisX.Minimum = 0;
                 spreadArea.BackColor = Color.Transparent;
 
-                _chart.ChartAreas.Add(spreadArea); // добавляем область на чарт / add area on the chart
+                _chart.ChartAreas.Add(spreadArea); // Add area on the chart
 
                 _chart.ChartAreas[0].CursorX.LineColor = Color.Red;
                 _chart.ChartAreas[0].CursorX.LineWidth = 2;
                 _chart.BackColor = Color.Transparent;
-                _chart.ChartAreas[0].AxisX.LabelStyle.ForeColor = Color.Gray;   // Цвет меток оси X / color X
-                _chart.ChartAreas[0].AxisY2.LabelStyle.ForeColor = Color.Gray;    // Цвет меток оси Y / color Y
+                _chart.ChartAreas[0].AxisX.LabelStyle.ForeColor = Color.Gray;   // Color X
+                _chart.ChartAreas[0].AxisY2.LabelStyle.ForeColor = Color.Gray;    // Color Y
 
-                // подписываемся на события изменения масштабов / subscribe to zoom events
+                // Subscribe to zoom events
                 _chart.AxisScrollBarClicked += chart_AxisScrollBarClicked;
                 _chart.AxisViewChanged += chart_AxisViewChanged;
                 _chart.CursorPositionChanged += chart_CursorPositionChanged;
 
-                // подписываемся событие обработки клика по графику / subscribe to the chart click processing event
+                // Subscribe to the chart click processing event
                 _chart.MouseClick += Chart_MouseClick;
             }
             catch (Exception ex)
@@ -171,15 +177,13 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        // data spread / хранилище спреда
+        // Data spread
         private List<decimal> spreadData = new List<decimal>();
 
-        // last calculation mode / последнее значение метода вычисления
+        // Last calculation mode
         private string _lastCalculationMode = "";
 
-        /// <summary>
-        /// create data series / формирует серии данных
-        /// </summary>
+        // Create data series
         private void LoadValueOnChart()
         {
             if(_regimeSpread.ValueString != _lastCalculationMode)
@@ -226,16 +230,14 @@ namespace OsEngine.Robots.TechSamples
 
             for (int i = spreadData.Count; i > 0; i--)
             {
-                // забиваем новую точку / add new point
+                // Add new point
                 lineSeries.Points.AddXY(i - 1, spreadData[i - 1]);
             }
 
             SetSeries(lineSeries);
         }
 
-        /// <summary>
-        /// loads data series onto the chart / подгружает серии данных на график 
-        /// </summary>
+        // Loads data series onto the chart
         private void SetSeries(Series lineSeries)
         {
             try
@@ -247,15 +249,16 @@ namespace OsEngine.Robots.TechSamples
                     return;
                 }
 
-                _chart.Series.Clear(); // убираем с нашего графика все до этого созданные серии с данными / we remove from our chart all previously created series with data
+                _chart.Series.Clear(); // We remove from our chart all previously created series with data
                 _chart.Series.Add(lineSeries);
 
                 ChartArea SpreadArea = _chart.ChartAreas.FindByName("ChartAreaSpread");
                 if (SpreadArea != null && SpreadArea.AxisX.ScrollBar.IsVisible)
                 {
-                    // сдвигаем представление вправо / move the view to the right
+                    // Move the view to the right
                     SpreadArea.AxisX.ScaleView.Scroll(_chart.ChartAreas[0].AxisX.Maximum);
                 }
+
                 ChartResize();
                 _chart.Refresh();
             }
@@ -265,7 +268,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        // events / события
+        // Events
 
         private void chart_CursorPositionChanged(object sender, CursorEventArgs e)
         {
@@ -286,29 +289,29 @@ namespace OsEngine.Robots.TechSamples
         {
             try
             {
-                // Получаем координаты клика / Getting click coordinates
+                // Getting click coordinates
                 double x = e.X;
 
-                // Преобразуем координаты клика в координаты на графике / Convert click coordinates to coordinates on the chart
+                // Convert click coordinates to coordinates on the chart
                 Axis xAxis = _chart.ChartAreas[0].AxisX;
                 double xValueOnChart = xAxis.PixelPositionToValue(x);
 
-                // находим ближайшее значение х / find the closest value of x
+                // find the closest value of x
                 int roundedX = (int)Math.Ceiling(xValueOnChart - 0.5);
 
-                // Удаляем предыдущую аннотацию, если она существует / Remove the previous annotation if it exists
+                // Remove the previous annotation if it exists
                 if (_annotation != null)
                 {
                     _chart.Annotations.Remove(_annotation);
                 }
 
-                // проверяем чтобы x не выходил за размер колекции / check that x does not exceed the size of the collection
+                // Check that x does not exceed the size of the collection
                 if (roundedX >= spreadData.Count)
                 {
                     return;
                 }
 
-                // Создаем новую аннотацию с координатами ближайшей точки / Create a new annotation with the coordinates of the nearest point
+                // Create a new annotation with the coordinates of the nearest point
                 _annotation = new TextAnnotation
                 {
                     Text = $"{roundedX}: {spreadData[roundedX]}",
@@ -331,9 +334,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// set the borders of the view along the Y axis / устанавливает границы представления по оси У
-        /// </summary>
+        // Set the borders of the view along the Y axis
         private void ChartResize() 
         {
             try
@@ -383,9 +384,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// takes the minimum value from the array / берёт минимальное значение из массива
-        /// </summary>
+        // Takes the minimum value from the array
         private double GetMinValueOnChart(decimal[] book, int start, int end)
         {
             double result = double.MaxValue;
@@ -401,9 +400,7 @@ namespace OsEngine.Robots.TechSamples
             return result;
         }
 
-        /// <summary>
-        /// takes the maximum value from the array / берёт максимальное значение из массива
-        /// </summary>
+        // Takes the maximum value from the array
         private double GetMaxValueOnChart(decimal[] book, int start, int end)
         {
             double result = 0;

@@ -39,7 +39,7 @@ namespace OsEngine.Robots
     [Bot("StrategyTwoSmaStochasticAndMacdLine")] //We create an attribute so that we don't write anything in the Boot factory
     public class StrategyTwoSmaStochasticAndMacdLine : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;

@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
 using OsEngine.Market.Servers.HTX.Entity;
@@ -12,8 +14,6 @@ using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
-using OsEngine.Language;
 
 
 namespace OsEngine.Market.Servers.HTX.Swap
@@ -130,7 +130,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        SendLogMessage($"Connection can be open. HTXSwap. - Code: {response.err_code} - {response.err_msg}", LogMessageType.Error);
+                        SendLogMessage($"Connection can be open. HTXSwap. - Code: {response.errcode} - {response.errmsg}", LogMessageType.Error);
                     }
                 }
                 else
@@ -287,7 +287,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        SendLogMessage($"Securities error. Code: {response.err_code} || msg: {response.err_msg}", LogMessageType.Error);
+                        SendLogMessage($"Securities error. Code: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
                     }
                 }
                 else
@@ -773,15 +773,46 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 RestClient client = new RestClient(url);
                 RestRequest request = new RestRequest(Method.GET);
                 IRestResponse responseMessage = client.Execute(request);
-                string JsonResponse = responseMessage.Content;
 
-                if (!JsonResponse.Contains("error"))
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    return ConvertCandles(JsonResponse);
+                    ResponseRestMessage<List<ResponseCandles>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseCandles>>());
+
+                    if (response.status == "ok")
+                    {
+                        List<Candle> candles = new List<Candle>();
+
+                        for (int i = 0; i < response.data.Count; i++)
+                        {
+                            ResponseCandles item = response.data[i];
+
+                            if (CheckCandlesToZeroData(item))
+                            {
+                                continue;
+                            }
+
+                            Candle candle = new Candle();
+
+                            candle.State = CandleState.Finished;
+                            candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(long.Parse(item.id));
+                            candle.Volume = item.vol.ToDecimal();
+                            candle.Close = item.close.ToDecimal();
+                            candle.High = item.high.ToDecimal();
+                            candle.Low = item.low.ToDecimal();
+                            candle.Open = item.open.ToDecimal();
+
+                            candles.Add(candle);
+                        }
+                        return candles;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Candle History error. Code: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode} - {JsonResponse}", LogMessageType.Error);
+                    SendLogMessage($"Candle History error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -791,47 +822,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return null;
         }
 
-        private List<Candle> ConvertCandles(string json)
-        {
-            ResponseMessageCandles response = JsonConvert.DeserializeObject<ResponseMessageCandles>(json);
-
-            List<Candle> candles = new List<Candle>();
-
-            List<ResponseMessageCandles.Data> item = response.data;
-
-            if (item == null)
-            {
-                return null;
-            }
-
-            if (item.Count == 0)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < item.Count; i++)
-            {
-                if (CheckCandlesToZeroData(item[i]))
-                {
-                    continue;
-                }
-
-                Candle candle = new Candle();
-
-                candle.State = CandleState.Finished;
-                candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(long.Parse(item[i].id));
-                candle.Volume = item[i].vol.ToDecimal();
-                candle.Close = item[i].close.ToDecimal();
-                candle.High = item[i].high.ToDecimal();
-                candle.Low = item[i].low.ToDecimal();
-                candle.Open = item[i].open.ToDecimal();
-
-                candles.Add(candle);
-            }
-            return candles;
-        }
-
-        private bool CheckCandlesToZeroData(ResponseMessageCandles.Data item)
+        private bool CheckCandlesToZeroData(ResponseCandles item)
         {
             if (item.close.ToDecimal() == 0 ||
                 item.open.ToDecimal() == 0 ||
@@ -1346,15 +1337,69 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
             }
 
+            string clientId = "";
+
             if (webSocketPublic != null)
             {
-                string clientId = "";
-
                 string topic = $"market.{security.Name}.depth.step0";
                 webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
 
                 topic = $"market.{security.Name}.trade.detail";
                 webSocketPublic.Send($"{{ \"sub\": \"{topic}\",\"id\": \"{clientId}\" }}");
+
+            }
+
+            if (_webSocketPrivate != null)
+            {
+                if (_extendedMarketData)
+                {
+                    _webSocketPrivate.Send($"{{\"op\":\"sub\", \"topic\":\"public.{security.Name}.funding_rate\", \"cid\": \"{clientId}\" }}");
+                    GetFundingHistory(security.Name);
+                }
+            }
+        }
+
+        private void GetFundingHistory(string securityName)
+        {
+            try
+            {
+                string queryParam = $"contract_code={securityName}";
+
+                string url = $"https://{_baseUrl}{_pathRest}/v1/swap_historical_funding_rate?{queryParam}";
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<FundingData> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<FundingData>());
+
+                    if (response.status == "ok")
+                    {
+                        FundingItemHistory item = response.data.data[0];
+
+                        Funding funding = new Funding();
+
+                        funding.SecurityNameCode = item.contract_code;
+                        funding.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.funding_time.ToDecimal());
+                        TimeSpan data = TimeManager.GetDateTimeFromTimeStamp((long)item.funding_time.ToDecimal()) - TimeManager.GetDateTimeFromTimeStamp((long)response.data.data[1].funding_time.ToDecimal());
+                        funding.FundingIntervalHours = int.Parse(data.Hours.ToString());
+
+                        FundingUpdateEvent?.Invoke(funding);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingHistory> error. Code: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetFundingHistory> error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1482,6 +1527,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelAccounts}\"}}");
                     _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"{channelPositions}\"}}");
 
+                    if (_extendedMarketData)
+                    {
+                        _webSocketPrivate.Send($"{{\"action\": \"unsub\",\"ch\": \"public.*.funding_rate\"}}");
+                    }
                 }
                 catch
                 {
@@ -1506,6 +1555,11 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     continue;
                 }
 
+                if (!_extendedMarketData)
+                {
+                    continue;
+                }
+
                 if (_subscribledSecurities == null
                     || _subscribledSecurities.Count == 0)
                 {
@@ -1513,11 +1567,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
 
                 if (_timeLast.AddSeconds(20) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                if (!_extendedMarketData)
                 {
                     continue;
                 }
@@ -1534,7 +1583,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 for (int i = 0; i < _subscribledSecurities.Count; i++)
                 {
-
                     string url = $"https://{_baseUrl}{_pathRest}/v1/swap_open_interest?contract_code={_subscribledSecurities[i]}";
                     RestClient client = new RestClient(url);
                     RestRequest request = new RestRequest(Method.GET);
@@ -1573,11 +1621,20 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                         _openInterest.Add(openInterestData);
                                     }
                                 }
+
+                                SecurityVolumes volume = new SecurityVolumes();
+
+                                volume.SecurityNameCode = response.data[j].contract_code;
+                                volume.Volume24h = response.data[j].trade_amount.ToDecimal();
+                                volume.Volume24hUSDT = response.data[j].trade_turnover.ToDecimal();
+                                volume.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)response.ts.ToDecimal());
+
+                                Volume24hUpdateEvent?.Invoke(volume);
                             }
                         }
                         else
                         {
-                            SendLogMessage($"GetOpenInterest> - Code: {response.err_code} - {response.err_msg}", LogMessageType.Error);
+                            SendLogMessage($"GetOpenInterest> - Code: {response.errcode} - {response.errmsg}", LogMessageType.Error);
                         }
                     }
                     else
@@ -1745,6 +1802,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             continue;
                         }
 
+                        if (message.Contains("funding_rate"))
+                        {
+                            UpdateFundingRate(message);
+                            continue;
+                        }
+
                         if (message.Contains("error"))
                         {
                             SendLogMessage("Message private str: \n" + message, LogMessageType.Error);
@@ -1765,38 +1828,73 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private void UpdateTrade(string message)
+        private void UpdateFundingRate(string message)
         {
-            ResponseChannelTrades responseTrade = JsonConvert.DeserializeObject<ResponseChannelTrades>(message);
-
-            if (responseTrade == null)
+            try
             {
-                return;
-            }
+                ResponseWebSocketMessage<List<FundingItem>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<FundingItem>>());
 
-            if (responseTrade.tick == null)
-            {
-                return;
-            }
-
-            List<ResponseChannelTrades.Data> item = responseTrade.tick.data;
-
-            for (int i = 0; i < item.Count; i++)
-            {
-                Trade trade = new Trade();
-                trade.SecurityNameCode = GetSecurityName(responseTrade.ch);
-                trade.Price = item[i].price.ToDecimal();
-                trade.Id = item[i].id;
-                trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[i].ts));
-                trade.Volume = item[i].amount.ToDecimal();
-                trade.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
-
-                if (_extendedMarketData)
+                if (response == null
+                    || response.data == null)
                 {
-                    trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
+                    return;
                 }
 
-                NewTradesEvent(trade);
+                for (int i = 0; i < response.data.Count; i++)
+                {
+                    Funding funding = new Funding();
+                    funding.SecurityNameCode = response.data[i].contract_code;
+                    funding.CurrentValue = response.data[i].funding_rate.ToDecimal() * 100;
+                    funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)response.data[i].funding_time.ToDecimal());
+                    funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)response.data[i].settlement_time.ToDecimal());
+                    FundingUpdateEvent?.Invoke(funding);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private void UpdateTrade(string message)
+        {
+            try
+            {
+                ResponseChannelTrades responseTrade = JsonConvert.DeserializeObject<ResponseChannelTrades>(message);
+
+                if (responseTrade == null)
+                {
+                    return;
+                }
+
+                if (responseTrade.tick == null)
+                {
+                    return;
+                }
+
+                List<ResponseChannelTrades.Data> item = responseTrade.tick.data;
+
+                for (int i = 0; i < item.Count; i++)
+                {
+                    Trade trade = new Trade();
+                    trade.SecurityNameCode = GetSecurityName(responseTrade.ch);
+                    trade.Price = item[i].price.ToDecimal();
+                    trade.Id = item[i].id;
+                    trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(item[i].ts));
+                    trade.Volume = item[i].amount.ToDecimal();
+                    trade.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
+
+                    if (_extendedMarketData)
+                    {
+                        trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
+                    }
+
+                    NewTradesEvent(trade);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
@@ -1823,101 +1921,108 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             Thread.Sleep(1);
 
-            ResponseChannelBook responseDepth = JsonConvert.DeserializeObject<ResponseChannelBook>(message);
-
-            ResponseChannelBook.Tick item = responseDepth.tick;
-
-            if (item == null)
+            try
             {
-                return;
-            }
+                ResponseChannelBook responseDepth = JsonConvert.DeserializeObject<ResponseChannelBook>(message);
 
-            if (item.asks.Count == 0 && item.bids.Count == 0)
-            {
-                return;
-            }
+                ResponseChannelBook.Tick item = responseDepth.tick;
 
-            MarketDepth marketDepth = new MarketDepth();
-
-            List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
-            List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
-
-            marketDepth.SecurityNameCode = responseDepth.ch.Split('.')[1];
-
-            if (item.asks.Count > 0)
-            {
-                for (int i = 0; i < 25 && i < item.asks.Count; i++)
+                if (item == null)
                 {
-                    if (item.asks[i].Count < 2)
-                    {
-                        continue;
-                    }
-
-                    decimal ask = item.asks[i][1].ToString().ToDecimal();
-                    decimal price = item.asks[i][0].ToString().ToDecimal();
-
-                    if (ask == 0 ||
-                        price == 0)
-                    {
-                        continue;
-                    }
-
-                    MarketDepthLevel level = new MarketDepthLevel();
-                    level.Ask = ask;
-                    level.Price = price;
-                    ascs.Add(level);
+                    return;
                 }
-            }
 
-            if (item.bids.Count > 0)
-            {
-                for (int i = 0; i < 25 && i < item.bids.Count; i++)
+                if (item.asks.Count == 0 && item.bids.Count == 0)
                 {
-                    if (item.bids[i].Count < 2)
-                    {
-                        continue;
-                    }
-
-                    decimal bid = item.bids[i][1].ToString().ToDecimal();
-                    decimal price = item.bids[i][0].ToString().ToDecimal();
-
-                    if (bid == 0 ||
-                        price == 0)
-                    {
-                        continue;
-                    }
-
-                    MarketDepthLevel level = new MarketDepthLevel();
-                    level.Bid = bid;
-                    level.Price = price;
-                    bids.Add(level);
+                    return;
                 }
-            }
 
-            if (ascs.Count == 0 ||
-                bids.Count == 0)
+                MarketDepth marketDepth = new MarketDepth();
+
+                List<MarketDepthLevel> ascs = new List<MarketDepthLevel>();
+                List<MarketDepthLevel> bids = new List<MarketDepthLevel>();
+
+                marketDepth.SecurityNameCode = responseDepth.ch.Split('.')[1];
+
+                if (item.asks.Count > 0)
+                {
+                    for (int i = 0; i < 25 && i < item.asks.Count; i++)
+                    {
+                        if (item.asks[i].Count < 2)
+                        {
+                            continue;
+                        }
+
+                        decimal ask = item.asks[i][1].ToString().ToDecimal();
+                        decimal price = item.asks[i][0].ToString().ToDecimal();
+
+                        if (ask == 0 ||
+                            price == 0)
+                        {
+                            continue;
+                        }
+
+                        MarketDepthLevel level = new MarketDepthLevel();
+                        level.Ask = ask;
+                        level.Price = price;
+                        ascs.Add(level);
+                    }
+                }
+
+                if (item.bids.Count > 0)
+                {
+                    for (int i = 0; i < 25 && i < item.bids.Count; i++)
+                    {
+                        if (item.bids[i].Count < 2)
+                        {
+                            continue;
+                        }
+
+                        decimal bid = item.bids[i][1].ToString().ToDecimal();
+                        decimal price = item.bids[i][0].ToString().ToDecimal();
+
+                        if (bid == 0 ||
+                            price == 0)
+                        {
+                            continue;
+                        }
+
+                        MarketDepthLevel level = new MarketDepthLevel();
+                        level.Bid = bid;
+                        level.Price = price;
+                        bids.Add(level);
+                    }
+                }
+
+                if (ascs.Count == 0 ||
+                    bids.Count == 0)
+                {
+                    return;
+                }
+
+                marketDepth.Asks = ascs;
+                marketDepth.Bids = bids;
+                marketDepth.Time
+                    = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
+
+                if (marketDepth.Time < _lastTimeMd)
+                {
+                    marketDepth.Time = _lastTimeMd;
+                }
+                else if (marketDepth.Time == _lastTimeMd)
+                {
+                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+                    marketDepth.Time = _lastTimeMd;
+                }
+
+                _lastTimeMd = marketDepth.Time;
+
+                MarketDepthEvent(marketDepth);
+            }
+            catch (Exception ex)
             {
-                return;
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
-
-            marketDepth.Asks = ascs;
-            marketDepth.Bids = bids;
-            marketDepth.Time
-                = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
-
-            if (marketDepth.Time < _lastTimeMd)
-            {
-                marketDepth.Time = _lastTimeMd;
-            }
-            else if (marketDepth.Time == _lastTimeMd)
-            {
-                _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-                marketDepth.Time = _lastTimeMd;
-            }
-
-            _lastTimeMd = marketDepth.Time;
-
-            MarketDepthEvent(marketDepth);
         }
 
         private DateTime _lastTimeMd;
@@ -1948,38 +2053,45 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private void UpdateOrder(string message)
         {
-            ResponseChannelUpdateOrder response = JsonConvert.DeserializeObject<ResponseChannelUpdateOrder>(message);
-
-            if (response == null)
+            try
             {
-                return;
+                ResponseChannelUpdateOrder response = JsonConvert.DeserializeObject<ResponseChannelUpdateOrder>(message);
+
+                if (response == null)
+                {
+                    return;
+                }
+
+                if (string.IsNullOrEmpty(response.order_id))
+                {
+                    return;
+                }
+
+                Order newOrder = new Order();
+
+                newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.ts));
+                newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
+                newOrder.ServerType = ServerType.HTXFutures;
+                newOrder.SecurityNameCode = response.contract_code;
+                newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
+                newOrder.NumberMarket = response.order_id.ToString();
+                newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
+                newOrder.State = GetOrderState(response.status);
+                newOrder.Price = response.price.ToDecimal();
+                newOrder.PortfolioNumber = $"HTXSwapPortfolio";
+                newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                newOrder.Volume = /*GetSecurityLot(response.contract_code) **/ response.volume.ToDecimal();
+
+                MyOrderEvent(newOrder);
+
+                if (response.trade != null)
+                {
+                    UpdateMyTrade(response);
+                }
             }
-
-            if (string.IsNullOrEmpty(response.order_id))
+            catch (Exception ex)
             {
-                return;
-            }
-
-            Order newOrder = new Order();
-
-            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.ts));
-            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
-            newOrder.ServerType = ServerType.HTXFutures;
-            newOrder.SecurityNameCode = response.contract_code;
-            newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
-            newOrder.NumberMarket = response.order_id.ToString();
-            newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
-            newOrder.State = GetOrderState(response.status);
-            newOrder.Price = response.price.ToDecimal();
-            newOrder.PortfolioNumber = $"HTXSwapPortfolio";
-            newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
-            newOrder.Volume = /*GetSecurityLot(response.contract_code) **/ response.volume.ToDecimal();
-
-            MyOrderEvent(newOrder);
-
-            if (response.trade != null)
-            {
-                UpdateMyTrade(response);
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
@@ -2029,102 +2141,116 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 return;
             }
 
-            ResponseWebSocketMessage<List<PortfolioItem>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<PortfolioItem>>());
-
-            List<PortfolioItem> item = response.data;
-
-            if (item == null)
+            try
             {
-                return;
+                ResponseWebSocketMessage<List<PortfolioItem>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<PortfolioItem>>());
+
+                List<PortfolioItem> item = response.data;
+
+                if (item == null)
+                {
+                    return;
+                }
+
+                Portfolio portfolio = Portfolios[0];
+
+                if (item.Count != 0)
+                {
+                    for (int i = 0; i < item.Count; i++)
+                    {
+                        PositionOnBoard pos = new PositionOnBoard();
+
+                        pos.PortfolioName = "HTXSwapPortfolio";
+                        pos.SecurityNameCode = _usdtSwapValue ? item[i].margin_asset : item[i].symbol;
+                        pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
+                        pos.ValueCurrent = Math.Round(item[i].margin_balance.ToDecimal(), 5);
+
+                        if (!_usdtSwapValue)
+                        {
+                            pos.ValueBegin = Math.Round(item[i].margin_static.ToDecimal(), 5);
+                        }
+
+                        portfolio.SetNewPosition(pos);
+                    }
+                }
+
+                PortfolioEvent(Portfolios);
             }
-
-            Portfolio portfolio = Portfolios[0];
-
-            if (item.Count != 0)
+            catch (Exception ex)
             {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private void UpdatePositionFromSubscrible(string message)
+        {
+            try
+            {
+                ResponseWebSocketMessage<List<PositionsItem>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<PositionsItem>>());
+
+                List<PositionsItem> item = response.data;
+
+                if (item == null)
+                {
+                    return;
+                }
+
+                if (item.Count == 0)
+                {
+                    return;
+                }
+
+                if (Portfolios == null)
+                {
+                    return;
+                }
+
+                Portfolio portfolio = Portfolios[0];
+
+                decimal resultPnL = 0;
+
                 for (int i = 0; i < item.Count; i++)
                 {
                     PositionOnBoard pos = new PositionOnBoard();
 
                     pos.PortfolioName = "HTXSwapPortfolio";
-                    pos.SecurityNameCode = _usdtSwapValue ? item[i].margin_asset : item[i].symbol;
-                    pos.ValueBlocked = item[i].margin_frozen.ToDecimal();
-                    pos.ValueCurrent = Math.Round(item[i].margin_balance.ToDecimal(), 5);
 
-                    if (!_usdtSwapValue)
+                    if (item[i].direction == "buy")
                     {
-                        pos.ValueBegin = Math.Round(item[i].margin_static.ToDecimal(), 5);
+                        pos.SecurityNameCode = item[i].contract_code + "_" + "LONG";
                     }
+                    else if (item[i].direction == "sell")
+                    {
+                        pos.SecurityNameCode = item[i].contract_code + "_" + "SHORT";
+                    }
+
+                    if (item[i].direction == "buy")
+                    {
+                        pos.ValueCurrent = /*GetSecurityLot(item[i].contract_code) **/ item[i].volume.ToDecimal();
+                    }
+                    else if (item[i].direction == "sell")
+                    {
+                        pos.ValueCurrent = /*GetSecurityLot(item[i].contract_code) **/ (-item[i].volume.ToDecimal());
+                    }
+
+                    pos.ValueBlocked = /*GetSecurityLot(item[i].contract_code) * */item[i].frozen.ToDecimal();
+                    pos.UnrealizedPnl = Math.Round(item[i].profit_unreal.ToDecimal(), 5);
+                    resultPnL += pos.UnrealizedPnl;
 
                     portfolio.SetNewPosition(pos);
                 }
-            }
 
-            PortfolioEvent(Portfolios);
-        }
-
-        private void UpdatePositionFromSubscrible(string message)
-        {
-            ResponseWebSocketMessage<List<PositionsItem>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<List<PositionsItem>>());
-
-            List<PositionsItem> item = response.data;
-
-            if (item == null)
-            {
-                return;
-            }
-
-            if (item.Count == 0)
-            {
-                return;
-            }
-
-            if (Portfolios == null)
-            {
-                return;
-            }
-
-            Portfolio portfolio = Portfolios[0];
-
-            decimal resultPnL = 0;
-
-            for (int i = 0; i < item.Count; i++)
-            {
-                PositionOnBoard pos = new PositionOnBoard();
-
-                pos.PortfolioName = "HTXSwapPortfolio";
-
-                if (item[i].direction == "buy")
+                if (_usdtSwapValue)
                 {
-                    pos.SecurityNameCode = item[i].contract_code + "_" + "LONG";
-                }
-                else if (item[i].direction == "sell")
-                {
-                    pos.SecurityNameCode = item[i].contract_code + "_" + "SHORT";
+                    portfolio.UnrealizedPnl = resultPnL;
                 }
 
-                if (item[i].direction == "buy")
-                {
-                    pos.ValueCurrent = /*GetSecurityLot(item[i].contract_code) **/ item[i].volume.ToDecimal();
-                }
-                else if (item[i].direction == "sell")
-                {
-                    pos.ValueCurrent = /*GetSecurityLot(item[i].contract_code) **/ (-item[i].volume.ToDecimal());
-                }
-
-                pos.ValueBlocked = /*GetSecurityLot(item[i].contract_code) * */item[i].frozen.ToDecimal();
-                pos.UnrealizedPnl = Math.Round(item[i].profit_unreal.ToDecimal(), 5);
-                resultPnL += pos.UnrealizedPnl;
-
-                portfolio.SetNewPosition(pos);
+                PortfolioEvent(Portfolios);
             }
-
-            if (_usdtSwapValue)
+            catch (Exception ex)
             {
-                portfolio.UnrealizedPnl = resultPnL;
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
-
-            PortfolioEvent(Portfolios);
         }
 
         public event Action<Order> MyOrderEvent;
@@ -2593,12 +2719,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         #region 13 Log
 
-        public event Action<string, LogMessageType> LogMessageEvent;
-
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             LogMessageEvent(message, messageType);
         }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }

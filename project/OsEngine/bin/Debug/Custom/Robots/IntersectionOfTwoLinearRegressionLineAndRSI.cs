@@ -225,7 +225,6 @@ namespace OsEngine.Robots
                     if (_lastLRMAFast > _prevLRMAFast && _prevLRMAFast > _prevLRMASlow
                         && _lastLRMAFast > _lastLRMASlow && _lastRsi > 50 && _prevRsi < _lastRsi)
                     {
-
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
                 }
@@ -236,7 +235,6 @@ namespace OsEngine.Robots
                     if( _lastLRMAFast < _prevLRMAFast && _prevLRMAFast < _prevLRMASlow
                         && _lastLRMAFast < _lastLRMASlow && _lastRsi > 50 && _prevRsi < _lastRsi)
                     {
-
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
                 }
@@ -300,7 +298,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
@@ -373,4 +371,3 @@ namespace OsEngine.Robots
         }
     }
 }
-

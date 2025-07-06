@@ -1,19 +1,19 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
+using OsEngine.Language;
+using OsEngine.Logging;
+using OsEngine.Market.Servers.Entity;
+using OsEngine.Market.Servers.OKX.Entity;
+using RestSharp;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading;
-using Newtonsoft.Json;
-using OsEngine.Entity;
-using OsEngine.Logging;
-using OsEngine.Market.Servers.OKX.Entity;
-using OsEngine.Market.Servers.Entity;
-using OsEngine.Entity.WebSocketOsEngine;
-using System.Net.Http;
-using OsEngine.Language;
-using RestSharp;
 
 namespace OsEngine.Market.Servers.OKX
 {
@@ -1592,9 +1592,16 @@ namespace OsEngine.Market.Servers.OKX
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{security.Name}\"}}]}}");
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"trades\",\"instId\": \"{security.Name}\"}}]}}");
 
-                    if (_extendedMarketData && security.Name.Contains("SWAP"))
+                    if (_extendedMarketData)
                     {
-                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{security.Name}\"}}]}}");
+                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{security.Name}\"}}]}}");
+
+                        if (security.Name.Contains("SWAP"))
+                        {
+                            webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{security.Name}\"}}]}}");
+                            webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{security.Name}\"}}]}}");
+                            GetFundingHistory(security.Name);
+                        }
                     }
                 }
 
@@ -1626,6 +1633,51 @@ namespace OsEngine.Market.Servers.OKX
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private RateGate _rateGateFundingHistory = new RateGate(10, TimeSpan.FromMilliseconds(2000));
+
+        private void GetFundingHistory(string securityName)
+        {
+            _rateGateFundingHistory.WaitToProceed();
+
+            try
+            {
+                string url = _baseUrl + $"/api/v5/public/funding-rate-history?instId={securityName}";
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.GET);
+                IRestResponse response = client.Execute(request);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<FundingItemHistory>> responseFunding = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<FundingItemHistory>>());
+
+                    if (responseFunding.code == "0")
+                    {
+                        FundingItemHistory item = responseFunding.data[0];
+
+                        Funding data = new Funding();
+
+                        data.SecurityNameCode = item.instId;
+                        data.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal());
+
+                        FundingUpdateEvent?.Invoke(data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingHistory error. Code:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetFundingHistory error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"GetFundingHistory error. {error.Message} {error.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1690,9 +1742,15 @@ namespace OsEngine.Market.Servers.OKX
                                     webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"books5\",\"instId\": \"{name}\"}}]}}");
                                     webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"trade\",\"instId\": \"{name}\"}}]}}");
 
-                                    if (_extendedMarketData && name.Contains("SWAP"))
+                                    if (_extendedMarketData)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"tickers\",\"instId\": \"{name}\"}}]}}");
+
+                                        if (name.Contains("SWAP"))
+                                        {
+                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"open-interest\",\"instId\": \"{name}\"}}]}}");
+                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"channel\": \"funding-rate\",\"instId\": \"{name}\"}}]}}");
+                                        }
                                     }
 
                                     if (item.Value)
@@ -1815,6 +1873,18 @@ namespace OsEngine.Market.Servers.OKX
                         if (action.arg.channel.Equals("open-interest"))
                         {
                             UpdateOpenInterest(message);
+                            continue;
+                        }
+
+                        if (action.arg.channel.Equals("funding-rate"))
+                        {
+                            UpdateFundingRate(message);
+                            continue;
+                        }
+
+                        if (action.arg.channel.Equals("tickers"))
+                        {
+                            UpdateTickers(message);
                             continue;
                         }
 
@@ -2494,6 +2564,74 @@ namespace OsEngine.Market.Servers.OKX
             }
         }
 
+        private void UpdateFundingRate(string message)
+        {
+            try
+            {
+                ResponseWsMessageAction<List<FundingItem>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<FundingItem>>());
+
+                if (response.data == null || response.data.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < response.data.Count; i++)
+                {
+                    FundingItem item = response.data[i];
+
+                    Funding funding = new Funding();
+
+                    funding.SecurityNameCode = item.instId;
+                    funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
+                    funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal());
+                    funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.ts.ToDecimal());
+                    funding.MinFundingRate = item.minFundingRate.ToDecimal();
+                    funding.MaxFundingRate = item.maxFundingRate.ToDecimal();
+                    TimeSpan data = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal()) - TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal());
+                    funding.FundingIntervalHours = int.Parse(data.Hours.ToString());
+
+                    FundingUpdateEvent?.Invoke(funding);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
+        private void UpdateTickers(string message)
+        {
+            try
+            {
+                ResponseWsMessageAction<List<TickerItem>> response = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<TickerItem>>());
+
+                if (response.data == null || response.data.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < response.data.Count; i++)
+                {
+                    TickerItem item = response.data[i];
+
+                    SecurityVolumes volume = new SecurityVolumes();
+
+                    volume.SecurityNameCode = item.instId;
+                    volume.Volume24h = item.vol24h.ToDecimal();
+                    volume.Volume24hUSDT = item.volCcy24h.ToDecimal();
+                    volume.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.ts.ToDecimal());
+
+                    Volume24hUpdateEvent?.Invoke(volume);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Thread.Sleep(5000);
+            }
+        }
+
         public event Action<Order> MyOrderEvent;
 
         public event Action<MyTrade> MyTradeEvent;
@@ -2503,6 +2641,10 @@ namespace OsEngine.Market.Servers.OKX
         public event Action<Trade> NewTradesEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2974,11 +3116,6 @@ namespace OsEngine.Market.Servers.OKX
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-
 
         #endregion
     }

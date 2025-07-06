@@ -131,7 +131,6 @@ public class RviTrade : BotPanel
             for (int i = 0; i < openPositions.Count; i++)
             {
                 LogicClosePosition(candles, openPositions[i]);
-
             }
         }
 
@@ -210,7 +209,7 @@ public class RviTrade : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
+                    tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
                     volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

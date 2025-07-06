@@ -129,6 +129,7 @@ namespace OsEngine.Robots
             _sma.Reload();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ContrtrendStrategyMiAndSma";
@@ -275,7 +276,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

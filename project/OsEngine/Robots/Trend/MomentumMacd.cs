@@ -101,11 +101,12 @@ namespace OsEngine.Robots.Trend
             // Subscribe to the strategy delete event
             DeleteEvent += Strategy_DeleteEvent;
 
+            // Subscribe to the indicator update event
+            ParametrsChangeByUser += MomentumMacd_ParametrsChangeByUser;
+
             Description = "Trend strategy based on 2 indicators Momentum and Macd. " +
                 "if lastMacdUp < lastMacdDown and lastMom < 100 - close position and open Short. " +
                 "if lastMacdUp > lastMacdDown and lastMom > 100 - close position and open Long.";
-
-            this.ParametrsChangeByUser += MomentumMacd_ParametrsChangeByUser;
         }
 
         private void MomentumMacd_ParametrsChangeByUser()

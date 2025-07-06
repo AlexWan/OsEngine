@@ -252,6 +252,7 @@ namespace OsEngine.Robots
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValue.ValueDecimal / 100;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
         }
@@ -276,7 +277,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

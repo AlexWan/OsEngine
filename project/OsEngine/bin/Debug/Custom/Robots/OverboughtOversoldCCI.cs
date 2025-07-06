@@ -248,7 +248,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
@@ -321,4 +321,3 @@ namespace OsEngine.Robots
         }
     }
 }
-

@@ -66,7 +66,6 @@ namespace OsEngine.Robots.My_bots
 
         public IntersectionOfEmaAndLRMA(string name, StartProgram startProgram) : base(name, startProgram)
         {
-
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -241,6 +240,7 @@ namespace OsEngine.Robots.My_bots
                     decimal high = candles[candles.Count - 1].High;
                     stopPriсe = high + high * _trailingValue.ValueDecimal / 100;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPriсe, stopPriсe);
             }
         }
@@ -265,7 +265,7 @@ namespace OsEngine.Robots.My_bots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

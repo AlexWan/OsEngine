@@ -97,6 +97,7 @@ namespace OsEngine.Robots.Patterns
                 {
                     return;
                 }
+
                 LogicOpenPosition(candles);
             }
             else
@@ -115,16 +116,19 @@ namespace OsEngine.Robots.Patterns
             {
                 return;
             }
+
             if (Math.Abs(candles[candles.Count - 3].Open - candles[candles.Count - 3].Close) 
                 / (candles[candles.Count - 3].Close / 100) < _minHeightOneSoldier.ValueDecimal)
             {
                 return;
             }
+
             if (Math.Abs(candles[candles.Count - 2].Open - candles[candles.Count - 2].Close) 
                 / (candles[candles.Count - 2].Close / 100) < _minHeightOneSoldier.ValueDecimal)
             {
                 return;
             }
+
             if (Math.Abs(candles[candles.Count - 1].Open - candles[candles.Count - 1].Close) 
                 / (candles[candles.Count - 1].Close / 100) < _minHeightOneSoldier.ValueDecimal)
             {

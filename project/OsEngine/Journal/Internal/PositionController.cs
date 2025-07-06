@@ -762,17 +762,24 @@ namespace OsEngine.Journal.Internal
             {
                 for (int i = positions.Count - 1; i > -1; i--)
                 {
-                    if (positions[i].State == PositionStateType.Open
-                        || positions[i].State == PositionStateType.Closing
-                        || positions[i].State == PositionStateType.ClosingFail)
+                    Position pos = positions[i];
+
+                    if(pos == null)
                     {
-                        decimal profitOld = positions[i].ProfitOperationAbs;
+                        continue;
+                    }
 
-                        positions[i].SetBidAsk(bid, ask);
+                    if (pos.State == PositionStateType.Open
+                        || pos.State == PositionStateType.Closing
+                        || pos.State == PositionStateType.ClosingFail)
+                    {
+                        decimal profitOld = pos.ProfitOperationAbs;
 
-                        if (profitOld != positions[i].ProfitOperationAbs)
+                        pos.SetBidAsk(bid, ask);
+
+                        if (profitOld != pos.ProfitOperationAbs)
                         {
-                            ProcessPosition(positions[i]);
+                            ProcessPosition(pos);
                         }
                     }
                 }

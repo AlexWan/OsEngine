@@ -28,13 +28,14 @@ and the MACD histogram was below zero.
 Exit:
 From buy: When the OsMa histogram value is below zero.
 From sell: When the OsMa histogram value is above zero.
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyOsMaAndMACD")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyOsMaAndMACD")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class StrategyOsMaAndMACD : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -56,12 +57,13 @@ namespace OsEngine.Robots
         private StrategyParameterInt _lengthSlowLineMACD;
         private StrategyParameterInt _lengthSignalLineMACD;
 
-        // Indicator
+        // Indicators
         private Aindicator _OsMa;
         private Aindicator _MACD;
 
         public StrategyOsMaAndMACD(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -101,7 +103,7 @@ namespace OsEngine.Robots
             _MACD.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyOsMa_ParametrsChangeByUser;
+            ParametrsChangeByUser += _strategyOsMa_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -116,13 +118,14 @@ namespace OsEngine.Robots
                "From sell: When the OsMa histogram value is above zero.";
         }        
 
-        private void StrategyOsMa_ParametrsChangeByUser()
+        private void _strategyOsMa_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_OsMa.Parameters[0]).ValueInt = _lenghtFastLineOsMa.ValueInt;
             ((IndicatorParameterInt)_OsMa.Parameters[1]).ValueInt = _lenghtSlowLineOsMa.ValueInt;
             ((IndicatorParameterInt)_OsMa.Parameters[2]).ValueInt = _lenghtSignalLineOsMa.ValueInt;
             _OsMa.Save();
             _OsMa.Reload();
+
             ((IndicatorParameterInt)_MACD.Parameters[0]).ValueInt = _lengthFastLineMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[1]).ValueInt = _lengthSlowLineMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[2]).ValueInt = _lengthSignalLineMACD.ValueInt;
@@ -134,6 +137,7 @@ namespace OsEngine.Robots
         {
             return "StrategyOsMaAndMACD";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -149,9 +153,9 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthFastLineMACD.ValueInt || candles.Count < _lengthSlowLineMACD.ValueInt ||
-                candles.Count < _lengthSignalLineMACD.ValueInt || candles.Count < _lenghtFastLineOsMa.ValueInt || 
-                candles.Count < _lenghtSlowLineOsMa.ValueInt ||  candles.Count < _lenghtSignalLineOsMa.ValueInt)
+            if (candles.Count <= _lengthFastLineMACD.ValueInt || candles.Count <= _lengthSlowLineMACD.ValueInt ||
+                candles.Count <= _lengthSignalLineMACD.ValueInt || candles.Count <= _lenghtFastLineOsMa.ValueInt || 
+                candles.Count <= _lenghtSlowLineOsMa.ValueInt ||  candles.Count <= _lenghtSignalLineOsMa.ValueInt)
             {
                 return;
             }
@@ -280,7 +284,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

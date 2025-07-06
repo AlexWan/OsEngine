@@ -293,8 +293,6 @@ namespace OsEngine.Language
 
         public static DataLocal Data = new DataLocal();
 
-        public static MinerLocal Miner = new MinerLocal();
-
         public static OptimizerLocal Optimizer = new OptimizerLocal();
 
         public static TraderLocal Trader = new TraderLocal();

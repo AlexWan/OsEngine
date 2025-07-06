@@ -25,8 +25,9 @@
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationIcon>OsLogo.ico</ApplicationIcon>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <AssemblyVersion>2.0.0.2</AssemblyVersion>
+    <AssemblyVersion>2.0.0.3</AssemblyVersion>
     <PackageOutputPath>$(OutputPath)\</PackageOutputPath>
+    <FileVersion>2.0.0.3</FileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
    <OutputPath>bin\Debug\</OutputPath>
@@ -68,6 +69,9 @@
     <Reference Include="cgate_net64">
       <HintPath>bin\Debug\cgate_net64.dll</HintPath>
     </Reference>
+    <Reference Include="FinamApi">
+      <HintPath>bin\Debug\FinamApi.dll</HintPath>
+    </Reference>
     <Reference Include="Jayrock.Json">
       <HintPath>bin\Debug\Jayrock.Json.dll</HintPath>
     </Reference>
@@ -91,10 +95,7 @@
       <HintPath>bin\Debug\SuperSocket.ClientEngine.dll</HintPath>
     </Reference>
     <Reference Include="TInvestApi">
-      <HintPath>..\..\related projects\TInvestApi\bin\Debug\TInvestApi.dll</HintPath>
-    </Reference>
-    <Reference Include="FinamApi">
-      <HintPath>..\..\related projects\FinamApi\bin\Debug\net9.0\FinamApi.dll</HintPath>
+      <HintPath>bin\Debug\TInvestApi.dll</HintPath>
     </Reference>
     <Reference Include="WebSocket4Net">
       <HintPath>bin\Debug\WebSocket4Net.dll</HintPath>

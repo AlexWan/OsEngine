@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -20,23 +20,26 @@ trading robot for osengine
 The trend robot on Strategy Ema With Rsi And MACD.
 
 Buy:
-1. The price is above the Ema;
-2. The MACD histogram is < 0 and crosses the moving average in the same direction;
+1. The price is above the Ema.
+2. The MACD histogram is < 0.
 3. The RSI enters the oversold zone (below the 30 level), and then crosses it from the bottom up.
+
 Sell:
-1. The price is below the Ema;
-2. The MACD histogram is > 0 and crosses the moving average in the same direction;
+1. The price is below the Ema.
+2. The MACD histogram is > 0.
 3. The RSI enters the overbought zone (above the 70 level), and then crosses it from top to bottom.
+
 Exit:
-Exit from buy: trailing stop in % of the loy of the candle on which you entered.
+Exit from buy: trailing stop in % of the low of the candle on which you entered.
 Exit from sell: trailing stop in % of the high of the candle on which you entered.
 */
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyEmaWithRsiAndMACD")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyEmaWithRsiAndMACD")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyEmaWithRsiAndMACD : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -50,14 +53,14 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _emaPeriod;
         private StrategyParameterInt _lengthRSI;
         private StrategyParameterInt _fastLineLengthMACD;
         private StrategyParameterInt _slowLineLengthMACD;
         private StrategyParameterInt _signalLineLengthMACD;
 
-        // Indicator
+        // Indicators
         private Aindicator _ema;
         private Aindicator _RSI;
         private Aindicator _MACD;
@@ -75,6 +78,7 @@ namespace OsEngine.Robots
 
         public StrategyEmaWithRsiAndMACD(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -89,7 +93,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator settings
+            // Indicators settings
             _emaPeriod = CreateParameter("Ema Length", 21, 7, 48, 7, "Indicator");
             _lengthRSI = CreateParameter("RSI Length", 14, 7, 48, 7, "Indicator");
             _fastLineLengthMACD = CreateParameter("MACD Fast Length", 16, 10, 300, 7, "Indicator");
@@ -120,33 +124,35 @@ namespace OsEngine.Robots
             _trailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyEmaWithRsiAndMACD_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += _strategyEmaWithRsiAndMACD_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "The trend robot on Strategy Ema With Rsi And MACD. " +
                 "Buy: " +
-                "1. The price is above the Ema; " +
-                "2. The MACD histogram is < 0 and crosses the moving average in the same direction; " +
+                "1. The price is above the Ema. " +
+                "2. The MACD histogram is < 0. " +
                 "3. The RSI enters the oversold zone (below the 30 level), and then crosses it from the bottom up. " +
                 "Sell: " +
-                "1. The price is below the Ema; " +
-                "2. The MACD histogram is > 0 and crosses the moving average in the same direction; " +
+                "1. The price is below the Ema. " +
+                "2. The MACD histogram is > 0. " +
                 "3. The RSI enters the overbought zone (above the 70 level), and then crosses it from top to bottom. " +
                 "Exit: " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
+                "Exit from buy: trailing stop in % of the low of the candle on which you entered. " +
                 "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
         }
 
-        private void StrategyEmaWithRsiAndMACD_ParametrsChangeByUser()
+        private void _strategyEmaWithRsiAndMACD_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;
             _ema.Save();
             _ema.Reload();
+
             ((IndicatorParameterInt)_RSI.Parameters[0]).ValueInt = _lengthRSI.ValueInt;
             _RSI.Save();
             _RSI.Reload();
+
             ((IndicatorParameterInt)_MACD.Parameters[0]).ValueInt = _fastLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[1]).ValueInt = _slowLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[2]).ValueInt = _signalLineLengthMACD.ValueInt;
@@ -159,6 +165,7 @@ namespace OsEngine.Robots
         {
             return "StrategyEmaWithRsiAndMACD";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -174,8 +181,11 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthRSI.ValueInt ||
-                candles.Count < _emaPeriod.ValueInt)
+            if (candles.Count <= _lengthRSI.ValueInt ||
+                candles.Count <= _emaPeriod.ValueInt ||
+                candles.Count <= _fastLineLengthMACD.ValueInt ||
+                candles.Count <= _slowLineLengthMACD.ValueInt ||
+                candles.Count <= _signalLineLengthMACD.ValueInt)
             {
                 return;
             }
@@ -252,7 +262,7 @@ namespace OsEngine.Robots
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
-            
+
             decimal stopPrice;
 
             for (int i = 0; openPositions != null && i < openPositions.Count; i++)

@@ -188,9 +188,7 @@ namespace OsEngine.Robots.Patterns
             _lastPriceO = candles[candles.Count - 1].Open;
             _lastPriceC = candles[candles.Count - 1].Close;
             _pivotR1 = _pivotFloor.DataSeries[1].Last;
-
             _pivotS1 = _pivotFloor.DataSeries[4].Last;
-
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -238,6 +236,7 @@ namespace OsEngine.Robots.Patterns
                 {
                     _tab.CloseAtLimit(openPosition, _lastPriceC - Slippage, openPosition.OpenVolume);
                 }
+
                 if (_lastPriceC < openPosition.EntryPrice - openPosition.EntryPrice / 100m * Stop)
                 {
                     _tab.CloseAtMarket(openPosition, openPosition.OpenVolume);
@@ -250,6 +249,7 @@ namespace OsEngine.Robots.Patterns
                 {
                     _tab.CloseAtLimit(openPosition, _lastPriceC + Slippage, openPosition.OpenVolume);
                 }
+
                 if (_lastPriceC > openPosition.EntryPrice + openPosition.EntryPrice / 100m * Stop)
                 {
                     _tab.CloseAtMarket(openPosition, openPosition.OpenVolume);

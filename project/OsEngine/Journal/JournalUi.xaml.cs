@@ -1263,95 +1263,93 @@ namespace OsEngine.Journal
                 {
                     return;
                 }
-                // create a common time line with all the changes
-                // создаём общую линию времени со всеми изменениями
+
+                // 1 создаём общую линию времени со всеми изменениями
 
                 List<DateTime> allChange = new List<DateTime>();
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
+                    Position pos = positionsAll[i];
+                    DateTime timeCreate = pos.TimeCreate;
+                    DateTime timeClose = pos.TimeClose;
 
-                    if (allChange.FindIndex(chnge => chnge == positionsAll[i].TimeCreate) == -1)
+                    if (allChange.FindIndex(chnge => chnge == timeCreate) == -1)
                     {
-                        allChange.Add(positionsAll[i].TimeCreate);
+                        allChange.Add(timeCreate);
                     }
 
-                    if (positionsAll[i].State == PositionStateType.Done)
+                    if (pos.State == PositionStateType.Done)
                     {
-                        if (allChange.FindIndex(chnge => chnge == positionsAll[i].TimeClose) == -1)
+                        if (allChange.FindIndex(chnge => chnge == timeClose) == -1)
                         {
-                            allChange.Add(positionsAll[i].TimeClose);
+                            allChange.Add(timeClose);
                         }
                     }
                 }
 
-                List<DateTime> allChangeSort = new List<DateTime>();
+                // 2 сортировка
+                allChange = allChange.OrderBy(x => x).ToList();
 
-                for (int i = 0; i < allChange.Count; i++)
-                {
-                    if (allChangeSort.Count == 0 ||
-                        allChangeSort[allChangeSort.Count - 1] <= allChange[i])
-                    {
-                        allChangeSort.Add(allChange[i]);
-                    }
-                    else if (allChangeSort[0] > allChange[i])
-                    {
-                        allChangeSort.Insert(0, allChange[i]);
-                    }
-                    else
-                    {
-                        for (int i2 = 0; i2 < allChangeSort.Count; i2++)
-                        {
-                            if (allChangeSort[i2] <= allChange[i] &&
-                                allChangeSort[i2 + 1] >= allChange[i])
-                            {
-                                allChangeSort.Insert(i2 + 1, allChange[i]);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                allChange = allChangeSort;
+                // 3 активируем массив Volume по бумагам
 
                 for (int i = 0; i < volumes.Count; i++)
                 {
                     volumes[i].Volume = new decimal[allChange.Count].ToList();
                 }
 
+                // 4 считаем по каждой временной точке объёмы
+
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
-                    VolumeSecurity volume = volumes.Find(vol => vol.Security == positionsAll[i].SecurityName);
-                    int indexOpen = allChange.FindIndex(change => change == positionsAll[i].TimeCreate);
-                    int indexClose = allChange.FindIndex(change => change == positionsAll[i].TimeClose);
+                    Position pos = positionsAll[i];
+                    decimal maxVolume = pos.MaxVolume;
 
-                    for (int i2 = indexOpen; i2 < volume.Volume.Count; i2++)
+                    if (maxVolume == 0)
                     {
-                        if (positionsAll[i].Direction == Side.Buy)
-                        {
-                            volume.Volume[i2] += positionsAll[i].MaxVolume;
-                        }
-                        else
-                        {
-                            volume.Volume[i2] -= positionsAll[i].MaxVolume;
-                        }
+                        continue;
                     }
-                    if (positionsAll[i].State == PositionStateType.Done)
+
+                    DateTime timeCreate = pos.TimeCreate;
+                    DateTime timeClose = pos.TimeClose;
+
+                    VolumeSecurity volume = volumes.Find(vol => vol.Security == pos.SecurityName);
+                    int indexOpen = allChange.FindIndex(change => change == timeCreate);
+                    int indexClose = allChange.FindIndex(change => change == timeClose);
+
+                    if (indexOpen != -1)
                     {
-                        for (int i2 = indexClose; i2 < volume.Volume.Count; i2++)
+                        for (int i2 = indexOpen; i2 < volume.Volume.Count; i2++)
                         {
-                            if (positionsAll[i].Direction == Side.Buy)
+                            if (pos.Direction == Side.Buy)
                             {
-                                volume.Volume[i2] -= positionsAll[i].MaxVolume;
+                                volume.Volume[i2] += maxVolume;
                             }
                             else
                             {
-                                volume.Volume[i2] += positionsAll[i].MaxVolume;
+                                volume.Volume[i2] -= maxVolume;
                             }
+                        }
+                    }
 
+                    if (pos.State == PositionStateType.Done
+                        && indexClose != -1)
+                    {
+                        for (int i2 = indexClose; i2 < volume.Volume.Count; i2++)
+                        {
+                            if (pos.Direction == Side.Buy)
+                            {
+                                volume.Volume[i2] -= maxVolume;
+                            }
+                            else
+                            {
+                                volume.Volume[i2] += maxVolume;
+                            }
                         }
                     }
                 }
+
+                // 5 прорисовываем значения на чарте
 
                 int volumesStartNum = 0;
 
@@ -1371,8 +1369,6 @@ namespace OsEngine.Journal
                         PaintValuesVolume(volumes[i].Volume, volumes[i].Security, Color.DarkOrange, allChange);
                     }
                 }
-
-                //float step = (float)(100m / _chartVolume.ChartAreas.Count);
 
                 float step = (float)(100m / _chartVolume.ChartAreas.Count);
 
@@ -1416,6 +1412,7 @@ namespace OsEngine.Journal
                 areaLineSecurity.AxisY.TitleForeColor = Color.Gainsboro;
                 areaLineSecurity.AxisY2.IntervalAutoMode = IntervalAutoMode.FixedCount;
                 areaLineSecurity.AxisY2.Enabled = AxisEnabled.False;
+
                 foreach (var axe in areaLineSecurity.Axes)
                 {
                     axe.LabelStyle.ForeColor = Color.Gainsboro;
@@ -1444,9 +1441,8 @@ namespace OsEngine.Journal
                     {
                         minVolume = volume[i];
                     }
-                    volumeSeries.Points.Add(Convert.ToDouble(volume[i]));
-                    volumeSeries.Points[volumeSeries.Points.Count - 1].AxisLabel =
-                    times[i].ToString(_currentCulture);
+                    volumeSeries.Points.AddXY(i, Convert.ToDouble(volume[i]));
+                    volumeSeries.Points[volumeSeries.Points.Count - 1].AxisLabel = times[i].ToString(_currentCulture);
                 }
 
                 _chartVolume.Series.Add(volumeSeries);
@@ -1476,8 +1472,6 @@ namespace OsEngine.Journal
                     double interval = Convert.ToDouble(Math.Abs(maxVolume - minVolume) / 8);
                     areaLineSecurity.AxisY2.Interval = interval;
                 }
-
-
             }
             catch (Exception error)
             {
@@ -1661,7 +1655,8 @@ namespace OsEngine.Journal
 
                 _chartDd.Series.Clear();
 
-                if (positionsAll.Count == 0)
+                if (positionsAll == null
+                    || positionsAll.Count == 0)
                 {
                     return;
                 }
@@ -1672,7 +1667,7 @@ namespace OsEngine.Journal
 
                 for (int i = 0; i < positionsAll.Count; i++)
                 {
-                    currentProfit += positionsAll[i].ProfitPortfolioAbs;
+                    currentProfit += positionsAll[i].ProfitPortfolioAbs * (positionsAll[i].MultToJournal / 100);
 
                     if (lastMax < currentProfit)
                     {
@@ -1685,22 +1680,59 @@ namespace OsEngine.Journal
                     }
                 }
 
-                Series drawDownPunct = new Series("SeriesDdPunct");
-                drawDownPunct.ChartType = SeriesChartType.Line;
-                drawDownPunct.Color = Color.DeepSkyBlue;   //DeepSkyBlue;
-                drawDownPunct.YAxisType = AxisType.Secondary;
-                drawDownPunct.ChartArea = "ChartAreaDdPunct";
-                drawDownPunct.BorderWidth = 2;
-                drawDownPunct.ShadowOffset = 2;
+                Series drowDownPunct = new Series("SeriesDdPunct");
+                drowDownPunct.ChartType = SeriesChartType.Line;
+                drowDownPunct.Color = Color.DeepSkyBlue;
+                drowDownPunct.LabelForeColor = Color.White;
+                drowDownPunct.YAxisType = AxisType.Secondary;
+                drowDownPunct.ChartArea = "ChartAreaDdPunct";
+                drowDownPunct.BorderWidth = 2;
+                drowDownPunct.ShadowOffset = 2;
+
+                Series nullLine = new Series("SeriesNullLine");
+                nullLine.ChartType = SeriesChartType.Line;
+                nullLine.YAxisType = AxisType.Secondary;
+                nullLine.LabelForeColor = Color.White;
+                nullLine.ChartArea = "ChartAreaDdPunct";
+                nullLine.ShadowOffset = 0;
 
                 for (int i = 0; i < ddPunct.Count; i++)
                 {
-                    drawDownPunct.Points.Add(Convert.ToDouble(ddPunct[i]));
-                    drawDownPunct.Points[drawDownPunct.Points.Count - 1].AxisLabel =
+                    decimal val = Math.Round(ddPunct[i], 6);
+                    drowDownPunct.Points.AddXY(i, Convert.ToDouble(val));
+
+                    drowDownPunct.Points[drowDownPunct.Points.Count - 1].AxisLabel =
                    positionsAll[i].TimeCreate.ToString(_currentCulture);
+
+                    drowDownPunct.Points[drowDownPunct.Points.Count - 1].LegendText = val.ToString();
+
+                    nullLine.Points.AddXY(i, 0);
+                    nullLine.Points[nullLine.Points.Count - 1].AxisLabel =
+                        positionsAll[i].TimeCreate.ToString(_currentCulture);
                 }
 
-                _chartDd.Series.Add(drawDownPunct);
+                _chartDd.Series.Add(drowDownPunct);
+                _chartDd.Series.Add(nullLine);
+
+                decimal minOnY = decimal.MaxValue;
+
+                for (int i = 0; i < ddPunct.Count; i++)
+                {
+                    if (ddPunct[i] < minOnY)
+                    {
+                        minOnY = ddPunct[i];
+                    }
+                }
+
+                if (minOnY != decimal.MaxValue &&
+                    minOnY != 0)
+                {
+                    _chartDd.ChartAreas[0].AxisY2.IntervalType = DateTimeIntervalType.Number;
+                    _chartDd.ChartAreas[0].AxisY2.IntervalOffsetType = DateTimeIntervalType.Number;
+                    _chartDd.ChartAreas[0].AxisY2.Maximum = Math.Round(-Convert.ToDouble(minOnY) * 0.05, 6);
+                    _chartDd.ChartAreas[0].AxisY2.Minimum = Math.Round(Convert.ToDouble(minOnY) + Convert.ToDouble(minOnY) * 0.05, 6);
+                }
+
                 // dd in %
                 // дд в %
 
@@ -1751,26 +1783,48 @@ namespace OsEngine.Journal
                     ddPepcent[i] = (thisDown / (thisPik / 100));
                 }
 
-                Series drawDownPercent = new Series("SeriesDdPercent");
-                drawDownPercent.ChartType = SeriesChartType.Line;
-                drawDownPercent.Color = Color.DarkOrange;
-                drawDownPercent.YAxisType = AxisType.Secondary;
-                drawDownPercent.ChartArea = "ChartAreaDdPercent";
-                drawDownPercent.BorderWidth = 2;
-                drawDownPercent.ShadowOffset = 2;
+                Series drowDownPercent = new Series("SeriesDdPercent");
+                drowDownPercent.ChartType = SeriesChartType.Line;
+                drowDownPercent.Color = Color.DarkOrange;
+                drowDownPercent.LabelForeColor = Color.White;
+                drowDownPercent.YAxisType = AxisType.Secondary;
+                drowDownPercent.ChartArea = "ChartAreaDdPercent";
+                drowDownPercent.BorderWidth = 2;
+                drowDownPercent.ShadowOffset = 2;
+                drowDownPercent.XAxisType = AxisType.Primary;
 
                 for (int i = 0; i < ddPepcent.Count; i++)
                 {
-                    drawDownPercent.Points.Add(Convert.ToDouble(ddPepcent[i]));
-                    drawDownPercent.Points[drawDownPercent.Points.Count - 1].AxisLabel =
-                   positionsAll[i].TimeCreate.ToString(_currentCulture);
+                    decimal val = Math.Round(ddPepcent[i], 6);
+                    drowDownPercent.Points.AddXY(i, Convert.ToDouble(val));
+                    drowDownPercent.Points[drowDownPercent.Points.Count - 1].AxisLabel = positionsAll[i].TimeCreate.ToString(_currentCulture);
+                    drowDownPercent.Points[drowDownPercent.Points.Count - 1].LegendText = val.ToString();
                 }
 
-                _chartDd.Series.Add(drawDownPercent);
+                _chartDd.Series.Add(drowDownPercent);
+
+                decimal minOnY2 = decimal.MaxValue;
+
+                for (int i = 0; i < ddPepcent.Count; i++)
+                {
+                    if (ddPepcent[i] < minOnY2)
+                    {
+                        minOnY2 = ddPepcent[i];
+                    }
+                }
+
+                if (minOnY2 != decimal.MaxValue &&
+                    minOnY2 != 0)
+                {
+                    _chartDd.ChartAreas[1].AxisY2.IntervalType = DateTimeIntervalType.Number;
+                    _chartDd.ChartAreas[1].AxisY2.IntervalOffsetType = DateTimeIntervalType.Number;
+                    _chartDd.ChartAreas[1].AxisY2.Maximum = Math.Round(-Convert.ToDouble(minOnY2) * 0.05, 6);
+                    _chartDd.ChartAreas[1].AxisY2.Minimum = Math.Round(Convert.ToDouble(minOnY2) + Convert.ToDouble(minOnY2) * 0.05, 6);
+                }
             }
-            catch (Exception error)
+            catch (Exception ex)
             {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

@@ -167,27 +167,8 @@ namespace OsEngine.Market.Servers.Optimizer
 
             TimeNow = _storages[0].TimeStart;
 
-            while (TimeNow.Hour != 10)
-            {
-                TimeNow = TimeNow.AddHours(-1);
-            }
-
-            while (TimeNow.Minute != 0)
-            {
-                TimeNow = TimeNow.AddMinutes(-1);
-            }
-
-            while (TimeNow.Second != 0)
-            {
-                TimeNow = TimeNow.AddSeconds(-1);
-            }
-
-            while (TimeNow.Millisecond != 0)
-            {
-                TimeNow = TimeNow.AddMilliseconds(-1);
-            }
-
-
+            TimeNow = new DateTime(TimeNow.Year, TimeNow.Month, TimeNow.Day, 
+                10, 0, 0);
 
             if (TypeTesterData == TesterDataType.TickAllCandleState ||
     TypeTesterData == TesterDataType.TickOnlyReadyCandle)
@@ -544,7 +525,7 @@ namespace OsEngine.Market.Servers.Optimizer
 
                     for (int indexTrades = 0; trades != null && indexTrades < trades.Count; indexTrades++)
                     {
-                        if (CheckOrdersInTickTest(order, trades[indexTrades], false))
+                        if (CheckOrdersInTickTest(order, trades[indexTrades], false, security.IsNewDayTrade))
                         {
                             i--;
                             break;
@@ -811,7 +792,7 @@ namespace OsEngine.Market.Servers.Optimizer
             return false;
         }
 
-        private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime)
+        private bool CheckOrdersInTickTest(Order order, Trade lastTrade, bool firstTime, bool isNewDay)
         {
             SecurityOptimizer security = _candleSeriesTesterActivate.Find(s => s.Security.Name == order.SecurityNameCode);
 
@@ -829,6 +810,12 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
 
                 decimal realPrice = order.Price;
+
+                if (isNewDay == true)
+                {
+                    realPrice = lastTrade.Price;
+                }
+
                 ExecuteOnBoardOrder(order, realPrice, lastTrade.Time, slippage);
 
                 for (int i = 0; i < OrdersActive.Count; i++)
@@ -2459,6 +2446,10 @@ namespace OsEngine.Market.Servers.Optimizer
 
         public List<Trade> LastTradeSeries;
 
+        public bool IsNewDayTrade;
+
+        public DateTime LastTradeTime;
+
         private void CheckTrades(DateTime now)
         {
             if (now > RealEndTime ||
@@ -2495,6 +2486,12 @@ namespace OsEngine.Market.Servers.Optimizer
 
             List<Trade> lastTradesSeries = new List<Trade>();
 
+            if(LastTrade != null 
+                && LastTrade.Time == now)
+            {
+                lastTradesSeries.Add(LastTrade);
+            }
+
             while (_lastTradeIndexInArray < Trades.Count)
             {
                 Trade tradeN = Trades[_lastTradeIndexInArray];
@@ -2511,6 +2508,17 @@ namespace OsEngine.Market.Servers.Optimizer
                 }
             }
 
+            if (LastTradeTime != DateTime.MinValue
+                && lastTradesSeries.Count > 0
+                && LastTradeTime.Date < lastTradesSeries[0].Time.Date)
+            {
+                IsNewDayTrade = true;
+            }
+            else
+            {
+                IsNewDayTrade = false;
+            }
+
             LastTradeSeries = lastTradesSeries;
 
             for (int i = 0; i < lastTradesSeries.Count; i++)
@@ -2519,6 +2527,11 @@ namespace OsEngine.Market.Servers.Optimizer
                 LastTradeSeries = trades;
                 NewTradesEvent(trades, _lastTradeIndexInArray, Trades.Count);
                 NeedToCheckOrders();
+            }
+
+            if (lastTradesSeries.Count > 0)
+            {
+                LastTradeTime = lastTradesSeries[^1].Time;
             }
         }
 

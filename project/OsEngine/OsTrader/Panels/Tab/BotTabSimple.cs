@@ -6608,6 +6608,21 @@ namespace OsEngine.OsTrader.Panels.Tab
                 }
             }
 
+            if(_connector.EmulatorIsOn == true)
+            {
+                for (int i2 = 0; i2 < newTrades.Count; i2++)
+                {
+                    try
+                    {
+                        _connector.CheckEmulatorExecution(newTrades[i2].Price);
+                    }
+                    catch (Exception error)
+                    {
+                        SetNewLogMessage(error.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+
             _lastTradeIndex = trades.Count;
             _lastTradeTime = newTrades[newTrades.Count - 1].Time;
             _lastTradeIdInTester = newTrades[newTrades.Count - 1].IdInTester;

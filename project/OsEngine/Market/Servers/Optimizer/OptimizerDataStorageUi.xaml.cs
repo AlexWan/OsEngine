@@ -67,6 +67,7 @@ namespace OsEngine.Market.Servers.Optimizer
             // testing data/данные для тестирования
 
             ComboBoxDataType.Items.Add(TesterDataType.Candle);
+            ComboBoxDataType.Items.Add(TesterDataType.TickAllCandleState);
             ComboBoxDataType.Items.Add(TesterDataType.TickOnlyReadyCandle);
             ComboBoxDataType.Items.Add(TesterDataType.MarketDepthOnlyReadyCandle);
             ComboBoxDataType.SelectedItem = _server.TypeTesterData;

@@ -96,9 +96,9 @@ namespace OsEngine.Market.Servers
                 _needToSaveCandlesParam.ValueChange += SaveCandleHistoryParam_ValueChange;
                 ServerParameters[2].Comment = OsLocalization.Market.Label89;
 
-                CreateParameterInt(OsLocalization.Market.ServerParam6, 300);
-                _needToSaveCandlesCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
-                _needToSaveCandlesCountParam.ValueChange += _needToSaveCandlesCountParam_ValueChange;
+                CreateParameterInt(OsLocalization.Market.ServerParam6, 500);
+                _needToLoadCandlesCountParam = (ServerParameterInt)ServerParameters[ServerParameters.Count - 1];
+                _needToLoadCandlesCountParam.ValueChange += _needToLoadCandlesCountParam_ValueChange;
                 ServerParameters[3].Comment = OsLocalization.Market.Label90;
 
                 CreateParameterBoolean(OsLocalization.Market.ServerParam7, false);
@@ -152,7 +152,7 @@ namespace OsEngine.Market.Servers
 
                 _candleStorage = new ServerCandleStorage(this);
                 _candleStorage.NeedToSave = _needToSaveCandlesParam.Value;
-                _candleStorage.CandlesSaveCount = _needToSaveCandlesCountParam.Value;
+                _candleStorage.CandlesSaveCount = _needToLoadCandlesCountParam.Value;
                 _candleStorage.LogMessageEvent += SendLogMessage;
 
                 Log = new Log(this.ServerNameUnique + "Server", StartProgram.IsOsTrader);
@@ -273,7 +273,7 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// number of candles for which trades should be loaded at the start of the connector
         /// </summary>
-        public ServerParameterInt _needToSaveCandlesCountParam;
+        public ServerParameterInt _needToLoadCandlesCountParam;
 
         /// <summary>
         /// whether trades should be filled with data on the best bid and ask.
@@ -326,6 +326,15 @@ namespace OsEngine.Market.Servers
         public List<IServerParameter> ServerParameters = new List<IServerParameter>();
 
         private int _serverStandardParamsCount = 12;
+        public IServerParameter GetStandardServerParameter(int index)
+        {
+            if (index < 0 || index >= _serverStandardParamsCount)
+            {
+                throw new Exception("Index out of range");
+            }
+
+            return ServerParameters[^(_serverStandardParamsCount - index)];
+        }
 
         /// <summary>
         /// create STRING server parameter
@@ -628,9 +637,9 @@ namespace OsEngine.Market.Servers
         /// <summary>
         /// user has changed the value of the parameter
         /// </summary>
-        private void _needToSaveCandlesCountParam_ValueChange()
+        private void _needToLoadCandlesCountParam_ValueChange()
         {
-            _candleStorage.CandlesSaveCount = _needToSaveCandlesCountParam.Value;
+            _candleStorage.CandlesSaveCount = _needToLoadCandlesCountParam.Value;
         }
 
         /// <summary>
@@ -2126,7 +2135,7 @@ namespace OsEngine.Market.Servers
 
                 if (_needToSaveCandlesParam.Value == true)
                 {
-                    List<Candle> candles = _candleStorage.GetCandles(series.Specification, _needToSaveCandlesCountParam.Value);
+                    List<Candle> candles = _candleStorage.GetCandles(series.Specification, _needToLoadCandlesCountParam.Value);
                     series.CandlesAll = series.CandlesAll.Merge(candles);
                 }
             }
@@ -2148,12 +2157,12 @@ namespace OsEngine.Market.Servers
             }
 
             if (_needToRemoveCandlesFromMemory.Value == true
-                && series.CandlesAll.Count > _needToSaveCandlesCountParam.Value
+                && series.CandlesAll.Count > _needToLoadCandlesCountParam.Value
                 && _serverTime.Minute % 15 == 0
                 && _serverTime.Second == 0
             )
             {
-                series.CandlesAll.RemoveRange(0, series.CandlesAll.Count - 1 - _needToSaveCandlesCountParam.Value);
+                series.CandlesAll.RemoveRange(0, series.CandlesAll.Count - 1 - _needToLoadCandlesCountParam.Value);
             }
 
             _candleSeriesToSend.Enqueue(series);

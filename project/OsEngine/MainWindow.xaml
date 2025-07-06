@@ -7,12 +7,11 @@
         <Rectangle Margin="222,7,202,0" Height="205" VerticalAlignment="Top" />
         <Rectangle Margin="10,7,409,0" Height="205" VerticalAlignment="Top" />
         <Button  Name="ButtonRobot" Content="Bot Station" Margin="448,138,0,0" VerticalAlignment="Top" Click="ButtonRobotCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28" />
-        <Button  Name="ButtonTester" Content="Tester" Margin="228,105,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="91" Height="28"   />
+        <Button  Name="ButtonTester" Content="Tester" Margin="248,105,0,0" VerticalAlignment="Top" Click="ButtonTesterCandleOne_Click" HorizontalAlignment="Left" Width="146" Height="28"   />
         <Button  Name="ButtonData" Content="Data" Margin="37,105,0,0" VerticalAlignment="Top" Click="ButtonData_Click" HorizontalAlignment="Left" Width="146" Height="28" />
         <Button  Name="ButtonCandleConverter" Content="Candle Converter" HorizontalAlignment="Left" Margin="37,172,0,0" VerticalAlignment="Top" Width="145" Click="CandleConverter_Click"/>
         <Button  Name="ButtonConverter" Content="Converter" Margin="37,138,0,0" VerticalAlignment="Top" Click="ButtonConverter_Click" Height="28" HorizontalAlignment="Left" Width="146" />
-        <Button  Name="ButtonOptimizer" Content="Optimizer" Margin="246,138,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="28"  />
-        <Button  Name="ButtonMiner" Content="Miner" Margin="246,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonMiner_Click"  />
+        <Button  Name="ButtonOptimizer" Content="Optimizer" Margin="248,171,0,0" VerticalAlignment="Top" Click="ButtonOptimizer_Click" HorizontalAlignment="Left" Width="146" Height="28"  />
         <Label Name="BlockDataLabel" Content="Work with data" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="12,64,0,0" VerticalAlignment="Top" Width="202" Height="36" FontSize="28" Foreground="#FFA7A8AA"/>
         <Label Name="BlockTestingLabel" Content="Testing" HorizontalAlignment="Left" HorizontalContentAlignment="Center" Margin="223,64,0,0" VerticalAlignment="Top" Width="197" FontSize="28" Foreground="#FFA7A8AA" Height="36"/>
         <Label Name="BlockTradingLabel" Content="Trading" HorizontalAlignment="Left" HorizontalContentAlignment="Center"  Margin="430,64,0,0" VerticalAlignment="Top"  FontSize="28" Foreground="#FFA7A8AA" Height="36" Width="182"/>
@@ -23,7 +22,7 @@
         <Button Name="ButtonSettings" HorizontalAlignment="Left" Margin="268,231,0,0" VerticalAlignment="Top" Width="100" Height="28" Click="ButtonSettings_Click">
             <Image Name="ImageGear" HorizontalAlignment="Left" Source="Images/MainWIndow/gear.png" Width="24" Height="24"/>
         </Button>
-        <Button  Name="ButtonTesterLight" Content="Tester Light" Margin="324,105,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="91" Height="28" Click="ButtonTesterLight_Click"   />
+        <Button  Name="ButtonTesterLight" Content="Tester Light" Margin="249,138,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonTesterLight_Click"   />
         <Button  Name="ButtonRobotLight" Content="Bot Station Light" Margin="448,171,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="146" Height="28" Click="ButtonRobotLight_Click" />
         <Image Name="ImageAlor" Source="/Images/MainWIndow/alor1.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>
         <Image Name="ImageAlor2" Source="/Images/MainWIndow/alor2.png" Height="113" Margin="11,264,11,0" VerticalAlignment="Top"/>

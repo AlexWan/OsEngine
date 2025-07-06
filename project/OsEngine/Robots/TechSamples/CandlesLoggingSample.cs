@@ -9,27 +9,39 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
+/* Description
+TechSample robot for OsEngine
+
+An example of a robot for programmers, where you can see how logging works.
+ */
+
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("CandlesLoggingSample")]
+    [Bot("CandlesLoggingSample")] // We create an attribute so that we don't write anything to the BotFactory
     public class CandlesLoggingSample : BotPanel
     {
+        // Simple tab
         BotTabSimple _tab;
 
         public CandlesLoggingSample(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create simple tabs
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
+
+            // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             this.Description = "An example of a robot for programmers, where you can see how logging works";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "CandlesLoggingSample";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -44,9 +56,7 @@ namespace OsEngine.Robots.TechSamples
             SendNewLogMessage(message, Logging.LogMessageType.User);
 
             // 2 for error log. LogMessageType - Error
-
             SendNewLogMessage(message, Logging.LogMessageType.Error);
-
         }
     }
 }

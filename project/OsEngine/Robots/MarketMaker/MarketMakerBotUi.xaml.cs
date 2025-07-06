@@ -42,7 +42,7 @@ namespace OsEngine.Robots.MarketMaker
             LabelVolume.Content = OsLocalization.Trader.Label30;
             LabelBetweenLines.Content = OsLocalization.Trader.Label130;
             CheckBoxNeedToPaint.Content = OsLocalization.Trader.Label131;
-            ButtonAccept.Content = OsLocalization.Trader.Label117;
+            ButtonAccept.Content = OsLocalization.Trader.Label17;
             LabelVolumeType.Content = OsLocalization.Trader.Label554;
             LabelAssetInPortfolio.Content = OsLocalization.Trader.Label555;
 

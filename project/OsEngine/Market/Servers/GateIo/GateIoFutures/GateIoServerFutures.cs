@@ -5,6 +5,7 @@
 
 using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
@@ -20,7 +21,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.GateIo.GateIoFutures
@@ -1090,6 +1090,9 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 if (_extendedMarketData)
                 {
                     SubscribeContractStats(security.Name);
+                    SubscribeTicker(security.Name);
+                    GetContract(security.Name);
+                    GetFundingHistory(security.Name);
                 }
 
             }
@@ -1097,6 +1100,101 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void GetFundingHistory(string security)
+        {
+            try
+            {
+                _rateGateData.WaitToProceed();
+
+                string queryParam = $"contract={security}";
+
+                string requestUri = HTTP_URL + $"/futures/{_wallet}/funding_rate?" + queryParam;
+
+                RestRequest requestRest = new RestRequest(Method.GET);
+
+                RestClient client = new RestClient(requestUri);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse responseMessage = client.Execute(requestRest);
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    List<FundingItemHistory> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new List<FundingItemHistory>());
+
+                    FundingItemHistory item = response[0];
+
+                    Funding data = new Funding();
+
+                    data.SecurityNameCode = security;
+                    data.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStampSeconds(long.Parse(item.t));
+
+                    FundingUpdateEvent?.Invoke(data);
+                }
+                else
+                {
+                    SendLogMessage($"GetFundingHistory> Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void GetContract(string security)
+        {
+            try
+            {
+                _rateGateSecurities.WaitToProceed();
+
+                string requestUri = HTTP_URL + $"/futures/{_wallet}/contracts/{security}";
+
+                RestRequest requestRest = new RestRequest(Method.GET);
+
+                RestClient client = new RestClient(requestUri);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse responseMessage = client.Execute(requestRest);
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    GfSecurity securities = JsonConvert.DeserializeObject<GfSecurity>(responseMessage.Content);
+
+                    Funding funding = new Funding();
+
+                    funding.SecurityNameCode = securities.name;
+                    funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStampSeconds((long)securities.funding_next_apply.ToDecimal());
+                    //funding.MaxFundingRate = securities.maxFundingRate.ToDecimal();
+                    //funding.MinFundingRate = securities.minFundingRate.ToDecimal();
+                    funding.FundingIntervalHours = int.Parse(securities.funding_interval) / 3600;
+
+                    FundingUpdateEvent?.Invoke(funding);
+                }
+                else
+                {
+                    SendLogMessage($"GetContract> Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void SubscribeTicker(string security)
+        {
+            long time = TimeManager.GetUnixTimeStampSeconds();
+            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"subscribe\",\"payload\":[\"{security}\"]}}");
         }
 
         private void SubscribeContractStats(string security)
@@ -1244,6 +1342,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                         if (_extendedMarketData)
                         {
                             _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.contract_stats\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
+                            _webSocket?.Send($"{{\"time\":{time},\"channel\":\"futures.tickers\",\"event\":\"unsubscribe\",\"payload\":[\"{name}\",\"1m\"]}}");
                         }
                     }
                 }
@@ -1333,6 +1432,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                             UpdateStats(message);
                             continue;
                         }
+                        else if (responseWebsocketMessage.channel.Equals("futures.tickers") && responseWebsocketMessage.Event.Equals("update"))
+                        {
+                            UpdateTickers(message);
+                            continue;
+                        }
                     }
                 }
                 catch (Exception exception)
@@ -1419,6 +1523,45 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 else
                 {
                     openInterestData.Add(name, oi);
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void UpdateTickers(string message)
+        {
+            try
+            {
+                GfTicker responseTicker = JsonConvert.DeserializeObject<GfTicker>(message);
+
+                if (responseTicker == null
+                     || responseTicker.result == null
+                     || responseTicker.result.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < responseTicker.result.Count; i++)
+                {
+                    Funding funding = new Funding();
+
+                    funding.SecurityNameCode = responseTicker.result[i].contract;
+                    funding.CurrentValue = responseTicker.result[i].funding_rate.ToDecimal() * 100;
+                    //funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
+                    funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.time_ms.ToDecimal());
+
+                    FundingUpdateEvent?.Invoke(funding);
+
+                    SecurityVolumes volume = new SecurityVolumes();
+
+                    volume.SecurityNameCode = responseTicker.result[i].contract;
+                    volume.Volume24h = responseTicker.result[i].volume_24h.ToDecimal();
+                    volume.Volume24hUSDT = responseTicker.result[i].volume_24h_quote.ToDecimal();
+
+                    Volume24hUpdateEvent?.Invoke(volume);
                 }
             }
             catch (Exception error)
@@ -1628,6 +1771,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         public event Action<Trade> NewTradesEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2157,17 +2304,13 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         #region 13 Log
 
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             if (LogMessageEvent != null)
                 LogMessageEvent(message, messageType);
         }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }

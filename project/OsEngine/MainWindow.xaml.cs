@@ -18,7 +18,6 @@ using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
-using OsEngine.OsMiner;
 using OsEngine.OsOptimizer;
 using OsEngine.OsTrader.Gui;
 using OsEngine.PrimeSettings;
@@ -28,6 +27,7 @@ using OsEngine.Entity;
 using System.Net.Sockets;
 using System.Text;
 using OsEngine.OsTrader.Gui.BlockInterface;
+using OsEngine.OsTrader.SystemAnalyze;
 
 namespace OsEngine
 {
@@ -117,6 +117,7 @@ namespace OsEngine
             _window = this;
 
             ServerMaster.Activate();
+            SystemUsageAnalyzeMaster.Activate();
 
             Thread.CurrentThread.CurrentCulture = OsLocalization.CurCulture;
 
@@ -176,7 +177,6 @@ namespace OsEngine
             ButtonCandleConverter.IsEnabled = false;
             ButtonConverter.IsEnabled = false;
             ButtonOptimizer.IsEnabled = false;
-            ButtonMiner.IsEnabled = false;
             ButtonTesterLight.IsEnabled = false;
             ButtonRobotLight.IsEnabled = false;
             ButtonLocal_Ru.IsEnabled = false;
@@ -221,7 +221,6 @@ namespace OsEngine
             ButtonCandleConverter.IsEnabled = true;
             ButtonConverter.IsEnabled = true;
             ButtonOptimizer.IsEnabled = true;
-            ButtonMiner.IsEnabled = true;
             ButtonTesterLight.IsEnabled = true;
             ButtonRobotLight.IsEnabled = true;
             ButtonLocal_Ru.IsEnabled = true;
@@ -342,7 +341,6 @@ namespace OsEngine
             ButtonConverter.Content = OsLocalization.MainWindow.OsConverter;
             ButtonTester.Content = OsLocalization.MainWindow.OsTesterName;
             ButtonOptimizer.Content = OsLocalization.MainWindow.OsOptimizerName;
-            ButtonMiner.Content = OsLocalization.MainWindow.OsMinerName;
 
             ButtonRobot.Content = OsLocalization.MainWindow.OsBotStationName;
             ButtonCandleConverter.Content = OsLocalization.MainWindow.OsCandleConverter;
@@ -711,25 +709,6 @@ namespace OsEngine
                 _startProgram = StartProgram.IsOsOptimizer;
                 Hide();
                 OptimizerUi ui = new OptimizerUi();
-                ui.ShowDialog();
-                Close();
-                ProccesIsWorked = false;
-                Thread.Sleep(10000);
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(error.ToString());
-            }
-            Process.GetCurrentProcess().Kill();
-        }
-
-        private void ButtonMiner_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                _startProgram = StartProgram.IsOsMiner;
-                Hide();
-                OsMinerUi ui = new OsMinerUi();
                 ui.ShowDialog();
                 Close();
                 ProccesIsWorked = false;

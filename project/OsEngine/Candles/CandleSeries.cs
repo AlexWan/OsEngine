@@ -659,7 +659,9 @@ namespace OsEngine.Entity
 
         private void UpdateChangeCandle()
         {
-            if (_startProgram == StartProgram.IsTester &&
+            if ((_startProgram == StartProgram.IsTester 
+                || _startProgram == StartProgram.IsOsOptimizer) 
+                &&
                 (TypeTesterData == TesterDataType.MarketDepthOnlyReadyCandle ||
                 TypeTesterData == TesterDataType.TickOnlyReadyCandle))
             {

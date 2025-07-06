@@ -183,6 +183,10 @@ namespace OsEngine.Language
             "Eng:Cannot start optimization. Set timeFrame_" +
             "Ru:Не возможно запустить оптимизацию. Выберите таймфрейм_");
 
+        public string Message44 => OsLocalization.ConvertToLocString(
+            "Eng:Unable to start optimization. Wait for parameters to load._" +
+            "Ru:Не возможно запустить оптимизацию. Подождите загрузки параметров_");
+
         public string Label1 => OsLocalization.ConvertToLocString(
             "Eng:Index securities_" +
             "Ru:Бумаги для индекса_");

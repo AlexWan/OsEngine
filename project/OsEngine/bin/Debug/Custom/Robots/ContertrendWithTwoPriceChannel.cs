@@ -258,23 +258,28 @@ namespace OsEngine.Robots
                 if (position.Direction == Side.Buy) // If the direction of the position is purchase
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is sale
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
             }
         }
+
         private decimal GetPriceStop(Side side, List<Candle> candles, int index)
         {
             if (candles == null || index < _trailCandlesLong.ValueInt || index < _trailCandlesShort.ValueInt)
@@ -293,6 +298,7 @@ namespace OsEngine.Robots
                         price = candles[i].Low;
                     }
                 }
+
                 return price;
             }
 
@@ -310,6 +316,7 @@ namespace OsEngine.Robots
 
                 return price;
             }
+
             return 0;
         }
 
@@ -333,7 +340,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

@@ -27,6 +27,17 @@ namespace OsEngine.Language
             "Eng:Number of decimal places in volume_" +
             "Ru:Кол-во знаков после запятой в объёме_");
 
+        public string HintMessageLabel5 => OsLocalization.ConvertToLocString(
+            "Eng:Add indicator to the main chart area (candlesticks)_" +
+            "Ru:Добавить индикатор в основную область графика (к свечам)_");
+
+        public string HintMessageLabel6 => OsLocalization.ConvertToLocString(
+            "Eng:Add indicator to a new area below the chart_" +
+            "Ru:Добавить индикатор в новую область под графиком_");
+
+        public string HintMessageLabel7 => OsLocalization.ConvertToLocString(
+            "Eng:Add indicator to an existing area below the chart_" +
+            "Ru:Добавить индикатор в уже созданную область под графиком_");
 
         public string HintMessageError0 => OsLocalization.ConvertToLocString(
             "Eng:The value of Price Step must be a positive number._" +

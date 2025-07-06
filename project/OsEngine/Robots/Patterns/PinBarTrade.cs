@@ -170,6 +170,7 @@ namespace OsEngine.Robots.Patterns
             {
                 _tab.BuyAtLimit(GetVolume(_tab), lastClose + lastClose * (_slippage.ValueDecimal / 100));
             }
+
             if (lastClose <= lastLow + ((lastHigh - lastLow) / 3) && lastOpen <= lastLow + ((lastHigh - lastLow) / 3)
                 && lastSma > lastClose 
                 && _regime.ValueString != "OnlyLong") // if the mode is not only long, we enter the short

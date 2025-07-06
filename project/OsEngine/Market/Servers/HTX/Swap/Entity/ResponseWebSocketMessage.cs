@@ -156,5 +156,16 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
     {
         public string ping { get; set; }
     }
+
+    public class FundingItem
+    {
+        public string symbol { get; set; }
+        public string contract_code { get; set; }
+        public string fee_asset { get; set; }
+        public string funding_time { get; set; }
+        public string funding_rate { get; set; }
+        public string settlement_time { get; set; }
+        public string estimated_rate { get; set; }
+    }
 }
 

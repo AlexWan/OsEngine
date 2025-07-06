@@ -201,6 +201,7 @@ public class BollingerTrailing : BotPanel
     private void LogicOpenPosition(List<Candle> candles, List<Position> position)
     {
         List<Position> openPositions = _tab.PositionsOpenAll;
+
         if (openPositions == null || openPositions.Count == 0)
         {
             // long
@@ -220,6 +221,7 @@ public class BollingerTrailing : BotPanel
                     _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _slippage.ValueInt * _tab.Security.PriceStep);
                 }
             }
+
             return;
         }
     }

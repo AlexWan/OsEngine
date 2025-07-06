@@ -5,8 +5,8 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
     public class ResponseRestMessage<T>
     {
         public string status { get; set; }
-        public string err_code { get; set; }
-        public string err_msg { get; set; }
+        public string errcode { get; set; }
+        public string errmsg { get; set; }
         public T data { get; set; }
         public string ts { get; set; }
     }
@@ -120,19 +120,17 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         }
     }
 
-    public class ResponseMessageCandles
+    public class ResponseCandles
     {
-        public List<Data> data { get; set; }
-
-        public class Data
-        {
-            public string open { get; set; }
-            public string close { get; set; }
-            public string high { get; set; }
-            public string low { get; set; }
-            public string vol { get; set; }
-            public string id { get; set; } //timestamp
-        }
+        public string amount { get; set; }
+        public string close { get; set; }
+        public string count { get; set; }
+        public string high { get; set; }
+        public string id { get; set; }
+        public string low { get; set; }
+        public string open { get; set; }
+        public string trade_turnover { get; set; }
+        public string vol { get; set; }
     }
 
     public class PlaceOrderResponse
@@ -248,5 +246,35 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
         public string business_type { get; set; }
         public string pair { get; set; }
         public string contract_type { get; set; }
+    }
+
+    public class FundingInfo
+    {
+        public string funding_rate { get; set; }
+        public string contract_code { get; set; }
+        public string symbol { get; set; }
+        public string fee_asset { get; set; }
+        public string funding_time { get; set; }
+        public string estimated_rate { get; set; }
+        public string next_funding_time { get; set; }
+    }
+
+    public class FundingData
+    {
+        public string total_page { get; set; }
+        public string current_page { get; set; }
+        public string total_size { get; set; }
+        public List<FundingItemHistory> data { get; set; }
+    }
+
+    public class FundingItemHistory
+    {
+        public string avg_premium_index { get; set; }
+        public string funding_rate { get; set; }
+        public string funding_time { get; set; }
+        public string realized_rate { get; set; }
+        public string contract_code { get; set; }
+        public string symbol { get; set; }
+        public string fee_asset { get; set; }
     }
 }

@@ -744,10 +744,24 @@ namespace OsEngine.OsTrader.Grids
                 if(nonTradePeriodsRegime != TradeGridRegime.On)
                 {
                     baseRegime = nonTradePeriodsRegime;
+
+                    if (baseRegime == TradeGridRegime.CloseForced)
+                    {
+                        Regime = baseRegime;
+                        Save();
+                        RePaintGrid();
+                    }
                 }
                 if(tradeDaysRegime != TradeGridRegime.On)
                 {
                     baseRegime = tradeDaysRegime;
+
+                    if (baseRegime == TradeGridRegime.CloseForced)
+                    {
+                        Regime = baseRegime;
+                        Save();
+                        RePaintGrid();
+                    }
                 }
             }
 

@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -19,20 +19,25 @@ Trading robot for osengine
 
 Trend robot at the strategy on Adaptive Look Back and Bollinger
 
-Buy: the price is above the upper Bollinger band.
+Buy:
+the price is above the upper Bollinger band.
 
-Sell: the price is below the lower Bollinger band.
+Sell:
+the price is below the lower Bollinger band.
 
-Exit the buy: trailing stop in % of the loy of the candle on which the minus exit coefficient entered * Adaptive Look Back.
-Exit the sell: trailing stop in % of the high of the candle on which you entered plus the entry coefficient * Adaptive Look. 
+Exit the buy:
+trailing stop in % of the low of the candle on which the minus exit coefficient entered * Adaptive Look Back.
+Exit the sell:
+trailing stop in % of the high of the candle on which you entered plus the entry coefficient * Adaptive Look. 
 */
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyAdaptiveLookBackandBollinger")]//We create an attribute so that we don't write anything in the Boot factory
+    [Bot("StrategyAdaptiveLookBackandBollinger")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyAdaptiveLookBackandBollinger : BotPanel
     {
-        BotTabSimple _tab;
+        // Reference to the main trading tab
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -49,7 +54,7 @@ namespace OsEngine.Robots
         private StrategyParameterInt _bollingerLength;
         private StrategyParameterDecimal _bollingerDeviation;
         private StrategyParameterInt _periodALB;
-        private StrategyParameterDecimal coefExitALB;
+        private StrategyParameterDecimal _coefExitALB;
         private StrategyParameterDecimal _coefEntryALB;
 
         // Indicator
@@ -66,6 +71,7 @@ namespace OsEngine.Robots
 
         public StrategyAdaptiveLookBackandBollinger(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -82,8 +88,8 @@ namespace OsEngine.Robots
 
             // Indicator Settings
             _periodALB = CreateParameter("Adaptive Look Back", 5, 1, 10, 1, "Indicator");
-            coefExitALB = CreateParameter("CoefExitALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
-            _coefEntryALB= CreateParameter("CoefEntrytALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
+            _coefExitALB = CreateParameter("CoefExitALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
+            _coefEntryALB = CreateParameter("CoefEntrytALB", 0.2m, 0.01m, 2, 0.02m, "Indicator");
             _bollingerLength = CreateParameter("BollingerLength", 250, 50, 500, 20, "Indicator");
             _bollingerDeviation = CreateParameter("BollingerDeviation", 0.2m, 0.01m, 2, 0.02m, "Indicator");
 
@@ -101,10 +107,11 @@ namespace OsEngine.Robots
             _bollinger.DataSeries[0].Color = Color.Red;
             _bollinger.DataSeries[1].Color = Color.Red;
             _bollinger.Save();
-            ParametrsChangeByUser += StrategyAdaptiveLookBackandBollinger_ParametrsChangeByUser;
 
             // Exit setting
             _trailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
+
+            ParametrsChangeByUser += _strategyAdaptiveLookBackandBollinger_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -113,16 +120,17 @@ namespace OsEngine.Robots
                "Trend robot at the strategy on Adaptive Look Back and Bollinger" +
                "Buy: the price is above the upper Bollinger band." +
                "Sell: the price is below the lower Bollinger band." +
-               "Exit the buy: trailing stop in % of the loy of the candle on which the minus exit coefficient entered *Adaptive Look Back." +
+               "Exit the buy: trailing stop in % of the low of the candle on which the minus exit coefficient entered *Adaptive Look Back." +
                "Exit the sell: trailing stop in % of the high of the candle on which you entered plus the entry coefficient* Adaptive Look. ";
         }
 
         // Indicator Update event
-        private void StrategyAdaptiveLookBackandBollinger_ParametrsChangeByUser()
+        private void _strategyAdaptiveLookBackandBollinger_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_ALB.Parameters[0]).ValueInt = _periodALB.ValueInt;
             _ALB.Save();
             _ALB.Reload();
+
             ((IndicatorParameterInt)_bollinger.Parameters[0]).ValueInt = _bollingerLength.ValueInt;
             ((IndicatorParameterDecimal)_bollinger.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
             _bollinger.Save();
@@ -134,6 +142,7 @@ namespace OsEngine.Robots
         {
             return "StrategyAdaptiveLookBackandBollinger";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -149,8 +158,8 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _periodALB.ValueInt || candles.Count < coefExitALB.ValueDecimal || 
-                candles.Count < _bollingerLength.ValueInt)
+            if (candles.Count <= _periodALB.ValueInt ||
+                candles.Count <= _bollingerLength.ValueInt + 1)
             {
                 return;
             }
@@ -201,7 +210,7 @@ namespace OsEngine.Robots
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
-                    if ( lastPrice > _lastUpBollinger)
+                    if (lastPrice > _lastUpBollinger)
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
@@ -239,7 +248,7 @@ namespace OsEngine.Robots
                 if (pos.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal low = candles[candles.Count - 1].Low;
-                    stopPriсe = low - low * _trailingValue.ValueDecimal / 100 - coefExitALB.ValueDecimal * _lastALB;
+                    stopPriсe = low - low * _trailingValue.ValueDecimal / 100 - _coefExitALB.ValueDecimal * _lastALB;
                 }
                 else // If the direction of the position is short
                 {
@@ -271,7 +280,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
@@ -344,4 +353,3 @@ namespace OsEngine.Robots
         }
     }
 }
-

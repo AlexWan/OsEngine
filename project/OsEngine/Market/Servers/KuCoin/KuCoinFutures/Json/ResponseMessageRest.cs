@@ -210,6 +210,9 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string premiumsSymbol8H { get; set; }
         public string fundingBaseSymbol1M { get; set; }
         public string fundingQuoteSymbol1M { get; set; }
+        public string fundingRateCap { get; set; }
+        public string fundingRateFloor { get; set; }
+        public string nextFundingRateDateTime { get; set; }
         public string lowPrice { get; set; }
         public string highPrice { get; set; }
         public string priceChgPct { get; set; }
@@ -257,5 +260,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string totalPage;
 
         public List<ResponseMyTrade> items;
+    }
+
+    public class FundingItemHistory
+    {
+        public string symbol { get; set; }
+        public string fundingRate { get; set; }
+        public string timepoint { get; set; }
     }
 }

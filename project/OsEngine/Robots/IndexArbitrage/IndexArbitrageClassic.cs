@@ -1,15 +1,58 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 
+/* Description
+Index Arbitrage robot for OsEngine.
+
+Classic trading with two index.
+*/
+
 namespace OsEngine.Robots.IndexArbitrage
 {
-    [Bot("IndexArbitrageClassic")]
+    [Bot("IndexArbitrageClassic")] // We create an attribute so that we don't write anything to the BotFactory
     public class IndexArbitrageClassic : BotPanel
     {
+        // Index tabs
+        private BotTabIndex _indexFirst;
+        private BotTabIndex _indexSecond;
+
+        // Screener tabs
+        private BotTabScreener _screenerFirst;
+        private BotTabScreener _screenerSecond;
+
+        // Basic setting
+        private StrategyParameterString _regime;
+        private StrategyParameterDecimal _moneyPercentFromDepoOnOneLeg;
+
+        // Exit regime
+        private StrategyParameterString _regimeClosePosition;
+
+        // GetVolume setting
+        private StrategyParameterString _tradeAssetInPortfolio;
+
+        // Cointegration settings
+        private StrategyParameterInt _cointegrationCandlesLookBack;
+        private StrategyParameterDecimal _cointegrationStandartDeviationMult;
+
+        // Correlation settings
+        private StrategyParameterDecimal _correlatioinMinValue;
+        private StrategyParameterInt _correlationCandlesLookBack;
+
+        // logic
+
+        List<Candle> _indexCandlesFirst;
+
+        List<Candle> _indexCandlesSecond;
+
         public IndexArbitrageClassic(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Index);
@@ -26,67 +69,38 @@ namespace OsEngine.Robots.IndexArbitrage
             TabCreate(BotTabType.Screener);
             _screenerSecond = TabsScreener[1];
 
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            // Basic settings
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
+            _moneyPercentFromDepoOnOneLeg = CreateParameter("Percent depo on one leg", 25m, 0.1m, 50, 0.1m);
 
-            RegimeClosePosition = CreateParameter("Regime Close Position", "", new[] { "Reverse signal", "No signal" });
+            // GetVolume setting
+            _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            MoneyPercentFromDepoOnOneLeg = CreateParameter("Percent depo on one leg", 25m, 0.1m, 50, 0.1m);
+            // Cointegration settings
+            _cointegrationCandlesLookBack = CreateParameter("Cointegration candles look back", 100, 1, 50, 4);
+            _cointegrationStandartDeviationMult = CreateParameter("Deviation mult", 1m, 0.1m, 50, 0.1m);
 
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
+            // Correlation settings
+            _correlatioinMinValue = CreateParameter("Correlatioin min value", 0.8m, 0.1m, 1, 0.1m);
+            _correlationCandlesLookBack = CreateParameter("Correlation candles look back", 100, 1, 50, 4);
+            
+            // Exit setting
+            _regimeClosePosition = CreateParameter("Regime Close Position", "", new[] { "Reverse signal", "No signal" });
 
-            CorrelationCandlesLookBack = CreateParameter("Correlation candles look back", 100, 1, 50, 4);
-
-            CointegrationCandlesLookBack = CreateParameter("Cointegration candles look back", 100, 1, 50, 4);
-
-            CointegrationStandartDeviationMult = CreateParameter("Deviation mult", 1m, 0.1m, 50, 0.1m);
-
-            CorrelatioinMinValue = CreateParameter("Correlatioin min value", 0.8m, 0.1m, 1, 0.1m);
-
-            Description =
-                    "Classic trading with two index";
-
+            Description = "Classic trading with two index";
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "IndexArbitrageClassic";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
             
-
         }
-
-        private BotTabIndex _indexFirst;
-
-        private BotTabIndex _indexSecond;
-
-        private BotTabScreener _screenerFirst;
-
-        private BotTabScreener _screenerSecond;
-
-        public StrategyParameterString Regime;
-
-        public StrategyParameterString RegimeClosePosition;
-
-        public StrategyParameterDecimal MoneyPercentFromDepoOnOneLeg;
-
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        public StrategyParameterInt CorrelationCandlesLookBack;
-
-        public StrategyParameterInt CointegrationCandlesLookBack;
-
-        public StrategyParameterDecimal CointegrationStandartDeviationMult;
-
-        public StrategyParameterDecimal CorrelatioinMinValue;
-
-        // logic
-
-        List<Candle> _indexCandlesFirst;
-
-        List<Candle> _indexCandlesSecond;
 
         private void _indexFirst_SpreadChangeEvent(List<Candle> indexFirst)
         {
@@ -116,7 +130,7 @@ namespace OsEngine.Robots.IndexArbitrage
 
         private void Trade()
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -147,10 +161,12 @@ namespace OsEngine.Robots.IndexArbitrage
                     _lastCandleOpenPos = false;
                     return;
                 }
+
                 TryClosePositions();
             }
         }
 
+        // Checking for position availability
         private bool HavePositions()
         {
             for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
@@ -172,24 +188,23 @@ namespace OsEngine.Robots.IndexArbitrage
             return false;
         }
 
-        // logic open poses
-
+        // logic open position
         private void TryOpenPositions()
         {
             CorrelationBuilder correlationIndicator = new CorrelationBuilder();
 
-            PairIndicatorValue correlation =
-                correlationIndicator.ReloadCorrelationLast(_indexCandlesFirst, _indexCandlesSecond, CorrelationCandlesLookBack.ValueInt);
+            PairIndicatorValue correlation = 
+                correlationIndicator.ReloadCorrelationLast(_indexCandlesFirst, _indexCandlesSecond, _correlationCandlesLookBack.ValueInt);
 
             if (correlation == null ||
-                correlation.Value < CorrelatioinMinValue.ValueDecimal)
+                correlation.Value < _correlatioinMinValue.ValueDecimal)
             {
                 return;
             }
 
             CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
-            cointegrationIndicator.CointegrationLookBack = CointegrationCandlesLookBack.ValueInt;
-            cointegrationIndicator.CointegrationDeviation = CointegrationStandartDeviationMult.ValueDecimal;
+            cointegrationIndicator.CointegrationLookBack = _cointegrationCandlesLookBack.ValueInt;
+            cointegrationIndicator.CointegrationDeviation = _cointegrationStandartDeviationMult.ValueDecimal;
             cointegrationIndicator.ReloadCointegration(_indexCandlesFirst, _indexCandlesSecond, false);
 
             if (cointegrationIndicator.Cointegration == null
@@ -209,11 +224,11 @@ namespace OsEngine.Robots.IndexArbitrage
             }
         }
 
+        // Buy first and sell second logic
         private void BuyFirstSellSecond(string curSideCointegration)
         {
-            
-            decimal firstLegVolumeOneSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerFirst.Tabs.Count;
-            decimal firstLegVolumeTwoSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerSecond.Tabs.Count;
+            decimal firstLegVolumeOneSec = _moneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerFirst.Tabs.Count;
+            decimal firstLegVolumeTwoSec = _moneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerSecond.Tabs.Count;
 
             for (int i = 0;i < _screenerFirst.Tabs.Count;i++)
             {
@@ -228,10 +243,11 @@ namespace OsEngine.Robots.IndexArbitrage
             }
         }
 
+        // Buy second and sell first logic
         private void BuySecondSellFirst(string curSideCointegration)
         {
-            decimal firstLegVolumeOneSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerFirst.Tabs.Count;
-            decimal firstLegVolumeTwoSec = MoneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerSecond.Tabs.Count;
+            decimal firstLegVolumeOneSec = _moneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerFirst.Tabs.Count;
+            decimal firstLegVolumeTwoSec = _moneyPercentFromDepoOnOneLeg.ValueDecimal / _screenerSecond.Tabs.Count;
 
             for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
             {
@@ -246,64 +262,7 @@ namespace OsEngine.Robots.IndexArbitrage
             }
         }
 
-        private decimal GetVolume(BotTabSimple tab, decimal portfolioPercent)
-        {
-            Portfolio myPortfolio = tab.Portfolio;
-
-            if (myPortfolio == null)
-            {
-                return 0;
-            }
-
-            decimal portfolioPrimeAsset = 0;
-
-            if (TradeAssetInPortfolio.ValueString == "Prime")
-            {
-                portfolioPrimeAsset = myPortfolio.ValueCurrent;
-            }
-            else
-            {
-                List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
-
-                if (positionOnBoard == null)
-                {
-                    return 0;
-                }
-
-                for (int i = 0; i < positionOnBoard.Count; i++)
-                {
-                    if (positionOnBoard[i].SecurityNameCode == TradeAssetInPortfolio.ValueString)
-                    {
-                        portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
-                        break;
-                    }
-                }
-            }
-
-            if (portfolioPrimeAsset == 0)
-            {
-                SendNewLogMessage("Can`t found portfolio " + TradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
-                return 0;
-            }
-
-            decimal moneyOnPosition = portfolioPrimeAsset * (portfolioPercent / 100);
-
-            decimal qty = moneyOnPosition / tab.PriceBestAsk;
-
-            if(tab.StartProgram == StartProgram.IsOsTrader)
-            {
-                qty = Math.Round(qty, tab.Security.DecimalsVolume);
-            }
-            else
-            {
-                qty = Math.Round(qty, 7);
-            }
-
-            return qty;
-        }
-
-        // logic close poses
-
+        // logic close position
         private void TryClosePositions()
         {
             if(_screenerFirst.Tabs.Count == 0 ||
@@ -330,7 +289,7 @@ namespace OsEngine.Robots.IndexArbitrage
                 }
             }
 
-            // проверяем чтобы везде были позиции
+            // we check that there are positions everywhere
 
             for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
             {
@@ -353,8 +312,8 @@ namespace OsEngine.Robots.IndexArbitrage
             }
 
             CointegrationBuilder cointegrationIndicator = new CointegrationBuilder();
-            cointegrationIndicator.CointegrationLookBack = CointegrationCandlesLookBack.ValueInt;
-            cointegrationIndicator.CointegrationDeviation = CointegrationStandartDeviationMult.ValueDecimal;
+            cointegrationIndicator.CointegrationLookBack = _cointegrationCandlesLookBack.ValueInt;
+            cointegrationIndicator.CointegrationDeviation = _cointegrationStandartDeviationMult.ValueDecimal;
             cointegrationIndicator.ReloadCointegration(_indexCandlesFirst, _indexCandlesSecond, false);
 
             if (cointegrationIndicator.Cointegration == null
@@ -362,7 +321,6 @@ namespace OsEngine.Robots.IndexArbitrage
             {
                 return;
             }
-
 
             // RegimeClosePosition
 
@@ -376,12 +334,12 @@ namespace OsEngine.Robots.IndexArbitrage
 
             if (lastSide.ToString() == "Up")
             {
-                if (RegimeClosePosition.ValueString == "Reverse signal"
+                if (_regimeClosePosition.ValueString == "Reverse signal"
                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Down)
                 {
                     CloseAllPositionsByMarket();
                 }
-                else if (RegimeClosePosition.ValueString == "No signal"
+                else if (_regimeClosePosition.ValueString == "No signal"
                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
                 {
                     CloseAllPositionsByMarket();
@@ -390,20 +348,20 @@ namespace OsEngine.Robots.IndexArbitrage
             else if (lastSide.ToString() == "Down")
             {
                 //"Reverse signal", "No signal"
-                if (RegimeClosePosition.ValueString == "Reverse signal"
+                if (_regimeClosePosition.ValueString == "Reverse signal"
                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.Up)
                 {
                     CloseAllPositionsByMarket();
                 }
-                else if (RegimeClosePosition.ValueString == "No signal"
+                else if (_regimeClosePosition.ValueString == "No signal"
                     && cointegrationIndicator.SideCointegrationValue == CointegrationLineSide.No)
                 {
                     CloseAllPositionsByMarket();
                 }
             }
-
         }
 
+        // Close all position
         private void CloseAllPositionsByMarket()
         {
             for (int i = 0; i < _screenerFirst.Tabs.Count; i++)
@@ -433,5 +391,61 @@ namespace OsEngine.Robots.IndexArbitrage
             }
         }
 
+        // Method for calculating the volume of entry into a position
+        private decimal GetVolume(BotTabSimple tab, decimal portfolioPercent)
+        {
+            Portfolio myPortfolio = tab.Portfolio;
+
+            if (myPortfolio == null)
+            {
+                return 0;
+            }
+
+            decimal portfolioPrimeAsset = 0;
+
+            if (_tradeAssetInPortfolio.ValueString == "Prime")
+            {
+                portfolioPrimeAsset = myPortfolio.ValueCurrent;
+            }
+            else
+            {
+                List<PositionOnBoard> positionOnBoard = myPortfolio.GetPositionOnBoard();
+
+                if (positionOnBoard == null)
+                {
+                    return 0;
+                }
+
+                for (int i = 0; i < positionOnBoard.Count; i++)
+                {
+                    if (positionOnBoard[i].SecurityNameCode == _tradeAssetInPortfolio.ValueString)
+                    {
+                        portfolioPrimeAsset = positionOnBoard[i].ValueCurrent;
+                        break;
+                    }
+                }
+            }
+
+            if (portfolioPrimeAsset == 0)
+            {
+                SendNewLogMessage("Can`t found portfolio " + _tradeAssetInPortfolio.ValueString, Logging.LogMessageType.Error);
+                return 0;
+            }
+
+            decimal moneyOnPosition = portfolioPrimeAsset * (portfolioPercent / 100);
+
+            decimal qty = moneyOnPosition / tab.PriceBestAsk;
+
+            if (tab.StartProgram == StartProgram.IsOsTrader)
+            {
+                qty = Math.Round(qty, tab.Security.DecimalsVolume);
+            }
+            else
+            {
+                qty = Math.Round(qty, 7);
+            }
+
+            return qty;
+        }
     }
 }

@@ -32,7 +32,7 @@ Exit:
 On the opposite signal.
 */
 
-namespace OsEngine.Robots.My_bots
+namespace OsEngine.Robots
 {
     [Bot("BullsPowerAndBearsPowerTrend")]
     public class BullsPowerAndBearsPowerTrend : BotPanel
@@ -206,7 +206,6 @@ namespace OsEngine.Robots.My_bots
                 if (_regime.ValueString != "OnlyLong")
                 {
                     if (_lastBearsPrice < 0 && _lastBullsPrice < 0 && _lastBullsPrice + _lastBearsPrice < -_step.ValueDecimal)
-
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }
@@ -271,7 +270,7 @@ namespace OsEngine.Robots.My_bots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
@@ -344,4 +343,3 @@ namespace OsEngine.Robots.My_bots
         }
     }
 }
-

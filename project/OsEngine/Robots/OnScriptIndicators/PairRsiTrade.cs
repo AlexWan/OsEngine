@@ -126,7 +126,6 @@ public class PairRsiTrade : BotPanel
     {
         return "PairRsiTrade";
     }
-
     
     // Show settings GUI
     public override void ShowIndividualSettingsDialog()
@@ -233,6 +232,7 @@ public class PairRsiTrade : BotPanel
         {
             CloseAllPositions();
         }
+
         if (positions1[0].Direction == Side.Sell &&
             lastRsi2 <= lastRsi1)
         {
@@ -277,7 +277,7 @@ public class PairRsiTrade : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
+                    tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
                     volume = Volume / (contractPrice * tab.Security.Lot);

@@ -30,7 +30,7 @@ Sell: the highs on the chart are rising, while the indicator is falling.
 Exit: stop and profit in % of the entry price.
 */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("DevergenceStochastic")] // We create an attribute so that we don't write anything to the BotFactory
     public class DevergenceStochastic : BotPanel
@@ -465,7 +465,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

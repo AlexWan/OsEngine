@@ -16,7 +16,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string type;
         public string topic;
         public string subject;
-        
         public T data;
     }
 
@@ -34,12 +33,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string bestAskSize;  //Best ask
         public string ts;           //Filled time - nanosecond
     }
-    
+
     public class ResponseWebSocketDepthItem
     {
         public List<List<string>> asks;
         public List<List<string>> bids;
-        
+
         public string timestamp;
     }
 
@@ -62,13 +61,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string tradeId; //"5ce24c16b210233c36eexxxx", // Trade ID (when the type is "match")
         public string clientOid; //"5ce24c16b210233c36ee321d", // clientOid
         public string orderTime; //1545914149935808589, // Order Time
-        public string oldSize ; //"15000", // Size Before Update (when the type is "update")
+        public string oldSize; //"15000", // Size Before Update (when the type is "update")
         public string liquidity; //"maker", // Trading direction, buy or sell in taker
         public string ts; //1545914149935808589 // Timestamp（match engine）
     }
 
 
-   
+
     public class ResponseWebSocketPosition
     {
         // https://www.kucoin.com/docs/websocket/futures-trading/private-channels/position-change-events
@@ -119,5 +118,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures.Json
         public string timestamp; // 1553842862614
         public string isolatedOrderMargin;
         public string walletBalance;
+    }
+
+    public class FundingItem
+    {
+        public string granularity;
+        public string fundingRate;
+        public string timestamp;
     }
 }

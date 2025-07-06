@@ -1,4 +1,9 @@
-﻿using System;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using System;
 using System.Collections.Generic;
 using System.Drawing.Drawing2D;
 using OsEngine.Charts.CandleChart.Indicators;
@@ -23,7 +28,7 @@ Sell: Fast Ssma is lower than slow Ssma.
 Exit: on the opposite signal.
 */
 
-namespace OsEngine.Robots.MyRobots
+namespace OsEngine.Robots
 {
     [Bot("IntersectionOfSsmaAndSsmaOffset")]//We create an attribute so that we don't write anything in the Boot factory
     public class IntersectionOfSsmaAndSsmaOffset : BotPanel
@@ -40,12 +45,12 @@ namespace OsEngine.Robots.MyRobots
         private Aindicator _ssma1;
         private Aindicator _ssma2;
 
-        // Indicator setting
+        // Indicator settings
         private StrategyParameterInt _periodSsmaFast;
         private StrategyParameterInt _periodSsmaSlow;
         private StrategyParameterInt _periodOffset;
 
-        // GetVolume Parametr
+        // GetVolume settings
         private StrategyParameterString _volumeType;
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
@@ -70,7 +75,7 @@ namespace OsEngine.Robots.MyRobots
             _periodSsmaSlow = CreateParameter("slow Ssma2 period", 150, 50, 500, 10, "Indicator");
             _periodOffset = CreateParameter("offset SSma2", 5, 3, 100, 1, "Indicator");
 
-            // GetVolume Parametr
+            // GetVolume settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
@@ -100,7 +105,6 @@ namespace OsEngine.Robots.MyRobots
                 "Buy: Fast Ssma is higher than slow Ssma. " +
                 "Sell: Fast Ssma is lower than slow Ssma. " +
                 "Exit: on the opposite signal.";
-
         }
 
         // Indicator Update event
@@ -115,7 +119,6 @@ namespace OsEngine.Robots.MyRobots
             _ssma2.Save();
             _ssma2.Reload();
         }
-
 
         // Candle Completion Event
         private void _tab_CandleFinishedEvent(List<Candle> candles)
@@ -194,10 +197,12 @@ namespace OsEngine.Robots.MyRobots
                 }
             }
         }
+
         // Logic close position
         private void LogicClosePosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
+
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
             decimal lastPrice = candles[candles.Count - 1].Close;
 
@@ -211,6 +216,7 @@ namespace OsEngine.Robots.MyRobots
                 {
                     continue;
                 }
+
                 if (openPositions[i].Direction == Side.Buy) // If the direction of the position is buy
                 {
                     if (_lastSsmaFast < _lastSsmaSlow && lastPrice < _lastSsmaFast)
@@ -227,7 +233,6 @@ namespace OsEngine.Robots.MyRobots
                 }
             }
         }
-
 
         // The name of the robot in OsEngin
         public override string GetNameStrategyType()
@@ -260,7 +265,7 @@ namespace OsEngine.Robots.MyRobots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

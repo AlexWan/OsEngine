@@ -1,5 +1,7 @@
-﻿using Newtonsoft.Json;
+﻿using Com.Lmax.Api;
+using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetFutures.Entity;
@@ -12,7 +14,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.BitGet.BitGetFutures
@@ -1647,11 +1648,118 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 {
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"{security.NameClass}\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
                     webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
+
+                    if (_extendedMarketData)
+                    {
+                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"{security.NameClass}\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                        GetFundingData(security.Name, security.NameClass);
+                        GetFundingHistory(security.Name, security.NameClass);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private readonly RateGate _rgFunding = new RateGate(1, TimeSpan.FromMilliseconds(110));
+
+        private void GetFundingData(string securityName, string productType)
+        {
+            _rgFunding.WaitToProceed();
+
+            try
+            {
+                string requestStr = $"/api/v2/mix/market/current-fund-rate?symbol={securityName}&productType={productType}";
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<FundingItem>> responseFunding = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<FundingItem>>());
+
+                    if (responseFunding.code == "00000")
+                    {
+                        FundingItem item = responseFunding.data[0];
+
+                        Funding data = new Funding();
+
+                        data.SecurityNameCode = item.symbol;
+                        data.MaxFundingRate = item.maxFundingRate.ToDecimal();
+                        data.MinFundingRate = item.minFundingRate.ToDecimal();
+                        data.FundingIntervalHours = int.Parse(item.fundingRateInterval);
+
+                        FundingUpdateEvent?.Invoke(data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingData error. Code:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetFundingData error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetFundingData error. {ex.ToString()}", LogMessageType.Error);
+            }
+        }
+
+        private void GetFundingHistory(string securityName, string productType)
+        {
+            _rgFunding.WaitToProceed();
+
+            try
+            {
+                string requestStr = $"/api/v2/mix/market/history-fund-rate?symbol={securityName}&productType={productType}";
+                RestRequest requestRest = new RestRequest(requestStr, Method.GET);
+                RestClient client = new RestClient(BaseUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<List<FundingItemHistory>> responseFunding = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<FundingItemHistory>>());
+
+                    if (responseFunding.code == "00000")
+                    {
+                        FundingItemHistory item = responseFunding.data[0];
+
+                        Funding data = new Funding();
+
+                        data.SecurityNameCode = item.symbol;
+                        data.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal());
+
+                        FundingUpdateEvent?.Invoke(data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingHistory error. Code:{responseFunding.code} || msg: {responseFunding.msg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"GetFundingHistory error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"GetFundingHistory error. {ex.ToString()}", LogMessageType.Error);
             }
         }
 
@@ -1691,8 +1799,13 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 {
                                     for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
                                     {
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
-                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"{_subscribledSecutiries[i2].NameClass}\",\"channel\": \"ticker\",\"instId\": \"{_subscribledSecutiries[i2].Name}\"}}]}}");
+                                        }
                                     }
                                 }
                             }
@@ -1812,9 +1925,16 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                                 UpdateDepth(message);
                                 continue;
                             }
+
                             if (action.arg.channel.Equals("trade"))
                             {
                                 UpdateTrade(message);
+                                continue;
+                            }
+
+                            if (action.arg.channel.Equals("ticker"))
+                            {
+                                UpdateTicker(message);
                                 continue;
                             }
                         }
@@ -2355,6 +2475,44 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             }
         }
 
+        private void UpdateTicker(string message)
+        {
+            try
+            {
+                ResponseWebSocketMessageAction<List<ResponseTicker>> responseTicker = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseTicker>>());
+
+                if (responseTicker == null
+                    || responseTicker.data == null
+                    || responseTicker.data[0] == null)
+                {
+                    return;
+                }
+
+                Funding funding = new Funding();
+
+                ResponseTicker item = responseTicker.data[0];
+
+                funding.SecurityNameCode = item.instId;
+                funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
+                funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
+                funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
+
+                FundingUpdateEvent?.Invoke(funding);
+
+                SecurityVolumes volume = new SecurityVolumes();
+
+                volume.SecurityNameCode = item.instId;
+                volume.Volume24h = item.baseVolume.ToDecimal();
+                volume.Volume24hUSDT = item.quoteVolume.ToDecimal();
+
+                Volume24hUpdateEvent?.Invoke(volume);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
         private DateTime _lastTimeMd = DateTime.MinValue;
 
         public event Action<Order> MyOrderEvent;
@@ -2366,6 +2524,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         public event Action<Trade> NewTradesEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2921,6 +3083,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     continue;
                 }
 
+                if (!_extendedMarketData)
+                {
+                    continue;
+                }
+
                 if (_subscribledSecutiries == null
                     || _subscribledSecutiries.Count == 0)
                 {
@@ -2928,11 +3095,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 }
 
                 if (_timeLast.AddSeconds(20) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                if (!_extendedMarketData)
                 {
                     continue;
                 }
@@ -3071,10 +3233,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

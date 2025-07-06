@@ -5,49 +5,24 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.Language;
-using OsEngine.OsTrader.Panels;
+using System.Windows.Media;
 
 namespace OsEngine.Charts.CandleChart.Indicators
 {
-
-    /// <summary>
-    /// Interaction logic  for IndicarotCreateUi.xaml
-    /// Логика взаимодействия для IndicarotCreateUi.xaml
-    /// </summary>
-    public partial class IndicarotCreateUi
+    public partial class IndicatorCreateUi
     {
-
-        /// <summary>
-        /// indicator drawing element
-        /// элемент для прорисовки индикаторов
-        /// </summary>
         private DataGridView _gridViewIndicators;
 
-        /// <summary>
-        /// data area drawing element
-        /// элемент для прорисовки областей данных
-        /// </summary>
         private DataGridView _gridViewAreas;
 
-        /// <summary>
-        /// class indicator manager
-        /// класс менеджер индикаторов
-        /// </summary>
         private ChartCandleMaster _chartMaster;
 
-        /// <summary>
-        /// constructor
-        /// конструктор
-        /// </summary>
-        /// <param name="chartMaster">class indicator manager/класс менеджер индикаторов</param>
-        public IndicarotCreateUi(ChartCandleMaster chartMaster)
+        public IndicatorCreateUi(ChartCandleMaster chartMaster)
         {
             InitializeComponent();
             OsEngine.Layout.StickyBorders.Listen(this);
@@ -57,6 +32,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
                 DataGridViewAutoSizeRowsMode.AllCells);
 
+            SearchTextBox.Text = OsLocalization.Market.Label64;
             _gridViewIndicators.ReadOnly = true;
             _gridViewIndicators.ScrollBars = ScrollBars.Vertical;
             HostNames.Child = _gridViewIndicators;
@@ -117,7 +93,7 @@ namespace OsEngine.Charts.CandleChart.Indicators
             _gridViewIndicators.Rows.Add("Volume Oscillator");
             _gridViewIndicators.Rows.Add("Volume");
             _gridViewIndicators.Rows.Add("VWAP");
-            _gridViewIndicators.Rows.Add("WilliamsRange");          
+            _gridViewIndicators.Rows.Add("WilliamsRange");
 
             _gridViewIndicators.Click += delegate { _lastScriptGrid = false; };
 
@@ -128,12 +104,17 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
             _gridViewAreas.ReadOnly = true;
 
-
             DataGridViewColumn column1 = new DataGridViewColumn();
             column1.HeaderText = OsLocalization.Charts.LabelIndicatorAreasOnChart;
             column1.CellTemplate = new DataGridViewTextBoxCell();
             column1.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _gridViewAreas.Columns.Add(column1);
+
+            DataGridViewButtonColumn buttonColumn = new DataGridViewButtonColumn();
+            buttonColumn.Text = "?";
+            buttonColumn.UseColumnTextForButtonValue = true;
+            buttonColumn.Width = 30;
+            _gridViewAreas.Columns.Add(buttonColumn);
 
             List<string> areas = chartMaster.GetChartAreas();
 
@@ -141,9 +122,34 @@ namespace OsEngine.Charts.CandleChart.Indicators
             {
                 if (areas[i] != "TradeArea")
                 {
-                    _gridViewAreas.Rows.Add(areas[i]);
+                    int rowIndex = _gridViewAreas.Rows.Add();
+                    _gridViewAreas.Rows[rowIndex].Cells[0].Value = areas[i];
                 }
             }
+
+            _gridViewAreas.CellContentClick += (sender, e) =>
+            {
+                if (e.ColumnIndex == 1 && e.RowIndex >= 0)
+                {
+                    string areaName = _gridViewAreas.Rows[e.RowIndex].Cells[0].Value.ToString();
+
+                    if(areaName == "Prime")
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel5);
+                        ui.ShowDialog();
+                    }
+                    else if(areaName == "NewArea")
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel6);
+                        ui.ShowDialog();
+                    }
+                    else
+                    {
+                        CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Message.HintMessageLabel7);
+                        ui.ShowDialog();
+                    }
+                }
+            };
 
             _gridViewAreas.Rows.Add("NewArea");
 
@@ -175,818 +181,824 @@ namespace OsEngine.Charts.CandleChart.Indicators
 
         public IIndicator IndicatorCandle;
 
-        /// <summary>
-        /// accept button
-        /// кнопка принять
-        /// </summary>
         private void ButtonAccept_Click(object sender, RoutedEventArgs e)
         {
-            if (_lastScriptGrid)
+            try
             {
-                AcceptCreationScriptIndicator();
-                return;
-            }
 
-            string areaName = _gridViewAreas.SelectedCells[0].Value.ToString();
-
-            if (areaName == "NewArea")
-            {
-                for (int i = 0; i < 30; i++)
+                if (_lastScriptGrid)
                 {
-                    if (_chartMaster.AreaIsCreate("NewArea" + i) == false)
-                    {
-                        areaName = "NewArea" + i;
-                        break;
-                    }
+                    AcceptCreationScriptIndicator();
+                    return;
                 }
-            }
 
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TickVolume")
-            {
-                string name = "";
+                string areaName = _gridViewAreas.SelectedCells[0].Value.ToString();
 
-                for (int i = 0; i < 30; i++)
+                if (areaName == "NewArea")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "TickVolume" + i) == false)
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "VWAP" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new TickVolume(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "VWAP")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
-                {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "VWAP" + i) == false)
-                    {
-                        name = "VWAP" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Vwap(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "UltimateOscillator")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
-                {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "UltimateOscillator" + i) == false)
-                    {
-                        name = "UltimateOscillator" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new UltimateOscillator(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "KalmanFilter")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
-                {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "KalmanFilter" + i) == false)
-                    {
-                        name = "KalmanFilter" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new KalmanFilter(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Moving Average")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
-                {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Sma" + i) == false)
-                    {
-                        name = "Sma" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new MovingAverage(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Volume")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
-                {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Volume" + i) == false)
-                    {
-                        name = "Volume" + i;
-                        break;
+                        if (_chartMaster.AreaIsCreate("NewArea" + i) == false)
+                        {
+                            areaName = "NewArea" + i;
+                            break;
+                        }
                     }
                 }
 
-                IndicatorCandle = new Volume(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Channel")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TickVolume")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Price Channel" + i) == false)
-                    {
-                        name = "Price Channel" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new PriceChannel(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Bollinger")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "TickVolume" + i) == false)
+                        {
+                            name = "VWAP" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new TickVolume(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "VWAP")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Bollinger" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "Bollinger" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "VWAP" + i) == false)
+                        {
+                            name = "VWAP" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new Vwap(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new Bollinger(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
 
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "DonchianChannel")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "UltimateOscillator")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "DonchianChannel" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "DonchianChannel" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "UltimateOscillator" + i) == false)
+                        {
+                            name = "UltimateOscillator" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new UltimateOscillator(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new DonchianChannel(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
 
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BFMFI")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "KalmanFilter")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "BFMFI" + i) == false)
-                    {
-                        name = "BFMFI" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new BfMfi(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BullsPower")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "KalmanFilter" + i) == false)
+                        {
+                            name = "KalmanFilter" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new KalmanFilter(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Moving Average")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "BullsPower" + i) == false)
-                    {
-                        name = "BullsPower" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new BullsPower(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "CMO")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Sma" + i) == false)
+                        {
+                            name = "Sma" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new MovingAverage(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Volume")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "CMO" + i) == false)
-                    {
-                        name = "CMO" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Cmo(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BearsPower")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Volume" + i) == false)
+                        {
+                            name = "Volume" + i;
+                            break;
+                        }
+                    }
+
+                    IndicatorCandle = new Volume(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Channel")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "BearsPower" + i) == false)
-                    {
-                        name = "BeasPower" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new BearsPower(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Stochastic Oscillator")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Price Channel" + i) == false)
+                        {
+                            name = "Price Channel" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new PriceChannel(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Bollinger")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "StochasticOscillator" + i) == false)
-                    {
-                        name = "StochasticOscillator" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new StochasticOscillator(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Stochastic Rsi")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Bollinger" + i) == false)
+                        {
+                            name = "Bollinger" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Bollinger(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "DonchianChannel")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "StochasticRsi" + i) == false)
-                    {
-                        name = "StochasticRsi" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new StochRsi(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "RSI")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "DonchianChannel" + i) == false)
+                        {
+                            name = "DonchianChannel" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new DonchianChannel(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BFMFI")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "RSI" + i) == false)
-                    {
-                        name = "RSI" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Rsi(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ROC")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "BFMFI" + i) == false)
+                        {
+                            name = "BFMFI" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new BfMfi(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BullsPower")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "ROC" + i) == false)
-                    {
-                        name = "ROC" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Roc(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "RVI")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "BullsPower" + i) == false)
+                        {
+                            name = "BullsPower" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new BullsPower(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "CMO")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "RVI" + i) == false)
-                    {
-                        name = "RVI" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Rvi(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Alligator")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "CMO" + i) == false)
+                        {
+                            name = "CMO" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Cmo(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "BearsPower")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Alligator" + i) == false)
-                    {
-                        name = "Alligator" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Alligator(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AO")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "BearsPower" + i) == false)
+                        {
+                            name = "BeasPower" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new BearsPower(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Stochastic Oscillator")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AO" + i) == false)
-                    {
-                        name = "AO" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new AwesomeOscillator(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AccumulationDistribution")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "StochasticOscillator" + i) == false)
+                        {
+                            name = "StochasticOscillator" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new StochasticOscillator(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Stochastic Rsi")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AccumulationDistribution" + i) == false)
-                    {
-                        name = "AccumulationDistribution" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new AccumulationDistribution(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Force Index")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "StochasticRsi" + i) == false)
+                        {
+                            name = "StochasticRsi" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new StochRsi(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "RSI")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Force Index" + i) == false)
-                    {
-                        name = "Force Index" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new ForceIndex(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "OnBalanceVolume")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "RSI" + i) == false)
+                        {
+                            name = "RSI" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Rsi(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ROC")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "OnBalanceVolume" + i) == false)
-                    {
-                        name = "OnBalanceVolume" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new OnBalanceVolume(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Fractal")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "ROC" + i) == false)
+                        {
+                            name = "ROC" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Roc(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "RVI")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Fractal" + i) == false)
-                    {
-                        name = "Fractal" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Fractal(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ADX")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "RVI" + i) == false)
+                        {
+                            name = "RVI" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Rvi(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Alligator")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "ADX" + i) == false)
-                    {
-                        name = "ADX" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Adx(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ATR")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Alligator" + i) == false)
+                        {
+                            name = "Alligator" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Alligator(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AO")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "ATR" + i) == false)
-                    {
-                        name = "ATR" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Atr(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Oscillator")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AO" + i) == false)
+                        {
+                            name = "AO" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new AwesomeOscillator(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AccumulationDistribution")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Price Oscillator" + i) == false)
-                    {
-                        name = "Price Oscillator" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new PriceOscillator(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MACD Histogram")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AccumulationDistribution" + i) == false)
+                        {
+                            name = "AccumulationDistribution" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new AccumulationDistribution(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Force Index")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "MACD Histogram" + i) == false)
-                    {
-                        name = "MACD Histogram" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new MacdHistogram(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MACD Line")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Force Index" + i) == false)
+                        {
+                            name = "Force Index" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new ForceIndex(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "OnBalanceVolume")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "MACD Line" + i) == false)
-                    {
-                        name = "MACD Line" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new MacdLine(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Momentum")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "OnBalanceVolume" + i) == false)
+                        {
+                            name = "OnBalanceVolume" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new OnBalanceVolume(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Fractal")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Momentum" + i) == false)
-                    {
-                        name = "Momentum" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Momentum(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MoneyFlowIndex")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Fractal" + i) == false)
+                        {
+                            name = "Fractal" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Fractal(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ADX")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "MoneyFlowIndex" + i) == false)
-                    {
-                        name = "MoneyFlowIndex" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new MoneyFlowIndex(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Envelops")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "ADX" + i) == false)
+                        {
+                            name = "ADX" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Adx(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "ATR")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Envelops" + i) == false)
-                    {
-                        name = "Envelops" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Envelops(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Efficiency Ratio")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "ATR" + i) == false)
+                        {
+                            name = "ATR" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Atr(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Price Oscillator")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "EfficiencyRatio" + i) == false)
-                    {
-                        name = "EfficiencyRatio" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new EfficiencyRatio(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Adaptive Look Back")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Price Oscillator" + i) == false)
+                        {
+                            name = "Price Oscillator" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new PriceOscillator(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MACD Histogram")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Adaptive Look Back" + i) == false)
-                    {
-                        name = "Adaptive Look Back" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new AdaptiveLookBack(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "IvashovRange")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "MACD Histogram" + i) == false)
+                        {
+                            name = "MACD Histogram" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new MacdHistogram(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MACD Line")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "IvashovRange" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "IvashovRange" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "MACD Line" + i) == false)
+                        {
+                            name = "MACD Line" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new MacdLine(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new IvashovRange(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Volume Oscillator")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Momentum")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Volume Oscillator" + i) == false)
-                    {
-                        name = "Volume Oscillator" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new VolumeOscillator(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Parabolic SAR")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Momentum" + i) == false)
+                        {
+                            name = "Momentum" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Momentum(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "MoneyFlowIndex")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Parabolic SAR" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "Parabolic SAR" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "MoneyFlowIndex" + i) == false)
+                        {
+                            name = "MoneyFlowIndex" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new MoneyFlowIndex(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new ParabolicSaR(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "CCI")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Envelops")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "CCI" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "CCI" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Envelops" + i) == false)
+                        {
+                            name = "Envelops" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new Envelops(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new Cci(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Standard Deviation")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Efficiency Ratio")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Standard Deviation" + i) == false)
-                    {
-                        name = "Standard Deviation" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new StandardDeviation(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AC")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "EfficiencyRatio" + i) == false)
+                        {
+                            name = "EfficiencyRatio" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new EfficiencyRatio(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Adaptive Look Back")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AC" + i) == false)
-                    {
-                        name = "AC" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Ac(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "VerticalHorizontalFilter")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Adaptive Look Back" + i) == false)
+                        {
+                            name = "Adaptive Look Back" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new AdaptiveLookBack(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "IvashovRange")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "VerticalHorizontalFilter" + i) == false)
-                    {
-                        name = "VerticalHorizontalFilter" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new VerticalHorizontalFilter(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "WilliamsRange")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "IvashovRange" + i) == false)
+                        {
+                            name = "IvashovRange" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new IvashovRange(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Volume Oscillator")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "WilliamsRange" + i) == false)
-                    {
-                        name = "WilliamsRange" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new WilliamsRange(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trix")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Volume Oscillator" + i) == false)
+                        {
+                            name = "Volume Oscillator" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new VolumeOscillator(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Parabolic SAR")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Trix" + i) == false)
-                    {
-                        name = "Trix" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Trix(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Ichimoku")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Parabolic SAR" + i) == false)
+                        {
+                            name = "Parabolic SAR" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new ParabolicSaR(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "CCI")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Ichimoku" + i) == false)
-                    {
-                        name = "Ichimoku" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Ichimoku(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TradeThread")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "CCI" + i) == false)
+                        {
+                            name = "CCI" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Cci(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Standard Deviation")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "TradeThread" + i) == false)
-                    {
-                        name = "TradeThread" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new TradeThread(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Standard Deviation" + i) == false)
+                        {
+                            name = "Standard Deviation" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new StandardDeviation(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AC")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Pivot" + i) == false)
-                    {
-                        name = "Pivot" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new Pivot(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot Points")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AC" + i) == false)
+                        {
+                            name = "AC" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Ac(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "VerticalHorizontalFilter")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "PivotPoints" + i) == false)
-                    {
-                        name = "PivotPoints" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new PivotPoints(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "LinearRegressionCurve")
-            {
-                string name = "";
+                    string name = "";
 
-                for (int i = 0; i < 30; i++)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "VerticalHorizontalFilter" + i) == false)
+                        {
+                            name = "VerticalHorizontalFilter" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new VerticalHorizontalFilter(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "WilliamsRange")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "LinearRegressionCurve" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "LinearRegressionCurve" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "WilliamsRange" + i) == false)
+                        {
+                            name = "WilliamsRange" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new WilliamsRange(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new LinearRegressionCurve(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "SimpleVWAP")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Trix")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "SimpleVWAP" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "SimpleVWAP" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Trix" + i) == false)
+                        {
+                            name = "Trix" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new Trix(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new SimpleVWAP(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "DTD")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Ichimoku")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "DTD" + i) == false)
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
                     {
-                        name = "DTD" + i;
-                        break;
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Ichimoku" + i) == false)
+                        {
+                            name = "Ichimoku" + i;
+                            break;
+                        }
                     }
+                    IndicatorCandle = new Ichimoku(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
                 }
-                IndicatorCandle = new DynamicTrendDetector(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-
-            if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AtrChannel")
-            {
-                string name = "";
-
-                for (int i = 0; i < 30; i++)
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "TradeThread")
                 {
-                    if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AtrChannel" + i) == false)
-                    {
-                        name = "AtrChannel" + i;
-                        break;
-                    }
-                }
-                IndicatorCandle = new AtrChannel(_chartMaster.Name + name, true);
-                _chartMaster.CreateIndicator(IndicatorCandle, areaName);
-            }
-            Close();
+                    string name = "";
 
-            if (IndicatorCandle != null)
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "TradeThread" + i) == false)
+                        {
+                            name = "TradeThread" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new TradeThread(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot")
+                {
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "Pivot" + i) == false)
+                        {
+                            name = "Pivot" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new Pivot(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "Pivot Points")
+                {
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "PivotPoints" + i) == false)
+                        {
+                            name = "PivotPoints" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new PivotPoints(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "LinearRegressionCurve")
+                {
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "LinearRegressionCurve" + i) == false)
+                        {
+                            name = "LinearRegressionCurve" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new LinearRegressionCurve(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "SimpleVWAP")
+                {
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "SimpleVWAP" + i) == false)
+                        {
+                            name = "SimpleVWAP" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new SimpleVWAP(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "DTD")
+                {
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "DTD" + i) == false)
+                        {
+                            name = "DTD" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new DynamicTrendDetector(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+
+                if (_gridViewIndicators.SelectedCells[0].Value.ToString() == "AtrChannel")
+                {
+                    string name = "";
+
+                    for (int i = 0; i < 30; i++)
+                    {
+                        if (_chartMaster.IndicatorIsCreate(_chartMaster.Name + "AtrChannel" + i) == false)
+                        {
+                            name = "AtrChannel" + i;
+                            break;
+                        }
+                    }
+                    IndicatorCandle = new AtrChannel(_chartMaster.Name + name, true);
+                    _chartMaster.CreateIndicator(IndicatorCandle, areaName);
+                }
+                Close();
+
+                if (IndicatorCandle != null)
+                {
+                    IndicatorCandle.ShowDialog();
+                }
+
+            }
+            catch (Exception ex)
             {
-                IndicatorCandle.ShowDialog();
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
+                ui.ShowDialog();
             }
         }
 
@@ -1058,5 +1070,85 @@ namespace OsEngine.Charts.CandleChart.Indicators
                 IndicatorCandle.ShowDialog();
             }
         }
+
+        #region Search
+
+        private void SearchTextBox_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (SearchTextBox.Text == OsLocalization.Market.Label64)
+                {
+                    return;
+                }
+
+                string searchText = SearchTextBox.Text.ToLower();
+
+                FilterGrid(_gridNamesScript, searchText);
+                FilterGrid(_gridViewIndicators, searchText);
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        private void FilterGrid(DataGridView grid, string searchText)
+        {
+            if (grid == null) return;
+
+            searchText = searchText.ToLower();
+
+            for (int i = 0; i < grid.Rows.Count; i++)
+            {
+                var cellValue = grid.Rows[i].Cells[0].Value;
+                if (cellValue != null)
+                {
+                    string cellText = cellValue.ToString().ToLower();
+                    grid.Rows[i].Visible = cellText.Contains(searchText);
+                }
+                else
+                {
+                    grid.Rows[i].Visible = false;
+                }
+            }
+        }
+
+        private void SearchTextBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (SearchTextBox.Text == OsLocalization.Market.Label64)
+                {
+                    SearchTextBox.Text = "";
+                    SearchTextBox.Foreground = Brushes.White;
+                }
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        private void SearchTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(SearchTextBox.Text))
+                {
+                    SearchTextBox.Text = OsLocalization.Market.Label64;
+                    SearchTextBox.Foreground = Brushes.Gray;
+                }
+            }
+            catch (Exception ex)
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(ex.ToString());
+                ui.ShowDialog();
+            }
+        }
+
+        #endregion
     }
 }

@@ -11,6 +11,7 @@ using OsEngine.Layout;
 using OsEngine.Market.SupportTable;
 using OsEngine.OsTrader.Gui.BlockInterface;
 using System;
+using OsEngine.OsTrader.SystemAnalyze;
 
 namespace OsEngine.OsTrader.Gui
 {
@@ -95,6 +96,7 @@ namespace OsEngine.OsTrader.Gui
             TabStopLimitPoses.Header = OsLocalization.Trader.Label193;
             ButtonSupportTable.Content = OsLocalization.Market.Label81;
             ButtonProxy.Content = OsLocalization.Market.Label172;
+            ButtonSystemStress.Content = OsLocalization.Trader.Label560;
         }
 
         void TesterUi_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -118,7 +120,13 @@ namespace OsEngine.OsTrader.Gui
 
         private void ButtonProxy_Click(object sender, RoutedEventArgs e)
         {
+            
             ServerMaster.ShowProxyDialog();
+        }
+
+        private void ButtonSystemStress_Click(object sender, RoutedEventArgs e)
+        {
+            SystemUsageAnalyzeMaster.ShowDialog();
         }
 
         // смещение областей
@@ -231,6 +239,5 @@ namespace OsEngine.OsTrader.Gui
             }
         }
 
-        
     }
 }

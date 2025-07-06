@@ -35,7 +35,7 @@ Sell Exit:
 2. Profit - for a minimum for a certain number of candles
 */
 
-namespace OsEngine.Robots.ZZAO
+namespace OsEngine.Robots
 {
     // We create an attribute so that we don't write anything to the BotFactory
     [Bot("FigureTwoPeaksDivergence")]
@@ -222,6 +222,7 @@ namespace OsEngine.Robots.ZZAO
                 }
             }
         }
+
         //  logic close position
         private void LogicClosePosition(List<Candle> candles)
         {
@@ -469,7 +470,7 @@ namespace OsEngine.Robots.ZZAO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

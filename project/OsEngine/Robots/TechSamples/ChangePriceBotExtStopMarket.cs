@@ -10,24 +10,52 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System;
 
+/* Description
+TechSample robot for OsEngine
+
+An example of a robot for programmers, where you can see how changing the order price works.
+ */
+
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("ChangePriceBotExtStopMarket")]
+    [Bot("ChangePriceBotExtStopMarket")] // We create an attribute so that we don't write anything to the BotFactory
     public class ChangePriceBotExtStopMarket : BotPanel
     {
+        // Simple tab
+        BotTabSimple _tab;
+
+        // Basic settings
+        StrategyParameterString SideParam;
+        StrategyParameterDecimal AntiSlippagePercent;
+
+        // GetVolume settings
+        StrategyParameterDecimal Volume;
+
+        // Exit settings
+        StrategyParameterInt SecondsOnReplaceOrderPrice;
+        StrategyParameterDecimal ProfitPercent;
+        StrategyParameterDecimal StopPercent;
+
         public ChangePriceBotExtStopMarket(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create simple tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
             _tab.MarketDepthUpdateEvent += _tab_MarketDepthUpdateEvent;
 
+            // Basic settings
             SideParam = CreateParameter("Side to trade", "Buy", new[] { "Buy", "Sell" });
-            Volume = CreateParameter("Volume", 1, 1m, 10,1);
             AntiSlippagePercent = CreateParameter("Anti slippage percent", 0.2m, 0.1m, 1, 0.1m);
+
+            // GetVolume settings
+            Volume = CreateParameter("Volume", 1, 1m, 10,1);
+            
+            // Exit settings
             SecondsOnReplaceOrderPrice = CreateParameter("Order price life time seconds", 5, 1, 1, 1);
             ProfitPercent = CreateParameter("Profit percent", 0.2m, 0.1m, 1, 0.1m);
             StopPercent = CreateParameter("Stop percent", 0.2m, 0.1m, 1, 0.1m);
 
+            // Create button
             StrategyParameterButton button = CreateParameterButton("Start operation");
             button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
 
@@ -35,35 +63,26 @@ namespace OsEngine.Robots.TechSamples
             buttonStop.UserClickOnButtonEvent += ButtonStop_UserClickOnButtonEvent;
 
             _tab.ManualPositionSupport.DisableManualSupport();
+
+            Description = "An example of a robot for programmers, where you can see how changing the order price works.";
         }
 
-        BotTabSimple _tab;
-
-        StrategyParameterString SideParam;
-
-        StrategyParameterDecimal AntiSlippagePercent;
-
-        StrategyParameterDecimal Volume;
-
-        StrategyParameterInt SecondsOnReplaceOrderPrice;
-
-        StrategyParameterDecimal ProfitPercent;
-
-        StrategyParameterDecimal StopPercent;
-
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ChangePriceBotExtStopMarket";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
            
         }
 
+        // Button click event
+
         private void Button_UserClickOnButtonEvent()
         {
-            _firstOrderIsExecute = false;
             _isStarted = true;
         }
 
@@ -73,8 +92,6 @@ namespace OsEngine.Robots.TechSamples
         }
 
         private bool _isStarted;
-
-        private bool _firstOrderIsExecute = false;
 
         private void _tab_MarketDepthUpdateEvent(MarketDepth md)
         {
@@ -93,12 +110,7 @@ namespace OsEngine.Robots.TechSamples
           
             if (poses.Count == 0)
             {
-                if(_firstOrderIsExecute == true)
-                {
-                   //_isStarted = false;
-                }
                 _lastChangeOrderTime = DateTime.Now;
-                _firstOrderIsExecute = true;
                 CreateFirstPos();
                 return;
             }
@@ -115,6 +127,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
+        // Opening first position logic
         private void CreateFirstPos()
         {
             if(SideParam.ValueString == "Buy")
@@ -135,6 +148,7 @@ namespace OsEngine.Robots.TechSamples
 
         DateTime _lastChangeOrderTime = DateTime.Now;
 
+        // Close position logic
         private void ClosePositionAtStopAndProfit(Position pos)
         {
             if(pos.StopOrderIsActive == true)
@@ -146,6 +160,7 @@ namespace OsEngine.Robots.TechSamples
             {
                 decimal priceStop = pos.EntryPrice - pos.EntryPrice * (StopPercent.ValueDecimal/100);
                 decimal priceProfit = pos.EntryPrice + pos.EntryPrice * (ProfitPercent.ValueDecimal / 100);
+
                 _tab.CloseAtStopMarket(pos, priceStop);
                 _tab.CloseAtProfitMarket(pos, priceProfit);
             }
@@ -159,6 +174,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
+        // Logic of changing the order price
         private void TryReplaceOrder(Position pos)
         {
             if(_lastChangeOrderTime.AddSeconds(SecondsOnReplaceOrderPrice.ValueInt) > DateTime.Now)
