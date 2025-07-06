@@ -199,6 +199,23 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
     {
         public string openInterest { get; set; }
         public string symbol { get; set; }
-        public long time { get; set; }
+        public string time { get; set; }
+    }
+
+    public class FundingInfo
+    {
+        public string symbol { get; set; }
+        public string lastFundingRate { get; set; }
+        public string markPrice { get; set; }
+        public string indexPrice { get; set; }
+        public string nextFundingTime { get; set; }
+    }
+
+    public class FundingItemHistory
+    {
+        public string symbol { get; set; }
+        public string fundingRate { get; set; }
+        public string fundingTime { get; set; }
+        public string markPrice { get; set; }
     }
 }

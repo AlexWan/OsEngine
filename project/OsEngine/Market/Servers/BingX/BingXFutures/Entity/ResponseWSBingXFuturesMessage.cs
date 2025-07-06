@@ -94,4 +94,26 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
         public string iw { get; set; } // If it is an isolated position, the position margin:23.19081642
         public string ps { get; set; } // position direction:SHORT
     }
+
+    public class TickerItem
+    {
+        public string e { get; set; }
+        public string E { get; set; }
+        public string s { get; set; }
+        public string p { get; set; }
+        public string P { get; set; }
+        public string o { get; set; }
+        public string h { get; set; }
+        public string l { get; set; }
+        public string L { get; set; }
+        public string c { get; set; }
+        public string v { get; set; }
+        public string q { get; set; }
+        public string O { get; set; }
+        public string C { get; set; }
+        public string B { get; set; }
+        public string b { get; set; }
+        public string A { get; set; }
+        public string a { get; set; }
+    }
 }

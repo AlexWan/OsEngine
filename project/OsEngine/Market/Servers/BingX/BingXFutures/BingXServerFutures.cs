@@ -1374,11 +1374,79 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 {
                     webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
                     webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20@500ms\"}}");
+
+                    if (_extendedMarketData)
+                    {
+                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\"}}");
+                        GetFundingHistory(security.Name);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
+        private void GetFundingHistory(string name)
+        {
+            _generalRateGate1.WaitToProceed();
+
+            try
+            {
+                for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                {
+
+                    RestClient client = new RestClient(_baseUrl);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
+                    string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                    string parameters = $"symbol={_subscribledSecutiries[i]}&timestamp={timeStamp}";
+                    string sign = CalculateHmacSha256(parameters);
+                    string requestUri = $"/openApi/swap/v2/quote/fundingRate?{parameters}";
+
+                    RestRequest request = new RestRequest(requestUri, Method.GET);
+
+                    request.AddParameter("timestamp", timeStamp);
+                    request.AddParameter("signature", sign);
+                    request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                    IRestResponse json = client.Execute(request);
+
+                    if (json.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseFuturesBingXMessage<List<FundingItemHistory>> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseFuturesBingXMessage<List<FundingItemHistory>>());
+
+                        if (response.code == "0")
+                        {
+                            FundingItemHistory item = response.data[0];
+
+                            Funding funding = new Funding();
+                            funding.SecurityNameCode = item.symbol;
+                            funding.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal());
+                            TimeSpan data = TimeManager.GetDateTimeFromTimeStamp((long)item.fundingTime.ToDecimal()) - TimeManager.GetDateTimeFromTimeStamp((long)response.data[1].fundingTime.ToDecimal());
+                            funding.FundingIntervalHours = int.Parse(data.Hours.ToString());
+
+                            FundingUpdateEvent?.Invoke(funding);
+                        }
+                        else
+                        {
+                            SendLogMessage($"GetFundingRate> - Code: {response.code} - {response.msg}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingRate> - Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
 
@@ -1402,6 +1470,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                                     webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
                                     webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20@500ms\"}}");
+
+                                    if (_extendedMarketData)
+                                    {
+                                        webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{name}@ticker\"}}");
+                                    }
                                 }
                             }
                         }
@@ -1432,6 +1505,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     continue;
                 }
 
+                if (!_extendedMarketData)
+                {
+                    continue;
+                }
+
                 if (_subscribledSecutiries == null
                     || _subscribledSecutiries.Count == 0)
                 {
@@ -1443,12 +1521,75 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     continue;
                 }
 
-                if (!_extendedMarketData)
-                {
-                    continue;
-                }
-
                 GetOpenInterest();
+                GetFundingRate();
+
+                _timeLast = DateTime.Now;
+            }
+        }
+
+        private void GetFundingRate()
+        {
+            _generalRateGate1.WaitToProceed();
+
+            try
+            {
+                for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                {
+
+                    RestClient client = new RestClient(_baseUrl);
+
+                    if (_myProxy != null)
+                    {
+                        client.Proxy = _myProxy;
+                    }
+
+                    string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
+                    string parameters = $"symbol={_subscribledSecutiries[i]}&timestamp={timeStamp}";
+                    string sign = CalculateHmacSha256(parameters);
+                    string requestUri = $"/openApi/swap/v2/quote/premiumIndex?{parameters}";
+
+                    RestRequest request = new RestRequest(requestUri, Method.GET);
+
+                    request.AddParameter("timestamp", timeStamp);
+                    request.AddParameter("signature", sign);
+                    request.AddHeader("X-BX-APIKEY", _publicKey);
+
+                    IRestResponse json = client.Execute(request);
+
+                    if (json.StatusCode == HttpStatusCode.OK)
+                    {
+                        ResponseFuturesBingXMessage<FundingInfo> response = JsonConvert.DeserializeAnonymousType(json.Content, new ResponseFuturesBingXMessage<FundingInfo>());
+
+                        if (response.code == "0")
+                        {
+                            FundingInfo item = response.data;
+
+                            Funding funding = new Funding();
+
+                            funding.SecurityNameCode = item.symbol;
+                            funding.CurrentValue = item.lastFundingRate.ToDecimal() * 100;
+                            funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
+                            funding.TimeUpdate = DateTime.UtcNow;
+                            //funding.MinFundingRate = item.minFundingRate.ToDecimal();
+                            //funding.MaxFundingRate = item.maxFundingRate.ToDecimal();
+
+                            FundingUpdateEvent?.Invoke(funding);
+                        }
+                        else
+                        {
+                            SendLogMessage($"GetFundingRate> - Code: {response.code} - {response.msg}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"GetFundingRate> - Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
 
@@ -1523,14 +1664,14 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         SendLogMessage($"GetOpenInterest> - Code: {json.StatusCode} - {json.Content}", LogMessageType.Error);
                     }
                 }
-
-                _timeLast = DateTime.Now;
             }
             catch (Exception e)
             {
                 SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
+
+
 
         public bool SubscribeNews()
         {
@@ -1577,6 +1718,11 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                         else if (message.Contains("@depth20"))
                         {
                             UpdateDepth(message);
+                            continue;
+                        }
+                        else if (message.Contains("@ticker"))
+                        {
+                            UpdateTicker(message);
                             continue;
                         }
                     }
@@ -1627,6 +1773,34 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                     Thread.Sleep(2000);
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                 }
+            }
+        }
+
+        private void UpdateTicker(string message)
+        {
+            try
+            {
+                ResponseWSBingXFuturesMessage<TickerItem> response = JsonConvert.DeserializeObject<ResponseWSBingXFuturesMessage<TickerItem>>(message);
+
+                if (response.code == "0")
+                {
+                    SecurityVolumes volume = new SecurityVolumes();
+
+                    volume.SecurityNameCode = response.data.s;
+                    volume.Volume24h = response.data.v.ToDecimal();
+                    volume.Volume24hUSDT = response.data.q.ToDecimal();
+                    volume.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)response.data.E.ToDecimal());
+
+                    Volume24hUpdateEvent?.Invoke(volume);
+                }
+                else
+                {
+                    SendLogMessage($"UpdateTicker> WebSocketPublic Code: {response.code} - message: {response.dataType}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1958,6 +2132,10 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         public event Action<MarketDepth> MarketDepthEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2582,17 +2760,13 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         #region 12 Log
 
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             if (LogMessageEvent != null)
                 LogMessageEvent(message, messageType);
         }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
 
