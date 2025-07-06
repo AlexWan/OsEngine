@@ -116,12 +116,12 @@ namespace OsEngine.Language
             "Ru:Управление_");
 
         public string Label28 => OsLocalization.ConvertToLocString(
-            "Eng:   Buy \nat market_" +
-            "Ru:  Купить \nпо рынку_");
+            "Eng:Buy\nat market_" +
+            "Ru:Купить\nпо рынку_");
 
         public string Label29 => OsLocalization.ConvertToLocString(
-            "Eng:           Sell \n       at market_" +
-            "Ru:           Продать\n         по рынку_");
+            "Eng:Sell\nat market_" +
+            "Ru:Продать\nпо рынку_");
 
         public string Label30 => OsLocalization.ConvertToLocString(
             "Eng:Volume_" +
@@ -132,12 +132,12 @@ namespace OsEngine.Language
             "Ru:Цена_");
 
         public string Label32 => OsLocalization.ConvertToLocString(
-            "Eng:  Buy \nat limit_" +
-            "Ru:  Купить \n лимит_");
+            "Eng:Buy\nat limit_" +
+            "Ru:Купить\nлимит_");
 
         public string Label33 => OsLocalization.ConvertToLocString(
-            "Eng:           Sell \n       at limit_" +
-            "Ru:           Продать\n          лимит_");
+            "Eng:Sell\nat limit_" +
+            "Ru:Продать\nлимит_");
 
         public string Label34 => OsLocalization.ConvertToLocString(
             "Eng:Revoke limits_" +
