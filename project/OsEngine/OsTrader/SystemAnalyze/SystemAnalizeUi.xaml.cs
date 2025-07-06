@@ -12,6 +12,7 @@ using Color = System.Drawing.Color;
 using OsEngine.Charts;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Entity;
 
 namespace OsEngine.OsTrader.SystemAnalyze
 {
@@ -34,7 +35,6 @@ namespace OsEngine.OsTrader.SystemAnalyze
             CheckBoxEcqCollectDataIsOn.IsChecked = SystemUsageAnalyzeMaster.EcqCollectDataIsOn;
             CheckBoxEcqCollectDataIsOn.Checked += CheckBoxEcqCollectDataIsOn_Checked;
             CheckBoxEcqCollectDataIsOn.Unchecked += CheckBoxEcqCollectDataIsOn_Checked;
-
 
             ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.OneSecond.ToString());
             ComboBoxRamPeriodSavePoint.Items.Add(SavePointPeriod.TenSeconds.ToString());
@@ -65,7 +65,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
             this.Closed += SystemAnalyzeUi_Closed;
 
-            Title = OsLocalization.Trader.Label556 + " В РАБОТЕ";
+            Title = OsLocalization.Trader.Label556;
             CheckBoxRamCollectDataIsOn.Content = OsLocalization.Trader.Label557;
             CheckBoxCpuCollectDataIsOn.Content = OsLocalization.Trader.Label557;
             CheckBoxEcqCollectDataIsOn.Content = OsLocalization.Trader.Label557;
@@ -85,14 +85,20 @@ namespace OsEngine.OsTrader.SystemAnalyze
             LabelCpuTotalOccupiedPercent.Content = OsLocalization.Trader.Label562;
             LabelCpuProgramOccupiedPercent.Content = OsLocalization.Trader.Label563;
 
+            LabelMarketDepthClearingCount.Content = OsLocalization.Trader.Label566;
+            LabelBidAskClearingCount.Content = OsLocalization.Trader.Label567;
+
             CreateRamChart();
             CreateCpuChart();
+            CreateEcqChart();
 
             RePaintRamValues(SystemUsageAnalyzeMaster.ValuesRam);
             RePaintCpuChart(SystemUsageAnalyzeMaster.ValuesCpu);
+            RePaintEcqChart(SystemUsageAnalyzeMaster.ValuesEcq);
 
             SystemUsageAnalyzeMaster.RamUsageCollectionChange += SystemUsageAnalyzeMaster_RamUsageCollectionChange;
             SystemUsageAnalyzeMaster.CpuUsageCollectionChange += SystemUsageAnalyzeMaster_CpuUsageCollectionChange;
+            SystemUsageAnalyzeMaster.EcqUsageCollectionChange += SystemUsageAnalyzeMaster_EcqUsageCollectionChange;
 
             Layout.StickyBorders.Listen(this);
             Layout.StartupLocation.Start_MouseInCentre(this);
@@ -102,6 +108,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
         {
             SystemUsageAnalyzeMaster.RamUsageCollectionChange -= SystemUsageAnalyzeMaster_RamUsageCollectionChange;
             SystemUsageAnalyzeMaster.CpuUsageCollectionChange -= SystemUsageAnalyzeMaster_CpuUsageCollectionChange;
+            SystemUsageAnalyzeMaster.EcqUsageCollectionChange -= SystemUsageAnalyzeMaster_EcqUsageCollectionChange;
 
             CheckBoxRamCollectDataIsOn.Checked -= CheckBoxRamCollectDataIsOn_Checked;
             CheckBoxRamCollectDataIsOn.Unchecked -= CheckBoxRamCollectDataIsOn_Checked;
@@ -116,6 +123,8 @@ namespace OsEngine.OsTrader.SystemAnalyze
             TextBoxRamPointsMax.TextChanged -= TextBoxRamPointsMax_TextChanged;
             TextBoxCpuPointsMax.TextChanged -= TextBoxCpuPointsMax_TextChanged;
             TextBoxEcqPointsMax.TextChanged -= TextBoxEcqPointsMax_TextChanged;
+
+            this.Closed -= SystemAnalyzeUi_Closed;
         }
 
         private void CheckBoxCpuCollectDataIsOn_Checked(object sender, RoutedEventArgs e)
@@ -508,6 +517,8 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 _chartCpu.Series[0].Points.ClearFast();
                 _chartCpu.Series[1].Points.ClearFast();
 
+                decimal maxValue = 0;
+
                 for (int i = 0; i < values.Count; i++)
                 {
                     SystemUsagePointCpu usagePoint = values[i];
@@ -517,6 +528,17 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                     _chartCpu.Series[1].Points.AddXY(i, usagePoint.ProgramOccupiedPercent);
                     _chartCpu.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label563 + ": " + usagePoint.ProgramOccupiedPercent + "%";
+
+                    if(usagePoint.TotalOccupiedPercent > maxValue)
+                    {
+                        maxValue = usagePoint.TotalOccupiedPercent;
+                    }
+                }
+
+                if(maxValue != 0)
+                {
+                    _chartCpu.ChartAreas[0].AxisY2.Maximum = (double)maxValue;
+                    _chartCpu.ChartAreas[0].AxisY2.Minimum = 0;
                 }
 
                 SystemUsagePointCpu lastPoint = values[^1];
@@ -540,15 +562,134 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
         #region ECQ. Emergency clearing of queues in servers 
 
+        private Chart _chartEcq;
 
+        private void CreateEcqChart()
+        {
+            _chartEcq = new Chart();
+            HostEcq.Child = _chartEcq;
+            HostEcq.Child.Show();
 
+            _chartEcq.Series.Clear();
+            _chartEcq.ChartAreas.Clear();
 
+            // 1 chart area
 
+            ChartArea areaSystemValues = new ChartArea("ChartAreaSystemValues");
+            areaSystemValues.Position.Height = 100;
+            areaSystemValues.Position.Width = 100;
+            areaSystemValues.Position.Y = 0;
+            areaSystemValues.CursorX.IsUserSelectionEnabled = false;
+            areaSystemValues.CursorX.IsUserEnabled = false;
+            areaSystemValues.AxisX.Enabled = AxisEnabled.False;
+            _chartEcq.ChartAreas.Add(areaSystemValues);
 
+            // 2 series Md
 
+            Series seriesTotalCpu = new Series("SeriesMarketDepthClearingCount");
+            seriesTotalCpu.ChartType = SeriesChartType.Line;
+            seriesTotalCpu.BorderWidth = 3;
+            seriesTotalCpu.Color = Color.DarkOrange;
+            seriesTotalCpu.YAxisType = AxisType.Secondary;
+            seriesTotalCpu.ChartArea = "ChartAreaSystemValues";
+            seriesTotalCpu.ShadowOffset = 2;
+            _chartEcq.Series.Add(seriesTotalCpu);
 
+            // 3 series bid ask
 
+            Series seriesOsEngineCpu = new Series("SeriesBidAskClearingCount");
+            seriesOsEngineCpu.ChartType = SeriesChartType.Line;
+            seriesOsEngineCpu.BorderWidth = 3;
+            seriesOsEngineCpu.Color = Color.Red;
+            seriesOsEngineCpu.YAxisType = AxisType.Secondary;
+            seriesOsEngineCpu.ChartArea = "ChartAreaSystemValues";
+            seriesOsEngineCpu.ShadowOffset = 2;
+            _chartEcq.Series.Add(seriesOsEngineCpu);
 
+            _chartEcq.BackColor = Color.FromArgb(-15395563);
+
+            for (int i = 0; _chartEcq.ChartAreas != null && i < _chartEcq.ChartAreas.Count; i++)
+            {
+                _chartEcq.ChartAreas[i].BackColor = Color.FromArgb(-15395563);
+                _chartEcq.ChartAreas[i].BorderColor = Color.FromArgb(-16701360);
+                _chartEcq.ChartAreas[i].CursorY.LineColor = Color.DimGray;
+                _chartEcq.ChartAreas[i].CursorX.LineColor = Color.DimGray;
+                _chartEcq.ChartAreas[i].AxisX.TitleForeColor = Color.DimGray;
+
+                foreach (var axe in _chartEcq.ChartAreas[i].Axes)
+                {
+                    axe.LabelStyle.ForeColor = Color.DimGray;
+                }
+            }
+        }
+
+        private void RePaintEcqChart(List<SystemUsagePointEcq> values)
+        {
+            try
+            {
+                if (_chartEcq.InvokeRequired)
+                {
+                    _chartEcq.Invoke(new Action<List<SystemUsagePointEcq>>(RePaintEcqChart), values);
+                    return;
+                }
+
+                _chartEcq.Series[0].Points.ClearFast();
+                _chartEcq.Series[1].Points.ClearFast();
+
+                if (values == null
+                    || values.Count == 0)
+                {
+                    return;
+                }
+
+                decimal maxValue = 0;
+
+                for (int i = 0; i < values.Count; i++)
+                {
+                    SystemUsagePointEcq usagePoint = values[i];
+
+                    _chartEcq.Series[0].Points.AddXY(i, usagePoint.MarketDepthClearingCount);
+                    _chartEcq.Series[0].Points[^1].ToolTip = OsLocalization.Trader.Label566 + ": " + usagePoint.MarketDepthClearingCount;
+
+                    _chartEcq.Series[1].Points.AddXY(i, usagePoint.BidAskClearingCount);
+                    _chartEcq.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label567 + ": " + usagePoint.BidAskClearingCount;
+                }
+
+                if (maxValue != 0)
+                {
+                    _chartEcq.ChartAreas[0].AxisY2.Maximum = (double)maxValue;
+                    _chartEcq.ChartAreas[0].AxisY2.Minimum = 0;
+                }
+
+                SystemUsagePointEcq lastPoint = values[^1];
+
+                TextBoxMarketDepthClearingCount.Text = lastPoint.MarketDepthClearingCount.ToString();
+                TextBoxBidAskClearingCount.Text = lastPoint.BidAskClearingCount.ToString();
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                return;
+            }
+        }
+
+        private void SystemUsageAnalyzeMaster_EcqUsageCollectionChange(List<SystemUsagePointEcq> values)
+        {
+            RePaintEcqChart(values);
+        }
+
+        private void ButtonEcq_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label568);
+                ui.ShowDialog();
+            }
+            catch
+            {
+                // ignore
+            }
+        }
 
         #endregion
 

@@ -42,15 +42,18 @@
         <WindowsFormsHost Name="HostCpu" Margin="177,40,3,3" Grid.Row="1"/>
 
         <Rectangle  Margin="2,2,2,2" Grid.Row="2"/>
-        <Label Content="ECQ" ToolTip="Emergency clearing of queues in servers " HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="23" Width="36" Grid.Row="2"/>
+        <Label Content="ECQ" ToolTip="Emergency clearing of queues in servers " HorizontalAlignment="Left" Margin="10,13,0,0" VerticalAlignment="Top" Height="19" Width="36" Grid.Row="2"/>
         <CheckBox Name="CheckBoxEcqCollectDataIsOn" Content="Collect data" HorizontalAlignment="Left" Margin="86,10,0,0" VerticalAlignment="Top" Grid.Row="2" Height="23" Width="86"/>
         <Label Name="LabelEcqPeriod" Content="Period" HorizontalAlignment="Right" Margin="0,10,346,0" VerticalAlignment="Top" Grid.Row="2"/>
         <ComboBox Name="ComboBoxEcqPeriodSavePoint" HorizontalAlignment="Right" Margin="0,10,211,0" VerticalAlignment="Top" Width="120" Grid.Row="2"/>
         <Label Name="LabelEcqPointsMaxCount" Content="Max points" HorizontalAlignment="Right" Margin="0,11,132,0" VerticalAlignment="Top" Grid.Row="2"/>
         <TextBox Name="TextBoxEcqPointsMax" HorizontalAlignment="Right" Margin="0,11,27,0" VerticalAlignment="Top" Width="100" Grid.Row="2"/>
-        <Label Content="Cleaning" HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top" Grid.Row="2"/>
-        <TextBox HorizontalAlignment="Left" Margin="121,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="51" Grid.Row="2"/>
+        <Label Name="LabelMarketDepthClearingCount" Content="Market depth" HorizontalAlignment="Left" Margin="10,56,0,0" VerticalAlignment="Top" Grid.Row="2"/>
+        <TextBox Name="TextBoxMarketDepthClearingCount" HorizontalAlignment="Left" Margin="129,56,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="43" Grid.Row="2"/>
+        <Label Name="LabelBidAskClearingCount" Content="Bid Ask" HorizontalAlignment="Left" Margin="10,85,0,0" VerticalAlignment="Top" Grid.Row="2"/>
+        <TextBox Name="TextBoxBidAskClearingCount" HorizontalAlignment="Left" Margin="129,85,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="43" Grid.Row="2"/>
         <WindowsFormsHost Name="HostEcq" Margin="177,40,3,5" Grid.Row="2"/>
+        <Button Name="ButtonEcq" Content="?" HorizontalAlignment="Left" Margin="43,14,0,0" Grid.Row="2" VerticalAlignment="Top" Height="14" Width="14" Click="ButtonEcq_Click"/>
 
     </Grid>
 </Window>

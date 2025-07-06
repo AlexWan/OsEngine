@@ -213,6 +213,30 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
+        public static int MarketDepthClearingCount
+        {
+            get
+            {
+                return _ecqUsageAnalyze.MarketDepthClearingCount;
+            }
+            set
+            {
+                _ecqUsageAnalyze.MarketDepthClearingCount = value;
+            }
+        }
+
+        public static int BidAskClearingCount
+        {
+            get
+            {
+                return _ecqUsageAnalyze.BidAskClearingCount;
+            }
+            set
+            {
+                _ecqUsageAnalyze.BidAskClearingCount = value;
+            }
+        }
+
         #endregion
 
         #region Work thread
@@ -391,6 +415,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                 _ramPeriodSavePoint = value;
                 Save();
+                _nextCalculateTime = DateTime.MinValue;
             }
         }
         private SavePointPeriod _ramPeriodSavePoint;
@@ -576,6 +601,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                 _cpuPeriodSavePoint = value;
                 Save();
+                _nextCalculateTime = DateTime.MinValue;
             }
         }
         private SavePointPeriod _cpuPeriodSavePoint;
@@ -753,6 +779,7 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                 _ecqPeriodSavePoint = value;
                 Save();
+                _nextCalculateTime = DateTime.MinValue;
             }
         }
         private SavePointPeriod _ecqPeriodSavePoint;
@@ -776,6 +803,34 @@ namespace OsEngine.OsTrader.SystemAnalyze
         }
         private int _ecqPointsMax = 100;
 
+        public int MarketDepthClearingCount
+        {
+            get
+            {
+                return _marketDepthClearingCount;
+            }
+            set
+            {
+                _marketDepthClearingCount = value;
+            }
+        }
+        private int _marketDepthClearingCount;
+
+        public int BidAskClearingCount
+        {
+            get
+            {
+                return _bidAskClearingCount;
+            }
+            set
+            {
+                _bidAskClearingCount = value;
+            }
+        }
+        private int _bidAskClearingCount;
+
+        private DateTime _nextCalculateTime;
+
         public void CalculateData()
         {
             if (_ecqCollectDataIsOn == false)
@@ -783,13 +838,41 @@ namespace OsEngine.OsTrader.SystemAnalyze
                 return;
             }
 
+            if (_nextCalculateTime != DateTime.MinValue
+                && _nextCalculateTime > DateTime.Now)
+            {
+                return;
+            }
+
+            if (_ecqPeriodSavePoint == SavePointPeriod.OneSecond)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(1);
+            }
+            else if (_ecqPeriodSavePoint == SavePointPeriod.TenSeconds)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(10);
+            }
+            else //if (_cpuPeriodSavePoint == SavePointPeriod.Minute)
+            {
+                _nextCalculateTime = DateTime.Now.AddSeconds(60);
+            }
+
+            SystemUsagePointEcq newPoint = new SystemUsagePointEcq();
+            newPoint.Time = DateTime.Now;
+            newPoint.MarketDepthClearingCount = _marketDepthClearingCount;
+            newPoint.BidAskClearingCount = _bidAskClearingCount;
+
+            _marketDepthClearingCount = 0;
+            _bidAskClearingCount = 0;
+
+            SaveNewPoint(newPoint);
         }
 
         private void SaveNewPoint(SystemUsagePointEcq point)
         {
             Values.Add(point);
 
-            if (Values.Count > 10000)
+            if (Values.Count > _ecqPointsMax)
             {
                 Values.RemoveAt(0);
             }
@@ -826,9 +909,9 @@ namespace OsEngine.OsTrader.SystemAnalyze
     {
         public DateTime Time;
 
-        public decimal MarketDepthClearing;
+        public decimal MarketDepthClearingCount;
 
-        public decimal BidAskClearing;
+        public decimal BidAskClearingCount;
     }
 
     public enum SavePointPeriod

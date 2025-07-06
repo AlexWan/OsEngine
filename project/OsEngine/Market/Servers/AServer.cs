@@ -15,6 +15,7 @@ using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Entity;
+using OsEngine.OsTrader.SystemAnalyze;
 
 namespace OsEngine.Market.Servers
 {
@@ -1393,6 +1394,9 @@ namespace OsEngine.Market.Servers
                                         NewMarketDepthEvent(list[i]);
                                     }
                                 }
+
+                                // записываем данные об очистке очереди
+                                SystemUsageAnalyzeMaster.MarketDepthClearingCount += 1;
                             }
                         }
                     }
@@ -1449,6 +1453,9 @@ namespace OsEngine.Market.Servers
                                         NewBidAscIncomeEvent(list[i].Bid, list[i].Ask, list[i].Security);
                                     }
                                 }
+
+                                // записываем данные об очистке очереди
+                                SystemUsageAnalyzeMaster.BidAskClearingCount += 1;
                             }
                         }
                     }

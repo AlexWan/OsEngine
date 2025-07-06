@@ -2162,5 +2162,17 @@ namespace OsEngine.Language
         public string Label565 => OsLocalization.ConvertToLocString(
         "Eng:Used_" +
         "Ru:Занято");
+
+        public string Label566 => OsLocalization.ConvertToLocString(
+        "Eng:Market depth_" +
+        "Ru:Очередь стаканов");
+
+        public string Label567 => OsLocalization.ConvertToLocString(
+        "Eng:Bis ask queue_" +
+        "Ru:Очередь bid/ask");
+
+        public string Label568 => OsLocalization.ConvertToLocString(
+        "Eng:Information about emergency queue cleaning in connectors. If you see something other than a straight line, it's not good._" +
+        "Ru:График экстренных очисток очередей в коннекторах. Если Вы что-то видите кроме ровной линии - это не хорошо.");
     }
 }
