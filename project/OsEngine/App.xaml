@@ -1324,27 +1324,24 @@
         </Style>
         
         <Style TargetType="{x:Type TabItem}">
-            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusLine}"/> <!-- свойство -->
-            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormalLight}"/> <!-- свойство заднего фона -->
-            <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}"/> <!-- свойство передний план - влияет на цвет текста -->
-            <Setter Property="Padding" Value="10"/> <!-- свойство отступов -->
-            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/> <!-- свойство рамки -->
-            <Setter Property="BorderThickness" Value="1,1,1,1" />            <!-- свойство толщины рамки -->
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusLine}"/>
+            <Setter Property="Background" Value="{StaticResource ControlBackgroundNormalLight}"/>
+            <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}"/>
+            <Setter Property="Padding" Value="10"/> 
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/> 
+            <Setter Property="BorderThickness" Value="1,1,1,1" /> 
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Stretch"/>
-            <Setter Property="MinWidth" Value="10" /> <!-- минимальная ширина -->
-            <Setter Property="MinHeight" Value="20" /><!-- минимальная высота -->
+            <Setter Property="MinWidth" Value="10" />
+            <Setter Property="MinHeight" Value="20" />
             <Setter Property="Height" Value="26" />
-            
-            <Setter Property="Template"> <!-- шаблон -->
-                <Setter.Value> <!-- -->
-                    <ControlTemplate TargetType="{x:Type TabItem}">
-                        <!-- шаблон для TabItem -->
 
-                        <Grid SnapsToDevicePixels="True" Name="grid" Background="Transparent" Margin="0,0,3,0" > 
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TabItem}">
+                        <Grid SnapsToDevicePixels="True" Name="grid" Background="Transparent" Margin="0,0,3,0" >
                             <Border Name="border_inner" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1,1,1,1" CornerRadius="2"
                                     Background="{StaticResource ControlBackgroundNormal}">
-                                <!-- внутрення рамка -->
                                 <ContentPresenter Name="Content" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" MinWidth="15" 
                                               HorizontalAlignment="{Binding Path=HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
                                               VerticalAlignment="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
