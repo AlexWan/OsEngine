@@ -653,6 +653,16 @@ namespace OsEngine.OsTrader.SystemAnalyze
 
                     _chartEcq.Series[1].Points.AddXY(i, usagePoint.BidAskClearingCount);
                     _chartEcq.Series[1].Points[^1].ToolTip = OsLocalization.Trader.Label567 + ": " + usagePoint.BidAskClearingCount;
+
+                    if(usagePoint.BidAskClearingCount > maxValue)
+                    {
+                        maxValue = usagePoint.BidAskClearingCount;
+                    }
+
+                    if (usagePoint.MarketDepthClearingCount > maxValue)
+                    {
+                        maxValue = usagePoint.MarketDepthClearingCount;
+                    }
                 }
 
                 if (maxValue != 0)
