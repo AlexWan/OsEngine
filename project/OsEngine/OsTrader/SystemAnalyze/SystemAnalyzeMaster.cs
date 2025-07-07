@@ -213,6 +213,60 @@ namespace OsEngine.OsTrader.SystemAnalyze
             }
         }
 
+        public static SystemUsagePointRam LastValueRam
+        {
+            get
+            {
+                List < SystemUsagePointRam > values = _ramMemoryUsageAnalyze.Values;
+
+                if(values != null 
+                    && values.Count > 0)
+                {
+                    return values[^1];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public static SystemUsagePointCpu LastValueCpu
+        {
+            get
+            {
+                List<SystemUsagePointCpu> values = _cpuUsageAnalyze.Values;
+
+                if (values != null
+                    && values.Count > 0)
+                {
+                    return values[^1];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
+        public static SystemUsagePointEcq LastValueEcq
+        {
+            get
+            {
+                List<SystemUsagePointEcq> values = _ecqUsageAnalyze.Values;
+
+                if (values != null
+                    && values.Count > 0)
+                {
+                    return values[^1];
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public static int MarketDepthClearingCount
         {
             get
