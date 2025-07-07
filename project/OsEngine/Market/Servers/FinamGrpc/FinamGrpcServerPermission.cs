@@ -51,12 +51,12 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public bool DataFeedTfTickCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTfMarketDepthCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf1MinuteCanLoad
@@ -125,7 +125,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public bool IsCanChangeOrderPrice
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool UseStandardCandlesStarter
