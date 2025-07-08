@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitGet.BitGetSpot.Entity;
@@ -12,7 +13,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 {
@@ -27,6 +27,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterPassphrase, "");
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -71,17 +72,19 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 return;
             }
 
-            //ServicePointManager.SecurityProtocol =
-            //    SecurityProtocolType.Tls11
-            //    | SecurityProtocolType.Tls12
-            //    | SecurityProtocolType.Tls13
-            //    | SecurityProtocolType.Tls;
+            if (((ServerParameterBool)ServerParameters[3]).Value == true)
+            {
+                _extendedMarketData = true;
+            }
+            else
+            {
+                _extendedMarketData = false;
+            }
 
             try
             {
                 string requestStr = "/api/v2/public/time";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-
                 RestClient client = new RestClient(BaseUrl);
 
                 if (_myProxy != null)
@@ -179,6 +182,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         private int _limitCandlesData = 200;
 
         private int _limitCandlesTrader = 1000;
+
+        private bool _extendedMarketData;
 
         #endregion
 
@@ -1264,6 +1269,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 _webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
                 _webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
 
+                if (_extendedMarketData)
+                {
+                    _webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                }
+
                 _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{security.Name}\"}}]}}");
             }
             catch (Exception ex)
@@ -1297,7 +1307,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
                             _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
 
-                            _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
+                            if (_extendedMarketData)
+                            {
+                                _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
+                            }
+
+                            _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
                         }
                     }
                 }
@@ -1408,6 +1423,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                             if (action.arg.channel.Equals("trade"))
                             {
                                 UpdateTrade(message);
+                                continue;
+                            }
+                            if (action.arg.channel.Equals("ticker"))
+                            {
+                                UpdateTicker(message);
                                 continue;
                             }
                         }
@@ -1640,17 +1660,9 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 ResponseWebSocketMessageAction<List<ResponseWebsocketTrade>> responseTrade = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<ResponseWebsocketTrade>>());
 
-                if (responseTrade == null)
-                {
-                    return;
-                }
-
-                if (responseTrade.data == null)
-                {
-                    return;
-                }
-
-                if (responseTrade.data.Count == 0)
+                if (responseTrade == null
+                    || responseTrade.data == null
+                    || responseTrade.data.Count == 0)
                 {
                     return;
                 }
@@ -1775,6 +1787,39 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
+        private void UpdateTicker(string message)
+        {
+            try
+            {
+                ResponseWebSocketMessageAction<List<TickerItem>> responseTicker = JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessageAction<List<TickerItem>>());
+
+                if (responseTicker == null
+                    || responseTicker.data == null
+                    || responseTicker.data.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < responseTicker.data.Count; i++)
+                {
+                    TickerItem item = responseTicker.data[i];
+
+                    SecurityVolumes volume = new SecurityVolumes();
+
+                    volume.SecurityNameCode = item.instId;
+                    volume.Volume24h = item.baseVolume.ToDecimal();
+                    volume.Volume24hUSDT = item.quoteVolume.ToDecimal();
+                    volume.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)item.ts.ToDecimal());
+
+                    Volume24hUpdateEvent?.Invoke(volume);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+            }
+        }
+
         private DateTime _lastTimeMd;
 
         public event Action<Order> MyOrderEvent;
@@ -1786,6 +1831,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         public event Action<Trade> NewTradesEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2298,10 +2347,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }
