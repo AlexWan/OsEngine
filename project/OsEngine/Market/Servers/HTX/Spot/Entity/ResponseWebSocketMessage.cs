@@ -1,18 +1,26 @@
 ﻿using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.HTX.Spot.Entity
-{ 
+{
+
+    public class ResponseWebSocketMessage<T>
+    {
+        public string ch { get; set; }
+        public string ts { get; set; }
+        public T tick { get; set; }
+    }
+
     public class ResponseChannelTrades
     {
-        public Tick tick {  get; set; }
-       
-        public string ch {  get; set; }
+        public Tick tick { get; set; }
+
+        public string ch { get; set; }
 
         public class Tick
         {
             public List<Data> data { get; set; }
         }
-        
+
         public class Data
         {
             public string ts { get; set; }
@@ -25,7 +33,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
 
     public class ResponseChannelBook
     {
-        public string ch { get; set; }        
+        public string ch { get; set; }
         public Tick tick { get; set; }
         public string ts { get; set; }
 
@@ -33,7 +41,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
         {
             public List<List<string>> asks { get; set; }
             public List<List<string>> bids { get; set; }
-            
+
         }
     }
 
@@ -95,6 +103,23 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
             public string orderCreateTime { get; set; } // Order creation time
             public string orderStatus { get; set; } // Order status, valid value: filled, partial-filled
         }
-    }    
+    }
+
+    public class TickerItem
+    {
+        public string open { get; set; }
+        public string high { get; set; }
+        public string low { get; set; }
+        public string close { get; set; }
+        public string amount { get; set; }
+        public string vol { get; set; }
+        public string count { get; set; }
+        public string bid { get; set; }
+        public string bidSize { get; set; }
+        public string ask { get; set; }
+        public string askSize { get; set; }
+        public string lastPrice { get; set; }
+        public string lastSize { get; set; }
+    }
 }
 

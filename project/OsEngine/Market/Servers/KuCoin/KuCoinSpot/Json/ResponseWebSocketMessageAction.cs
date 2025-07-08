@@ -16,7 +16,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string type;
         public string topic;
         public string subject;
-        
         public T data;
     }
 
@@ -32,12 +31,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public string makerOrderId;
         public string time;
     }
-    
+
     public class ResponseWebSocketDepthItem
     {
         public List<List<string>> asks;
         public List<List<string>> bids;
-        
+
         public string timestamp;
     }
 
@@ -89,5 +88,61 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinSpot.Json
         public RelationContext relationContext;
 
         public string time; //"1545743136994" // timestamp
+    }
+
+    public class TickerData
+    {
+        public string sequence { get; set; }
+        public TickerItem data { get; set; }
+    }
+
+    public class TickerItem
+    {
+        public string askSize { get; set; }
+        public string averagePrice { get; set; }
+        public string baseCurrency { get; set; }
+        public string bidSize { get; set; }
+        public string board { get; set; }
+        public string buy { get; set; }
+        public string changePrice { get; set; }
+        public string changeRate { get; set; }
+        public string close { get; set; }
+        public string datetime { get; set; }
+        public string high { get; set; }
+        public string lastSize { get; set; }
+        public string lastTradedPrice { get; set; }
+        public string low { get; set; }
+        public string makerCoefficient { get; set; }
+        public string makerFeeRate { get; set; }
+        public string marginTrade { get; set; }
+        public string mark { get; set; } // 0,1,2
+        public string market { get; set; }
+        public MarketChange marketChange1h { get; set; }
+        public MarketChange marketChange24h { get; set; }
+        public MarketChange marketChange4h { get; set; }
+        public List<string> markets { get; set; }
+        public string open { get; set; }
+        public string quoteCurrency { get; set; }
+        public string sell { get; set; }
+        public List<string> siteTypes { get; set; }
+        public string sort { get; set; }
+        public string symbol { get; set; }
+        public string symbolCode { get; set; }
+        public string takerCoefficient { get; set; }
+        public string takerFeeRate { get; set; }
+        public string trading { get; set; }
+        public string vol { get; set; }
+        public string volValue { get; set; }
+    }
+
+    public class MarketChange
+    {
+        public string changePrice { get; set; }
+        public string changeRate { get; set; }
+        public string high { get; set; }
+        public string low { get; set; }
+        public string open { get; set; }
+        public string vol { get; set; }
+        public string volValue { get; set; }
     }
 }
