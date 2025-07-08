@@ -26,7 +26,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 {
     public class BinanceServerSpot : AServer
     {
-        public BinanceServerSpot (int uniqueNumber)
+        public BinanceServerSpot(int uniqueNumber)
         {
             ServerNum = uniqueNumber;
             BinanceServerRealization realization = new BinanceServerRealization();
@@ -34,6 +34,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -78,14 +79,35 @@ namespace OsEngine.Market.Servers.Binance.Spot
             Uri uri = new Uri(_baseUrl + "/v1/time");
             try
             {
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create(uri);
-                HttpWebResponse httpWebResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                RestRequest requestRest = new RestRequest("/v1/time", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    SendLogMessage("Can`t run Binance Spot connector. No internet connection", LogMessageType.Error);
+
+                    if (ServerStatus != ServerConnectStatus.Disconnect)
+                    {
+                        ServerStatus = ServerConnectStatus.Disconnect;
+                        DisconnectEvent();
+                        return;
+                    }
+                }
             }
             catch (Exception exception)
             {
                 SendLogMessage("Can`t run Binance Spot connector. No internet connection", LogMessageType.Error);
                 return;
+            }
+
+            if (((ServerParameterBool)ServerParameters[2]).Value == true)
+            {
+                _extendedMarketData = true;
+            }
+            else
+            {
+                _extendedMarketData = false;
             }
 
             CreateDataStreams();
@@ -142,6 +164,8 @@ namespace OsEngine.Market.Servers.Binance.Spot
         private string _marginListenKey = "";
 
         private bool _notMargineAccount;
+
+        private bool _extendedMarketData;
 
         #endregion
 
@@ -1252,7 +1276,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
                 WebSocket client = new WebSocket(urlStr); //create a web socket / создаем вебсокет
 
-                if(_myProxy != null)
+                if (_myProxy != null)
                 {
                     client.SetProxy(_myProxy);
                 }
@@ -1452,7 +1476,7 @@ namespace OsEngine.Market.Servers.Binance.Spot
 
             string urlStr = null;
 
-            if (((ServerParameterBool)ServerParameters[9]).Value == false)
+            if (((ServerParameterBool)ServerParameters[10]).Value == false)
             {
                 urlStr = "wss://stream.binance.com:9443/stream?streams="
                                             + security.Name.ToLower()
@@ -1467,6 +1491,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
                                             + security.Name.ToLower() + "@trade";
             }
 
+            if (_extendedMarketData)
+            {
+                urlStr += "/" + security.Name.ToLower() + "@miniTicker";
+            }
 
             WebSocket _wsClient = new WebSocket(urlStr); // create web-socket 
 
@@ -1521,6 +1549,11 @@ namespace OsEngine.Market.Servers.Binance.Spot
                             {
                                 var quotes = JsonConvert.DeserializeAnonymousType(mes, new TradeResponse());
                                 UpdateTrades(quotes);
+                            }
+                            else if (mes.Contains("\"e\":\"24hrMiniTicker\"")) // 24hr rolling window mini-ticker statistics
+                            {
+                                var quotes = JsonConvert.DeserializeAnonymousType(mes, new MiniTickerResponse());
+                                UpdateVolume24h(quotes);
                             }
                             else if (mes.Contains("error"))
                             {
@@ -2074,6 +2107,30 @@ namespace OsEngine.Market.Servers.Binance.Spot
             }
         }
 
+        private void UpdateVolume24h(MiniTickerResponse ticker)
+        {
+            try
+            {
+                if (ticker == null)
+                {
+                    return;
+                }
+
+                SecurityVolumes volume = new SecurityVolumes();
+
+                volume.SecurityNameCode = ticker.data.s;
+                volume.Volume24h = ticker.data.v.ToDecimal();
+                volume.Volume24hUSDT = ticker.data.q.ToDecimal();
+                volume.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)ticker.data.E.ToDecimal());
+
+                Volume24hUpdateEvent?.Invoke(volume);
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
         private DateTime _lastTimeMd = DateTime.MinValue;
 
         public event Action<Order> MyOrderEvent;
@@ -2085,6 +2142,10 @@ namespace OsEngine.Market.Servers.Binance.Spot
         public event Action<Trade> NewTradesEvent;
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2847,10 +2908,6 @@ namespace OsEngine.Market.Servers.Binance.Spot
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

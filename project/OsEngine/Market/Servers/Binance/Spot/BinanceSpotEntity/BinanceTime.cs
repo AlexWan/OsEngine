@@ -2,6 +2,6 @@
 {
     public class BinanceTime
     {
-        public long serverTime { get; set; }
+        public string serverTime { get; set; }
     }
 }
