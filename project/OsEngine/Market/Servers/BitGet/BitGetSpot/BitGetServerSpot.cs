@@ -96,34 +96,23 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    TimeToSendPingPublic = DateTime.Now;
-                    TimeToSendPingPrivate = DateTime.Now;
                     FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                     FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-                    CreateWebSocketConnection();
+                    CreatePublicWebSocketConnect();
+                    CreatePrivateWebSocketConnect();
                     _lastConnectionStartTime = DateTime.Now;
                 }
                 else
                 {
-                    SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
+                    SendLogMessage("Connection can be open. BitGet Spot. Error request", LogMessageType.Error);
+                    Disconnect();
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
-                SendLogMessage("Connection can be open. BitGet. Error request", LogMessageType.Error);
-
-                if (ServerStatus != ServerConnectStatus.Disconnect)
-                {
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
-                }
+                SendLogMessage("Connection can be open. BitGet Spot. Error request", LogMessageType.Error);
+                Disconnect();
             }
         }
 
@@ -143,6 +132,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             FIFOListWebSocketPublicMessage = null;
             FIFOListWebSocketPrivateMessage = null;
 
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -197,7 +191,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 string requestStr = $"/api/v2/spot/public/symbols";
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
-
                 RestClient client = new RestClient(BaseUrl);
 
                 if (_myProxy != null)
@@ -802,43 +795,58 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private string _webSocketUrlPrivate = "wss://ws.bitget.com/v2/ws/private";
 
-        private WebSocket _webSocketPublic;
+        private List<WebSocket> _webSocketPublic = new List<WebSocket>();
 
         private WebSocket _webSocketPrivate;
 
-        private bool _publicSocketOpen = false;
-
-        private bool _privateSocketOpen = false;
-
-        private void CreateWebSocketConnection()
+        private void CreatePublicWebSocketConnect()
         {
             try
             {
-                _publicSocketOpen = false;
-                _privateSocketOpen = false;
-
-                if (_webSocketPublic != null)
+                if (FIFOListWebSocketPublicMessage == null)
                 {
-                    return;
+                    FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
                 }
 
-                _webSocketPublic = new WebSocket(_webSocketUrlPublic);
+                _webSocketPublic.Add(CreateNewPublicSocket());
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private WebSocket CreateNewPublicSocket()
+        {
+            try
+            {
+                WebSocket webSocketPublicNew = new WebSocket(_webSocketUrlPublic);
 
                 if (_myProxy != null)
                 {
-                    _webSocketPublic.SetProxy(_myProxy);
+                    webSocketPublicNew.SetProxy(_myProxy);
                 }
 
-                _webSocketPublic.EmitOnPing = true;
-                /*_webSocketPublic.SslConfiguration.EnabledSslProtocols
-                    = System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;*/
-                _webSocketPublic.OnOpen += WebSocketPublic_Opened;
-                _webSocketPublic.OnClose += WebSocketPublic_Closed;
-                _webSocketPublic.OnMessage += WebSocketPublic_MessageReceived;
-                _webSocketPublic.OnError += WebSocketPublic_Error;
-                _webSocketPublic.Connect();
+                webSocketPublicNew.EmitOnPing = true;
+                webSocketPublicNew.OnOpen += WebSocketPublic_Opened;
+                webSocketPublicNew.OnMessage += WebSocketPublic_MessageReceived;
+                webSocketPublicNew.OnError += WebSocketPublic_Error;
+                webSocketPublicNew.OnClose += WebSocketPublic_Closed;
+                webSocketPublicNew.Connect();
 
+                return webSocketPublicNew;
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        private void CreatePrivateWebSocketConnect()
+        {
+            try
+            {
                 if (_webSocketPrivate != null)
                 {
                     return;
@@ -852,9 +860,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 }
 
                 _webSocketPrivate.EmitOnPing = true;
-                /*_webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                   = System.Security.Authentication.SslProtocols.Tls12
-                   | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocketPrivate.OnOpen += WebSocketPrivate_Opened;
                 _webSocketPrivate.OnClose += WebSocketPrivate_Closed;
                 _webSocketPrivate.OnMessage += WebSocketPrivate_MessageReceived;
@@ -873,18 +878,29 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 try
                 {
-                    _webSocketPublic.OnOpen -= WebSocketPublic_Opened;
-                    _webSocketPublic.OnClose -= WebSocketPublic_Closed;
-                    _webSocketPublic.OnMessage -= WebSocketPublic_MessageReceived;
-                    _webSocketPublic.OnError -= WebSocketPublic_Error;
-                    _webSocketPublic.CloseAsync();
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
+                    {
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        webSocketPublic.OnOpen -= WebSocketPublic_Opened;
+                        webSocketPublic.OnClose -= WebSocketPublic_Closed;
+                        webSocketPublic.OnMessage -= WebSocketPublic_MessageReceived;
+                        webSocketPublic.OnError -= WebSocketPublic_Error;
+
+                        if (webSocketPublic.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublic.CloseAsync();
+                        }
+
+                        webSocketPublic = null;
+                    }
                 }
                 catch
                 {
                     // ignore
                 }
 
-                _webSocketPublic = null;
+                _webSocketPublic.Clear();
             }
 
             if (_webSocketPrivate != null)
@@ -906,15 +922,36 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             }
         }
 
-        private string _socketActivateLocker = "socketAcvateLocker";
+        private string _socketActivateLocker = "socketActivateLocker";
 
         private void CheckSocketsActivate()
         {
             lock (_socketActivateLocker)
             {
-                if (_publicSocketOpen
-                    && _privateSocketOpen
-                    && ServerStatus == ServerConnectStatus.Disconnect)
+
+                if (_webSocketPrivate == null
+                    || _webSocketPrivate.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                if (_webSocketPublic.Count == 0)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                WebSocket webSocketPublic = _webSocketPublic[0];
+
+                if (webSocketPublic == null
+                    || webSocketPublic?.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     ServerStatus = ServerConnectStatus.Connect;
 
@@ -964,7 +1001,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
                     SendLogMessage("Bitget WebSocket Public connection open", LogMessageType.System);
-                    _publicSocketOpen = true;
                     CheckSocketsActivate();
                 }
             }
@@ -1060,7 +1096,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
             {
                 CreateAuthMessageWebSocekt();
                 SendLogMessage("Bitget WebSocket Private connection open", LogMessageType.System);
-                _privateSocketOpen = true;
                 CheckSocketsActivate();
             }
             catch (Exception error)
@@ -1157,39 +1192,31 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         #region 8 WebSocket check alive
 
-        private DateTime TimeToSendPingPublic = DateTime.Now;
-        private DateTime TimeToSendPingPrivate = DateTime.Now;
-
         private void CheckAliveWebSocket()
         {
             while (true)
             {
                 try
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(25000);
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
                         continue;
                     }
 
-                    if (_webSocketPublic != null &&
-                        (_webSocketPublic.ReadyState == WebSocketState.Open ||
-                        _webSocketPublic.ReadyState == WebSocketState.Connecting)
-                        )
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        if (TimeToSendPingPublic.AddSeconds(25) < DateTime.Now)
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        if (webSocketPublic != null
+                            && webSocketPublic?.ReadyState == WebSocketState.Open)
                         {
-                            _webSocketPublic.Send("ping");
-                            TimeToSendPingPublic = DateTime.Now;
+                            webSocketPublic.Send("ping");
                         }
-                    }
-                    else
-                    {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
+                        else
                         {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
+                            Disconnect();
                         }
                     }
 
@@ -1198,21 +1225,12 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
                         _webSocketPrivate.ReadyState == WebSocketState.Connecting)
                         )
                     {
-                        if (TimeToSendPingPrivate.AddSeconds(25) < DateTime.Now)
-                        {
-                            _webSocketPrivate.Send("ping");
-                            TimeToSendPingPrivate = DateTime.Now;
-                        }
+                        _webSocketPrivate.Send("ping");
                     }
                     else
                     {
-                        if (ServerStatus != ServerConnectStatus.Disconnect)
-                        {
-                            ServerStatus = ServerConnectStatus.Disconnect;
-                            DisconnectEvent();
-                        }
+                        Disconnect();
                     }
-
                 }
                 catch (Exception ex)
                 {
@@ -1266,15 +1284,54 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
                 _subscribledSecutiries.Add(security.Name);
 
-                _webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
-                _webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
-
-                if (_extendedMarketData)
+                if (_webSocketPublic.Count == 0)
                 {
-                    _webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                    return;
                 }
 
-                _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{security.Name}\"}}]}}");
+                WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
+
+                if (webSocketPublic.ReadyState == WebSocketState.Open
+                    && _subscribledSecutiries.Count != 0
+                    && _subscribledSecutiries.Count % 50 == 0)
+                {
+                    // creating a new socket
+                    WebSocket newSocket = CreateNewPublicSocket();
+
+                    DateTime timeEnd = DateTime.Now.AddSeconds(10);
+
+                    while (newSocket.ReadyState != WebSocketState.Open)
+                    {
+                        Thread.Sleep(1000);
+
+                        if (timeEnd < DateTime.Now)
+                        {
+                            break;
+                        }
+                    }
+
+                    if (newSocket.ReadyState == WebSocketState.Open)
+                    {
+                        _webSocketPublic.Add(newSocket);
+                        webSocketPublic = newSocket;
+                    }
+                }
+
+                if (webSocketPublic != null)
+                {
+                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{security.Name}\"}}]}}");
+                    webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{security.Name}\"}}]}}");
+
+                    if (_extendedMarketData)
+                    {
+                        webSocketPublic.Send($"{{\"op\": \"subscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{security.Name}\"}}]}}");
+                    }
+                }
+
+                if (_webSocketPrivate != null)
+                {
+                    _webSocketPrivate.Send($"{{\"op\": \"subscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{security.Name}\"}}]}}");
+                }
             }
             catch (Exception ex)
             {
@@ -1296,31 +1353,48 @@ namespace OsEngine.Market.Servers.BitGet.BitGetSpot
 
         private void UnsubscribeFromAllWebSockets()
         {
-            if (_webSocketPublic != null)
+            try
             {
-                try
+                if (_webSocketPublic.Count != 0
+                && _webSocketPublic != null)
                 {
-                    if (_subscribledSecutiries != null)
+                    for (int i = 0; i < _webSocketPublic.Count; i++)
                     {
-                        for (int i = 0; i < _subscribledSecutiries.Count; i++)
+                        WebSocket webSocketPublic = _webSocketPublic[i];
+
+                        try
                         {
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
-                            _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
-
-                            if (_extendedMarketData)
+                            if (webSocketPublic != null && webSocketPublic?.ReadyState == WebSocketState.Open)
                             {
-                                _webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
-                            }
+                                if (_subscribledSecutiries != null)
+                                {
+                                    for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
+                                    {
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"books15\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
+                                        webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"trade\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
 
-                            _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribledSecutiries[i]}\"}}]}}");
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{ \"instType\": \"SPOT\",\"channel\": \"ticker\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
+                                        }
+
+                                        _webSocketPrivate.Send($"{{\"op\": \"unsubscribe\",\"args\": [{{\"instType\": \"SPOT\",\"channel\": \"orders\",\"instId\": \"{_subscribledSecutiries[i2]}\"}}]}}");
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
                         }
                     }
                 }
-                catch
-                {
-                    // ignore
-                }
             }
+            catch
+            {
+                // ignore
+            }
+
 
             if (_webSocketPrivate != null)
             {
