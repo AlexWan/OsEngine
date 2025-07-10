@@ -6,6 +6,7 @@
         public string time_ms;
         public string channel;
         public string Event;
+        public string error;
         public T result;
     }
 }
