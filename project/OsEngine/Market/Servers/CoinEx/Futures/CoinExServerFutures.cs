@@ -3,24 +3,24 @@
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-using OsEngine.Language;
-using OsEngine.Market.Servers.Entity;
-using System.Threading;
+using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
+using OsEngine.Language;
 using OsEngine.Logging;
-using System.Security.Cryptography;
 using OsEngine.Market.Servers.CoinEx.Futures.Entity;
 using OsEngine.Market.Servers.CoinEx.Futures.Entity.Enums;
-using OsEngine.Entity.WebSocketOsEngine;
-using System.Collections.Concurrent;
-using System.IO.Compression;
-using Newtonsoft.Json;
-using System.Net.Http;
-using System.Net;
+using OsEngine.Market.Servers.Entity;
 using RestSharp;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO.Compression;
+using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
+using System.Text;
+using System.Threading;
 
 namespace OsEngine.Market.Servers.CoinEx.Futures
 {
@@ -113,7 +113,6 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                     Thread.Sleep(10);
                 }
                 _securities.Clear();
-                _portfolios.Clear();
                 _subscribedSecurities.Clear();
                 _securities = new List<Security>();
                 _restClient?.Dispose();
@@ -265,11 +264,31 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
 
         public void GetPortfolios()
         {
+            if (_portfolios == null)
+            {
+                GetNewPortfolio();
+            }
+
             GetCurrentPortfolios(true);
             GetCurrentPositions();
         }
 
-        private List<Portfolio> _portfolios = new List<Portfolio>();
+        private List<Portfolio> _portfolios;
+
+        private void GetNewPortfolio()
+        {
+            _portfolios = new List<Portfolio>();
+            string portfolioName = getPortfolioName();
+            Portfolio portfolioInitial = new Portfolio();
+            portfolioInitial.Number = portfolioName;
+            portfolioInitial.ValueBegin = 1;
+            portfolioInitial.ValueCurrent = 1;
+            portfolioInitial.ValueBlocked = 0;
+
+            _portfolios.Add(portfolioInitial);
+
+            PortfolioEvent(_portfolios);
+        }
 
         private void ThreadGetPortfolios()
         {
@@ -309,22 +328,17 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 {
                     ResponseRestMessage<List<BalanceData>> responseBalance = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<BalanceData>>());
 
+                    string portfolioName = getPortfolioName();
+                    Portfolio myPortfolio = _portfolios[0];
+
+                    if (responseBalance.data == null
+                        || responseBalance.data.Count == 0)
+                    {
+                        return;
+                    }
+
                     if (responseBalance.code == "0")
                     {
-                        string portfolioName = getPortfolioName();
-                        Portfolio myPortfolio = _portfolios.Find(p => p.Number == portfolioName);
-
-                        if (myPortfolio == null)
-                        {
-                            Portfolio newPortf = new Portfolio();
-                            newPortf.Number = portfolioName;
-                            newPortf.ServerType = ServerType;
-                            newPortf.ValueBegin = 1;
-                            newPortf.ValueCurrent = 1;
-                            _portfolios.Add(newPortf);
-                            myPortfolio = newPortf;
-                        }
-
                         decimal positionInUSDT = 0;
                         decimal positionPnL = 0;
                         decimal positionBlocked = 0;
@@ -407,62 +421,45 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
                 {
                     ResponseRestMessage<List<PositionData>> responsePositions = JsonConvert.DeserializeAnonymousType(response.Content, new ResponseRestMessage<List<PositionData>>());
 
+                    if (responsePositions.data == null)
+                    {
+                        return;
+                    }
+
                     if (responsePositions.code == "0")
                     {
                         string portfolioName = getPortfolioName();
                         Portfolio portfolio = _portfolios[0];
-
                         List<PositionData> positionsOnBoard = responsePositions.data;
 
-                        for (int i = 0; i < responsePositions.data.Count; i++)
+                        if (responsePositions.data.Count != 0)
                         {
-                            PositionData item = responsePositions.data[i];
-                            PositionOnBoard pos = new PositionOnBoard();
-
-                            pos.PortfolioName = portfolioName;
-                            pos.SecurityNameCode = item.market;
-                            pos.UnrealizedPnl = item.unrealized_pnl.ToDecimal();
-
-                            if (item.side == "long")
+                            for (int i = 0; i < responsePositions.data.Count; i++)
                             {
-                                pos.ValueCurrent = item.close_avbl.ToDecimal();
-                            }
-                            else
-                            {
-                                pos.ValueCurrent = -item.close_avbl.ToDecimal();
-                            }
+                                PositionData item = responsePositions.data[i];
+                                PositionOnBoard pos = new PositionOnBoard();
 
-                            portfolio.SetNewPosition(pos);
-                        }
+                                pos.PortfolioName = portfolioName;
+                                pos.SecurityNameCode = item.market;
+                                pos.UnrealizedPnl = item.unrealized_pnl.ToDecimal();
 
-                        List<PositionOnBoard> positionInPortfolio = portfolio.GetPositionOnBoard();
-
-                        for (int j = 0; j < positionInPortfolio.Count; j++)
-                        {
-                            if (positionInPortfolio[j].SecurityNameCode == "USDT")
-                            {
-                                continue;
-                            }
-
-                            bool isInArray = false;
-
-                            for (int i = 0; i < positionsOnBoard.Count; i++)
-                            {
-                                PositionData item = positionsOnBoard[i];
-
-                                string curNameSec = item.market;
-
-                                if (curNameSec == positionInPortfolio[j].SecurityNameCode)
+                                if (item.side == "long")
                                 {
-                                    isInArray = true;
-                                    break;
+                                    pos.ValueCurrent = item.close_avbl.ToDecimal();
                                 }
+                                else
+                                {
+                                    pos.ValueCurrent = -item.close_avbl.ToDecimal();
+                                }
+
+                                portfolio.SetNewPosition(pos);
                             }
 
-                            if (isInArray == false)
-                            {
-                                positionInPortfolio[j].ValueCurrent = 0;
-                            }
+                            ClosePositions(portfolio, positionsOnBoard);
+                        }
+                        else
+                        {
+                            ClosePositions(portfolio, positionsOnBoard);
                         }
 
                         PortfolioEvent(_portfolios);
@@ -480,6 +477,44 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             catch (Exception exception)
             {
                 SendLogMessage("Positions request error " + exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void ClosePositions(Portfolio portfolio, List<PositionData> positionsOnBoard)
+        {
+            List<PositionOnBoard> positionInPortfolio = portfolio.GetPositionOnBoard();
+
+            if (positionInPortfolio == null)
+            {
+                return;
+            }
+
+            for (int j = 0; j < positionInPortfolio.Count; j++)
+            {
+                if (positionInPortfolio[j].SecurityNameCode == "USDT")
+                {
+                    continue;
+                }
+
+                bool isInArray = false;
+
+                for (int i = 0; i < positionsOnBoard.Count; i++)
+                {
+                    PositionData item = positionsOnBoard[i];
+
+                    string curNameSec = item.market;
+
+                    if (curNameSec == positionInPortfolio[j].SecurityNameCode)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    positionInPortfolio[j].ValueCurrent = 0;
+                }
             }
         }
 
@@ -2021,7 +2056,7 @@ namespace OsEngine.Market.Servers.CoinEx.Futures
             return order;
         }
 
-        
+
 
         #endregion
     }
