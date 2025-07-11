@@ -1786,7 +1786,7 @@ namespace OsEngine.Market.Servers.Mexc
                 {
                     if (content.Contains("-2011"))
                     {
-                        
+                        GetOrderStatus(order);
                     }
                     else
                     {
