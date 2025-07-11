@@ -10,8 +10,8 @@
         "dependencies": {
           "Newtonsoft.Json": "13.0.3",
           "System.Buffers": "4.6.1",
-          "System.Text.Encoding.CodePages": "9.0.6",
-          "System.Threading.Channels": "9.0.6"
+          "System.Text.Encoding.CodePages": "9.0.5",
+          "System.Threading.Channels": "9.0.5"
         },
         "runtime": {
           "QUIKSharp.dll": {}
@@ -26,30 +26,8 @@
         }
       },
       "System.Buffers/4.6.1": {},
-      "System.Text.Encoding.CodePages/9.0.6": {
-        "runtime": {
-          "lib/net9.0/System.Text.Encoding.CodePages.dll": {
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.625.26613"
-          }
-        },
-        "runtimeTargets": {
-          "runtimes/win/lib/net9.0/System.Text.Encoding.CodePages.dll": {
-            "rid": "win",
-            "assetType": "runtime",
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.625.26613"
-          }
-        }
-      },
-      "System.Threading.Channels/9.0.6": {
-        "runtime": {
-          "lib/net9.0/System.Threading.Channels.dll": {
-            "assemblyVersion": "9.0.0.0",
-            "fileVersion": "9.0.625.26613"
-          }
-        }
-      }
+      "System.Text.Encoding.CodePages/9.0.5": {},
+      "System.Threading.Channels/9.0.5": {}
     }
   },
   "libraries": {
@@ -72,19 +50,19 @@
       "path": "system.buffers/4.6.1",
       "hashPath": "system.buffers.4.6.1.nupkg.sha512"
     },
-    "System.Text.Encoding.CodePages/9.0.6": {
+    "System.Text.Encoding.CodePages/9.0.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-0VlUQoPaGOpiFppKjvhAiMZ5WngPGcbL3EQlxDSe60WcleFKNHVdqiwRDSJmjA7xtMURWfcvfjb2AtFBkwqZEQ==",
-      "path": "system.text.encoding.codepages/9.0.6",
-      "hashPath": "system.text.encoding.codepages.9.0.6.nupkg.sha512"
+      "sha512": "sha512-P6gqCJcVjdWA50Eai95eYdG4ryrb1xCd770NhQrvj847C7m30CJwQqzKykWoEMvV4qvjUazL/m7UMQdMZTp5xw==",
+      "path": "system.text.encoding.codepages/9.0.5",
+      "hashPath": "system.text.encoding.codepages.9.0.5.nupkg.sha512"
     },
-    "System.Threading.Channels/9.0.6": {
+    "System.Threading.Channels/9.0.5": {
       "type": "package",
       "serviceable": true,
-      "sha512": "sha512-2MaNJVkG2yJiXQbZrrcYoJ55ehV+aX0zqR6rWJkO/Qj7jTsArWthrQ7iWywUf/sE5ylJWX/iLH2kKfwSRdkWsA==",
-      "path": "system.threading.channels/9.0.6",
-      "hashPath": "system.threading.channels.9.0.6.nupkg.sha512"
+      "sha512": "sha512-mxPWL9cgQos5PipA/1kg+GdG90HmMycQ077S5mlIWu+V1CGgVbmFiWcKRL+EQPSR8pmW1yVfzGEOrv0IJnrphA==",
+      "path": "system.threading.channels/9.0.5",
+      "hashPath": "system.threading.channels.9.0.5.nupkg.sha512"
     }
   }
 }
