@@ -57,4 +57,26 @@ namespace OsEngine.Market.Servers.BingX.BingXSpot.Entity
         public string T { get; set; } // transaction time
         public string m { get; set; } // Whether the buyer is a market maker. If true, this transaction is an active sell order, otherwise it is an active buy order
     }
+
+    public class TickerItem
+    {
+        public string e { get; set; }
+        public string E { get; set; }
+        public string s { get; set; }
+        public string p { get; set; }
+        public string P { get; set; }
+        public string o { get; set; }
+        public string h { get; set; }
+        public string l { get; set; }
+        public string c { get; set; }
+        public string v { get; set; }
+        public string q { get; set; }
+        public string O { get; set; }
+        public string C { get; set; }
+        public string B { get; set; }
+        public string b { get; set; }
+        public string A { get; set; }
+        public string a { get; set; }
+        public string n { get; set; }
+    }
 }

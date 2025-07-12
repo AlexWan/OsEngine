@@ -19,22 +19,28 @@ trading robot for osengine
 
 Trend robot based on Alligator and DPO indicators.
 
-Buy: When the fast Alligator line is above the middle line and the average line is above the slow line, 
+Buy:
+When the fast Alligator line is above the middle line and middle line the slow line,
+last price of candle is above fast Alligator line,
 and the DPO indicator is above zero.
 
-Sell: When the fast Alligator line is below the middle line and the average line is below the slow line,
+Sell:
+When the fast Alligator line is below the middle line and middle line is below the slow line,
+last price of candle is below fast Alligator line,
 and the DPO indicator is below zero.
 
-Exit from buy: the candle closed below the slow Alligator line.
-
-Exit from sell: the candle closed above the slow Alligator line.
- */
+Exit from buy:
+the candle closed below the slow Alligator line.
+Exit from sell:
+the candle closed above the slow Alligator line.
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyDpoAndAlligator")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyDpoAndAlligator")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     internal class StrategyDpoAndAlligator : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -60,6 +66,7 @@ namespace OsEngine.Robots
 
         public StrategyDpoAndAlligator(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -95,25 +102,26 @@ namespace OsEngine.Robots
             _alligator.Save();
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyDpo_ParametrsChangeByUser;
+            ParametrsChangeByUser += _strategyDpo_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "Trend robot based on Alligator and DPO indicators. " +
-                "Buy: When the fast Alligator line is above the middle line and the average line is above the slow line, " +
-                "and the DPO indicator is above zero." +
-                "Sell: When the fast Alligator line is below the middle line and the average line is below the slow line, " +
-                "and the DPO indicator is below zero. " +
+                "Buy: When the fast Alligator line is above the middle line and middle line the slow line," +
+                "last price of candle is above fast Alligator line, and the DPO indicator is above zero." +
+                "Sell: When the fast Alligator line is below the middle line and middle line is below the slow line, " +
+                "last price of candle is below fast Alligator line, and the DPO indicator is below zero." +
                 "Exit from buy: the candle closed below the slow Alligator line. " +
                 "Exit from sell: the candle closed above the slow Alligator line.";
         }
 
-        private void StrategyDpo_ParametrsChangeByUser()
+        private void _strategyDpo_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_dpo.Parameters[0]).ValueInt = _dpoLength.ValueInt;
             _dpo.Save();
             _dpo.Reload();
+
             ((IndicatorParameterInt)_alligator.Parameters[0]).ValueInt = _alligatorSlowLineLength.ValueInt;
             ((IndicatorParameterInt)_alligator.Parameters[1]).ValueInt = _alligatorMiddleLineLength.ValueInt;
             ((IndicatorParameterInt)_alligator.Parameters[2]).ValueInt = _alligatorFastLineLength.ValueInt;
@@ -125,6 +133,7 @@ namespace OsEngine.Robots
         {
             return "StrategyDpoAndAlligator";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -195,7 +204,7 @@ namespace OsEngine.Robots
             if (openPositions == null || openPositions.Count == 0)
             {
                 // Slippage
-                decimal _slippage = this._slippage.ValueDecimal / 100 * _tab.Securiti.PriceStep;
+                decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
 
                 // Long
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
@@ -273,7 +282,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

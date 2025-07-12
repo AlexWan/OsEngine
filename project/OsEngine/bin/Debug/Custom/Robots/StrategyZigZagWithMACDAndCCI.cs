@@ -269,19 +269,23 @@ namespace OsEngine.Robots
                 if (position.Direction == Side.Buy) // If the direction of the position is long
                 {
                     decimal price = GetPriceStop(Side.Buy, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price - _slippage);
                 }
                 else // If the direction of the position is short
                 {
                     decimal price = GetPriceStop(Side.Sell, candles, candles.Count - 1);
+
                     if (price == 0)
                     {
                         return;
                     }
+
                     _tab.CloseAtTrailingStop(position, price, price + _slippage);
                 }
             }

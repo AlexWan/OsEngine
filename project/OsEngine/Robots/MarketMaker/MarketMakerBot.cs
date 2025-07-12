@@ -15,6 +15,16 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+/* Description 
+MarketMaker trading for OsEngine.
+
+Buy: If the price crosses above a line from below, it is considered a buy signal.
+
+Sell: If the price crosses below a line from above, it is considered a sell signal.
+
+Exit: Opposite signal.
+*/
+
 namespace OsEngine.Robots.MarketMaker
 {
     [Bot("MarketMakerBot")] // We create an attribute so that we don't write anything to the BotFactory
@@ -43,12 +53,17 @@ namespace OsEngine.Robots.MarketMaker
             PersentToSpreadLines = 0.5m;
             Volume = 1;
             VolumeType = "Deposit percent";
+            TradeAssetInPortfolio = "Prime";
 
             Load();
 
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
             DeleteEvent += Strategy_DeleteEvent;
+
+            Description = "Buy: If the price crosses above a line from below, it is considered a buy signal. " +
+                "Sell: If the price crosses below a line from above, it is considered a sell signal. " +
+                "Exit: Opposite signal.";
         }
 
         // The name of the robot in OsEngine

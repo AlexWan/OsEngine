@@ -195,6 +195,7 @@ public class RsiTrade : BotPanel
         {
             return;
         }
+
         if (openPositions == null || openPositions.Count == 0)
         {
             LogicOpenPosition(candles, openPositions);
@@ -219,17 +220,14 @@ public class RsiTrade : BotPanel
         }
     }
 
-    /// <summary>
-    /// logic close position
-    /// ëîãèêà çûêðûòèÿ ïîçèöèè è îòêðûòèå ïî ðåâåðñèâíîé ñèñòåìå
-    /// </summary>
+    // Logic close position
     private void LogicClosePosition(List<Candle> candles, Position position)
     {
-
         if (position.State == PositionStateType.Closing)
         {
             return;
         }
+
         if (position.Direction == Side.Buy)
         {
             if (_secondRsi >= _upline.Value && _firstRsi <= _upline.Value)
@@ -244,6 +242,7 @@ public class RsiTrade : BotPanel
                 }
             }
         }
+
         if (position.Direction == Side.Sell)
         {
             if (_secondRsi <= _downline.Value && _firstRsi >= _downline.Value)
@@ -280,7 +279,7 @@ public class RsiTrade : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
+                    tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
                     volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

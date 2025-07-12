@@ -3,14 +3,14 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using System;
+using System.Collections.Generic;
+using System.Drawing;
 using OsEngine.Entity;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
@@ -22,19 +22,22 @@ The trend robot on Strategy Ema And MACD.
 Buy:
 1. The price is above the Ema.
 2. Macd is growing for at least 5 candles.
+
 Sell:
 1. The price is below the Ema.
 2. Macd is falling for at least 5 candles.
+
 Exit:
-Exit from buy: trailing stop in % of the loy of the candle on which you entered.
+Exit from buy: trailing stop in % of the low of the candle on which you entered.
 Exit from sell: trailing stop in % of the high of the candle on which you entered.
  */
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyEmaAndMACD")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyEmaAndMACD")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyEmaAndMACD : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -60,17 +63,18 @@ namespace OsEngine.Robots
 
         // The last value of the indicator
         private decimal _lastEma;
-        private decimal _OnelastMACD;
-        private decimal _TwolastMACD;
-        private decimal _ThreelastMACD;
-        private decimal _FourlastMACD;
-        private decimal _FivelastMACD;
+        private decimal _onelastMACD;
+        private decimal _twolastMACD;
+        private decimal _threelastMACD;
+        private decimal _fourlastMACD;
+        private decimal _fivelastMACD;
 
         // Exit setting
         private StrategyParameterDecimal _trailingValue;
 
         public StrategyEmaAndMACD(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -131,6 +135,7 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _emaPeriod.ValueInt;
             _ema.Save();
             _ema.Reload();
+
             ((IndicatorParameterInt)_MACD.Parameters[0]).ValueInt = _fastLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[1]).ValueInt = _slowLineLengthMACD.ValueInt;
             ((IndicatorParameterInt)_MACD.Parameters[2]).ValueInt = _signalLineLengthMACD.ValueInt;
@@ -143,6 +148,7 @@ namespace OsEngine.Robots
         {
             return "StrategyEmaAndMACD";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -199,11 +205,11 @@ namespace OsEngine.Robots
         {
             // The last value of the indicator
             _lastEma = _ema.DataSeries[0].Last;
-            _OnelastMACD = _MACD.DataSeries[0].Last;
-            _TwolastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 2];
-            _ThreelastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 3];
-            _FourlastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 4];
-            _FivelastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 5];
+            _onelastMACD = _MACD.DataSeries[0].Last;
+            _twolastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 2];
+            _threelastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 3];
+            _fourlastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 4];
+            _fivelastMACD = _MACD.DataSeries[0].Values[_MACD.DataSeries[0].Values.Count - 5];
 
             List<Position> openPositions = _tab.PositionsOpenAll;
 
@@ -218,10 +224,10 @@ namespace OsEngine.Robots
                 if (_regime.ValueString != "OnlyShort") // If the mode is not only short, then we enter long
                 {
                     if (lastPrice > _lastEma &&
-                        _OnelastMACD > _TwolastMACD && 
-                        _TwolastMACD > _ThreelastMACD &&
-                        _ThreelastMACD > _FourlastMACD &&
-                        _FourlastMACD > _FivelastMACD)
+                        _onelastMACD > _twolastMACD && 
+                        _twolastMACD > _threelastMACD &&
+                        _threelastMACD > _fourlastMACD &&
+                        _fourlastMACD > _fivelastMACD)
                     {
                         _tab.BuyAtLimit(GetVolume(_tab), _tab.PriceBestAsk + _slippage);
                     }
@@ -231,10 +237,10 @@ namespace OsEngine.Robots
                 if (_regime.ValueString != "OnlyLong") // If the mode is not only long, then we enter short
                 {
                     if (lastPrice < _lastEma &&
-                        _OnelastMACD < _TwolastMACD &&
-                        _TwolastMACD < _ThreelastMACD &&
-                        _ThreelastMACD < _FourlastMACD &&
-                        _FourlastMACD < _FivelastMACD)
+                        _onelastMACD < _twolastMACD &&
+                        _twolastMACD < _threelastMACD &&
+                        _threelastMACD < _fourlastMACD &&
+                        _fourlastMACD < _fivelastMACD)
                     {
                         _tab.SellAtLimit(GetVolume(_tab), _tab.PriceBestBid - _slippage);
                     }

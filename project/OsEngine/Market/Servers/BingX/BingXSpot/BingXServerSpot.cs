@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BingX.BingXSpot.Entity;
@@ -14,7 +15,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
 
 namespace OsEngine.Market.Servers.BinGxSpot
 {
@@ -28,6 +28,7 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
             CreateParameterString(OsLocalization.Market.ServerParamPublicKey, "");
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
+            CreateParameterBoolean("Extended Data", false);
         }
     }
 
@@ -70,9 +71,25 @@ namespace OsEngine.Market.Servers.BinGxSpot
             try
             {
                 _myProxy = proxy;
-
                 _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
                 _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+
+                if (string.IsNullOrEmpty(_publicKey) ||
+                string.IsNullOrEmpty(_secretKey))
+                {
+                    SendLogMessage("Can`t run BingX Spot connector. No keys",
+                        LogMessageType.Error);
+                    return;
+                }
+
+                if (((ServerParameterBool)ServerParameters[2]).Value == true)
+                {
+                    _extendedMarketData = true;
+                }
+                else
+                {
+                    _extendedMarketData = false;
+                }
 
                 RestRequest requestRest = new RestRequest("/openApi/swap/v2/server/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
@@ -165,6 +182,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
         private string _publicKey;
 
         private string _secretKey;
+
+        private bool _extendedMarketData;
 
         #endregion
 
@@ -268,8 +287,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
         #endregion
 
         #region 4 Portfolios
-
-        public event Action<List<Portfolio>> PortfolioEvent;
 
         public void GetPortfolios()
         {
@@ -394,6 +411,8 @@ namespace OsEngine.Market.Servers.BinGxSpot
                 SendLogMessage($"{error.Message} {error.StackTrace}", LogMessageType.Error);
             }
         }
+
+        public event Action<List<Portfolio>> PortfolioEvent;
 
         #endregion
 
@@ -1157,6 +1176,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
             {
                 webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@trade\"}}");
                 webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@depth20\" }}");
+
+                if (_extendedMarketData)
+                {
+                    webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"sub\", \"dataType\": \"{security.Name}@ticker\" }}");
+                }
             }
         }
 
@@ -1179,10 +1203,15 @@ namespace OsEngine.Market.Servers.BinGxSpot
                                 {
                                     for (int i2 = 0; i2 < _subscribledSecutiries.Count; i2++)
                                     {
-                                        string name = _subscribledSecutiries[i];
+                                        string name = _subscribledSecutiries[i2];
 
                                         webSocketPublic.Send($"{{\"id\": \"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@trade\"}}");
                                         webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@depth20\" }}");
+
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.Send($"{{ \"id\":\"{GenerateNewId()}\", \"reqType\": \"unsub\", \"dataType\": \"{name}@ticker\" }}");
+                                        }
                                     }
                                 }
                             }
@@ -1228,16 +1257,6 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         private ConcurrentQueue<string> FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
-        public event Action<Order> MyOrderEvent;
-
-        public event Action<MyTrade> MyTradeEvent;
-
-        public event Action<MarketDepth> MarketDepthEvent;
-
-        public event Action<Trade> NewTradesEvent;
-
-        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
-
         private void MessageReaderPublic()
         {
             Thread.Sleep(5000);
@@ -1268,6 +1287,11 @@ namespace OsEngine.Market.Servers.BinGxSpot
                         else if (message.Contains("@trade"))
                         {
                             UpdateTrade(message);
+                            continue;
+                        }
+                        else if (message.Contains("@ticker"))
+                        {
+                            UpdateTicker(message);
                             continue;
                         }
                     }
@@ -1532,6 +1556,49 @@ namespace OsEngine.Market.Servers.BinGxSpot
         }
 
         DateTime _lastMdTime;
+
+        private void UpdateTicker(string message)
+        {
+            try
+            {
+                ResponseWebSocketBingXMessage<TickerItem> responseTicker =
+                    JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketBingXMessage<TickerItem>());
+
+                if (responseTicker.code == "0")
+                {
+                    SecurityVolumes volume = new SecurityVolumes();
+
+                    volume.SecurityNameCode = responseTicker.data.s;
+                    volume.Volume24h = responseTicker.data.v.ToDecimal();
+                    volume.Volume24hUSDT = responseTicker.data.q.ToDecimal();
+                    volume.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.data.E.ToDecimal());
+
+                    Volume24hUpdateEvent?.Invoke(volume);
+                }
+                else
+                {
+                    SendLogMessage($"UpdateTicker> WebSocketPublic Code: {responseTicker.code} - message: {responseTicker.dataType}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public event Action<Order> MyOrderEvent;
+
+        public event Action<MyTrade> MyTradeEvent;
+
+        public event Action<MarketDepth> MarketDepthEvent;
+
+        public event Action<Trade> NewTradesEvent;
+
+        public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
+
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
 
@@ -2199,17 +2266,13 @@ namespace OsEngine.Market.Servers.BinGxSpot
 
         #region 12 Log
 
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             if (LogMessageEvent != null)
                 LogMessageEvent(message, messageType);
         }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
 

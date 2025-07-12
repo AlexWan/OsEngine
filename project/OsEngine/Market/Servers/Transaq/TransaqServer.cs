@@ -345,6 +345,8 @@ namespace OsEngine.Market.Servers.Transaq
                 _candlesQueue = new ConcurrentQueue<string>();
 
                 _historicalTradesQueue = new ConcurrentQueue<string>();
+
+                _activeOrders = new List<InfoActiveOrder>();
             }
         }
 
@@ -1992,6 +1994,17 @@ namespace OsEngine.Market.Servers.Transaq
         {
             try
             {
+                if (_activeOrders.Count > 0)
+                {
+                    for (int i = 0; i < _activeOrders.Count; i++)
+                    {
+                        if (_activeOrders[i].NumberMarket == order.NumberMarket)
+                        {
+                            order.NumberUser = _activeOrders[i].Transactionid;
+                        }
+                    }
+                }
+
                 string cmd = "<command id=\"cancelorder\">";
                 cmd += "<transactionid>" + order.NumberUser + "</transactionid>";
                 cmd += "</command>";
@@ -2666,6 +2679,8 @@ namespace OsEngine.Market.Servers.Transaq
             }
         }
 
+        private List<InfoActiveOrder> _activeOrders = new List<InfoActiveOrder>();
+
         private void UpdateMyOrders(List<TransaqEntity.Order> orders)
         {
             for (int i = 0; i < orders.Count; i++)
@@ -2722,6 +2737,12 @@ namespace OsEngine.Market.Servers.Transaq
                     }
 
                     newOrder.State = OrderStateType.Active;
+
+                    InfoActiveOrder lostActiveOrder = new InfoActiveOrder();
+                    lostActiveOrder.Transactionid = newOrder.NumberUser;
+                    lostActiveOrder.NumberMarket = newOrder.NumberMarket;
+
+                    _activeOrders.Add(lostActiveOrder);
                 }
                 else if (order.Status == "cancelled" ||
                          order.Status == "expired" ||
@@ -2735,10 +2756,32 @@ namespace OsEngine.Market.Servers.Transaq
                     }
 
                     newOrder.State = OrderStateType.Cancel;
+
+                    if (_activeOrders.Count > 0)
+                    {
+                        for (int j = 0; j < _activeOrders.Count; j++)
+                        {
+                            if (_activeOrders[j].NumberMarket == newOrder.NumberMarket)
+                            {
+                                _activeOrders.Remove(_activeOrders[j]);
+                            }
+                        }
+                    }
                 }
                 else if (order.Status == "matched")
                 {
                     newOrder.State = OrderStateType.Done;
+
+                    if (_activeOrders.Count > 0)
+                    {
+                        for (int j = 0; j < _activeOrders.Count; j++)
+                        {
+                            if (_activeOrders[j].NumberMarket == newOrder.NumberMarket)
+                            {
+                                _activeOrders.Remove(_activeOrders[j]);
+                            }
+                        }
+                    }
                 }
                 else if (order.Status == "denied" ||
                          order.Status == "rejected" ||

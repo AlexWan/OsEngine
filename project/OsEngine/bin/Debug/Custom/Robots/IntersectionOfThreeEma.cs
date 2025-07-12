@@ -28,12 +28,12 @@ Exit from the buy: trailing stop in % of the loy of the candle on which you ente
 Exit from sale: trailing stop in % of the high of the candle on which you entered.
 */
 
-namespace OsEngine.Robots.MyRobots
+namespace OsEngine.Robots
 {
     [Bot("IntersectionOfThreeEma")]//We create an attribute so that we don't write anything in the Boot factory
     class IntersectionOfThreeEma : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -192,6 +192,7 @@ namespace OsEngine.Robots.MyRobots
         private void LogicOpenPosition(List<Candle> candles)
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
+
             decimal lastPrice = candles[candles.Count - 1].Close;
 
             // He last value of the indicators
@@ -282,7 +283,7 @@ namespace OsEngine.Robots.MyRobots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
@@ -355,4 +356,3 @@ namespace OsEngine.Robots.MyRobots
         }
     }
 }
-

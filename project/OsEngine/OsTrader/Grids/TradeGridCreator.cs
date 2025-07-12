@@ -333,7 +333,16 @@ namespace OsEngine.OsTrader.Grids
             if (TypeVolume == TradeGridVolumeType.ContractCurrency) // "Валюта контракта"
             {
                 decimal contractPrice = priceEnterForLine;
-                volume = Math.Round(volumeFromLine / contractPrice, tab.Security.DecimalsVolume);
+
+                if(tab.StartProgram == StartProgram.IsOsTrader)
+                {
+                    volume = Math.Round(volumeFromLine / contractPrice, tab.Security.DecimalsVolume);
+                }
+                else
+                {
+                    volume = Math.Round(volumeFromLine / contractPrice, 7);
+                }
+
                 return volume;
             }
             else if (TypeVolume == TradeGridVolumeType.Contracts) // кол-во контрактов

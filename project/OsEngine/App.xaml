@@ -567,7 +567,141 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
+        <!-- LeftRoundedButton -->
+        <Style x:Key="LeftRoundedButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Name="Root">
+                            <!-- Состояния VisualStateManager, можно вставить, как в базовом шаблоне -->
+                            <Border Name="NormalElement"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource ControlBorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2,0,0,2"
+                            Margin="{StaticResource MarginBorderButton}" />
 
+                            <Border Name="MouseOverElement"
+                            Background="{StaticResource ControlBackgroundOver}"
+                            BorderBrush="{StaticResource ControlActiveBorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="2,0,0,2"
+                            Opacity="0"
+                            Margin="{StaticResource MarginBorderButtonOver}" />
+
+                            <Border Name="PressedElement"
+                            Background="{StaticResource ControlBackgroundPressed}"
+                            BorderBrush="{StaticResource ControlActiveBorderBrush}"
+                            CornerRadius="2,0,0,2"
+                            Opacity="0"
+                            Margin="{StaticResource MarginBorderButton}" />
+
+                            <!-- Остальные элементы и контент -->
+                            <ContentPresenter Name="ContentHost"
+                            TextBlock.TextAlignment="Center"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                            Margin="{TemplateBinding Padding}" />
+                        </Grid>
+                        <!-- Триггеры -->
+                        <ControlTemplate.Triggers>
+                            <!-- Наведение -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="MouseOverElement"
+                             Storyboard.TargetProperty="Opacity"
+                             To="1" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="MouseOverElement"
+                             Storyboard.TargetProperty="Opacity"
+                             To="0" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RightRoundedButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Name="Root">
+                            <!-- Базовое состояние -->
+                            <Border x:Name="NormalElement"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{StaticResource ControlBorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="0,2,2,0"
+                            Margin="{StaticResource MarginBorderButton}" />
+
+                            <!-- Hover -->
+                            <Border x:Name="MouseOverElement"
+                            Background="{StaticResource ControlBackgroundOver}"
+                            BorderBrush="{StaticResource ControlActiveBorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="0,2,2,0"
+                            Opacity="0"
+                            Margin="{StaticResource MarginBorderButtonOver}" />
+
+                            <!-- Pressed -->
+                            <Border x:Name="PressedElement"
+                            Background="{StaticResource ControlBackgroundPressed}"
+                            BorderBrush="{StaticResource ControlActiveBorderBrush}"
+                            CornerRadius="0,2,2,0"
+                            Opacity="0"
+                            Margin="{StaticResource MarginBorderButton}" />
+
+                            <!-- Контент -->
+                            <Grid>
+                                <ContentPresenter x:Name="ContentHost"
+                                  HorizontalAlignment="Center"
+                                  VerticalAlignment="Center"
+                                  TextBlock.TextAlignment="Center"
+                                  Margin="{TemplateBinding Padding}" />
+                            </Grid>
+                        </Grid>
+
+                        <!-- Триггеры -->
+                        <ControlTemplate.Triggers>
+                            <!-- Наведение -->
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="MouseOverElement"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="1" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="MouseOverElement"
+                                                     Storyboard.TargetProperty="Opacity"
+                                                     To="0" Duration="0:0:0.4"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
         <!-- RepeatButton -->
         <Style TargetType="RepeatButton">
 
@@ -1193,19 +1327,18 @@
             <Setter Property="FocusVisualStyle" Value="{StaticResource FocusLine}"/>
             <Setter Property="Background" Value="{StaticResource ControlBackgroundNormalLight}"/>
             <Setter Property="Foreground" Value="{StaticResource ControlForegroundWhite}"/>
-            <Setter Property="Padding" Value="10"/>
-            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/>
-            <Setter Property="BorderThickness" Value="1,1,1,1" />
+            <Setter Property="Padding" Value="10"/> 
+            <Setter Property="BorderBrush" Value="{StaticResource ControlBorderBrush}"/> 
+            <Setter Property="BorderThickness" Value="1,1,1,1" /> 
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="VerticalContentAlignment" Value="Stretch"/>
             <Setter Property="MinWidth" Value="10" />
             <Setter Property="MinHeight" Value="20" />
             <Setter Property="Height" Value="26" />
-            
+
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type TabItem}">
-
                         <Grid SnapsToDevicePixels="True" Name="grid" Background="Transparent" Margin="0,0,3,0" >
                             <Border Name="border_inner" BorderBrush="{StaticResource ControlBorderBrush}" BorderThickness="1,1,1,1" CornerRadius="2"
                                     Background="{StaticResource ControlBackgroundNormal}">
@@ -1214,10 +1347,42 @@
                                               VerticalAlignment="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
                                               ContentSource="Header" RecognizesAccessKey="True" />
                             </Border>
-                            <Border Name="border_hover" Background="{StaticResource ControlBackgroundNormalLight}" Opacity="0" CornerRadius="2"/>
+                            <Border Name="border_hover" Background="{StaticResource ControlForeground}" BorderBrush="{StaticResource ControlForeground}"  BorderThickness="1,1,1,1" Opacity="0" CornerRadius="2">
+                                <ContentPresenter Name="Content1" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" MinWidth="15" 
+                                              HorizontalAlignment="{Binding Path=HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}" 
+                                              VerticalAlignment="{Binding Path=VerticalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"
+                                              ContentSource="Header" RecognizesAccessKey="True" />
+                            </Border>
                         </Grid>
                         <ControlTemplate.Triggers>
-
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsSelected" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <MultiTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="border_hover"
+                                     Storyboard.TargetProperty="Opacity"
+                                     To="1"
+                                     Duration="0:0:0.4"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </MultiTrigger.EnterActions>
+                                <MultiTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="border_hover"
+                                     Storyboard.TargetProperty="Opacity"
+                                     To="0"
+                                     Duration="0:0:0.4"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </MultiTrigger.ExitActions>
+                                <Setter Property="Opacity" TargetName="border_hover" Value="1"/>
+                            </MultiTrigger>
+                                
                             <Trigger Property="IsSelected" Value="true">
                                 <Setter Property="Panel.ZIndex" Value="1"/>
 

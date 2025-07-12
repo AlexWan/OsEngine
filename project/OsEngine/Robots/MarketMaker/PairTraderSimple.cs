@@ -1,4 +1,8 @@
-﻿using OsEngine.Charts.CandleChart.Indicators;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
 using OsEngine.Entity;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
@@ -8,6 +12,12 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.IO;
+
+/*
+Pair trading robot for OsEngime
+
+Robot for pair trading. trading two papers based on their acceleration to each other by candle.
+*/
 
 namespace OsEngine.Robots.MarketMaker
 {
@@ -342,7 +352,6 @@ namespace OsEngine.Robots.MarketMaker
 
             if (pos != null)
             {
-
                 decimal price;
 
                 if (pos.Direction == Side.Buy)
@@ -355,6 +364,7 @@ namespace OsEngine.Robots.MarketMaker
                 }
 
                 _tab1.CloseAtLimit(pos, price, pos.OpenVolume);
+
                 return;
             }
 
@@ -397,7 +407,7 @@ namespace OsEngine.Robots.MarketMaker
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = Volume / (contractPrice * tab.Security.Lot);

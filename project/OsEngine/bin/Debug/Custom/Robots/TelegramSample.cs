@@ -39,8 +39,8 @@ namespace OsEngine.Robots
         private BotTabSimple _tab;
 
         // Basic Settings
-        private StrategyParameterString Regime;
-        private StrategyParameterInt PriceChannelLength;
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _priceChannelLength;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -48,9 +48,9 @@ namespace OsEngine.Robots
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Telegram Allerts Settings
-        private StrategyParameterString AlertsRegime;
-        private StrategyParameterString TelegramID;
-        private StrategyParameterString BotToken;
+        private StrategyParameterString _alertsRegime;
+        private StrategyParameterString _telegramID;
+        private StrategyParameterString _botToken;
 
         // Indicator
         private Aindicator _priceChannel;
@@ -64,8 +64,8 @@ namespace OsEngine.Robots
             _tab = TabsSimple[0];
 
             // Trade Settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Trade settings");
-            PriceChannelLength = CreateParameter("Price Channel Length", 21, 7, 70, 7, "Trade settings");
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" }, "Trade settings");
+            _priceChannelLength = CreateParameter("Price Channel Length", 21, 7, 70, 7, "Trade settings");
 
             // GetVolume Settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -73,15 +73,15 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Telegram Allerts Settings
-            AlertsRegime = CreateParameter("Alerts Regime", "Off", new[] { "Off", "On" }, "Telegram settings");
-            TelegramID = CreateParameter("Telegram ID", "", "Telegram settings");
-            BotToken = CreateParameter("Bot Token", "", "Telegram settings");
+            _alertsRegime = CreateParameter("Alerts Regime", "Off", new[] { "Off", "On" }, "Telegram settings");
+            _telegramID = CreateParameter("Telegram ID", "", "Telegram settings");
+            _botToken = CreateParameter("Bot Token", "", "Telegram settings");
 
             // Create indicator PriceChannel
             _priceChannel = IndicatorsFactory.CreateIndicatorByName("PriceChannel", name + "PriceChannel", false);
             _priceChannel = (Aindicator)_tab.CreateCandleIndicator(_priceChannel, "Prime");
-            ((IndicatorParameterInt)_priceChannel.Parameters[0]).ValueInt = PriceChannelLength.ValueInt;
-            ((IndicatorParameterInt)_priceChannel.Parameters[1]).ValueInt = PriceChannelLength.ValueInt;
+            ((IndicatorParameterInt)_priceChannel.Parameters[0]).ValueInt = _priceChannelLength.ValueInt;
+            ((IndicatorParameterInt)_priceChannel.Parameters[1]).ValueInt = _priceChannelLength.ValueInt;
             _priceChannel.Save();
 
             // Subscribe to the indicator update event
@@ -113,7 +113,7 @@ namespace OsEngine.Robots
 
         private void _tab_PositionClosingSuccesEvent(Position position)
         {
-            if (AlertsRegime.ValueString == "On")
+            if (_alertsRegime.ValueString == "On")
             {
                 string message = "Closing long position (" + _tab.NameStrategy + ")" + "\r\n" + "By price: " + position.ClosePrice;
                 SendTelegramMessageAsync(message);
@@ -122,7 +122,7 @@ namespace OsEngine.Robots
 
         private void _tab_PositionOpeningSuccesEvent(Position position)
         {
-            if (AlertsRegime.ValueString == "On")
+            if (_alertsRegime.ValueString == "On")
             {
                 string message = "Open long position (" + _tab.NameStrategy + ")" + "\r\n" + "By price: " + position.EntryPrice + "\r\n" + "Volume: " + position.OpenVolume;
                 SendTelegramMessageAsync(message);
@@ -131,8 +131,8 @@ namespace OsEngine.Robots
 
         private void TelegramSample_ParametrsChangeByUser()
         {
-            ((IndicatorParameterInt)_priceChannel.Parameters[0]).ValueInt = PriceChannelLength.ValueInt;
-            ((IndicatorParameterInt)_priceChannel.Parameters[1]).ValueInt = PriceChannelLength.ValueInt;
+            ((IndicatorParameterInt)_priceChannel.Parameters[0]).ValueInt = _priceChannelLength.ValueInt;
+            ((IndicatorParameterInt)_priceChannel.Parameters[1]).ValueInt = _priceChannelLength.ValueInt;
             _priceChannel.Save();
             _priceChannel.Reload();
         }
@@ -150,13 +150,13 @@ namespace OsEngine.Robots
         private void _tab_CandleFinishedEvent(List<Candle> candles)
         {
             // If the robot is turned off, exit the event handler
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < PriceChannelLength.ValueInt)
+            if (candles.Count < _priceChannelLength.ValueInt)
             {
                 return;
             }
@@ -210,14 +210,14 @@ namespace OsEngine.Robots
         // Method sending message to Telegram
         private async void SendTelegramMessageAsync(string message)
         {
-            if (BotToken.ValueString == "" || TelegramID.ValueString == "")
+            if (_botToken.ValueString == "" || _telegramID.ValueString == "")
             {
                 SendNewLogMessage("Enter Telegram ID and Bot Token", LogMessageType.Error);              
                 return;
             }
 
             // Collecting query string
-            string reqStr = "https://api.telegram.org/bot" + BotToken.ValueString + "/sendMessage?chat_id=" + TelegramID.ValueString + "&text=" + message;
+            string reqStr = "https://api.telegram.org/bot" + _botToken.ValueString + "/sendMessage?chat_id=" + _telegramID.ValueString + "&text=" + message;
           
             try
             {
@@ -244,7 +244,7 @@ namespace OsEngine.Robots
                     _isConnect = true;
                 }
 
-                if (AlertsRegime.ValueString == "On")
+                if (_alertsRegime.ValueString == "On")
                 {
                     if (_tab.ServerStatus == Market.Servers.ServerConnectStatus.Disconnect && _isConnect == true)
                     {
@@ -276,7 +276,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

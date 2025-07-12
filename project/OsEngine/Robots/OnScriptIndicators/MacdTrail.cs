@@ -141,6 +141,7 @@ public class MacdTrail : BotPanel
         {
             _tab.BuyAtLimit(GetVolume(_tab), _lastClose + _slippage.ValueInt * _tab.Security.PriceStep);
         }
+
         if (_lastMacdDown > 0 && _lastMacdUp < _lastMacdDown
                               && _regime.ValueString != "OnlyLong")
         {
@@ -186,7 +187,7 @@ public class MacdTrail : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
+                    tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
                     volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

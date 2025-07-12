@@ -1,4 +1,9 @@
-﻿using OsEngine.Entity;
+﻿/*
+ * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using OsEngine.Entity;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
@@ -17,58 +22,84 @@ It shows:
 • Dynamic table: The table is updated in real time as new data arrives.
 • User Interaction: The user can change data in the table and get values ​​in specific cells.
 • Customizable parameters: Ability to turn the robot on and off and also set a trailing stop for exit.
-
 */
 
 namespace OsEngine.Robots.TechSamples
 {
-    [Bot("CustomTableInParamWindowSample")]
+    [Bot("CustomTableInParamWindowSample")] // We create an attribute so that we don't write anything to the BotFactory
     public class CustomTableInParamWindowSample : BotPanel
     {
 
         #region Parameters and service
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "CustomTableInParamWindowSample";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-        public CustomTableInParamWindowSample(string name, StartProgram startProgram)
-          : base(name, startProgram)
-        {
-            Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, " Base settings ");
-            TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, " Base settings ");
-            MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1, " Base settings ");
-            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, " Base settings ");
-            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4, " Base settings ");
-            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", " Base settings ");
+        // Screener tabs
+        private BotTabScreener _tab;
 
+        // Basic settings
+        public StrategyParameterString Regime;
+        public StrategyParameterInt MaxPositions;
+
+        // GetVolume settings
+        public StrategyParameterString VolumeType;
+        public StrategyParameterDecimal Volume;
+        public StrategyParameterString TradeAssetInPortfolio;
+        
+        // Exit setting
+        public StrategyParameterDecimal TrailingValue;
+
+        // Lines
+        private List<TableBotLine> Lines = new List<TableBotLine>();
+
+        // Table data
+        private DataGridView _tableDataGrid;
+
+        // Host table
+        private WindowsFormsHost _hostTable;
+
+        public CustomTableInParamWindowSample(string name, StartProgram startProgram) : base(name, startProgram)
+        {
+            // Create tabs
             TabCreate(BotTabType.Screener);
             _tab = TabsScreener[0];
 
-            // customization param ui
+            // Basic settings
+            Regime = CreateParameter("Regime", "Off", new string[] { "Off", "On" }, " Base settings ");
+            MaxPositions = CreateParameter("Max positions", 5, 0, 20, 1, " Base settings ");
+            
+            // GetVolume settings
+            VolumeType = CreateParameter("Volume type", "Contracts", new[] { "Contracts", "Contract currency", "Deposit percent" }, " Base settings ");
+            Volume = CreateParameter("Volume", 1, 1.0m, 50, 4, " Base settings ");
+            TradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime", " Base settings ");
+            
+            // Exit setting
+            TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, " Base settings ");
 
+            // Customization param ui
             this.ParamGuiSettings.Title = " Bot settings ";
             this.ParamGuiSettings.Height = 800;
             this.ParamGuiSettings.Width = 780;
 
-            // create table
-
+            // Create table
             CustomTabToParametersUi customTabOrderGrid = ParamGuiSettings.CreateCustomTab(" Table settings ");
             CreateColumnsTable();
             customTabOrderGrid.AddChildren(_hostTable);
 
-            // load data table
-
+            // Load data table
             LoadLines();
 
-            // events
-
+            // Events
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
             this.DeleteEvent += DeleteBotEvent;
             _tableDataGrid.CellValueChanged += CellValueChanged;
@@ -80,24 +111,7 @@ namespace OsEngine.Robots.TechSamples
                 "• Customizable parameters: Ability to turn the robot on and off and also set a trailing stop for exit.";
         }
 
-        private BotTabScreener _tab;
-
-        public StrategyParameterString Regime;
-        public StrategyParameterDecimal TrailingValue;
-        public StrategyParameterInt MaxPositions;
-        public StrategyParameterString VolumeType;
-        public StrategyParameterDecimal Volume;
-        public StrategyParameterString TradeAssetInPortfolio;
-
-        private List<TableBotLine> Lines = new List<TableBotLine>();
-
-        private DataGridView _tableDataGrid;
-
-        private WindowsFormsHost _hostTable;
-
-        /// <summary>
-        /// Event of changes values the table / Событие изменений значений в таблице
-        /// </summary>
+        // Event of changes values the table
         private void CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
             try
@@ -109,6 +123,7 @@ namespace OsEngine.Robots.TechSamples
                     Lines[i].MovementToEnter = _tableDataGrid.Rows[i].Cells[2].Value.ToString().ToDecimal();
                     Lines[i].Side = (Side)Enum.Parse(typeof(Side), _tableDataGrid.Rows[i].Cells[4].Value.ToString(), true);
                 }
+
                 SaveLines();
             }
             catch(Exception ex)
@@ -117,9 +132,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// Delete Bot Event / Событие удаления робота
-        /// </summary>
+        // Delete Bot Event
         private void DeleteBotEvent()
         {
             if (File.Exists(@"Engine\" + NameStrategyUniq + @"Lines.txt"))
@@ -128,20 +141,18 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// Save line event / событие сохранения линий
-        /// </summary>
+        // Save line event
         public void SaveLines()
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"Lines.txt", false)
-                )
+                using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"Lines.txt", false))
                 {
                     for (int i = 0; i < Lines.Count; i++)
                     {
                         writer.WriteLine(Lines[i].GetSaveStr());
                     }
+
                     writer.Close();
                 }
             }
@@ -151,9 +162,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// Loading saved table data / загрузка сохраненных данных таблицы
-        /// </summary>
+        // Loading saved table data
         public void LoadLines()
         {
             if (!File.Exists(@"Engine\" + NameStrategyUniq + @"Lines.txt"))
@@ -171,9 +180,12 @@ namespace OsEngine.Robots.TechSamples
                         newLine.SetFromStr(reader.ReadLine());
                         Lines.Add(newLine);
                     }
+
                     reader.Close();
                 }
+
                 int cnt = 0;
+
                 while (Lines.Count > cnt)
                 {
                     CreateRowsTable(cnt);
@@ -198,9 +210,7 @@ namespace OsEngine.Robots.TechSamples
             TradeLogicMethod(candles, tab);
         }
 
-        /// <summary>
-        /// Column creation event / событие создания колонок
-        /// </summary>
+        // Column creation event
         private void CreateColumnsTable()
         {
             try
@@ -210,6 +220,7 @@ namespace OsEngine.Robots.TechSamples
                     MainWindow.GetDispatcher.Invoke(new Action(CreateColumnsTable));
                     return;
                 }
+
                 _hostTable = new WindowsFormsHost();
 
                 _tableDataGrid = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.FullRowSelect,
@@ -260,9 +271,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// Event of adding new lines to the table / Событие добавления новых линий в таблицу
-        /// </summary>
+        // Event of adding new lines to the table
         private void AddNewLineInTable(BotTabSimple tab)
         {
             if(tab.Security == null)
@@ -301,9 +310,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// Create line in table / Событие создания новых линий в таблице
-        /// </summary>
+        // Create line in table
         private void CreateRowsTable(int index)
         {
             if (_tableDataGrid.InvokeRequired)
@@ -363,9 +370,7 @@ namespace OsEngine.Robots.TechSamples
             return row;
         }
 
-        /// <summary>
-        /// Line sorting method / Метод сортировки линий
-        /// </summary>
+        // Line sorting method
         private void SortLine()
         {
             if (_tableDataGrid.InvokeRequired)
@@ -373,6 +378,7 @@ namespace OsEngine.Robots.TechSamples
                 _tableDataGrid.Invoke(new Action(SortLine));
                 return;
             }
+
             try
             {
                 if (_tableDataGrid.Rows[_tableDataGrid.Rows.Count - 1].Cells[0].Value.ToString() == null)
@@ -419,9 +425,7 @@ namespace OsEngine.Robots.TechSamples
             }
         }
 
-        /// <summary>
-        /// Movement percentage update event / Событие обновления текущего процента движения
-        /// </summary>
+        // Movement percentage update event
         private void MovementPercentUpdate(List<Candle> candles, BotTabSimple tab)
         {
             if (_tableDataGrid.InvokeRequired)
@@ -429,6 +433,7 @@ namespace OsEngine.Robots.TechSamples
                 _tableDataGrid.Invoke(new Action(() => MovementPercentUpdate(candles, tab)));
                 return;
             }
+
             try
             {
                 int indexLine = 0;
@@ -470,6 +475,7 @@ namespace OsEngine.Robots.TechSamples
                         _tableDataGrid.Rows[indexLine].Cells[3].Value = Lines[indexLine].CurrentMovement.ToString() + '%';
                     }
                 }
+
                 SaveLines();
             }
             catch (Exception ex)
@@ -482,12 +488,9 @@ namespace OsEngine.Robots.TechSamples
 
         #region TradeLogic
 
-        /// <summary>
-        ///  Trade logic / Торговая логика
-        /// </summary>
+        //  Trade logic
         private void TradeLogicMethod(List<Candle> candles, BotTabSimple tab)
         {
-
             if (Regime.ValueString == "Off")
             {
                 return;
@@ -519,7 +522,7 @@ namespace OsEngine.Robots.TechSamples
             List<Position> positions = tab.PositionsOpenAll;
 
             if (positions.Count == 0)
-            { // логика открытия
+            { // opening logic
 
                 if(_tab.PositionsOpenAll.Count >= MaxPositions.ValueInt)
                 {
@@ -539,7 +542,6 @@ namespace OsEngine.Robots.TechSamples
                         tab.SellAtMarket(GetVolume(tab));
                     }
                 }
-
             }
             else
             {
@@ -547,23 +549,27 @@ namespace OsEngine.Robots.TechSamples
                 {
                     return;
                 }
+
                 decimal stopPriсe;
+
                 if (positions[0].Direction == Side.Buy) // If the direction of the position is buy
                 {
-                    {
-                        decimal low = candles[candles.Count - 1].Low;
-                        stopPriсe = low - low * TrailingValue.ValueDecimal / 100;
-                    }
+                    
+                    decimal low = candles[candles.Count - 1].Low;
+                    stopPriсe = low - low * TrailingValue.ValueDecimal / 100;
+                    
                 }
                 else // If the direction of the position is sale
                 {
                     decimal high = candles[candles.Count - 1].High;
                     stopPriсe = high + high * TrailingValue.ValueDecimal / 100;
                 }
+
                 tab.CloseAtTrailingStop(positions[0], stopPriсe, stopPriсe);
             }
         }
 
+        // Method for calculating the volume of entry into a position
         private decimal GetVolume(BotTabSimple tab)
         {
             decimal volume = 0;

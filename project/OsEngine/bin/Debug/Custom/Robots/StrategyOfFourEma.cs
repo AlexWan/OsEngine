@@ -41,7 +41,7 @@ namespace OsEngine.Robots
     [Bot("StrategyOfFourEma")]//We create an attribute so that we don't write anything in the Boot factory
     public class StrategyOfFourEma : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -333,7 +333,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

@@ -31,7 +31,7 @@ Buy exit: trailing stop as a % of the Low of the candle where you entered.
 Sell ​​exit: trailing stop as a % of the High of the candle where you entered.
  */
 
-namespace OsEngine.Robots.AO
+namespace OsEngine.Robots
 {
     [Bot("DevergenceSMI")] // We create an attribute so that we don't write anything to the BotFactory
     public class DevergenceSMI : BotPanel
@@ -253,6 +253,7 @@ namespace OsEngine.Robots.AO
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValue.ValueDecimal / 100;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPrice, stopPrice);
             }
         }
@@ -465,7 +466,7 @@ namespace OsEngine.Robots.AO
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

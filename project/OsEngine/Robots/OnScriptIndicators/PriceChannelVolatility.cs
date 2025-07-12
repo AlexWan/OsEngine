@@ -104,11 +104,13 @@ public class PriceChannelVolatility : BotPanel
             _atr.ParametersDigit[0].Value = _lengthAtr.ValueInt;
             _atr.Reload();
         }
+
         if (_pc.ParametersDigit[0].Value != _lengthChannelUp.ValueInt)
         {
             _pc.ParametersDigit[0].Value = _lengthChannelUp.ValueInt;
             _pc.Reload();
         }
+
         if (_pc.ParametersDigit[1].Value != _lengthChannelDown.ValueInt)
         {
             _pc.ParametersDigit[1].Value = _lengthChannelDown.ValueInt;
@@ -125,6 +127,7 @@ public class PriceChannelVolatility : BotPanel
     // Show settings GUI
     public override void ShowIndividualSettingsDialog()
     {
+
     }
 
     // Logic
@@ -174,10 +177,12 @@ public class PriceChannelVolatility : BotPanel
         {
             _tab.BuyAtStopCancel();
             _tab.SellAtStopCancel();
+
             // long
             if (_regime.ValueString != "OnlyShort")
             {
                 decimal priceEnter = _lastPcUp;
+
                 _tab.BuyAtStop(GetVolume(_tab, _volumeFix1.ValueDecimal),
                     priceEnter + _slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.HigherOrEqual);
@@ -187,10 +192,12 @@ public class PriceChannelVolatility : BotPanel
             if (_regime.ValueString != "OnlyLong")
             {
                 decimal priceEnter = _lastPcDown;
+
                 _tab.SellAtStop(GetVolume(_tab, _volumeFix1.ValueDecimal),
                     priceEnter - _slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.LowerOrEqual);
             }
+
             return;
         }
 
@@ -198,9 +205,11 @@ public class PriceChannelVolatility : BotPanel
         {
             _tab.BuyAtStopCancel();
             _tab.SellAtStopCancel();
+
             if (openPositions[0].Direction == Side.Buy)
             {
                 decimal priceEnter = _lastPcUp + (_lastAtr * _kofAtr.ValueDecimal);
+
                 _tab.BuyAtStop(GetVolume(_tab, _volumeFix2.ValueDecimal),
                     priceEnter + _slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.HigherOrEqual);
@@ -208,6 +217,7 @@ public class PriceChannelVolatility : BotPanel
             else
             {
                 decimal priceEnter = _lastPcDown - (_lastAtr * _kofAtr.ValueDecimal);
+
                 _tab.SellAtStop(GetVolume(_tab, _volumeFix2.ValueDecimal),
                     priceEnter - _slippage.ValueInt * _tab.Security.PriceStep,
                     priceEnter, StopActivateType.LowerOrEqual);
@@ -219,6 +229,7 @@ public class PriceChannelVolatility : BotPanel
     private void LogicClosePosition()
     {
         List<Position> openPositions = _tab.PositionsOpenAll;
+
         for (int i = 0; openPositions != null && i < openPositions.Count; i++)
         {
             if (openPositions[i].State != PositionStateType.Open)
@@ -229,12 +240,14 @@ public class PriceChannelVolatility : BotPanel
             if (openPositions[i].Direction == Side.Buy)
             {
                 decimal priceClose = _lastPcDown;
+
                 _tab.CloseAtTrailingStop(openPositions[i], priceClose,
                     priceClose - _slippage.ValueInt * _tab.Security.PriceStep);
             }
             else
             {
                 decimal priceClose = _lastPcUp;
+
                 _tab.CloseAtTrailingStop(openPositions[i], priceClose,
                     priceClose + _slippage.ValueInt * _tab.Security.PriceStep);
             }
@@ -261,7 +274,7 @@ public class PriceChannelVolatility : BotPanel
 
                 if (serverPermission != null &&
                     serverPermission.IsUseLotToCalculateProfit &&
-                tab.Security.Lot != 0 &&
+                    tab.Security.Lot != 0 &&
                     tab.Security.Lot > 1)
                 {
                     volume = _volume / (contractPrice * tab.Security.Lot);

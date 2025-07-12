@@ -16,7 +16,11 @@ if is_quik() then
 	quikVersion = getInfoParam("VERSION")
 
 	if quikVersion ~= nil then
-		quikVersion = tonumber(quikVersion:match("%d+%.%d+"))
+		local t={}
+		for str in string.gmatch(quikVersion, "([^%.]+)") do
+			table.insert(t, str)
+        end
+		quikVersion = tonumber(t[1]) * 100 + tonumber(t[2])
 	end
 
 	if quikVersion == nil then
@@ -32,9 +36,12 @@ if is_quik() then
     -- but in one issue someone said it doesn't work on machines that do not have Visual Studio. 
     local linkage = "MD"
     
-	if quikVersion >= 8.5 then
+	--if quikVersion >= 811 then
+    --    libPath = libPath .. "64\\54_MD\\"
+	--elseif quikVersion >= 805 then
+	if quikVersion >= 805 then
         libPath = libPath .. "64\\53_"..linkage.."\\"
-	elseif quikVersion >= 8 then
+	elseif quikVersion >= 800 then
         libPath = libPath .. "64\\5.1_"..linkage.."\\"
 	else
 		libPath = "\\clibs\\5.1_"..linkage.."\\"

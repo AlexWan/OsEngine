@@ -36,7 +36,7 @@ namespace OsEngine.Robots
     [Bot("StrategyTwoStochastic")] //We create an attribute so that we don't write anything in the Boot factory
     public class StrategyTwoStochastic : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -268,6 +268,7 @@ namespace OsEngine.Robots
                     decimal high = candles[candles.Count - 1].High;
                     stopPrice = high + high * _trailingValue.ValueDecimal / 100;
                 }
+
                 _tab.CloseAtTrailingStop(position, stopPrice, stopPrice);
             }
         }
@@ -292,7 +293,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

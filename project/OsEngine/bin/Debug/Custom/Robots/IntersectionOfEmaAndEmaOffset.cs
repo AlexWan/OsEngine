@@ -33,7 +33,7 @@ namespace OsEngine.Robots.MyRobots
     [Bot("IntersectionOfEmaAndEmaOffset")]//We create an attribute so that we don't write anything in the Boot factory
     public class IntersectionOfEmaAndEmaOffset : BotPanel
     {
-        BotTabSimple _tab;
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -239,6 +239,7 @@ namespace OsEngine.Robots.MyRobots
                     decimal high = candles[candles.Count - 1].High;
                     stopPriсe = high + high * TrailingValue.ValueDecimal / 100;
                 }
+
                 _tab.CloseAtTrailingStop(pos, stopPriсe, stopPriсe);
             }
         }
@@ -263,7 +264,7 @@ namespace OsEngine.Robots.MyRobots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

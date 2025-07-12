@@ -116,12 +116,12 @@ namespace OsEngine.Language
             "Ru:Управление_");
 
         public string Label28 => OsLocalization.ConvertToLocString(
-            "Eng:   Buy \nat market_" +
-            "Ru:  Купить \nпо рынку_");
+            "Eng:Buy\nat market_" +
+            "Ru:Купить\nпо рынку_");
 
         public string Label29 => OsLocalization.ConvertToLocString(
-            "Eng:           Sell \n       at market_" +
-            "Ru:           Продать\n         по рынку_");
+            "Eng:Sell\nat market_" +
+            "Ru:Продать\nпо рынку_");
 
         public string Label30 => OsLocalization.ConvertToLocString(
             "Eng:Volume_" +
@@ -132,12 +132,12 @@ namespace OsEngine.Language
             "Ru:Цена_");
 
         public string Label32 => OsLocalization.ConvertToLocString(
-            "Eng:  Buy \nat limit_" +
-            "Ru:  Купить \n лимит_");
+            "Eng:Buy\nat limit_" +
+            "Ru:Купить\nлимит_");
 
         public string Label33 => OsLocalization.ConvertToLocString(
-            "Eng:           Sell \n       at limit_" +
-            "Ru:           Продать\n          лимит_");
+            "Eng:Sell\nat limit_" +
+            "Ru:Продать\nлимит_");
 
         public string Label34 => OsLocalization.ConvertToLocString(
             "Eng:Revoke limits_" +
@@ -2122,5 +2122,57 @@ namespace OsEngine.Language
         public string Label555 => OsLocalization.ConvertToLocString(
         "Eng:Asset in portfolio_" +
         "Ru:Актив в портфеле");
+
+        public string Label556 => OsLocalization.ConvertToLocString(
+        "Eng:System strain indicators_" +
+        "Ru:Показатели нагрузки на систему");
+
+        public string Label557 => OsLocalization.ConvertToLocString(
+        "Eng:Collect data_" +
+        "Ru:Собирать");
+
+        public string Label558 => OsLocalization.ConvertToLocString(
+        "Eng:Go to file_" +
+        "Ru:К файлу");
+
+        public string Label559 => OsLocalization.ConvertToLocString(
+        "Eng:Period_" +
+        "Ru:Период");
+
+        public string Label560 => OsLocalization.ConvertToLocString(
+        "Eng:System stress_" +
+        "Ru:Нагрузка на систему");
+
+        public string Label561 => OsLocalization.ConvertToLocString(
+        "Eng:Max points_" +
+        "Ru:Максимум");
+
+        public string Label562 => OsLocalization.ConvertToLocString(
+        "Eng:Total occupied_" +
+        "Ru:Занято всего");
+
+        public string Label563 => OsLocalization.ConvertToLocString(
+        "Eng:OsEngine occupied_" +
+        "Ru:Занято OsEngine");
+
+        public string Label564 => OsLocalization.ConvertToLocString(
+        "Eng:Free_" +
+        "Ru:Свободно");
+
+        public string Label565 => OsLocalization.ConvertToLocString(
+        "Eng:Used_" +
+        "Ru:Занято");
+
+        public string Label566 => OsLocalization.ConvertToLocString(
+        "Eng:Market depth_" +
+        "Ru:Очередь стаканов");
+
+        public string Label567 => OsLocalization.ConvertToLocString(
+        "Eng:Bis ask queue_" +
+        "Ru:Очередь bid/ask");
+
+        public string Label568 => OsLocalization.ConvertToLocString(
+        "Eng:Information about emergency queue cleaning in connectors. If you see something other than a straight line, it's not good._" +
+        "Ru:График экстренных очисток очередей в коннекторах. Если Вы что-то видите кроме ровной линии - это не хорошо.");
     }
 }

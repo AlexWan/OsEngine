@@ -35,8 +35,8 @@ namespace OsEngine.Robots
         private BotTabSimple _tab;
 
         // Basic Settings
-        public StrategyParameterString Regime;
-        public StrategyParameterInt Slippage;
+        private StrategyParameterString _regime;
+        private StrategyParameterInt _slippage;
 
         // GetVolume Settings
         private StrategyParameterString _volumeType;
@@ -44,35 +44,34 @@ namespace OsEngine.Robots
         private StrategyParameterString _tradeAssetInPortfolio;
 
         // Line Settings
-        public StrategyParameterDecimal UpLineValue;
-        public StrategyParameterDecimal DownLineValue;
+        private StrategyParameterDecimal _upLineValue;
+        private StrategyParameterDecimal _downLineValue;
 
         // Indicator Settings 
-        public StrategyParameterInt StochPeriod1;
-        public StrategyParameterInt StochPeriod2;
-        public StrategyParameterInt StochPeriod3;
+        private StrategyParameterInt _stochPeriod1;
+        private StrategyParameterInt _stochPeriod2;
+        private StrategyParameterInt _stochPeriod3;
 
         // Indicator
         private Aindicator _stoch;
 
         // Line on chart
-        public LineHorisontal Upline;
-        public LineHorisontal Downline;
+        private LineHorisontal _upline;
+        private LineHorisontal _downline;
 
         // The last value of the indicator and price
         private decimal _stocLastUp;
         private decimal _stocLastDown;
         private decimal _lastPrice;
 
-        public StochasticTrade(string name, StartProgram startProgram)
-            : base(name, startProgram)
+        public StochasticTrade(string name, StartProgram startProgram) : base(name, startProgram)
         {
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
             // Basic settings
-            Regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
-            Slippage = CreateParameter("Slippage", 0, 0, 20, 1);
+            _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" });
+            _slippage = CreateParameter("Slippage", 0, 0, 20, 1);
 
             // GetVolume Settings
             _volumeType = CreateParameter("Volume type", "Deposit percent", new[] { "Contracts", "Contract currency", "Deposit percent" });
@@ -80,42 +79,42 @@ namespace OsEngine.Robots
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
             // Line settungs
-            UpLineValue = CreateParameter("Up Line Value", 80, 60.0m, 90, 0.5m);
-            DownLineValue = CreateParameter("Down Line Value", 20, 10.0m, 40, 0.5m);
+            _upLineValue = CreateParameter("Up Line Value", 80, 60.0m, 90, 0.5m);
+            _downLineValue = CreateParameter("Down Line Value", 20, 10.0m, 40, 0.5m);
 
             // Indicator settings
-            StochPeriod1 = CreateParameter("Stoch Period 1", 5, 3, 40, 1);
-            StochPeriod2 = CreateParameter("Stoch Period 2", 3, 2, 40, 1);
-            StochPeriod3 = CreateParameter("Stoch Period 3", 3, 2, 40, 1);
+            _stochPeriod1 = CreateParameter("Stoch Period 1", 5, 3, 40, 1);
+            _stochPeriod2 = CreateParameter("Stoch Period 2", 3, 2, 40, 1);
+            _stochPeriod3 = CreateParameter("Stoch Period 3", 3, 2, 40, 1);
 
             // Create indicator Stochastic
             _stoch = IndicatorsFactory.CreateIndicatorByName("Stochastic", name + "Stochastic", false);
             _stoch = (Aindicator)_tab.CreateCandleIndicator(_stoch, "StochasticArea");
-            _stoch.ParametersDigit[0].Value = StochPeriod1.ValueInt;
-            _stoch.ParametersDigit[1].Value = StochPeriod2.ValueInt;
-            _stoch.ParametersDigit[2].Value = StochPeriod3.ValueInt;
+            _stoch.ParametersDigit[0].Value = _stochPeriod1.ValueInt;
+            _stoch.ParametersDigit[1].Value = _stochPeriod2.ValueInt;
+            _stoch.ParametersDigit[2].Value = _stochPeriod3.ValueInt;
             _stoch.Save();
 
             // Create Upline on StochasticArea
-            Upline = new LineHorisontal("upline", "StochasticArea", false)
+            _upline = new LineHorisontal("upline", "StochasticArea", false)
             {
                 Color = Color.Green,
                 Value = 0,
             };
-            _tab.SetChartElement(Upline);
-            Upline.Value = UpLineValue.ValueDecimal;
-            Upline.TimeEnd = DateTime.Now;
+            _tab.SetChartElement(_upline);
+            _upline.Value = _upLineValue.ValueDecimal;
+            _upline.TimeEnd = DateTime.Now;
 
             // Create Downline on StochasticArea
-            Downline = new LineHorisontal("downline", "StochasticArea", false)
+            _downline = new LineHorisontal("downline", "StochasticArea", false)
             {
                 Color = Color.Yellow,
                 Value = 0
 
             };
-            _tab.SetChartElement(Downline);
-            Downline.Value = DownLineValue.ValueDecimal;
-            Downline.TimeEnd = DateTime.Now;
+            _tab.SetChartElement(_downline);
+            _downline.Value = _downLineValue.ValueDecimal;
+            _downline.TimeEnd = DateTime.Now;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
@@ -133,15 +132,15 @@ namespace OsEngine.Robots
 
         void RviTrade_ParametrsChangeByUser()
         {
-            _stoch.ParametersDigit[0].Value = StochPeriod1.ValueInt;
-            _stoch.ParametersDigit[1].Value = StochPeriod2.ValueInt;
-            _stoch.ParametersDigit[2].Value = StochPeriod3.ValueInt;
+            _stoch.ParametersDigit[0].Value = _stochPeriod1.ValueInt;
+            _stoch.ParametersDigit[1].Value = _stochPeriod2.ValueInt;
+            _stoch.ParametersDigit[2].Value = _stochPeriod3.ValueInt;
 
-            Upline.Value = UpLineValue.ValueDecimal;
-            Upline.Refresh();
+            _upline.Value = _upLineValue.ValueDecimal;
+            _upline.Refresh();
 
-            Downline.Value = DownLineValue.ValueDecimal;
-            Downline.Refresh();
+            _downline.Value = _downLineValue.ValueDecimal;
+            _downline.Refresh();
         }
 
         // The name of the robot in OsEngine
@@ -157,7 +156,7 @@ namespace OsEngine.Robots
         // Candle Finished Event
         private void Strateg_CandleFinishedEvent(List<Candle> candles)
         {
-            if (Regime.ValueString == "Off")
+            if (_regime.ValueString == "Off")
             {
                 return;
             }
@@ -180,12 +179,12 @@ namespace OsEngine.Robots
                 {
                     LogicClosePosition(candles, openPositions[i]);
 
-                    Upline.Refresh();
-                    Downline.Refresh();
+                    _upline.Refresh();
+                    _downline.Refresh();
                 }
             }
 
-            if (Regime.ValueString == "OnlyClosePosition")
+            if (_regime.ValueString == "OnlyClosePosition")
             {
                 return;
             }
@@ -199,18 +198,18 @@ namespace OsEngine.Robots
         // logic open position
         private void LogicOpenPosition(List<Candle> candles, List<Position> position)
         {
-            if (_stocLastDown < Downline.Value && _stocLastDown > _stocLastUp
-                                               && Regime.ValueString != "OnlyShort")
+            if (_stocLastDown < _downline.Value && _stocLastDown > _stocLastUp
+                                               && _regime.ValueString != "OnlyShort")
             {
                 _tab.BuyAtLimit(GetVolume(_tab),
-                    _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _lastPrice + _slippage.ValueInt * _tab.Securiti.PriceStep);
             }
 
-            if (_stocLastDown > Upline.Value && _stocLastDown < _stocLastUp
-                                             && Regime.ValueString != "OnlyLong")
+            if (_stocLastDown > _upline.Value && _stocLastDown < _stocLastUp
+                                             && _regime.ValueString != "OnlyLong")
             {
                 _tab.SellAtLimit(GetVolume(_tab),
-                    _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                    _lastPrice - _slippage.ValueInt * _tab.Securiti.PriceStep);
             }
         }
 
@@ -219,14 +218,14 @@ namespace OsEngine.Robots
         {
             if (position.Direction == Side.Buy)
             {
-                if (_stocLastDown > Upline.Value && _stocLastDown < _stocLastUp)
+                if (_stocLastDown > _upline.Value && _stocLastDown < _stocLastUp)
                 {
                     _tab.CloseAtLimit(
                         position,
-                        _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep,
+                        _lastPrice - _slippage.ValueInt * _tab.Securiti.PriceStep,
                         position.OpenVolume);
 
-                    if (Regime.ValueString != "OnlyLong" && Regime.ValueString != "OnlyClosePosition")
+                    if (_regime.ValueString != "OnlyLong" && _regime.ValueString != "OnlyClosePosition")
                     {
                         List<Position> positions = _tab.PositionsOpenAll;
                         if (positions.Count >= 2)
@@ -234,28 +233,28 @@ namespace OsEngine.Robots
                             return;
                         }
 
-                        _tab.SellAtLimit(GetVolume(_tab), _lastPrice - Slippage.ValueInt * _tab.Securiti.PriceStep);
+                        _tab.SellAtLimit(GetVolume(_tab), _lastPrice - _slippage.ValueInt * _tab.Securiti.PriceStep);
                     }
                 }
             }
 
             if (position.Direction == Side.Sell)
             {
-                if (_stocLastDown < Downline.Value && _stocLastDown > _stocLastUp)
+                if (_stocLastDown < _downline.Value && _stocLastDown > _stocLastUp)
                 {
                     _tab.CloseAtLimit(
                         position,
-                        _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep,
+                        _lastPrice + _slippage.ValueInt * _tab.Securiti.PriceStep,
                         position.OpenVolume);
 
-                    if (Regime.ValueString != "OnlyShort" && Regime.ValueString != "OnlyClosePosition")
+                    if (_regime.ValueString != "OnlyShort" && _regime.ValueString != "OnlyClosePosition")
                     {
                         List<Position> positions = _tab.PositionsOpenAll;
                         if (positions.Count >= 2)
                         {
                             return;
                         }
-                        _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + Slippage.ValueInt * _tab.Securiti.PriceStep);
+                        _tab.BuyAtLimit(GetVolume(_tab), _lastPrice + _slippage.ValueInt * _tab.Securiti.PriceStep);
                     }
                 }
             }
@@ -281,7 +280,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

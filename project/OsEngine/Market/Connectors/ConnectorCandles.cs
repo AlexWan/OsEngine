@@ -1097,7 +1097,7 @@ namespace OsEngine.Market.Connectors
         /// <summary>
         /// test finished. Event from tester
         /// </summary>
-        void Connector_TestingEndEvent()
+        private void Connector_TestingEndEvent()
         {
             try
             {
@@ -1968,6 +1968,16 @@ namespace OsEngine.Market.Connectors
         public void LoadOrderInOrderStorage(Order order)
         {
             ServerMaster.InsertOrder(order);
+        }
+
+        public void CheckEmulatorExecution(decimal price)
+        {
+            if(EmulatorIsOn == false)
+            {
+                return;
+            }
+
+            _emulator.ProcessBidAsc(price, price);
         }
 
         #endregion

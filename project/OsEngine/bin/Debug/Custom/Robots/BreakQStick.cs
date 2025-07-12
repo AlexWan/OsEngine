@@ -133,6 +133,7 @@ namespace OsEngine.Robots.MyBots
             _sma.Reload();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "BreakQStick";
@@ -280,6 +281,7 @@ namespace OsEngine.Robots.MyBots
         private decimal EnterLong(List<decimal> values, int period)
         {
             decimal Max = int.MinValue;
+
             for (int i = values.Count - 1; i > values.Count - 1 - period; i--)
             {
                 if (values[i] > Max)
@@ -287,6 +289,7 @@ namespace OsEngine.Robots.MyBots
                     Max = values[i];
                 }
             }
+
             return Max;
         }
 
@@ -294,6 +297,7 @@ namespace OsEngine.Robots.MyBots
         private decimal EnterShort(List<decimal> values, int period)
         {
             decimal Min = int.MaxValue;
+
             for (int i = values.Count - 1; i > values.Count -1 - period; i--)
             {
                 if (values[i] < Min)
@@ -301,6 +305,7 @@ namespace OsEngine.Robots.MyBots
                     Min = values[i];
                 }
             }
+
             return Min;
         }
 
@@ -404,7 +409,7 @@ namespace OsEngine.Robots.MyBots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

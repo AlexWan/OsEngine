@@ -14,24 +14,32 @@ using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 
-/*Discription
-Trading robot for osengine.
+/* Description
+Trading robot for OsEngine.
 
-Trend strategy on Bears Power Divergence.
+Strategy based on Bollinger Bands and Bears/Bulls Power indicators. 
+
+Buy:
+1. Price breaks above the upper Bollinger band.
+2. Bears Power > 0 (bullish pressure, lows above average).
+3. Bulls Power > 0 (buyers dominate).
 
 Sell:
-1. Bulls Power columns must be higher than 0;
-2. The highs on the chart are rising, and on the indicator they are decreasing
+1. Price breaks below the lower Bollinger band.
+2. Bears Power < 0 (sellers dominate).
+3. Bulls Power < 0 (bearish pressure, highs below average).
 
 Exit:
-The Bulls Power indicator has become lower.
-*/
+Both long and short exits are done via trailing stop based on recent high/low candles.
+ */
 
 namespace OsEngine.Robots
 {
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     [Bot("StrategyBollingerBearsrAndBullsPowers")]
     public class StrategyBollingerBearsrAndBullsPowers : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -45,13 +53,13 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator Settings
+        // Indicators Settings
         private StrategyParameterInt _bollingerLength;
         private StrategyParameterDecimal _bollingerDeviation;
         private StrategyParameterInt _bearsPeriod;
         private StrategyParameterInt _bullsPeriod;      
 
-        // Indicator
+        // Indicators
         private Aindicator _bollinger;
         private Aindicator _bullsPower;
         private Aindicator _bearsPower;
@@ -67,6 +75,7 @@ namespace OsEngine.Robots
 
         public StrategyBollingerBearsrAndBullsPowers(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -81,7 +90,7 @@ namespace OsEngine.Robots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator Settings
+            // Indicators Settings
             _bollingerLength = CreateParameter("BollingerLength", 250, 50, 500, 20, "Indicator");
             _bollingerDeviation = CreateParameter("BollingerDeviation", 0.2m, 0.01m, 2, 0.02m, "Indicator");
             _bearsPeriod = CreateParameter("Bears Period", 20, 10, 300, 10, "Indicator");
@@ -115,14 +124,17 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy on Bears Power Divergence." +
-                "Sell:"+
-              
-                "1.Bulls Power columns must be higher than" +
-                "2.The highs on the chart are rising, and on the indicator they are decreasing" +
-               
-                "Exit" +
-                "The Bulls Power indicator has become lower.";
+            Description = "Strategy based on Bollinger Bands and Bears/Bulls Power indicators. " +
+                "Buy:" +
+                "1. Price breaks above the upper Bollinger band." +
+                "2. Bears Power > 0 (bullish pressure, lows above average)." +
+                "3. Bulls Power > 0 (buyers dominate)." +
+                "Sell:" +
+                "1. Price breaks below the lower Bollinger band." +
+                "2. Bears Power < 0 (sellers dominate)." +
+                "3. Bulls Power < 0 (bearish pressure, highs below average)." +
+                "Exit:" +
+                "Both long and short exits are done via trailing stop based on recent high/low candles.";
         }
 
         // Indicator Update event
@@ -132,9 +144,11 @@ namespace OsEngine.Robots
             ((IndicatorParameterDecimal)_bollinger.Parameters[1]).ValueDecimal = _bollingerDeviation.ValueDecimal;
             _bollinger.Save();
             _bollinger.Reload();
+
             ((IndicatorParameterInt)_bearsPower.Parameters[0]).ValueInt = _bearsPeriod.ValueInt;
             _bearsPower.Save();
             _bearsPower.Reload();
+
             ((IndicatorParameterInt)_bullsPower.Parameters[0]).ValueInt = _bullsPeriod.ValueInt;
             _bullsPower.Save();
             _bullsPower.Reload();
@@ -145,6 +159,7 @@ namespace OsEngine.Robots
         {
             return "StrategyBollingerBearsrAndBullsPowers";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -160,7 +175,9 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _bollingerLength.ValueInt || candles.Count < _bearsPeriod.ValueInt || candles.Count < _bullsPeriod.ValueInt)
+            if (candles.Count <= _bollingerLength.ValueInt +1 ||
+                candles.Count <= _bearsPeriod.ValueInt ||
+                candles.Count <= _bullsPeriod.ValueInt)
             {
                 return;
             }
@@ -327,7 +344,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

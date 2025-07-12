@@ -20,21 +20,25 @@ Trading robot for osengine.
 
 Trend strategy based on Adaptive Look Back and ROC indicators.
 
-Buy: 1. The candle closed above the high for the period Candles Count High + entry coefficient * Adaptive Look Back. (we set BuyAtStop).
-     2. ROC is above 0.
+Buy:
+1. The candle closed above the high for the period Candles Count High + entry coefficient * Adaptive Look Back. (we set BuyAtStop).
+2. ROC is above 0.
 
-Sell: 1. The candle closed below the lot during the period of the minimum number of candles - the entry coefficient * Adaptive look back (we install SellAtStop).
-      2. ROC is below 0.
+Sell: 
+1. The candle closed below the lot during the period of the minimum number of candles - the entry coefficient * Adaptive look back (we install SellAtStop).
+2. ROC is below 0.
 
-Exit: by the reverse signal of the RoC indicator.
+Exit:
+by the reverse signal of the RoC indicator.
 */
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyAdaptiveLookBackAndROC")] //We create an attribute so that we don't write anything in the Boot factory
+    [Bot("StrategyAdaptiveLookBackAndROC")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyAdaptiveLookBackAndROC : BotPanel
-    {
-        BotTabSimple _tab;
+    {   
+        // Reference to the main trading tab
+        private BotTabSimple _tab;
 
         // Basic Settings
         private StrategyParameterString _regime;
@@ -64,6 +68,7 @@ namespace OsEngine.Robots
 
         public StrategyAdaptiveLookBackAndROC(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -81,7 +86,7 @@ namespace OsEngine.Robots
             // Indicator Settings
             _lengthROC = CreateParameter("Rate of Change", 14, 1, 10, 1, "Indicator");
             _periodALB = CreateParameter("Adaptive Look Back", 5, 1, 10, 1, "Indicator");
-            _multALB = CreateParameter("CoefEntrytALB", 0.0002m, 0.0001m, 0.01m, 0.0001m, "Indicator");
+            _multALB = CreateParameter("CoefEntryALB", 0.0002m, 0.0001m, 0.01m, 0.0001m, "Indicator");
             _candlesCountHigh = CreateParameter("CandlesCountHigh", 10, 50, 100, 20, "Indicator");
             _candlesCountLow = CreateParameter("CandlesCountLow", 5, 20, 100, 10, "Indicator");
 
@@ -97,7 +102,8 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)ROC.Parameters[0]).ValueInt = _lengthROC.ValueInt;
             ROC.DataSeries[0].Color = Color.Red;
             ROC.Save();
-            ParametrsChangeByUser += StrategyAdaptiveLookBackAndROC_ParametrsChangeByUser;
+
+            ParametrsChangeByUser += _strategyAdaptiveLookBackAndROC_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -111,11 +117,12 @@ namespace OsEngine.Robots
         }
 
         // Indicator Update event
-        private void StrategyAdaptiveLookBackAndROC_ParametrsChangeByUser()
+        private void _strategyAdaptiveLookBackAndROC_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)ALB.Parameters[0]).ValueInt = _periodALB.ValueInt;
             ALB.Save();
             ALB.Reload();
+
             ((IndicatorParameterInt)ROC.Parameters[0]).ValueInt = _lengthROC.ValueInt;
             ROC.Save();
             ROC.Reload();
@@ -126,6 +133,7 @@ namespace OsEngine.Robots
         {
             return "StrategyAdaptiveLookBackAndROC";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -208,7 +216,7 @@ namespace OsEngine.Robots
                 {
                     _tab.SellAtStop(GetVolume(_tab),
                         lastPrice - _multALB.ValueDecimal * _lastALB/100 - _slippage,
-                        lastPrice - _multALB.ValueDecimal * _lastALB/100, StopActivateType.LowerOrEqyal,1);
+                        lastPrice - _multALB.ValueDecimal * _lastALB/100, StopActivateType.LowerOrEqual,1);
                 }
             }
         }
@@ -309,7 +317,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

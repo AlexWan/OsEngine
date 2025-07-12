@@ -31,7 +31,7 @@ Exit from sell: When the previous value of the EOM Watcher indicator was below t
 and the current value is above the lower line.
  */
 
-namespace OsEngine.Robots.MyBots
+namespace OsEngine.Robots
 {
     [Bot("ContrTrendEomWatcherAndADX")] // We create an attribute so that we don't write anything to the BotFactory
     internal class ContrTrendEomWatcherAndADX : BotPanel
@@ -49,7 +49,7 @@ namespace OsEngine.Robots.MyBots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator setting 
+        // Indicator settings
         private StrategyParameterInt _lengthEomW;
         private StrategyParameterInt _lengthADX;
 
@@ -62,7 +62,7 @@ namespace OsEngine.Robots.MyBots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            // Basic setting
+            // Basic settings
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On", "OnlyLong", "OnlyShort", "OnlyClosePosition" }, "Base");
             _slippage = CreateParameter("Slippage %", 0m, 0, 20, 1, "Base");
             _startTradeTime = CreateParameterTimeOfDay("Start Trade Time", 0, 0, 0, 0, "Base");
@@ -73,7 +73,7 @@ namespace OsEngine.Robots.MyBots
             _volume = CreateParameter("Volume", 20, 1.0m, 50, 4);
             _tradeAssetInPortfolio = CreateParameter("Asset in portfolio", "Prime");
 
-            // Indicator setting
+            // Indicator settings
             _lengthEomW = CreateParameter("Length EomW", 24, 5, 100, 5, "Indicator");
             _lengthADX = CreateParameter("Length ADX", 14, 10, 300, 10, "Indicator");
 
@@ -117,6 +117,7 @@ namespace OsEngine.Robots.MyBots
             _ADX.Reload();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "ContrTrendEomWatcherAndADX";
@@ -280,7 +281,7 @@ namespace OsEngine.Robots.MyBots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

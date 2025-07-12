@@ -9,12 +9,15 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
 
+/* Description
+TestBot for OsEngine.
+
+Do not enable - a robot for testing the synchronism of the array of trades in the candle and the candles themselves.
+*/
+
 namespace OsEngine.Robots.AutoTestBots
 {
-    /// <summary>
-    /// Робот созданный для тестирования синхронности массива трейдов в свече и самих свечек
-    /// </summary>
-    [Bot("TestBotTradesInCandlesTest")]
+    [Bot("TestBotTradesInCandlesTest")] //We create an attribute so that we don't write anything in the Boot factory
     public class TestBotTradesInCandlesTest : BotPanel
     {
         public TestBotTradesInCandlesTest(string name, StartProgram startProgram) : base(name, startProgram)
@@ -31,39 +34,39 @@ namespace OsEngine.Robots.AutoTestBots
 
         BotTabScreener _screenerTab;
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "TestBotTradesInCandlesTest";
         }
 
+        // Show settings GUI
         public override void ShowIndividualSettingsDialog()
         {
 
         }
 
-// логика проверки
+        // logic
 
         private void _screenerTab_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)
         {
-            // иногда массив трейдов внутри свечи - строится не верно.
-            // и последний трейд в свече - его цена, не соответствует цене закрытия. 
+            // sometimes the array of trades inside the candle is not built correctly.
+            // and the last trade in the candle - its price does not correspond to the closing price.
 
-            // берём последнюю свечу
-
+            // we take the last candle
             Candle candle = candles[candles.Count - 1];
 
-            // берём из неё трейды
-
+            // we take trades from it
             List<Trade> trades = candle.Trades;
 
             if(trades == null ||
                 trades.Count == 0)
-            { // включаем сохранение трейдов в свечку
+            { // enable saving trades in a candle
                 tab.Connector.SaveTradesInCandles = true;
                 return;
             }
 
-            // рассчитываем OHLCV свечи по трейдам внутри
+            // we calculate OHLCV candles by trades inside
             decimal open = trades[0].Price;
             decimal high = 0;
             decimal low = decimal.MaxValue;
@@ -86,31 +89,28 @@ namespace OsEngine.Robots.AutoTestBots
 
             if (candle.Open != open)
             {
-                tab.SetNewLogMessage("Open не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Open not equal. Error in storing trades inside the candle." + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.High != high)
             {
-                tab.SetNewLogMessage("High не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("High not equal. Error in storing trades inside the candle." + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.Low != low)
             {
-                tab.SetNewLogMessage("Low не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Low not equal. Error in storing trades inside the candle." + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.Close != close)
             {
-                tab.SetNewLogMessage("Close не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Close not equal. Error in storing trades inside the candle." + tab.Security.Name, Logging.LogMessageType.Error);
             }
 
             if (candle.Volume != volume)
             {
-                tab.SetNewLogMessage("Volume не равен. Ошибка в хранении трейдов внутри свечи. Бумага" + tab.Security.Name, Logging.LogMessageType.Error);
+                tab.SetNewLogMessage("Volume not equal. Error in storing trades inside the candle." + tab.Security.Name, Logging.LogMessageType.Error);
             }
-
         }
-
-
     }
 }

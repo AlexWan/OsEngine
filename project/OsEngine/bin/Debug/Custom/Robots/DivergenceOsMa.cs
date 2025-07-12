@@ -26,7 +26,7 @@ Sell: The highs on the chart are rising, and on the indicator they are decreasin
 Exit: After a certain number of candles.
 */
 
-namespace OsEngine.Robots.MyBots
+namespace OsEngine.Robots
 {
     [Bot("DivergenceOsMa")] // We create an attribute so that we don't write anything to the BotFactory
     internal class DivergenceOsMa : BotPanel
@@ -122,6 +122,7 @@ namespace OsEngine.Robots.MyBots
             _zigZagOsma.Reload();
         }
 
+        // The name of the robot in OsEngine
         public override string GetNameStrategyType()
         {
             return "DivergenceOsMa";
@@ -129,6 +130,7 @@ namespace OsEngine.Robots.MyBots
 
         public override void ShowIndividualSettingsDialog()
         {
+
         }
 
         // Logic
@@ -265,7 +267,9 @@ namespace OsEngine.Robots.MyBots
             for (int i = candles.Count - 1; i >= 0; i--)
             {
                 counter++;
+
                 DateTime candelTime = candles[i].TimeStart;
+
                 if (candelTime == openTime)
                 {
                     if (counter >= _exitCandles.ValueInt + 1)
@@ -487,7 +491,7 @@ namespace OsEngine.Robots.MyBots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);

@@ -148,7 +148,7 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 if (QuikLua != null && QuikLua.Service.IsConnected().Result)
                 {
-                    QuikLua.Service.QuikService.Stop();
+                    bool isStoped = QuikLua.Service.QuikService.Stop();
                 }
             }
             catch (Exception error)
@@ -478,6 +478,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 newSec.State = SecurityStateType.Activ;
                 newSec.Exchange = "MOEX";
+                newSec.VolumeStep = 1;
 
                 newSec.Decimals = Convert.ToInt32(oneSec.Scale);
 
@@ -538,10 +539,7 @@ namespace OsEngine.Market.Servers.QuikLua
 
         private List<Portfolio> _portfolios;
 
-        public void GetPortfolios()
-        {
-
-        }
+        public void GetPortfolios() { }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
         private void GetPortfoliosArea()
@@ -564,7 +562,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 while (true)
                 {
-                    Thread.Sleep(5000);
 
                     if (MainWindow.ProccesIsWorked == false)
                     {
@@ -573,6 +570,13 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     if (QuikLua == null)
                     {
+                        Thread.Sleep(100);
+                        continue;
+                    }
+
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        Thread.Sleep(100);
                         continue;
                     }
 
@@ -594,14 +598,17 @@ namespace OsEngine.Market.Servers.QuikLua
                         myPortfolio.Number = accaunts[i].TrdaccId;
 
                         PortfolioInfo qPortfolio = new PortfolioInfo();
-                        if (_isClientCodeOne == false)
+
+                        if (_isClientCodeOne == false && QuikLua != null)
                             qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, accaunts[i].TrdaccId).Result;
-                        else
+                        else if (QuikLua != null)
                             qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
 
-                        if (qPortfolio.Assets == null ||
+                        if (qPortfolio != null && qPortfolio.Assets == null ||
                             qPortfolio.Assets.ToDecimal() == 0)
                         {
+                            if (QuikLua == null) continue;
+
                             PortfolioInfoEx qPortfolioEx =
                                 QuikLua.Trading.GetPortfolioInfoEx(accaunts[i].Firmid, myPortfolio.Number, 0).Result;
 
@@ -642,13 +649,14 @@ namespace OsEngine.Market.Servers.QuikLua
                         }
                     }
 
+                    Thread.Sleep(5000);
+
                     if (PortfolioEvent != null)
                     {
                         PortfolioEvent(_portfolios);
                     }
                 }
             }
-
             catch (Exception error)
             {
                 SendLogMessage(error.ToString(), LogMessageType.Error);
@@ -664,16 +672,10 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 try
                 {
-                    if (QuikLua != null)
-                    {
-                        bool quikStateIsActiv = QuikLua.Service.IsConnected().Result;
-                    }
-
                     if (QuikLua == null)
                     {
                         continue;
                     }
-
 
                     if (ServerStatus == ServerConnectStatus.Disconnect)
                     {
@@ -859,6 +861,11 @@ namespace OsEngine.Market.Servers.QuikLua
                 {
                     _gateToGetCandles.WaitToProceed();
 
+                    if (ServerStatus == ServerConnectStatus.Disconnect)
+                    {
+                        return null;
+                    }
+
                     if (timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes > 1440 ||
                         timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes < 1)
                     {
@@ -882,6 +889,11 @@ namespace OsEngine.Market.Servers.QuikLua
                         }
 
                         List<QuikSharp.DataStructures.Candle> allCandlesForSec = QuikLua.Candles.GetLastCandles(classCode, needSec.Name.Split('+')[0], candleInterval, candleCount).Result;
+
+                        if (allCandlesForSec == null)
+                        {
+                            return null;
+                        }
 
                         for (int i = 0; i < allCandlesForSec.Count; i++)
                         {
@@ -921,7 +933,7 @@ namespace OsEngine.Market.Servers.QuikLua
             }
             catch (Exception error)
             {
-                SendLogMessage(error.ToString(), LogMessageType.Error);
+                //SendLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
             }
         }
@@ -1126,7 +1138,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         allTrade.Datetime.hour, allTrade.Datetime.min, allTrade.Datetime.sec);
                     trade.MicroSeconds = allTrade.Datetime.mcs;
 
-                    if(allTrade.OpenInterest != 0)
+                    if (allTrade.OpenInterest != 0)
                     {
                         trade.OpenInterest = Convert.ToInt32(allTrade.OpenInterest);
                     }
@@ -1641,7 +1653,6 @@ namespace OsEngine.Market.Servers.QuikLua
                     MyOrderEvent(order);
                 }
             }
-
         }
 
         private List<Order> _ordersAllReadyCanseled = new List<Order>();
@@ -1701,7 +1712,6 @@ namespace OsEngine.Market.Servers.QuikLua
             {
                 SendLogMessage(e.ToString(), LogMessageType.Error);
             }
-
         }
 
         [System.Runtime.ExceptionServices.HandleProcessCorruptedStateExceptionsAttribute]
@@ -1724,16 +1734,16 @@ namespace OsEngine.Market.Servers.QuikLua
                 if (foundOrder != null)
                 {
                     EventsOnOnOrder(foundOrder);
-                  
-                    if(foundOrder.State == State.Active)
+
+                    if (foundOrder.State == State.Active)
                     {
                         return OrderStateType.Active;
                     }
-                    else if(foundOrder.State == State.Completed)
+                    else if (foundOrder.State == State.Completed)
                     {
                         return OrderStateType.Done;
                     }
-                    else if(foundOrder.State == State.Canceled)
+                    else if (foundOrder.State == State.Canceled)
                     {
                         return OrderStateType.Cancel;
                     }

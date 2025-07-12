@@ -18,13 +18,13 @@ using System.IO;
 /* Description
 Trading robot for osengine.
 
-Trend strategy based on 2 indicators Sma and RSI. 
+Trend strategy based on 2 indicators Sma and Stohastic. 
 
 Buy:
-If lastClose > lastSma + Step and secondLastRsi <= Downline and firstLastRsi >= Downline - Enter Long. 
+If lastClose > lastSma + Step and secondLastStoh <= Downline and firstLastStoh >= Downline - Enter Long. 
 
 Sell: 
-If lastClose < lastSma - Step and secondLastRsi >= Upline and firstLastRsi <= Upline - Enter Short. 
+If lastClose < lastSma - Step and secondLastStoh >= Upline and firstLastStoh <= Upline - Enter Short. 
 
 Exit Long: lastClose < lastSma - Step.
 Exit Short: lastClose > lastSma + Step.

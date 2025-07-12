@@ -32,13 +32,14 @@ the trailing stop and is transferred (sliding) to new price lows, also for the s
 
 Exit from sell: Trailing stop is placed on the maximum for the period specified 
 for the trailing stop and is transferred (sliding) to a new price maximum, also for the specified period.
- */
+*/
 
 namespace OsEngine.Robots
 {
-    [Bot("StrategyEmaAndCCI")] // We create an attribute so that we don't write anything to the BotFactory
+    [Bot("StrategyEmaAndCCI")] // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     public class StrategyEmaAndCCI : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -52,11 +53,11 @@ namespace OsEngine.Robots
         private StrategyParameterDecimal _volume;
         private StrategyParameterString _tradeAssetInPortfolio;
 
-        // Indicator settings
+        // Indicators settings
         private StrategyParameterInt _lengthEma;
         private StrategyParameterInt _lengthCCI;
 
-        // Indicator
+        // Indicators
         private Aindicator _ema;
         private Aindicator _CCI;
 
@@ -69,6 +70,7 @@ namespace OsEngine.Robots
 
         public StrategyEmaAndCCI(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -103,7 +105,7 @@ namespace OsEngine.Robots
             _trailBars = CreateParameter("TrailBars", 10, 10, 300, 10, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyEmaAndCCI_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += _strategyEmaAndCCI_ParametrsChangeByUser; ;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
@@ -121,11 +123,12 @@ namespace OsEngine.Robots
                 "for the trailing stop and is transferred (sliding) to a new price maximum, also for the specified period.";
         }
 
-        private void StrategyEmaAndCCI_ParametrsChangeByUser()
+        private void _strategyEmaAndCCI_ParametrsChangeByUser()
         {
             ((IndicatorParameterInt)_CCI.Parameters[0]).ValueInt = _lengthCCI.ValueInt;
             _CCI.Save();
             _CCI.Reload();
+
             ((IndicatorParameterInt)_ema.Parameters[0]).ValueInt = _lengthEma.ValueInt;
             _ema.Save();
             _ema.Reload();
@@ -136,6 +139,7 @@ namespace OsEngine.Robots
         {
             return "StrategyEmaAndCCI";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -151,8 +155,8 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _lengthEma.ValueInt ||
-                candles.Count < _lengthCCI.ValueInt)
+            if (candles.Count <= _lengthEma.ValueInt ||
+                candles.Count <= _lengthCCI.ValueInt)
             {
                 return;
             }
@@ -389,4 +393,3 @@ namespace OsEngine.Robots
         }
     }
 }
-

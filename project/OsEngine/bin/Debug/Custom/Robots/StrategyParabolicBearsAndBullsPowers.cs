@@ -20,12 +20,12 @@ Trading robot for osengine.
 Trend strategy on Bears Power, Bulls Power and Parabolic SAR.
 
 Buy:
-1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up.
+1. The price is higher than the Parabolic value.
 2. Bears Power columns must be higher than 0.
 3. Bulls Power columns must be above 0.
 
 Sell:
-1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom.
+1. The price is lower than the Parabolic value.
 2. Bulls Power columns must be below 0.
 3. Bears Power columns must be below 0.
 
@@ -34,12 +34,13 @@ On the opposite signal of the parabolic.
 */
 
 namespace OsEngine.Robots
-{  
-    // We create an attribute so that we don't write anything to the BotFactory
+{
+    // Instead of manually adding through BotFactory, we use an attribute to simplify the process.
     [Bot("StrategyParabolicBearsAndBullsPowers")]
    
     public class StrategyParabolicBearsAndBullsPowers : BotPanel
     {
+        // Reference to the main trading tab
         private BotTabSimple _tab;
 
         // Basic Settings
@@ -71,6 +72,7 @@ namespace OsEngine.Robots
        
         public StrategyParabolicBearsAndBullsPowers(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            // Create and assign the main trading tab
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
@@ -109,18 +111,18 @@ namespace OsEngine.Robots
             ((IndicatorParameterInt)_bearsPower.Parameters[0]).ValueInt = _bearsPeriod.ValueInt;
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyParabolicBearsAndBullsPowers_ParametrsChangeByUser;
+            ParametrsChangeByUser += _strategyParabolicBearsAndBullsPowers_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
             Description = "Trend strategy on Bears Power, Bulls Power and Parabolic SAR. " +
                 "Buy: " +
-                "1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up. " +
+                "1. The price is higher than the Parabolic value." +
                 "2. Bears Power columns must be higher than 0. " +
                 "3. Bulls Power columns must be above 0. " +
                 "Sell: " +
-                "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
+                "1. The price is lower than the Parabolic value." +
                 "2. Bulls Power columns must be below 0. " +
                 "3. Bears Power columns must be below 0. " +
                 "Exit: " +
@@ -128,15 +130,17 @@ namespace OsEngine.Robots
         }
 
         // Indicator Update event
-        private void StrategyParabolicBearsAndBullsPowers_ParametrsChangeByUser()
+        private void _strategyParabolicBearsAndBullsPowers_ParametrsChangeByUser()
         {
             ((IndicatorParameterDecimal)_ps.Parameters[0]).ValueDecimal = _step.ValueDecimal;
             ((IndicatorParameterDecimal)_ps.Parameters[1]).ValueDecimal = _maxStep.ValueDecimal;
             _ps.Save();
             _ps.Reload();
+
             ((IndicatorParameterInt)_bearsPower.Parameters[0]).ValueInt = _bearsPeriod.ValueInt;
             _bearsPower.Save();
             _bearsPower.Reload();
+
             ((IndicatorParameterInt)_bullsPower.Parameters[0]).ValueInt = _bullsPeriod.ValueInt;
             _bullsPower.Save();
             _bullsPower.Reload();
@@ -147,6 +151,7 @@ namespace OsEngine.Robots
         {
             return "StrategyParabolicBearsAndBullsPowers";
         }
+
         public override void ShowIndividualSettingsDialog()
         {
 
@@ -162,11 +167,13 @@ namespace OsEngine.Robots
             }
 
             // If there are not enough candles to build an indicator, we exit
-            if (candles.Count < _step.ValueDecimal|| candles.Count < _maxStep.ValueDecimal||candles.Count < _bearsPeriod.ValueInt||candles.Count < _bullsPeriod.ValueInt)
+            if (candles.Count <= _step.ValueDecimal ||
+                candles.Count <= _bearsPeriod.ValueInt ||
+                candles.Count <= _bullsPeriod.ValueInt)
             {
                 return;
             }
-
+            
             // If the time does not match, we leave
             if (_startTradeTime.Value > _tab.TimeServerCurrent ||
                 _endTradeTime.Value < _tab.TimeServerCurrent)
@@ -200,11 +207,10 @@ namespace OsEngine.Robots
         {
             List<Position> openPositions = _tab.PositionsOpenAll;
 
-            // The last value of the indicators
             decimal _slippage = this._slippage.ValueDecimal * _tab.Securiti.PriceStep;
             decimal lastPrice = candles[candles.Count - 1].Close;
-
-            // He last value of the indicator           
+            
+            // The last value of the indicator           
             _lastSar = _ps.DataSeries[0].Last;
             _lastBulls = _bullsPower.DataSeries[0].Last;
             _lastBears = _bearsPower.DataSeries[0].Last;
@@ -286,7 +292,7 @@ namespace OsEngine.Robots
 
                     if (serverPermission != null &&
                         serverPermission.IsUseLotToCalculateProfit &&
-                    tab.Security.Lot != 0 &&
+                        tab.Security.Lot != 0 &&
                         tab.Security.Lot > 1)
                     {
                         volume = _volume.ValueDecimal / (contractPrice * tab.Security.Lot);
