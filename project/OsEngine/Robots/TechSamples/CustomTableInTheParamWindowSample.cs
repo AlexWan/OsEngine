@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Language;
 
 /*Description
 Sample “Custom Table In The Param Window” for osengine.
@@ -104,11 +105,7 @@ namespace OsEngine.Robots.TechSamples
             this.DeleteEvent += DeleteBotEvent;
             _tableDataGrid.CellValueChanged += CellValueChanged;
 
-            Description = "Sample “Custom Table In The Param Window” for osengine. " +
-                "It shows: " +
-                "• Dynamic table: The table is updated in real time as new data arrives. " +
-                "• User Interaction: The user can change data in the table and get values ​​in specific cells. " +
-                "• Customizable parameters: Ability to turn the robot on and off and also set a trailing stop for exit.";
+            Description = OsLocalization.Description.DescriptionLabel104;
         }
 
         // Event of changes values the table

@@ -14,6 +14,7 @@ using System;
 using System.Threading;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
+using OsEngine.Language;
 
 /* Description
 TestBot for OsEngine.
@@ -33,9 +34,7 @@ namespace OsEngine.Robots.AutoTestBots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Description = "TestBot for OsEngine. " +
-                "Do not turn on - a robot for testing the synchronism of " +
-                "candles created inside OsEngine and requested from the exchange";
+            Description = OsLocalization.Description.DescriptionLabel0;
 
             if (startProgram != StartProgram.IsOsTrader)
             {

@@ -142,15 +142,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             // Subscribe to the indicator update event
             ParametrsChangeByUser += PriceChannelScreenerOnIndexVolatility_ParametrsChangeByUser;
 
-            Description = "The trend robot on PriceChannel Screener On Index Volatility. " +
-                "Buy: " +
-                "1. The price breaks above the upper band of the Price Channel. " +
-                "2. (If ATR filter is enabled) The ATR has grown by at least X% over the last N candles. " +
-                "Sell: " +
-                "1. The price breaks below the lower band of the Price Channel. " +
-                "2. (If ATR filter is enabled) The ATR has grown by at least X% over the last N candles. " +
-                "Exit for long: Close using a trailing stop set at the lower Price Channel band. " +
-                "Exit for short: Close using a trailing stop set at the upper Price Channel band.";
+            Description = OsLocalization.Description.DescriptionLabel122;
 
             if (StartProgram == StartProgram.IsTester 
                 && ServerMaster.GetServers() != null)

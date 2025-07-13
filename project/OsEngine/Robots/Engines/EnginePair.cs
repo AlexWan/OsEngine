@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
@@ -18,7 +19,7 @@ namespace OsEngine.Robots.Engines
             // Create tabs
             TabCreate(BotTabType.Pair);
 
-            Description = "blank strategy for manual pair trading";
+            Description = OsLocalization.Description.DescriptionLabel30;
         }
 
         // The name of the robot in OsEngine

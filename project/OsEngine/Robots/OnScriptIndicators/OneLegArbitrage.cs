@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -68,8 +69,7 @@ public class OneLegArbitrage : BotPanel
         // Subscribe to the candle finished event
         _tab2.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-        Description = "Trading robot on the index. " +
-            "The intersection of MA on the index from the bottom up long, with the reverse intersection of shorts";
+        Description = OsLocalization.Description.DescriptionLabel61;
     }
 
     // The name of the robot in OsEngine

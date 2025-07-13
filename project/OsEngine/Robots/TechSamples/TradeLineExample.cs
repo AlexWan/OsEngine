@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Charts.CandleChart.Elements;
 using System.Windows.Forms.DataVisualization.Charting;
 using Line = OsEngine.Charts.CandleChart.Elements.Line;
+using OsEngine.Language;
 
 /* Description
 TechSample robot for osengine.
@@ -69,7 +70,7 @@ namespace OsEngine.Robots.TechSamples
 
             ParametrsChangeByUser += TradeLineExample_ParametrsChangeByUser;
 
-            this.Description = "Example of trading on sloping levels";
+            this.Description = OsLocalization.Description.DescriptionLabel109;
         }
         
         // Indicator Update event

@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -76,9 +77,7 @@ namespace OsEngine.Robots.Trend
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-            Description = "Trend strategy on interseption PriceChannel indicator. " +
-                "if PriceLow < _lastPriceChDown - close position and open Short. " +
-                "if PriceHigh > _lastPriceChUp - close position and open Long.";
+            Description = OsLocalization.Description.DescriptionLabel117;
         }
 
         // The name of the robot in OsEngine

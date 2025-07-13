@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -61,9 +62,7 @@ namespace OsEngine.Robots.MarketMaker
 
             DeleteEvent += Strategy_DeleteEvent;
 
-            Description = "Buy: If the price crosses above a line from below, it is considered a buy signal. " +
-                "Sell: If the price crosses below a line from above, it is considered a sell signal. " +
-                "Exit: Opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel48;
         }
 
         // The name of the robot in OsEngine

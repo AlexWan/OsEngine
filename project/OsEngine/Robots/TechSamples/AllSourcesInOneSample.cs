@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
@@ -37,7 +38,7 @@ namespace OsEngine.Robots.TechSamples
             // TabsCluster[0].
             // TabsNews[0].
 
-            Description = "Example bot that initializes all available source types in OsEngine: Simple, Index, Pair, Screener, Polygon, Cluster, and News";
+            Description = OsLocalization.Description.DescriptionLabel96;
         }
 
         public override string GetNameStrategyType()

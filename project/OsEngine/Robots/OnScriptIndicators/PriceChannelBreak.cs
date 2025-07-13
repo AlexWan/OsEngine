@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -82,9 +83,7 @@ public class PriceChannelBreak : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-        Description = "When the candle is closed outside the PriceChannel channel," +
-            " we enter the position, the stop loss is at the extremum of the last candle from the entry candle," +
-            " take profit by the channel size from the close of the candle at which the entry occurred";
+        Description = OsLocalization.Description.DescriptionLabel63;
     }
 
     void Event_ParametrsChangeByUser()

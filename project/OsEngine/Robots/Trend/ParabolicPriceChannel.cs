@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -122,10 +123,7 @@ public class ParabolicPriceChannel : BotPanel
 
         Bot_ParametrsChangeByUser();
 
-        Description = "Trend strategy on Parabolic PriceChannel.  " +
-            "Buy: if the current closing price is below the upper level of the PriceChannel.   " +
-            "Sell: if the current closing price is above the lower level of the PriceChannel.  " +
-            "Exit: by trailing stop.";
+        Description = OsLocalization.Description.DescriptionLabel115;
     }
 
     private void Bot_ParametrsChangeByUser()

@@ -12,6 +12,7 @@ using System;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -91,13 +92,7 @@ namespace OsEngine.Robots.Screeners
             // Subscribe to the indicator update event
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
 
-            Description = "The trend robot on PriceChannel Adaptive RsiScreener. " +
-                "Entry long: " +
-                "1. Verify that the total number of positions across all tabs does not exceed the maximum allowed (MaxPoses). " +
-                "2. If RSI is below a minimum threshold (MinRsiValueToEntry), do not enter. " +
-                "3. If it is higher than pcUp, then consider entering a long position. " +
-                "4. If the current SMA is lower than the previous SMA (indicating a downtrend), do not enter. " +
-                "Exit: by trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel92;
         }
 
         private void SmaScreener_ParametrsChangeByUser()

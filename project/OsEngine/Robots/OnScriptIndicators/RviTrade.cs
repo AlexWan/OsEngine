@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -80,10 +81,7 @@ public class RviTrade : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += RviTrade_ParametrsChangeByUser;
 
-        Description = "Trend strategy at the intersection of the indicator RVI" +
-            "Buy: lastRviDown < 0 and lastRviUp > lastRviDown. " +
-            "Sell: lastRviDown > 0 and lastRviUp < lastRviDown. " +
-            "Exit: By return signal";
+        Description = OsLocalization.Description.DescriptionLabel66;
     }
 
     void RviTrade_ParametrsChangeByUser()

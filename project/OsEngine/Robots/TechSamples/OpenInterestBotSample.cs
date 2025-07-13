@@ -11,6 +11,7 @@ using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System;
+using OsEngine.Language;
 
 /* Description
 An example of a robot requesting open interest in its logic.
@@ -61,9 +62,7 @@ namespace OsEngine.Robots.TechSamples
             _profitPercent = CreateParameter("Profit percent", 0.1m, 10m, 300, 10);
             _stopPercent = CreateParameter("Stop percent", 0.1m, 10m, 300, 10);
 
-            Description = "An example of a robot requesting open interest in its logic. " +
-                  "Enter Long when OI falls to the specified value. " +
-                  "Exit by stop and profit orders.";
+            Description = OsLocalization.Description.DescriptionLabel107;
         }
 
         // The name of the robot in OsEngine

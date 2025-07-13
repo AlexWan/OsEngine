@@ -12,6 +12,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /* Description
 Robot example from the lecture course "C# for algotreader".
@@ -125,6 +126,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
             // Subscribe to the candle finished event
             // Подписка на завершение свечи
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
+
+            Description = OsLocalization.Description.DescriptionLabel13;
         }
 
         private void Lesson5Bot2_ParametrsChangeByUser()

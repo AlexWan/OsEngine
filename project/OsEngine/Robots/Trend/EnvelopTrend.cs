@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -92,11 +93,7 @@ namespace OsEngine.Robots.Trend
             // Subscribe to the indicator update event
             ParametrsChangeByUser += EnvelopTrend_ParametrsChangeByUser;
 
-            Description = "Trend strategy based on indicator Envelop. " +
-                "Entrance to Long: entry when the price crosses the upper border of the channel. " +
-                "Entrance to Short: entry when the price crosses the lower border of the channel. " +
-                "Exiting a Long position: by trailing stop. " +
-                "Exit from a Short position: by trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel112;
         }
 
         private void EnvelopTrend_ParametrsChangeByUser()

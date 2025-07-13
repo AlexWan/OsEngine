@@ -12,6 +12,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 namespace OsEngine.Robots.PositionsMicromanagement
 {
@@ -73,7 +74,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Example of a robot that shows the logic of trading two patterns within one logic";
+            Description = OsLocalization.Description.DescriptionLabel84;
         }
 
         private void EnvelopTrend_ParametrsChangeByUser()

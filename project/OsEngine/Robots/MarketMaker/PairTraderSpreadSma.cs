@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -98,10 +99,7 @@ namespace OsEngine.Robots.MarketMaker
 
             DeleteEvent += Strategy_DeleteEvent;
 
-            Description = "pair trading robot building spread and trading based on the intersection of MA on the spread chart " +
-                "SmaLong crossed SmaShort from top to bottom - the first tab sells, the second one buys. " +
-                "SmaLong crossed SmaShort from the bottom up - the first one is buying, the second one is selling. " +
-                "Exit: on the opposite signal";
+            Description = OsLocalization.Description.DescriptionLabel50;
         }
 
         // The name of the robot in OsEngine

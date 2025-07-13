@@ -5,6 +5,7 @@
 
 using System;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
@@ -42,14 +43,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             StrategyParameterButton button5 = CreateParameterButton("Button5. DateTime");
             button5.UserClickOnButtonEvent += Button5_UserClickOnButtonEvent;
 
-            Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
-                "In this code 5 buttons are created in the parameters of the robot." +
-                "Different buttons are responsible for the interaction with different types of data." +
-                "button #1 brings out the error log of which text is line-based." +
-                "button #2 outputs 2 error logs with values of type int." +
-                "button #3 outputs 2 error logs with values of type Decimal." +
-                "button #4 output 2 error logs with Bool values." +
-                "button #5 output error log with DateTime value.";
+            Description = OsLocalization.Description.DescriptionLabel6;
         }
 
         private void Button5_UserClickOnButtonEvent()

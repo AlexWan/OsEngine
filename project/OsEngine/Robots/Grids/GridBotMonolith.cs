@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Threading;
 using System.Linq;
+using OsEngine.Language;
 
 [Bot("GridBotMonolith")]
 public class GridBotMonolith : BotPanel
@@ -135,7 +136,7 @@ public class GridBotMonolith : BotPanel
         Thread worker = new Thread(WorkerThreadArea);
         worker.Start();
 
-        Description = "An example of a grid robot with rich customizations. Obsolete due to size and the new layer of mesh robot creation. But left in the assembly for possible modifications.";
+        Description = OsLocalization.Description.DescriptionLabel36;
     }
 
     private BotTabSimple _tab;

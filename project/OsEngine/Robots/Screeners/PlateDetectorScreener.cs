@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -66,10 +67,7 @@ namespace OsEngine.Robots.Screeners
             _stopPercent = CreateParameter("Stop percent", 0.5m, 0, 20, 1m);
             _orderLifeTime = CreateParameter("Order life time milliseconds", 2000, 0, 20, 1);
 
-            Description = "The trend robot on Plate Detector Screener. " +
-                "Buy: " +
-                "1. If the Bid ratio is higher than the specified minimum value BestBidMinRatioToAll. " +
-                "Exit: based on stop and profit.";
+            Description = OsLocalization.Description.DescriptionLabel91;
         }
 
         // The name of the robot in OsEngine

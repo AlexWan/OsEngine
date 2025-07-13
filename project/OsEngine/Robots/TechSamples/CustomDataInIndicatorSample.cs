@@ -9,6 +9,8 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Collections.Generic;
+using OsEngine.Language;
+
 
 /* Description
 TechSample robot for OsEngine
@@ -40,7 +42,7 @@ namespace OsEngine.Robots.TechSamples
             _indicatorEmpty = IndicatorsFactory.CreateIndicatorByName("EmptyIndicator", name + "EmptyIndicator", false);
             _indicatorEmpty = (Aindicator)_tab.CreateCandleIndicator(_indicatorEmpty, "SecondArea");
 
-            Description = "An example of drawing a series of indicator data calculated in the robot.";
+            Description = OsLocalization.Description.DescriptionLabel102;
         }
 
         // Candle finished event

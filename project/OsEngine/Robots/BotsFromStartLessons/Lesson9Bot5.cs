@@ -5,6 +5,7 @@
 
 using System.Threading;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -51,6 +52,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
             // ChangeOrderPrice
             _changeOrderPriceButton = CreateParameterButton("Change order price", "ChangeOrderPrice");
             _changeOrderPriceButton.UserClickOnButtonEvent += _changeOrderPriceButton_UserClickOnButtonEvent;
+
+            Description = OsLocalization.Description.DescriptionLabel22;
         }
 
         #region CloseAllOrderToPosition

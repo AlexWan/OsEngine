@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -101,20 +102,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "The trend robot on Strategy Alligator Trend Average. " +
-                "Buy: " +
-                "1. The current price is above all lines of the Alligator indicator. " +
-                "2. The Alligator lines are arranged in order: fast > middle > slow. " +
-                "Sell: " +
-                "1. The current price is below all lines of the Alligator indicator. " +
-                "2. The Alligator lines are arranged in order: fast < middle < slow. " +
-                "Standard Exit:  " +
-                "Triggered by the opposite signal (i.e., when the conditions for entry are no longer valid). " +
-                "Averaging Positions:  " +
-                "If the price moves against the position and reaches certain conditions, additional volume is added to the position using a market order. " +
-                "Pyramid: " +
-                "If the price moves in the direction of the position and exceeds a certain percentage of the entry price (`_pyramidPercent`), a new part of the " +
-                "position (pyramiding) is added.";
+            Description = OsLocalization.Description.DescriptionLabel79;
         }
 
         void Event_ParametrsChangeByUser()

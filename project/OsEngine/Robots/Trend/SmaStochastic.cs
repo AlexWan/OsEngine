@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -86,11 +87,7 @@ namespace OsEngine.Robots.Trend
             // Subscribe to the strategy delete event
             DeleteEvent += Strategy_DeleteEvent;
 
-            Description = "Trend strategy based on 2 indicators Sma and RSI. " +
-                "if lastClose > lastSma + Step and secondLastRsi <= Downline and firstLastRsi >= Downline - Enter Long. " +
-                "if lastClose < lastSma - Step and secondLastRsi >= Upline and firstLastRsi <= Upline - Enter Short. " +
-                "Exit Long: lastClose < lastSma - Step. " +
-                "Exit Short: lastClose > lastSma + Step.";
+            Description = OsLocalization.Description.DescriptionLabel118;
         }
 
         // The name of the robot in OsEngine

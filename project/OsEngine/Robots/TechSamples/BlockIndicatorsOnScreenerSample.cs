@@ -9,6 +9,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Collections.Generic;
+using OsEngine.Language;
 
 /* Description
 Tech sample for OsEngine:
@@ -52,8 +53,7 @@ namespace OsEngine.Robots.TechSamples
             // Subscribe to the candle finished event
             _screenerSource.CandleFinishedEvent += _screenerSource_CandleFinishedEvent;
 
-            Description = "Tech sample for OsEngine:" +
-                "Demonstrates switching Bollinger, SMA, and ATR indicators on/off in a Screener tab.";
+            Description = OsLocalization.Description.DescriptionLabel97;
         }
 
         private void _screenerSource_CandleFinishedEvent(List<Candle> candles, BotTabSimple tab)

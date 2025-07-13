@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -115,9 +116,7 @@ public class RsiTrade : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-        Description = "RSI's concurrent overbought and oversold strategy " +
-        "Logic: if RsiSecond <= DownLine - close position and open Long. " +
-        "Logic: if RsiSecond >= UpLine - close position and open Short.";
+        Description = OsLocalization.Description.DescriptionLabel65;
     }
 
     void Event_ParametrsChangeByUser()

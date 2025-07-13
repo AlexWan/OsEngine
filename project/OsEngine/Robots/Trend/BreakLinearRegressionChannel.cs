@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Gui;
@@ -108,12 +109,7 @@ public class BreakLinearRegressionChannel : BotPanel
 
         LinearRegressionTraderParam_ParametrsChangeByUser();
 
-        Description = "Trend strategy on Break LinearRegression Channel.  " +
-            "Buy: If the closing price of the last candle is above the upper line of the PriceChannel.  " +
-            "Sell: If the closing price of the last candle is below the lower line of the PriceChannel.  " +
-            "Exit:  " +
-            "1. Place a stop order to sell at the level of the lower line of the PriceChannel.   " +
-            "2. Place a stop order to sell at the level of the upper line of the PriceChannel.";
+        Description = OsLocalization.Description.DescriptionLabel111;
     }
 
     private void LinearRegressionTraderParam_ParametrsChangeByUser()

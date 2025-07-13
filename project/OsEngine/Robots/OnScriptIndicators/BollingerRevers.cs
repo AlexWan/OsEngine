@@ -13,6 +13,7 @@ using System;
 using OsEngine.Market.Servers;
 using OsEngine.Logging;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -83,13 +84,7 @@ public class BollingerRevers : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-        Description = "Trend Strategy Based on Breaking Bollinger Lines " +
-                "Buy: " +
-                "1. The price is more than BollingerUpLine. " +
-                "Sell: " +
-                "1. Price below BollingerDownLine." +
-                "Exit: " +
-                "1. At the intersection of Sma with the price";
+        Description = OsLocalization.Description.DescriptionLabel55;
     }
 
     void Event_ParametrsChangeByUser()

@@ -12,6 +12,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /* Description
 TechSample robot for OsEngine
@@ -84,12 +85,7 @@ namespace OsEngine.Robots.TechSamples
             // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-            Description = "TechSample robot for OsEngine " +
-                "Buy: price is above the upper line of the PriceChannel.   " +
-                "Sell: price is below the lower line of the PriceChannel.   " +
-                "Exit: by trailing stop. " +
-                "An example of a robot that pulls up the stop for a position based on changes in the deals feed. IMPORTANT!  " +
-                "Tests of this robot should be conducted on the deals feed.";
+            Description = OsLocalization.Description.DescriptionLabel108;
         }
 
         void Event_ParametrsChangeByUser()

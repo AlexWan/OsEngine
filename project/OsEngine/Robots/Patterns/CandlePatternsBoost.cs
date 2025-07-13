@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -132,14 +133,7 @@ namespace OsEngine.Robots.patt
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy on Candle Pattern Boost.  " +
-                "Buy: " +
-                "1. The current closing price is above the level of _lastVGDevUp. " +
-                "2. The percentage movement upward over this period exceeds the specified threshold. " +
-                "Sell: " +
-                "1. The current closing price is below the level of _lastVGDevDown. " +
-                "2. The percentage decline over this period exceeds the threshold. " +
-                "Exit: according to the selected method.";
+            Description = OsLocalization.Description.DescriptionLabel72;
         }
 
         private void CandlePatternBoost_ParametrsChangeByUser()

@@ -11,6 +11,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Charts.CandleChart.Elements;
+using OsEngine.Language;
 
 /* Description
 TechSample robot for OsEngine
@@ -71,7 +72,7 @@ namespace OsEngine.Robots
             // Subscribe to the indicator update event
             ParametrsChangeByUser += FakeOutExample_ParametrsChangeByUser;
 
-            Description = "An example of a robot going short after a false upside breakout.";
+            Description = OsLocalization.Description.DescriptionLabel106;
         }
 
         // The name of the robot in OsEngine

@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -86,11 +87,7 @@ namespace OsEngine.Robots.Trend
             // Subscribe to the indicator update event
             ParametrsChangeByUser += TwoTimeFramesBot_ParametrsChangeByUser;
 
-            Description = "Trend robot on the Two Time Frames Bot. " +
-                "Buy: " +
-                "1.The current price must be above the PriceChannel Up level.   " +
-                "2. Additionally, the current price on the higher timeframe must be above the moving average.   " +
-                "Exit: If the current price falls below the PriceChannel Down level.";
+            Description = OsLocalization.Description.DescriptionLabel120;
         }
 
         private void TwoTimeFramesBot_ParametrsChangeByUser()

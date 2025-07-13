@@ -6,6 +6,7 @@
 ﻿using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -95,10 +96,7 @@ namespace OsEngine.Robots.OnScriptIndicators
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot SmaTrendSample " +
-                "Buy: lastCandlePrice > smaValue and lastCandlePrice > upChannel." +
-                "Sell: lastCandlePrice < smaValue and lastCandlePrice < downChannel." +
-                "Exit: By TralingStop";
+            Description = OsLocalization.Description.DescriptionLabel67;
         }
 
         private void SmaTrendSample_ParametrsChangeByUser()

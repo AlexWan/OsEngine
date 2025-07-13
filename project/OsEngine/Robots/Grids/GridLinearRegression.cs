@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.OsTrader.Grids;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -74,10 +75,7 @@ namespace OsEngine.Robots.Grids
 
             ParametrsChangeByUser += ParametersChangeByUser;
 
-            Description = "Robot showing the work with the grid. " +
-                "Throws a grid of the “Position Opening” type and closes the grid by a general trailing stop order. " +
-                "The linear regression indicator serves as a signal for grid throwing. " +
-                "When the candlestick closing price is higher than the upper channel line of the indicator - the grid is thrown out. ";
+            Description = OsLocalization.Description.DescriptionLabel37;
         }
 
         private void ParametersChangeByUser()

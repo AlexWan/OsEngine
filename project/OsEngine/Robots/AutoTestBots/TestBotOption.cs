@@ -6,6 +6,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using System.Threading;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using OsEngine.Language;
 
 /* Description
 TestBot for OsEngine.
@@ -31,7 +32,7 @@ namespace OsEngine.Robots.AutoTestBots
             TabCreate(BotTabType.Screener);
             _screener = TabsScreener[0];
 
-            Description = "Do not turn on - robot for Option testing";
+            Description = OsLocalization.Description.DescriptionLabel3;
 
             if(startProgram == StartProgram.IsOsOptimizer 
                 || startProgram == StartProgram.IsTester)

@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -71,12 +72,7 @@ public class MacdRevers : BotPanel
         // Subscribe to the candle finished event
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-        Description = "Trend strategy at the intersection of the MACD indicator " +
-            "Logic of the first Enter: " +
-            "lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy " +
-            "lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell " +
-            "Next: lastMacdDown > 0 and lastMacdUp < lastMacdDown close position and open Short. " +
-            "lastMacdDown < 0 and lastMacdUp > lastMacdDown close position and open Long.";
+        Description = OsLocalization.Description.DescriptionLabel59;
     }
 
     // The name of the robot in OsEngine

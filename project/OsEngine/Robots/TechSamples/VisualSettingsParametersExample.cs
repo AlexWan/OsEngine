@@ -9,6 +9,7 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 /* Description
 TechSample robot for OsEngine
@@ -74,7 +75,7 @@ namespace OsEngine.Robots.TechSamples
 
             DeleteEvent += Strategy_DeleteEvent;
 
-            Description = "This is an example of working with settings for visual design of Parameters window";
+            Description = OsLocalization.Description.DescriptionLabel110;
         }
 
         // The name of the robot in OsEngine

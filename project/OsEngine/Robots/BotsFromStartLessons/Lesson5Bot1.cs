@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -91,10 +92,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             // Подписка на завершение свечи
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            Description = "Robot example from the lecture course \"C# for algotreader\"." +
-                "Buy: low-value from Candle < last value Sma and close-value Candle > last value Sma. Buy at market." +
-                "Sell: high-value from Candle > last value Sma and close-value Candle < last value Sma. Sell at market." +
-                "Exit: If candle time more than opening position + value parameter robot \"_minutesInPosition\".Close At Market.";
+            Description = OsLocalization.Description.DescriptionLabel12;
         }
 
         private void Lesson5Bot1_ParametrsChangeByUser()

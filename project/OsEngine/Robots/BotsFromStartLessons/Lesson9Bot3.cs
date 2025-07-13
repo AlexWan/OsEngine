@@ -9,6 +9,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
+using OsEngine.Language;
 
 /* Description
 Robot example from the lecture course "C# for algotreader".
@@ -77,8 +78,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _icebergMarket = CreateParameter("Iceberg market", false, "Iceberg");
             _icebergMarketMinMillisecondsDistance = CreateParameter("Iceberg market min milliseconds distance", 500, 1, 10, 1, "Iceberg");
 
-            Description = "Robot example from the lecture course \"C# for algotreader\"." +
-                "Stores examples of different methods for close position.";
+            Description = OsLocalization.Description.DescriptionLabel20;
         }
 
         #region BuyAtMarket / SellAtMarket

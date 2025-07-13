@@ -13,6 +13,7 @@ using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Windows.Forms.DataVisualization.Charting;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -98,12 +99,7 @@ namespace OsEngine.Robots.Screeners
             // Subscribe to the indicator update event
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
 
-            Description = "The trend robot on LinearRegressionFast Screener. " +
-                "Buy: " +
-                "1. If the ADX filter is active, and the value is zero — no entry occurs. " +
-                "2. If the SMA filter is active, and the current candle close price (candleClose) is below the SMA — no entry occurs. " +
-                "3. If the last candle's close price (candleClose) is above this line (lrUp) — a buy is initiated. " +
-                "Exit: via iceberg order.";
+            Description = OsLocalization.Description.DescriptionLabel88;
         }
 
         private void SmaScreener_ParametrsChangeByUser()

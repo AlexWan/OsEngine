@@ -8,6 +8,7 @@ using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 /* Description
 Tech sample for OsEngine:
@@ -62,9 +63,7 @@ namespace OsEngine.Robots.TechSamples
             // Subscribe to the indicator update event
             ParametrsChangeByUser += _blockIndicatorsSample_ParametrsChangeByUser;
 
-            Description = "Tech sample for OsEngine:" +
-                "Example showing blocking of indicators for calculating." +
-                "Useful when optimizing robots that do not need all created indicators.";
+            Description = OsLocalization.Description.DescriptionLabel98;
         }
 
         private void _blockIndicatorsSample_ParametrsChangeByUser()

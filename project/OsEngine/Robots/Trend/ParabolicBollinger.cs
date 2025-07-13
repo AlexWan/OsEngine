@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -131,10 +132,7 @@ public class ParabolicBollinger : BotPanel
 
         Bot_ParametrsChangeByUser();
 
-        Description = "Trend strategy on Parabolic and Bollinger.  " +
-            "Buy: if the closing price is below the Bollinger Upper level.   " +
-            "Sell: if the closing price is above the Bollinger Lower level.   " +
-            "Exits are managed through trailing stops that follow the Parabolic Stop level.";
+        Description = OsLocalization.Description.DescriptionLabel114;
     }
 
     private void Bot_ParametrsChangeByUser()

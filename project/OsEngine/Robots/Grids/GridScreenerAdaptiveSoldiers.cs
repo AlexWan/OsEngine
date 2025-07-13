@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System.IO;
 using System.Globalization;
 using OsEngine.OsTrader.Grids;
+using OsEngine.Language;
 
 /* Description
 Grid Trend screener. Adaptive by volatility. 
@@ -115,10 +116,7 @@ namespace OsEngine.Robots.Grids
             _tradeInSaturday = CreateParameter("Trade in Saturday. Is on", true, " Trade periods ");
             _tradeInSunday = CreateParameter("Trade in Sunday. Is on", true, " Trade periods ");
 
-            Description = "Grid Trend screener. Adaptive by volatility." +
-                "We turn on the grid on when forming a pattern of three growing / falling candles. " +
-                "Stop by lifetime and positions count. " +
-                "Additionally: Work days / Non-trading periods intraday. Trailing Up/Down is on ";
+            Description = OsLocalization.Description.DescriptionLabel39;
 
             if (startProgram == StartProgram.IsOsTrader)
             {

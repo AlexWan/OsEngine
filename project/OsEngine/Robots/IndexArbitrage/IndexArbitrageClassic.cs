@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -87,7 +88,7 @@ namespace OsEngine.Robots.IndexArbitrage
             // Exit setting
             _regimeClosePosition = CreateParameter("Regime Close Position", "", new[] { "Reverse signal", "No signal" });
 
-            Description = "Classic trading with two index";
+            Description = OsLocalization.Description.DescriptionLabel45;
         }
 
         // The name of the robot in OsEngine

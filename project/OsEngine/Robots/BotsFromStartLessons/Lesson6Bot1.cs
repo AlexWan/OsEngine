@@ -12,6 +12,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /* Description
 Robot example from the lecture course "C# for algotreader".
@@ -110,11 +111,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             // Подписка на завершение свечи
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            Description = "Robot example from the lecture course \"C# for algotreader\"." +
-                "Buy:1) Buy At Stop when the price breaks the upper Bollinger Band." +
-                "2) Add a second position: Buy At Stop at EntryPrice + ATR × MultOne." +
-                "3) Add a third position: Buy At Stop at EntryPrice + ATR × MultTwo." +
-                "Sell:Close all positions using a Trailing Stop along the lower Bollinger Band.";
+            Description = OsLocalization.Description.DescriptionLabel14;
         }
 
         private void Lesson6Bot1_ParametrsChangeByUser()
