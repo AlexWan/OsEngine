@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,10 +107,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Extremums Chaikin. " +
-                "Buy: breakout of the high for a certain number of candles. " +
-                "Sell: breakout of the low for a certain number of candles. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel149;
         }
 
         private void BreakExtremumsChaikin_ParametrsChangeByUser()

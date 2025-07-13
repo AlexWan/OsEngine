@@ -16,6 +16,7 @@ using System.Linq;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -111,11 +112,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Devergence SMI. " +
-                "Buy: The lows on the chart are falling, while the lows are rising on the indicator. " +
-                "Sell: the highs on the chart are rising, while the indicator is falling. " +
-                "Buy exit: trailing stop as a % of the Low of the candle where you entered. " +
-                "Sell ​​exit: trailing stop as a % of the High of the candle where you entered.";
+            Description = OsLocalization.Description.DescriptionLabel308;
         }
 
         private void DevergenceSMI_ParametrsChangeByUser()

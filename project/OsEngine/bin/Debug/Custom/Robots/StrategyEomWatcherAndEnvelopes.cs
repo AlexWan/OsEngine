@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -101,11 +102,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot based on Envelopes and EOM Watcher indicators. " +
-                "Buy:  When the candle closes above the upper line of the Envelopes indicator, and the EOM Watcher indicator is above zero. " +
-                "Sell: When the candle closes below the lower line of the Envelopes indicator, and the EOM Watcher indicator is below zero." +
-                "Exit from buy: When the candle closed below the lower line of the Envelopes indicator. " +
-                "Exit from sell: When the candle closed above the upper line of the Envelopes indicator. ";
+            Description = OsLocalization.Description.DescriptionLabel250;
         }
 
         private void StrategyEomWatcher_ParametrsChangeByUser()

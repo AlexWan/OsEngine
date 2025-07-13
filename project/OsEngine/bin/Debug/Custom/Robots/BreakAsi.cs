@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -104,11 +105,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Break Asi. " +
-                "Buy: When the ASI indicator has broken through the maximum for a certain number of candles and the ASI line is above the Sma line." +
-                "Sell: When the ASI indicator has broken through the minimum for a certain number of candles and the ASI line is below the Sma line." +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel137;
         }
 
         private void _breakAsi_ParametrsChangeByUser()

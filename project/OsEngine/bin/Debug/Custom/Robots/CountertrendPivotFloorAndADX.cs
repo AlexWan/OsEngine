@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -111,15 +112,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The Countertrend robot on PivotFloor And ADX. " +
-                "Buy: " +
-                "1. The price touched the S2 level or closed below, then returned back and closed above the level. " +
-                "2. The Adx indicator is falling and below a certain level (AdxLevel). " +
-                "Sell: " +
-                "1. The price touched the R2 level or closed higher, then returned back and closed below the level. " +
-                "2. The Adx indicator is falling and below a certain level (AdxLevel). " +
-                "Exit from buy: stop – S3, profit - R1. " +
-                "Exit from sell: stop – R3, profit –S1.";
+            Description = OsLocalization.Description.DescriptionLabel192;
         }
 
         private void CountertrendPivotFloorAndADX_ParametrsChangeByUser()

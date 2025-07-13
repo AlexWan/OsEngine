@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -102,20 +103,12 @@ namespace OsEngine.Robots
             _trailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
             // Subscribe to the indicator update event
-            ParametrsChangeByUser += StrategyVolumeAndMFI_ParametrsChangeByUser; ;
+            ParametrsChangeByUser += StrategyVolumeAndMFI_ParametrsChangeByUser;
 
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Volume And MFI. " +
-                "Buy: " +
-                "1. The volume is higher than the VolumeValue value. " +
-                "2. The MFI is lower than the MfiMinValue value. " +
-                "Sell: " +
-                "1. The volume is higher than the VolumeValue value. " +
-                "2. The MFI is higher than the MfiMaxValue value. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel288;
         }
 
         private void StrategyVolumeAndMFI_ParametrsChangeByUser()

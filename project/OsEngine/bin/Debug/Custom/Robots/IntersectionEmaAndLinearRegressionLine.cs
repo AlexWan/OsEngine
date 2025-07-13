@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -101,11 +102,7 @@ namespace OsEngine.Robots
             // Exit Setting
             _trailingValue = CreateParameter("Stop Value", 1.0m, 5, 200, 5, "Exit");
 
-            Description = "Trend robot at the Intersection Ema And LinearRegressionLine. " +
-                "Buy: Ema is higher than LRMA. " +
-                "Sell: Ema is lower than LRMA. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel319;
         }
 
         // Indicator Update event

@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -85,10 +86,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on BreakPivotFloor. " +
-                "Buy: the candle closed above the R1 level. " +
-                "Sell: the candle closed below the S1 level. " +
-                "Exit: on the reverse signal.";
+            Description = OsLocalization.Description.DescriptionLabel162;
         }
 
         private void BreakPivotFloor_ParametrsChangeByUser()

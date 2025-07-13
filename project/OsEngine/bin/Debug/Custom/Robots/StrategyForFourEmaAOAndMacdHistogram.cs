@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -170,19 +171,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy for 4 Ema, Awesome Oscillator and Macd Histogram. " +
-                "Buy: " +
-                " 1. EmaFastLoc above EmaSlowLoc; " +
-                " 2. EmaFastGlob above EmaSlowGlob; " +
-                " 3. AO growing; " +
-                " 4. Macd > 0. " +
-                "Sell: " +
-                " 1. EmaFastLoc below EmaSlowLoc; " +
-                " 2. EmaFastGlob below EmaSlowGlob; " +
-                " 3. AO falling; " +
-                " 4. Macd < 0. " +
-                "Exit from buy:trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel253;
         }
 
         // Indicator Update event

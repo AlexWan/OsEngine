@@ -19,6 +19,7 @@ using System.Windows.Media.Animation;
 using System.Security.Cryptography;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -103,13 +104,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Momentum. " +
-                "Buy:" +
-                "The Momentum indicator value crosses the 100 level from bottom to top and has been growing for two candles. " +
-                "Sell:" +
-                "The Momentum indicator value crosses the 100 level from top to bottom and has been falling for two candles. " +
-                "Exit:" +
-                "stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel156;
         }
 
         private void BreakMomentum_ParametrsChangeByUser()

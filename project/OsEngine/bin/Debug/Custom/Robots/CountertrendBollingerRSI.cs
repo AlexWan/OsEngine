@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -114,15 +115,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The Countertrend robot on Bollinger " +
-                "Buy: " +
-                "1. The price was below the lower Bollinger line, and then returned and became above the lower line. " +
-                "2. Rsi below 30. " +
-                "Sell: " +
-                "1. The price was above the upper Bollinger line, and then returned and became below the upper line. " +
-                "2. Rsi above 70. " +
-                "Buy exit: trailing stop as a % of the Low of the candle where you entered. " +
-                "Sell ​​exit: trailing stop as a % of the High of the candle where you entered.";
+            Description = OsLocalization.Description.DescriptionLabel187;
         }
 
         private void CountertrendBollingerRSI_ParametrsChangeByUser()

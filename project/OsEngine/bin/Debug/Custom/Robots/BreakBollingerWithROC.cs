@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,15 +107,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Bollinger With ROC. " +
-                "Buy: " +
-                "1. The candle closed above the upper Bollinger line. " +
-                "2. RoC is above 0. " +
-                "Sell: " +
-                "1. The candle closed below the lower Bollinger line. " +
-                "2. RoC is below 0. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in% of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel140;
         }
 
         private void BreakBollingerWithROC_ParametrsChangeByUser()

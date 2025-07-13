@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -104,10 +105,7 @@ namespace OsEngine.Robots
             _stopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
             _profitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
 
-            Description = "Trend robot at the intersection of two exponential averages " +
-                "Buy: the fast Ema is higher than the slow Ema and the value of the last candle is greater than the fast Ema. " +
-                "Sell: The fast Ema is lower than the slow Ema and the value of the last candle is less than the slow Ema. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel209;
         }
 
         // Indicator Update event

@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -104,13 +105,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Devergence Asi. " +
-                "Buy: The lows on the chart are falling, while the lows are rising on the indicator. " +
-                "Sell: the highs on the chart are rising, while the indicator is falling. " +
-                "Exit from buy: We set the stop to the minimum for the period specified for the stop, " +
-                "and the profit is equal to the size of the stop multiplied by the coefficient from the parameters." +
-                "Exit from sell: We set the stop to the maximum for the period specified for the stop, " +
-                "and the profit is equal to the size of the stop multiplied by the coefficient from the parameters. ";
+            Description = OsLocalization.Description.DescriptionLabel313;
         }
 
         private void DivergenceAsi_ParametrsChangeByUser()

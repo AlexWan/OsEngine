@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -100,12 +101,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy DevergenceCCI. " +
-                "Buy: " +
-                "1. The lows on the chart are decreasing, while the indicators are growing. " +
-                "Sell: " +
-                "1. highs on the chart rise, and on the indicator fall. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel197;
         }
 
         private void DevergenceCCI_ParametrsChangeByUser()

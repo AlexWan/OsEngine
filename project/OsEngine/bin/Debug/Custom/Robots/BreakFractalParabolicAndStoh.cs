@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -125,16 +126,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Fractal, Parabolic And Stoh. " +
-                "Buy: " +
-                "1. The price is higher than the Parabolic value. For the next candle, the price crosses the indicator from the bottom up. " +
-                "2. Stochastic is directed up and below the 80 level. " +
-                "3. The price is higher than the last ascending fractal. " +
-                "Sell: " +
-                "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
-                "2. Stochastic is directed down and above the level of 20. " +
-                "3. the price is lower than the last descending fractal. " +
-                "Exit: by the opposite signal of the parabolic.";
+            Description = OsLocalization.Description.DescriptionLabel151;
         }
 
         private void BreakFractalParabolicAndStoh_ParametrsChangeByUser()

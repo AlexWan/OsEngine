@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -128,14 +129,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy With Three Ema And Parabolic. " +
-                "Buy: " +
-                "1. The price is above the Parabolic value. For the next candle, the price crosses the indicator from bottom to top. " +
-                "2. The fast Ema crosses the medium and slow Ema from bottom to top. " +
-                "Sell: " +
-                "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
-                "2. The fast Ema crosses the medium and slow Ema from top to bottom. " +
-                "Exit: trailing stop by EmaMiddle.";
+            Description = OsLocalization.Description.DescriptionLabel291;
         }
 
         // Indicator Update event

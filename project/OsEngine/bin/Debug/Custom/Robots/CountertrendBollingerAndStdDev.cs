@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -116,15 +117,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The Countertrend robot on Bollinger. " +
-                "Buy: " +
-                "1. The price is below or equal to the lower bollinger band. " +
-                "2. Standard Deviation is higher than MinValue. " +
-                "Sell: " +
-                "1. The price is above or equal to the upper bollinger band. " +
-                "2. Standard Deviation is higher than MinValue. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel185;
         }
 
         private void CountertrendBollingerAndStdDev_ParametrsChangeByUser()

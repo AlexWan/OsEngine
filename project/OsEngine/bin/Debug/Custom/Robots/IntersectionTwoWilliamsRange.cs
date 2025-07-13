@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -94,10 +95,7 @@ namespace OsEngine.Robots
             // subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on Intersection Two WilliamsRange. " +
-                "Buy: Fast (red) WPR is higher than slow (blue). " +
-                "Sell: fast (red) WPR below slow (blue). " +
-                "Exit: by the reverse intersection.";
+            Description = OsLocalization.Description.DescriptionLabel220;
         }
 
         // Indicator Update event

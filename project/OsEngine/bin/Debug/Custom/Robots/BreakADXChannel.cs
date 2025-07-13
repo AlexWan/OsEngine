@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -125,10 +126,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy break Channel Ema with ADX. " +
-                "Buy: the price is above EmaHigh and Adx is growing and not above the critical value. " +
-                "Sell: the price is below EmaLow and Adx is growing and not above the critical value. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel134;
         }
 
         private void _breakADXChannel_ParametrsChangeByUser()

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -115,11 +116,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy System Toma Demark. " +
-                "Buy: Fast Ema above slow Ema and Momentum line above Momentum (e.g. above 100); " +
-                "Sell: Fast Ema below slow Ema and Momentum line below Momentum Cell (e.g. below 100); " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel294;
         }
 
         private void SystemTomaDemark_ParametrsChangeByUser()

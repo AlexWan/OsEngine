@@ -14,6 +14,7 @@ using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -121,15 +122,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Alligator with CMO. " +
-                "Buy: " +
-                "1. The value of the CMO indicator crosses the level 0 from the bottom up. " +
-                "2. fast line (lips) above the middle line (teeth), middle line above the slow line (jaw). " +
-                "Sell: " +
-                "1. The value of the CMO indicator crosses level 0 from top to bottom. " +
-                "2. fast line (lips) below the midline (teeth), middle line below the slow one (jaw). " +
-                "Buy exit: trailing stop in % of the line of the candle on which you entered. " +
-                "Sell ​​exit: trailing stop in % of the high of the candle where you entered.";
+            Description = OsLocalization.Description.DescriptionLabel136;
         }
 
         private void _breakAlligatorCMO_ParametrsChangeByUser()

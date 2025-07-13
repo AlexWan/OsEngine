@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,13 +107,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The contrtrend robot on Overbougth Oversold DPO with Bollinger. " +
-                "Buy: When the current candle closed above the lower Bollinger line," +
-                " and the previous candle closed below, and the DPO indicator came out of the oversold zone." +
-                "Sell: When the current candle closed below the upper Bollinger line, " +
-                "and the previous candle closed above, and the DPO indicator left the overbought zone. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel226;
         }
 
         private void OverbougthOversoldDpoWithBollinger_ParametrsChangeByUser()

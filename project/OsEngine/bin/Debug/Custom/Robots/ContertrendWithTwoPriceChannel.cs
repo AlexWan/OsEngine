@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -118,13 +119,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The contertrend robot on two Price Channel. " +
-                "Buy: the bottom line of the local PC has become higher than the bottom line of the global PC. " +
-                "Sell: the top line of the local PC has become lower than the top line of the global PC. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing " +
-                "stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing " +
-                "stop and is transferred (slides) to the new maximum price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel177;
         }
 
         private void BreakEOMAndSma_ParametrsChangeByUser()

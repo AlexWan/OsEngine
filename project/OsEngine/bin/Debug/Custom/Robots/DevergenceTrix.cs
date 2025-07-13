@@ -17,6 +17,7 @@ using System.Linq;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -103,12 +104,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Devergence Trix. " +
-                "Buy: " +
-                "1. The lows on the chart are decreasing, but on the indicator they are growing. " +
-                "Sell: " +
-                "1. The highs on the chart are rising, and on the indicator they are decreasing. " +
-                "Exit: after a certain number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel310;
         }
 
         private void DevergenceTrix_ParametrsChangeByUser()

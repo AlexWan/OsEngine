@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -121,15 +122,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the intersection of two Linear Regression Line and RSI." +
-                "Buy:" +
-                "1.The fast EMA crosses the slow ONE from bottom to top." +
-                "2.The RSI is above 50 and growing." +
-                "Sale:" +
-                "1.The fast EMA crosses the slow ONE from top to bottom." +
-                "2.The RSI is above 50 and growing." +
-                "Exit:" +
-                "Stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel210;
         }
 
         // Indicator Update event

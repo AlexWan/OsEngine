@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -109,16 +110,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Ichimoku. " +
-                "Buy: " +
-                "1. The price is higher than Tenkan; " +
-                "2. Tenkan above Kijun; " +
-                "3. Kijun above Senka V. " +
-                "Sell: " +
-                "1. The price is lower than Tenkan; " +
-                "2. Tenkan below Kijun; " +
-                "3. Kijun below Senka V. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel318;
         }
 
         private void BreakChaikin_ParametrsChangeByUser()

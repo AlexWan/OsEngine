@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -117,16 +118,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy StdDev Sma And Rsi. " +
-                "Buy: " +
-                "1. RSI is more than 50. " +
-                "2. Price is higher than SMA. " +
-                "3. Standard Deviation is higher than MinValue. " +
-                "Sell: " +
-                "1. RSI is less than 50. " +
-                "2. Price is lower than SMA. " +
-                "3. Standard Deviation is higher than MinValue. " +
-                "Exit: after a certain number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel277;
         }
 
         private void StrategyStdDevSmaAndRsi_ParametrsChangeByUser()

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for OsEngine.
@@ -124,17 +125,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Strategy based on Bollinger Bands and Bears/Bulls Power indicators. " +
-                "Buy:" +
-                "1. Price breaks above the upper Bollinger band." +
-                "2. Bears Power > 0 (bullish pressure, lows above average)." +
-                "3. Bulls Power > 0 (buyers dominate)." +
-                "Sell:" +
-                "1. Price breaks below the lower Bollinger band." +
-                "2. Bears Power < 0 (sellers dominate)." +
-                "3. Bulls Power < 0 (bearish pressure, highs below average)." +
-                "Exit:" +
-                "Both long and short exits are done via trailing stop based on recent high/low candles.";
+            Description = OsLocalization.Description.DescriptionLabel240;
         }
 
         // Indicator Update event

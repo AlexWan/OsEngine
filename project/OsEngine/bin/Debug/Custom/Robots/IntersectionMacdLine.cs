@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -91,10 +92,7 @@ namespace OsEngine.Robots.MyRobots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the Intersection MacdLine " +
-                "Buy: Macd line (green) above the signal line (red); " +
-                "Sell: Macd line (green) below the signal line (red); " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel298;
         }
 
         // Indicator Update event

@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -107,17 +108,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Break Volume And OBV. " +
-                "Buy: " +
-                " 1. The Volume indicator has grown CoefVolume times over the EntryCandlesLong period. " +
-                " 2. The value of the OBV indicator broke through the minimum for a certain number of candles (EntryCandlesLong) and closed lower. " +
-                "Sell: " +
-                " 1. The Volume indicator has grown CoefVolume times over the EntryCandlesShort period. " +
-                " 2. The value of the OBV indicator broke through the maximum for a certain number of candles (EntryCandlesShort) and closed higher. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period " +
-                "specified for the trailing stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period " +
-                "specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel170;
         }
 
         // The name of the robot in OsEngine

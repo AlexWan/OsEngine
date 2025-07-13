@@ -17,6 +17,7 @@ using System.Linq;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -113,15 +114,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Fractal And CCI. " +
-                "Buy: " +
-                "1. Formed fractal at a local minimum. " +
-                "2. The CCI curve has pushed off from the additional -300 level and is directed upwards. " +
-                "Sell: " +
-                "1. The local maximum is marked by a fractal. " +
-                "2. The CCI line touched the 300 level and is directed downwards. " +
-                "Exit from buy: trailing stop in % of the High of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the Low candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel317;
         }
 
         private void FractalAndCCI_ParametrsChangeByUser()

@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -122,24 +123,7 @@ public class StrategyLevermor : BotPanel
 
         ParametrsChangeByUser += StrategyLevermor_ParametrsChangeByUser;
 
-        Description = "trading robot for osengine. " +
-            "Trend strategy with pyramiding and optional exit by trailing stop or SMA." +
-            "Buy: 1. If the price is above the moving average (lastPrice >= SMA): " +
-            " - If dont have position: " +
-            "BuyAtStop at (upper channel border + slippage). " +
-            " - If a long position exists and price > lastEntry + (lastEntry * PercentDopBuy/100): " +
-            "BuyAtLimit (pyramiding). " +
-            "Sell: 1. If the price is below the moving average (lastPrice <= SMA): " +
-            " - If dont have position: " +
-            "SellAtStop at (lower channel border - slippage)." +
-            " - If a short position exists and price < lastEntry - (lastEntry * PercentDopSell/100): " +
-            "SellAtLimit (pyramiding). " +
-            "Exit from a long position:" +
-            "1. Trailing stop at (close - close * TralingStopLength / 100), or " +
-            "2. Market exit if Close < SMA (if ExitType = Sma). " +
-            "Exit from the short position: " +
-            "1. Trailing stop at (close + close * TralingStopLength / 100), or " +
-            "2. Market exit if Close > SMA (if ExitType = Sma).";
+        Description = OsLocalization.Description.DescriptionLabel255;
     }
 
     // Indicator Update event

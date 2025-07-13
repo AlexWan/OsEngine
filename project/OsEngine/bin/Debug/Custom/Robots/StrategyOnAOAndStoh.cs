@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -127,19 +128,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on Awesome Oscillator and Stochastic Oscillator " +
-                "Buy: " +
-                "1. Stochastic above 50 but below 80. " +
-                "2. Column Awesome previous above preprevious. " +
-                "Sell: " +
-                "1. Stochastic below 50 but above 20. " +
-                "2. Column Awesome previous below preprevious. " +
-                "Exit from buy: Stop and profit. " +
-                "The stop is placed behind the minimum for the period specified for the stop (StopCandles). " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop). " +
-                "Exit from sell: Stop and profit. " +
-                "The stop is placed behind the maximum for the period specified for the stop (StopCandles). " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit - how many times the size of the profit is greater than the size of the stop).";
+            Description = OsLocalization.Description.DescriptionLabel261;
         }
 
         // Indicator Update event

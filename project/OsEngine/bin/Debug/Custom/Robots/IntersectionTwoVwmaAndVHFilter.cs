@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -113,14 +114,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Intersection Two Vwma And VHFilter. " +
-                "Buy: " +
-                "1. Price is higher than fast Vwma, fast is higher than slow Vwma. " +
-                "2. VHFilter value is lower (higher) than minLevel and growing. " +
-                "Sell: " +
-                "1. The price is lower than the fast Vwma, the fast is lower than the slow Vwma. " +
-                "2. VHFilter value is lower (higher) than minLevel and growing. " +
-                "Exit: reverse intersection of Vwma.";
+            Description = OsLocalization.Description.DescriptionLabel219;
         }
 
         private void IntersectionTwoVwmaAndVHFilter_ParametrsChangeByUser()

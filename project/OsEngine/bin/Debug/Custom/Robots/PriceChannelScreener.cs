@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -76,11 +77,7 @@ namespace OsEngine.Robots
             // Subscribe to the indicator update event
             ParametrsChangeByUser += PanelParametrsChangeByUser;
 
-            Description = "Screener on the Price Channel indicator. " +
-                "Buy: the price is above the upper Price Channel. " +
-                "Sell: the price is below the lower Price Channel. " +
-                "Exit from purchase: set a stop at the lower border of the Price Channel" +
-                "Exit from sale: set trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel232;
         }
 
         private void CreateParameters()

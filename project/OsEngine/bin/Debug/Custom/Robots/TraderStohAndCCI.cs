@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -117,15 +118,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Stochastic And CCI. " +
-                "Buy: " +
-                "1. The CCI line is in the range between levels 100 and -100, and is directed upwards. " +
-                "2. Stochastic crosses level 20 from bottom to top. " +
-                "Sell: " +
-                "1. The CCI line is in the range between levels 100 and -100, and is directed downwards. " +
-                "2. Stochastic crosses the level 80 from top to bottom. " +
-                "Buy exit: trailing stop in % of the line of the candle on which you entered. " +
-                "Sell ​​exit: trailing stop in % of the high of the candle where you entered.";
+            Description = OsLocalization.Description.DescriptionLabel296;
         }
 
         private void TraderStohAndCCI_ParametrsChangeByUser()

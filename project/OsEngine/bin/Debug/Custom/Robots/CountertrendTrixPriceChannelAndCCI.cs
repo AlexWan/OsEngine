@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -124,17 +125,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Trix And Envelops. " +
-                "Buy: " +
-                "1. Trix above 0. " +
-                "2. The candle closed above the upper line of the Envelope. " +
-                "Sell: " +
-                "1. Trix is below 0. " +
-                "2. The candle closed below the bottom line of the Envelope. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period " +
-                "specified for the trailing stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period " +
-                "specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel194;
         }
 
         private void CountertrendTrixPriceChannelAndCCI_ParametrsChangeByUser()

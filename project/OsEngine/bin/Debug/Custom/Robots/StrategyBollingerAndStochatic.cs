@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -124,15 +125,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Bollinger And Stochatic. " +
-                "Buy: " +
-                "1. The stochastic line (blue) is above the signal line (red). " +
-                "2. The price was below the lower bollinger band, and then returned and closed above the lower line. " +
-                "Sell: " +
-                "1. The stochastic line (blue) is below the signal line (red). " +
-                "2. The price was above the upper bollinger band, and then returned and closed below the upper line. " +
-                "Exit from Buy: The trailing stop is placed at the minimum for the period specified for the trailing stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from Sell: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel239;
         }
 
         private void StrategyBollingerAndStochatic_ParametrsChangeByUser()

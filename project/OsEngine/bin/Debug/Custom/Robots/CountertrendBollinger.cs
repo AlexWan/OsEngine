@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -92,10 +93,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Countertrend Bollinger. " +
-                "Buy: the price was below the lower band of the bollinger, and then returned and became above the lower band. " +
-                "Sell: the price was above the upper bollinger line, and then returned and became below the upper band. " +
-                "Exit: at the intersection of the center line with the price.";
+            Description = OsLocalization.Description.DescriptionLabel184;
         }
 
         private void CountertrendBollinger_ParametrsChangeByUser()

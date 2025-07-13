@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -116,19 +117,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The countertrend robot on Envelops and Ema." +
-                    "Buy:" +
-                    "1.The price is below the lower Envelop line." +
-                    "2.Sma below the lower Envelop line." +
-                    "3.Sma growing." +
-                    "Sell: " +
-                    "1.The price is above the upper Envelop line." +
-                    "2.Sma above the upper Envelop line." +
-                    "3.Sma falling." +
-                    "Exit from the buy: " +
-                    "Trailing stop in % of the loy of the candle on which you entered." +
-                    "Exit from the sell:" +
-                    "Trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel315;
         }
 
         private void EnvelopsAndSmaCountertrend_ParametrsChangeByUser()

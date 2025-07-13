@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Description
 Trading robot for osengine.
@@ -122,17 +123,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy on Bears Power, Bulls Power and Ema. " +
-                "Buy: " +
-                "1. The price crosses the Ema from bottom to top. " +
-                "2. Bears Power columns should be below 0, but constantly growing. " +
-                "3. Bulls Power columns should be above 0 and grow. " +
-                "Sell: " +
-                "1. The price crosses the Ema from top to bottom. " +
-                "2. Bulls Power columns should be above 0, but decrease. " +
-                "3. Bears Power columns should be below 0 and decrease. " +
-                "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel245;
         }
 
         // Indicator Update event

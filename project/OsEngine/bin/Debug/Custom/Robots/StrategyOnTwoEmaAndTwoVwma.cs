@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -120,10 +121,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy on two Ema and two Vwma " +
-                "Buy: Fast Vwma and slow Vwma higher than both Emas (also fast and slow). " +
-                "Sell: Fast Vwma and slow Vwma lower than both Emas (also fast and slow). " +
-                "Exit: The reverse conditions. ";
+            Description = OsLocalization.Description.DescriptionLabel263;
         }
 
         // Indicator Update event

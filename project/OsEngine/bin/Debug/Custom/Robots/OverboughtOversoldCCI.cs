@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -89,10 +90,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Overbought Oversold CCI. " +
-                "Buy: CCI indicator values ​​below a certain value. " +
-                "Sell: CCI indicator values ​​are above a certain value. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel222;
         }
 
         private void OverboughtOversoldCCI_ParametrsChangeByUser()

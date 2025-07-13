@@ -18,6 +18,7 @@ using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,14 +107,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break EaseOfMovement and Sma. " +
-                "Buy: " +
-                "1. The value of the Ease of movement indicator crosses the level 0 from the bottom up. " +
-                "2. Candle closed above Sma. " +
-                "Sell: " +
-                "1. The value of the Ease of movement indicator crosses level 0 from top to bottom. " +
-                "2. Candle closed below Sma. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel148;
         }
 
         private void BreakEOMAndSma_ParametrsChangeByUser()

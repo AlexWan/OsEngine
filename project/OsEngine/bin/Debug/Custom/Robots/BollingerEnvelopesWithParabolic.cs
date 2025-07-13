@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -119,14 +120,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Bollinger, Envelopes and Parabolic. " +
-                "Buy: " +
-                "1. The price is higher than ParabolicSar. " +
-                "2. The upper Bollinger line is above the upper Envelopes line. " +
-                "Sell: " +
-                "1. The price is below ParabolicSar. " +
-                "2. The lower Bollinger line is below the lower Envelopes line. " +
-                "Exit: at the reverse intersection of ParabolicSar.";
+            Description = OsLocalization.Description.DescriptionLabel132;
         }
 
         private void BollingerEnvelopesWithParabolic_ParametrsChangeByUser()

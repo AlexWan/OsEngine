@@ -17,6 +17,7 @@ using System.Linq;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,11 +107,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Devergence Ultimate. " +
-                "Buy: The lows on the chart are falling, while the lows are rising on the indicator. " +
-                "Sell: the highs on the chart are rising, while the indicator is falling. " +
-                "Exit from buy: the oscillator rose above 50, and then fell below 45 or entered the overbought zone (above 70), and then began to fall. " +
-                "Exit from sell: the oscillator rose above 65 or entered the oversold zone (below 30).";
+            Description = OsLocalization.Description.DescriptionLabel311;
         }
 
         private void DevergenceMACD_ParametrsChangeByUser()

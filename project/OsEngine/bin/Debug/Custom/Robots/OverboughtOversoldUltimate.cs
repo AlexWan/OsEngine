@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -107,15 +108,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Overbought Oversold Ultimate. " +
-                "Buy: The values of the Ultimate Oscillator indicator are below a certain value. " +
-                "Sell: The values of the Ultimate Oscillator I indicator are above a certain value. " +
-                "Exit from buy: Stop and profit. " +
-                "The stop is placed at the minimum for the period specified for the stop (StopCandles).  " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop). " +
-                "Exit from sell: Stop and profit. " +
-                "The stop is placed at the maximum for the period specified for the stop (StopCandles).  " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop).";
+            Description = OsLocalization.Description.DescriptionLabel223;
         }
 
         private void OverboughtOversoldCCI_ParametrsChangeByUser()

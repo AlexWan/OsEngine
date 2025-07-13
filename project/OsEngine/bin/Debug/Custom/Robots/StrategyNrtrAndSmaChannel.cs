@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,13 +107,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the NRTR and SmaChannel indicators. " +
-                "Buy:  When the candle closed above the upper SmaChannel line and above the NRTR line." +
-                "Sell: When the candle closed below the lower SmaChannel line and below the NRTR line." +
-                "Exit from buy: Set a trailing stop along the NRTR line and at the lower border of the SmaChannel indicator." +
-                " The calculation method that is further from the current price is selected." +
-                "Exit from sell: Set a trailing stop along the NRTR line and at the upper border of the SmaChannel indicator." +
-                " The calculation method that is further from the current price is selected. ";
+            Description = OsLocalization.Description.DescriptionLabel258;
         }
 
         private void StrategyNrtrAndAdx_ParametrsChangeByUser()

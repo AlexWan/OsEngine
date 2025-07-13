@@ -299,5 +299,7 @@ namespace OsEngine.Language
 
         public static HintMessage Message = new HintMessage();
 
+        public static DescriptionRobotsLocal Description = new DescriptionRobotsLocal();
+
     }
 }

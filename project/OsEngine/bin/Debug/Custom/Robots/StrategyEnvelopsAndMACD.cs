@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -123,19 +124,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on StrategyEnvelopsAndMACD." +
-                "Buy:" +
-                "1.The price is above the upper Envelopes line." +
-                "2.MACD histogram < 0 and Moving average > MACD." +
-                "Sell: " +
-                "1.The price is below the lower envelop line" +
-                "2.The MACD histogram is > 0 and Moving average < MACD." +
-                "Exit from the buy: " +
-                "The trailing stop is placed at the minimum for the period specified for the trailing stop and is transferred," +
-                "(slides), over the new price minimums, also for the specified period." +
-                "Exit from the sell:" +
-                "The trailing stop is placed at the maximum for the period specified for the trailing stop" +
-                "and is transferred(slides) over the new maximum price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel248;
         }
 
         private void StrategyEnvelopsAndMACD_ParametrsChangeByUser()
