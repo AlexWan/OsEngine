@@ -158,6 +158,10 @@ namespace OsEngine.Market.Servers
 
                     _lastCheckTime = DateTime.Now;
 
+                    // 1 первая проверка. Пока не высылаем ошибку.
+
+                    bool haveErrorInSomePortfolio = false;
+
                     List<ComparePositionsPortfolio> portfolios = UpdateCompareData();
 
                     for(int i = 0; portfolios != null && i < portfolios.Count; i++)
@@ -166,7 +170,37 @@ namespace OsEngine.Market.Servers
                         {
                             if (PortfoliosToWatch[j] == portfolios[i].PortfolioName)
                             {
-                                CheckPortfolio(portfolios[i]);
+                                bool haveError = HaveErrorInPortfolio(portfolios[i], false);
+
+                                if (haveError)
+                                {
+                                    haveErrorInSomePortfolio = true;
+                                }
+                            }
+                        }
+                    }
+
+                    // 2 вторая проверка. Через 10 секунд. Если и тут ошибка - то высылаем
+
+                    if(haveErrorInSomePortfolio == true)
+                    {
+                        Thread.Sleep(10000);
+
+                        portfolios = UpdateCompareData();
+
+                        for (int i = 0; portfolios != null && i < portfolios.Count; i++)
+                        {
+                            for (int j = 0; j < PortfoliosToWatch.Count; j++)
+                            {
+                                if (PortfoliosToWatch[j] == portfolios[i].PortfolioName)
+                                {
+                                    bool haveError = HaveErrorInPortfolio(portfolios[i], true);
+
+                                    if (haveError)
+                                    {
+                                        haveErrorInSomePortfolio = true;
+                                    }
+                                }
                             }
                         }
                     }
@@ -179,17 +213,17 @@ namespace OsEngine.Market.Servers
             }
         }
 
-        private void CheckPortfolio(ComparePositionsPortfolio portfolio)
+        private bool HaveErrorInPortfolio(ComparePositionsPortfolio portfolio, bool canSendErrorMessage)
         {
             if(portfolio == null)
             {
-                return;
+                return false;
             }
 
             if(portfolio.CompareSecurities == null 
                 || portfolio.CompareSecurities .Count == 0)
             {
-                return;
+                return false;
             }
 
             string message = Server.ServerNameUnique + ". Error on compare securities in robot and portfolio \n";
@@ -224,8 +258,15 @@ namespace OsEngine.Market.Servers
 
             if(haveError)
             {
-                SendLogMessage(message, LogMessageType.Error);
+                if(canSendErrorMessage)
+                {
+                    SendLogMessage(message, LogMessageType.Error);
+                }
+
+                return true;
             }
+
+            return false;
         }
 
         public List<ComparePositionsPortfolio> UpdateCompareData()
