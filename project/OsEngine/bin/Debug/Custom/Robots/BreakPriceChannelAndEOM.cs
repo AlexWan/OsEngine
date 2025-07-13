@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -107,14 +108,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Price Channel and Eom. " +
-                "Buy: " +
-                "1. The candle closed above the upper PC line. " +
-                "2. Breakdown of the maximum for a certain number of Eom candles. " +
-                "Sell: " +
-                "1. The candle closed below the lower PC line. " +
-                "2. Breakdown of the minimum for a certain number of Eom candles. " +
-                "Exit: opposite border of the PC channel.";
+            Description = OsLocalization.Description.DescriptionLabel164;
         }
 
         private void BreakEOMAndSma_ParametrsChangeByUser()

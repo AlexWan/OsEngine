@@ -11,6 +11,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /* Description
 Trading robot Three Soldiers.
@@ -59,9 +60,7 @@ namespace OsEngine.Robots.Patterns
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trading robot Three Soldiers. " +
-                "When forming a pattern of three growing / falling candles, " +
-                "the entrance to the countertrend with a fixation on a profit or a stop";
+            Description = OsLocalization.Description.DescriptionLabel76;
         }
 
         // The name of the robot in OsEngine

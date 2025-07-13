@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -108,10 +109,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot at the intersection of two Vwma (all cars and different outputs) and Adaptive Look Back." +
-             "Buy: fast Ema is higher than slow Vwma and price is higher than fast Vwma +entry coefficient* Adaptive Look Back." +
-             "Sell: fast Ema is lower than average Vvma and price is lower than fast Ma -entry coefficient* Adaptive Look back ." +
-             "Exit: reverse intersection of Wma.";
+            Description = OsLocalization.Description.DescriptionLabel214;
         }
 
         // Indicator Update event

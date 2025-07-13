@@ -16,6 +16,7 @@ using OsEngine.Market;
 using System.Net;
 using OsEngine.Logging;
 using System.Threading;
+using OsEngine.Language;
 
 /* Description
 trading robot for OsEngine
@@ -104,11 +105,7 @@ namespace OsEngine.Robots
                 worker.Start();
             }
 
-            Description = "Robot is an example of sending notifications to Telegram. " +
-                "Telegram receives notifications about opening of a deal, closing of a deal and loss of connection to server. " +
-                "Its trading strategy is based on breakdown of PriceChannel - we buy at breakdown of upper border of channel, close position at breakdown of lower one. " +
-                "Robot is for demonstration, not for real trading - be careful. " +
-                "Be careful in Tester and Optimazer - it can often send notifications.";
+            Description = OsLocalization.Description.DescriptionLabel295;
         }
 
         private void _tab_PositionClosingSuccesEvent(Position position)

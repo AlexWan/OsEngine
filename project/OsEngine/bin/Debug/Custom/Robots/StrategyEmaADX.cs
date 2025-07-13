@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -108,15 +109,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Ema with ADX. " +
-                "Buy: " +
-                "The previous candle was above Ema, the last candle was lower or equal to Ema,  " +
-                "and Adx must be above 25. We set a litka for purchase at the price of the high of this candle. " +
-                "Sell: " +
-                "The previous candle was below Ema, the last high candle is higher than or equal to Ema, " +
-                "and Adx must be above 25. We set a litka for purchase at the price of this candle's loy. " +
-                "Buy exit: trailing stop in % of the line of the candle on which you entered. " +
-                "Sell ​​exit: trailing stop in % of the high of the candle where you entered.";
+            Description = OsLocalization.Description.DescriptionLabel242;
         }
 
         private void _strategyEmaADX_ParametrsChangeByUser()

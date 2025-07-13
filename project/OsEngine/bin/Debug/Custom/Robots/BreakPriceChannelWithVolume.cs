@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -118,19 +119,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break PriceChannel With Volume. " +
-                "Buy: " +
-                "1. The candle closed above the upper PC line " +
-                "2. The volume is above the average volume for the period (the number of candles back) by a factor of several. " +
-                "Sell: " +
-                "1. The candle closed below the lower PC line. " +
-                "2. The volume is above the average volume for the period (the number of candles back) by a factor of several. " +
-                "Exit from buy: Stop and profit. " +
-                "The stop is placed at the minimum for the period specified for the stop (StopCandles).  " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop). " +
-                "Exit from sell: Stop and profit. " +
-                "The stop is placed at the maximum for the period specified for the stop (StopCandles).  " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop).";
+            Description = OsLocalization.Description.DescriptionLabel166;
         }
 
         private void BreakPriceChannelWithVolume_ParametrsChangeByUser()

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -119,17 +120,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy VolumeOscilator With PriceChannel. " +
-                "Buy: " +
-                "1. The candle closed above the upper PC line. " +
-                "2. The Volume Oscillator indicator line is above 0. " +
-                "Sell: " +
-                "1. The candle closed below the lower PC line. " +
-                "2. The Volume Oscillator indicator line is below 0. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified  " +
-                "for the trailing stop and is transferred, (slides), to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified  " +
-                "for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel289;
         }
 
         private void StrategyVolumeOscilatorWithPC_ParametrsChangeByUser()

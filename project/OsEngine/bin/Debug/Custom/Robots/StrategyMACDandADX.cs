@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -112,16 +113,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy MACD and ADX. " +
-                "Buy: " +
-                "1. MACD histogram > 0 or rising; " +
-                "2. Adx > 20 and growing. " +
-                "Sell: " +
-                "1. MACD histogram < 0 or falling; " +
-                "2. Adx > 20 and growing. " +
-                "Exit: " +
-                "From buy: MACD histogram <0 or falling. " +
-                "From sell: MACD histogram> 0 or rising.";
+            Description = OsLocalization.Description.DescriptionLabel256;
         }
 
         private void StrategyMACDandADX_ParametrsChangeByUser()

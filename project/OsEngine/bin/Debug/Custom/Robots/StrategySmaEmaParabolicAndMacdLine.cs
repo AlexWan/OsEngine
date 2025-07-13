@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -130,17 +131,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the Strategy Sma, Ema, Parabolic And MacdLine. " +
-                "Buy: " +
-                "1. Ema above Sma; " +
-                "2. The price is higher than the Parabolic value; " +
-                "3. Macd line (green) above the signal line (red); " +
-                "Sell: " +
-                "1. The Ema is lower than the Sma; " +
-                "2. The price is below the Parabolic value; " +
-                "3. Macd line (green) below the signal line (red); " +
-                "Exit from buy: The Ema is below the Sma. " +
-                "Exit from sell: Ema is higher than Sma.";
+            Description = OsLocalization.Description.DescriptionLabel275;
         }
 
         // Indicator Update event

@@ -14,6 +14,7 @@ using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -100,16 +101,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy ADX Break Plus Minus. " +
-                "Buy: " +
-                "1. DM+ crossed DM- from bottom to top. " +
-                "2. ADX is more than DM-. " +
-                "3. ADX rising. " +
-                "Sell: " +
-                "1. DM+ crossed DM- from top to bottom. " +
-                "2. ADX is more than DM+. " +
-                "3. ADX rising. " +
-                "Exit: by DM reverse intersection.";
+            Description = OsLocalization.Description.DescriptionLabel128;
         }
 
         private void ADXBreakPlusMinus_ParametrsChangeByUser()

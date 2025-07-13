@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -83,10 +84,7 @@ namespace OsEngine.Robots.MyRobots
             // subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the Ssma indicator. " +
-                "Buy: the price of the instrument is higher than the Ssma. " +
-                "Sell: the price of the instrument is below the Ssma. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel169;
         }
 
         // Indicator Update event

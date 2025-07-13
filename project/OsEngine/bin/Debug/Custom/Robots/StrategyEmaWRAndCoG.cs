@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -104,16 +105,7 @@ namespace OsEngine.Robots
             // subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Contrtrend robot on WilliamsRange, Ema and CoG. " +
-               "Buy:" +
-               " When the price is below the Ema indicator, the WilliamsRange indicator leaves the overbought zone, " +
-               "crossing the -20 mark from bottom to top, and the main line of the CoG indicator is above the signal line." +
-               "Sell: " +
-               "When the price is above the Ema indicator, the WilliamsRange indicator leaves the oversold zone, " +
-               "crossing the -80 mark from top to bottom and the main line of the CoG indicator is below the signal line." +
-               "Exit: " +
-               "From purchases, the candle closed above the Ema indicator." +
-               "From sales, the candle closed below the Ema indicator.";
+            Description = OsLocalization.Description.DescriptionLabel247;
         }
 
         private void StrategyWRAndCoG_ParametrsChangeByUser()

@@ -240,6 +240,7 @@ namespace OsEngine.Robots
         {
             try
             {
+                string descriptionNew = null;
                 int row = e.RowIndex;
                 int col = e.ColumnIndex;
 
@@ -324,13 +325,26 @@ namespace OsEngine.Robots
                             }
                         }
 
-                        if (description != null &&
-                            string.IsNullOrEmpty(description.Description) == false)
+                        string script = _grid.Rows[row].Cells[2].Value.ToString();
+
+                        if (script == "Include")
                         {
-                            CustomMessageBoxUi ui = new CustomMessageBoxUi(description.Description);
-                            ui.ShowDialog();
+                            BotDescription updatedDesc = GetBotDescription(className, false);
+                            descriptionNew = updatedDesc.Description;
+                        }
+                        else
+                        {
+                            BotDescription updatedDesc = GetBotDescription(className, true);
+                            descriptionNew = updatedDesc.Description;
                         }
 
+                        if (descriptionNew != null &&
+                            string.IsNullOrEmpty(descriptionNew) == false)
+                        {
+                            CustomMessageBoxUi ui = new CustomMessageBoxUi(descriptionNew);
+                            ui.ShowDialog();
+                        }
+                        //
                     }
                 }
                 catch (Exception ex)
@@ -905,7 +919,7 @@ namespace OsEngine.Robots
         }
 
         private List<BotDescription> _descriptionsFromBotFactoryLast;
-
+        //
         private BotDescription GetBotDescription(string className, bool isScript)
         {
             BotPanel bot = null;

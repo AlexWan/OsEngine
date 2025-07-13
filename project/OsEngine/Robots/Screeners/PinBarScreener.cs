@@ -11,6 +11,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -81,13 +82,7 @@ namespace OsEngine.Robots.Screeners
             // Subscribe to the candle completion event
             _tabScreener.CandleFinishedEvent += _tab_CandleFinishedEvent1;
 
-            Description = "Buy:" +
-                "1. The last candle opened and closed in the upper third of the high-low range." +
-                "2. Price is above the SMA. " +
-                "Sell: " +
-                "1. The last candle opened and closed in the lower third of the high-low range. " +
-                "2. Price is below the SMA. " +
-                "Exit: Positions exit on trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel89;
         }
 
         // Candle Completion Event

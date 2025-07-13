@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -108,14 +109,7 @@ namespace OsEngine.Robots
             // subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on Overbougth Oversold WilliamsRange. " +
-                "Buy: " +
-                "1. The price of the instrument is higher than the Ssma and the Ssma is rising. " +
-                "2. WR leaves the oversold zone, crossing the -80 mark from bottom to top. " +
-                "Sell: " +
-                "1. The price of the instrument is lower than the Ssma and the Ssma is falling. " +
-                "2. WR leaves the overbought zone, crossing the -20 mark from top to bottom. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel230;
         }
 
         // Indicator Update event

@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -103,10 +104,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The robot on Devergence Osma. " +
-                "Buy: The lows on the chart are decreasing, but on the indicator they are growing. " +
-                "Sell: The highs on the chart are rising, and on the indicator they are decreasing. " +
-                "Exit: after a certain number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel314;
         }
        
         private void DivergenceOsMa_ParametrsChangeByUser()

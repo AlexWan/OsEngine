@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -123,15 +124,7 @@ namespace OsEngine.Robots
             // Successful position opening event
             _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
 
-           Description = "The trend robot on Strategy Price Channel With Rsi And CoG. " +
-                "Buy: When the Rsi indicator is above 50 and CoG is above the level from the parameters, " +
-                "we place a pending buy order along the top line of the PriceChannel indicator." +
-                "Sell: When the Rsi indicator is below 50 and CoG is below the level from the parameters," +
-                " we place a pending sell order along the lower line of the PriceChannel indicator. " +
-                "Exit from buy: We set a trailing stop as a percentage of the low of the candle at which we entered and along the lower border of the PriceChannel indicator. " +
-                "The calculation method that is closest to the current price is selected." +
-                "Exit from sell: We set a trailing stop as a percentage of the high of the candle at which we entered and along the upper border of the PriceChannel indicator." +
-                " The calculation method that is closest to the current price is selected.";
+            Description = OsLocalization.Description.DescriptionLabel267;
         }
 
         private void _tab_PositionOpeningSuccesEvent(Position position)

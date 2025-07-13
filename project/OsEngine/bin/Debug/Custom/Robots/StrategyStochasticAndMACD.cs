@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -122,15 +123,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Stochastic And MACD. " +
-                "Buy: " +
-                "1. The stochastic line (blue) is above the signal line (red) and above 20. " +
-                "2. The MACD histogram crosses the signal line from bottom to top. " +
-                "Sell: " +
-                "1. The stochastic line (blue) is below the signal line (red) and below 80. " +
-                "2. The MACD histogram crosses the signal line from top to bottom. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel278;
         }
 
         private void StrategyStochasticAndMACD_ParametrsChangeByUser()

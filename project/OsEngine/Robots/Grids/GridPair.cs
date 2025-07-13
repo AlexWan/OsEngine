@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Grids;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -99,10 +100,7 @@ namespace OsEngine.Robots.Grids
 
             this.ParametrsChangeByUser += GridPair_ParametrsChangeByUser;
 
-            Description =
-                " Market maker's grid for trading in a pair. "
-              + "A graph of minimum residuals from the difference of two price series with an optimal multiplier is calculated. "
-              + " Extreme deviations of two securities from each other are traded. ";
+            Description = OsLocalization.Description.DescriptionLabel38;
         }
 
         private void GridPair_ParametrsChangeByUser()

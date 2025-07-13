@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -100,15 +101,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             // Create indicator Rsi
             _tabScreener.CreateCandleIndicator(2, "RSI", new List<string>() { _rsiLen.ValueInt.ToString() }, "Second");
 
-            Description = "The trend robot on ZigZagChannel Screener RsiFilter. " +
-                "Buy: " +
-                "1. The total number of open positions is below the maximum allowed. " +
-                "2. The last candle’s close is above the upper ZigZag line. " +
-                "3. The SMA is rising. " +
-                "Exit: " +
-                "1. The position is open and not already being closed. " +
-                "2. If stop is greater than the current price. " +
-                "3. Otherwise, place a trailing stop order using the calculated levels.";
+            Description = OsLocalization.Description.DescriptionLabel124;
 
             if (StartProgram == StartProgram.IsTester && ServerMaster.GetServers() != null)
             {

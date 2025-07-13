@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -132,17 +133,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on countertrend two Envelopes and RSI." +
-                "Buy:" +
-                "  1.The price was in the lower zone between between the lower lines of the local Envelopes and the global or below the glob" +
-                " Then it returned back and became higher than the lower line of the local Envelope" +
-                " 2.Rsi is below a certain value, oversold zone(Oversold Line)." +
-                "Sell: " +
-                "1.The price was in the upper zone between between the milestones of the local Envelopes and the global or above the global. " +
-                "Then it came back and became below the upper line of the local Envelopes;" +
-                " 2.The Rsi is above a certain value, the overbought zone(Overbought Line)." +
-                "Exit:" +
-                " On the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel196;
         }
 
         private void CountertrendTwoEnvelopsAndRSI_ParametrsChangeByUser()

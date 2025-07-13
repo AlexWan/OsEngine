@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -147,18 +148,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy ADX, Stochastic and three Ema. " +
-                "Buy: " +
-                "1. fast Ema is higher than the middle Ema and the middle is higher than the slow one. " +
-                "2. Stochastic crosses the level 50 and is growing (from bottom to top). " +
-                "3. Adx is rising and crosses level 20 upwards (growing). " +
-                "Sell: " +
-                "1. fast Ema is below the middle Ema and the middle is below the slow one. " +
-                "2. Stochastic crosses the level 50 and falls (from top to bottom). " +
-                "3. Adx is rising and crosses level 20 upwards (growing). " +
-                "Exit: " +
-                "From buy: fast Ema below middle Ema. " +
-                "From sell: fast Ema above middle Ema.";
+            Description = OsLocalization.Description.DescriptionLabel238;
         }
 
         private void StrategyADXStohAndThreeEMA_ParametrsChangeByUser()

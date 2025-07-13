@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -88,10 +89,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on BreakChaikin. " +
-                "Buy: Chaikin Oscillator line above 0. " +
-                "Sell: Chaikin Oscillator line below 0. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel141;
         }
 
         private void BreakChaikin_ParametrsChangeByUser()

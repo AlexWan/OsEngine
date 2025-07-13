@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 namespace OsEngine.Robots.AutoTestBots.ServerTests
 {
@@ -191,6 +192,7 @@ namespace OsEngine.Robots.AutoTestBots.ServerTests
             P1_AssetInPortfolioName = CreateParameter("Asset In portfolio 1", "ETH", "P1");
             P1_Volume = CreateParameter("Volume.  portfolio 1", 0.01m, 1, 1, 1, "P1");
 
+            Description = OsLocalization.Description.DescriptionLabel125;
         }
 
         public override string GetNameStrategyType()

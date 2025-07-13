@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -118,16 +119,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Ema And MACD. " +
-                "Buy: " +
-                "1. The price is above the Ema. " +
-                "2. Macd is growing for at least 5 candles. " +
-                "Sell: " +
-                "1. The price is below the Ema. " +
-                "2. Macd is falling for at least 5 candles. " +
-                "Exit: " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel244;
         }
 
         private void StrategyEmaAndMACD_ParametrsChangeByUser()

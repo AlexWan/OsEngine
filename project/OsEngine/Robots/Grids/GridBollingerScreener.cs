@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.OsTrader.Grids;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -111,11 +112,7 @@ namespace OsEngine.Robots.Grids
 
             this.ParametrsChangeByUser += GridBollingerScreener_ParametrsChangeByUser;
 
-            Description =
-                "Grid counter-trend screener. Bollinger and Adx. "
-              + "We turn on the grid on reduced volatility and breakdown of the level. "
-              + "Volatility is viewed by Adx. "
-              + "Additionally: Work days / Non-trading periods intraday.";
+            Description = OsLocalization.Description.DescriptionLabel35;
         }
 
         private void GridBollingerScreener_ParametrsChangeByUser()

@@ -11,6 +11,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Drawing;
 using OsEngine.Charts.CandleChart.Elements;
+using OsEngine.Language;
 
 /* Description
 TechSample robot for OsEngine
@@ -73,7 +74,7 @@ namespace OsEngine.Robots.TechSamples
             _buttonClearAllElementsButton = CreateParameterButton("Remove all elements");
             _buttonClearAllElementsButton.UserClickOnButtonEvent += _buttonClearAllElementsButton_UserClickOnButtonEvent;
 
-            Description = "An example of a robot going short after a false upside breakout.";
+            Description = OsLocalization.Description.DescriptionLabel105;
         }
 
         // The name of the robot in OsEngine

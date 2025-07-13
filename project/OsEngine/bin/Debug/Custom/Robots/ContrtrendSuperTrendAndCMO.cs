@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -102,11 +103,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Countertrend strategy using SuperTrend and CMO indicators. " +
-                "Buy: When the price is above the SuperTrend indicator line and the CMO indicator value is below -50." +
-                "Sell: When the price is below the SuperTrend indicator line and the CMO indicator value is above 50." +
-                "Exit from buy: When the price is below the SuperTrend indicator line. " +
-                "Exit from sell: When the price is above the SuperTrend indicator line. ";
+            Description = OsLocalization.Description.DescriptionLabel183;
         }
 
         private void ContrtrendSuperTrendAndCMO_ParametrsChangeByUser()

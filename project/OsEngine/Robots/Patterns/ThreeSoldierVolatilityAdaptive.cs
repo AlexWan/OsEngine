@@ -11,6 +11,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -78,14 +79,7 @@ namespace OsEngine.Robots.Patterns
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Three Soldier Volatility Adaptive. " +
-                "Logic: " +
-                "For the last three candles, it is checked that the absolute value of the difference " +
-                "between the opening and closing prices relative to the closing price exceeds a specified " +
-                "threshold (Height Soldiers for the most recent candle and min Height One Soldier for the previous ones). " +
-                "Buy: All three of the most recent candles are bullish (rising). " +
-                "Sell: All three of the most recent candles are bearish (falling). " +
-                "Exit: Based on stop-loss and take-profit levels.";
+            Description = OsLocalization.Description.DescriptionLabel77;
         }
 
         // The name of the robot in OsEngine

@@ -19,7 +19,7 @@ namespace OsEngine.Robots.Engines
             // Create tabs
             TabCreate(BotTabType.Simple);
 
-            Description = "blank strategy for manual trading";
+            Description = OsLocalization.Description.DescriptionLabel28;
         }
 
         // The name of the robot in OsEngine

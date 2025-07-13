@@ -12,6 +12,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -88,16 +89,7 @@ namespace OsEngine.Robots.Patterns
             // Subscribe to the indicator update event
             ParametrsChangeByUser += PinBarTrade_ParametrsChangeByUser;
 
-            Description = "Trend robot on the PinBar Trade. " +
-                "Buy: " +
-                "1. The closing price must be **greater than or equal to** the level located at 1/3 of the candle's range from the bottom. " +
-                "2. The opening price must also be **greater than or equal to** this level. " +
-                "3. The moving average (SMA) must be **below** the current closing price, indicating an upward trend. " +
-                "Sell: " +
-                "1. The closing price must be **less than or equal to** the level located at 1/3 of the candle's range from the top. " +
-                "2. The opening price must also be **less than or equal to** this level. " +
-                "3. The moving average (SMA) must be **above** the current closing price, indicating a downward trend. " +
-                "Exit: by trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel74;
         }
 
         private void PinBarTrade_ParametrsChangeByUser()

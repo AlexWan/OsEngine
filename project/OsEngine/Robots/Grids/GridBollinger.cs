@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.OsTrader.Grids;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -72,10 +73,7 @@ namespace OsEngine.Robots.Grids
 
             ParametrsChangeByUser += ParametersChangeByUser;
 
-            Description = "A robot demonstrating grid operation in countertrend. Throws out a grid of \"MarketMaking\" type" +
-                "Bollinger indicator serves as a signal for grid throwing. " +
-                "When the candlestick closing price is above the upper channel line of the indicator - the grid is thrown into the SHORT. " +
-                "When the candlestick closing price is below the lower line of the indicator channel - the grid is thrown to LONG.";
+            Description = OsLocalization.Description.DescriptionLabel34;
         }
 
         private void ParametersChangeByUser()

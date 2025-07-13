@@ -8,6 +8,7 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 /* Description
 TestBot for OsEngine.
@@ -28,8 +29,7 @@ namespace OsEngine.Robots.AutoTestBots
             _screenerTab.CandleFinishedEvent += _screenerTab_CandleFinishedEvent;
             _screenerTab.CreateCandleIndicator(1, "Sma", new List<string>() { "100" }, "Prime");
 
-            Description = "Do not enable - a robot for testing the synchronism" +
-                " of the array of trades in the candle and the candles themselves";
+            Description = OsLocalization.Description.DescriptionLabel4;
         }
 
         BotTabScreener _screenerTab;

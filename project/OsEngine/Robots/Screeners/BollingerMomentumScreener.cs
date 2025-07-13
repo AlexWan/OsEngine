@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -82,11 +83,7 @@ namespace OsEngine.Robots.Screeners
             // Exit setting
             _trailStop = CreateParameter("Trail stop %", 2.9m, 0, 20, 1m);
 
-            Description = "The trend robot on Bollinger Momentum Screener. " +
-                "Buy: " +
-                "1. If the closing price of the last candle (lastCandleClose) is above the Bollinger upper line (lastUpBollingerLine) " +
-                "2. And the Momentum level exceeds the minimum value (_minMomentumValue) " +
-                "Exit: by trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel87;
         }
 
         // The name of the robot in OsEngine

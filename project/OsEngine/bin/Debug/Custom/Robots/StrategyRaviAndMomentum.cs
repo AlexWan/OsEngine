@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -101,11 +102,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Ravi And Momentum. " +
-                "Buy: When the Ravi indicator value is above the upper line and the Momentum indicator is above 100." +
-                "Sell: When the Ravi indicator value is below the lower line and the Momentum indicator is below 100." +
-                "Exit from buy: When the Ravi indicator value is below the lower line and the Momentum indicator is below 100. " +
-                "Exit from sell: When the Ravi indicator value is above the upper line and the Momentum indicator is above 100.";
+            Description = OsLocalization.Description.DescriptionLabel270;
         }
 
         private void StrategyRavi_ParametrsChangeByUser()

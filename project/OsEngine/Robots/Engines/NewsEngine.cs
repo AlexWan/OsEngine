@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
@@ -19,7 +20,7 @@ namespace OsEngine.Robots.Engines
             TabCreate(BotTabType.News);
             TabsNews[0].NewsEvent += NewsEngine_NewsEvent;
 
-            Description = "blank strategy for news trading";
+            Description = OsLocalization.Description.DescriptionLabel31;
         }
 
         private void NewsEngine_NewsEvent(News news)

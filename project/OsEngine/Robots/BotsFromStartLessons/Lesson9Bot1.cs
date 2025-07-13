@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -88,10 +89,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _openAtStopIsNoLifeTimeOrder = CreateParameter("Use no lifetime order", false, "Entry at Stop");
             _openAtStopIsMarketOrder = CreateParameter("Is market order", false, "Entry at Stop");
 
-            Description = "Robot example from the lecture course \"C# for algotreader\"." +
-                "Stores examples of different methods for entering in position." +
-                "When you click on the button in robot parameters, an order of the selected type is created." +
-                "You can close the positions with button in the settings of the robot.";
+            Description = OsLocalization.Description.DescriptionLabel18;
         }
 
         #region Close positions

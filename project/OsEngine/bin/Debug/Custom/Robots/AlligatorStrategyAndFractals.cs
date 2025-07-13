@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -118,19 +119,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on intersection of the Alligator indicator with Fractal. " +
-                "Buy: " +
-                "Fast line (lips) above the middle line (teeth), medium above the slow line (jaw) and" +
-                " the price is higher than the last ascending fractal. " +
-                "Sell: " +
-                "Fast line (lips) below the midline (teeth), medium below the slow line (jaw) and " +
-                "the price is lower than the last descending fractal. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period " +
-                "specified for the trailing stop and is transferred, (slides), to new price lows, also " +
-                "for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period " +
-                "specified for the trailing stop and is transferred (slides) to the new maximum of the  " +
-                "price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel130;
         }
 
         // Indicator Update event

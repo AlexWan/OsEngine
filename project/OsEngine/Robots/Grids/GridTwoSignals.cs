@@ -11,6 +11,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
+using OsEngine.Language;
 
 /*Description
 Ejection of two grids in one direction
@@ -93,13 +94,7 @@ namespace OsEngine.Robots.Grids
 
             ParametrsChangeByUser += ParametersChangeByUser;
 
-            Description =
-                "Ejection of two grids in one direction " +
-                "First buy signal: Breakdown of Price-Channel down " +
-                "Second buy signal: There is the first grid + price returned to the center of the channel. " +
-                "Output: By the number of closed lines. " +
-                "Output 2: By time in seconds. " +
-                "TrailingUp / Trailing Down. The permutation step is 20 minimum price steps.";
+            Description = OsLocalization.Description.DescriptionLabel41;
         }
 
         private void ParametersChangeByUser()

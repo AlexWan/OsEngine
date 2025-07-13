@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using OsEngine.Language;
 
 namespace OsEngine.Robots.PositionsMicromanagement
 {
@@ -83,7 +84,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "An example of a robot that shows sequential position averaging by opening new positions by pending orders";
+            Description = OsLocalization.Description.DescriptionLabel82;
         }
 
         void Event_ParametrsChangeByUser()

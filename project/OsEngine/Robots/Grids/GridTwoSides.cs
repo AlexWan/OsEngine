@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.OsTrader.Grids;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
@@ -73,10 +74,7 @@ namespace OsEngine.Robots.Grids
 
             ParametrsChangeByUser += ParametersChangeByUser;
 
-            Description =
-                "Ejection of two grids in both directions at the same time." +
-                "Signal to start trading: Atr fell in M than it was N candles ago " +
-                "Signal to stop trading: Atr became higher than it was N candles ago";
+            Description = OsLocalization.Description.DescriptionLabel40;
         }
 
         private void ParametersChangeByUser()

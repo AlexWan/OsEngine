@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -120,13 +121,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break PriceChannel And SMI. " +
-                "Buy: " +
-                "the candle closed above the upper PC line and the stochastic line is above the signal (green). " +
-                "Sell: " +
-                "the candle closed below the lower PC line and the stochastic line is below the signal(green). " +
-                "Exit: " +
-                "After a certain number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel165;
         }
 
         private void BreakPriceChannelAndSMI_ParametrsChangeByUser()

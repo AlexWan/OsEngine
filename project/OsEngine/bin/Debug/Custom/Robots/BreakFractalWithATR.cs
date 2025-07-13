@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -113,15 +114,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Fractal With ATR. " +
-                "Buy:  " +
-                "If an upper fractal has formed on the chart, set BuyAtStop + lastAtr * CoefAtr.ValueDecimal. " +
-                "Sell: " +
-                "If a lower fractal has formed on the chart, set SellAtStop - lastAtr * CoefAtr.ValueDecimal. " +
-                "Exit: " +
-                "The stop is placed at the minimum for the period specified for the stop (StopCandles). The profit is equal to the size of the stop * CoefProfit. " +
-                "Exit: " +
-                "The stop is placed at the maximum for the period specified for the stop (StopCandles). The profit is equal to the size of the stop * CoefProfit.";
+            Description = OsLocalization.Description.DescriptionLabel152;
         }
 
         private void BreakFractalWithATR_ParametrsChangeByUser()

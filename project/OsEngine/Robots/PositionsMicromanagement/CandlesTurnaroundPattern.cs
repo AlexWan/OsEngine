@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -90,11 +91,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "The trend robot on Candles Turnaround Pattern. " +
-                "Buy:The last candle is a fast, large-bodied bullish candle, and the previous candle is a slow, large-bodied bearish candle. " +
-                "Exit:The position is closed by placing stop-loss orders if the price moves against the position beyond a certain percentage, and " +
-                "by setting multiple limit orders at increasing profit levels—first at a small profit target, then at a higher one, and finally " +
-                "closing the remaining volume at the highest target.";
+            Description = OsLocalization.Description.DescriptionLabel80;
         }
 
         void Event_ParametrsChangeByUser()

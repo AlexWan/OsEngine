@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -107,11 +108,7 @@ namespace OsEngine.Robots.MyRobots
             // Exit settings
             TrailingValue = CreateParameter("TrailingValue", 1, 1.0m, 10, 1, "Exit settings");
 
-            Description = "Trend robot at the Intersection of Ema and  Ema offset. " +
-                "Buy: Fast Ema is higher than slow Ema. " +
-                "Sell: Fast Ema is lower than slow Ema. " +
-                "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel299;
         }
 
         // Indicator Update event

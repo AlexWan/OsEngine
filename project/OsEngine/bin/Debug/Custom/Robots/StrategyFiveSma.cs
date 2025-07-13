@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -146,15 +147,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on of five Sma " +
-                "Buy: " +
-                "All Smas are rising (when all five moving averages are larger than they were one bar ago) +  " +
-                "half of the difference between the high and low of the previous bar. " +
-                "Sell:" +
-                "All Smas fall (when all five moving averages are less than they were one bar ago) - " +
-                "half the difference between the high and low of the previous bar. " +
-                "Exit from buy: Sma1, Sma2 and Sma3 are falling. " +
-                "Exit from sell: Sma1, Sma2 and Sma3 are growing.";
+            Description = OsLocalization.Description.DescriptionLabel252;
         }
 
         // Indicator Update event

@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -105,14 +106,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Devergence Rsi." +
-                "Buy conditions:1. Price forms lower lows on the chart (zzLowOne < zzLowTwo)," +
-                "2. RSI forms higher lows (zzRsiLowOne > zzRsiLowTwo)," +
-                "3. Divergence occurs before the last RSI high (indexTwo < indexHigh)." +
-                "Sell conditions:1. Price forms higher highs on the chart (zzHighOne > zzHighTwo)," +
-                "2. RSI forms lower highs (zzRsiHighOne < zzRsiHighTwo)," +
-                "3. Divergence occurs before the last RSI low (indexTwo < indexLow)." +
-                "Exit:The robot exits the position after a predefined number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel305;
         }
 
         private void DevergenceRsi_ParametrsChangeByUser()

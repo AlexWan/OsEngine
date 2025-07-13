@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -87,13 +88,7 @@ namespace OsEngine.Robots.High_Frequency
             
             DeleteEvent += MarketDepthScreener_DeleteEvent;
 
-            Description = "The trend robot on MarketDepth Screener. " +
-                "Buy: " +
-                "1. Step First: Analyze the latest Momentum value: if it is below the minimum  " +
-                "acceptable value (MinMomentumValue), proceed to the next entry step. " +
-                "2. Step Second: Check the volume ratio of the bids: if the volume of the best bid is too  " +
-                "small compared to other bids (ratio below the threshold BestBidMinRatioToAll), do not enter. " +
-                "Exit: by stop and profit.";
+            Description = OsLocalization.Description.DescriptionLabel44;
         }
 
         // The name of the robot in OsEngine

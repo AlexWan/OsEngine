@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -120,14 +121,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot at the Break Channel LRMA and ADX. " +
-                "Buy: " +
-                "1. The price is above the upper line of the channel. " +
-                "2. Adx is growing and crosses level 20 from bottom to top. " +
-                "Sell: " +
-                "1. The price is below the bottom line of the channel. " +
-                "2. Adx is growing and crosses level 20 from bottom to top. " +
-                "Exit: after a certain number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel143;
         }
 
         // Indicator Update event

@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using OsEngine.Language;
 
 namespace OsEngine.Robots.PositionsMicromanagement
 {
@@ -77,7 +78,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "Example of using a non-safe method of closing positions with multiple limit orders at the same time";
+            Description = OsLocalization.Description.DescriptionLabel86;
         }
 
         void Event_ParametrsChangeByUser()

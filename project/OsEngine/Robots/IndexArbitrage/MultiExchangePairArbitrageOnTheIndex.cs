@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -73,7 +74,7 @@ namespace OsEngine.Robots.IndexArbitrage
             _minDeviationSecToSecToEntry = CreateParameter("Min Deviation SecToSec ToEntry", 0.5m, 0.1m, 5, 0.1m);
             _minDeviationToExit = CreateParameter("Min Deviation To Exit", 0.1m, 0.1m, 5, 0.1m);
 
-            Description = "Arbitrage of several currency pairs on the index";
+            Description = OsLocalization.Description.DescriptionLabel46;
         }
 
         // The name of the robot in OsEngine

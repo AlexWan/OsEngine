@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -86,13 +87,7 @@ public class BollingerTrailing : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-        Description = "Bollinger Bands trading bargaining robot with pull-up Trailing-Stop through Bollinger Bands " +
-        "Buy: " +
-        "1. The price is more than BollingerUpLine. " +
-        "Sell: " +
-        "1. Price below BollingerDownLine." +
-        "Exit: " +
-        "1. Trailing-Stop through Bollinger Bands";
+        Description = OsLocalization.Description.DescriptionLabel56;
     }
 
     void Event_ParametrsChangeByUser()

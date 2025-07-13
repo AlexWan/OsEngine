@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -72,11 +73,7 @@ namespace OsEngine.Robots.TechSamples
             Thread worker = new Thread(StartPaintChart);
             worker.Start();
 
-            Description = "Sample “Chart in the parameters window” for osengine. " +
-                "It shows: " +
-                "• Dynamic graph: The graph updates in real time as new data becomes available. " +
-                "• User interaction: The user can change the scale of the graph and get values ​​at specific points. " +
-                "• Customizable parameters: Ability to select the spread calculation method and the maximum number of points on the chart.";
+            Description = OsLocalization.Description.DescriptionLabel101;
         }
 
         // The name of the robot in OsEngine

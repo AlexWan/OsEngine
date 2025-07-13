@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -108,10 +109,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on intersection of three SMA " +
-                "Buy: Fast Sma is above average Sma and medium is above slow " +
-                "Sell: Fast Sma is below average Sma and average is below slow " +
-                "Exit: on the opposite signal";
+            Description = OsLocalization.Description.DescriptionLabel207;
         }
 
         // Indicator Update event

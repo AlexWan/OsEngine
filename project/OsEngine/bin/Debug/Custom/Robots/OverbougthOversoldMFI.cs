@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -96,11 +97,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Overbougth Oversold MFI. " +
-                "Buy: the values of the MFI indicator crosses the level 20 from bottom to top. " +
-                "Sell: The values of the MFI indicator crosses the 80 level from top to bottom. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel227;
         }
 
         private void OverbougthOversoldMFI_ParametrsChangeByUser()

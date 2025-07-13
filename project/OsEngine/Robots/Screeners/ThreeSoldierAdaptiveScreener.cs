@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.IO;
 using System.Globalization;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -79,9 +80,7 @@ namespace OsEngine.Robots.Screeners
             _smaFilterIsOn = CreateParameter("Sma filter is on", true);
             _smaFilterLen = CreateParameter("Sma filter Len", 100, 100, 300, 10);
 
-            Description = "Trading robot Three Soldiers adaptive by volatility. " +
-                "When forming a pattern of three growing / falling candles, " +
-                "the entrance to the countertrend with a fixation on a profit or a stop";
+            Description = OsLocalization.Description.DescriptionLabel95;
 
             if (startProgram == StartProgram.IsOsTrader)
             {

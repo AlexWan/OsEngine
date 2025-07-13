@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Tester;
@@ -67,9 +68,7 @@ namespace OsEngine.Robots.Screeners
             _profitPercent = CreateParameter("Profit percent", 1.5m, 0, 20, 1m);
             _ptopPercent = CreateParameter("Stop percent", 0.5m, 0, 20, 1m);
 
-            Description = "The trend robot on Pump Detector Screener. " +
-                "Buy: If the price change exceeds the specified threshold (MoveToEntry) " +
-                "Exit: by stop and profit.";
+            Description = OsLocalization.Description.DescriptionLabel93;
 
             if (startProgram == StartProgram.IsTester)
             {

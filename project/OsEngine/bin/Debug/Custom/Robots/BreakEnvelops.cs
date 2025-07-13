@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -92,13 +93,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on BreakEnvelops. " +
-                "Buy: " +
-                "The price is above the upper Envelops band. " +
-                "Sell: " +
-                "The price is below the lower Envelops band. " +
-                "Exit:" +
-                "Reverse side of the channel.";
+            Description = OsLocalization.Description.DescriptionLabel147;
         }
 
         private void BreakEnvelops_ParametrsChangeByUser()

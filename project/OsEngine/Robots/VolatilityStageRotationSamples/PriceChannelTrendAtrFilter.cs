@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -96,17 +97,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-            Description = "The trend robot on PriceChannel and AtrFilter." +
-                "Buy:" +
-                "1.The price has broken above the upper line of the Price Channel " +
-                "2.ATR has grown compared to AtrGrowLookBack candles ago. " +
-                "Sell: " +
-                "1.The price has broken below the lower line of the Price Channel " +
-                "2.ATR has grown compared to AtrGrowLookBack candles ago. " +
-                "Exit for long: " +
-                "Exit using a trailing stop set to the lower line of the Price Channel. " +
-                "Exit for short: " +
-                "Exit using a trailing stop set to the upper line of the Price Channel.";
+            Description = OsLocalization.Description.DescriptionLabel123;
         }
 
         void Event_ParametrsChangeByUser()

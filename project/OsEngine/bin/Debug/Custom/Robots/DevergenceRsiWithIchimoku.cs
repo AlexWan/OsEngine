@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trend-following robot based on RSI divergence with Ichimoku confirmation.
@@ -139,19 +140,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend-following robot based on RSI divergence with Ichimoku confirmation." +
-                        "Buy:" +
-                        "1. Price forms lower lows, while RSI forms higher lows (bullish divergence)." +
-                        "2. Ichimoku confirmation: Senkou Span A crosses above Senkou Span B (Kumo twist up)." +
-                        "Sell:" +
-                        "1. Price forms higher highs, while RSI forms lower highs (bearish divergence)." +
-                        "2. Ichimoku confirmation: Senkou Span A crosses below Senkou Span B (Kumo twist down)." +
-                        "Exit from long:" +
-                        "1. Stop-loss below the minimum of the last N candles." +
-                        "2. Take-profit at the maximum of the last N candles." +
-                        "Exit from short:" +
-                        "1. Stop-loss above the maximum of the last N candles." +
-                        "2. Take-profit at the minimum of the last N candles.";
+            Description = OsLocalization.Description.DescriptionLabel306;
         }
 
         private void DevergenceRsiWithIchimoku_ParametrsChangeByUser()

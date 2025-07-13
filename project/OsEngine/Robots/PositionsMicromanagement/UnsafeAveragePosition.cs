@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using OsEngine.Language;
 
 namespace OsEngine.Robots.PositionsMicromanagement
 {
@@ -80,7 +81,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "Example of using a non-safe method of position averaging by several limit orders simultaneously.";
+            Description = OsLocalization.Description.DescriptionLabel85;
         }
 
         void Event_ParametrsChangeByUser()

@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -98,10 +99,7 @@ namespace OsEngine.Robots.MarketMaker
             // Subscribe to the indicator update event
             ParametrsChangeByUser += TwoLegArbitrage_ParametrsChangeByUser;
 
-            Description = "Pair trading based on index analysis. " +
-                "Buy: when the RSI indicator built on the index goes below the oversold level. " +
-                "Sell: when the RSI indicator built on the index goes above the oversold level. " +
-                "Exit: by reverse system.";
+            Description = OsLocalization.Description.DescriptionLabel51;
         }
 
         // User change params

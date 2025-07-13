@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using System.Globalization;
 using System.IO;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -92,16 +93,7 @@ namespace OsEngine.Robots.Screeners
             // Exit setting
             _procHeightStop = CreateParameter("Stop % from height of pattern", 20m, 0, 20, 1m);
 
-            Description = "The trend robot on PinBar Volatility Screener. " +
-                "Buy: " +
-                "1. The last candle's close and open prices are near the high of the candle, specifically within the top third of the candle's range. " +
-                "2. The candle's high-to-low length exceeds a specified threshold (HeightPinBar). " +
-                "3. If the Simple Moving Average (SMA) filter is enabled, the current SMA must be higher than the previous SMA, indicating an upward trend. " +
-                "Sell: " +
-                "1. The last candle's close and open prices are near the low of the candle, specifically within the bottom third of the candle's range. " +
-                "2. The candle's high-to-low length exceeds HeightPinBar. " +
-                "3. If SMA filter is enabled, the current SMA must be lower than the previous SMA, indicating a downward trend. " +
-                "Exit: We close the position by trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel90;
 
             if (startProgram == StartProgram.IsOsTrader)
             {

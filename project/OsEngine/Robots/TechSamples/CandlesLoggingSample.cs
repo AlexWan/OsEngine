@@ -8,6 +8,7 @@ using OsEngine.Entity;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 /* Description
 TechSample robot for OsEngine
@@ -32,7 +33,7 @@ namespace OsEngine.Robots.TechSamples
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            this.Description = "An example of a robot for programmers, where you can see how logging works";
+            this.Description = OsLocalization.Description.DescriptionLabel99;
         }
 
         // The name of the robot in OsEngine

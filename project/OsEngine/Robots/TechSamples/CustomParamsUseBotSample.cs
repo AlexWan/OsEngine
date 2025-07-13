@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -123,7 +124,7 @@ namespace OsEngine.Robots.TechSamples
             CreateTable();
             customTab.AddChildren(_host);
 
-            Description = "This is an example of working with custom settings for the design of the Options window.";
+            Description = OsLocalization.Description.DescriptionLabel103;
         }
 
         #region work with grid

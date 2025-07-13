@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -96,14 +97,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The countertrend robot on StdDev. " +
-                "Buy: " +
-                "1. Standard Deviation above MinValue. " +
-                "2. Two candles are falling. " +
-                "Sell: " +
-                "1. Standard Deviation is higher than MinValue. " +
-                "2. Two candles growing. " +
-                "Exit: after a certain number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel193;
         }
 
         private void CountertrendStdDev_ParametrsChangeByUser()

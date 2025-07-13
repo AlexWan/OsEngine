@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -130,21 +131,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The Counter trend robot on Ema with ATR. " +
-                "Buy: " +
-                "1. The volume is above the VolumeValue. " +
-                "2. Candle falling. " +
-                "3. The price is below Ema. " +
-                "4. The value of Atr is higher than the average value for a certain period (CandlesCountAtr) by MultAtr times. " +
-                "Sell: " +
-                "1. The volume is above the VolumeValue. " +
-                "2. Candle growing. " +
-                "3. The price is higher than Ema. " +
-                "4. The value of Atr is higher than the average value for a certain period (CandlesCountAtr) by MultAtr times. " +
-                "Exit from buy: Trailing stop is placed at the minimum for the period specified for the " +
-                "trailing stop and is transferred (sliding) to new price lows, also for the specified period. " +
-                "Exit from sell: Trailing stop is placed on the maximum for the period specified for " +
-                "the trailing stop and is transferred (sliding) to a new price maximum, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel188;
         }
 
         private void CountertrendEmaATR_ParametrsChangeByUser()

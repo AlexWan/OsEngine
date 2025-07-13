@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -104,15 +105,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Overbought Oversold ROC. " +
-                "Buy: the values of the RoC indicator cross the BuyLevel level from bottom to top. " +
-                "Sell: the values of the RoC indicator cross the SellLevel level from top to bottom. " +
-                "Exit from buy: Stop and profit. " +
-                "The stop is placed at the minimum for the period specified for the stop (StopCandles).  " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop). " +
-                "Exit from sell: Stop and profit. " +
-                "The stop is placed at the maximum for the period specified for the stop (StopCandles).  " +
-                "Profit is equal to the size of the stop * CoefProfit (CoefProfit – how many times the size of the profit is greater than the size of the stop).";
+            Description = OsLocalization.Description.DescriptionLabel229;
         }
 
         private void OverbougthOversoldROC_ParametrsChangeByUser()

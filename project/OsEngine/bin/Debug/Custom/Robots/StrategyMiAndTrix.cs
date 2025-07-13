@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -105,11 +106,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot based on MassIndex and Trix indicators. " +
-                "Buy: When the MassIndex indicator value is above the lower line, and the Trix indicator is greater than zero." +
-                "Sell: When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero." +
-                "Exit from buy: When the MassIndex indicator value is above the lower line, and the Trix indicator is less than zero. " +
-                "Exit from sell: When the MassIndex indicator value is above the lower line, and the Trix indicator is greater than zero.";
+            Description = OsLocalization.Description.DescriptionLabel257;
         }
 
         private void StrategyMi_ParametrsChangeByUser()

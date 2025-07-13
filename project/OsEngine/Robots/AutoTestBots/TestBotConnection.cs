@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Connectors;
 using OsEngine.Market.Servers;
@@ -44,7 +45,7 @@ namespace OsEngine.Robots.AutoTestBots
             thread.IsBackground = true;
             thread.Start();
 
-            Description = "Do not turn on - robot for connection testing";
+            Description = OsLocalization.Description.DescriptionLabel1;
         }
 
         // Start testing connector

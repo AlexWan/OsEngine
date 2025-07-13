@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -104,11 +105,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Ichimocu. " +
-                "Buy: The Tenkan line crosses the Kijun line from bottom to top. " +
-                "Sell: The Tenkan line crosses the Kijun line from top to bottom. " +
-                "If the intersection occurs in the cloud (between the lines Senkou A and Senkou B), we do not enter the position. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel217;
         }
 
         private void BreakChaikin_ParametrsChangeByUser()

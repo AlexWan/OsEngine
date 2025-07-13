@@ -14,6 +14,7 @@ using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 Trading robot for OsEngine.
@@ -107,18 +108,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trading robot for OsEngine." +
-                "This trend-following robot detects divergence between price and the AD (Accumulation/Distribution) indicator using ZigZag patterns." +
-                "Buy conditions:" +
-                "1) Price forms a lower low based on ZigZag." +
-                "2) AD indicator forms a higher low based on ZigZagAD." +
-                "3) Divergence appears before the most recent AD high." +
-                "Sell conditions:" +
-                "1) Price forms a higher high based on ZigZag." +
-                "2) AD indicator forms a lower high based on ZigZagAD." +
-                "3) Divergence appears before the most recent AD low." +
-                "Exit:" +
-                "Position is closed after a fixed number of candles (N bars) from entry.";
+            Description = OsLocalization.Description.DescriptionLabel127;
         }
 
         // Indicator Update event

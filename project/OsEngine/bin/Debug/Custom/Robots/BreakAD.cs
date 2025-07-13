@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -90,13 +91,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy break Accumulation/Distribution. " +
-                "Buy: The value of the A/D indicator broke through the maximum for a certain number of candles and closed higher. " +
-                "Sell: The value of the A/D indicator broke the low for a certain number of candles and closed lower. " +
-                "Exit from buy: Trailing stop is placed at the minimum for the period specified for the trailing " +
-                "stop and is transferred (sliding) to new price lows, also for the specified period. " +
-                "Exit from sell: Trailing stop is placed on the maximum for the period specified for the trailing " +
-                "stop and is transferred (sliding) to a new price maximum, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel133;
         }
 
         // The name of the robot in OsEngine

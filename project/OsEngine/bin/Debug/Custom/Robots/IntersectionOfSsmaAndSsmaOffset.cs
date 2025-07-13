@@ -15,6 +15,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -101,10 +102,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot at the Intersection of Ssma and  Ssma offset. " +
-                "Buy: Fast Ssma is higher than slow Ssma. " +
-                "Sell: Fast Ssma is lower than slow Ssma. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel202;
         }
 
         // Indicator Update event

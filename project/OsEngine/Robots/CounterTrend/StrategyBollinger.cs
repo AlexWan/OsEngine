@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -73,13 +74,7 @@ namespace OsEngine.Robots.CounterTrend
 
             Load();
 
-            Description = "The Countertrend robot " +
-                "Buy: " +
-                "1. Price below BollingerDownLine. " +
-                "Sell: " +
-                "1. The price is more than BollingerUpLine. " +
-                "Exit: " +
-                "1. At the intersection of Sma with the price";
+            Description = OsLocalization.Description.DescriptionLabel24;
         }
 
         // The name of the robot in OsEngine

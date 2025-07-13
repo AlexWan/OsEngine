@@ -7,6 +7,7 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -96,13 +97,7 @@ namespace OsEngine.Robots.CounterTrend
 
             DeleteEvent += Strategy_DeleteEvent;
 
-            Description = "Counter Trend Strategy Based on Willams% R Indicator " +
-                "Buy: " +
-                "1. Williams Range is smaller than DownLine. " +
-                "sell: " +
-                "1. Williams Range is larger than UpLine. " +
-                "exit: " +
-                "1. On the return signal";
+            Description = OsLocalization.Description.DescriptionLabel25;
         }
 
         // The name of the robot in OsEngine

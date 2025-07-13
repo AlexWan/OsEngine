@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -90,10 +91,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Force Index. " +
-                "Buy: the values of the force index indicator crosses the level 0 from bottom to top. " +
-                "Sell: The values of the force index indicator crosses the level 0 from top to bottom. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel150;
         }
 
         private void BreakFi_ParametrsChangeByUser()

@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -111,12 +112,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The coutertrend robot on Two Channel Linear Regression. " +
-                "Buy: the price has become lower than the lower line of the global linear regression channel, " +
-                "we place a purchase order at the price of the lower line of the local channel. " +
-                "Sell: the price has become higher than the upper line of the global linear regression channel, " +
-                "we place a buy order at the price of the upper line of the local channel. " +
-                "Exit: channel center.";
+            Description = OsLocalization.Description.DescriptionLabel195;
         }
 
         private void CountertrendTwoChannelLR_ParametrsChangeByUser()

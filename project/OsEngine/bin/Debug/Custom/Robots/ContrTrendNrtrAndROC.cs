@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -100,11 +101,7 @@ namespace OsEngine.Robots.MyBots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Counter-trend robot based on NRTR and ROC indicators. " +
-                "Buy:  When the candle closes below the NRTR line and the ROC indicator value is below the buy level from the parameters." +
-                "Sell: When the candle closed above the NRTR line and the ROC indicator value is above the sales level from the parameters." +
-                "Exit from buy: When the candle closed above the NRTR line." +
-                "Exit from sell: When the candle closed below the NRTR line. ";
+            Description = OsLocalization.Description.DescriptionLabel179;
         }    
 
         private void ContrTrendNrtr_ParametrsChangeByUser()

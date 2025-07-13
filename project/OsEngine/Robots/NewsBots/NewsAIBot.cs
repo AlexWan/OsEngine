@@ -6,6 +6,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -176,12 +177,7 @@ namespace OsEngine.Robots.NewsBots
 
             ParamGuiSettings.SetBorderUnderParameter("GPTunnel payment balance", System.Drawing.Color.LightGray, 4);
 
-            Description = "Trading robot for OsEngine" +
-                "Works with a news source and a screener in which LLM analyzes the news and decides whether to trade or not." +
-                "The LLM gets the role of a financial analyst and, based on the result of the news analysis, must give a short answer" +
-                "– the name of the ticker of the instrument and the direction of the transaction." +
-                "The ticker searches for the security in the screener and, if found, enters into the transaction." +
-                "Exit: via stop-loss or take-profit";
+            Description = OsLocalization.Description.DescriptionLabel52;
         }
 
 

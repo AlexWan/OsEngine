@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -107,17 +108,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Rsi with ADX. " +
-                "Buy: " +
-                " 1. RSI enters the overbought zone - rises above the 70th level; " +
-                " 2. Adx > 30 and growing. " +
-                "Sell: " +
-                " 1. The RSI enters the oversold zone - falls below the 30th level; " +
-                " 2. Adx > 30 and growing. " +
-                "Exit from buy: The trailing stop is placed at the minimum " +
-                "for the period specified for the trailing stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum " +
-                "for the period specified for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel271;
         }
 
         private void StrategyEmaADX_ParametrsChangeByUser()

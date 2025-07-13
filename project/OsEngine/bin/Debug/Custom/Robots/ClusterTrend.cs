@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -65,9 +66,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tabToTrade.CandleFinishedEvent += TabToTradeCandleFinishedEvent;
 
-            Description = "The trend robot on ClusterTrend. " +
-                "Buy: When a pushing bullish cluster occurs. " +
-                "Exit: When a pushing bearish cluster occurs.";
+            Description = OsLocalization.Description.DescriptionLabel175;
         }
 
         private void TabClusterMaxBuyClusterChangeEvent(HorizontalVolumeCluster volumeCluster)

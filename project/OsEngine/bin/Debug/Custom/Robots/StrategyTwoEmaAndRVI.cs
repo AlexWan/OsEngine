@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -111,15 +112,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot at the Strategy Two Ema And RVI. " +
-                "Buy: " +
-                "1. Fast Ema is higher than slow Ema; " +
-                "2. The RVI line (red) is above the signal line (blue). " +
-                "Sell: " +
-                "1. Fast Ema is lower than slow Ema; " +
-                "2. The RVI line (red) is below the signal line (blue). " +
-                "Exit from the purchase: the RVI line (red) is below the signal line (blue). " +
-                "Exit from sale: the RVI line (red) is above the signal line (blue).";
+            Description = OsLocalization.Description.DescriptionLabel282;
         }
 
         // Indicator Update event

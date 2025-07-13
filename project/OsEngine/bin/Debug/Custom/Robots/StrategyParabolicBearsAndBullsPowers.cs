@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -116,17 +117,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy on Bears Power, Bulls Power and Parabolic SAR. " +
-                "Buy: " +
-                "1. The price is higher than the Parabolic value." +
-                "2. Bears Power columns must be higher than 0. " +
-                "3. Bulls Power columns must be above 0. " +
-                "Sell: " +
-                "1. The price is lower than the Parabolic value." +
-                "2. Bulls Power columns must be below 0. " +
-                "3. Bears Power columns must be below 0. " +
-                "Exit: " +
-                "On the opposite signal of the parabolic.";
+            Description = OsLocalization.Description.DescriptionLabel265;
         }
 
         // Indicator Update event

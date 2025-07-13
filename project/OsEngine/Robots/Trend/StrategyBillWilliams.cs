@@ -126,19 +126,7 @@ namespace OsEngine.Robots.Trend
             // Subscribe to the indicator update event
             ParametrsChangeByUser += StrategyBillWilliams_ParametrsChangeByUser;
 
-            Description = "Trend Strategy Bill Williams. " +
-                "Buy: " +
-                "1. The current price must be above all three lines of the Alligator indicator. " +
-                "2. Additionally, the price must be above the upward fractal level (_lastFractalUp). " +
-                "When there is already an open position: " +
-                "1. The current Ao indicator value (_lastAo) must be greater than the two previous values (_secondAo and _thirdAo) — this signals a buy. " +
-                "Sell: " +
-                "1. The current price must be below all three lines of the Alligator indicator. " +
-                "2. Additionally, the price must be below the downward fractal level (_lastFractalDown). " +
-                "When there is already an open position: " +
-                "1. The Ao indicator value (_lastAo) must be greater than the two previous values (_secondAo and _thirdAo) — this signals a buy. " +
-                "Exit long: If the current price has fallen below the middle line of the Alligator.   " +
-                "Exit short: If the price has risen above the middle line of the Alligator.";
+            Description = OsLocalization.Description.DescriptionLabel119;
         }
 
         // Parameters changed by user

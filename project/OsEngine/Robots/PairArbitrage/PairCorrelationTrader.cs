@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -42,10 +43,7 @@ namespace OsEngine.Robots.PairArbitrage
             _regime = CreateParameter("Regime", "Off", new[] { "Off", "On" });
             _maxPositionsCount = CreateParameter("max poses count", 5, 5, 5, 5);
 
-            Description = "if the correlation is higher than 0.9 and we are " +
-                "on some side of the cointegration - enter," +
-                " counting on the pair convergence " +
-                "Exit by the inverse cointegration signal";
+            Description = OsLocalization.Description.DescriptionLabel71;
         }
 
         // The name of the robot in OsEngine

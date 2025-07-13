@@ -11,6 +11,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -81,16 +82,7 @@ namespace OsEngine.Robots.Patterns
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Volatility Adaptive Candles Trader. " +
-                "Buy: " +
-                "1. If the difference between the opening and closing price of the current candle relative " +
-                "to its price is less than the specified threshold (HeightSignalCandle), then no entry is made.   " +
-                "2. The current candle is bullish (the closing price is higher than the opening price).   " +
-                "Sell: " +
-                "1. If the difference between the opening and closing price of the current candle relative  " +
-                "to its price is less than the specified threshold (HeightSignalCandle), then no entry is made.   " +
-                "2. The current candle is bearish (the closing price is lower than the opening price).   " +
-                "Exit: by trailing stop.";
+            Description = OsLocalization.Description.DescriptionLabel78;
         }
 
         // The name of the robot in OsEngine

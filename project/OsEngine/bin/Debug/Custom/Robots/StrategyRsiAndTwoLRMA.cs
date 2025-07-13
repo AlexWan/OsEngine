@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -121,14 +122,7 @@ namespace OsEngine.Robots
             _stopValue = CreateParameter("Stop", 0.5m, 1, 10, 1, "Exit settings");
             _profitValue = CreateParameter("Profit", 0.5m, 1, 10, 1, "Exit settings");
 
-            Description = "Trend robot at the Strategy Rsi And Two LRMA. " +
-                "Buy: " +
-                "1. Fast LRMA crosses slow one from bottom to top. " +
-                "2. The RSI is above 50 and rising. " +
-                "Sell: " +
-                "1. The fast LRMA crosses the slow one from top to bottom. " +
-                "2. The RSI is above 50 and rising. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel272;
         }
 
         // Indicator Update event

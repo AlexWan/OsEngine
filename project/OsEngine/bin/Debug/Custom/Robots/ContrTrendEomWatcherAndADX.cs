@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -95,15 +96,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Counter-trend robot on the EOM Watcher and ADX indicators. " +
-                "Buy:  When the ADX +DM indicator is above -DM, the previous value of the EOM Watcher indicator " +
-                "was below the lower standard deviation line, and the current value is above the lower line." +
-                "Sell: When the ADX +DM indicator is below -DM, the previous value of the EOM Watcher indicator " +
-                "was above the upper standard deviation line, and the current value is below the upper line." +
-                "Exit from buy: When the previous value of the EOM Watcher indicator was above the upper line of the standard deviation, " +
-                "and the current value is below the upper line." +
-                "Exit from sell: When the previous value of the EOM Watcher indicator was below the lower standard deviation line, " +
-                "and the current value is above the lower line.";
+            Description = OsLocalization.Description.DescriptionLabel178;
         }
 
         private void ContrTrendEomWatcher_ParametrsChangeByUser()

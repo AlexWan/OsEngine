@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -122,17 +123,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on intersection of the Alligator, Bears Power and Bulls Power Strategy " +
-                "Buy: " +
-                "1. Fast line (lips) above the middle line (teeth), medium above the slow line (jaw) " +
-                "2. Bears Power columns should be below 0, but constantly growing " +
-                "3. Bulls Power columns should be above 0 and grow - enter into a long position " +
-                "Sell: " +
-                "1. fast line (lips) below the midline (teeth), medium below the slow line (jaw) " +
-                "2. Bulls Power columns should be above 0, but decrease " +
-                "3. Bears Power columns should be below 0 and decrease - enter short position " +
-                "Exit from the buy: the fast line is lower than the slow one " +
-                "Exit from sell: fast line above slow line";
+            Description = OsLocalization.Description.DescriptionLabel129;
         }
 
         // Indicator Update event

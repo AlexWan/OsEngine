@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -105,11 +106,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Price Channel and ATR " +
-                "Buy: The candle closed above the upper PC line. " +
-                "Sell: Candle closed below the lower PC line. " +
-                "Exit from buy: the candle closed below the bottom line PC - MultAtr * Atr. " +
-                "Exit from sell: Candle closes above upper line PC + MultAtr * Atr.";
+            Description = OsLocalization.Description.DescriptionLabel231;
         }
 
         private void PriceChannelATR_ParametrsChangeByUser()

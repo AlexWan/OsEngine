@@ -5,6 +5,7 @@
 
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -69,7 +70,7 @@ namespace OsEngine.Robots.High_Frequency
             Task task = new Task(ClosePositionThreadArea);
             task.Start();
 
-            Description = "robot analyzing the density of the market depth";
+            Description = OsLocalization.Description.DescriptionLabel43;
 
             DeleteEvent += HighFrequencyTrader_DeleteEvent;
         }

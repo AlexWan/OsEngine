@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -97,11 +98,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The contrtrend robot on Stochastic And Aroon." +
-                "Buy: When the Aroon Up line is above 70 and Stochastic has left the oversold zone (above 30). " +
-                "Sell: When the Aroon Down line is above 70 and Stochastic has left the overbought zone (below 80). " +
-                "Buy exit: When the Aroon Up line is below 60." +
-                "Sell ​​exit: When the Aroon Down line is below 60.";
+            Description = OsLocalization.Description.DescriptionLabel181;
         }   
 
         private void ContrtrendStochAndAroon_ParametrsChangeByUser()

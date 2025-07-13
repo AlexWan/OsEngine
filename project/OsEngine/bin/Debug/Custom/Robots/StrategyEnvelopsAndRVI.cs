@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -107,14 +108,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Envelops And RVI. " +
-                "Buy: " +
-                "1. The candle closed above the upper line of the Envelope. " +
-                "2. The RVI is greater than 0 and growing. " +
-                "Sell: " +
-                "1. The candle closed below the bottom line of the Envelope. " +
-                "2. RVI is less than 0 and falling. " +
-                "Exit: the reverse side of the envelope channel.";
+            Description = OsLocalization.Description.DescriptionLabel249;
         }
 
         private void _breakEnvelops_ParametrsChangeByUser()

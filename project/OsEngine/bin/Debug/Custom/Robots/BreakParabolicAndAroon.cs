@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -101,11 +102,7 @@ namespace OsEngine.Robots
             // Successful position opening event
             _tab.PositionOpeningSuccesEvent += _tab_PositionOpeningSuccesEvent;
 
-            Description = "The trend robot on Parabolic SAR and Aroon" +
-                "Buy: When the price is above the Parabolic SAR value and the Aroon Up line is above 50 and above the Aroon Down line. " +
-                "Sell: When the price is below the Parabolic SAR value and the Aroon Down line is above 50 and above the Aroon Up line. " +
-                "Exit the position:  From buying when the price is below the Parabolic SAR value." +
-                "From sale when the price is higher than the Parabolic SAR value.";
+            Description = OsLocalization.Description.DescriptionLabel160;
         }
 
         private void _tab_PositionOpeningSuccesEvent(Position position)

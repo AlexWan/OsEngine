@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 
 namespace OsEngine.Robots.Engines
@@ -15,7 +16,7 @@ namespace OsEngine.Robots.Engines
             // Create tabs
             TabCreate(BotTabType.Screener);
 
-            Description = "Blank strategy for manual trading";
+            Description = OsLocalization.Description.DescriptionLabel33;
         }
 
         // The name of the robot in OsEngine

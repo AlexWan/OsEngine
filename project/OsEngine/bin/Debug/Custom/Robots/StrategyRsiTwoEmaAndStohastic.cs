@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -131,16 +132,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Rsi,Two Ema And Stohastic. " +
-                "Buy: " +
-                "1. Fast Ema is higher than slow Ema. " +
-                "2. The Rsi is above 50 and below 70, rising. " +
-                "3. Stochastic is growing and is above 20 and below 80. " +
-                "Sell: " +
-                "1. Fast Ema is lower than slow Ema. " +
-                "2. The Rsi is below 50 and above 20, falling. " +
-                "3. Stochastic is falling and is above 20 and below 80. " +
-                "Exit: the opposite signal of the Ema.";
+            Description = OsLocalization.Description.DescriptionLabel273;
         }
 
         private void IntersectionKalmanAndVwma_ParametrsChangeByUser()

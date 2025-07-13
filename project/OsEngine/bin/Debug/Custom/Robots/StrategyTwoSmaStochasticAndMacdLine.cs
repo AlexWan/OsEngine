@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -137,20 +138,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the Strategy Two Sma, Stochastic And MacdLine. " +
-                "Buy: " +
-                "1. Fast Sma is higher than Slow Sma; " +
-                "2. The price is higher than the fast Sma; " +
-                "3. Stochastic line K (blue) is above the signal line (red) and the stochastic value is above 25 (blue line); " +
-                "4. Macd line (green) above the signal line (red); " +
-                "Sell: " +
-                "1. Fast Sma is lower than Slow Sma; " +
-                "2. The price is lower than the fast Sma; " +
-                "3. Stochastic line K (blue) is below the signal line (red) and the stochastic value is below 80 (blue line); " +
-                "4. Macd line (green) below the signal line (red); " +
-                "Exit:  " +
-                "From buy: Stochastic K line (blue) below the signal line (red); " +
-                "From sell: Stochastic K line (blue) above the signal line (red).";
+            Description = OsLocalization.Description.DescriptionLabel284;
         }
 
         // Indicator Update event

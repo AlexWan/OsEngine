@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -119,17 +120,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy VHFilter With MACD. " +
-                "Buy: " +
-                "1. MACD Histogram > 0. " +
-                "2. VHFilter value is below minLevel and growing. " +
-                "Sell: " +
-                "1. MACD histogram < 0. " +
-                "2. VHFilter value is below minLevel and growing. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified  " +
-                "for the trailing stop and is transferred, (slides), to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified " +
-                "for the trailing stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel287;
         }
 
         private void StrategyVHFilterWithMACD_ParametrsChangeByUser()

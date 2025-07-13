@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,19 +107,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Divergence " +
-                "Buy: " +
-                "1. The lows of the Awesome histogram are gradually increasing. " +
-                "2. The lows of the chart, on the contrary, gradually decrease. " +
-                "Sell: " +
-                "1. The extreme points AO decrease successively. " +
-                "2. Extremes of the price chart, on the contrary, are rising. " +
-                "Buy Exit: " +
-                "1. Stop behind the minimum for a certain number of candles " +
-                "2. Profit - for the maximum for a certain number of candles " +
-                "Sell Exit: " +
-                "1. Stop behind the maximum for a certain number of candles " +
-                "2. Profit - for a minimum for a certain number of candles";
+            Description = OsLocalization.Description.DescriptionLabel316;
         }
 
         // Indicator Update event
