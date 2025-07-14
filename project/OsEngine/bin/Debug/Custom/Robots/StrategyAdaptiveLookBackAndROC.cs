@@ -14,6 +14,7 @@ using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -108,12 +109,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy based on Adaptive Look Back and ROC indicators." +
-                "Buy: 1. The candle closed above the high for the period Candles Count High + entry coefficient * Adaptive Look Back. (we set BuyAtStop). " +
-                "2.ROC is above 0." +
-                "Sell: 1. The candle closed below the lot during the period of the minimum number of candles - the entry coefficient * Adaptive look back (we install SellAtStop). " +
-                " 2.ROC is below 0." +
-                "Exit: by the reverse signal of the RoC indicator.";
+            Description = OsLocalization.Description.DescriptionLabel237;
         }
 
         // Indicator Update event

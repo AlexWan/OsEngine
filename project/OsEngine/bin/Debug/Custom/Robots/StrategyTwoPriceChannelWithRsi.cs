@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -114,10 +115,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on two Price Channel with Rsi. " +
-                "Buy: the price is above the upper PCGlobal line and the Rsi is > 50. " +
-                "Sell: the price is below the lower PCGlobal line and the Rsi is < 50. " +
-                "Exit: the reverse side of the PCLocal channel.";
+            Description = OsLocalization.Description.DescriptionLabel283;
         }
 
         private void BreakEOMAndSma_ParametrsChangeByUser()

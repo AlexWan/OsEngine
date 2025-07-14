@@ -9,6 +9,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System;
+using OsEngine.Language;
 
 /* Description
 Index Arbitrage robot for OsEngine.
@@ -77,7 +78,7 @@ namespace OsEngine.Robots.IndexArbitrage
             _correlatioinMinValue = CreateParameter("Correlatioin min value", 0.8m, 0.1m, 1, 0.1m);
             _correlationCandlesLookBack = CreateParameter("Correlation candles look back", 100, 1, 50, 4);
 
-            Description = "Securities that deviate from the broad market without momentum are traded on a return to the index. ";
+            Description = OsLocalization.Description.DescriptionLabel47;
         }
 
         // The name of the robot in OsEngine

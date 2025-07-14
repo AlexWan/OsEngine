@@ -6,6 +6,7 @@
 using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -60,10 +61,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
 
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
-                "the robot is called when the candle is closed." +
-                "Buy: if low-value from Last Candle < Sma and close-value from Last Candle > Sma. Buy At Limit." +
-                "Sell: position is open and close-value from Last Candle < sma. Close At Market.";
+            Description = OsLocalization.Description.DescriptionLabel9;
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)

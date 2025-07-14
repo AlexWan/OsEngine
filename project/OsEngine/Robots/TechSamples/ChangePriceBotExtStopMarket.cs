@@ -9,6 +9,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using System;
+using OsEngine.Language;
 
 /* Description
 TechSample robot for OsEngine
@@ -64,7 +65,7 @@ namespace OsEngine.Robots.TechSamples
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "An example of a robot for programmers, where you can see how changing the order price works.";
+            Description = OsLocalization.Description.DescriptionLabel100;
         }
 
         // The name of the robot in OsEngine

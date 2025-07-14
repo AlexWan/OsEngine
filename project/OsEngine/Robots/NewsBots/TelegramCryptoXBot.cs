@@ -3,6 +3,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -78,13 +79,7 @@ namespace OsEngine.Robots.NewsBots
 
             stopMoveButton.UserClickOnButtonEvent += StopButton_UserClickOnButtonEvent;
 
-            Description = "Trading robot for OsEngine" +
-                "Works with a news source and a screener in which receives trading signals " +
-                "from the CryptoX|Protruding Telegram channel, finds a security, " +
-                "makes a deal, sets take profit and stop loss. " +
-                "The signal has three take profit levels. After the second take level is triggered, " +
-                "the stop-loss level is moved to no loss. Use 1 min timeframe" +
-                "Link: https://t.me/+byORdjvgSFQ2ODQ0";
+            Description = OsLocalization.Description.DescriptionLabel53;
         }
 
         // The name of the robot in OsEngine

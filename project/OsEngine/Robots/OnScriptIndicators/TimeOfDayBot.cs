@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -58,9 +59,7 @@ namespace OsEngine.Robots.OnScriptIndicators
             // Subscribe to the position opening succes event
             _tab.PositionOpeningSuccesEvent += TabOnPositionOpeningSuccesEvent;
 
-            Description = "TimeOfDayBot. " +
-                "We choose which position we want to open Sell and Buy and set the entry time. " +
-                "Exit: by stop and profit %.";
+            Description = OsLocalization.Description.DescriptionLabel68;
         }
 
         // The name of the robot in OsEngine

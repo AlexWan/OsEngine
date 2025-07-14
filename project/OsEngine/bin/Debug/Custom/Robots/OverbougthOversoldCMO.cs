@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -88,10 +89,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Overbougth Oversold CMO. " +
-                "Buy: the value of the CMO indicator crosses the level -50 from the bottom up. " +
-                "Sell: CMO indicator values ​​crosses the level 50 from top to bottom. " +
-                "Exit: according to the opposite signal of the indicator.";
+            Description = OsLocalization.Description.DescriptionLabel224;
         }
 
         private void OverboughtOversoldCCI_ParametrsChangeByUser()

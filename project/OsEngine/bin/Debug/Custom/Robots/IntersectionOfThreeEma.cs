@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -112,11 +113,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot at the intersection of three exponential averages. " +
-                "Buy: Fast Ema is higher than slow Ema. " +
-                "Sell: Fast Ema is lower than slow Ema. " +
-                "Exit from the buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sale: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel206;
         }
 
         // Indicator Update event

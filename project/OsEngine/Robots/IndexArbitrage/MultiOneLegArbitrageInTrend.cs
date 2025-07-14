@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -93,7 +94,7 @@ namespace OsEngine.Robots.IndexArbitrage
             _volatilityStagesOnIndex = (Aindicator)_index.CreateCandleIndicator(_volatilityStagesOnIndex, "VolaStagesArea");
             _volatilityStagesOnIndex.Save();
 
-            Description = "Securities that deviate from the broad market with momentum trade on a widening gap, in a certain stage of volatility.";
+            Description = OsLocalization.Description.DescriptionLabel47;
         }
 
         // The name of the robot in OsEngine

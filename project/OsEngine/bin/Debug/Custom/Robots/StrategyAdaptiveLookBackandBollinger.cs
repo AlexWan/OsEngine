@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -116,12 +117,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the Ssma indicator. " +
-               "Trend robot at the strategy on Adaptive Look Back and Bollinger" +
-               "Buy: the price is above the upper Bollinger band." +
-               "Sell: the price is below the lower Bollinger band." +
-               "Exit the buy: trailing stop in % of the low of the candle on which the minus exit coefficient entered *Adaptive Look Back." +
-               "Exit the sell: trailing stop in % of the high of the candle on which you entered plus the entry coefficient* Adaptive Look. ";
+            Description = OsLocalization.Description.DescriptionLabel236;
         }
 
         // Indicator Update event

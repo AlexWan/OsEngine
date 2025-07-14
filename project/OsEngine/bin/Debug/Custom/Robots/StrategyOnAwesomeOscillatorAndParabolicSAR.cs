@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -105,14 +106,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Awesome Oscillator and Parabolic SAR " +
-                "Buy: " +
-                "1. Price is higher than Parabolic " +
-                "2. AO above 0. " +
-                "Sell: " +
-                "1. Price below Parabolic " +
-                "2. AO below 0. " +
-                "Exit: on the return signal of the parabolic";
+            Description = OsLocalization.Description.DescriptionLabel262;
         }
 
         // Indicator Update event

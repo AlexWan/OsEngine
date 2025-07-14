@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -69,12 +70,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             ParametrsChangeByUser += Lesson3Bot3_ParametrsChangeByUser;
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            Description = "Robot-example from the course of lectures \"C# for algotreader\"." +
-                "the robot is called when the candle is closed." +
-                "Buy: SmaFast > SmaSlow. Buy At Market." +
-                "Sell: SmaFast < SmaSlow. Close At Market.";
-            
-           
+            Description = OsLocalization.Description.DescriptionLabel10;
         }
 
         private void Lesson3Bot3_ParametrsChangeByUser()

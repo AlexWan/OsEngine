@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -108,14 +109,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy OsMa and MACD. " +
-               "Buy: When the previous value of the OsMa histogram was below zero, and the current value was above zero, " +
-               "and the MACD histogram was above zero." +
-               "Sell: When the previous value of the OsMa histogram was above zero, and the current value was below zero, " +
-               "and the MACD histogram was below zero." +
-               "Exit: " +
-               "From buy:  When the OsMa histogram value is below zero." +
-               "From sell: When the OsMa histogram value is above zero.";
+            Description = OsLocalization.Description.DescriptionLabel264;
         }        
 
         private void _strategyOsMa_ParametrsChangeByUser()

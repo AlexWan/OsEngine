@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -124,17 +125,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The Countertrend robot on Envelopes, CCI and ER. " +
-                "Buy: " +
-                "1. During the CandlesCountLow period, the candle's loy was below the lower Envelopes line, then the candle closed above the lower line. " +
-                "2. During the same period there was a maximum of Er, then it began to fall. " +
-                "3. During the same period, the CCI value was above +100, then it began to fall. " +
-                "Sell: " +
-                "1. During the CandlesCountHigh period, the high of the candle was above the upper line of the Envelopes, then the candle closed below the upper line. " +
-                "2. During the same period there was a maximum of Er, then it began to fall. " +
-                "3. During the same period, the CCI value was below -100, then it grows. " +
-                "Exit from buy: trailing stop in % of the Low candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the High of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel189;
         }
 
         private void CountertrendEnvelopesCCIandER_ParametrsChangeByUser()

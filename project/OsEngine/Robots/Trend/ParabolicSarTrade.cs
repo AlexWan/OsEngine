@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
@@ -88,9 +89,7 @@ namespace OsEngine.Robots.Trend
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-            Description = "Trend strategy at the intersection of the ParabolicSar indicator. " +
-                "if Price < lastSar - close position and open Short. " +
-                "if Price > lastSar - close position and open Long.";
+            Description = OsLocalization.Description.DescriptionLabel116;
         }
 
         private void ParabolicSarTrade_ParametrsChangeByUser()

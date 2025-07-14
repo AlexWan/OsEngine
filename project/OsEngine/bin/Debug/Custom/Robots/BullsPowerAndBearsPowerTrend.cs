@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -100,17 +101,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy on Bears Power and Bulls Power." +
-                "Buy:" +
-                " 1.Bears Power columns must be higher than 0." +
-                "2.Bulls Power columns must be above 0." +
-                "3.The sum of the last values of both indicators should be greater than a certain value." +
-                "Sell:" +
-                "1.Bulls Power columns must be below 0." +
-                "2.Bears Power columns must be below 0." +
-                "3.The sum of the last values of both indicators should be less than a certain value with a minus sign." +
-                "Exit:" +
-                "On the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel173;
         }
 
         // Indicator Update event

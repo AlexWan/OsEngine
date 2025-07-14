@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -121,17 +122,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy PivotFloor And PriceChannel. " +
-                "Buy: " +
-                "1. The candle closed above the R1 level. " +
-                "2. The price is above the top line of the PC. " +
-                "Sell: " +
-                "1. The candle closed below the S1 level. " +
-                "2. The price is below the bottom line of the PC. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing " +
-                "stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing " +
-                "stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel268;
         }
 
         private void _strategyPivotFloorAndPriceChannel_ParametrsChangeByUser()

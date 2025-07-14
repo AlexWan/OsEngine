@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -125,18 +126,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Force Index Parabolic And EfficiencyRatio. " +
-                "Buy: " +
-                "1. The price is higher than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from the bottom up. " +
-                "2. The value of the force index indicator is higher than MaxValueFi. " +
-                "3. The value of the Er indicator is higher than MaxValueEr. " +
-                "4. The signal is valid only if the current price is higher (for long) than the Parabolic value from ParabolicCount candles ago." +
-                "Sell: " +
-                "1. The price is lower than the value of the Parabolic indicator. For the next candle, the price crosses the indicator from top to bottom. " +
-                "2. The value of the force index indicator is lower than MinValueFi. " +
-                "3. The value of the Er indicator is higher than MaxValueEr. " +
-                "4. The signal is valid only if the current price is lower (for short) than the Parabolic value from ParabolicCount candles ago." +
-                "Exit: on the opposite Parabolic signal.";
+            Description = OsLocalization.Description.DescriptionLabel251;
         }
 
         private void StrategyFIParabolicAndER_ParametrsChangeByUser()

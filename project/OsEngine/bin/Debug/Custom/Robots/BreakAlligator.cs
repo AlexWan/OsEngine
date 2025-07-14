@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -97,12 +98,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on intersection of the Alligator indicator with the price. " +
-                "Buy: " +
-                "The price is above the fast (lips) line, the fast is above the average line (teeth), the average is above the slow (jaw). " +
-                "Sell: " +
-                "The price is below the fast (lips) line, the fast is below the average line (teeth), the average is below the slow (jaw). " +
-                "Exit the position: Fast line crosses the middle line. ";
+            Description = OsLocalization.Description.DescriptionLabel135;
         }
 
         // Indicator Update event

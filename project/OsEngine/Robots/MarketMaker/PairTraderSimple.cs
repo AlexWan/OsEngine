@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -82,8 +83,7 @@ namespace OsEngine.Robots.MarketMaker
 
             DeleteEvent += Strategy_DeleteEvent;
 
-            Description = "robot for pair trading. trading two papers" +
-                " based on their acceleration to each other by candle";
+            Description = OsLocalization.Description.DescriptionLabel49;
         }
 
         // The name of the robot in OsEngine

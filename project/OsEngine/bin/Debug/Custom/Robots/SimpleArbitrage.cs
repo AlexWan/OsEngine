@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -81,13 +82,7 @@ namespace OsEngine.Robots
             // Subscribe to the indicator update event
             ParametrsChangeByUser += SimpleArbitrageParametrsChangeByUser;
 
-            Description = "Arbitration robot SimpleArbitrage. " +
-                "Buy security 1, Sell security 2: the spread chart closed above the upper limit of the indicator deviation. " +
-                "Sell security 1 Buy security 2: the spread chart closed below the lower limit of the indicator deviation. " +
-                "Exit: If we opened positions when the spread crossed the upper deviation limit," +
-                "then we expect the spread to become below the center line of the indicator." +
-                "If we opened positions when the spread crossed the lower deviation limit," +
-                " then we expect the spread to become above the center line of the indicator.";
+            Description = OsLocalization.Description.DescriptionLabel234;
         }
 
         // Parameters

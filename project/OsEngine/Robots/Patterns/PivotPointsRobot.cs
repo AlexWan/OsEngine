@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -89,19 +90,7 @@ namespace OsEngine.Robots.Patterns
             
             _tab.CandleFinishedEvent += TradeLogic;
 
-            Description = "Trend robot on the Pivot Points Robot. " +
-                "Buy: " +
-                "1. The closing price must be **above** resistance level R1. " +
-                "2. The opening price must be **below** this level. " +
-                "Sell: " +
-                "1. The closing price must be **below** support level S1. " +
-                "2. The opening price must be **above** this level. " +
-                "Exit Long: " +
-                "1. If the closing price exceeds resistance level R3. " +
-                "2. If the price drops below the entry level by a specified percentage (Stop). " +
-                "Exit Short: " +
-                "1. If the closing price drops below support level S3. " +
-                "2. If the price rises above the entry level by a specified percentage (Stop).";
+            Description = OsLocalization.Description.DescriptionLabel75;
         }
 
         // The name of the robot in OsEngine

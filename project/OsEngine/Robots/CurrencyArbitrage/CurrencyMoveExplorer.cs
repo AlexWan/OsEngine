@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -36,8 +37,7 @@ namespace OsEngine.Robots.CurrencyArbitrage
             Thread worker = new Thread(ThreadWorkerArea);
             worker.Start();
 
-            Description = "Robot for research. Saves slices of the situation on the bundle of instruments " +
-                "within 3 seconds after receiving a signal that there is profit on the sequence.";
+            Description = OsLocalization.Description.DescriptionLabel27;
         }
 
         // The name of the robot in OsEngine

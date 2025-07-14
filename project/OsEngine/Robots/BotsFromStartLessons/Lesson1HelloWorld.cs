@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 
@@ -23,9 +24,8 @@ namespace OsEngine.Robots.BotsFromStartLessons
             StrategyParameterButton button = CreateParameterButton("Hello world button");
 
             button.UserClickOnButtonEvent += Button_UserClickOnButtonEvent;
-            Description = "Robot-example from the course of lectures C# for algotreader." +
-                "This script creates a button in the parameters of the robot." +
-                "When you press the button, the Log error with the text \"Hello world!\"";
+
+            Description = OsLocalization.Description.DescriptionLabel5;
         }
 
         private void Button_UserClickOnButtonEvent()

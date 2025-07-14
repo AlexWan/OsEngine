@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -110,17 +111,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Ema and CCI. " +
-                "Buy: " +
-                "1. Price closes above Ema; " +
-                "2. CCI value above +100. " +
-                "Sell: " +
-                "1. Price closes below Ema; " +
-                "2. CCI value below -100. " +
-                "Exit from buy: Trailing stop is placed at the minimum for the period specified for " +
-                "the trailing stop and is transferred (sliding) to new price lows, also for the specified period. " +
-                "Exit from sell: Trailing stop is placed on the maximum for the period specified  " +
-                "for the trailing stop and is transferred (sliding) to a new price maximum, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel243;
         }
 
         private void _strategyEmaAndCCI_ParametrsChangeByUser()

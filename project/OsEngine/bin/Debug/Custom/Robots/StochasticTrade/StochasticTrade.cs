@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -122,12 +123,7 @@ namespace OsEngine.Robots
             // Subscribe to the indicator update event
             ParametrsChangeByUser += RviTrade_ParametrsChangeByUser;
 
-            Description = "counter trend strategy stochastic. " +
-                "The strategy is reverse. " +
-                "Long entry: Crossing the lower horizontal line (default 20) by two values ​​of the Stochastic indicator. " +
-                "Short Entry: Crossing the upper horizontal line (default 80) by two values ​​of the Stochastic indicator. " +
-                "Exit Long: Crossing the upper horizontal line (80 by default) by two values ​​of the Stochastic indicator. " +
-                "Exit Short: Crossing the lower horizontal line (default 20) by two values ​​of the Stochastic indicator.";
+            Description = OsLocalization.Description.DescriptionLabel126;
         }
 
         void RviTrade_ParametrsChangeByUser()

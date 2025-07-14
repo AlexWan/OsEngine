@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -114,15 +115,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Two Ema And CCI. " +
-                "Buy: " +
-                "1. fast Ema is higher than slow Ema. " +
-                "2. CCI crossed level 0 from below. " +
-                "Sell: " +
-                "1. fast Ema is lower than slow Ema. " +
-                "2. CCI crossed level 0 from above. " +
-                "Buy Exit: Fast Ema Below Slow Ema. " +
-                "Sell Exit: Fast Ema Above Slow Ema.";
+            Description = OsLocalization.Description.DescriptionLabel281;
         }
 
         private void StrategyTwoEmaAndCCI_ParametrsChangeByUser()

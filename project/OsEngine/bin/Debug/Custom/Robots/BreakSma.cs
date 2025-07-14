@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -93,10 +94,7 @@ namespace OsEngine.Robots.SMA
             _stopValue = CreateParameter("Stop percent", 0.5m, 1, 10, 1, "Exit settings");
             _profitValue = CreateParameter("Profit percent", 0.5m, 1, 10, 1, "Exit settings");
 
-            Description = "The trend robot on intersection SMA with price " +
-                "Buy: the price of the instrument is above Sma " +
-                "Sell: the price of the instrument is below Sma " +
-                "Exit: stop and profit in % of the entry price";
+            Description = OsLocalization.Description.DescriptionLabel168;
         }
 
         // Indicator Update event

@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -107,11 +108,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Intersection ZigZag And Sma. " +
-                "Buy: ZigZag crosses Sma from bottom to top. " +
-                "Sell: ZigZag crosses Sma from top to bottom. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel221;
         }
 
         private void IntersectionZigZagAndSma_ParametrsChangeByUser()

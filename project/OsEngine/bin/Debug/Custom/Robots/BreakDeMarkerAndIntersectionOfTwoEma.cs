@@ -14,6 +14,7 @@ using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -114,11 +115,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break DeMarker and the intersection of two exponential averages. " +
-                "Buy: When the DeMarker indicator value is above the maximum for the period and the fast Ema is higher than the slow Ema." +
-                "Sell: When the DeMarker indicator value is below the minimum for the period and the fast Ema is below the slow Ema." +
-                "Exit from buy: When fast Ema is lower than slow Ema. " +
-                "Exit from sell: When fast Ema is higher than slow Ema.";
+            Description = OsLocalization.Description.DescriptionLabel145;
         }
 
         private void BreakDeMarker_ParametrsChangeByUser()

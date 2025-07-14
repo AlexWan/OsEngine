@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -75,8 +76,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             _closeAtProfitSignal = CreateParameter("Close at Profit have signal", false, "Profit");
             _closeAtProfitIsMarket = CreateParameter("Close at Profit is market", false, "Profit");
 
-            Description = "Robot example from the lecture course \"C# for algotreader\"." +
-                "Stores examples of different methods for close position from stops and profits.";
+            Description = OsLocalization.Description.DescriptionLabel21;
         }
 
         #region BuyAtMarket / SellAtMarket

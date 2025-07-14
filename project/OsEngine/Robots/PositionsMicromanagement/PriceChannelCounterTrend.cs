@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System;
 using System.Collections.Generic;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -90,7 +91,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "An example of a robot that shows closing a position via two close limit orders.";
+            Description = OsLocalization.Description.DescriptionLabel83;
         }
 
         void Event_ParametrsChangeByUser()

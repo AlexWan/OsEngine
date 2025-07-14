@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -92,10 +93,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break Linear Regression Channel. " +
-                "Buy: the price is above the upper LR line. " +
-                "Sell: the price is below the lower LR line. " +
-                "Exit: the reverse side of the channel.";
+            Description = OsLocalization.Description.DescriptionLabel153;
         }
 
         private void BreakLRChannel_ParametrsChangeByUser()

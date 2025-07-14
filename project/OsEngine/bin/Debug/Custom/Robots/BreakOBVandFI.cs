@@ -16,6 +16,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -120,17 +121,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Break OBV and FI. " +
-                "Buy: " +
-                "1. The value of the OBV indicator broke through the maximum for a certain number of candles and closed higher. " +
-                "2. The values of the force index indicator cross the 0 level from bottom to top. " +
-                "Sell: " +
-                "1. The value of the OBV indicator broke through the minimum for a certain number of candles and closed lower. " +
-                "2. The values of the force index indicator cross the level 0 from top to bottom. " +
-                "Exit from buy:" +
-                "trailing stop in % of the low of the last candle." +
-                "Exit from sell:" +
-                "trailing stop in % of the high of the last candle.";
+            Description = OsLocalization.Description.DescriptionLabel158;
         }
 
         // Indicator update event

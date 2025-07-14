@@ -63,13 +63,7 @@ namespace OsEngine.Robots.CounterTrend
             // Subscribe to the candle finished event
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            Description = "The Countertrend robot " +
-                "Buy: " +
-                "we buy if we are under the largest volume for sale in the last 10 candles. " +
-                "Sell: " +
-                "sell if we are above the largest purchase volume for the last 10 candles. " +
-                "Exit logic: " +
-                "By return signal.";
+            Description = OsLocalization.Description.DescriptionLabel23;
         }
 
         // The name of the robot in OsEngine

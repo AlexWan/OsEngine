@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -85,10 +86,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the EMA indicator " +
-                "Buy: the price of the instrument is higher than the Ema. " +
-                "Sell: the price of the instrument is below the Ema. " +
-                "Exit: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel146;
         }
 
         // Indicator Update event

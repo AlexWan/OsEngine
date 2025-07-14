@@ -14,6 +14,7 @@ using System.Drawing;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -105,11 +106,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The contrtrend robot on Overbougth Oversold DeMarket. " +
-                "Buy: When the price is below the Sma indicator and the DeMarker indicator has left the oversold zone. " +
-                "Sell: When the price is above the Sma indicator and the DeMarker indicator has left the overbought zone. " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel225;
         }
 
         private void OverbougthOversoldDeMarker_ParametrsChangeByUser()

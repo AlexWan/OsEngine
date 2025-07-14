@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -84,12 +85,7 @@ namespace OsEngine.Robots.OnScriptIndicators
             // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-            Description = "The countertrend bots " +
-                "Buy: " +
-                "1. FBD more Indicator Divergence. " +
-                "Sell: " +
-                "1. FBD is less than negative Indicator Divergence. " +
-                "Exit: after N number of days.";
+            Description = OsLocalization.Description.DescriptionLabel58;
         }
 
         void Event_ParametrsChangeByUser()

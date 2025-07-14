@@ -7,6 +7,7 @@ using OsEngine.Charts.CandleChart.Elements;
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -113,12 +114,7 @@ public class CciTrade : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-        Description = "Counter Trend Strategy Based on CCI Indicator. Max - 3 poses " +
-            "Buy: " +
-            "1. CCI is less than DownLine. " +
-            "Sell: " +
-            "1. CCI more UpLine. " +
-            "Exit: on the return signal.";
+        Description = OsLocalization.Description.DescriptionLabel57;
     }
 
     void Event_ParametrsChangeByUser()

@@ -12,6 +12,7 @@ using System;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -78,9 +79,7 @@ namespace OsEngine.Robots.Screeners
             // Subscribe to the indicator update event
             ParametrsChangeByUser += SmaScreener_ParametrsChangeByUser;
 
-            Description = "If there is a position, exit by trailing stop. " +
-                "If there is no position. Open long if the last N candles " +
-                "we were above the moving average";
+            Description = OsLocalization.Description.DescriptionLabel94;
         }
 
         private void SmaScreener_ParametrsChangeByUser()

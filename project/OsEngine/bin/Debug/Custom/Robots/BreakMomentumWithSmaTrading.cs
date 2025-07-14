@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -127,17 +128,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the Momentum breakdown with SMA ." +
-                "Buy:" +
-                "1. The value of the Momentum indicator broke through the maximum for a certain number of candles and closed higher." +
-                "2. The price is higher than Sma." +
-                "Sell:" +
-                "1. The value of the Momentum indicator broke through the minimum for a certain number of candles and closed lower." +
-                "2. The price is lower than Sma." +
-                "Exit from buy:" +
-                "Trailing stop = Lowest low (SMA period) – IvashovRange × MultIvashov" +
-                "Exit from sell:" +
-                "Trailing stop = Highest high (SMA period) + IvashovRange × MultIvashov";
+            Description = OsLocalization.Description.DescriptionLabel157;
         }
 
         private void BreakMomentumWithSmaTrading_ParametrsChangeByUser()

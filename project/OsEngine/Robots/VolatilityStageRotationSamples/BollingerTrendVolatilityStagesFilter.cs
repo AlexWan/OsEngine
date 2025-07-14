@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -106,15 +107,7 @@ namespace OsEngine.Robots.VolatilityStageRotationSamples
             // Subscribe to the indicator update event
             ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-            Description = "The trend robot on Bollinger Trend VolatilityStages Filter. " +
-                "Buy: " +
-                "1. The price has broken above the upper line of the main Bollinger band. " +
-                "2. If the volatility filter is enabled, the current volatility stage must match the one selected for trading. " +
-                "Sell: " +
-                "1. The price has broken below the lower line of the main Bollinger band. " +
-                "2. If the volatility filter is enabled, the current volatility stage must match the one selected for trading. " +
-                "Exit for long: Close by a trailing stop set at the lower Bollinger line. " +
-                "Exit for short: Close by a trailing stop set at the upper Bollinger line.";
+            Description = OsLocalization.Description.DescriptionLabel121;
         }
 
         void Event_ParametrsChangeByUser()

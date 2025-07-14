@@ -11,6 +11,7 @@ using OsEngine.Market;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
+using OsEngine.Language;
 
 /* Description
 Robot example from the lecture course "C# for algotreader".
@@ -105,9 +106,7 @@ namespace OsEngine.Robots.BotsFromStartLessons
             // Подписка на завершение свечи
             _tabToTrade.CandleFinishedEvent += _tabToTrade_CandleFinishedEvent;
 
-            Description = "Robot example from the lecture course \"C# for algotreader\"." +
-                "Buy: Three growing candles in a row. Sma does not fall. Volatility of three candles > HeightSoldiers. Volatility of each candle > MinHeightOneSoldier." +
-                "Exit: Close at trailing stop: stop price = Close last candle - TrailingStopReal.";
+            Description = OsLocalization.Description.DescriptionLabel15;
         }
 
         private void _tabToTrade_CandleFinishedEvent(List<Candle> candles)

@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine.
@@ -102,16 +103,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend strategy on Bears Power Divergence. " +
-                "Buy: " +
-                "1. Bears Power columns must be below 0. " +
-                "2. The minimums on the chart are decreasing, but on the indicator they are growing. " +
-                "Sell: " +
-                "1. The price is lower than the Parabolic value. For the next candle, the price crosses the indicator from top to bottom. " +
-                "2. Bulls Power columns must be below 0. " +
-                "3. Bears Power columns must be below 0. " +
-                "Exit: " +
-                "The Bears Power indicator has become higher than 0.";
+            Description = OsLocalization.Description.DescriptionLabel131;
         }
 
         // Indicator Update event

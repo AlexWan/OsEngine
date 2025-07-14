@@ -13,6 +13,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -115,14 +116,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Parabolic With Sma Channel. " +
-                "Buy: " +
-                "1. The price is higher than the Parabolic value.  " +
-                "2. The price is higher than SmaHigh. " +
-                "Sell: " +
-                "1. The price is lower than the Parabolic value.  " +
-                "2. The price is lower than SmaLow. " +
-                "Exit the position: the opposite boundary of the Sma channel.";
+            Description = OsLocalization.Description.DescriptionLabel266;
         }
 
         // Indicator Update event

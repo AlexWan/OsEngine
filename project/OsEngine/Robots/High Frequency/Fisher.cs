@@ -11,6 +11,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Indicators;
 using OsEngine.OsTrader.Panels.Attributes;
+using OsEngine.Language;
 
 /* Description
 Fisher based on multithreading
@@ -67,11 +68,7 @@ namespace OsEngine.Robots.High_Frequency
 
             DeleteEvent += Fisher_DeleteEvent;
 
-            Description = "Fisher based on multithreading " +
-                "Entering a position - we are waiting for a sharp price deviation  " +
-                "by the specified number of percent from the edge of the order book. " +
-                "Exit a position when the price rolls back by 50 percent or more of the entry " +
-                "price. Those. if the price has returned half or more of the original movement.";
+            Description = OsLocalization.Description.DescriptionLabel42;
         }
 
         private void Fisher_DeleteEvent()

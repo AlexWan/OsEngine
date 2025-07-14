@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -105,10 +106,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Intersection Rsi And CCI. " +
-                "Buy: CCI above RSI. " +
-                "Sell: CCI below RSI. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel215;
         }
 
         private void IntersectionKalmanAndVwma_ParametrsChangeByUser()

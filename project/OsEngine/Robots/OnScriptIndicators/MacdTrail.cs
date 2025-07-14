@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -75,11 +76,7 @@ public class MacdTrail : BotPanel
         // Subscribe to the candle finished event
         _tab.CandleFinishedEvent += Strateg_CandleFinishedEvent;
 
-        Description = "Trend strategy based on the Macd indicator and trail stop " +
-            "Logic Enter: " +
-            "lastMacdDown < 0 and lastMacdUp > lastMacdDown - Buy " +
-            "lastMacdDown > 0 and lastMacdUp < lastMacdDown - Sell " +
-            "Exit: By TralingStop";
+        Description = OsLocalization.Description.DescriptionLabel60;
     }
 
     // The name of the robot in OsEngine

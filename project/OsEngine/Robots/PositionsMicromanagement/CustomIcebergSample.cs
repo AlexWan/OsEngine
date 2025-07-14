@@ -14,6 +14,7 @@ using System;
 using System.Collections.Generic;
 using OsEngine.Logging;
 using System.Threading;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -89,7 +90,7 @@ namespace OsEngine.Robots.PositionsMicromanagement
 
             _tab.ManualPositionSupport.DisableManualSupport();
 
-            Description = "Countertrend robot on bollinger indicator. Inside of which an example of entering a position by multiple orders through its own logic is implemented.";
+            Description = OsLocalization.Description.DescriptionLabel81;
         }
 
         void Event_ParametrsChangeByUser()

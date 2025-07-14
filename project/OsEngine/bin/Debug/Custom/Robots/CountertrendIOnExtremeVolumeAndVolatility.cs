@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -113,16 +114,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The countertrend robot on  On Extreme Volume And Volatility. " +
-                "Buy: " +
-                "1. The volume is above the average volume for the period (the number of candles back) in the multivolume times. " +
-                "2. Volatility is higher than the average volatility for the period by a factor of several. " +
-                "3. A falling candle " +
-                "Sell: " +
-                "1. The volume is higher than the average volume for the period (the number of candles back) by a factor of several. " +
-                "2. Volatility is higher than the average volatility for the period by a factor of several. " +
-                "3. The candle is growing " +
-                "Exit after a certain number of hours.";
+            Description = OsLocalization.Description.DescriptionLabel191;
         }
 
         private void CountertrendIOnExtremeVolumeAndVolatility_ParametrsChangeByUser()

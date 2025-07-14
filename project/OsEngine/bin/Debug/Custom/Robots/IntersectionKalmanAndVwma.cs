@@ -17,6 +17,7 @@ using System.Linq;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -113,10 +114,7 @@ namespace OsEngine.Robots.AO
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Intersection Kalman And Vwma. " +
-                "Buy: Vwma above Kalman. " +
-                "Sell: Vwma below Kalman. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel320;
         }
 
         private void IntersectionKalmanAndVwma_ParametrsChangeByUser()

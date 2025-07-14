@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -107,13 +108,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot based on Alligator and DPO indicators. " +
-                "Buy: When the fast Alligator line is above the middle line and middle line the slow line," +
-                "last price of candle is above fast Alligator line, and the DPO indicator is above zero." +
-                "Sell: When the fast Alligator line is below the middle line and middle line is below the slow line, " +
-                "last price of candle is below fast Alligator line, and the DPO indicator is below zero." +
-                "Exit from buy: the candle closed below the slow Alligator line. " +
-                "Exit from sell: the candle closed above the slow Alligator line.";
+            Description = OsLocalization.Description.DescriptionLabel241;
         }
 
         private void _strategyDpo_ParametrsChangeByUser()

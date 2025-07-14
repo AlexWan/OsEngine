@@ -14,6 +14,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -93,11 +94,7 @@ namespace OsEngine.Robots
             // Exit Setting
             _trailingValue = CreateParameter("TrailingValue", 1.0m, 1, 10, 1, "Exit");
 
-            Description = "The trend robot on intersection Vwma with price " +
-                "Buy: the price of the instrument is above Vwma " +
-                "Sell: the price of the instrument is below Vwma " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel172;
         }
 
         // Indicator Update event

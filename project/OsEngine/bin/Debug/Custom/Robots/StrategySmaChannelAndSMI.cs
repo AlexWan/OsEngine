@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -122,13 +123,7 @@ namespace OsEngine.Robots
             _stopValue = CreateParameter("Stop", 0.5m, 1, 10, 1, "Exit settings");
             _profitValue = CreateParameter("Profit", 0.5m, 1, 10, 1, "Exit settings");
 
-            Description = "Robot at the trend SmaChannel And SMI. " +
-                "Buy: " +
-                "The candle has closed below the lower SmaChannel line and the stochastic (violet) line is below a certain level. " +
-                "Sell: " +
-                "the candle closed above the upper SmaChannel line and the stochastic (violet) line is above a certain level. " +
-                "Exit:  " +
-                "We set the stop and profit as a percentage of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel274;
         }
 
         // Indicator Update event

@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 Trading robot for osengine.
@@ -103,13 +104,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Break of LRMAW ith Ivashov Range." +
-                "Buy:" +
-                "The candle closed above LRMA + MultIvashov * Ivashov." +
-                "Sell:" +
-                "The candle closed below LRMA - MultIivashov* Ivashov." +
-                "Exit:" +
-                "On the return signal.";
+            Description = OsLocalization.Description.DescriptionLabel159;
         }
 
         // Indicator Update event

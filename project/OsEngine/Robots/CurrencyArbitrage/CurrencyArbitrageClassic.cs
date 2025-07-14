@@ -4,6 +4,7 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Language;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
@@ -67,7 +68,7 @@ namespace OsEngine.Robots.CurrencyArbitrage
             { DelayPolygonType.ByExecution.ToString(), DelayPolygonType.InMLS.ToString(), DelayPolygonType.Instantly.ToString() });
             _delayMls = CreateParameter("Delay MLS", 200, 200, 2000, 100);
 
-            Description = "A robot for classic currency arbitrage";
+            Description = OsLocalization.Description.DescriptionLabel26;
         }
 
         // The name of the robot in OsEngine

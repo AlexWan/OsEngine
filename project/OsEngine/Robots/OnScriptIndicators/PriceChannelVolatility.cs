@@ -6,6 +6,7 @@
 using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -92,9 +93,7 @@ public class PriceChannelVolatility : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-        Description = "Breakthrough of the channel built by PriceChannel + -ATR * coefficient," +
-            " additional input when the price leaves below the channel line by ATR * coefficient." +
-            " Trailing stop on the bottom line of the PriceChannel channel";
+        Description = OsLocalization.Description.DescriptionLabel64;
     }
 
     void Event_ParametrsChangeByUser()

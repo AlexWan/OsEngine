@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -119,15 +120,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trend robot on the Strategy Two Stochastic. " +
-                "Buy: " +
-                "1. A fast stochastic is in the oversold zone or has just left it (below 30) and the stochastic line (blue) is above the signal line (red). " +
-                "2. Slow stochastic in the oversold zone (below 20) and the stochastic line (blue) above the signal line (red). " +
-                "Sell: " +
-                "1. A fast stochastic is in the overbought zone or has just left it (above 70) and the stochastic line (blue) is below the signal line (red). " +
-                "2. Slow stochastic in the overbought zone (above 80) and the stochastic line (blue) below the signal line (red). " +
-                "Exit from buy: trailing stop in % of the loy of the candle on which you entered. " +
-                "Exit from sell: trailing stop in % of the high of the candle on which you entered.";
+            Description = OsLocalization.Description.DescriptionLabel285;
         }
 
         // Indicator Update event

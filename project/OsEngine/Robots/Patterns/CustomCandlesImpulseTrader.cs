@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Globalization;
+using OsEngine.Language;
 
 /*Discription
 Trading robot for osengine
@@ -63,8 +64,7 @@ namespace OsEngine.Robots.Patterns
             // Subscribe to the candle completion event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Trading robot for adaptive by volatility candle series. " +
-                "if he sees a movement to one side in a short period of time, it enters the position";
+            Description = OsLocalization.Description.DescriptionLabel73;
         }
 
         // The name of the robot in OsEngine

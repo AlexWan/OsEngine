@@ -5,6 +5,7 @@
 
 using OsEngine.Entity;
 using OsEngine.Indicators;
+using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
@@ -88,9 +89,7 @@ public class BbPowerTrade : BotPanel
         // Subscribe to the indicator update event
         ParametrsChangeByUser += Event_ParametrsChangeByUser;
 
-        Description = "Trend strategy based on two indicators BullsPower and BearsPower" +
-            "Bulls + Bears is less than negative Step - close the position and enter Short. " +
-            "Bulls + Bears more than Step - close the position and enter Long.";
+        Description = OsLocalization.Description.DescriptionLabel54;
     }
 
     void Event_ParametrsChangeByUser()

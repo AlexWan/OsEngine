@@ -378,12 +378,13 @@ namespace OsEngine.OsTrader.Panels.Tab
                     _connector.TickChangeEvent -= _connector_TickChangeEvent;
                     _connector.ConnectorStartedReconnectEvent -= _connector_ConnectorStartedReconnectEvent;
                     _connector.PortfolioOnExchangeChangedEvent -= _connector_PortfolioOnExchangeChangedEvent;
-                    _connector.Delete();
-                    _connector.LogMessageEvent -= SetNewLogMessage;
                     _connector.SecuritySubscribeEvent -= _connector_SecuritySubscribeEvent;
                     _connector.DialogClosed -= _connector_DialogClosed;
                     _connector.FundingChangedEvent -= _connector_FundingChangedEvent;
                     _connector.NewVolume24hChangedEvent -= _connector_NewVolume24hChangedEvent;
+
+                    _connector.Delete();
+                    _connector.LogMessageEvent -= SetNewLogMessage;
 
                     _connector = null;
                 }

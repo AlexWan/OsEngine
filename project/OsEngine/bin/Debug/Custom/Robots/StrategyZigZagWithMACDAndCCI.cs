@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -128,19 +129,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy ZigZag With MACD And CCI. " +
-                "Buy: " +
-                "1. ZigZag growing. " +
-                "2. MACD histogram > 0. " +
-                "3. CCI > 100. " +
-                "Sell: " +
-                "1. ZigZag falling. " +
-                "2. MACD histogram < 0. " +
-                "3. CCI < -100. " +
-                "Exit from buy: The trailing stop is placed at the minimum for the period specified for the trailing  " +
-                "stop and transferred (slides) to new price lows, also for the specified period. " +
-                "Exit from sell: The trailing stop is placed at the maximum for the period specified for the trailing  " +
-                "stop and is transferred (slides) to the new maximum of the price, also for the specified period.";
+            Description = OsLocalization.Description.DescriptionLabel293;
         }
 
         private void StrategyZigZagWithMACDAndCCI_ParametrsChangeByUser()

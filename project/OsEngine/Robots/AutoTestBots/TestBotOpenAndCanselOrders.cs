@@ -8,6 +8,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.OsTrader.Panels.Attributes;
 using System.Threading;
+using OsEngine.Language;
 
 /* Description
 TestBot for OsEngine.
@@ -25,7 +26,7 @@ namespace OsEngine.Robots.AutoTestBots
             TabCreate(BotTabType.Simple);
             _tab = TabsSimple[0];
 
-            Description = "Do not enable - robot for testing the opening and closing of orders";
+            Description = OsLocalization.Description.DescriptionLabel2;
 
             if (startProgram != StartProgram.IsOsTrader)
             {

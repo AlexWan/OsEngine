@@ -12,6 +12,7 @@ using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -89,10 +90,7 @@ namespace OsEngine.Robots
 
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "Example for optimizing the parameter entry and exit times for a position on BreakBollinger. " +
-                "Buy: the price is above the upper Bollinger band. " +
-                "Sell: the price is below the lower Bollinger band. " +
-                "Exit: reverse side of the channel.";
+            Description = OsLocalization.Description.DescriptionLabel139;
         }
 
         private void _breakBollingerTimeParam_ParametrsChangeByUser()

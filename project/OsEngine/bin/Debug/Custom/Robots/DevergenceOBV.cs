@@ -17,6 +17,7 @@ using System.Linq;
 using OsEngine.Logging;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -100,10 +101,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on strategy Devergence OBV. " +
-                "Buy: The lows on the chart are falling, while the lows are rising on the indicator. " +
-                "Sell: the highs on the chart are rising, while the indicator is falling. " +
-                "Exit: stop and profit in % of the entry price.";
+            Description = OsLocalization.Description.DescriptionLabel303;
         }
 
         private void DevergenceOBV_ParametrsChangeByUser()

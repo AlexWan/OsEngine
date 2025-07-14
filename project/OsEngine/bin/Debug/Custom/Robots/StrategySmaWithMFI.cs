@@ -14,6 +14,7 @@ using System.Drawing;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Linq;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -107,14 +108,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Strategy Sma With MFI. " +
-                "Buy: " +
-                "1. The candle closed above the SMA. " +
-                "2. MFI is above 50 and growing. " +
-                "Sell: " +
-                "1. The candle closed below the SMA. " +
-                "2. MFI is below 50 and falling. " +
-                "Exit: after a certain number of candles.";
+            Description = OsLocalization.Description.DescriptionLabel276;
         }
 
         private void StrategySmaWithMFI_ParametrsChangeByUser()

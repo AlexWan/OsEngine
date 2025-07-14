@@ -15,6 +15,7 @@ using OsEngine.OsTrader.Panels.Tab;
 using OsEngine.Market.Servers;
 using OsEngine.Market;
 using System.Drawing;
+using OsEngine.Language;
 
 /* Description
 trading robot for osengine
@@ -91,10 +92,7 @@ namespace OsEngine.Robots
             // Subscribe to the candle finished event
             _tab.CandleFinishedEvent += _tab_CandleFinishedEvent;
 
-            Description = "The trend robot on Parabolic SAR " +
-                "Buy: The price is higher than the indicator value. " +
-                "Sell: The price is lower than the indicator value. " +
-                "Exit the position: on the opposite signal.";
+            Description = OsLocalization.Description.DescriptionLabel161;
         }
 
         // Indicator Update event
