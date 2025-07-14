@@ -91,8 +91,9 @@ namespace OsEngine.Entity
                 {
                     _activeSeriesBasedOnTrades[i].CandleUpdateEvent -= series_CandleUpdateEvent;
                     _activeSeriesBasedOnTrades[i].CandleFinishedEvent -= series_CandleFinishedEvent;
-                    _activeSeriesBasedOnTrades[i].Clear();
                     _activeSeriesBasedOnTrades[i].Stop();
+                    _activeSeriesBasedOnTrades[i].Clear();
+                    _activeSeriesBasedOnTrades[i].Delete();
                 }
             }
             catch
@@ -108,8 +109,9 @@ namespace OsEngine.Entity
                 {
                     _activeSeriesBasedOnMd[i].CandleUpdateEvent -= series_CandleUpdateEvent;
                     _activeSeriesBasedOnMd[i].CandleFinishedEvent -= series_CandleFinishedEvent;
-                    _activeSeriesBasedOnMd[i].Clear();
                     _activeSeriesBasedOnMd[i].Stop();
+                    _activeSeriesBasedOnMd[i].Clear();
+                    _activeSeriesBasedOnMd[i].Delete();
                 }
             }
             catch

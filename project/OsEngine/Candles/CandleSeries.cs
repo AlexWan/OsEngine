@@ -219,7 +219,25 @@ namespace OsEngine.Entity
             if (CandlesAll != null)
             {
                 CandlesAll.Clear();
+            }
+        }
+
+        public void Delete()
+        {
+            if (CandlesAll != null)
+            {
+                CandlesAll.Clear();
                 CandlesAll = null;
+            }
+
+            Security = null;
+
+            if(TimeFrameBuilder != null)
+            {
+                TimeFrameBuilder.CandleUpdateEvent -= TimeFrameBuilder_CandleUpdateEvent;
+                TimeFrameBuilder.CandleFinishedEvent -= TimeFrameBuilder_CandleFinishedEvent;
+                TimeFrameBuilder.Delete();
+                TimeFrameBuilder = null;
             }
         }
 

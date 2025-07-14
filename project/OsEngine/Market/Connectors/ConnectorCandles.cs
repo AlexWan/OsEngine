@@ -176,8 +176,6 @@ namespace OsEngine.Market.Connectors
 
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
-                TimeFrameBuilder.Delete();
-
                 try
                 {
                     if (File.Exists(@"Engine\" + _name + @"ConnectorPrime.txt"))
@@ -195,15 +193,16 @@ namespace OsEngine.Market.Connectors
 
             if (_mySeries != null)
             {
-                _mySeries.Stop();
-                _mySeries.Clear();
-                _mySeries.CandleUpdateEvent -= MySeries_CandleUpdateEvent;
-                _mySeries.CandleFinishedEvent -= MySeries_CandleFinishedEvent;
-
                 if (_myServer != null)
                 {
                     _myServer.StopThisSecurity(_mySeries);
                 }
+
+                _mySeries.CandleUpdateEvent -= MySeries_CandleUpdateEvent;
+                _mySeries.CandleFinishedEvent -= MySeries_CandleFinishedEvent;
+                _mySeries.Stop();
+                _mySeries.Clear();
+                _mySeries.Delete();
                 _mySeries = null;
             }
 
@@ -221,16 +220,21 @@ namespace OsEngine.Market.Connectors
                     ((TesterServer)_myServer).TestingStartEvent -= Connector_TestingStartEvent;
                 }
 
-                _myServer.NewBidAscIncomeEvent -= ConnectorBotNewBidAscIncomeEvent;
-                _myServer.NewMyTradeEvent -= ConnectorBot_NewMyTradeEvent;
-                _myServer.NewOrderIncomeEvent -= ConnectorBot_NewOrderIncomeEvent;
-                _myServer.CancelOrderFailEvent -= _myServer_CancelOrderFailEvent;
-                _myServer.NewMarketDepthEvent -= ConnectorBot_NewMarketDepthEvent;
-                _myServer.NewTradeEvent -= ConnectorBot_NewTradeEvent;
-                _myServer.TimeServerChangeEvent -= myServer_TimeServerChangeEvent;
-                _myServer.NeedToReconnectEvent -= _myServer_NeedToReconnectEvent;
+                UnSubscribeOnServer(_myServer);
                 _myServer = null;
             }
+
+            if(TimeFrameBuilder != null)
+            {
+                TimeFrameBuilder.Delete();
+                TimeFrameBuilder = null;
+            }
+
+            _securityName = null;
+            _optionMarketData = null;
+            _funding = null;
+            _securityVolumes = null;
+
         }
 
         /// <summary>
