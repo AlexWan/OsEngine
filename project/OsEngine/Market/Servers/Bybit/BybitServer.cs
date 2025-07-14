@@ -2989,39 +2989,33 @@ namespace OsEngine.Market.Servers.Bybit
 
                 try
                 {
+                    Category category = Category.spot;
+
                     if (_concurrentQueueTradesSpot == null
                         || _concurrentQueueTradesSpot.IsEmpty
                         || _concurrentQueueTradesSpot.Count == 0)
                     {
-                        Thread.Sleep(1);
                         continue;
                     }
 
-                    if (!_concurrentQueueTradesSpot.TryDequeue(out string message))
+                    if (_concurrentQueueTradesSpot.TryDequeue(out string message))
+                    {
+                        UpdateTrade(message, category);
+                    }
+
+                    if (_concurrentQueueTickersSpot == null
+                    || _concurrentQueueTickersSpot.IsEmpty
+                    || _concurrentQueueTickersSpot.Count == 0)
                     {
                         continue;
                     }
 
-                    Category category = Category.spot;
-                    UpdateTrade(message, category);
-
-                    if (_extendedMarketData)
+                    if (_concurrentQueueTickersSpot.TryDequeue(out string message2))
                     {
-                        if (_concurrentQueueTickersSpot == null
-                        || _concurrentQueueTickersSpot.IsEmpty
-                        || _concurrentQueueTickersSpot.Count == 0)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        if (!_concurrentQueueTickersSpot.TryDequeue(out string message2))
-                        {
-                            continue;
-                        }
-
                         UpdateTicker(message2, category);
                     }
+
+                    Thread.Sleep(1);
                 }
                 catch (Exception ex)
                 {
@@ -3042,39 +3036,33 @@ namespace OsEngine.Market.Servers.Bybit
 
                 try
                 {
+                    Category category = Category.linear;
+
                     if (_concurrentQueueTradesLinear == null
                         || _concurrentQueueTradesLinear.IsEmpty
                         || _concurrentQueueTradesLinear.Count == 0)
                     {
-                        Thread.Sleep(1);
                         continue;
                     }
 
-                    if (!_concurrentQueueTradesLinear.TryDequeue(out string message))
+                    if (_concurrentQueueTradesLinear.TryDequeue(out string message))
+                    {
+                        UpdateTrade(message, category);
+                    }
+
+                    if (_concurrentQueueTickersLinear == null
+                    || _concurrentQueueTickersLinear.IsEmpty
+                    || _concurrentQueueTickersLinear.Count == 0)
                     {
                         continue;
                     }
 
-                    Category category = Category.linear;
-                    UpdateTrade(message, category);
-
-                    if (_extendedMarketData)
+                    if (_concurrentQueueTickersLinear.TryDequeue(out string message2))
                     {
-                        if (_concurrentQueueTickersLinear == null
-                        || _concurrentQueueTickersLinear.IsEmpty
-                        || _concurrentQueueTickersLinear.Count == 0)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        if (!_concurrentQueueTickersLinear.TryDequeue(out string message2))
-                        {
-                            continue;
-                        }
-
                         UpdateTicker(message2, category);
                     }
+
+                    Thread.Sleep(1);
                 }
                 catch (Exception ex)
                 {
@@ -3095,39 +3083,33 @@ namespace OsEngine.Market.Servers.Bybit
 
                 try
                 {
+                    Category category = Category.inverse;
+
                     if (_concurrentQueueTradesInverse == null
                         || _concurrentQueueTradesInverse.IsEmpty
                         || _concurrentQueueTradesInverse.Count == 0)
                     {
-                        Thread.Sleep(1);
                         continue;
                     }
 
-                    if (!_concurrentQueueTradesInverse.TryDequeue(out string message))
-                    {
+                    if (_concurrentQueueTradesInverse.TryDequeue(out string message))
+                    {                        
+                        UpdateTrade(message, category);
+                    }
+                                        
+                    if (_concurrentQueueTickersInverse == null
+                    || _concurrentQueueTickersInverse.IsEmpty
+                    || _concurrentQueueTickersInverse.Count == 0)
+                    {                        
                         continue;
                     }
 
-                    Category category = Category.inverse;
-                    UpdateTrade(message, category);
-
-                    if (_extendedMarketData)
+                    if (_concurrentQueueTickersInverse.TryDequeue(out string message2))
                     {
-                        if (_concurrentQueueTickersInverse == null
-                        || _concurrentQueueTickersInverse.IsEmpty
-                        || _concurrentQueueTickersInverse.Count == 0)
-                        {
-                            Thread.Sleep(1);
-                            continue;
-                        }
-
-                        if (!_concurrentQueueTickersInverse.TryDequeue(out string message2))
-                        {
-                            continue;
-                        }
-
                         UpdateTicker(message2, category);
                     }
+
+                    Thread.Sleep(1);
                 }
                 catch (Exception ex)
                 {
