@@ -2980,6 +2980,8 @@ namespace OsEngine.Market.Servers.Bybit
 
         private void ThreadMessageReaderTradesSpot()
         {
+            Category category = Category.spot;
+
             while (true)
             {
                 if (ServerStatus != ServerConnectStatus.Connect)
@@ -2989,33 +2991,27 @@ namespace OsEngine.Market.Servers.Bybit
 
                 try
                 {
-                    Category category = Category.spot;
-
-                    if (_concurrentQueueTradesSpot == null
-                        || _concurrentQueueTradesSpot.IsEmpty
-                        || _concurrentQueueTradesSpot.Count == 0)
+                    if (_concurrentQueueTradesSpot != null
+                        && _concurrentQueueTradesSpot.IsEmpty == false)
                     {
-                        continue;
+                        if (_concurrentQueueTradesSpot.TryDequeue(out string message))
+                        {
+                            UpdateTrade(message, category);
+                        }
                     }
-
-                    if (_concurrentQueueTradesSpot.TryDequeue(out string message))
+                    else if (_concurrentQueueTickersSpot != null
+                    && _concurrentQueueTickersSpot.IsEmpty == false)
                     {
-                        UpdateTrade(message, category);
-                    }
 
-                    if (_concurrentQueueTickersSpot == null
-                    || _concurrentQueueTickersSpot.IsEmpty
-                    || _concurrentQueueTickersSpot.Count == 0)
+                        if (_concurrentQueueTickersSpot.TryDequeue(out string message2))
+                        {
+                            UpdateTicker(message2, category);
+                        }
+                    }
+                    else
                     {
-                        continue;
-                    }
-
-                    if (_concurrentQueueTickersSpot.TryDequeue(out string message2))
-                    {
-                        UpdateTicker(message2, category);
-                    }
-
-                    Thread.Sleep(1);
+                        Thread.Sleep(1);
+                    } 
                 }
                 catch (Exception ex)
                 {
