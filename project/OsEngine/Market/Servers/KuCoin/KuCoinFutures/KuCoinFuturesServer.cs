@@ -9,6 +9,7 @@ using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -2092,10 +2093,11 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 string requestStr = $"{path}?currency={currency}";
 
                 IRestResponse responseMessage = CreatePrivateQuery(requestStr, Method.GET, null);
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
 
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
+                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+
                     if (stateResponse.code == "200000")
                     {
                         UpdatePortfolioREST(responseMessage.Content, IsUpdateValueBegin);
@@ -2107,12 +2109,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 }
                 else
                 {
-                    SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                    if (stateResponse != null && stateResponse.code != null)
-                    {
-                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                    }
+                    SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content} ", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2280,7 +2277,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 }
                 else
                 {
-                    SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
+                    SendLogMessage($"GetPriceSecurity> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
 
                     if (stateResponse != null && stateResponse.code != null)
                     {
