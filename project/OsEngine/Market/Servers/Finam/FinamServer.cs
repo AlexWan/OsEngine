@@ -154,7 +154,7 @@ namespace OsEngine.Market.Servers.Finam
         public void GetSecurities()
         {
             SendLogMessage("Downloading the list of securities...", LogMessageType.System);
-
+             
             string response = "";
             bool errorOnPage = false;
 
