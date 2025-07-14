@@ -2063,12 +2063,6 @@ namespace OsEngine.Market.Servers.OKX
             {
                 ResponseWsMessageAction<List<ResponseWsAccount>> assets = JsonConvert.DeserializeAnonymousType(message, new ResponseWsMessageAction<List<ResponseWsAccount>>());
 
-                if (assets.data == null ||
-                    assets.data.Count == 0)
-                {
-                    return;
-                }
-
                 if (Portfolios == null)
                 {
                     Portfolios = new List<Portfolio>();
@@ -2082,6 +2076,12 @@ namespace OsEngine.Market.Servers.OKX
                     Portfolios.Add(portfolioInitial);
 
                     PortfolioEvent(Portfolios);
+                }
+
+                if (assets.data == null ||
+                    assets.data.Count == 0)
+                {
+                    return;
                 }
 
                 Portfolio portfolio = Portfolios[0];
