@@ -80,6 +80,14 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _userId = ((ServerParameterString)ServerParameters[2]).Value;
 
+            if (string.IsNullOrEmpty(_publicKey)
+                || string.IsNullOrEmpty(_secretKey)
+                || string.IsNullOrEmpty(_userId))
+            {
+                SendLogMessage("Can`t run GateIo Futures connector. No keys or userId", LogMessageType.Error);
+                return;
+            }
+
             if (((ServerParameterEnum)ServerParameters[3]).Value == "USDT")
             {
                 _wallet = "usdt";
@@ -146,7 +154,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             {
                 CreatePublicWebSocketConnect();
                 CreatePrivateWebSocketConnect();
-                SetDualMode();
+                //SetDualMode();
             }
             else
             {
@@ -156,6 +164,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
 
         private void SetDualMode()
         {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
             try
             {
                 string mode = _hedgeMode == true ? "true" : "false";
@@ -171,15 +184,25 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     {
                         // If the hedging mode was not switched. Ignore
                     }
+                    else if (result.Content.Contains("\"INVALID_SIGNATURE\"")
+                        || result.Content.Contains("\"INVALID_KEY\""))
+                    {
+                        SendLogMessage($"SetDualMode> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                        Disconnect();
+                    }
+                    else if (result.Content.Contains("\"USER_NOT_FOUND\""))
+                    {
+                        // 
+                    }
                     else
                     {
                         SendLogMessage($"SetDualMode> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
                     }
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                // ignore
+                SendLogMessage(ex.Message, LogMessageType.Error);
             }
         }
 
@@ -334,21 +357,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
         {
             Thread.Sleep(5000);
 
-            if (Portfolios == null)
-            {
-                Portfolios = new List<Portfolio>();
-
-                Portfolio portfolioInitial = new Portfolio();
-                portfolioInitial.Number = "GateIoFutures";
-                portfolioInitial.ValueBegin = 1;
-                portfolioInitial.ValueCurrent = 1;
-                portfolioInitial.ValueBlocked = 1;
-
-                Portfolios.Add(portfolioInitial);
-
-                PortfolioEvent(Portfolios);
-            }
-
             while (true)
             {
                 try
@@ -378,6 +386,21 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
             try
             {
                 IRestResponse result = SendGetQuery(Method.GET, _host + _path + "/" + _wallet, "/accounts", _path + "/" + _wallet + "/accounts", true, "");
+
+                if (Portfolios == null)
+                {
+                    Portfolios = new List<Portfolio>();
+
+                    Portfolio portfolioInitial = new Portfolio();
+                    portfolioInitial.Number = "GateIoFutures";
+                    portfolioInitial.ValueBegin = 1;
+                    portfolioInitial.ValueCurrent = 1;
+                    portfolioInitial.ValueBlocked = 1;
+
+                    Portfolios.Add(portfolioInitial);
+
+                    PortfolioEvent(Portfolios);
+                }
 
                 if (result.StatusCode == HttpStatusCode.OK)
                 {
@@ -449,7 +472,16 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                 }
                 else
                 {
-                    SendLogMessage($"Portfolio> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                    if (result.Content.Contains("\"INVALID_SIGNATURE\"")
+                        || result.Content.Contains("\"INVALID_KEY\""))
+                    {
+                        SendLogMessage($"Portfolio> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                        Disconnect();
+                    }
+                    else
+                    {
+                        SendLogMessage($"Portfolio> Http State Code: {result.StatusCode}, {result.Content}", LogMessageType.Error);
+                    }
                 }
             }
             catch (Exception exception)
@@ -1032,6 +1064,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     {
                         ConnectEvent();
                     }
+
+                    SetDualMode();
                 }
             }
         }
@@ -1688,6 +1722,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     if (FIFOListWebSocketPublicMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
+                        continue;
                     }
 
                     if (FIFOListWebSocketPublicMessage.TryDequeue(out string message))
@@ -1755,6 +1790,7 @@ namespace OsEngine.Market.Servers.GateIo.GateIoFutures
                     if (FIFOListWebSocketPrivateMessage.IsEmpty)
                     {
                         Thread.Sleep(1);
+                        continue;
                     }
 
                     if (FIFOListWebSocketPrivateMessage.TryDequeue(out string message))
