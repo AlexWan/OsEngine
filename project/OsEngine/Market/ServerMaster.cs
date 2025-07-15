@@ -80,6 +80,7 @@ using OsEngine.Market.Servers.BloFin;
 using OsEngine.Market.Servers.TelegramNews;
 using OsEngine.Market.Servers.Bitfinex.BitfinexFutures;
 using OsEngine.Market.Servers.FinamGrpc;
+using OsEngine.Market.Servers.BinanceData;
 
 
 namespace OsEngine.Market
@@ -327,6 +328,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.AExchange);
                 serverTypes.Add(ServerType.BloFinFutures);
                 serverTypes.Add(ServerType.TelegramNews);
+                serverTypes.Add(ServerType.BinanceData);
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
@@ -432,6 +434,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Polygon);
                 serverTypes.Add(ServerType.CoinExSpot);
                 serverTypes.Add(ServerType.CoinExFutures);
+                serverTypes.Add(ServerType.BinanceData);
 
                 return serverTypes;
             }
@@ -526,6 +529,10 @@ namespace OsEngine.Market
 
                 IServer newServer = null;
 
+                if (type == ServerType.BinanceData)
+                {
+                    newServer = new BinanceDataServer();
+                }
                 if (type == ServerType.TelegramNews)
                 {
                     newServer = new TelegramNewsServer();
@@ -1527,6 +1534,10 @@ namespace OsEngine.Market
                 {
                     serverPermission = new TelegramNewsServerPermission();
                 }
+                else if (type == ServerType.BinanceData)
+                {
+                    serverPermission = new BinanceDataServerPermission();
+                }
 
                 if (serverPermission != null)
                 {
@@ -2107,5 +2118,11 @@ namespace OsEngine.Market
         /// Чтение новостей с Telegram каналов
         /// </summary>
         TelegramNews,
+
+        /// <summary>
+        /// downloading historical data from exchange Binance
+        /// скачивание исторических данных с биржи Binance
+        /// </summary>
+        BinanceData
     }
 }
