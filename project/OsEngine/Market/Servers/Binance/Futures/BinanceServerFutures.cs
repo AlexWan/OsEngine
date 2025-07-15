@@ -1711,27 +1711,35 @@ namespace OsEngine.Market.Servers.Binance.Futures
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    Thread.Sleep(1000);
-                    continue;
+                    Thread.Sleep(3000);
                 }
 
-                if (_subscribledSecurities == null
-                    || _subscribledSecurities.Count == 0)
+                try
                 {
-                    continue;
+                    if (_subscribledSecurities != null
+                    && _subscribledSecurities.Count > 0
+                    && _extendedMarketData)
+                    {
+                        if (_timeLast.AddSeconds(20) < DateTime.Now)
+                        {
+                            GetOpenInterest();
+                            _timeLast = DateTime.Now;
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                    }
                 }
-
-                if (_timeLast.AddSeconds(20) > DateTime.Now)
+                catch (Exception ex)
                 {
-                    continue;
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
-
-                if (!_extendedMarketData)
-                {
-                    continue;
-                }
-
-                GetOpenInterest();
             }
         }
 
@@ -1770,9 +1778,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
                             _openInterest.Add(openInterestData);
                         }
                     }
-                }
-
-                _timeLast = DateTime.Now;
+                } 
             }
             catch (Exception e)
             {
