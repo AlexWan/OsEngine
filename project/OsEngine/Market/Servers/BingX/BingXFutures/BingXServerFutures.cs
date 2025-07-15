@@ -75,13 +75,20 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         public void Connect(WebProxy proxy = null)
         {
+            _myProxy = proxy;
+            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
+
+            if (string.IsNullOrEmpty(_publicKey) ||
+            string.IsNullOrEmpty(_secretKey))
+            {
+                SendLogMessage("Can`t run BingX Futures connector. No keys", LogMessageType.Error);
+                return;
+            }
+
             try
             {
-                _myProxy = proxy;
-                _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
-                _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-                _hedgeMode = ((ServerParameterBool)ServerParameters[2]).Value;
-
                 RestRequest requestRest = new RestRequest("/openApi/swap/v2/server/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
 
@@ -1493,7 +1500,7 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
         private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
-        private DateTime _timeLast = DateTime.Now;
+        private DateTime _timeLastUpdateExtendedData = DateTime.Now;
 
         private void ThreadExtendedData()
         {
@@ -1501,30 +1508,37 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(3000);
                     continue;
                 }
 
-                if (!_extendedMarketData)
+                try
                 {
-                    continue;
+                    if (_subscribledSecutiries != null
+                    && _subscribledSecutiries.Count > 0
+                    && _extendedMarketData)
+                    {
+                        if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
+                        {
+                            GetOpenInterest();
+                            GetFundingRate();
+                            _timeLastUpdateExtendedData = DateTime.Now;
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                    }
                 }
-
-                if (_subscribledSecutiries == null
-                    || _subscribledSecutiries.Count == 0)
+                catch (Exception ex)
                 {
-                    continue;
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
-
-                if (_timeLast.AddSeconds(20) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                GetOpenInterest();
-                GetFundingRate();
-
-                _timeLast = DateTime.Now;
             }
         }
 
@@ -1670,8 +1684,6 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
                 SendLogMessage(e.Message, LogMessageType.Error);
             }
         }
-
-
 
         public bool SubscribeNews()
         {
