@@ -150,6 +150,11 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
             _fifoListWebSocketMessage = new ConcurrentQueue<string>();
 
+            Disconnect();
+        }
+
+        public void Disconnect()
+        {
             if (ServerStatus != ServerConnectStatus.Disconnect)
             {
                 ServerStatus = ServerConnectStatus.Disconnect;
@@ -175,6 +180,8 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         private string _host = "https://api.gateio.ws";
 
         private string _prefix = "/api/v4";
+
+        private string HttpUrl = "https://api.gateio.ws/api/v4";
 
         public List<IServerParameter> ServerParameters { get; set; }
 
@@ -276,6 +283,97 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
         public void GetPortfolios()
         {
             CreateQueryPortfolio();
+        }
+
+        private RateGate _rateGatePortfolio = new RateGate(2, TimeSpan.FromMilliseconds(250));
+
+        private void CreateQueryPortfolio()
+        {
+            _rateGatePortfolio.WaitToProceed();
+
+            try
+            {
+                string method = "GET";
+                string url = "/spot/accounts";
+                string query_param = "";
+                string bodyParam = "";
+
+                string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
+                string bodyHash = GetHash(bodyParam);
+                string signString = $"{method}\n{_prefix}{url}\n{query_param}\n{bodyHash}\n{timeStamp}";
+                string sign = GetHashHMAC(signString, _secretKey);
+
+                string fullUrl = $"{_host}{_prefix}{url}";
+                RestClient client = new RestClient(fullUrl);
+
+                if (_myProxy != null)
+                {
+                    client.Proxy = _myProxy;
+                }
+
+                RestRequest request = new RestRequest(Method.GET);
+                request.AddHeader("KEY", _publicKey);
+                request.AddHeader("SIGN", sign);
+                request.AddHeader("Timestamp", timeStamp);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    List<GetCurrencyVolumeResponse> getCurrencyVolumeResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new List<GetCurrencyVolumeResponse>());
+
+                    UpdatePortfolio(getCurrencyVolumeResponse);
+                }
+                else
+                {
+                    if (responseMessage.Content.Contains("\"INVALID_KEY\"")
+                        || responseMessage.Content.Contains("\"INVALID_SIGNATURE\""))
+                    {
+                        Disconnect();
+                    }
+
+                    SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private Portfolio _myPortfolio;
+
+        private void UpdatePortfolio(List<GetCurrencyVolumeResponse> getCurrencyVolumeResponse)
+        {
+            try
+            {
+                _myPortfolio = new Portfolio();
+
+                _myPortfolio.Number = "GateIO_Spot";
+                _myPortfolio.ValueBegin = 1;
+                _myPortfolio.ValueCurrent = 1;
+
+                if (getCurrencyVolumeResponse == null || getCurrencyVolumeResponse.Count == 0)
+                {
+                    PortfolioEvent(new List<Portfolio> { _myPortfolio });
+                    return;
+                }
+
+                for (int i = 0; i < getCurrencyVolumeResponse.Count; i++)
+                {
+                    PositionOnBoard newPortf = new PositionOnBoard();
+                    newPortf.SecurityNameCode = getCurrencyVolumeResponse[i].currency;
+                    newPortf.ValueBegin = Math.Round(getCurrencyVolumeResponse[i].available.ToDecimal(), 5);
+                    newPortf.ValueCurrent = Math.Round(getCurrencyVolumeResponse[i].available.ToDecimal(), 5);
+                    newPortf.ValueBlocked = Math.Round(getCurrencyVolumeResponse[i].locked.ToDecimal(), 5);
+                    _myPortfolio.SetNewPosition(newPortf);
+                }
+
+                PortfolioEvent(new List<Portfolio> { _myPortfolio });
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
+            }
         }
 
         public event Action<List<Portfolio>> PortfolioEvent;
@@ -1487,6 +1585,10 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
 
         #region 11 Trade
@@ -2007,92 +2109,6 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         #region 12 Queries
 
-        private const string HttpUrl = "https://api.gateio.ws/api/v4";
-
-        private RateGate _rateGatePortfolio = new RateGate(2, TimeSpan.FromMilliseconds(250));
-
-        private void CreateQueryPortfolio()
-        {
-            _rateGatePortfolio.WaitToProceed();
-
-            try
-            {
-                string method = "GET";
-                string url = "/spot/accounts";
-                string query_param = "";
-                string bodyParam = "";
-
-                string timeStamp = TimeManager.GetUnixTimeStampSeconds().ToString();
-                string bodyHash = GetHash(bodyParam);
-                string signString = $"{method}\n{_prefix}{url}\n{query_param}\n{bodyHash}\n{timeStamp}";
-                string sign = GetHashHMAC(signString, _secretKey);
-
-                string fullUrl = $"{_host}{_prefix}{url}";
-                RestClient client = new RestClient(fullUrl);
-
-                if (_myProxy != null)
-                {
-                    client.Proxy = _myProxy;
-                }
-
-                RestRequest request = new RestRequest(Method.GET);
-                request.AddHeader("KEY", _publicKey);
-                request.AddHeader("SIGN", sign);
-                request.AddHeader("Timestamp", timeStamp);
-                IRestResponse responseMessage = client.Execute(request);
-
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
-                {
-                    List<GetCurrencyVolumeResponse> getCurrencyVolumeResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new List<GetCurrencyVolumeResponse>());
-
-                    UpdatePortfolio(getCurrencyVolumeResponse);
-                }
-                else
-                {
-                    SendLogMessage($"CreateQueryPortfolio> Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
-                }
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
-            }
-        }
-
-        private Portfolio _myPortfolio;
-
-        private void UpdatePortfolio(List<GetCurrencyVolumeResponse> getCurrencyVolumeResponse)
-        {
-            try
-            {
-                _myPortfolio = new Portfolio();
-
-                _myPortfolio.Number = "GateIO_Spot";
-                _myPortfolio.ValueBegin = 1;
-                _myPortfolio.ValueCurrent = 1;
-
-                if (getCurrencyVolumeResponse == null || getCurrencyVolumeResponse.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < getCurrencyVolumeResponse.Count; i++)
-                {
-                    PositionOnBoard newPortf = new PositionOnBoard();
-                    newPortf.SecurityNameCode = getCurrencyVolumeResponse[i].currency;
-                    newPortf.ValueBegin = Math.Round(getCurrencyVolumeResponse[i].available.ToDecimal(), 5);
-                    newPortf.ValueCurrent = Math.Round(getCurrencyVolumeResponse[i].available.ToDecimal(), 5);
-                    newPortf.ValueBlocked = Math.Round(getCurrencyVolumeResponse[i].locked.ToDecimal(), 5);
-                    _myPortfolio.SetNewPosition(newPortf);
-                }
-
-                PortfolioEvent(new List<Portfolio> { _myPortfolio });
-            }
-            catch (Exception exception)
-            {
-                SendLogMessage($"{exception.Message} {exception.StackTrace}", LogMessageType.Error);
-            }
-        }
-
         private string GetHash(string input)
         {
             using (SHA512 sha512 = SHA512.Create())
@@ -2119,17 +2135,15 @@ namespace OsEngine.Market.Servers.GateIo.GateIoSpot
 
         #region 13 Log
 
-        public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             if (LogMessageEvent != null)
+            {
                 LogMessageEvent(message, messageType);
+            }
         }
+
+        public event Action<string, LogMessageType> LogMessageEvent;
 
         #endregion
     }
