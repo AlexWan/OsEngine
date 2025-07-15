@@ -1703,7 +1703,7 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
         private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
-        private DateTime _timeLast = DateTime.Now;
+        private DateTime _timeLastUpdateExtendedData = DateTime.Now;
 
         private void ThreadExtendedData()
         {
@@ -1720,10 +1720,10 @@ namespace OsEngine.Market.Servers.Binance.Futures
                     && _subscribledSecurities.Count > 0
                     && _extendedMarketData)
                     {
-                        if (_timeLast.AddSeconds(20) < DateTime.Now)
+                        if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
                         {
                             GetOpenInterest();
-                            _timeLast = DateTime.Now;
+                            _timeLastUpdateExtendedData = DateTime.Now;
                         }
                         else
                         {
