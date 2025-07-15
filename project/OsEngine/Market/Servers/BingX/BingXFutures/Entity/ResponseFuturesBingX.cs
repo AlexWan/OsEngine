@@ -25,26 +25,28 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures.Entity
 
     public class PositionData
     {
-        public string PositionId { get; set; }
-        public string Symbol { get; set; }
-        public string Currency { get; set; }
-        public string PositionAmt { get; set; }
-        public string AvailableAmt { get; set; }
-        public string PositionSide { get; set; }
-        public string Isolated { get; set; }
-        public string AvgPrice { get; set; }
-        public string InitialMargin { get; set; }
-        public string Leverage { get; set; }
-        public string UnrealizedProfit { get; set; }
-        public string RealisedProfit { get; set; }
-        public string LiquidationPrice { get; set; }
-        public string PnlRatio { get; set; }
-        public string MaxMarginReduction { get; set; }
-        public string RiskRate { get; set; }
-        public string MarkPrice { get; set; }
-        public string PositionValue { get; set; }
-        public string OnlyOnePosition { get; set; }
-        public string UpdateTime { get; set; }
+        public string positionId { get; set; }
+        public string symbol { get; set; }
+        public string currency { get; set; }
+        public string positionAmt { get; set; }
+        public string availableAmt { get; set; }
+        public string positionSide { get; set; }
+        public string isolated { get; set; }
+        public string avgPrice { get; set; }
+        public string initialMargin { get; set; }
+        public string margin { get; set; }
+        public string leverage { get; set; }
+        public string unrealizedProfit { get; set; }
+        public string realisedProfit { get; set; }
+        public string liquidationPrice { get; set; }
+        public string pnlRatio { get; set; }
+        public string maxMarginReduction { get; set; }
+        public string riskRate { get; set; }
+        public string markPrice { get; set; }
+        public string positionValue { get; set; }
+        public string onlyOnePosition { get; set; }
+        public string createTime { get; set; }
+        public string updateTime { get; set; }
     }
 
     public class CandlestickChartDataFutures

@@ -462,42 +462,42 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
 
                             position.PortfolioName = "BingXFutures";
 
-                            if (positionData[i].OnlyOnePosition == "true")
+                            if (positionData[i].onlyOnePosition == "true")
                             {
-                                position.SecurityNameCode = positionData[i].Symbol + "_BOTH";
+                                position.SecurityNameCode = positionData[i].symbol + "_BOTH";
 
-                                if (positionData[i].PositionSide == "LONG")
+                                if (positionData[i].positionSide == "LONG")
                                 {
-                                    position.ValueCurrent = positionData[i].PositionAmt.ToDecimal();
-                                    position.ValueBegin = positionData[i].PositionAmt.ToDecimal();
+                                    position.ValueCurrent = positionData[i].positionAmt.ToDecimal();
+                                    position.ValueBegin = positionData[i].positionAmt.ToDecimal();
                                 }
-                                else if (positionData[i].PositionSide == "SHORT")
+                                else if (positionData[i].positionSide == "SHORT")
                                 {
-                                    position.ValueCurrent = -(positionData[i].PositionAmt.ToDecimal());
-                                    position.ValueBegin = -(positionData[i].PositionAmt.ToDecimal());
+                                    position.ValueCurrent = -(positionData[i].positionAmt.ToDecimal());
+                                    position.ValueBegin = -(positionData[i].positionAmt.ToDecimal());
                                 }
 
-                                position.UnrealizedPnl = positionData[i].UnrealizedProfit.ToDecimal();
+                                position.UnrealizedPnl = positionData[i].unrealizedProfit.ToDecimal();
                                 portfolio.SetNewPosition(position);
                                 continue;
                             }
                             else
                             {
-                                if (positionData[i].PositionSide == "LONG")
+                                if (positionData[i].positionSide == "LONG")
                                 {
-                                    position.SecurityNameCode = positionData[i].Symbol + "_LONG";
-                                    position.ValueCurrent = positionData[i].PositionAmt.ToDecimal();
-                                    position.ValueBegin = positionData[i].PositionAmt.ToDecimal();
-                                    position.UnrealizedPnl = positionData[i].UnrealizedProfit.ToDecimal();
+                                    position.SecurityNameCode = positionData[i].symbol + "_LONG";
+                                    position.ValueCurrent = positionData[i].positionAmt.ToDecimal();
+                                    position.ValueBegin = positionData[i].positionAmt.ToDecimal();
+                                    position.UnrealizedPnl = positionData[i].unrealizedProfit.ToDecimal();
                                     portfolio.SetNewPosition(position);
                                     continue;
                                 }
-                                else if (positionData[i].PositionSide == "SHORT")
+                                else if (positionData[i].positionSide == "SHORT")
                                 {
-                                    position.SecurityNameCode = positionData[i].Symbol + "_SHORT";
-                                    position.ValueCurrent = -(positionData[i].PositionAmt.ToDecimal());
-                                    position.ValueBegin = -(positionData[i].PositionAmt.ToDecimal());
-                                    position.UnrealizedPnl = positionData[i].UnrealizedProfit.ToDecimal();
+                                    position.SecurityNameCode = positionData[i].symbol + "_SHORT";
+                                    position.ValueCurrent = -(positionData[i].positionAmt.ToDecimal());
+                                    position.ValueBegin = -(positionData[i].positionAmt.ToDecimal());
+                                    position.UnrealizedPnl = positionData[i].unrealizedProfit.ToDecimal();
                                     portfolio.SetNewPosition(position);
                                     continue;
                                 }
@@ -2775,7 +2775,9 @@ namespace OsEngine.Market.Servers.BingX.BingXFutures
         private void SendLogMessage(string message, LogMessageType messageType)
         {
             if (LogMessageEvent != null)
+            {
                 LogMessageEvent(message, messageType);
+            }
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
