@@ -105,8 +105,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 _hedgeMode = false;
             }
 
-            SetPositionMode();
-
             if (((ServerParameterEnum)ServerParameters[4]).Value == "Crossed")
             {
                 _marginMode = "crossed";
@@ -145,7 +143,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
-                    //CheckSocketsActivate();
                     _lastConnectionStartTime = DateTime.Now;
                 }
                 else
@@ -1284,6 +1281,8 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     {
                         ConnectEvent();
                     }
+
+                    SetPositionMode();
                 }
             }
         }
@@ -3069,7 +3068,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
-        private DateTime _timeLast = DateTime.Now;
+        private DateTime _timeLastUpdateExtendedData = DateTime.Now;
 
         private readonly RateGate _rgOpenInterest = new RateGate(1, TimeSpan.FromMilliseconds(110));
 
@@ -3079,27 +3078,36 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(3000);
                     continue;
                 }
 
-                if (!_extendedMarketData)
+                try
                 {
-                    continue;
+                    if (_subscribledSecutiries != null
+                    && _subscribledSecutiries.Count > 0
+                    && _extendedMarketData)
+                    {
+                        if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
+                        {
+                            GetOpenInterest();
+                            _timeLastUpdateExtendedData = DateTime.Now;
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                    }
                 }
-
-                if (_subscribledSecutiries == null
-                    || _subscribledSecutiries.Count == 0)
+                catch (Exception ex)
                 {
-                    continue;
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
-
-                if (_timeLast.AddSeconds(20) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                GetOpenInterest();
             }
         }
 
@@ -3168,8 +3176,6 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                         SendLogMessage($"GetOpenInterest> - Code: {response.StatusCode} - {response.Content}", LogMessageType.Error);
                     }
                 }
-
-                _timeLast = DateTime.Now;
             }
             catch (Exception e)
             {
@@ -3179,6 +3185,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
         private void SetPositionMode()
         {
+            if (ServerStatus == ServerConnectStatus.Disconnect)
+            {
+                return;
+            }
+
             try
             {
                 for (int i = 0; i < _listCoin.Count; i++)
@@ -3191,10 +3202,11 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     string jsonRequest = JsonConvert.SerializeObject(jsonContent);
 
                     IRestResponse responseMessage = CreatePrivateQueryOrders("/api/v2/mix/account/set-position-mode", Method.POST, null, jsonRequest);
-                    ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
 
                     if (responseMessage.StatusCode == HttpStatusCode.OK)
                     {
+                        ResponseRestMessage<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<object>());
+
                         if (stateResponse.code.Equals("00000") == true)
                         {
                             // ignore
@@ -3207,13 +3219,14 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                     }
                     else
                     {
-                        SendLogMessage($"SetPositionMode - Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                        if (stateResponse != null && stateResponse.code != null)
+                        if (responseMessage.Content.Contains("\"sign signature error\"")
+                            || (responseMessage.Content.Contains("\"Apikey does not exist\""))
+                            || (responseMessage.Content.Contains("\"apikey/password is incorrect\"")))
                         {
-                            SendLogMessage($"SetPositionMode - Code: {stateResponse.code}\n"
-                                + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                            Disconnect();
                         }
+
+                        SendLogMessage($"SetPositionMode - Http State Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                     }
                 }
             }
