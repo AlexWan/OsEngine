@@ -326,7 +326,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
             else
             {
-                //CreateQueryPortfolioCoin(true);
+                CreateQueryPortfolioCoin(true);
             }
 
             _portfolioIsStarted = true;
@@ -359,7 +359,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        //CreateQueryPortfolioCoin(false);
+                        CreateQueryPortfolioCoin(false);
                     }
                 }
                 catch (Exception error)
@@ -397,15 +397,19 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 RestRequest request = new RestRequest(Method.POST);
                 IRestResponse responseMessage = client.Execute(request);
 
-                string JsonResponse = responseMessage.Content;
-
-                if (!JsonResponse.Contains("error"))
+                if (!responseMessage.Content.Contains("error"))
                 {
-                    UpdatePorfolioCoin(JsonResponse, IsUpdateValueBegin);
+                    //UpdatePorfolioCoin(JsonResponse, IsUpdateValueBegin);
                 }
                 else
                 {
-                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
+                    if (responseMessage.Content.Contains("Incorrect Access key [Access key错误]")
+                            || responseMessage.Content.Contains("Verification failure [校验失败]"))
+                    {
+                        Disconnect();
+                    }
+
+                    SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -472,11 +476,22 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
+                        if (response.msg.Contains("Incorrect Access key [Access key错误]")
+                            || response.msg.Contains("Verification failure [校验失败]"))
+                        {
+                            Disconnect();
+                        }
+
                         SendLogMessage($"Portfolio error. Code: {response.code} || msg: {response.msg}", LogMessageType.Error);
                     }
                 }
                 else
                 {
+                    if (responseMessage.Content.Contains("Incorrect Access key [Access key"))
+                    {
+                        Disconnect();
+                    }
+
                     SendLogMessage($"Portfolio error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
@@ -1541,7 +1556,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
-        private DateTime _timeLast = DateTime.Now;
+        private DateTime _timeLastUpdateExtendedData = DateTime.Now;
 
         private RateGate _rateGateOpenInterest = new RateGate(240, TimeSpan.FromMilliseconds(3000));
 
@@ -1551,27 +1566,36 @@ namespace OsEngine.Market.Servers.HTX.Swap
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(3000);
                     continue;
                 }
 
-                if (!_extendedMarketData)
+                try
                 {
-                    continue;
+                    if (_subscribledSecurities != null
+                    && _subscribledSecurities.Count > 0
+                    && _extendedMarketData)
+                    {
+                        if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
+                        {
+                            GetOpenInterest();
+                            _timeLastUpdateExtendedData = DateTime.Now;
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                    }
                 }
-
-                if (_subscribledSecurities == null
-                    || _subscribledSecurities.Count == 0)
+                catch (Exception ex)
                 {
-                    continue;
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
-
-                if (_timeLast.AddSeconds(20) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                GetOpenInterest();
             }
         }
 
@@ -1642,8 +1666,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         SendLogMessage($"GetOpenInterest> - Code: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
                     }
                 }
-
-                _timeLast = DateTime.Now;
             }
             catch (Exception e)
             {
@@ -2435,6 +2457,12 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 IRestResponse responseMessage = client.Execute(request);
 
                 ResponseMessageAllOrders response = JsonConvert.DeserializeObject<ResponseMessageAllOrders>(responseMessage.Content);
+
+                if (response == null
+                    || response.data == null)
+                {
+                    return null;
+                }
 
                 List<ResponseMessageAllOrders.Orders> item = response.data.orders;
 
