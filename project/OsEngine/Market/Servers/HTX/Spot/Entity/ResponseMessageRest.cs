@@ -3,6 +3,15 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.HTX.Spot.Entity
 {
+    public class ResponseRestMessage<T>
+    {
+        public string status { get; set; }
+        public string errcode { get; set; }
+        public string errmsg { get; set; }
+        public T data { get; set; }
+        public string ts { get; set; }
+    }
+
     public class ResponseMessageSecurities
     {
         public string status { get; set; }
@@ -63,17 +72,17 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
         {
             public string currency { get; set; }
             public string balance { get; set; }
-            public string type { get; set; }            
+            public string type { get; set; }
         }
     }
 
     public class ResponseMessageCandles
     {
         public List<Data> data { get; set; }
-        public string rep {  get; set; }
+        public string rep { get; set; }
 
         public class Data
-        {           
+        {
             public string open { get; set; }
             public string close { get; set; }
             public string high { get; set; }
@@ -129,11 +138,11 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
             [JsonProperty("account-id", NullValueHandling = NullValueHandling.Ignore)]
             public string account_id { get; set; }
 
-            [JsonProperty("created-at", NullValueHandling = NullValueHandling.Ignore)]           
+            [JsonProperty("created-at", NullValueHandling = NullValueHandling.Ignore)]
             public string created_at { get; set; }
 
             [JsonProperty("client-order-id", NullValueHandling = NullValueHandling.Ignore)]
-            public string client_order_id { get; set; }           
+            public string client_order_id { get; set; }
         }
     }
 
@@ -176,7 +185,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
             public string filled_amount { get; set; }
             public string type { get; set; }
             public string source { get; set; }
-            
+
             [JsonProperty("order-id", NullValueHandling = NullValueHandling.Ignore)]
             public string order_id { get; set; }
 
@@ -191,6 +200,7 @@ namespace OsEngine.Market.Servers.HTX.Spot.Entity
     public class ResponseAccountValuation
     {
         public string code { get; set; }
+        public string message { get; set; }
         public Data data { get; set; }
 
         public class Data
