@@ -9,7 +9,6 @@ using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Text;
@@ -71,52 +70,48 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public void Connect(WebProxy proxy)
         {
+            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
+
+            if (string.IsNullOrEmpty(_publicKey) ||
+            string.IsNullOrEmpty(_secretKey) ||
+            string.IsNullOrEmpty(_passphrase))
+            {
+                SendLogMessage("Can`t run KuCoin Futures connector. No keys or passphrase",
+                    LogMessageType.Error);
+                return;
+            }
+
+            if (((ServerParameterBool)ServerParameters[3]).Value == true)
+            {
+                _extendedMarketData = true;
+            }
+            else
+            {
+                _extendedMarketData = false;
+            }
+
             try
             {
-                _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
-                _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-                _passphrase = ((ServerParameterPassword)ServerParameters[2]).Value;
-
-                if (((ServerParameterBool)ServerParameters[3]).Value == true)
-                {
-                    _extendedMarketData = true;
-                }
-                else
-                {
-                    _extendedMarketData = false;
-                }
-
                 RestRequest requestRest = new RestRequest("/api/v1/timestamp", Method.GET);
                 IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    try
-                    {
-                        _webSocketPublicMessages = new ConcurrentQueue<string>();
-                        _webSocketPrivateMessages = new ConcurrentQueue<string>();
-                        CreatePublicWebSocketConnect();
-                        CreatePrivateWebSocketConnect();
-                        //CheckActivationSockets();
-                    }
-                    catch (Exception exception)
-                    {
-                        SendLogMessage(exception.ToString(), LogMessageType.Error);
-                        SendLogMessage("Connection cannot be open. KuCoinFutures. Error request", LogMessageType.Error);
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
+                    CreatePublicWebSocketConnect();
+                    CreatePrivateWebSocketConnect();
                 }
                 else
                 {
                     SendLogMessage("Connection cannot be open. KuCoinFutures. Error request", LogMessageType.Error);
-                    ServerStatus = ServerConnectStatus.Disconnect;
-                    DisconnectEvent();
+                    Disconnect();
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+                Disconnect();
             }
         }
 
@@ -1075,7 +1070,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
 
-        private DateTime _timeLast = DateTime.Now;
+        private DateTime _timeLastUpdateExtendedData = DateTime.Now;
 
         private readonly RateGate _rateGateOpenInterest = new RateGate(1, TimeSpan.FromMilliseconds(350));
 
@@ -1085,27 +1080,36 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             {
                 if (ServerStatus == ServerConnectStatus.Disconnect)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(3000);
                     continue;
                 }
 
-                if (!_extendedMarketData)
+                try
                 {
-                    continue;
+                    if (_subscribedSecurities != null
+                    && _subscribedSecurities.Count > 0
+                    && _extendedMarketData)
+                    {
+                        if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
+                        {
+                            GetExtendedData();
+                            _timeLastUpdateExtendedData = DateTime.Now;
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                    }
                 }
-
-                if (_subscribedSecurities == null
-                    || _subscribedSecurities.Count == 0)
+                catch (Exception ex)
                 {
-                    continue;
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
                 }
-
-                if (_timeLast.AddSeconds(20) > DateTime.Now)
-                {
-                    continue;
-                }
-
-                GetExtendedData();
             }
         }
 
@@ -1184,8 +1188,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                         SendLogMessage($"GetOpenInterest> - Code: {responseMessage.StatusCode} - {responseMessage.Content}", LogMessageType.Error);
                     }
                 }
-
-                _timeLast = DateTime.Now;
             }
             catch (Exception e)
             {
