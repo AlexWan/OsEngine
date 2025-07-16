@@ -136,7 +136,6 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
-
             Disconnect();
         }
 
@@ -345,7 +344,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                 string JsonResponse = responseMessage.Content;
 
-                if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                if (!responseMessage.Content.Contains("error"))
                 {
                     ResponseMessagePortfolios response = JsonConvert.DeserializeObject<ResponseMessagePortfolios>(JsonResponse);
                     List<ResponseMessagePortfolios.Data> item = response.data;
@@ -365,6 +364,12 @@ namespace OsEngine.Market.Servers.HTX.Spot
                 }
                 else
                 {
+                    if (responseMessage.Content.Contains("Incorrect Access key [Access key错误]")
+                            || responseMessage.Content.Contains("Verification failure [校验失败]"))
+                    {
+                        Disconnect();
+                    }
+
                     SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
                 }
             }
@@ -400,7 +405,7 @@ namespace OsEngine.Market.Servers.HTX.Spot
 
                     string JsonResponse = responseMessage.Content;
 
-                    if (responseMessage.StatusCode == System.Net.HttpStatusCode.OK)
+                    if (!responseMessage.Content.Contains("error"))
                     {
                         ResponseMessagePositions responsePosition = JsonConvert.DeserializeObject<ResponseMessagePositions>(JsonResponse);
 
@@ -452,6 +457,12 @@ namespace OsEngine.Market.Servers.HTX.Spot
                     }
                     else
                     {
+                        if (responseMessage.Content.Contains("Incorrect Access key [Access key错误]")
+                            || responseMessage.Content.Contains("Verification failure [校验失败]"))
+                        {
+                            Disconnect();
+                        }
+
                         SendLogMessage($"Http State Code: {responseMessage.StatusCode}, {JsonResponse}", LogMessageType.Error);
                     }
                 }
@@ -515,6 +526,16 @@ namespace OsEngine.Market.Servers.HTX.Spot
                                 }
                             }
                         }
+                    }
+                    else
+                    {
+                        if (response.message.Contains("Incorrect Access key [Access key错误]")
+                            || response.message.Contains("Verification failure [校验失败]"))
+                        {
+                            Disconnect();
+                        }
+
+                        SendLogMessage($"Http State Code: {response.code}, {response.message}", LogMessageType.Error);
                     }
                 }
                 else
