@@ -666,7 +666,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
 
                         security.State = SecurityStateType.Activ;
-                        security.Exchange = "ByBit";
+                        security.Exchange = ServerType.Bybit.ToString();
                         security.Lot = 1;
 
                         _securities.Add(security);
