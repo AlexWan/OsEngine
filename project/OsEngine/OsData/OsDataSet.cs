@@ -1728,7 +1728,7 @@ namespace OsEngine.OsData
                     {
                         for (int i2 = 0; i2 < curTrades.Count; i2++)
                         {
-                            writer.WriteLine(curTrades[i].GetSaveString());
+                            writer.WriteLine(curTrades[i2].GetSaveString());
                         }
                     }
                 }
