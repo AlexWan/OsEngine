@@ -9,7 +9,7 @@
 
 This is a full range of programs required to automate trading on the stock exchange.
 
-![algotasks](https://github.com/AlexWan/OsEngine/assets/26077466/0590b1e3-ecf2-4027-a3ac-4967916f0289)
+![algotasks](https://github.com/user-attachments/assets/fa164a38-5546-45f2-bdf8-5059bbebb8c8)
 
 It includes:
 
@@ -97,8 +97,6 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 3) Arbitrage strategies for trading divergences of correlating instruments, including one-legged arbitrage.
 
-Until August 2023, the project was distributed under the Apache 2 licence. Since September 2023 it is distributed under a commercial licence. All rights belong to Wang Technologies Ltd.
-
 By downloading Os Engine, you agree that if a critical error occurs, information about it will be sent to the developer. Instructions on how to disable this functionality: https://os-engine-eng.com/posts/crash-reception-server.html
 
 
@@ -113,7 +111,7 @@ By downloading Os Engine, you agree that if a critical error occurs, information
 
 [FAQ. Огромный гайд по работе с проектом из более чем 170 постов](https://o-s-a.net/os-engine-faq)
 
-![default](https://user-images.githubusercontent.com/26077466/243121761-25fe883f-d567-4ed0-bdd6-7f28c7ff667b.jpg)
+![default](https://github.com/user-attachments/assets/a3574530-9a81-45cb-9f74-88706071a920)
 
 В него входят:
 
@@ -205,7 +203,7 @@ By downloading Os Engine, you agree that if a critical error occurs, information
 
 Телеграмм группа поддержки: https://t.me/osengine_official_support
 
-До августа 2023 года проект распространялся под лицензией Apache 2. С сентября 2023 года распространяется под коммерческой лицензией. Все права принадлежат ООО "Ван Технологии". 
+Все права принадлежат ООО "Ван Технологии".
 
 Разьяснения относительно лицензионного соглашения: https://o-s-a.net/os-engine-license-about 
 
