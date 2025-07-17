@@ -162,7 +162,28 @@ namespace OsEngine.Market.Servers.Atp
                 if (_socketMarketData == null)
                 {
                     IPHostEntry ipHost = Dns.GetHostEntry("localhost");
-                    IPAddress ipAddr = ipHost.AddressList[1];
+
+                    IPAddress ipAddr = null;
+
+                    for (int i = 0; i < ipHost.AddressList.Length; i++)
+                    {
+                        IPAddress ipAddrCurrent = ipHost.AddressList[i];
+
+                        string adr = ipAddrCurrent.ToString();
+
+                        if (adr == "127.0.0.1")
+                        {
+                            ipAddr = ipHost.AddressList[i];
+                            break;
+                        }
+                    }
+
+                    if (ipAddr == null)
+                    {
+                        SendLogMessage("No localhost address", LogMessageType.Error);
+                        return;
+                    }
+
                     IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 5555);
 
                     _socketMarketData = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -171,9 +192,10 @@ namespace OsEngine.Market.Servers.Atp
                     {
                         _socketMarketData.Connect(ipEndPoint);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        SendLogMessage("Atp market server is not responding",
+                        SendLogMessage("Atp market server is not responding" + ex.ToString(),
+
                             LogMessageType.Error);
                         return;
                     }
@@ -185,7 +207,22 @@ namespace OsEngine.Market.Servers.Atp
                 if (_socketToTrade == null)
                 {
                     IPHostEntry ipHost = Dns.GetHostEntry("localhost");
-                    IPAddress ipAddr = ipHost.AddressList[1];
+
+                    IPAddress ipAddr = null;
+
+                    for (int i = 0; i < ipHost.AddressList.Length; i++)
+                    {
+                        IPAddress ipAddrCurrent = ipHost.AddressList[i];
+
+                        string adr = ipAddrCurrent.ToString();
+
+                        if (adr == "127.0.0.1")
+                        {
+                            ipAddr = ipHost.AddressList[i];
+                            break;
+                        }
+                    }
+
                     IPEndPoint ipEndPoint = new IPEndPoint(ipAddr, 5556);
 
                     _socketToTrade = new Socket(ipAddr.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
@@ -194,9 +231,10 @@ namespace OsEngine.Market.Servers.Atp
                     {
                         _socketToTrade.Connect(ipEndPoint);
                     }
-                    catch (Exception)
+                    catch (Exception ex)
                     {
-                        SendLogMessage("Atp trade server is not responding",
+                        SendLogMessage("Atp trade server is not responding" + ex.ToString(),
+
                             LogMessageType.Error);
                         return;
                     }

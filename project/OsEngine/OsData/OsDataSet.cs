@@ -16,6 +16,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Text;
 using System.Globalization;
+using OsEngine.Market.Servers.Mexc.Json;
 
 namespace OsEngine.OsData
 {
@@ -1674,7 +1675,10 @@ namespace OsEngine.OsData
 
         private void SaveTradeDataExitFile()
         {
-            if (_isDeleted) { return; }
+            if (_isDeleted) 
+            { 
+                return; 
+            }
 
             string curSaveStrObjectsCount = "";
 
@@ -1689,21 +1693,43 @@ namespace OsEngine.OsData
             }
 
             _saveStrCandleCount = curSaveStrObjectsCount;
-
-            List<Trade> extTrades = GetTradesAllHistory();
-
-            if (extTrades.Count == 0)
-            {
-                return;
-            }
-
             try
             {
-                using (StreamWriter writer = new StreamWriter(_pathMyTxtFile, false))
+                if (File.Exists(_pathMyTxtFile) == true)
                 {
-                    for (int i = 0; i < extTrades.Count; i++)
+                    File.Delete(_pathMyTxtFile);
+                }
+
+                Trade lastTradeInLastPie = null;
+
+                for (int i = 0; i < DataPies.Count; i++)
+                {
+                    List<Trade> curTrades = DataPies[i].LoadTradeDataPieFromTempFile();
+
+                    if (curTrades == null ||
+                       curTrades.Count == 0)
                     {
-                        writer.WriteLine(extTrades[i].GetSaveString());
+                        continue;
+                    }
+
+                    if (lastTradeInLastPie != null 
+                        && curTrades[0].Time < lastTradeInLastPie.Time)
+                    {
+                        if (NewLogMessageEvent != null)
+                        {
+                            NewLogMessageEvent(SecName + " " + TimeFrame + " Connector error. Trade time in pie Out of order", LogMessageType.Error);
+                        }
+                        return;
+                    }
+
+                    lastTradeInLastPie = curTrades[^1];
+
+                    using (StreamWriter writer = new StreamWriter(_pathMyTxtFile, true))
+                    {
+                        for (int i2 = 0; i2 < curTrades.Count; i2++)
+                        {
+                            writer.WriteLine(curTrades[i].GetSaveString());
+                        }
                     }
                 }
 
