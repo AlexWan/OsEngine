@@ -686,8 +686,8 @@ namespace OsEngine.Language
           "Ru:Один код клиента_");
 
         public string Label163 => OsLocalization.ConvertToLocString(
-          "Eng:If the broker uses several client codes, the value is false (for example, Finam , BCS), if there is only one client code, the value is true (for example, VTB). By default, false_" +
-          "Ru:Если брокер использует несколько клиентских кодов, то значение false (например, Финам, БКС), если клиент код всего один, то значение true (например, ВТБ). По умолчанию false_");
+          "Eng:If the broker uses several client codes, the value is false (for example, Finam , BCS), if there is only one client code, the value is true (for example, VTB). Used to display the portfolio. By default, false_" +
+          "Ru:Если брокер использует несколько клиентских кодов, то значение false, если клиент код всего один, то значение true (например, ВТБ). Используется для отображения портфеля. По умолчанию false_");
 
         public string Label164 => OsLocalization.ConvertToLocString(
           "Eng:Name _" +

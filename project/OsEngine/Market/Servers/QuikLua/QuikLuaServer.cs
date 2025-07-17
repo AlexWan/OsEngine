@@ -128,6 +128,18 @@ namespace OsEngine.Market.Servers.QuikLua
 
                     QuikLua.Service.QuikService.Start();
 
+                    if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
+                    {
+                        _clientCode = ClientCodeFromSettings.Value;
+                    }
+                    else
+                    {
+                        if (_clientCode == null)
+                        {
+                            _clientCode = QuikLua.Class.GetClientCode().Result;
+                        }
+                    }
+
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
                         ServerStatus = ServerConnectStatus.Connect;
@@ -173,6 +185,7 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
 
                 subscribedBook = new List<string>();
+                _clientCode = null;
                 QuikLua = null;
 
                 if (ServerStatus != ServerConnectStatus.Disconnect)
@@ -558,7 +571,6 @@ namespace OsEngine.Market.Servers.QuikLua
                 }
 
                 List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
-                string clientCode = QuikLua.Class.GetClientCode().Result;
 
                 while (true)
                 {
@@ -602,7 +614,7 @@ namespace OsEngine.Market.Servers.QuikLua
                         if (_isClientCodeOne == false && QuikLua != null)
                             qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, accaunts[i].TrdaccId).Result;
                         else if (QuikLua != null)
-                            qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, clientCode).Result;
+                            qPortfolio = QuikLua.Trading.GetPortfolioInfo(accaunts[i].Firmid, _clientCode).Result;
 
                         if (qPortfolio != null && qPortfolio.Assets == null ||
                             qPortfolio.Assets.ToDecimal() == 0)
@@ -1592,20 +1604,6 @@ namespace OsEngine.Market.Servers.QuikLua
 
                 qOrder.SecCode = order.SecurityNameCode.Split('+')[0];
                 qOrder.Account = order.PortfolioNumber; // "SPBFUT02F5M"
-
-                List<TradesAccounts> accaunts = QuikLua.Class.GetTradeAccounts().Result;
-
-                if (string.IsNullOrEmpty(ClientCodeFromSettings.Value) == false)
-                {
-                    _clientCode = ClientCodeFromSettings.Value;
-                }
-                else
-                {
-                    if (_clientCode == null)
-                    {
-                        _clientCode = QuikLua.Class.GetClientCode().Result;
-                    }
-                }
 
                 qOrder.ClientCode = _clientCode;
                 qOrder.ClassCode = _securities.Find(sec => sec.Name == order.SecurityNameCode).NameClass;
