@@ -202,7 +202,6 @@ namespace OsEngine.Market.Connectors
                 _mySeries.CandleFinishedEvent -= MySeries_CandleFinishedEvent;
                 _mySeries.Stop();
                 _mySeries.Clear();
-                _mySeries.Delete();
                 _mySeries = null;
             }
 

@@ -82,7 +82,6 @@ using OsEngine.Market.Servers.Bitfinex.BitfinexFutures;
 using OsEngine.Market.Servers.FinamGrpc;
 using OsEngine.Market.Servers.BinanceData;
 
-
 namespace OsEngine.Market
 {
     /// <summary>
@@ -1605,6 +1604,79 @@ namespace OsEngine.Market
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        public static List<ProxyOsa> GetAllProxies()
+        {
+            try
+            {
+                return _proxyMaster.Proxies;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                return null;
+            }
+        }
+
+        public static bool AddNewProxy(
+            bool isOn, string ip, int port, 
+            string login, string password, 
+            string pingWebAddress)
+        {
+            try
+            {
+                for (int i = 0; i < _proxyMaster.Proxies.Count; i++)
+                {
+                    ProxyOsa proxyCurrent = _proxyMaster.Proxies[i];
+
+                    if (proxyCurrent.Ip == ip
+                        && proxyCurrent.Port == port
+                        && proxyCurrent.Login == login
+                        && proxyCurrent.UserPassword == password)
+                    {
+                        return false;
+                    }
+                }
+
+                ProxyOsa newProxy = _proxyMaster.CreateNewProxy();
+                newProxy.IsOn = isOn;
+                newProxy.Ip = ip;
+                newProxy.Port = port;
+                newProxy.Login = login;
+                newProxy.UserPassword = password;
+                newProxy.PingWebAddress = pingWebAddress;
+
+                _proxyMaster.SaveProxy();
+
+                return true;
+            }
+            catch(Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+            return false;
+        }
+
+        public static bool RemoveProxy(int number)
+        {
+            try
+            {
+                int proxiesCount = _proxyMaster.Proxies.Count;
+
+                _proxyMaster.RemoveProxy(number);
+                
+
+                if(proxiesCount != _proxyMaster.Proxies.Count)
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+            return false;
         }
 
         #endregion

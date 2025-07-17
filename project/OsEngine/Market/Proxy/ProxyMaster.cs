@@ -270,7 +270,7 @@ namespace OsEngine.Market.Proxy
             }
         }
 
-        public void CreateNewProxy()
+        public ProxyOsa CreateNewProxy()
         {
             ProxyOsa newProxy = new ProxyOsa();
 
@@ -288,6 +288,8 @@ namespace OsEngine.Market.Proxy
 
             Proxies.Add(newProxy);
             SaveProxy();
+
+            return newProxy;
         }
 
         public void RemoveProxy(int number)
