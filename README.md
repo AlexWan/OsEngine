@@ -21,8 +21,6 @@ The layer for creating robots is similar to the Wealth-Lab script and Ninja Scri
 
 *Tester* - exchange emulator. The program for testing on the history of many strategies at the same time, with a single portfolio. Supports translation of multiple timeframes and multiple instruments at the same time.
 
-*Miner* - the program to search for profitable formations on the chart. Both manual and automatic. Work with Bigdata on your computer. Patterns found with the help of this program can be launched into trading.
-
 *Bot station* -the program to run the robots in the trade.
 
 *Available connections for cryptocurrency exchanges*
@@ -122,8 +120,6 @@ By downloading Os Engine, you agree that if a critical error occurs, information
 *Optimizer* - программа для подбора оптимальных параметров для стратегии.
 
 *Tester* - эмулятор биржи. Программа для тестирования на истории множества стратегий одновременно, с единым портфелем.  Поддерживает трансляцию нескольких таймфреймов и нескольких инструментов одновременно.
-
-*Miner* - программа для поиска прибыльных формаций на графике. Как в ручном, так и в автоматическом режиме. Работа с БигДатой у Вас на компьютере. Паттерны найденные при помощи этой программы можно запускать в торговлю.
 
 *Bot station* - программа для запуска роботов в торговлю.
 
