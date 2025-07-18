@@ -428,7 +428,7 @@ namespace OsEngine.Market.Proxy
             _pingThread = null;
         }
 
-        private void PingProxy(ProxyOsa proxy)
+        public void PingProxy(ProxyOsa proxy)
         {
             if (string.IsNullOrEmpty(proxy.Ip) == true)
             {

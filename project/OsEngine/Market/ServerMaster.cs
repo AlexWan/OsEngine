@@ -1679,6 +1679,60 @@ namespace OsEngine.Market
             return false;
         }
 
+        public static ProxyOsa GetOneProxyAt(int number)
+        {
+            try
+            {
+                List<ProxyOsa> proxies = _proxyMaster.Proxies;
+
+                for(int i = 0;i < proxies.Count;i++)
+                {
+                    if(proxies[i].Number == number)
+                    {
+                        return proxies[i];
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
+        public static ProxyOsa UpdateStatusProxyAt(int number)
+        {
+            try
+            {
+                List<ProxyOsa> proxies = _proxyMaster.Proxies;
+
+                ProxyOsa proxy = null;
+
+                for (int i = 0; i < proxies.Count; i++)
+                {
+                    if (proxies[i].Number == number)
+                    {
+                        proxy = proxies[i];
+                    }
+                }
+
+                if(proxy != null)
+                {
+                    _proxyMaster.PingProxy(proxy);
+                    return proxy;
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                return null;
+            }
+        }
+
         #endregion
 
         #region Access to portfolio, orders and its drawing
