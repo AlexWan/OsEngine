@@ -28,6 +28,12 @@ namespace OsEngine.Robots.Funding
 
         public TakeFunding(string name, StartProgram startProgram) : base(name, startProgram)
         {
+            if (startProgram == StartProgram.IsOsOptimizer
+                || startProgram == StartProgram.IsTester)
+            {
+                return;
+            }
+
             TabCreate(BotTabType.Simple);
             _tab1 = TabsSimple[0];
             TabCreate(BotTabType.Simple);
