@@ -87,6 +87,19 @@ namespace OsEngine.OsTrader.Grids
             TextBoxMaxCloseOrdersInMarket.Text = tradeGrid.MaxCloseOrdersInMarket.ToString();
             TextBoxMaxCloseOrdersInMarket.TextChanged += TextBoxMaxCloseOrdersInMarket_TextChanged;
 
+            if (tradeGrid.StartProgram == StartProgram.IsTester
+                || tradeGrid.StartProgram == StartProgram.IsOsOptimizer)
+            {
+                TextBoxDelayInReal.Text = "0";
+                LabelDelayInReal.IsEnabled = false;
+                TextBoxDelayInReal.IsEnabled = false;
+            }
+            else
+            {
+                TextBoxDelayInReal.Text = tradeGrid.DelayInReal.ToString();
+                TextBoxDelayInReal.TextChanged += TextBoxDelayInReal_TextChanged;
+            }
+
             // non trade periods
 
             CheckBoxNonTradePeriod1OnOff.IsChecked = tradeGrid.NonTradePeriods.NonTradePeriod1OnOff;
@@ -452,6 +465,7 @@ namespace OsEngine.OsTrader.Grids
             LabelMaxOrdersInMarket.Content = OsLocalization.Trader.Label488;
             LabelMaxOpenOrdersInMarket.Content = OsLocalization.Trader.Label508;
             LabelMaxCloseOrdersInMarket.Content = OsLocalization.Trader.Label509;
+            LabelDelayInReal.Content = OsLocalization.Trader.Label569;
 
             // tab controls
 
@@ -2969,6 +2983,24 @@ namespace OsEngine.OsTrader.Grids
                 Close();
             }
             catch (Exception ex)
+            {
+                // ignore
+            }
+        }
+
+        private void TextBoxDelayInReal_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxDelayInReal.Text))
+                {
+                    return;
+                }
+
+                TradeGrid.DelayInReal = Convert.ToInt32(TextBoxDelayInReal.Text);
+                TradeGrid.Save();
+            }
+            catch
             {
                 // ignore
             }

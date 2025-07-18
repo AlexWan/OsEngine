@@ -53,6 +53,8 @@
                     <Button Name="ButtonStart" Content="Start" Margin="139,0,143,10" Height="51" VerticalAlignment="Bottom" Click="ButtonStart_Click"/>
                     <Button Name="ButtonStop" Content="Stop" Margin="0,0,14,38" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonStop_Click"/>
                     <Button Name="ButtonClose" Content="Close" Margin="0,0,14,10" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="124" Click="ButtonClose_Click"/>
+                    <Label Name="LabelDelayInReal" Content="Waiting for an order action (MLS)" HorizontalAlignment="Left" Margin="10,178,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxDelayInReal" Text="500" Margin="284,178,14,0" TextWrapping="Wrap" VerticalAlignment="Top"/>
 
 
                 </Grid>

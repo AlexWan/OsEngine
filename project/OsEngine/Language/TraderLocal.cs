@@ -2174,5 +2174,9 @@ namespace OsEngine.Language
         public string Label568 => OsLocalization.ConvertToLocString(
         "Eng:Information about emergency queue cleaning in connectors. If you see something other than a straight line, it's not good._" +
         "Ru:График экстренных очисток очередей в коннекторах. Если Вы что-то видите кроме ровной линии - это не хорошо.");
+
+        public string Label569 => OsLocalization.ConvertToLocString(
+        "Eng:Waiting for an order action (real, MLS)_" +
+        "Ru:Ожидание операций с ордерами (реал, млс)_");
     }
 }

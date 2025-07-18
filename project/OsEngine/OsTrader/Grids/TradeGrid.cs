@@ -113,6 +113,7 @@ namespace OsEngine.OsTrader.Grids
             result += _firstTradePrice + "@";
             result +=  _openPositionsBySession + "@";
             result += _firstTradeTime.ToString(CultureInfo.InvariantCulture) + "@";
+            result += DelayInReal + "@";
 
             result += "%";
 
@@ -172,6 +173,15 @@ namespace OsEngine.OsTrader.Grids
                 _firstTradePrice = values[8].ToDecimal();
                 _openPositionsBySession = Convert.ToInt32(values[9]);
                 _firstTradeTime = Convert.ToDateTime(values[10], CultureInfo.InvariantCulture);
+
+                try
+                {
+                    DelayInReal = Convert.ToInt32(values[11]);
+                }
+                catch
+                {
+                    DelayInReal = 500;
+                }
 
                 // non trade periods
                 NonTradePeriods.LoadFromString(array[1]);
@@ -332,6 +342,8 @@ namespace OsEngine.OsTrader.Grids
         public int MaxOpenOrdersInMarket = 5;
 
         public int MaxCloseOrdersInMarket = 5;
+
+        public int DelayInReal = 500;
 
         #endregion
 
@@ -821,7 +833,7 @@ namespace OsEngine.OsTrader.Grids
 
             if (countRejectOrders > 0)
             {
-                _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
                 return;
             }
 
@@ -867,7 +879,7 @@ namespace OsEngine.OsTrader.Grids
 
                 if (countRejectOrders > 0)
                 {
-                    _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
                     return;
                 }
 
@@ -898,7 +910,7 @@ namespace OsEngine.OsTrader.Grids
 
                     if (countRejectOrders > 0)
                     {
-                        _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                        _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
                         return;
                     }
 
@@ -985,7 +997,7 @@ namespace OsEngine.OsTrader.Grids
 
             if (countRejectOrders > 0)
             {
-                _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
                 return;
             }
 
@@ -1008,7 +1020,7 @@ namespace OsEngine.OsTrader.Grids
 
                 if (countRejectOrders > 0)
                 {
-                    _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                    _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
                     return;
                 }
 
@@ -1039,11 +1051,11 @@ namespace OsEngine.OsTrader.Grids
 
                     if (countRejectOrders > 0)
                     {
-                        _vacationTime = DateTime.Now.AddSeconds(1 + countRejectOrders);
+                        _vacationTime = DateTime.Now.AddMilliseconds(DelayInReal * countRejectOrders);
                         return;
                     }
 
-                    // закрываем позиции насильно
+                    // закрываем позиции насильно 
                     TryForcedCloseGrid();
                 }
             }
