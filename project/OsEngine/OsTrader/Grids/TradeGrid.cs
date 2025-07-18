@@ -1153,8 +1153,16 @@ namespace OsEngine.OsTrader.Grids
                         ordersToCancel.Add(openOrder);
                     }
                 }
+            }
 
-                if (position.CloseActive)
+            List<TradeGridLine> linesWithOrdersToCloseFact = GetLinesWithClosingOrdersFact();
+
+            for (int i = 0; linesWithOrdersToCloseFact != null && i < linesWithOrdersToCloseFact.Count; i++)
+            {
+                Position position = linesWithOrdersToCloseFact[i].Position;
+                TradeGridLine currentLine = linesWithOrdersToCloseFact[i];
+
+                if (position.CloseActive) 
                 {
                     Order closeOrder = position.CloseOrders[^1];
 
@@ -1953,6 +1961,23 @@ namespace OsEngine.OsTrader.Grids
                 }
             }
             return linesWithOpenOrder;
+        }
+
+        public List<TradeGridLine> GetLinesWithClosingOrdersFact()
+        {
+            List<TradeGridLine> linesAll = GridCreator.Lines;
+
+            List<TradeGridLine> linesWithCloseOrder = new List<TradeGridLine>();
+
+            for (int i = 0; linesAll != null && i < linesAll.Count; i++)
+            {
+                if (linesAll[i].Position != null
+                    && linesAll[i].Position.CloseActive)
+                {
+                    linesWithCloseOrder.Add(linesAll[i]);
+                }
+            }
+            return linesWithCloseOrder;
         }
 
         #endregion
