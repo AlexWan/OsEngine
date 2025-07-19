@@ -158,49 +158,4 @@ namespace OsEngine.Market.AutoFollow
 
         #endregion
     }
-
-    public class CopyTrader
-    {
-        public int Number;
-
-        public string Name;
-
-        public CopyTraderType Type;
-
-        public bool IsOn;
-
-        public string State;
-
-        public string GetStringToSave()
-        {
-            string result = Number + "%";
-            result += Name + "%";
-            result += Type + "%";
-            result += IsOn + "%";
-
-            return result;
-        }
-
-        public void LoadFromString(string saveStr)
-        {
-            Number = Convert.ToInt32(saveStr.Split('%')[0]);
-            Name = saveStr.Split('%')[1];
-            Enum.TryParse(saveStr.Split('%')[2], out Type);
-            IsOn = Convert.ToBoolean(saveStr.Split('%')[3]);
-        }
-
-        public void ClearDelete()
-        {
-
-
-        }
-
-    }
-
-    public enum CopyTraderType
-    {
-        None,
-        Portfolio,
-        Robot
-    }
 }

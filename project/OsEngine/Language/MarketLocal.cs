@@ -821,6 +821,26 @@ namespace OsEngine.Language
           "Eng:You're going to delete the item! Are you sure?_" +
           "Ru:Вы собариатесь удалить элемент! Вы уверены?_");
 
+        public string Label197 => OsLocalization.ConvertToLocString(
+          "Eng:Copy trading_" +
+          "Ru:Копитрейдинг_");
+
+        public string Label198 => OsLocalization.ConvertToLocString(
+          "Eng:Copy trader modules_" +
+          "Ru:Модули копитрейдинга_");
+
+        public string Label199 => OsLocalization.ConvertToLocString(
+          "Eng:Log_" +
+          "Ru:Лог_");
+
+        public string Label200 => OsLocalization.ConvertToLocString(
+          "Eng:Type_" +
+          "Ru:Тип_");
+
+
+
+
+
 
 
 
