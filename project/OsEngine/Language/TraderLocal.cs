@@ -2152,7 +2152,7 @@ namespace OsEngine.Language
         "Ru:Занято всего");
 
         public string Label563 => OsLocalization.ConvertToLocString(
-        "Eng:OsEngine occupied_" +
+        "Eng:OsEng occupied_" +
         "Ru:Занято OsEngine");
 
         public string Label564 => OsLocalization.ConvertToLocString(

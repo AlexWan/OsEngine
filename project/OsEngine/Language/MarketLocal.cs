@@ -817,6 +817,14 @@ namespace OsEngine.Language
           "Eng:Disables or enables the trading floor. Very much affects the connection speed. Trading mode MTQR, SPFEQ_" +
           "Ru:Отключает или включает площадку для торговли. Очень сильно влияет на скорость подключения. Режим торгов MTQR, SPFEQ_");
 
+        public string Label196 => OsLocalization.ConvertToLocString(
+          "Eng:You're going to delete the item! Are you sure?_" +
+          "Ru:Вы собариатесь удалить элемент! Вы уверены?_");
+
+
+
+
+
         public string LabelCommissionType => OsLocalization.ConvertToLocString(
             "Eng:Commission type_" +
             "Ru:Тип комиссии_");
@@ -1426,7 +1434,8 @@ namespace OsEngine.Language
            "Ru:Отправить_");
 
         public string TelegramAuthTitle => OsLocalization.ConvertToLocString(
-             "Eng:Telegram authorization_" +
-             "Ru:Telegram авторизация_");
+           "Eng:Telegram authorization_" +
+           "Ru:Telegram авторизация_");
+
     }
 }

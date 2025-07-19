@@ -17,6 +17,7 @@ using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
+using OsEngine.Market.AutoFollow;
 using OsEngine.Market.Servers;
 using OsEngine.Market.Servers.Miner;
 using OsEngine.Market.Servers.Optimizer;
@@ -338,11 +339,17 @@ namespace OsEngine.Logging
                 _miners[i].LogMessageEvent -= ProcessMessage;
             }
 
+            for (int i = 0; i < _miners.Count; i++)
+            {
+                _copyMasters[i].LogMessageEvent -= ProcessMessage;
+            }
+
             for (int i = 0; i < _serversToListen.Count; i++)
             {
                 _serversToListen[i].LogMessageEvent -= ProcessMessage;
             }
 
+            _copyMasters.Clear();
             _candleConverters.Clear();
             _osConverterMasters.Clear();
             _osTraderMasters.Clear();
@@ -453,6 +460,7 @@ namespace OsEngine.Logging
         List<OsMinerServer> _miners = new List<OsMinerServer>();
         List<IServer> _serversToListen = new List<IServer>();
         List<PolygonToTrade> _polygonsToTrade = new List<PolygonToTrade>();
+        List<CopyMaster> _copyMasters = new List<CopyMaster>();
 
         /// <summary>
         /// start listening to the server
@@ -463,6 +471,16 @@ namespace OsEngine.Logging
         {
             server.LogMessageEvent += ProcessMessage;
             _serversToListen.Add(server);
+        }
+
+        /// <summary>
+        /// start listening to the Server Miner
+        /// начать прослушку сервера майнера
+        /// </summary>
+        public void Listen(CopyMaster miner)
+        {
+            miner.LogMessageEvent += ProcessMessage;
+            _copyMasters.Add(miner);
         }
 
         /// <summary>

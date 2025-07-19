@@ -3,16 +3,11 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Entity;
 using OsEngine.Logging;
-using OsEngine.Market.Proxy;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -22,8 +17,10 @@ namespace OsEngine.Market.AutoFollow
         {
             LoadCopyTraders();
 
-            SendLogMessage("Copy master activated. Copy traders: " + CopyTraders.Count, LogMessageType.System);
+            LogCopyMaster = new Log("CopyMaster", StartProgram.IsOsTrader);
+            LogCopyMaster.Listen(this);
 
+            SendLogMessage("Copy master activated. Copy traders: " + CopyTraders.Count, LogMessageType.System);
         }
 
         public void ShowDialog()
@@ -131,9 +128,25 @@ namespace OsEngine.Market.AutoFollow
             return newProxy;
         }
 
+        public void RemoveCopyTraderAt(int number)
+        {
+            for (int i = 0; i < CopyTraders.Count; i++)
+            {
+                if (CopyTraders[i].Number == number)
+                {
+                    CopyTraders[i].ClearDelete();
+                    CopyTraders.RemoveAt(i);
+                    SaveCopyTraders();
+                    return;
+                }
+            }
+        }
+
         #endregion
 
         #region Log
+
+        public Log LogCopyMaster;
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
@@ -156,27 +169,37 @@ namespace OsEngine.Market.AutoFollow
 
         public bool IsOn;
 
-       
+        public string State;
 
         public string GetStringToSave()
         {
-            string result = IsOn + "%";
-            result += Number + "%";
-
+            string result = Number + "%";
+            result += Name + "%";
+            result += Type + "%";
+            result += IsOn + "%";
 
             return result;
         }
 
         public void LoadFromString(string saveStr)
         {
-            IsOn = Convert.ToBoolean(saveStr.Split('%')[0]);
-            Number = Convert.ToInt32(saveStr.Split('%')[1]);
+            Number = Convert.ToInt32(saveStr.Split('%')[0]);
+            Name = saveStr.Split('%')[1];
+            Enum.TryParse(saveStr.Split('%')[2], out Type);
+            IsOn = Convert.ToBoolean(saveStr.Split('%')[3]);
+        }
+
+        public void ClearDelete()
+        {
+
 
         }
+
     }
 
     public enum CopyTraderType
     {
+        None,
         Portfolio,
         Robot
     }

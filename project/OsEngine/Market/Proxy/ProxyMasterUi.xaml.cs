@@ -345,7 +345,7 @@ namespace OsEngine.Market.Proxy
                 else if (column == 10)
                 { // delete
 
-                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label191);
+                    AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label196);
 
                     ui.ShowDialog();
 

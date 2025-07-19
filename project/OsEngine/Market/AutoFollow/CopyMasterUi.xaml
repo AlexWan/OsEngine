@@ -7,13 +7,13 @@
         mc:Ignorable="d"
         Title="Auto follow master. В работе" Height="600" Width="1000" MinWidth="700" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition/>
-            <ColumnDefinition/>
-        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="116"/>
-            <RowDefinition Height="229*"/>
+            <RowDefinition Height="331*"/>
+            <RowDefinition Height="267*"/>
         </Grid.RowDefinitions>
-   </Grid>
+        <WindowsFormsHost Name="HostCopyTraders" Margin="5,5,5,5"/>
+        <WindowsFormsHost Name="HostLog" Margin="5,23,5,5" Grid.Row="1"/>
+        <Label Content="Log" HorizontalAlignment="Left" Margin="10,0,0,0" Grid.Row="1" VerticalAlignment="Top"/>
+        
+    </Grid>
 </Window>
