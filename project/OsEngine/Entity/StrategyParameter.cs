@@ -161,6 +161,8 @@ namespace OsEngine.Entity
                 // ignore 
             }
         }
+
+        public static implicit operator string(StrategyParameterLabel parameter) => parameter.Value;
     }
 
     /// <summary>
@@ -350,6 +352,8 @@ namespace OsEngine.Entity
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
+
+        public static implicit operator int(StrategyParameterInt parameter) => parameter.ValueInt;
     }
 
     /// <summary>
@@ -538,6 +542,8 @@ namespace OsEngine.Entity
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
+
+        public static implicit operator decimal(StrategyParameterDecimal parameter) => parameter.ValueDecimal;
     }
 
     /// <summary>
@@ -674,6 +680,8 @@ namespace OsEngine.Entity
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
+
+        public static implicit operator bool(StrategyParameterBool parameter) => parameter.ValueBool;
     }
 
     /// <summary>
@@ -867,6 +875,8 @@ namespace OsEngine.Entity
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
+
+        public static implicit operator string(StrategyParameterString parameter) => parameter.ValueString;
     }
 
     /// <summary>
@@ -969,6 +979,28 @@ namespace OsEngine.Entity
                 return Value.TimeSpan;
             }
         }
+
+        public static implicit operator TimeOfDay(StrategyParameterTimeOfDay parameter) => parameter.Value;
+
+        public static implicit operator TimeSpan(StrategyParameterTimeOfDay parameter) => parameter.TimeSpan;
+
+        public static bool operator <(StrategyParameterTimeOfDay c1, DateTime c2) => c1.Value < c2;
+        public static bool operator >(StrategyParameterTimeOfDay c1, DateTime c2) => c1.Value > c2;
+        public static bool operator ==(StrategyParameterTimeOfDay c1, DateTime c2) => c1.Value == c2;
+        public static bool operator !=(StrategyParameterTimeOfDay c1, DateTime c2) => c1.Value != c2;
+
+        public static bool operator <(StrategyParameterTimeOfDay c1, StrategyParameterTimeOfDay c2) => c1.Value < c2.Value;
+        public static bool operator >(StrategyParameterTimeOfDay c1, StrategyParameterTimeOfDay c2) => c1.Value > c2.Value;
+        public static bool operator ==(StrategyParameterTimeOfDay c1, StrategyParameterTimeOfDay c2) => c1.Value == c2.Value;
+        public static bool operator !=(StrategyParameterTimeOfDay c1, StrategyParameterTimeOfDay c2) => c1.Value != c2.Value;
+
+        public static TimeSpan operator +(StrategyParameterTimeOfDay c1, StrategyParameterTimeOfDay c2) => c1.TimeSpan + c2.TimeSpan;
+        public static TimeSpan operator -(StrategyParameterTimeOfDay c1, StrategyParameterTimeOfDay c2) => c1.TimeSpan - c2.TimeSpan;
+        public static double operator /(StrategyParameterTimeOfDay c1, StrategyParameterTimeOfDay c2) => c1.TimeSpan / c2.TimeSpan;
+
+        public override bool Equals(object obj) => ReferenceEquals(this, obj);
+	
+        public override int GetHashCode() => HashCode.Combine(Name, Value);
     }
 
     /// <summary>
@@ -1252,6 +1284,11 @@ namespace OsEngine.Entity
                 return time;
             }
         }
+
+        //unlike "==" and "!=" compares references
+        public override bool Equals(object obj) => ReferenceEquals(this, obj);
+	    
+        public override int GetHashCode() => HashCode.Combine(Hour, Minute, Second, Millisecond);
     }
 
     /// <summary>
@@ -1486,6 +1523,13 @@ namespace OsEngine.Entity
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
+
+        public static implicit operator CheckState(StrategyParameterCheckBox parameter) => parameter.CheckState;
+
+        public static implicit operator bool(StrategyParameterCheckBox parameter)
+        {
+            return parameter.CheckState == CheckState.Checked;
+        }
     }
 
     /// <summary>
@@ -1730,6 +1774,15 @@ namespace OsEngine.Entity
         /// Event: parameter state changed
         /// </summary>
         public event Action ValueChange;
+
+        public static implicit operator decimal(StrategyParameterDecimalCheckBox parameter) => parameter.ValueDecimal;
+
+        public static implicit operator CheckState(StrategyParameterDecimalCheckBox parameter) => parameter.CheckState;
+
+        public static implicit operator bool(StrategyParameterDecimalCheckBox parameter)
+        {
+            return parameter.CheckState == CheckState.Checked;
+        }
     }
 
     /// <summary>
