@@ -665,6 +665,12 @@ namespace OsEngine.Market.Servers.Binance.Futures
 
                 PriceTicker resp = JsonConvert.DeserializeAnonymousType(res, new PriceTicker());
 
+                if (resp.price == null
+                    || resp.symbol == null)
+                {
+                    return 0;
+                }
+
                 price = resp.price.ToDecimal();
 
                 return price;
