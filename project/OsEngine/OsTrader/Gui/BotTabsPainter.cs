@@ -15,7 +15,6 @@ using System.Collections.Generic;
 using OsEngine.Journal;
 using OsEngine.Logging;
 using OsEngine.OsTrader.Panels.Tab;
-using static Grpc.Tradeapi.V1.Marketdata.OrderBook.Types;
 using OsEngine.Market;
 
 namespace OsEngine.OsTrader.Gui
