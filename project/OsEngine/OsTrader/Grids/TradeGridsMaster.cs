@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -182,6 +182,11 @@ namespace OsEngine.OsTrader.Grids
 
                 if(ui.Number == myGrid.Number)
                 {
+                    if (ui.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        ui.WindowState = System.Windows.WindowState.Normal;
+                    }
+
                     ui.Activate();
                     return;
                 }
