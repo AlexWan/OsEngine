@@ -431,7 +431,7 @@ namespace OsEngine.OsTrader.Panels
         /// <summary>
         /// bot name
         /// </summary>
-        public abstract string GetNameStrategyType();
+        public virtual string GetNameStrategyType() => GetType().Name;
 
         /// <summary>
         /// has the robot connected to the exchange of all tabs
@@ -2089,7 +2089,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// show individual settings
         /// </summary>
-        public abstract void ShowIndividualSettingsDialog();
+        public virtual void ShowIndividualSettingsDialog() { }
 
         // global position reaction
 
