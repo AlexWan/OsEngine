@@ -18,6 +18,7 @@ namespace OsEngine.Market.Proxy
 {
     public class ProxyMaster
     {
+
         public void Activate()
         {
             LoadSettings();
@@ -81,6 +82,11 @@ namespace OsEngine.Market.Proxy
             }
             else
             {
+                if(_ui.WindowState == System.Windows.WindowState.Minimized)
+                {
+                    _ui.WindowState = System.Windows.WindowState.Normal;
+                }
+
                 _ui.Activate();
             }
         }

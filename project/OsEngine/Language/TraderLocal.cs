@@ -2178,5 +2178,9 @@ namespace OsEngine.Language
         public string Label569 => OsLocalization.ConvertToLocString(
         "Eng:Waiting for an order action (real, MLS)_" +
         "Ru:Ожидание операций с ордерами (реал, млс)_");
+
+        public string Label570 => OsLocalization.ConvertToLocString(
+        "Eng:Copy trading_" +
+        "Ru:КопиТрейдинг_");
     }
 }

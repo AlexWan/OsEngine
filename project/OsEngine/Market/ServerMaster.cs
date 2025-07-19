@@ -81,6 +81,7 @@ using OsEngine.Market.Servers.TelegramNews;
 using OsEngine.Market.Servers.Bitfinex.BitfinexFutures;
 using OsEngine.Market.Servers.FinamGrpc;
 using OsEngine.Market.Servers.BinanceData;
+using OsEngine.Market.AutoFollow;
 
 namespace OsEngine.Market
 {
@@ -1824,6 +1825,34 @@ namespace OsEngine.Market
         public static event Action<Order> RevokeOrderToEmulatorEvent;
 
         public static event Action<string, IServer, string> ClearPositionOnBoardEvent;
+
+        #endregion
+
+        #region Auto Follow. CopyMaster
+
+        private static CopyMaster _copyMaster;
+
+        public static void ActivateCopyMaster()
+        {
+            if (_copyMaster == null)
+            {
+                _copyMaster = new CopyMaster();
+                _copyMaster.LogMessageEvent += SendNewLogMessage;
+                _copyMaster.Activate();
+            }
+        }
+
+        public static void ShowCopyMasterDialog()
+        {
+            try
+            {
+                _copyMaster.ShowDialog();
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         #endregion
 

@@ -82,8 +82,9 @@ namespace OsEngine.OsTrader
             {
                 ServerMaster.ActivateAutoConnection();
                 ServerMaster.ActivateProxy();
+                ServerMaster.ActivateCopyMaster();
 
-                if(PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.At5Minutes)
+                if (PrimeSettingsMaster.MemoryCleanerRegime == MemoryCleanerRegime.At5Minutes)
                 {
                     _memoryCleaner = new MemoryCleaner(5);
                     _memoryCleaner.LogMessageEvent += SendNewLogMessage;
