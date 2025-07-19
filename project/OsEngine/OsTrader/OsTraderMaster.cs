@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -968,13 +968,25 @@ namespace OsEngine.OsTrader
 
                 if (_journalUi2 != null)
                 {
+                    if (_journalUi2.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        _journalUi2.WindowState = System.Windows.WindowState.Normal;
+                    }
+
                     _journalUi2.Activate();
+
                     return;
                 }
 
                 if (_journalUi1 != null)
                 {
+                    if (_journalUi1.WindowState == System.Windows.WindowState.Minimized)
+                    {
+                        _journalUi1.WindowState = System.Windows.WindowState.Normal;
+                    }
+
                     _journalUi1.Activate();
+
                     return;
                 }
 
