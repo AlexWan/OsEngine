@@ -1,4 +1,4 @@
-﻿/*
+/*
  *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -75,6 +75,8 @@ namespace OsEngine.Market
             _textBoxSearchSecurity.LostKeyboardFocus += TextBoxSearchSecurity_LostKeyboardFocus;
             _buttonLeftInSearchResults.Click += ButtonLeftInSearchResults_Click;
             _buttonRightInSearchResults.Click += ButtonRightInSearchResults_Click;
+
+            SearchCheckLocalization();
         }
 
         public void Dispose()
@@ -792,7 +794,7 @@ namespace OsEngine.Market
         private List<int> _searchResults = new List<int>();
 
         private void TextBoxSearchSecurity_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-      {
+        {
             UpdateSearchResults();
             UpdateSearchPanel();
         }
@@ -946,6 +948,26 @@ namespace OsEngine.Market
 
                 _gridSources.Rows[realInd].Selected = true;
                 _gridSources.FirstDisplayedScrollingRowIndex = realInd;
+            }
+            catch (Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void SearchCheckLocalization()
+        {
+            try
+            {
+                if (_textBoxSearchSecurity == null)
+                {
+                    return;
+                }
+
+                if (_textBoxSearchSecurity.Text != OsLocalization.Market.Label64)
+                {
+                    _textBoxSearchSecurity.Text = OsLocalization.Market.Label64;
+                }
             }
             catch (Exception ex)
             {
