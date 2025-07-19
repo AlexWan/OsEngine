@@ -305,6 +305,7 @@ namespace OsEngine.Indicators
                     cell.Items.Add(IndicatorChartPaintType.Line.ToString());
                     cell.Items.Add(IndicatorChartPaintType.Point.ToString());
                     cell.Items.Add(IndicatorChartPaintType.Column.ToString());
+                    cell.Items.Add(IndicatorChartPaintType.Candle.ToString());
                     cell.Value = _indicator.DataSeries[i].ChartPaintType.ToString();
                     row.Cells.Add(cell);
 

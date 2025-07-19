@@ -802,6 +802,10 @@ ContextMenuStrip menu)
                 {
                     newSeries.ChartType = SeriesChartType.Point;
                 }
+                if (indicatorType == IndicatorChartPaintType.Candle)
+                {
+                    newSeries.ChartType = SeriesChartType.Candlestick;
+                }
 
                 newSeries.ShadowOffset = 2;
                 _chart.Series.Add(newSeries);
@@ -4018,6 +4022,17 @@ ContextMenuStrip menu)
                             PaintLikePoint(valList[i], colors[i], name + i, false);
                         }
                     }
+                    if (indicator.TypeIndicator == IndicatorChartPaintType.Candle)
+                    {
+                        List<List<decimal>> valList = indicator.ValuesToChart;
+                        List<Color> colors = indicator.Colors;
+                        string name = indicator.Name;
+
+                        for (int i = 0; i < valList.Count; i++)
+                        {
+                            PaintLikeCandle(valList[i], colors[i], name + i, false);
+                        }
+                    }
                 }
                 else
                 {
@@ -4044,6 +4059,11 @@ ContextMenuStrip menu)
                         {
                             PaintLikePoint(series[i].Values, series[i].Color, indicator.Name + i, series[i].CanReBuildHistoricalValues);
                         }
+                        if (series[i].ChartPaintType == IndicatorChartPaintType.Candle)
+                        {
+                            PaintLikeCandle(series[i].Values, series[i].Color, indicator.Name + i, series[i].CanReBuildHistoricalValues);
+                        }
+
                     }
                 }
             }
@@ -4641,6 +4661,188 @@ ContextMenuStrip menu)
         }
 
         /// <summary>
+        /// Хранит последние значения для каждой серии (например, последнее значение Close для свечи).
+        /// Используется для обновления последней точки графика без полной перерисовки. 
+        private Dictionary<string, double> _lastValues = new Dictionary<string, double>();
+
+
+        /// <summary>
+        /// Определяет тип значения (High, Low, Close) по последней цифре имени серии.
+        /// </summary>
+        /// <param name="nameSeries">Имя серии, оканчивающееся на 0 (High), 1 (Low) или 2 (Close)</param>
+        /// <returns>Индекс типа значения: 0 - High, 1 - Low, 2 - Close, иначе -1</returns>
+        private int GetValueIndex(string nameSeries)
+        {
+            if (nameSeries.EndsWith("0")) return 0;  // High
+            if (nameSeries.EndsWith("1")) return 1;  // Low
+            if (nameSeries.EndsWith("2")) return 2;  // Close
+            return -1;
+        }
+
+        /// <summary>
+        /// Основной метод отрисовки данных как свечей. Поддерживает добавление новой свечи, перерисовку или полное обновление.
+        /// </summary>
+        /// <param name="values">Список значений для отображения</param>
+        /// <param name="color">Цвет свечей</param>
+        /// <param name="nameSeries">Имя серии, определяющее тип (High/Low/Close)</param>
+        /// <param name="fullReloadOnNewCandle">Флаг, требующий полной перерисовки при добавлении новой свечи</param>
+        private void PaintLikeCandle(List<decimal> values, Color color, string nameSeries, bool fullReloadOnNewCandle)
+        {
+            if (values == null || values.Count == 0)
+                return;
+
+            var seriesExist = FindSeriesByNameSafe(nameSeries);
+            var area = FindAreaByNameSafe(seriesExist?.ChartArea);
+            if (seriesExist == null || area == null)
+                return;
+
+            bool sameStart = seriesExist.Points.Count > 0
+                          && Convert.ToDouble(values[0]) == seriesExist.Points[0].YValues[0];
+            bool newPoint = sameStart && values.Count - 1 == seriesExist.Points.Count;
+            bool repaint = sameStart && values.Count == seriesExist.Points.Count && !fullReloadOnNewCandle;
+
+            if (newPoint)
+                PaintLikeCandleLast(values, nameSeries, color);
+            else if (repaint)
+                RePaintLikeCandleLast(values, nameSeries, color);
+            else
+            {
+                var series = new Series(nameSeries)
+                {
+                    ChartType = SeriesChartType.Candlestick,
+                    YAxisType = AxisType.Secondary,
+                    ChartArea = area.Name,
+                    YValuesPerPoint = 4,
+                    Color = color,
+                    BackSecondaryColor = color,
+                    BorderColor = color,
+                    YValueMembers = "High,Low,Open,Close"
+                };
+
+                for (int i = 0; i < values.Count; i++)
+                    AddDataPoint(series, i, values[i], nameSeries, color);
+
+                PaintSeriesSafe(series);
+
+                if (area.Name != "Prime" && area.AlignWithChartArea == "Prime")
+                {
+                    var primeArea = FindAreaByNameSafe(area.AlignWithChartArea);
+                    if (primeArea?.AxisX.ScaleView != null)
+                    {
+                        area.AxisX.ScaleView.Position = primeArea.AxisX.ScaleView.Position;
+                        ResizeXAxis();
+                        foreach (var ca in _chart.ChartAreas)
+                            ResizeYAxisOnArea(ca.Name);
+                    }
+                }
+                ReloadAreaSizes();
+                ResizeSeriesLabels();
+            }
+            ResizeYAxisOnArea(area.Name);
+        }
+
+        /// <summary>
+        /// Добавляет новую точку в существующую серию свечей.
+        /// </summary>
+        /// <param name="values">Список значений</param>
+        /// <param name="nameSeries">Имя серии</param>
+        /// <param name="color">Цвет свечи</param>
+        private void PaintLikeCandleLast(List<decimal> values, string nameSeries, Color color)
+        {
+            var seriesExist = FindSeriesByNameSafe(nameSeries);
+            if (seriesExist == null || values.Count == 0)
+                return;
+
+            int i = values.Count - 1;
+            AddDataPoint(seriesExist, i, values[i], nameSeries, color);
+            _lastValues[nameSeries] = Convert.ToDouble(values[i]);
+        }
+
+        /// <summary>
+        /// Обновляет последнюю точку в существующей серии свечей.
+        /// </summary>
+        /// <param name="values">Список значений</param>
+        /// <param name="nameSeries">Имя серии</param>
+        /// <param name="color">Цвет свечи</param>
+        private void RePaintLikeCandleLast(List<decimal> values, string nameSeries, Color color)
+        {
+            var seriesExist = FindSeriesByNameSafe(nameSeries);
+            if (seriesExist == null || seriesExist.Points.Count == 0)
+                return;
+
+            int i = values.Count - 1;
+            FillDataPoint(seriesExist.Points[i], values[i], nameSeries, color);
+            _lastValues[nameSeries] = Convert.ToDouble(values[i]);
+        }
+
+        /// <summary>
+        /// Добавляет новую точку данных в серию.
+        /// </summary>
+        /// <param name="series">Серия, в которую добавляется точка</param>
+        /// <param name="x">X-координата (номер свечи)</param>
+        /// <param name="rawValue">Значение для отображения</param>
+        /// <param name="nameSeries">Имя серии</param>
+        /// <param name="color">Цвет точки</param>
+        private void AddDataPoint(Series series, int x, decimal rawValue, string nameSeries, Color color)
+        {
+            var dp = new DataPoint { XValue = x };
+            FillDataPoint(dp, rawValue, nameSeries, color);
+            series.Points.Add(dp);
+        }
+
+        /// <summary>
+        /// Заполняет данные точки графика в зависимости от типа (High, Low, Close).
+        /// Формирует структуру свечи и настраивает внешний вид точки.
+        /// </summary>
+        /// <param name="dp">Точка данных</param>
+        /// <param name="rawValue">Исходное значение</param>
+        /// <param name="nameSeries">Имя серии, определяющее тип значения</param>
+        /// <param name="color">Цвет точки</param>
+        private void FillDataPoint(DataPoint dp, decimal rawValue, string nameSeries, Color color)
+        {
+            double v = Convert.ToDouble(rawValue);
+            int idx = GetValueIndex(nameSeries);
+
+            double high = 0, low = 0, open = 0, close = 0;
+            bool body = false;
+
+            if (idx == 0)
+            {
+                if (v > 0) { open = 0; close = v; body = false; }
+                else { high = 0; low = v; }
+            }
+            else if (idx == 1)
+            {
+                if (v < 0) { open = 0; close = v; body = false; }
+                else { high = v; low = 0; }
+            }
+            else if (idx == 2)
+            {
+                body = true;
+                if (v > 0) { open = 0; close = v; }
+                else { open = v; close = 0; }
+            }
+
+            dp.YValues = new[] { high, low, open, close };
+
+            if (body)
+            {
+                dp.Color = Color.FromArgb(51, color);
+                dp.BackSecondaryColor = dp.Color;
+                dp.BorderColor = Color.FromArgb(220, color);
+                dp.BorderWidth = 1;
+            }
+            else
+            {
+                dp.Color = Color.Transparent;
+                dp.BackSecondaryColor = dp.Color;
+                dp.BorderColor = Color.FromArgb(170, color);
+                dp.BorderWidth = 2;
+            }
+        }
+
+
+        /// <summary>
         /// add a series of data to chart safely
         /// добавить серию данных на чарт безопасно
         /// </summary>
@@ -5081,6 +5283,24 @@ ContextMenuStrip menu)
                     if (series[i].Name == "SeriesCandle")
                     {
                         labelSeries.Points[0].Label = _myCandles[index].ToolTip;
+                    }
+                    else if (series[i].ChartTypeName == "Candlestick")
+                    {
+                        double[] yVals = series[i].Points[index].YValues;
+
+                        // Найти первое значение, которое ≠ 0
+                        int foundIndex = Array.FindIndex(yVals, val => val != 0);
+
+                        if (foundIndex >= 0)
+                        {
+                            labelSeries.Points[0].Label = ((decimal)yVals[foundIndex]).ToString();
+                            labelSeries.Points[0].Color = series[i].Points[index].BorderColor;
+                            labelSeries.Points[0].LabelForeColor = series[i].Points[index].BorderColor;
+                        }
+                        else
+                        {
+                            labelSeries.Points[0].Label = "";
+                        }
                     }
                     else
                     {
@@ -5652,6 +5872,19 @@ ContextMenuStrip menu)
                         PaintLabelOnY2(series.Name + "Label", series.ChartArea,
                             (Math.Round(series.Points[realIndex].YValues[3], rounder)).ToString(_culture),
                             (decimal)series.Points[realIndex].YValues[3], series.Points[realIndex].Color, true);
+                    }
+                    // RightLabel  Метки для Candle - High, Low, Close [справа] рисуем в цвете
+                    else if (series.ChartTypeName == "Candlestick")
+                    {
+                        double[] yVals = series.Points[realIndex].YValues;
+                        double selectedValue = yVals.FirstOrDefault(val => val != 0);
+
+                        decimal closeVal = Convert.ToDecimal(selectedValue);
+                        closeVal = Math.Round(closeVal, rounder);
+
+                        string closeText = closeVal.ToString(_culture);
+
+                        PaintLabelOnY2(series.Name + "Label", series.ChartArea, closeText, closeVal, series.Points[realIndex].BorderColor, true);
                     }
                     else
                     {

@@ -112,6 +112,12 @@ namespace OsEngine.Indicators
         /// <summary>
         /// Point
         /// </summary>
-        Point
+        Point,
+
+        /// <summary>
+        /// Candle
+        /// </summary>
+        Candle
+
     }
 }
