@@ -284,7 +284,11 @@ namespace OsEngine.Candles.Series
 
                 DateTime timeNextCandle = time;
 
-                if (TimeFrameSpan.TotalMinutes >= 1)
+                if(TimeFrame == TimeFrame.Day)
+                {
+                    timeNextCandle = time.Date;
+                }
+                else if (TimeFrameSpan.TotalMinutes >= 1)
                 {
                     timeNextCandle = time.AddSeconds(-time.Second);
 
