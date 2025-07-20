@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -12,7 +12,6 @@ using System.Reflection;
 using System.Threading;
 using OsEngine.Entity;
 using OsEngine.OsTrader.Panels;
-using OsEngine.OsTrader.Panels.Attributes;
 using OsEngine.Robots.Engines;
 using System.Windows; // For MessageBox
 
@@ -27,7 +26,7 @@ namespace OsEngine.Robots
 {
     public static class BotFactory // Made static for consistency
     {
-        private static readonly Dictionary<string, Type> BotsWithAttribute = GetTypesWithBotAttribute();
+        private static readonly Dictionary<string, Type> Bots = GetBotPanelTypes();
 
         public static List<string> GetIncludeNamesStrategy()
         {
@@ -37,7 +36,7 @@ namespace OsEngine.Robots
                 "ScreenerEngine",
                 "ClusterEngine"
             };
-            result.AddRange(BotsWithAttribute.Keys);
+            result.AddRange(Bots.Keys);
 
             // Simplified sorting
             return result.OrderBy(s => s).ToList();
@@ -67,7 +66,7 @@ namespace OsEngine.Robots
                 {
                     bot = new ClusterEngine(nameInstance, startProgram);
                 }
-                else if (BotsWithAttribute.TryGetValue(nameClass, out Type botType))
+                else if (Bots.TryGetValue(nameClass, out Type botType))
                 {
                     try
                     {
@@ -107,7 +106,7 @@ namespace OsEngine.Robots
         }
 
 
-        static Dictionary<string, Type> GetTypesWithBotAttribute()
+        static Dictionary<string, Type> GetBotPanelTypes()
         {
             Assembly assembly = typeof(BotPanel).Assembly;
             Dictionary<string, Type> bots = new Dictionary<string, Type>();
@@ -115,20 +114,16 @@ namespace OsEngine.Robots
             {
                 if (type.IsPublic && !type.IsAbstract && typeof(BotPanel).IsAssignableFrom(type))
                 {
-                    object[] attributes = type.GetCustomAttributes(typeof(BotAttribute), false);
-                    if (attributes.Length > 0 && attributes[0] is BotAttribute attr)
-                    {
                         // Ensure the type has the expected constructor
                         ConstructorInfo constructor = type.GetConstructor(new[] { typeof(string), typeof(StartProgram) });
                         if (constructor != null)
                         {
-                            bots[attr.Name] = type;
+                            bots[type.Name] = type;
                         }
                         else
                         {
-                            Console.WriteLine($"Warning: Bot type '{type.FullName}' with BotAttribute '{attr.Name}' does not have the required constructor (string name, StartProgram startProgram). It will be ignored.");
+                            Console.WriteLine($"Warning: Bot type '{type.FullName}' with BotAttribute '{type.Name}' does not have the required constructor (string name, StartProgram startProgram). It will be ignored.");
                         }
-                    }
                 }
             }
             return bots;
@@ -620,8 +615,8 @@ namespace OsEngine.Robots
                     // GetIncludeNamesStrategy() returns Engine, ScreenerEngine, ClusterEngine, and Attribute bots.
                     // GetScriptsNamesStrategy() returns file-based scripts.
                     // The combined list `args.AllBotNames` contains both.
-                    // We can assume if it's not in BotsWithAttribute and not one of the hardcoded engines, it's a script.
-                    bool isScript = !BotsWithAttribute.ContainsKey(botNameClass) &&
+                    // We can assume if it's not in Bots and not one of the hardcoded engines, it's a script.
+                    bool isScript = !Bots.ContainsKey(botNameClass) &&
                                     botNameClass != "Engine" &&
                                     botNameClass != "ScreenerEngine" &&
                                     botNameClass != "ClusterEngine";
