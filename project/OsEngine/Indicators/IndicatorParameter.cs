@@ -232,6 +232,8 @@ namespace OsEngine.Indicators
         /// the parameter state has changed
         /// </summary>
         public override event Action ValueChange;
+
+        public static implicit operator int(IndicatorParameterInt parameter) => parameter.ValueInt;
     }
 
     /// <summary>
@@ -337,6 +339,8 @@ namespace OsEngine.Indicators
         /// the parameter state has changed
         /// </summary>
         public override event Action ValueChange;
+
+        public static implicit operator decimal(IndicatorParameterDecimal parameter) => parameter.ValueDecimal;
     }
 
     /// <summary>
@@ -441,6 +445,8 @@ namespace OsEngine.Indicators
         /// the parameter state has changed
         /// </summary>
         public override event Action ValueChange;
+
+        public static implicit operator bool(IndicatorParameterBool parameter) => parameter.ValueBool;
     }
 
     /// <summary>
@@ -577,6 +583,8 @@ namespace OsEngine.Indicators
         /// the parameter state has changed
         /// </summary>
         public override event Action ValueChange;
+
+        public static implicit operator string(IndicatorParameterString parameter) => parameter.ValueString;
     }
 
     /// <summary>
