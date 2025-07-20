@@ -5880,7 +5880,6 @@ ContextMenuStrip menu)
                         double selectedValue = yVals.FirstOrDefault(val => val != 0);
 
                         decimal closeVal = Convert.ToDecimal(selectedValue);
-                        closeVal = Math.Round(closeVal, rounder);
 
                         string closeText = closeVal.ToString(_culture);
 
