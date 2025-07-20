@@ -25,17 +25,15 @@ namespace OsEngine.Market.AutoFollow
 
         public string Name;
 
-        public CopyTraderType Type;
+        public CopyTraderType WorkType;
 
         public bool IsOn;
-
-        public string State;
 
         public string GetStringToSave()
         {
             string result = Number + "%";
             result += Name + "%";
-            result += Type + "%";
+            result += WorkType + "%";
             result += IsOn + "%";
 
             return result;
@@ -45,7 +43,7 @@ namespace OsEngine.Market.AutoFollow
         {
             Number = Convert.ToInt32(saveStr.Split('%')[0]);
             Name = saveStr.Split('%')[1];
-            Enum.TryParse(saveStr.Split('%')[2], out Type);
+            Enum.TryParse(saveStr.Split('%')[2], out WorkType);
             IsOn = Convert.ToBoolean(saveStr.Split('%')[3]);
         }
 

@@ -763,7 +763,7 @@ namespace OsEngine.Language
 
         public string Label182 => OsLocalization.ConvertToLocString(
           "Eng:Is on_" +
-          "Ru:Включено?_");
+          "Ru:Вкл/выкл_");
 
         public string Label183 => OsLocalization.ConvertToLocString(
           "Eng:Ip_" +
@@ -837,6 +837,21 @@ namespace OsEngine.Language
           "Eng:Type_" +
           "Ru:Тип_");
 
+        public string Label201 => OsLocalization.ConvertToLocString(
+         "Eng:Copy trader_" +
+         "Ru:Копитрейдер_");
+
+        public string Label202 => OsLocalization.ConvertToLocString(
+         "Eng:Base settings_" +
+         "Ru:Базовые настройки_");
+
+        public string Label203 => OsLocalization.ConvertToLocString(
+         "Eng:Portfolios_" +
+         "Ru:Портфели_");
+
+        public string Label204 => OsLocalization.ConvertToLocString(
+         "Eng:Robots_" +
+         "Ru:Роботы_");
 
 
 

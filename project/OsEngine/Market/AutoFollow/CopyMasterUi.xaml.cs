@@ -43,15 +43,29 @@ namespace OsEngine.Market.AutoFollow
 
         private void CopyMasterUi_Closed(object sender, EventArgs e)
         {
-            _master.LogCopyMaster.StopPaint();
-            _master = null;
+            try
+            {
+                for (int i = 0; i < _uis.Count; i++)
+                {
+                    _uis[i].LogMessageEvent -= _master.SendLogMessage;
+                    _uis[i].NeedToUpdateCopyTradersGridEvent -= Ui_NeedToUpdateCopyTradersGridEvent;
+                }
+                _uis.Clear();
 
-            _grid.CellClick -= _grid_CellClick;
-            _grid.CellValueChanged -= _grid_CellValueChanged;
-            _grid.DataError -= _grid_DataError;
-            _grid.Rows.Clear();
-            DataGridFactory.ClearLinks(_grid);
-            HostCopyTraders.Child = null;
+                _master.LogCopyMaster.StopPaint();
+                _master = null;
+
+                _grid.CellClick -= _grid_CellClick;
+                _grid.CellValueChanged -= _grid_CellValueChanged;
+                _grid.DataError -= _grid_DataError;
+                _grid.Rows.Clear();
+                DataGridFactory.ClearLinks(_grid);
+                HostCopyTraders.Child = null;
+            }
+            catch(Exception ex)
+            {
+                ServerMaster.SendNewLogMessage(ex.ToString(),Logging.LogMessageType.Error);
+            }
         }
 
         #region Grid
@@ -96,13 +110,6 @@ namespace OsEngine.Market.AutoFollow
             column4.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             _grid.Columns.Add(column4);
 
-            DataGridViewColumn column5 = new DataGridViewColumn();
-            column5.CellTemplate = cell0;
-            column5.HeaderText = OsLocalization.Market.Label141; // State
-            column5.ReadOnly = true;
-            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column5);
-
             DataGridViewColumn column6 = new DataGridViewColumn();
             column6.CellTemplate = cell0;
             //column6.HeaderText = "Settings"; // Settings
@@ -139,9 +146,8 @@ namespace OsEngine.Market.AutoFollow
                 // 1 Name
                 // 2 Type
                 // 3 Is On
-                // 4 State
-                // 5 Settings
-                // 6 Remove
+                // 4 Settings
+                // 5 Remove
 
                 _grid.Rows.Clear();
 
@@ -164,9 +170,8 @@ namespace OsEngine.Market.AutoFollow
             // 1 Name
             // 2 Type
             // 3 Is On
-            // 4 State
-            // 5 Settings
-            // 6 Remove / Add New
+            // 4 Settings
+            // 5 Remove / Add New
 
             DataGridViewRow nRow = new DataGridViewRow();
 
@@ -177,7 +182,7 @@ namespace OsEngine.Market.AutoFollow
             nRow.Cells[nRow.Cells.Count - 1].Value = proxy.Name;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.Type.ToString();
+            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.WorkType.ToString();
 
             DataGridViewComboBoxCell cellIsOn = new DataGridViewComboBoxCell();
             cellIsOn.Items.Add("True");
@@ -189,9 +194,6 @@ namespace OsEngine.Market.AutoFollow
             {
                 nRow.Cells[nRow.Cells.Count - 1].Style.ForeColor = System.Drawing.Color.Green;
             }
-
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.State;
 
             DataGridViewButtonCell cell1 = new DataGridViewButtonCell();
             cell1.Value = OsLocalization.Market.TabItem3;
@@ -215,11 +217,9 @@ namespace OsEngine.Market.AutoFollow
             // 1 Name
             // 2 Type
             // 3 Is On
-            // 4 State
-            // 5 Settings
-            // 6 Remove / Add New
+            // 4 Settings
+            // 5 Remove / Add New
 
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
@@ -248,12 +248,12 @@ namespace OsEngine.Market.AutoFollow
                  }
 
                  if (row + 1 == _grid.Rows.Count
-                     && column == 6)
+                     && column == 5)
                  { // add new
                     _master.CreateNewCopyTrader();
                      UpdateGrid();
                  }
-                 else if (column == 6)
+                 else if (column == 5)
                  { // delete
 
                      AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label196);
@@ -270,7 +270,7 @@ namespace OsEngine.Market.AutoFollow
                      UpdateGrid();
                  }
                 else if (row + 1 < _grid.Rows.Count
-                    && column == 5)
+                    && column == 4)
                 { // show dialog
 
                     int number = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
@@ -386,6 +386,8 @@ namespace OsEngine.Market.AutoFollow
             if(ui == null)
             {
                 ui = new CopyTraderUi(trader);
+                ui.LogMessageEvent += _master.SendLogMessage;
+                ui.NeedToUpdateCopyTradersGridEvent += Ui_NeedToUpdateCopyTradersGridEvent;
                 ui.Show();
                 ui.Closed += Ui_Closed;
                 _uis.Add(ui);
@@ -400,6 +402,11 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
+        private void Ui_NeedToUpdateCopyTradersGridEvent()
+        {
+            UpdateGrid();
+        }
+
         private void Ui_Closed(object sender, EventArgs e)
         {
             try
@@ -408,8 +415,10 @@ namespace OsEngine.Market.AutoFollow
 
                 for (int i = 0; i < _uis.Count; i++)
                 {
-                    if (_uis[i].CopyTraderClass.Number == ui.CopyTraderClass.Number)
+                    if (_uis[i].TraderNumber == ui.TraderNumber)
                     {
+                        _uis[i].LogMessageEvent -= _master.SendLogMessage;
+                        _uis[i].NeedToUpdateCopyTradersGridEvent -= Ui_NeedToUpdateCopyTradersGridEvent;
                         _uis.RemoveAt(i);
                         break;
                     }

@@ -1837,6 +1837,11 @@ namespace OsEngine.Market
 
         private static CopyMaster _copyMaster;
 
+        public static void SaveCopyMaster()
+        {
+            _copyMaster.SaveCopyTraders();
+        }
+
         public static void ActivateCopyMaster()
         {
             if (_copyMaster == null)

@@ -5,8 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Market.AutoFollow"
         mc:Ignorable="d"
-        Title="Copy trader " Height="600" Width="1000" MinWidth="700" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Copy trader " Height="414" Width="417" MinWidth="500" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid>
+        <TabControl Name="TabControlPrime">
+            <TabItem Header="Base settings">
+                <Grid >
+
+                    <Label Name="LabelIsOn" Content="Is On" HorizontalAlignment="Left" Margin="96,26,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxIsOn" HorizontalAlignment="Center" Margin="0,26,0,0" VerticalAlignment="Top" Width="120"/>
+
+                    <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="96,54,0,0" VerticalAlignment="Top"/>
+                    <TextBox Name="TextBoxName" HorizontalAlignment="Center" Margin="0,54,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
+
+                    <Label Name="LabelWorkType" Content="Work type" HorizontalAlignment="Left" Margin="96,82,0,0" VerticalAlignment="Top"/>
+                    <ComboBox Name="ComboBoxWorkType" HorizontalAlignment="Center" Margin="0,82,0,0" VerticalAlignment="Top" Width="120"/>
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="Portfolio">
+                <Grid />
+            </TabItem>
+            <TabItem Header="Robots">
+                <Grid />
+            </TabItem>
+        </TabControl>
 
     </Grid>
 </Window>
