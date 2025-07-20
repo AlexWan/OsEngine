@@ -385,7 +385,6 @@ namespace OsEngine.Market.Servers.Tester
         {
             try
             {
-
                 if (_lastStartSecurityTime.AddSeconds(5) > DateTime.Now)
                 {
                     SendLogMessage(OsLocalization.Market.Message97, LogMessageType.Error);
@@ -395,6 +394,7 @@ namespace OsEngine.Market.Servers.Tester
                 TesterRegime = TesterRegime.Pause;
                 Thread.Sleep(200);
                 _serverTime = DateTime.MinValue;
+                TestingFastIsActivate = false;
 
                 ServerMaster.ClearOrders();
 
