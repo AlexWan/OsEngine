@@ -1,11 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows; // Used for MessageBox
 using OsEngine.Entity; // Assuming Aindicator and IndicatorAttribute are here
-using OsEngine.Indicators; // Namespace for the factory itself
 
 // Roslyn specific usings
 using Microsoft.CodeAnalysis;
@@ -31,9 +30,9 @@ namespace OsEngine.Indicators
 
     public static class IndicatorsFactory // Made static to match CandleFactory and common factory patterns
     {
-        public static readonly Dictionary<string, Type> IndicatorsWithAttribute = GetTypesWithIndicatorAttribute();
+        public static readonly Dictionary<string, Type> Indicators = GetIndicatorTypes();
 
-        private static Dictionary<string, Type> GetTypesWithIndicatorAttribute()
+        private static Dictionary<string, Type> GetIndicatorTypes()
         {
             // Assumes Aindicator is in OsEngine.Entity or OsEngine.Indicators
             Assembly assembly = typeof(Aindicator).Assembly;
@@ -43,11 +42,7 @@ namespace OsEngine.Indicators
                 // Ensure type is public, not abstract, and assignable to Aindicator
                 if (type.IsPublic && !type.IsAbstract && typeof(Aindicator).IsAssignableFrom(type))
                 {
-                    object[] attributes = type.GetCustomAttributes(typeof(IndicatorAttribute), false);
-                    if (attributes.Length > 0 && attributes[0] is IndicatorAttribute attr)
-                    {
-                        indicators[attr.Name] = type;
-                    }
+                    indicators[type.Name] = type;
                 }
             }
             return indicators;
@@ -77,7 +72,7 @@ namespace OsEngine.Indicators
             // The original custom sorting logic was a bit complex.
             // Combining with attribute-based indicators and then sorting alphabetically.
             List<string> allIndicatorNames = new List<string>(scriptFileNames);
-            allIndicatorNames.AddRange(IndicatorsWithAttribute.Keys);
+            allIndicatorNames.AddRange(Indicators.Keys);
 
             // Remove duplicates that might arise if a script has the same name as an attribute-based indicator
             // and then sort alphabetically.
@@ -141,7 +136,7 @@ namespace OsEngine.Indicators
 
             try
             {
-                if (IndicatorsWithAttribute.TryGetValue(nameClass, out Type precompiledType))
+                if (Indicators.TryGetValue(nameClass, out Type precompiledType))
                 {
                     indicator = (Aindicator)Activator.CreateInstance(precompiledType);
                 }
@@ -361,9 +356,6 @@ namespace OsEngine.Indicators
             return Directory.GetFiles(dllsFolder, "*.dll").ToList();
         }
 
-        private static string ReadFile(string path)
-        {
-            return File.ReadAllText(path); // Assumes UTF-8 or default encoding
-        }
+        private static string ReadFile(string path) => File.ReadAllText(path); // Assumes UTF-8 or default encoding
     }
 }
