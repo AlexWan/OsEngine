@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Your rights to use code governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
@@ -1476,6 +1476,10 @@ namespace OsEngine.OsTrader.Panels.Tab
                     {
                         if (_uiList[i].NameElement == pair.Name)
                         {
+                            if (_uiList[i].WindowState == System.Windows.WindowState.Minimized)
+                            {
+                                _uiList[i].WindowState = System.Windows.WindowState.Normal;
+                            }
                             _uiList[i].Activate();
                             return;
                         }
