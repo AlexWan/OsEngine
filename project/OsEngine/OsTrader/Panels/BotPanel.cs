@@ -256,10 +256,7 @@ namespace OsEngine.OsTrader.Panels
             _chartUi.Closed -= _chartUi_Closed;
             _chartUi = null;
 
-            if (ChartClosedEvent != null)
-            {
-                ChartClosedEvent(this.NameStrategyUniq);
-            }
+            ChartClosedEvent?.Invoke(this.NameStrategyUniq);
         }
 
         public event Action<string> ChartClosedEvent;
@@ -295,6 +292,7 @@ namespace OsEngine.OsTrader.Panels
             _gridChartControlPanel = gridChartControlPanel;
             _textBoxVolume = textBoxVolume;
             _tabControlControl = tabControlControl;
+
             if (_tabControlControl != null)
             {
                 _tabControlControl.SelectionChanged += _tabControlControl_SelectionChanged;
@@ -492,10 +490,7 @@ namespace OsEngine.OsTrader.Panels
                     _botTabs[i].Clear();
                 }
 
-                if (Log != null)
-                {
-                    Log.Clear();
-                }
+                Log?.Clear();
             }
             catch (Exception error)
             {
@@ -512,10 +507,7 @@ namespace OsEngine.OsTrader.Panels
             {
                 try
                 {
-                    if (_chartUi != null)
-                    {
-                        _chartUi.Close();
-                    }
+                    _chartUi?.Close();
                 }
                 catch
                 {
@@ -544,35 +536,20 @@ namespace OsEngine.OsTrader.Panels
                     _botTabs = null;
                 }
 
-                if (_tabSimple != null)
-                {
-                    _tabSimple.Clear();
-                    _tabSimple = null;
-                }
+                TabsSimple?.Clear();
+                TabsSimple = null;
 
-                if (_tabsCluster != null)
-                {
-                    _tabsCluster.Clear();
-                    _tabsCluster = null;
-                }
+                TabsCluster?.Clear();
+                TabsCluster = null;
 
-                if (_tabsPair != null)
-                {
-                    _tabsPair.Clear();
-                    _tabsPair = null;
-                }
+                TabsPair?.Clear();
+                TabsPair = null;
 
-                if (_tabsScreener != null)
-                {
-                    _tabsScreener.Clear();
-                    _tabsScreener = null;
-                }
+                TabsScreener?.Clear();
+                TabsScreener = null;
 
-                if (_tabsPolygon != null)
-                {
-                    _tabsPolygon.Clear();
-                    _tabsPolygon = null;
-                }
+                TabsPolygon?.Clear();
+                TabsPolygon = null;
 
                 if (ParamGuiSettings != null)
                 {
@@ -591,14 +568,14 @@ namespace OsEngine.OsTrader.Panels
                     Log = null;
                 }
 
-                if (_parameters != null)
+                if (Parameters != null)
                 {
-                    for (int i = 0; i < _parameters.Count; i++)
+                    for (int i = 0; i < Parameters.Count; i++)
                     {
-                        _parameters[i].ValueChange -= Parameter_ValueChange;
+                        Parameters[i].ValueChange -= Parameter_ValueChange;
                     }
-                    _parameters.Clear();
-                    _parameters = null;
+                    Parameters.Clear();
+                    Parameters = null;
                 }
 
                 if (_tabBotTab != null)
@@ -641,14 +618,9 @@ namespace OsEngine.OsTrader.Panels
         /// </summary>
         public void MoveChartToTheRight()
         {
-            if (ActiveTab == null)
+            if (ActiveTab is BotTabSimple botTab)
             {
-                return;
-            }
-
-            if (ActiveTab.GetType().Name == "BotTabSimple")
-            {
-                ((BotTabSimple)ActiveTab).MoveChartToTheRight();
+                botTab.MoveChartToTheRight();
             }
         }
 
@@ -979,8 +951,8 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public void ShowParameterDialog()
         {
-            if (_parameters == null ||
-                _parameters.Count == 0)
+            if (Parameters == null ||
+                Parameters.Count == 0)
             {
                 CustomMessageBoxUi ui = new CustomMessageBoxUi(OsLocalization.Trader.Label51);
                 ui.ShowDialog();
@@ -989,15 +961,15 @@ position => position.State != PositionStateType.OpeningFail
 
             if (_parametersUi == null)
             {
-                _parametersUi = new StrategyParametersUi(_parameters, ParamGuiSettings, this);
+                _parametersUi = new StrategyParametersUi(Parameters, ParamGuiSettings, this);
                 _parametersUi.Show();
                 _parametersUi.Closing += _parametersUi_Closing;
             }
             else
             {
-                if (_parametersUi.WindowState == System.Windows.WindowState.Minimized)
+                if (_parametersUi.WindowState == WindowState.Minimized)
                 {
-                    _parametersUi.WindowState = System.Windows.WindowState.Normal;
+                    _parametersUi.WindowState = WindowState.Normal;
                 }
 
                 _parametersUi.Activate();
@@ -1018,31 +990,12 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// close the options window
         /// </summary>
-        public void CloseParameterDialog()
-        {
-            if (_parametersUi != null)
-            {
-                _parametersUi.Close();
-            }
-        }
+        public void CloseParameterDialog() => _parametersUi?.Close();
 
         /// <summary>
         /// Whether the parameter window is open for display. True - is open
         /// </summary>
-        public bool ParamGuiIsOpen
-        {
-            get
-            {
-                if(_parametersUi == null)
-                {
-                    return false;
-                }
-                else
-                {
-                    return true;
-                }
-            }
-        }
+        public bool ParamGuiIsOpen => _parametersUi != null;
 
         /// <summary>       
         /// Gui Settings
@@ -1062,7 +1015,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterDecimal newParameter = new StrategyParameterDecimal(name, value, start, stop, step, tabControlName); 
 
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1083,7 +1036,7 @@ position => position.State != PositionStateType.OpeningFail
             StrategyParameterTimeOfDay newParameter =
                 new StrategyParameterTimeOfDay(name, hour, minute, second, millisecond, tabControlName);
 
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1103,7 +1056,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterInt newParameter = new StrategyParameterInt(name, value, start, stop, step, tabControlName);
 
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1119,7 +1072,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <param name="collection">values </param>
         public StrategyParameterString CreateParameter(string name, string value, string[] collection, string tabControlName = null)
         {
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1178,7 +1131,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterString newParameter = new StrategyParameterString(name, value, tabControlName);
 
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1195,7 +1148,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterBool newParameter = new StrategyParameterBool(name, value, tabControlName);
 
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1211,7 +1164,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterButton newParameter = new StrategyParameterButton(buttonLabel, tabControlName);
 
-            if (_parameters.Find(p => p.Name == buttonLabel) != null)
+            if (Parameters.Find(p => p.Name == buttonLabel) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1226,7 +1179,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterCheckBox newParameter = new StrategyParameterCheckBox(checkBoxLabel, isChecked, tabControlName);
 
-            if (_parameters.Find(p => p.Name == checkBoxLabel) != null)
+            if (Parameters.Find(p => p.Name == checkBoxLabel) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1241,7 +1194,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterDecimalCheckBox newParameter = new StrategyParameterDecimalCheckBox(name, value, start, stop, step, isChecked, tabControlName);
 
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1256,7 +1209,7 @@ position => position.State != PositionStateType.OpeningFail
         {
             StrategyParameterLabel newParameter = new StrategyParameterLabel(name, label, value, rowHeight, textHeight, color, tabControlName);
 
-            if (_parameters.Find(p => p.Name == name) != null)
+            if (Parameters.Find(p => p.Name == name) != null)
             {
                 throw new Exception(OsLocalization.Trader.Label52);
             }
@@ -1280,7 +1233,7 @@ position => position.State != PositionStateType.OpeningFail
 
             newParameter.ValueChange += Parameter_ValueChange;
 
-            _parameters.Add(newParameter);
+            Parameters.Add(newParameter);
 
             return newParameter;
         }
@@ -1319,17 +1272,12 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// the list of options available in the panel
         /// </summary>
-        public List<IIStrategyParameter> Parameters
-        {
-            get { return _parameters; }
-        }
-
-        private List<IIStrategyParameter> _parameters = new List<IIStrategyParameter>();
+        public List<IIStrategyParameter> Parameters { get; private set; } = new();
 
         /// <summary>
         /// parameter has changed settings
         /// </summary>
-        void Parameter_ValueChange()
+        private void Parameter_ValueChange()
         {
             if (StartProgram != StartProgram.IsOsOptimizer)
             {
@@ -1359,8 +1307,8 @@ position => position.State != PositionStateType.OpeningFail
                 return;
             }
 
-            if (_parameters == null ||
-                _parameters.Count == 0)
+            if (Parameters == null ||
+                Parameters.Count == 0)
             {
                 return;
             }
@@ -1369,9 +1317,9 @@ position => position.State != PositionStateType.OpeningFail
                 using (StreamWriter writer = new StreamWriter(@"Engine\" + NameStrategyUniq + @"Parametrs.txt", false)
                     )
                 {
-                    for (int i = 0; i < _parameters.Count; i++)
+                    for (int i = 0; i < Parameters.Count; i++)
                     {
-                        writer.WriteLine(_parameters[i].GetStringToSave());
+                        writer.WriteLine(Parameters[i].GetStringToSave());
                     }
 
                     writer.Close();
@@ -1452,9 +1400,8 @@ position => position.State != PositionStateType.OpeningFail
 
                 for (int i = 0; i < _botTabs.Count; i++)
                 {
-                    if (_botTabs[i].GetType().Name == "BotTabSimple")
+                    if (_botTabs[i] is BotTabSimple bot)
                     {
-                        BotTabSimple bot = (BotTabSimple)_botTabs[i];
                         bot.CloseAllAtMarket();
                         bot.EventsIsOn = false;
 
@@ -1484,10 +1431,7 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// get all tabs
         /// </summary>
-        public List<IIBotTab> GetTabs()
-        {
-            return _botTabs;
-        }
+        public List<IIBotTab> GetTabs() => _botTabs;
 
         /// <summary>
         /// active tab
@@ -1529,92 +1473,38 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// trade tabs
-        /// </summary>
-        public List<BotTabSimple> TabsSimple
-        {
-            get
-            {
-                return _tabSimple;
-            }
-        }
-
-        private List<BotTabSimple> _tabSimple = new List<BotTabSimple>();
+        /// <summary> trade tabs </summary>
+        public List<BotTabSimple> TabsSimple { get; private set; } = new();
 
         /// <summary>
         /// index tabs
         /// </summary>
-        public List<BotTabIndex> TabsIndex
-        {
-            get
-            {
-                return _tabsIndex;
-            }
-        }
-
-        private List<BotTabIndex> _tabsIndex = new List<BotTabIndex>();
+        public List<BotTabIndex> TabsIndex { get; private set; } = new();
 
         /// <summary>
         /// clustered tabs
         /// </summary>
-        public List<BotTabCluster> TabsCluster
-        {
-            get
-            {
-                return _tabsCluster;
-            }
-        }
-
-        private List<BotTabCluster> _tabsCluster = new List<BotTabCluster>();
+        public List<BotTabCluster> TabsCluster { get; private set; } = new();
 
         /// <summary>
         /// pair tabs
         /// </summary>
-        public List<BotTabPair> TabsPair
-        {
-            get
-            {
-                return _tabsPair;
-            }
-        }
-        private List<BotTabPair> _tabsPair = new List<BotTabPair>();
+        public List<BotTabPair> TabsPair { get; private set; } = new();
 
         /// <summary>
         /// screener tabs
         /// </summary>
-        public List<BotTabScreener> TabsScreener
-        {
-            get
-            {
-                return _tabsScreener;
-            }
-        }
-        private List<BotTabScreener> _tabsScreener = new List<BotTabScreener>();
+        public List<BotTabScreener> TabsScreener { get; private set; } = new();
 
         /// <summary>
         /// polygon tabs
         /// </summary>
-        public List<BotTabPolygon> TabsPolygon
-        {
-            get
-            {
-                return _tabsPolygon;
-            }
-        }
-        private List<BotTabPolygon> _tabsPolygon = new List<BotTabPolygon>();
+        public List<BotTabPolygon> TabsPolygon { get; private set; } = new();
 
         /// <summary>
         /// news tabs
         /// </summary>
-        public List<BotTabNews> TabsNews
-        {
-            get
-            {
-                return _tabsNews;
-            }
-        }
-        private List<BotTabNews> _tabsNews = new List<BotTabNews>();
+        public List<BotTabNews> TabsNews { get; private set; } = new();
 
         public DateTime TimeServer
         {
@@ -1622,31 +1512,31 @@ position => position.State != PositionStateType.OpeningFail
             {
                 DateTime result = DateTime.MinValue;
 
-                if (_tabSimple != null
-                    && _tabSimple.Count > 0)
+                if (TabsSimple != null
+                    && TabsSimple.Count > 0)
                 {
-                    for (int i = 0; i < _tabSimple.Count; i++)
+                    for (int i = 0; i < TabsSimple.Count; i++)
                     {
-                        if (_tabSimple[i].IsConnected == false)
+                        if (TabsSimple[i].IsConnected == false)
                         {
                             continue;
                         }
 
-                        if (_tabSimple[i].TimeServerCurrent > result)
+                        if (TabsSimple[i].TimeServerCurrent > result)
                         {
-                            result = _tabSimple[i].TimeServerCurrent;
+                            result = TabsSimple[i].TimeServerCurrent;
                         }
                     }
                 }
 
-                if (_tabsScreener != null
-                    && _tabsScreener.Count > 0)
+                if (TabsScreener != null
+                    && TabsScreener.Count > 0)
                 {
-                    for (int i = 0; i < _tabsScreener.Count; i++)
+                    for (int i = 0; i < TabsScreener.Count; i++)
                     {
-                        for (int j = 0; j < _tabsScreener[i].Tabs.Count; j++)
+                        for (int j = 0; j < TabsScreener[i].Tabs.Count; j++)
                         {
-                            BotTabSimple tab = _tabsScreener[i].Tabs[j];
+                            BotTabSimple tab = TabsScreener[i].Tabs[j];
 
                             if (tab.IsConnected == false)
                             {
@@ -1712,102 +1602,90 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// create tab
         /// </summary>
-        public void TabCreate(BotTabType tabType)
+        public IIBotTab TabCreate(BotTabType tabType)
         {
             try
             {
-                int number;
+                int number = 0;
 
-                if (_botTabs == null || _botTabs.Count == 0)
-                {
-                    number = 0;
-                }
-                else
+                if (_botTabs != null && _botTabs.Count != 0)
                 {
                     number = _botTabs.Count;
                 }
 
-                string nameTab = NameStrategyUniq + "tab" + number;
+                string nameTab = $"{NameStrategyUniq}tab{number}";
 
                 if (_botTabs != null && _botTabs.Find(strategy => strategy.TabName == nameTab) != null)
                 {
-                    return;
+                    return null;
                 }
 
                 if (_botTabs == null)
                 {
                     _botTabs = new List<IIBotTab>();
                 }
+
                 IIBotTab newTab;
 
                 if (tabType == BotTabType.Simple)
                 {
                     newTab = new BotTabSimple(nameTab, StartProgram);
-                    _tabSimple.Add((BotTabSimple)newTab);
+                    TabsSimple.Add((BotTabSimple)newTab);
                 }
                 else if (tabType == BotTabType.Index)
                 {
                     newTab = new BotTabIndex(nameTab, StartProgram);
-                    _tabsIndex.Add((BotTabIndex)newTab);
+                    TabsIndex.Add((BotTabIndex)newTab);
                 }
                 else if (tabType == BotTabType.Cluster)
                 {
                     newTab = new BotTabCluster(nameTab, StartProgram);
-                    _tabsCluster.Add((BotTabCluster)newTab);
+                    TabsCluster.Add((BotTabCluster)newTab);
                 }
                 else if (tabType == BotTabType.Pair)
                 {
                     newTab = new BotTabPair(nameTab, StartProgram);
-                    _tabsPair.Add((BotTabPair)newTab);
+                    TabsPair.Add((BotTabPair)newTab);
                     ((BotTabPair)newTab).UserSelectActionEvent += UserSetPositionAction;
                 }
                 else if (tabType == BotTabType.Polygon)
                 {
                     newTab = new BotTabPolygon(nameTab, StartProgram);
-                    _tabsPolygon.Add((BotTabPolygon)newTab);
+                    TabsPolygon.Add((BotTabPolygon)newTab);
                 }
                 else if (tabType == BotTabType.News)
                 {
                     newTab = new BotTabNews(nameTab, StartProgram);
-                    _tabsNews.Add((BotTabNews)newTab);
+                    TabsNews.Add((BotTabNews)newTab);
                 }
                 else if (tabType == BotTabType.Screener)
                 {
                     newTab = new BotTabScreener(nameTab, StartProgram);
-                    _tabsScreener.Add((BotTabScreener)newTab);
+                    TabsScreener.Add((BotTabScreener)newTab);
 
                     ((BotTabScreener)newTab).UserSelectActionEvent += UserSetPositionAction;
-
-                     ((BotTabScreener)newTab).NewTabCreateEvent += (tab) =>
-                    {
-                        if (NewTabCreateEvent != null)
-                        {
-                            NewTabCreateEvent();
-                        }
-                    };
+                    ((BotTabScreener)newTab).NewTabCreateEvent += (tab) => NewTabCreateEvent?.Invoke();
                 }
                 else
                 {
-                    return;
+                    return null;
                 }
 
                 _botTabs.Add(newTab);
-                newTab.LogMessageEvent += SendNewLogMessage;
 
+                newTab.LogMessageEvent += SendNewLogMessage;
                 newTab.TabNum = _botTabs.Count - 1;
 
                 ChangeActiveTab(_botTabs.Count - 1);
-
                 ReloadTab();
 
-                if (NewTabCreateEvent != null)
-                {
-                    NewTabCreateEvent();
-                }
+                NewTabCreateEvent?.Invoke();
+                return newTab;
             }
             catch (Exception error)
             {
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                return null;
             }
         }
 
@@ -1834,10 +1712,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 ReloadTab();
 
-                if (NewTabCreateEvent != null)
-                {
-                    NewTabCreateEvent();
-                }
+                NewTabCreateEvent?.Invoke();
             }
             catch (Exception error)
             {
@@ -1872,10 +1747,7 @@ position => position.State != PositionStateType.OpeningFail
 
                 ReloadTab();
 
-                if (NewTabCreateEvent != null)
-                {
-                    NewTabCreateEvent();
-                }
+                NewTabCreateEvent?.Invoke();
             }
             catch (Exception error)
             {
@@ -1901,11 +1773,6 @@ position => position.State != PositionStateType.OpeningFail
                     return;
                 }
 
-                if (_tabBotTab.IsVisible == false)
-                {
-
-                }
-
                 if (ActiveTab != null)
                 {
                     ActiveTab.StopPaint();
@@ -1927,19 +1794,20 @@ position => position.State != PositionStateType.OpeningFail
 
                     for(int i = 0;i < _tabControlControl.Items.Count;i++)
                     {
-                        System.Windows.Controls.TabItem itemN = (System.Windows.Controls.TabItem)_tabControlControl.Items[i];
+                        TabItem itemN = (TabItem)_tabControlControl.Items[i];
                         itemN.IsEnabled = true;
                     }
                     _tabControlControl.SelectedIndex = ((BotTabSimple)ActiveTab).SelectedControlTab;
                 }
                 else
                 {
-                    System.Windows.Controls.TabItem item1 = (System.Windows.Controls.TabItem)_tabControlControl.Items[0];
+                    TabItem item1 = (TabItem)_tabControlControl.Items[0];
                     item1.IsEnabled = false;
-                    System.Windows.Controls.TabItem item2 = (System.Windows.Controls.TabItem)_tabControlControl.Items[1];
+                    TabItem item2 = (TabItem)_tabControlControl.Items[1];
                     item2.IsEnabled = false;
-                    System.Windows.Controls.TabItem item3 = (System.Windows.Controls.TabItem)_tabControlControl.Items[2];
+                    TabItem item3 = (TabItem)_tabControlControl.Items[2];
                     item3.IsEnabled = false;
+
                     _tabControlControl.SelectedIndex = 3;
 
                     if (ActiveTab.TabType == BotTabType.Index)
@@ -2057,17 +1925,11 @@ position => position.State != PositionStateType.OpeningFail
                 TabsPair[i].Clear();
             }
 
-            if (_botTabs != null)
-            {
-                _botTabs.Clear();
-            }
+            _botTabs?.Clear();
 
             ActiveTab = null;
 
-            if (NewTabCreateEvent != null)
-            {
-                NewTabCreateEvent();
-            }
+            NewTabCreateEvent?.Invoke();
         }
 
         // call control windows
@@ -2107,17 +1969,17 @@ position => position.State != PositionStateType.OpeningFail
             {
                 if (signal == SignalType.CloseAll)
                 {
-                    for (int i = 0; i < _tabSimple.Count; i++)
+                    for (int i = 0; i < TabsSimple.Count; i++)
                     {
-                        _tabSimple[i].CloseAllAtMarket();
+                        TabsSimple[i].CloseAllAtMarket();
                     }
-                    for (int i = 0; i < _tabsScreener.Count; i++)
+                    for (int i = 0; i < TabsScreener.Count; i++)
                     {
-                        _tabsScreener[i].CloseAllPositionAtMarket();
+                        TabsScreener[i].CloseAllPositionAtMarket();
                     }
-                    for (int i = 0; i < _tabsPair.Count; i++)
+                    for (int i = 0; i < TabsPair.Count; i++)
                     {
-                        _tabsPair[i].CloseAllPositionAtMarket();
+                        TabsPair[i].CloseAllPositionAtMarket();
                     }
 
                     return;
@@ -2132,15 +1994,15 @@ position => position.State != PositionStateType.OpeningFail
 
                 BotTabSimple tabWithPosition = null;
 
-                for (int i = 0; i < _tabSimple.Count; i++)
+                for (int i = 0; i < TabsSimple.Count; i++)
                 {
-                    List<Position> posOnThisTab = _tabSimple[i].PositionsAll;
+                    List<Position> posOnThisTab = TabsSimple[i].PositionsAll;
 
                     for (int i2 = 0; i2 < posOnThisTab.Count; i2++)
                     {
                         if (posOnThisTab[i2].Number == position.Number)
                         {
-                            tabWithPosition = _tabSimple[i];
+                            tabWithPosition = TabsSimple[i];
                         }
                     }
 
@@ -2152,9 +2014,9 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (tabWithPosition == null)
                 {
-                    for (int i = 0; i < _tabsScreener.Count; i++)
+                    for (int i = 0; i < TabsScreener.Count; i++)
                     {
-                        tabWithPosition = _tabsScreener[i].GetTabWithThisPosition(position.Number);
+                        tabWithPosition = TabsScreener[i].GetTabWithThisPosition(position.Number);
 
                         if (tabWithPosition != null)
                         {
@@ -2165,9 +2027,9 @@ position => position.State != PositionStateType.OpeningFail
 
                 if (tabWithPosition == null)
                 {
-                    for (int i = 0; i < _tabsPair.Count; i++)
+                    for (int i = 0; i < TabsPair.Count; i++)
                     {
-                        tabWithPosition = _tabsPair[i].GetTabWithThisPosition(position.Number);
+                        tabWithPosition = TabsPair[i].GetTabWithThisPosition(position.Number);
 
                         if (tabWithPosition != null)
                         {
@@ -2277,7 +2139,7 @@ position => position.State != PositionStateType.OpeningFail
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                MessageBox.Show(message);
             }
         }
 
@@ -2362,7 +2224,7 @@ position => position.State != PositionStateType.OpeningFail
             }
             else if (type == LogMessageType.Error)
             {
-                System.Windows.MessageBox.Show(message);
+                MessageBox.Show(message);
             }
         }
 
@@ -2453,13 +2315,8 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// visual designs of Parameters
         /// </summary>
-        public IReadOnlyDictionary<string, ParamDesign> ParameterDesigns
-        {
-            get 
-            { 
-                return _parameterDesigns; 
-            }
-        }
+        public IReadOnlyDictionary<string, ParamDesign> ParameterDesigns => _parameterDesigns;
+
         private Dictionary<string, ParamDesign> _parameterDesigns = new Dictionary<string, ParamDesign>();
 
         /// <summary>	
@@ -2467,28 +2324,13 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public void RePaintParameterTables()
         {
-            if (_isRePaintParameterTables == false)
-            {
-                _isRePaintParameterTables = true;
-            }
-            else
-            {
-                _isRePaintParameterTables = false;
-            }
+            IsRePaintParameterTables = IsRePaintParameterTables == false;
         }
 
         /// <summary>
         /// status of Parameter tables repaint (it is not specific pointer)
         /// </summary>
-        public bool IsRePaintParameterTables
-        {
-            get
-            {
-                return _isRePaintParameterTables;
-            }
-        }
-        private bool _isRePaintParameterTables;
-
+        public bool IsRePaintParameterTables { get; private set; }
     }
 
     /// <summary>
@@ -2498,7 +2340,7 @@ position => position.State != PositionStateType.OpeningFail
     {
         public CustomTabToParametersUi(string label)
         {
-            _label = label;
+            Label = label;
 
             CreateGrid();
         }
@@ -2511,7 +2353,7 @@ position => position.State != PositionStateType.OpeningFail
                 return;
             }
 
-            GridToPaint = new System.Windows.Controls.Grid();
+            GridToPaint = new Grid();
         }
 
         private CustomTabToParametersUi()
@@ -2521,19 +2363,12 @@ position => position.State != PositionStateType.OpeningFail
         /// <summary>
         /// tab title
         /// </summary>
-        public string Label
-        {
-            get
-            {
-                return _label;
-            }
-        }
-        private string _label;
+        public string Label { get; private set; }
 
         /// <summary>
         /// the element to be placed on the tab
         /// </summary>
-        public System.Windows.Controls.Grid GridToPaint;
+        public Grid GridToPaint;
 
         public void AddChildren(object children)
         {
