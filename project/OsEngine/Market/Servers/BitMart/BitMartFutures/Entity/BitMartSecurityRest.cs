@@ -7,12 +7,12 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.BitMartFutures.Json
 {
-    public class BitMartBaseMessage
+    public class BitMartBaseMessage<T>
     {
-        public int code;
+        public string code;
         public string trace;
         public string message;
-        public object data;
+        public T data;
     }
 
     public class BitMartSecurityRest
@@ -78,5 +78,17 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string low_price;
         public string close_price;
         public string volume;
+    }
+
+    public class FundingItem
+    {
+        public List<FundingItemHistory> list { get; set; }
+    }
+
+    public class FundingItemHistory
+    {
+        public string symbol { get; set; }
+        public string funding_rate { get; set; }
+        public string funding_time { get; set; }
     }
 }
