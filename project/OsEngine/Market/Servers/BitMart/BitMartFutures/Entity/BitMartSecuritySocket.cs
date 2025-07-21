@@ -46,4 +46,16 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string price { get; set; }
         public string vol { get; set; }
     }
+
+    public class FundingData
+    {
+        public string symbol { get; set; }
+        public string fundingRate { get; set; }
+        public string fundingTime { get; set; }
+        public string nextFundingRate { get; set; }
+        public string nextFundingTime { get; set; }
+        public string funding_upper_limit { get; set; }
+        public string funding_lower_limit { get; set; }
+        public string ts { get; set; }
+    }
 }

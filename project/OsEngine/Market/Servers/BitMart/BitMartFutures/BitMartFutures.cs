@@ -5,21 +5,21 @@
 
 using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMartFutures.Json;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO.Compression;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
-using RestSharp;
-using System.Security.Cryptography;
 
 
 
@@ -36,6 +36,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             CreateParameterPassword(OsLocalization.Market.ServerParameterSecretKey, "");
             CreateParameterString(OsLocalization.Market.Memo, "");
             CreateParameterBoolean("Hedge Mode", true);
+            CreateParameterBoolean("Extended Data", false);
             ServerParameters[3].ValueChange += BitMartFuturesServer_ValueChange;
         }
 
@@ -66,28 +67,41 @@ namespace OsEngine.Market.Servers.BitMartFutures
             Thread threadGetPortfolios = new Thread(ThreadGetPortfolios);
             threadGetPortfolios.Name = "ThreadBitMartFuturesPortfolios";
             threadGetPortfolios.Start();
+
+            Thread threadExtendedData = new Thread(ThreadExtendedData);
+            threadExtendedData.IsBackground = true;
+            threadExtendedData.Name = "ThreadBitGetFuturesExtendedData";
+            threadExtendedData.Start();
         }
 
         public void Connect(WebProxy proxy = null)
         {
+
+            _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
+            _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
+            _memo = ((ServerParameterString)ServerParameters[2]).Value;
+            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+
+            if (string.IsNullOrEmpty(_publicKey)
+                || string.IsNullOrEmpty(_secretKey)
+                || string.IsNullOrEmpty(_memo))
+            {
+                SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the BitMartFutures website",
+                    LogMessageType.Error);
+                return;
+            }
+
+            if (((ServerParameterBool)ServerParameters[4]).Value == true)
+            {
+                _extendedMarketData = true;
+            }
+            else
+            {
+                _extendedMarketData = false;
+            }
+
             try
             {
-                _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
-                _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
-                _memo = ((ServerParameterString)ServerParameters[2]).Value;
-                HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
-
-                if (string.IsNullOrEmpty(_publicKey)
-                    || string.IsNullOrEmpty(_secretKey)
-                    || string.IsNullOrEmpty(_memo))
-                {
-                    SendLogMessage("Connection terminated. You must specify the public and private keys. You can get it on the BitMartFutures website",
-                        LogMessageType.Error);
-                    return;
-                }
-
-                //_restClient = new BitMartRestClient(_publicKey, _secretKey, _memo);
-
                 RestRequest requestRest = new RestRequest("/system/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
                 IRestResponse response = client.Execute(requestRest);
@@ -96,23 +110,17 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 {
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
-                    //SetPositionMode();
-                    //CheckActivationSockets();
                 }
                 else
                 {
                     SendLogMessage("Connection can be open. BitMartFutures. Error request", LogMessageType.Error);
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
+                    Disconnect();
                 }
             }
             catch (Exception ex)
             {
                 SendLogMessage(ex.Message.ToString(), LogMessageType.Error);
+                Disconnect();
             }
         }
 
@@ -174,8 +182,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        //private BitMartRestClient _restClient;
-
         public bool HedgeMode
         {
             get { return _hedgeMode; }
@@ -192,6 +198,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
         }
 
         private bool _hedgeMode;
+
+        private bool _extendedMarketData;
 
         public void SetPositionMode()
         {
@@ -698,9 +706,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         #region 6 WebSocket creation
 
-        private readonly string _webSocketUrlPublic = "wss://openapi-ws-v2.bitmart.com/api?protocol=1.1";
+        private string _webSocketUrlPublic = "wss://openapi-ws-v2.bitmart.com/api?protocol=1.1";
 
-        private readonly string _webSocketUrlPrivate = "wss://openapi-ws-v2.bitmart.com/user?protocol=1.1";
+        private string _webSocketUrlPrivate = "wss://openapi-ws-v2.bitmart.com/user?protocol=1.1";
 
         private List<WebSocket> _webSocketPublic = new List<WebSocket>();
 
@@ -869,6 +877,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     {
                         ConnectEvent();
                     }
+
                     SetPositionMode();
                 }
             }
@@ -1255,11 +1264,58 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 {
                     webSocketPublic.Send($" {{ \"action\":\"subscribe\", \"args\":[\"futures/trade:{security.Name}\"]}}");
                     webSocketPublic.Send($"{{ \"action\":\"subscribe\",\"args\":[\"futures/depth20:{security.Name}@100ms\"]}}");
+
+                    if (_extendedMarketData)
+                    {
+                        webSocketPublic.Send($" {{ \"action\":\"subscribe\", \"args\":[\"futures/fundingRate:{security.Name}\"]}}");
+                        GetFundingHistory(security.Name);
+                    }
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void GetFundingHistory(string name)
+        {
+            _rateGateSecurity.WaitToProceed();
+
+            try
+            {
+                RestRequest requestRest = new RestRequest($"/contract/public/funding-rate-history?symbol={name}&limit=5", Method.GET);
+                RestClient client = new RestClient(_baseUrl);
+                IRestResponse response = client.Execute(requestRest);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    BitMartBaseMessage<FundingItem> responseFunding = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<FundingItem>());
+
+                    if (responseFunding.code == "1000")
+                    {
+                        FundingItemHistory item = responseFunding.data.list[0];
+
+                        Funding data = new Funding();
+
+                        data.SecurityNameCode = item.symbol;
+                        data.PreviousFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.funding_time.ToDecimal());
+
+                        FundingUpdateEvent?.Invoke(data);
+                    }
+                    else
+                    {
+                        SendLogMessage($"FundingHistory error. Code:{responseFunding.code} || msg: {responseFunding.message}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage($"FundingHistory error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"FundingHistory request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1300,6 +1356,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                                         webSocketPublic.Send($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/trade:{securityName}\"]}}");
                                         webSocketPublic.Send($"{{ \"action\":\"unsubscribe\",\"args\":[\"futures/depth20:{securityName}@100ms\"]}}");
+
+                                        if (_extendedMarketData)
+                                        {
+                                            webSocketPublic.Send($" {{ \"action\":\"unsubscribe\", \"args\":[\"futures/fundingRate:{securityName}\"]}}");
+                                        }
                                     }
                                 }
                             }
@@ -1329,6 +1390,127 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 {
                     // ignore
                 }
+            }
+        }
+
+        private DateTime _timeLastUpdateExtendedData = DateTime.Now;
+
+        private List<OpenInterestData> _openInterest = new List<OpenInterestData>();
+
+        private void ThreadExtendedData()
+        {
+            while (true)
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    Thread.Sleep(3000);
+                    continue;
+                }
+
+                try
+                {
+                    if (_subscribledSecurities != null
+                    && _subscribledSecurities.Count > 0
+                    && _extendedMarketData)
+                    {
+                        if (_timeLastUpdateExtendedData.AddSeconds(20) < DateTime.Now)
+                        {
+                            GetExtendedData();
+                            _timeLastUpdateExtendedData = DateTime.Now;
+                        }
+                        else
+                        {
+                            Thread.Sleep(1000);
+                        }
+                    }
+                    else
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+        private void GetExtendedData()
+        {
+            _rateGateSecurity.WaitToProceed();
+
+            try
+            {
+                for (int i = 0; i < _subscribledSecurities.Count; i++)
+                {
+                    RestRequest requestRest = new RestRequest("/contract/public/details?symbol=" + _subscribledSecurities[i].Name, Method.GET);
+                    RestClient client = new RestClient(_baseUrl);
+                    IRestResponse response = client.Execute(requestRest);
+
+                    if (response.StatusCode == HttpStatusCode.OK)
+                    {
+                        BitMartSecurityRest symbolsResponse = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartSecurityRest());
+
+                        if (symbolsResponse.code == "1000")
+                        {
+                            BitMartSymbol item = symbolsResponse.data.symbols[0];
+
+                            Funding funding = new Funding();
+
+                            funding.SecurityNameCode = item.symbol;
+                            funding.FundingIntervalHours = int.Parse(item.funding_interval_hours);
+
+                            FundingUpdateEvent?.Invoke(funding);
+
+                            SecurityVolumes volume = new SecurityVolumes();
+
+                            volume.SecurityNameCode = item.symbol;
+                            volume.Volume24h = item.volume_24h.ToDecimal();
+                            volume.Volume24hUSDT = item.turnover_24h.ToDecimal();
+
+                            Volume24hUpdateEvent?.Invoke(volume);
+
+                            OpenInterestData openInterestData = new OpenInterestData();
+
+                            openInterestData.SecutityName = item.symbol;
+
+                            if (item.open_interest != null)
+                            {
+                                openInterestData.OpenInterestValue = item.open_interest;
+
+                                bool isInArray = false;
+
+                                for (int k = 0; k < _openInterest.Count; k++)
+                                {
+                                    if (_openInterest[k].SecutityName == openInterestData.SecutityName)
+                                    {
+                                        _openInterest[k].OpenInterestValue = openInterestData.OpenInterestValue;
+                                        isInArray = true;
+                                        break;
+                                    }
+                                }
+
+                                if (isInArray == false)
+                                {
+                                    _openInterest.Add(openInterestData);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            SendLogMessage($"ExtendedData error. Code:{symbolsResponse.code} || msg: {symbolsResponse.message}", LogMessageType.Error);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"ExtendedData error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"ExtendedData request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -1401,6 +1583,10 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     {
                         UpdateTrade(baseMessage.data.ToString());
                     }
+                    else if (baseMessage.group.Contains("/fundingRate"))
+                    {
+                        UpdateFundingRate(baseMessage.data.ToString());
+                    }
                     else
                     {
                         SendLogMessage("Unknown message: " + baseMessage.group, LogMessageType.Error);
@@ -1411,6 +1597,29 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     SendLogMessage(exception.ToString(), LogMessageType.Error);
                     Thread.Sleep(2000);
                 }
+            }
+        }
+
+        private void UpdateFundingRate(string data)
+        {
+            try
+            {
+                FundingData response = JsonConvert.DeserializeAnonymousType(data, new FundingData());
+
+                Funding funding = new Funding();
+
+                funding.SecurityNameCode = response.symbol;
+                funding.CurrentValue = response.fundingRate.ToDecimal() * 100;
+                funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)response.nextFundingTime.ToDecimal());
+                funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)response.ts.ToDecimal());
+                funding.MinFundingRate = response.funding_lower_limit.ToDecimal();
+                funding.MaxFundingRate = response.funding_upper_limit.ToDecimal();
+
+                FundingUpdateEvent?.Invoke(funding);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1446,6 +1655,11 @@ namespace OsEngine.Market.Servers.BitMartFutures
                         trade.Side = Side.Sell;
                     }
 
+                    if (_extendedMarketData)
+                    {
+                        trade.OpenInterest = GetOpenInterestValue(trade.SecurityNameCode);
+                    }
+
                     NewTradesEvent?.Invoke(trade);
                 }
             }
@@ -1453,6 +1667,25 @@ namespace OsEngine.Market.Servers.BitMartFutures
             {
                 SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
+        }
+
+        private decimal GetOpenInterestValue(string securityNameCode)
+        {
+            if (_openInterest.Count == 0
+                 || _openInterest == null)
+            {
+                return 0;
+            }
+
+            for (int i = 0; i < _openInterest.Count; i++)
+            {
+                if (_openInterest[i].SecutityName == securityNameCode)
+                {
+                    return _openInterest[i].OpenInterestValue.ToDecimal();
+                }
+            }
+
+            return 0;
         }
 
         private readonly object _lastMarketDepthLock = new object();
@@ -1946,6 +2179,10 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
 
         #region 11 Trade
@@ -1970,8 +2207,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, bodyStr); //_restClient.Post(endPoint, bodyStr, secured: true);
 
                 string content = response.Content;
-                BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                BitMartBaseMessage<object> parsed =
+                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage<object>());
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -2099,8 +2336,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, bodyStr); //_restClient.Post(endPoint, bodyStr, secured: true);
 
                 string content = response.Content;
-                BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                BitMartBaseMessage<object> parsed =
+                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage<object>());
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -2214,8 +2451,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 {
                     string content = response.Content;
                     //SendLogMessage("GetAllOrdersFromExchange resp: " + content, LogMessageType.Connect);
-                    BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                    BitMartBaseMessage<object> parsed =
+                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage<object>());
 
                     if (parsed != null && parsed.data != null)
                     {
@@ -2319,8 +2556,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
                 {
                     string content = response.Content;
                     //SendLogMessage("GetOrderFromExchange resp: " + content, LogMessageType.Connect);
-                    BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                    BitMartBaseMessage<object> parsed =
+                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage<object>());
 
                     if (parsed != null && parsed.data != null)
                     {
@@ -2622,8 +2859,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 //SendLogMessage("Order trades resp: " + content, LogMessageType.Connect);
 
-                BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                BitMartBaseMessage<object> parsed =
+                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage<object>());
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     if (parsed != null && parsed.data != null && parsed.data != null)
@@ -2760,10 +2997,12 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
-
         #endregion
+    }
+
+    public class OpenInterestData
+    {
+        public string SecutityName { get; set; }
+        public string OpenInterestValue { get; set; }
     }
 }
