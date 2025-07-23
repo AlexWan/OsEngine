@@ -17,7 +17,7 @@ namespace OsEngine.Market.AutoFollow
     /// </summary>
     public partial class CopyTraderUi : Window
     {
-        public CopyTrader CopyTraderClass;
+        public CopyTrader CopyTraderInstance;
 
         public int TraderNumber;
 
@@ -27,11 +27,11 @@ namespace OsEngine.Market.AutoFollow
             OsEngine.Layout.StickyBorders.Listen(this);
             GlobalGUILayout.Listen(this, "copyTraderUi " + copyTrader.Number);
 
-            CopyTraderClass = copyTrader;
+            CopyTraderInstance = copyTrader;
             TraderNumber = copyTrader.Number;
-            Title = OsLocalization.Market.Label201 + " # " + CopyTraderClass.Number + " " + CopyTraderClass.Name;
+            Title = OsLocalization.Market.Label201 + " # " + CopyTraderInstance.Number + " " + CopyTraderInstance.Name;
 
-            CopyTraderClass.DeleteEvent += CopyTraderClass_DeleteEvent;
+            CopyTraderInstance.DeleteEvent += CopyTraderClass_DeleteEvent;
 
             this.Closed += CopyTraderUi_Closed;
 
@@ -39,7 +39,7 @@ namespace OsEngine.Market.AutoFollow
 
             ComboBoxIsOn.Items.Add(true.ToString());
             ComboBoxIsOn.Items.Add(false.ToString());
-            ComboBoxIsOn.SelectedItem = CopyTraderClass.IsOn.ToString();
+            ComboBoxIsOn.SelectedItem = CopyTraderInstance.IsOn.ToString();
             ComboBoxIsOn.SelectionChanged += ComboBoxIsOn_SelectionChanged;
 
             TextBoxName.Text = copyTrader.Name;
@@ -67,12 +67,16 @@ namespace OsEngine.Market.AutoFollow
 
             TabItem itemRobots = (TabItem)TabControlPrime.Items[2];
             itemRobots.Header = OsLocalization.Market.Label204;
+
+            CopyTraderInstance.LogCopyTrader.StartPaint(HostLog);
         }
 
         private void CopyTraderUi_Closed(object sender, EventArgs e)
         {
-            CopyTraderClass.DeleteEvent -= CopyTraderClass_DeleteEvent;
-            CopyTraderClass = null;
+            CopyTraderInstance.LogCopyTrader.StopPaint();
+
+            CopyTraderInstance.DeleteEvent -= CopyTraderClass_DeleteEvent;
+            CopyTraderInstance = null;
         }
 
         private void CopyTraderClass_DeleteEvent()
@@ -91,7 +95,7 @@ namespace OsEngine.Market.AutoFollow
                 CopyTraderType type;
 
                 bool isOn = Convert.ToBoolean(ComboBoxIsOn.SelectedItem.ToString());
-                CopyTraderClass.IsOn = isOn;
+                CopyTraderInstance.IsOn = isOn;
                 ServerMaster.SaveCopyMaster();
 
                 if(NeedToUpdateCopyTradersGridEvent != null)
@@ -113,7 +117,7 @@ namespace OsEngine.Market.AutoFollow
 
                 if(Enum.TryParse(ComboBoxWorkType.SelectedItem.ToString(), out type))
                 {
-                    CopyTraderClass.WorkType = type;
+                    CopyTraderInstance.WorkType = type;
                     ServerMaster.SaveCopyMaster();
                     CheckEnabledTabs();
 
@@ -133,10 +137,10 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
-                CopyTraderClass.Name = TextBoxName.Text;
+                CopyTraderInstance.Name = TextBoxName.Text;
                 ServerMaster.SaveCopyMaster();
 
-                Title = OsLocalization.Market.Label201 + " # " + CopyTraderClass.Number + " " + CopyTraderClass.Name;
+                Title = OsLocalization.Market.Label201 + " # " + CopyTraderInstance.Number + " " + CopyTraderInstance.Name;
 
                 if (NeedToUpdateCopyTradersGridEvent != null)
                 {
@@ -154,17 +158,17 @@ namespace OsEngine.Market.AutoFollow
             TabItem itemPortfolio = (TabItem)TabControlPrime.Items[1];
             TabItem itemRobots = (TabItem)TabControlPrime.Items[2];
 
-            if (CopyTraderClass.WorkType == CopyTraderType.None)
+            if (CopyTraderInstance.WorkType == CopyTraderType.None)
             {
                 itemPortfolio.IsEnabled = false;
                 itemRobots.IsEnabled = false;
             }
-            else if (CopyTraderClass.WorkType == CopyTraderType.Portfolio)
+            else if (CopyTraderInstance.WorkType == CopyTraderType.Portfolio)
             {
                 itemPortfolio.IsEnabled = true;
                 itemRobots.IsEnabled = false;
             }
-            else if (CopyTraderClass.WorkType == CopyTraderType.Robot)
+            else if (CopyTraderInstance.WorkType == CopyTraderType.Robot)
             {
                 itemPortfolio.IsEnabled = false;
                 itemRobots.IsEnabled = true;
@@ -174,6 +178,16 @@ namespace OsEngine.Market.AutoFollow
         #endregion
 
         #region Log
+
+        private void ButtonLogDown_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void ButtonLogUp_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
 
         public event Action<string, LogMessageType> LogMessageEvent;
 
@@ -190,5 +204,7 @@ namespace OsEngine.Market.AutoFollow
         }
 
         #endregion
+
+
     }
 }

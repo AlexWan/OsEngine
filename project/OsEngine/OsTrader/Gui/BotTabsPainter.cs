@@ -288,7 +288,7 @@ namespace OsEngine.OsTrader.Gui
                     if (_master._startProgram == StartProgram.IsOsTrader
                         && coluIndex == 7)
                     {
-                        //ServerMaster.ShowCopyMasterDialog();
+                       // ServerMaster.ShowCopyMasterDialog();
                     }
                     else if (coluIndex == 8 &&
                        rowIndex == botsCount + 1)

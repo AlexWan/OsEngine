@@ -374,7 +374,7 @@ namespace OsEngine.Market.AutoFollow
 
             for(int i = 0;i < _uis.Count;i++)
             {
-                if (_uis[i].CopyTraderClass.Number == trader.Number)
+                if (_uis[i].CopyTraderInstance.Number == trader.Number)
                 {
                     ui = _uis[i];
                     break;

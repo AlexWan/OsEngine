@@ -72,8 +72,7 @@ namespace OsEngine.Market.AutoFollow
                             continue;
                         }
 
-                        CopyTrader newProxy = new CopyTrader();
-                        newProxy.LoadFromString(line);
+                        CopyTrader newProxy = new CopyTrader(line);
                         CopyTraders.Add(newProxy);
                     }
 
@@ -108,8 +107,6 @@ namespace OsEngine.Market.AutoFollow
 
         public CopyTrader CreateNewCopyTrader()
         {
-            CopyTrader newProxy = new CopyTrader();
-
             int actualNumber = 0;
 
             for (int i = 0; i < CopyTraders.Count; i++)
@@ -120,8 +117,7 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            newProxy.Number = actualNumber;
-
+            CopyTrader newProxy = new CopyTrader(actualNumber);
             CopyTraders.Add(newProxy);
             SaveCopyTraders();
 
