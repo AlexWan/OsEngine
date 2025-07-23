@@ -536,21 +536,6 @@ namespace OsEngine.OsTrader.Panels
                     _botTabs = null;
                 }
 
-                TabsSimple?.Clear();
-                TabsSimple = null;
-
-                TabsCluster?.Clear();
-                TabsCluster = null;
-
-                TabsPair?.Clear();
-                TabsPair = null;
-
-                TabsScreener?.Clear();
-                TabsScreener = null;
-
-                TabsPolygon?.Clear();
-                TabsPolygon = null;
-
                 if (ParamGuiSettings != null)
                 {
                     ParamGuiSettings.LogMessageEvent -= SendNewLogMessage;
@@ -1474,37 +1459,93 @@ position => position.State != PositionStateType.OpeningFail
         }
 
         /// <summary> trade tabs </summary>
-        public List<BotTabSimple> TabsSimple { get; private set; } = new();
+        public List<BotTabSimple> TabsSimple
+        {
+            get
+            {
+                return _botTabs != null
+                    ? _botTabs.OfType<BotTabSimple>().ToList()
+                    : new();
+            }
+        }
 
         /// <summary>
         /// index tabs
         /// </summary>
-        public List<BotTabIndex> TabsIndex { get; private set; } = new();
+        public List<BotTabIndex> TabsIndex
+        {
+            get
+            {
+                return _botTabs != null
+                    ? _botTabs.OfType<BotTabIndex>().ToList()
+                    : new();
+            }
+        }
 
         /// <summary>
         /// clustered tabs
         /// </summary>
-        public List<BotTabCluster> TabsCluster { get; private set; } = new();
+        public List<BotTabCluster> TabsCluster
+        {
+            get
+            {
+                return _botTabs != null
+                    ? _botTabs.OfType<BotTabCluster>().ToList()
+                    : new();
+            }
+        }
 
         /// <summary>
         /// pair tabs
         /// </summary>
-        public List<BotTabPair> TabsPair { get; private set; } = new();
+        public List<BotTabPair> TabsPair
+        {
+            get
+            {
+                return _botTabs != null
+                    ? _botTabs.OfType<BotTabPair>().ToList()
+                    : new();
+            }
+        }
 
         /// <summary>
         /// screener tabs
         /// </summary>
-        public List<BotTabScreener> TabsScreener { get; private set; } = new();
+        public List<BotTabScreener> TabsScreener
+        {
+            get
+            {
+                return _botTabs != null
+                    ? _botTabs.OfType<BotTabScreener>().ToList()
+                    : new();
+            }
+        }
 
         /// <summary>
         /// polygon tabs
         /// </summary>
-        public List<BotTabPolygon> TabsPolygon { get; private set; } = new();
+        public List<BotTabPolygon> TabsPolygon
+        {
+            get
+            {
+                return _botTabs != null
+                    ? _botTabs.OfType<BotTabPolygon>().ToList()
+                    : new();
+            }
+        }
 
         /// <summary>
         /// news tabs
         /// </summary>
-        public List<BotTabNews> TabsNews { get; private set; } = new();
+        public List<BotTabNews> TabsNews
+        {
+            get
+            {
+                return _botTabs != null
+                    ? _botTabs.OfType<BotTabNews>().ToList()
+                    : new();
+            }
+        }
 
         public DateTime TimeServer
         {
@@ -1606,62 +1647,40 @@ position => position.State != PositionStateType.OpeningFail
         {
             try
             {
-                int number = 0;
-
-                if (_botTabs != null && _botTabs.Count != 0)
-                {
-                    number = _botTabs.Count;
-                }
-
-                string nameTab = $"{NameStrategyUniq}tab{number}";
-
-                if (_botTabs != null && _botTabs.Find(strategy => strategy.TabName == nameTab) != null)
-                {
+                if (ValidateTabCreation(out int number, out string nameTab) == false)
                     return null;
-                }
-
-                if (_botTabs == null)
-                {
-                    _botTabs = new List<IIBotTab>();
-                }
 
                 IIBotTab newTab;
 
                 if (tabType == BotTabType.Simple)
                 {
                     newTab = new BotTabSimple(nameTab, StartProgram);
-                    TabsSimple.Add((BotTabSimple)newTab);
                 }
                 else if (tabType == BotTabType.Index)
                 {
                     newTab = new BotTabIndex(nameTab, StartProgram);
-                    TabsIndex.Add((BotTabIndex)newTab);
                 }
                 else if (tabType == BotTabType.Cluster)
                 {
                     newTab = new BotTabCluster(nameTab, StartProgram);
-                    TabsCluster.Add((BotTabCluster)newTab);
                 }
                 else if (tabType == BotTabType.Pair)
                 {
                     newTab = new BotTabPair(nameTab, StartProgram);
-                    TabsPair.Add((BotTabPair)newTab);
+
                     ((BotTabPair)newTab).UserSelectActionEvent += UserSetPositionAction;
                 }
                 else if (tabType == BotTabType.Polygon)
                 {
                     newTab = new BotTabPolygon(nameTab, StartProgram);
-                    TabsPolygon.Add((BotTabPolygon)newTab);
                 }
                 else if (tabType == BotTabType.News)
                 {
                     newTab = new BotTabNews(nameTab, StartProgram);
-                    TabsNews.Add((BotTabNews)newTab);
                 }
                 else if (tabType == BotTabType.Screener)
                 {
                     newTab = new BotTabScreener(nameTab, StartProgram);
-                    TabsScreener.Add((BotTabScreener)newTab);
 
                     ((BotTabScreener)newTab).UserSelectActionEvent += UserSetPositionAction;
                     ((BotTabScreener)newTab).NewTabCreateEvent += (tab) => NewTabCreateEvent?.Invoke();
@@ -1671,15 +1690,7 @@ position => position.State != PositionStateType.OpeningFail
                     return null;
                 }
 
-                _botTabs.Add(newTab);
-
-                newTab.LogMessageEvent += SendNewLogMessage;
-                newTab.TabNum = _botTabs.Count - 1;
-
-                ChangeActiveTab(_botTabs.Count - 1);
-                ReloadTab();
-
-                NewTabCreateEvent?.Invoke();
+                ActivateTab(newTab);
                 return newTab;
             }
             catch (Exception error)
@@ -1687,6 +1698,79 @@ position => position.State != PositionStateType.OpeningFail
                 SendNewLogMessage(error.ToString(), LogMessageType.Error);
                 return null;
             }
+        }
+
+        public T TabCreate<T>() where T : IIBotTab
+        {
+            try
+            {
+                if (ValidateTabCreation(out int number, out string nameTab) == false)
+                    return default(T);
+
+                var constructor = typeof(T).GetConstructor(new[] { typeof(string), typeof(StartProgram) });
+
+                if (constructor == null)
+                    throw new InvalidOperationException($"Type {typeof(T)} does not have a public constructor with parameters (string, StartProgram).");
+
+                T newTab = (T)Activator.CreateInstance(typeof(T), nameTab, StartProgram);
+                
+                if(newTab is BotTabPair botTabPair)
+                {
+                    botTabPair.UserSelectActionEvent += UserSetPositionAction;
+                }
+                else if(newTab is BotTabScreener botTabScreener)
+                {
+                    botTabScreener.UserSelectActionEvent += UserSetPositionAction;
+                    botTabScreener.NewTabCreateEvent += (tab) => NewTabCreateEvent?.Invoke();
+                }
+
+                ActivateTab(newTab);
+                return newTab;
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                return default(T);
+            }
+        }
+
+        private void ActivateTab(IIBotTab newTab)
+        {
+            _botTabs.Add(newTab);
+
+            newTab.LogMessageEvent += SendNewLogMessage;
+            newTab.TabNum = _botTabs.Count - 1;
+
+            ChangeActiveTab(_botTabs.Count - 1);
+            ReloadTab();
+
+            NewTabCreateEvent?.Invoke();
+        }
+
+        private bool ValidateTabCreation(out int number, out string nameTab)
+        {
+             number = 0;
+
+            if (_botTabs != null && _botTabs.Count != 0)
+            {
+                number = _botTabs.Count;
+            }
+
+            nameTab = $"{NameStrategyUniq}tab{number}";
+
+            string name = nameTab;
+
+            if (_botTabs != null && _botTabs.Find(strategy => strategy.TabName == name) != null)
+            {
+                return false;
+            }
+
+            if (_botTabs == null)
+            {
+                _botTabs = new List<IIBotTab>();
+            }
+
+            return true;
         }
 
         /// <summary>
@@ -1904,31 +1988,8 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public void ClearTabs()
         {
-            for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
-            {
-                TabsSimple[i].Clear();
-            }
-            for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
-            {
-                TabsIndex[i].Clear();
-            }
-            for (int i = 0; TabsCluster != null && i < TabsCluster.Count; i++)
-            {
-                TabsCluster[i].Clear();
-            }
-            for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
-            {
-                TabsScreener[i].Clear();
-            }
-            for (int i = 0; TabsPair != null && i < TabsPair.Count; i++)
-            {
-                TabsPair[i].Clear();
-            }
-
             _botTabs?.Clear();
-
             ActiveTab = null;
-
             NewTabCreateEvent?.Invoke();
         }
 
