@@ -1178,7 +1178,8 @@ namespace OsEngine.OsTrader.Grids
                 {
                     Order closeOrder = position.CloseOrders[^1];
 
-                    if (closeOrder.Price != currentLine.PriceExit)
+                    if (closeOrder.Price != currentLine.PriceExit
+                        && closeOrder.TypeOrder != OrderPriceType.Market)
                     {
                         ordersToCancel.Add(closeOrder);
                     }
