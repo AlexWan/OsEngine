@@ -24,7 +24,7 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
 
     public class NewOrderBitMartResponce
     {
-        public long order_id { get; set; }
+        public string order_id { get; set; }
         public string price { get; set; }
     }
 
@@ -49,10 +49,10 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string price { get; set; }
         public string vol { get; set; }
         public string exec_type { get; set; }
-        public bool profit { get; set; }
+        public string profit { get; set; }
         public string realised_profit { get; set; }
         public string paid_fees { get; set; }
-        public long create_time { get; set; }
+        public string create_time { get; set; }
     }
 
     public class BitMartTrades : List<BitMartTrade>
@@ -75,8 +75,8 @@ namespace OsEngine.Market.Servers.BitMartFutures.Json
         public string open_type { get; set; }
         public string deal_avg_price { get; set; }
         public string deal_size { get; set; }
-        public ulong create_time { get; set; }
-        public ulong update_time { get; set; }
+        public string create_time { get; set; }
+        public string update_time { get; set; }
     }
 
     public class BitMartRestOrders : List<BitMartRestOrder>
