@@ -2628,8 +2628,6 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         _concurrentQueueMessageOrderBookSpot.TryDequeue(out _message);
                     }
-
-                    Thread.Sleep(1);
                 }
                 catch (Exception ex)
                 {
@@ -2679,8 +2677,6 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         _concurrentQueueMessageOrderBookInverse.TryDequeue(out _message);
                     }
-
-                    Thread.Sleep(1);
                 }
                 catch (Exception ex)
                 {
@@ -2728,8 +2724,6 @@ namespace OsEngine.Market.Servers.Bybit
                     {
                         _concurrentQueueMessageOrderBookLinear.TryDequeue(out message);
                     }
-
-                    Thread.Sleep(1);
                 }
                 catch (Exception ex)
                 {
