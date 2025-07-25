@@ -301,6 +301,13 @@ namespace OsEngine.Market.Servers.Binance.Futures
         {
             foreach (var sec in pairs.symbols)
             {
+                if (sec.status != "TRADING"
+                && sec.status != "HALT"
+                && sec.status != "BREAK")
+                {
+                    continue;
+                }
+
                 Security security = new Security();
                 security.Name = sec.symbol;
                 security.NameFull = sec.symbol;
