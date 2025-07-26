@@ -999,20 +999,20 @@ namespace OsEngine.Journal
                     }
 
                     profitSum += curProfit;
-                    profit.Points.AddXY(i, profitSum);
+                    profit.Points.AddXY(i, Math.Round(profitSum, 3));
 
                     nullLine.Points.AddXY(i, 0);
                     nullLine.Points[nullLine.Points.Count - 1].AxisLabel =
                         positionsAll[i].TimeCreate.ToString(_currentCulture);
 
-                    profit.Points[profit.Points.Count - 1].AxisLabel = profitSum.ToString();
+                    profit.Points[profit.Points.Count - 1].AxisLabel = Math.Round(profitSum, 3).ToString();
 
-                    profitBar.Points.AddXY(i, curProfit);
+                    profitBar.Points.AddXY(i, Math.Round(curProfit, 3));
 
                     profitBar.Points[profitBar.Points.Count - 1].LabelForeColor = Color.DarkOrange;
                     profitBar.Points[profitBar.Points.Count - 1].AxisLabel 
                         = positionsAll[i].SecurityName + "\n" +
-                          curProfit.ToString() + "\n" +
+                          Math.Round(curProfit, 3).ToString() + "\n" +
                           positionsAll[i].NameBot;
 
                     if (positionsAll[i].Direction == Side.Buy)
@@ -1051,11 +1051,11 @@ namespace OsEngine.Journal
                         minYval = profitSumShort;
                     }
 
-                    profitLong.Points.AddXY(i, profitSumLong);
-                    profitLong.Points[profitLong.Points.Count - 1].AxisLabel = profitSumLong.ToString();
+                    profitLong.Points.AddXY(i, Math.Round(profitSumLong, 3));
+                    profitLong.Points[profitLong.Points.Count - 1].AxisLabel = Math.Round(profitSumLong, 3).ToString();
 
-                    profitShort.Points.AddXY(i, profitSumShort);
-                    profitShort.Points[profitShort.Points.Count - 1].AxisLabel = profitSumShort.ToString();
+                    profitShort.Points.AddXY(i, Math.Round(profitSumShort, 3));
+                    profitShort.Points[profitShort.Points.Count - 1].AxisLabel = Math.Round(profitSumShort, 3).ToString();
 
                     if(positionsAll[i].State != PositionStateType.Done)
                     {
@@ -1084,8 +1084,8 @@ namespace OsEngine.Journal
                 {
                     decimal chartHeigh = maxYVal - minYval;
 
-                    maxYVal = maxYVal + chartHeigh * 0.05m;
-                    minYval = minYval - chartHeigh * 0.05m;
+                    maxYVal = Math.Round(maxYVal + chartHeigh * 0.05m, 2);
+                    minYval = Math.Round(minYval - chartHeigh * 0.05m, 2);
                     _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
                     _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
                 }
@@ -1095,8 +1095,8 @@ namespace OsEngine.Journal
                     minYvalBars != maxYValBars)
                 {
                     decimal chartHeigh = maxYValBars - minYvalBars;
-                    maxYValBars = maxYValBars + chartHeigh * 0.05m;
-                    minYvalBars = minYvalBars - chartHeigh * 0.05m;
+                    maxYValBars = Math.Round(maxYValBars + chartHeigh * 0.05m, 2);
+                    minYvalBars = Math.Round(minYvalBars - chartHeigh * 0.05m, 2);
                     _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
                     _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYvalBars;
                 }

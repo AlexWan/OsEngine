@@ -947,14 +947,11 @@ namespace OsEngine.Journal
                     }
 
                     profitSum += curProfit;
-
-                    profit.Points.AddXY(i, profitSum);
-
-
+                    profit.Points.AddXY(i, Math.Round(profitSum, 3));
                     profit.Points[profit.Points.Count - 1].AxisLabel =
                         positionsAll[i].TimeCreate.ToString(_currentCulture);
 
-                    profitBar.Points.AddXY(i, curProfit);
+                    profitBar.Points.AddXY(i, Math.Round(curProfit, 3));
 
                     if (curProfit > maxYValBars)
                     {
@@ -1001,10 +998,8 @@ namespace OsEngine.Journal
                         minYval = profitSumShort;
                     }
 
-
-
-                    profitLong.Points.AddXY(i, profitSumLong);
-                    profitShort.Points.AddXY(i, profitSumShort);
+                    profitLong.Points.AddXY(i, Math.Round(profitSumLong, 3));
+                    profitShort.Points.AddXY(i, Math.Round(profitSumShort, 3));
 
                     if (curProfit > 0)
                     {
@@ -1014,7 +1009,6 @@ namespace OsEngine.Journal
                     {
                         profitBar.Points[profitBar.Points.Count - 1].Color = Color.DarkRed;
                     }
-
                 }
 
                 _chartEquity.Series.Add(profit);
@@ -1033,8 +1027,8 @@ namespace OsEngine.Journal
                 {
                     decimal chartHeigh = maxYVal - minYval;
 
-                    maxYVal = maxYVal + chartHeigh * 0.05m;
-                    minYval = minYval - chartHeigh * 0.05m;
+                    maxYVal = Math.Round(maxYVal + chartHeigh * 0.05m, 2);
+                    minYval = Math.Round(minYval - chartHeigh * 0.05m, 2);
                     _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
                     _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
                 }
@@ -1045,14 +1039,13 @@ namespace OsEngine.Journal
                 {
                     decimal chartHeigh = maxYValBars - minYValBars;
 
-                    maxYValBars = maxYValBars + chartHeigh * 0.05m;
-                    minYValBars = minYValBars - chartHeigh * 0.05m;
+                    maxYValBars = Math.Round(maxYValBars + chartHeigh * 0.05m, 2);
+                    minYValBars = Math.Round(minYValBars - chartHeigh * 0.05m, 2);
 
                     _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
                     _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYValBars;
 
                 }
-
             }
             catch (Exception error)
             {
