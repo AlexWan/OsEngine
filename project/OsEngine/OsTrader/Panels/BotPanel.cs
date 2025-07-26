@@ -71,6 +71,8 @@ namespace OsEngine.OsTrader.Panels
     /// </summary>
     public abstract class BotPanel
     {
+        #region Service
+
         protected BotPanel(string name, StartProgram startProgram)
         {
             NameStrategyUniq = name;
@@ -90,9 +92,6 @@ namespace OsEngine.OsTrader.Panels
             OsTraderMaster.CriticalErrorEvent += OsTraderMaster_CriticalErrorEvent;
         }
 
-        /// <summary>
-        /// critical error and system restart event
-        /// </summary>
         private void OsTraderMaster_CriticalErrorEvent()
         {
             new Thread(() =>
@@ -116,10 +115,139 @@ namespace OsEngine.OsTrader.Panels
 
         protected event Action<string> CriticalErrorEvent;
 
+        public void Clear()
+        {
+            try
+            {
+                if (_botTabs == null
+                || _botTabs.Count == 0)
+                {
+                    return;
+                }
+
+                for (int i = 0; i < _botTabs.Count; i++)
+                {
+                    _botTabs[i].Clear();
+                }
+
+                Log?.Clear();
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void Delete()
+        {
+            try
+            {
+                try
+                {
+                    _chartUi?.Close();
+                }
+                catch
+                {
+                    // ignore
+                }
+
+                OsTraderMaster.CriticalErrorEvent -= OsTraderMaster_CriticalErrorEvent;
+
+                if (_riskManager != null)
+                {
+                    _riskManager.RiskManagerAlarmEvent -= _riskManager_RiskManagerAlarmEvent;
+                    _riskManager.Delete();
+                    _riskManager = null;
+                }
+
+                if (_botTabs != null)
+                {
+                    for (int i = 0; i < _botTabs.Count; i++)
+                    {
+                        _botTabs[i].StopPaint();
+                        _botTabs[i].Clear();
+                        _botTabs[i].Delete();
+                        _botTabs[i].LogMessageEvent -= SendNewLogMessage;
+                    }
+                    _botTabs.Clear();
+                    _botTabs = null;
+                }
+
+                if (ParamGuiSettings != null)
+                {
+                    ParamGuiSettings.LogMessageEvent -= SendNewLogMessage;
+                    ParamGuiSettings = null;
+
+                    if (File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
+                    {
+                        File.Delete(@"Engine\" + NameStrategyUniq + @"Parametrs.txt");
+                    }
+                }
+
+                if (Log != null)
+                {
+                    Log.Delete();
+                    Log = null;
+                }
+
+                if (Parameters != null)
+                {
+                    for (int i = 0; i < Parameters.Count; i++)
+                    {
+                        Parameters[i].ValueChange -= Parameter_ValueChange;
+                    }
+                    Parameters.Clear();
+                    Parameters = null;
+                }
+
+                if (_tabBotTab != null)
+                {
+                    _tabBotTab.SelectionChanged -= _tabBotTab_SelectionChanged;
+                    _tabBotTab = null;
+                }
+
+                _gridChart = null;
+                _hostChart = null;
+                _hostGlass = null;
+                _hostOpenDeals = null;
+                _hostCloseDeals = null;
+                _rectangle = null;
+                _hostAlerts = null;
+                _textBoxLimitPrice = null;
+                _gridChartControlPanel = null;
+                _tabControlControl = null;
+
+                if (DeleteEvent != null)
+                {
+                    try
+                    {
+                        DeleteEvent();
+                    }
+                    catch (Exception ex)
+                    {
+                        SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                    }
+                }
+            }
+            catch (Exception error)
+            {
+                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
+        #region Settings and Properties
+
         /// <summary>
         /// unique robot name
         /// </summary>
         public string NameStrategyUniq;
+
+        /// <summary>
+        /// bot class name
+        /// </summary>
+        public virtual string GetNameStrategyType() => GetType().Name;
 
         /// <summary>
         /// file name if it is a robot from the file system
@@ -145,8 +273,6 @@ namespace OsEngine.OsTrader.Panels
         /// a description of the robot's operating logic. Displayed in the menu for selecting a robot to create
         /// </summary>
         public string Description;
-
-        // control
 
         /// <summary>
         /// take logs panel  
@@ -203,76 +329,131 @@ namespace OsEngine.OsTrader.Panels
         }
 
         /// <summary>
-        /// show the chart window with deals
+        /// has the robot connected to the exchange of all tabs
         /// </summary>
-        public BotPanelChartUi ShowChartDialog()
+        public bool IsConnected
         {
-            if (_chartUi == null)
+            get
             {
-                _chartUi = new BotPanelChartUi(this);
-                _chartUi.Show();
-                _chartUi.Closed += _chartUi_Closed;
-            }
-            else
-            {
-                if(_chartUi.WindowState == WindowState.Minimized)
+                for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
                 {
-                    _chartUi.WindowState = WindowState.Normal;
+                    if (TabsSimple[i].IsConnected == false)
+                    {
+                        return false;
+                    }
                 }
-                _chartUi.Activate();
-                _chartUi.Focus();
-            }
 
-            return _chartUi;
+                for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
+                {
+                    if (TabsScreener[i].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+
+                for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
+                {
+                    if (TabsIndex[i].IsConnected == false)
+                    {
+                        return false;
+                    }
+                }
+
+                if (TabsSimple == null &&
+                    TabsIndex == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
         }
 
-        public BotPanelChartUi _chartUi;
-
-        public void CloseGui()
+        public List<Security> GetSecuritiesInTradeSources()
         {
             try
             {
-                if (_chartUi == null)
+                if (_botTabs == null
+                   || _botTabs.Count == 0)
                 {
-                    return;
+                    return null;
                 }
 
-                if (_chartUi.Dispatcher.CheckAccess() == false)
+                List<Security> securities = new List<Security>();
+
+                for (int i = 0; i < _botTabs.Count; i++)
                 {
-                    _chartUi.Dispatcher.Invoke(CloseGui);
-                    return;
+                    if (_botTabs[i].TabType == BotTabType.Simple)
+                    {
+                        BotTabSimple tab = (BotTabSimple)_botTabs[i];
+
+                        if(tab.Security != null)
+                        {
+                            securities.Add(tab.Security);
+                        }
+                    }
+                    if (_botTabs[i].TabType == BotTabType.Screener)
+                    {
+                        BotTabScreener tab = (BotTabScreener)_botTabs[i];
+
+                        List<BotTabSimple> tabs = tab.Tabs;
+
+                        for (int j = 0;j < tabs.Count; j++)
+                        {
+                            if (tabs[j].Security != null)
+                            {
+                                securities.Add(tabs[j].Security);
+                            }
+                        }
+                    }
                 }
 
-                _chartUi.Close();
+                return securities;
             }
             catch (Exception ex)
             {
-                SendNewLogMessage(ex.ToString(),LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+
+            return null;
         }
 
-        void _chartUi_Closed(object sender, EventArgs e)
+        public List<Position> GetPositionsBySecurity(Security security)
         {
-            _chartUi.Closed -= _chartUi_Closed;
-            _chartUi = null;
+            List<Position> result = new List<Position>();
 
-            ChartClosedEvent?.Invoke(this.NameStrategyUniq);
+            List<Position> openPoses = OpenPositions;
+
+            for(int i = 0;i < openPoses.Count;i++)
+            {
+                Position position = openPoses[i];
+
+                if(position.SecurityName == security.Name
+                    || position.SecurityName == security.Name + "_LONG"
+                    || position.SecurityName == security.Name + "_SHORT"
+                    || position.SecurityName == security.Name + "_Long"
+                    || position.SecurityName == security.Name + "_Short"
+                    || position.SecurityName == security.Name + "_long"
+                    || position.SecurityName == security.Name + "_short")
+                {
+                    result.Add(position);
+                }
+            }
+
+            return result;
         }
 
-        public event Action<string> ChartClosedEvent;
+        #endregion
 
-        /// <summary>
-        /// is drawing included
-        /// </summary>
-        private bool _isPainting;
+        #region Chart and GUI
 
         /// <summary>
         /// start drawing this robot
         /// </summary> 
-        public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost glass, 
-            WindowsFormsHost hostOpenDeals,WindowsFormsHost hostCloseDeals, 
+        public void StartPaint(Grid gridChart, WindowsFormsHost hostChart, WindowsFormsHost glass,
+            WindowsFormsHost hostOpenDeals, WindowsFormsHost hostCloseDeals,
             WindowsFormsHost boxLog, Rectangle rectangle, WindowsFormsHost hostAlerts,
-            TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel, 
+            TabControl tabBotTab, TextBox textBoxLimitPrice, Grid gridChartControlPanel,
             TextBox textBoxVolume, TabControl tabControlControl, WindowsFormsHost hostGrids)
         {
             if (_isPainting)
@@ -310,10 +491,10 @@ namespace OsEngine.OsTrader.Panels
                 if (!_tabBotTab.Dispatcher.CheckAccess())
                 {
                     _tabBotTab.Dispatcher.Invoke(new Action<Grid, WindowsFormsHost, WindowsFormsHost, WindowsFormsHost,
-                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox, 
+                    WindowsFormsHost, WindowsFormsHost, Rectangle, WindowsFormsHost, TabControl, TextBox,
                     Grid, TextBox, TabControl, WindowsFormsHost>
                     (StartPaint), gridChart, hostChart, glass, hostOpenDeals, hostCloseDeals,
-                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice, 
+                    boxLog, rectangle, hostAlerts, tabBotTab, textBoxLimitPrice,
                     gridChartControlPanel, textBoxVolume, tabControlControl, hostGrids);
                     return;
                 }
@@ -413,6 +594,16 @@ namespace OsEngine.OsTrader.Panels
             }
         }
 
+        private bool _isPainting;
+
+        public void MoveChartToTheRight()
+        {
+            if (ActiveTab is BotTabSimple botTab)
+            {
+                botTab.MoveChartToTheRight();
+            }
+        }
+
         private Grid _gridChart;
         private WindowsFormsHost _hostChart;
         private WindowsFormsHost _hostGlass;
@@ -427,189 +618,67 @@ namespace OsEngine.OsTrader.Panels
         private WindowsFormsHost _hostGrids;
 
         /// <summary>
-        /// bot name
+        /// show the chart window with deals
         /// </summary>
-        public virtual string GetNameStrategyType() => GetType().Name;
-
-        /// <summary>
-        /// has the robot connected to the exchange of all tabs
-        /// </summary>
-        public bool IsConnected
+        public BotPanelChartUi ShowChartDialog()
         {
-            get
+            if (_chartUi == null)
             {
-                for (int i = 0; TabsSimple != null && i < TabsSimple.Count; i++)
-                {
-                    if (TabsSimple[i].IsConnected == false)
-                    {
-                        return false;
-                    }
-                }
-
-                for (int i = 0; TabsScreener != null && i < TabsScreener.Count; i++)
-                {
-                    if (TabsScreener[i].IsConnected == false)
-                    {
-                        return false;
-                    }
-                }
-
-                for (int i = 0; TabsIndex != null && i < TabsIndex.Count; i++)
-                {
-                    if (TabsIndex[i].IsConnected == false)
-                    {
-                        return false;
-                    }
-                }
-
-                if (TabsSimple == null &&
-                    TabsIndex == null)
-                {
-                    return false;
-                }
-
-                return true;
+                _chartUi = new BotPanelChartUi(this);
+                _chartUi.Show();
+                _chartUi.Closed += _chartUi_Closed;
             }
+            else
+            {
+                if (_chartUi.WindowState == WindowState.Minimized)
+                {
+                    _chartUi.WindowState = WindowState.Normal;
+                }
+                _chartUi.Activate();
+                _chartUi.Focus();
+            }
+
+            return _chartUi;
         }
 
-        /// <summary>
-        /// clear data
-        /// </summary>
-        public void Clear()
+        public BotPanelChartUi _chartUi;
+
+        public void CloseGui()
         {
             try
             {
-                if (_botTabs == null
-                || _botTabs.Count == 0)
+                if (_chartUi == null)
                 {
                     return;
                 }
 
-                for (int i = 0; i < _botTabs.Count; i++)
+                if (_chartUi.Dispatcher.CheckAccess() == false)
                 {
-                    _botTabs[i].Clear();
+                    _chartUi.Dispatcher.Invoke(CloseGui);
+                    return;
                 }
 
-                Log?.Clear();
+                _chartUi.Close();
             }
-            catch (Exception error)
+            catch (Exception ex)
             {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 
-        /// <summary>
-        /// remove the robot and all child structures
-        /// </summary>
-        public void Delete()
+        private void _chartUi_Closed(object sender, EventArgs e)
         {
-            try
-            {
-                try
-                {
-                    _chartUi?.Close();
-                }
-                catch
-                {
-                    // ignore
-                }
+            _chartUi.Closed -= _chartUi_Closed;
+            _chartUi = null;
 
-                OsTraderMaster.CriticalErrorEvent -= OsTraderMaster_CriticalErrorEvent;
-
-                if (_riskManager != null)
-                {
-                    _riskManager.RiskManagerAlarmEvent -= _riskManager_RiskManagerAlarmEvent;
-                    _riskManager.Delete();
-                    _riskManager = null;
-                }
-
-                if (_botTabs != null)
-                {
-                    for (int i = 0; i < _botTabs.Count; i++)
-                    {
-                        _botTabs[i].StopPaint();
-                        _botTabs[i].Clear();
-                        _botTabs[i].Delete();
-                        _botTabs[i].LogMessageEvent -= SendNewLogMessage;
-                    }
-                    _botTabs.Clear();
-                    _botTabs = null;
-                }
-
-                if (ParamGuiSettings != null)
-                {
-                    ParamGuiSettings.LogMessageEvent -= SendNewLogMessage;
-                    ParamGuiSettings = null;
-
-                    if (File.Exists(@"Engine\" + NameStrategyUniq + @"Parametrs.txt"))
-                    {
-                        File.Delete(@"Engine\" + NameStrategyUniq + @"Parametrs.txt");
-                    }
-                }
-
-                if (Log != null)
-                {
-                    Log.Delete();
-                    Log = null;
-                }
-
-                if (Parameters != null)
-                {
-                    for (int i = 0; i < Parameters.Count; i++)
-                    {
-                        Parameters[i].ValueChange -= Parameter_ValueChange;
-                    }
-                    Parameters.Clear();
-                    Parameters = null;
-                }
-
-                if (_tabBotTab != null)
-                {
-                    _tabBotTab.SelectionChanged -= _tabBotTab_SelectionChanged;
-                    _tabBotTab = null;
-                }
-
-                _gridChart = null;
-                _hostChart = null;
-                _hostGlass = null;
-                _hostOpenDeals = null;
-                _hostCloseDeals = null;
-                _rectangle = null;
-                _hostAlerts = null;
-                _textBoxLimitPrice = null;
-                _gridChartControlPanel = null;
-                _tabControlControl = null;
-
-                if (DeleteEvent != null)
-                {
-                    try
-                    {
-                        DeleteEvent();
-                    }
-                    catch(Exception ex)
-                    {
-                        SendNewLogMessage(ex.ToString(), LogMessageType.Error);
-                    }
-                }
-            }
-            catch (Exception error)
-            {
-                SendNewLogMessage(error.ToString(), LogMessageType.Error);
-            }
+            ChartClosedEvent?.Invoke(this.NameStrategyUniq);
         }
 
-        /// <summary>
-        /// move the chart view all the way to the right. Needed for a tester. Moved if BotTabSimple is selected
-        /// </summary>
-        public void MoveChartToTheRight()
-        {
-            if (ActiveTab is BotTabSimple botTab)
-            {
-                botTab.MoveChartToTheRight();
-            }
-        }
+        public event Action<string> ChartClosedEvent;
 
-        // robot trading figures
+        #endregion
+
+        #region Statistic
 
         /// <summary>
         /// total profit
@@ -929,7 +998,9 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        // working with strategy parameters
+        #endregion
+
+        #region Parameters
 
         /// <summary>
         /// show parameter settings window
@@ -1321,7 +1392,9 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public event Action ParametrsChangeByUser;
 
-        // risk manager panel
+        #endregion
+
+        #region Risk manager
 
         /// <summary>
         /// risk manager
@@ -1406,7 +1479,9 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        // tab management
+        #endregion
+
+        #region Tab management
 
         /// <summary>
         /// tabbed tabs
@@ -1458,7 +1533,9 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary> trade tabs </summary>
+        /// <summary> 
+        /// trade tabs 
+        /// </summary>
         public List<BotTabSimple> TabsSimple
         {
             get
@@ -1993,7 +2070,9 @@ position => position.State != PositionStateType.OpeningFail
             NewTabCreateEvent?.Invoke();
         }
 
-        // call control windows
+        #endregion
+
+        #region Control windows
 
         /// <summary>
         /// show general risk manager window
@@ -2019,7 +2098,9 @@ position => position.State != PositionStateType.OpeningFail
         /// </summary>
         public virtual void ShowIndividualSettingsDialog() { }
 
-        // global position reaction
+        #endregion
+
+        #region Global position reaction
 
         /// <summary>
         /// command handler for manual position control
@@ -2185,13 +2266,12 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        // log
+        #endregion
+
+        #region Log
 
         public Log Log;
 
-        /// <summary>
-        /// send new message
-        /// </summary>
         public void SendNewLogMessage(string message, LogMessageType type)
         {
             if (LogMessageEvent != null)
@@ -2204,20 +2284,13 @@ position => position.State != PositionStateType.OpeningFail
             }
         }
 
-        /// <summary>
-        /// log message event
-        /// </summary>
         public event Action<string, LogMessageType> LogMessageEvent;
 
-        /// <summary>
-        /// delete bot event
-        /// </summary>
         public event Action DeleteEvent;
 
-        /// <summary>
-        /// sourse count change
-        /// </summary>
         public event Action NewTabCreateEvent;
+
+        #endregion
 
     }
 

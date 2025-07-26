@@ -4,11 +4,10 @@
 */
 
 using OsEngine.Logging;
+using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -24,10 +23,17 @@ namespace OsEngine.Market.AutoFollow
     {
         public CopyTrader(string saveStr)
         {
-            Number = Convert.ToInt32(saveStr.Split('%')[0]);
-            Name = saveStr.Split('%')[1];
-            Enum.TryParse(saveStr.Split('%')[2], out WorkType);
-            IsOn = Convert.ToBoolean(saveStr.Split('%')[3]);
+            string[] save = saveStr.Split('%');
+            Number = Convert.ToInt32(save[0]);
+            Name = save[1];
+            Enum.TryParse(save[2], out WorkType);
+            IsOn = Convert.ToBoolean(save[3]);
+            PanelsPosition = save[4];
+
+            if (save[5].Split('!').Length > 1)
+            {
+                OnRobotsNames = save[5].Split('!').ToList();
+            }
 
             LogCopyTrader = new Log("CopyTrader" + Number, Entity.StartProgram.IsOsTrader);
             LogCopyTrader.Listen(this);
@@ -53,12 +59,17 @@ namespace OsEngine.Market.AutoFollow
 
         public bool IsOn;
 
+        public string PanelsPosition = "1,1,1,1,1";
+
         public string GetStringToSave()
         {
             string result = Number + "%";
             result += Name + "%";
             result += WorkType + "%";
             result += IsOn + "%";
+            result += PanelsPosition + "%";
+            result += OnRobotsNamesInString + "%";
+
 
             return result;
         }
@@ -72,6 +83,40 @@ namespace OsEngine.Market.AutoFollow
         }
 
         public event Action DeleteEvent;
+
+        #region Robots for auto follow
+
+        public List<string> OnRobotsNames = new List<string>();
+
+        private string OnRobotsNamesInString
+        {
+            get
+            {
+                string result = "";
+
+                for(int i = 0;i < OnRobotsNames.Count;i++)
+                {
+                    result += OnRobotsNames[i] + "!";
+                }
+
+                return result;
+            }
+        }
+
+        public bool BotIsOnToCopy(BotPanel bot)
+        {
+            for(int i = 0;i < OnRobotsNames.Count;i++)
+            {
+                if (OnRobotsNames[i] == bot.NameStrategyUniq)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        #endregion
 
         #region Log
 

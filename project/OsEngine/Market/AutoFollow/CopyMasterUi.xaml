@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:OsEngine.Market.AutoFollow"
         mc:Ignorable="d"
         Title="Auto follow master. В работе" Height="600" Width="1000" MinWidth="700" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
-    <Grid>
+    <Grid >
         <Grid.RowDefinitions>
             <RowDefinition Height="331*"/>
             <RowDefinition Height="267*"/>

@@ -853,7 +853,33 @@ namespace OsEngine.Language
          "Eng:Robots_" +
          "Ru:Роботы_");
 
+        public string Label205 => OsLocalization.ConvertToLocString(
+         "Eng:Long_" +
+         "Ru:Лонг_");
 
+        public string Label206 => OsLocalization.ConvertToLocString(
+         "Eng:Short_" +
+         "Ru:Шорт_");
+
+        public string Label207 => OsLocalization.ConvertToLocString(
+         "Eng:Abs_" +
+         "Ru:Абс_");
+
+        public string Label208 => OsLocalization.ConvertToLocString(
+         "Eng:Master robots_" +
+         "Ru:Мастер роботы_");
+
+        public string Label209 => OsLocalization.ConvertToLocString(
+         "Eng:Slave connectors and portfolios_" +
+         "Ru:Коннекторы и портфели для копирования_");
+
+        public string Label210 => OsLocalization.ConvertToLocString(
+         "Eng:Securities compliance_" +
+         "Ru:Соответствие бумаг_");
+
+        public string Label211 => OsLocalization.ConvertToLocString(
+         "Eng:Journal_" +
+         "Ru:Журнал_");
 
 
 

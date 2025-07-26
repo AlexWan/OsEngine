@@ -82,6 +82,8 @@ using OsEngine.Market.Servers.Bitfinex.BitfinexFutures;
 using OsEngine.Market.Servers.FinamGrpc;
 using OsEngine.Market.Servers.BinanceData;
 using OsEngine.Market.AutoFollow;
+using OsEngine.OsTrader.Panels;
+using OsEngine.OsTrader;
 
 namespace OsEngine.Market
 {
@@ -1862,6 +1864,31 @@ namespace OsEngine.Market
             {
                 SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        #endregion
+
+        #region Robots in bot station access
+
+        public static List<BotPanel> GetAllBotsFromBotStation()
+        {
+            try
+            {
+                if(OsTraderMaster.Master == null)
+                {
+                    return null;
+                }
+
+                List<BotPanel> result = OsTraderMaster.Master.PanelsArray;
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+            return null;
         }
 
         #endregion
