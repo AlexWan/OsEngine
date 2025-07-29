@@ -72,8 +72,9 @@ namespace OsEngine.Market.AutoFollow
                             continue;
                         }
 
-                        CopyTrader newProxy = new CopyTrader(line);
-                        CopyTraders.Add(newProxy);
+                        CopyTrader newCopyTrader = new CopyTrader(line);
+                        newCopyTrader.NeedToSaveEvent += NewCopyTrader_NeedToSaveEvent;
+                        CopyTraders.Add(newCopyTrader);
                     }
 
                     reader.Close();
@@ -83,6 +84,11 @@ namespace OsEngine.Market.AutoFollow
             {
                 //SendLogMessage(error.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void NewCopyTrader_NeedToSaveEvent()
+        {
+            SaveCopyTraders();
         }
 
         public void SaveCopyTraders()
@@ -117,11 +123,12 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            CopyTrader newProxy = new CopyTrader(actualNumber);
-            CopyTraders.Add(newProxy);
+            CopyTrader newCopyTrader = new CopyTrader(actualNumber);
+            newCopyTrader.NeedToSaveEvent += NewCopyTrader_NeedToSaveEvent;
+            CopyTraders.Add(newCopyTrader);
             SaveCopyTraders();
 
-            return newProxy;
+            return newCopyTrader;
         }
 
         public void RemoveCopyTraderAt(int number)
@@ -131,6 +138,7 @@ namespace OsEngine.Market.AutoFollow
                 if (CopyTraders[i].Number == number)
                 {
                     CopyTraders[i].ClearDelete();
+                    CopyTraders[i].NeedToSaveEvent -= NewCopyTrader_NeedToSaveEvent;
                     CopyTraders.RemoveAt(i);
                     SaveCopyTraders();
                     return;

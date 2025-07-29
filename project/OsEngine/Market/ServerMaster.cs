@@ -84,6 +84,8 @@ using OsEngine.Market.Servers.BinanceData;
 using OsEngine.Market.AutoFollow;
 using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader;
+using OsEngine.OsTrader.Panels.Tab;
+using System.Linq;
 
 namespace OsEngine.Market
 {
@@ -456,11 +458,21 @@ namespace OsEngine.Market
         }
 
         /// <summary>
-        /// array of active servers
+        /// array of active servers type of IServer
         /// </summary>
         public static List<IServer> GetServers()
         {
             return _servers;
+        }
+
+        /// <summary>
+        /// array of active servers type of AServer
+        /// </summary>
+        public static List<AServer> GetAServers()
+        {
+            return _servers != null
+                ? _servers.OfType<AServer>().ToList()
+                : new();
         }
 
         /// <summary>
@@ -1890,6 +1902,8 @@ namespace OsEngine.Market
 
             return null;
         }
+
+
 
         #endregion
 

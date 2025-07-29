@@ -14,6 +14,9 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Threading;
+using OsEngine.Market.Servers;
+using System.Drawing;
+
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -61,6 +64,11 @@ namespace OsEngine.Market.AutoFollow
             CreateRobotsGrid();
             UpdateGridRobots();
 
+            // 3 Slave portfolios grid
+
+            CreateSlaveGrid();
+            UpdateGridSlave();
+
             // 6 Localization
 
             LabelIsOn.Content = OsLocalization.Market.Label182; 
@@ -84,9 +92,22 @@ namespace OsEngine.Market.AutoFollow
             _windowIsClosed = true;
 
             CopyTraderInstance.LogCopyTrader.StopPaint();
-
             CopyTraderInstance.DeleteEvent -= CopyTraderClass_DeleteEvent;
             CopyTraderInstance = null;
+
+            _gridRobots.CellValueChanged -= _gridRobots_CellValueChanged;
+            _gridRobots.DataError -= _gridRobots_DataError;
+            HostRobots.Child = null;
+            _gridRobots.Rows.Clear();
+            DataGridFactory.ClearLinks(_gridRobots);
+
+            _gridSlave.CellValueChanged -= _gridSlave_CellValueChanged;
+            _gridSlave.DataError -= _gridSlave_DataError;
+            HostSlaves.Child = null;
+            _gridSlave.Rows.Clear();
+            DataGridFactory.ClearLinks(_gridSlave);
+
+
         }
 
         private void CopyTraderClass_DeleteEvent()
@@ -303,7 +324,7 @@ namespace OsEngine.Market.AutoFollow
             {
                 try
                 {
-                    Thread.Sleep(3000);
+                    Thread.Sleep(1000);
 
                     if (_windowIsClosed == true)
                     {
@@ -311,6 +332,7 @@ namespace OsEngine.Market.AutoFollow
                     }
 
                     UpdateGridRobots();
+                    UpdateGridSlave();
                 }
                 catch(Exception ex)
                 {
@@ -587,8 +609,12 @@ namespace OsEngine.Market.AutoFollow
             {
                 rowFirst.Cells[rowFirst.Cells.Count - 1].Style.ForeColor = System.Drawing.Color.Green;
             }
+            else
+            {
+                rowFirst.Cells[rowFirst.Cells.Count - 1].Style.ForeColor = System.Drawing.Color.Red;
+            }
 
-            rowFirst.Cells.Add(new DataGridViewTextBoxCell());
+                rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
             rowFirst.Cells.Add(new DataGridViewTextBoxCell());
@@ -718,6 +744,535 @@ namespace OsEngine.Market.AutoFollow
         #endregion
 
         #region Slave grid
+
+        private DataGridView _gridSlave;
+
+        private void CreateSlaveGrid()
+        {
+            _gridSlave = DataGridFactory.GetDataGridView(DataGridViewSelectionMode.CellSelect,
+  DataGridViewAutoSizeRowsMode.AllCells);
+            _gridSlave.ScrollBars = ScrollBars.Vertical;
+
+            DataGridViewTextBoxCell cell0 = new DataGridViewTextBoxCell();
+            cell0.Style = _gridSlave.DefaultCellStyle;
+
+            DataGridViewColumn column0 = new DataGridViewColumn();
+            column0.CellTemplate = cell0;
+            column0.HeaderText = "#"; // num
+            column0.ReadOnly = true;
+            column0.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            _gridSlave.Columns.Add(column0);
+
+            DataGridViewColumn column2 = new DataGridViewColumn();
+            column2.CellTemplate = cell0;
+            column2.HeaderText = OsLocalization.Market.Label164; // Name
+            column2.ReadOnly = true;
+            column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            _gridSlave.Columns.Add(column2);
+
+            DataGridViewColumn column4 = new DataGridViewColumn();
+            column4.CellTemplate = cell0;
+            //column4.HeaderText = OsLocalization.Market.Label140; // Portfolio
+            column4.ReadOnly = true;
+            column4.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column4.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            _gridSlave.Columns.Add(column4);
+
+            DataGridViewColumn column5 = new DataGridViewColumn();
+            column5.CellTemplate = cell0;
+            //column5.HeaderText = OsLocalization.Market.Label182; // Is On
+            column5.ReadOnly = false;
+            column5.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column5.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            _gridSlave.Columns.Add(column5);
+
+            DataGridViewColumn column6 = new DataGridViewColumn();
+            column6.CellTemplate = cell0;
+            //column6.HeaderText = OsLocalization.Market.Label212; // Volume type
+            column6.ReadOnly = false;
+            column6.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column6.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            _gridSlave.Columns.Add(column6);
+
+            DataGridViewColumn column7 = new DataGridViewColumn();
+            column7.CellTemplate = cell0;
+            //column7.HeaderText = OsLocalization.Market.Label213; // Mult
+            column7.ReadOnly = false;
+            column7.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column7.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            _gridSlave.Columns.Add(column7);
+
+            DataGridViewColumn column8 = new DataGridViewColumn();
+            column8.CellTemplate = cell0;
+            //column8.HeaderText = OsLocalization.Market.Label214; // Master asset
+            column8.ReadOnly = false;
+            column8.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column8.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            _gridSlave.Columns.Add(column8);
+
+            DataGridViewColumn column9 = new DataGridViewColumn();
+            column9.CellTemplate = cell0;
+            //column9.HeaderText = OsLocalization.Market.Label215; // Slave asset
+            column9.ReadOnly = false;
+            column9.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            column9.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            _gridSlave.Columns.Add(column9);
+
+            HostSlaves.Child = _gridSlave;
+            _gridSlave.CellValueChanged += _gridSlave_CellValueChanged;
+            _gridSlave.DataError += _gridSlave_DataError;
+        }
+
+        private void UpdateGridSlave()
+        {
+            try
+            {
+                if (_gridRobots.InvokeRequired)
+                {
+                    _gridRobots.Invoke(new Action(UpdateGridSlave));
+                    return;
+                }
+
+                // 0 num
+                // 1 Name
+                // 2 Portfolio
+                // 3 Is On
+                // 4 Volume type / Copy type
+                // 5 Mult
+                // 6 Master asset / Order type
+                // 7 Slave asset  / Icebert count
+
+                List<AServer> connectors = ServerMaster.GetAServers();
+                List<DataGridViewRow> rowsNow = new List<DataGridViewRow>();
+
+                for (int i = 0; i < connectors.Count; i++)
+                {
+                    List<DataGridViewRow> serverRows = GetRowsByServer(connectors[i], i + 1);
+
+                    if (serverRows != null &&
+                        serverRows.Count > 0)
+                    {
+                        rowsNow.AddRange(serverRows);
+                        rowsNow.Add(GetNullRow());
+                    }
+                }
+
+                if (rowsNow.Count != _gridSlave.Rows.Count)
+                { // 1 перерисовываем целиком
+                    _gridSlave.Rows.Clear();
+
+                    for (int i = 0; i < rowsNow.Count; i++)
+                    {
+                        _gridSlave.Rows.Add(rowsNow[i]);
+                    }
+                }
+                else
+                { // 2 перерисовываем по линиям
+                   /* for (int i = 0; i < _gridRobots.Rows.Count; i++)
+                    {
+                        TryRePaintRobotRow(_gridRobots.Rows[i], rowsNow[i]);
+
+                    }*/
+                }
+            }
+            catch (Exception ex)
+            {
+                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private DataGridViewRow GetNullRow()
+        {
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+
+            for (int i = 0; i < row.Cells.Count; i++)
+            {
+                row.Cells[i].ReadOnly = true;
+            }
+
+            return row;
+        }
+
+        private List<DataGridViewRow> GetRowsByServer(AServer server, int number)
+        {
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            // 0 num
+            // 1 Name
+            // 2 Portfolio
+            // 3 Is On
+            // 4 Volume type / Copy type
+            // 5 Mult
+            // 6 Master asset / Order type
+            // 7 Slave asset  / Icebert count
+
+            // 1 формируем первую строку с названием сервера
+
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = number;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = server.ServerNameUnique;
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+
+            for(int i = 0;i < row.Cells.Count;i++)
+            {
+                row.Cells[i].Style.BackColor = Color.Black;
+                row.Cells[i].ReadOnly = true;
+            }
+
+            rows.Add(row);
+
+            // 2 формируем портфели по этому серверу
+
+            List<Portfolio> portfolios = server.Portfolios;
+
+            if(portfolios != null && portfolios.Count != 0)
+            {
+                rows.Add(GetNullRow());
+            }
+
+            for (int i = 0; portfolios != null && i < portfolios.Count; i++)
+            {
+                List<DataGridViewRow> rowsPortfolio = GetRowsByPortfolio(server, portfolios[i]);
+
+                if(rowsPortfolio != null &&
+                    rowsPortfolio.Count != 0)
+                {
+                    rows.AddRange(rowsPortfolio);
+                    if(i +1 != portfolios.Count)
+                    {
+                        rows.Add(GetNullRow());
+                    }
+                }
+            }
+
+            return rows;
+        }
+
+        private List<DataGridViewRow> GetRowsByPortfolio(AServer server, Portfolio portfolio)
+        {
+            List<DataGridViewRow> rows = new List<DataGridViewRow>();
+
+            // 0 num
+            // 1 Name
+            // 2 Portfolio
+            // 3 Is On
+            // 4 Volume type / Copy type
+            // 5 Mult
+            // 6 Master asset / Order type
+            // 7 Slave asset  / Icebert count
+
+            PortfolioToCopy portfolioToCopy =
+    CopyTraderInstance.GetPortfolioByName(server.ServerNameUnique, portfolio.Number);
+
+            // 1 формируем хедеры
+
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells.Add(new DataGridViewTextBoxCell());
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Market.Label140; // Portfolio
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Market.Label182; // Is On
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Market.Label212; // Volume type
+            
+        
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Market.Label213; // Mult
+            
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Market.Label214; // Master asset
+            
+
+            row.Cells.Add(new DataGridViewTextBoxCell());
+            row.Cells[row.Cells.Count - 1].Value = OsLocalization.Market.Label215; // Slave asset
+            
+
+            for (int i = 0; i < row.Cells.Count; i++)
+            {
+                if(i > 1)
+                {
+                    row.Cells[i].Style.BackColor = System.Drawing.Color.FromArgb(9, 11, 13);
+                }
+
+                row.Cells[i].ReadOnly = true;
+            }
+
+            rows.Add(row);
+
+
+            // 3 формируем первую строку 
+
+            DataGridViewRow row2 = new DataGridViewRow();
+
+            row2.Cells.Add(new DataGridViewTextBoxCell());
+            row2.Cells.Add(new DataGridViewTextBoxCell());
+
+            row2.Cells.Add(new DataGridViewTextBoxCell());
+            row2.Cells[row2.Cells.Count - 1].Value = portfolioToCopy.PortfolioName; // Portfolio
+
+            DataGridViewComboBoxCell cellIsOn = new DataGridViewComboBoxCell(); // IsOn
+            cellIsOn.Items.Add("True");
+            cellIsOn.Items.Add("False");
+            cellIsOn.Value = portfolioToCopy.IsOn.ToString();
+            cellIsOn.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            row2.Cells.Add(cellIsOn);
+
+            if(portfolioToCopy.IsOn == true)
+            {
+                cellIsOn.Style.ForeColor = Color.Green;
+                row2.Cells[row2.Cells.Count - 2].Style.ForeColor = Color.Green;
+            }
+            else
+            {
+                cellIsOn.Style.ForeColor = Color.Red;
+                row2.Cells[row2.Cells.Count - 2].Style.ForeColor = Color.Red;
+            }
+
+            if (portfolioToCopy.IsOn == true)
+            {
+                DataGridViewComboBoxCell cellVolumeType = new DataGridViewComboBoxCell(); // Volume type
+                cellVolumeType.Items.Add(CopyTraderVolumeType.QtyMultiplicator.ToString());
+                cellVolumeType.Items.Add(CopyTraderVolumeType.DepoProportional.ToString());
+                cellVolumeType.Value = portfolioToCopy.VolumeType.ToString();
+                cellVolumeType.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+                row2.Cells.Add(cellVolumeType);
+            }
+            else
+            {
+                row2.Cells.Add(new DataGridViewTextBoxCell());
+            }
+
+
+            row2.Cells.Add(new DataGridViewTextBoxCell());
+            if (portfolioToCopy.IsOn == true)
+            {
+                row2.Cells[row2.Cells.Count - 1].Value = portfolioToCopy.VolumeMult; // Mult
+            }
+                
+
+            row2.Cells.Add(new DataGridViewTextBoxCell());
+            if (portfolioToCopy.IsOn == true)
+            {
+                row2.Cells[row2.Cells.Count - 1].Value = portfolioToCopy.MasterAsset; // Master asset
+            }
+           
+
+            row2.Cells.Add(new DataGridViewTextBoxCell());
+            if (portfolioToCopy.IsOn == true)
+            {
+                row2.Cells[row2.Cells.Count - 1].Value = portfolioToCopy.SlaveAsset; // Slave asset
+            }
+           
+
+            for (int i = 0; i < row2.Cells.Count; i++)
+            {
+                if (i > 1)
+                {
+                     //row2.Cells[i].Style.ForeColor = Color.White;
+                }
+            }
+
+
+                rows.Add(row2);
+
+            if (portfolioToCopy.IsOn == false)
+            {
+                return rows;
+            }
+
+            // 4 формируем вторую строку с хедерами
+
+            DataGridViewRow row3 = new DataGridViewRow();
+
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+            row3.Cells[row3.Cells.Count - 1].Value = OsLocalization.Market.Label216; // Copy type
+            row3.Cells[row3.Cells.Count - 1].Style.BackColor = System.Drawing.Color.FromArgb(9, 11, 13);
+
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+            row3.Cells[row3.Cells.Count - 1].Style.BackColor = System.Drawing.Color.FromArgb(9, 11, 13);
+
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+            row3.Cells[row3.Cells.Count - 1].Value = OsLocalization.Market.Label217; // Orders type
+            row3.Cells[row3.Cells.Count - 1].Style.BackColor  = System.Drawing.Color.FromArgb(9, 11, 13);
+
+            row3.Cells.Add(new DataGridViewTextBoxCell());
+            row3.Cells[row3.Cells.Count - 1].Value = OsLocalization.Market.Label218; // Iceberg count
+            row3.Cells[row3.Cells.Count - 1].Style.BackColor  = System.Drawing.Color.FromArgb(9, 11, 13);
+
+            for (int i = 0; i < row3.Cells.Count; i++)
+            {
+                if (i > 1)
+                {
+                   // row3.Cells[i].Style.BackColor = Color.Black;
+                }
+
+                row3.Cells[i].ReadOnly = true;
+            }
+
+            rows.Add(row3);
+
+            // 5 формируем вторую строку с надписями
+
+            DataGridViewRow row4 = new DataGridViewRow();
+
+            row4.Cells.Add(new DataGridViewTextBoxCell());
+            row4.Cells.Add(new DataGridViewTextBoxCell());
+            row4.Cells.Add(new DataGridViewTextBoxCell());
+            row4.Cells.Add(new DataGridViewTextBoxCell());
+
+            DataGridViewComboBoxCell cellCopyType = new DataGridViewComboBoxCell(); // Copy type
+            cellCopyType.Items.Add(CopyTraderCopyType.Absolute.ToString());
+            cellCopyType.Items.Add(CopyTraderCopyType.FullCopy.ToString());
+            cellCopyType.Value = portfolioToCopy.CopyType.ToString();
+            cellCopyType.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            row4.Cells.Add(cellCopyType);
+
+            row4.Cells.Add(new DataGridViewTextBoxCell());
+
+            DataGridViewComboBoxCell cellOrdersType = new DataGridViewComboBoxCell(); // Orders type
+            cellOrdersType.Items.Add(CopyTraderOrdersType.Market.ToString());
+            cellOrdersType.Items.Add(CopyTraderOrdersType.Iceberg.ToString());
+            cellOrdersType.Value = portfolioToCopy.OrderType.ToString();
+            cellOrdersType.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            row4.Cells.Add(cellOrdersType);
+
+            row4.Cells.Add(new DataGridViewTextBoxCell());
+            row4.Cells[row4.Cells.Count - 1].Value = portfolioToCopy.IcebergCount; // Iceberg count
+
+            for (int i = 0; i < row4.Cells.Count; i++)
+            {
+                if (i > 1)
+                {
+                    //row4.Cells[i].Style.ForeColor = Color.White;
+                }
+            }
+
+            rows.Add(row4);
+
+            return rows;
+        }
+
+        private void _gridSlave_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            CopyTraderInstance.SendLogMessage("_gridSlave_DataError \n"
+              + e.Exception.ToString(), Logging.LogMessageType.Error);
+        }
+
+        private void _gridSlave_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            try
+            {
+                string currentServerName = "";
+
+                for (int i = 0; i < _gridSlave.Rows.Count; i++)
+                {
+                    // 1 находим название сервера
+                    DataGridViewCell cell = _gridSlave.Rows[i].Cells[1];
+
+                    if (cell == null 
+                        || cell.Value == null)
+                    {
+                        continue;
+                    }
+
+                    currentServerName = cell.Value.ToString();
+
+                    // 2 бежим вниз по таблице, внутри отдельного коннектора
+
+                    for(int j = i+1;j < _gridSlave.Rows.Count;j++)
+                    {
+                        // a) костыли для выхода из коннектора
+                        DataGridViewCell cellConnectorName = _gridSlave.Rows[j].Cells[1];
+
+                        if (cellConnectorName != null 
+                            && cellConnectorName.Value != null)
+                        {
+                            i = j - 1;
+                            break;
+                        }
+
+                        if(j + 1 == _gridSlave.Rows.Count)
+                        {
+                            i = j;
+                        }
+
+                        // b) вход в отдельный портфель
+
+                        DataGridViewCell cellPortfolioName = _gridSlave.Rows[j].Cells[2];
+
+                        if(cellPortfolioName == null 
+                            || cellPortfolioName.Value == null 
+                            || cellPortfolioName.Value.ToString() == OsLocalization.Market.Label140)
+                        {
+                            continue;
+                        }
+
+                        string portfolioName = cellPortfolioName.Value.ToString();
+       
+                        PortfolioToCopy portfolioToCopy =
+                          CopyTraderInstance.GetPortfolioByName(currentServerName, portfolioName);
+
+                        bool portfolioIsOn = Convert.ToBoolean(_gridSlave.Rows[j].Cells[3].Value.ToString());
+                        portfolioToCopy.IsOn = portfolioIsOn;
+
+                        if(_gridSlave.Rows[j].Cells[4].Value != null)
+                        {
+                            // c) Отображены расширенные настройки. Сохраняем всё
+
+                            Enum.TryParse(_gridSlave.Rows[j].Cells[4].Value.ToString(), out portfolioToCopy.VolumeType);
+                            portfolioToCopy.VolumeMult = _gridSlave.Rows[j].Cells[5].Value.ToString().ToDecimal();
+                            portfolioToCopy.MasterAsset = _gridSlave.Rows[j].Cells[6].Value.ToString();
+                            portfolioToCopy.SlaveAsset = _gridSlave.Rows[j].Cells[7].Value.ToString();
+
+                            Enum.TryParse(_gridSlave.Rows[j+2].Cells[4].Value.ToString(), out portfolioToCopy.CopyType);
+                            Enum.TryParse(_gridSlave.Rows[j + 2].Cells[6].Value.ToString(), out portfolioToCopy.OrderType);
+                            portfolioToCopy.IcebergCount = Convert.ToInt32(_gridSlave.Rows[j+2].Cells[7].Value.ToString());
+                        }
+                    }
+                }
+
+
+
+
+                ServerMaster.SaveCopyMaster();
+            }
+            catch (Exception ex)
+            {
+                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+
+
+        }
 
         private void ButtonSlaveGridDown_Click(object sender, RoutedEventArgs e)
         {

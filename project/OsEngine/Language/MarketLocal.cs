@@ -4,6 +4,10 @@
 */
 
 
+using OsEngine.Charts.CandleChart.Indicators;
+using OsEngine.OsTrader.Panels.Tab.Internal;
+using System.Diagnostics.Metrics;
+
 namespace OsEngine.Language
 {
     public class MarketLocal
@@ -881,7 +885,37 @@ namespace OsEngine.Language
          "Eng:Journal_" +
          "Ru:Журнал_");
 
+        public string Label212 => OsLocalization.ConvertToLocString(
+         "Eng:Volume type_" +
+         "Ru:Тип объёма_");
 
+        public string Label213 => OsLocalization.ConvertToLocString(
+         "Eng:Multiplier_" +
+         "Ru:Мультипликатор_");
+
+        public string Label214 => OsLocalization.ConvertToLocString(
+         "Eng:Master asset_" +
+         "Ru:Мастер ассет_");
+
+        public string Label215 => OsLocalization.ConvertToLocString(
+         "Eng:Slave asset_" +
+         "Ru:Копи-ассет_");
+
+        public string Label216 => OsLocalization.ConvertToLocString(
+         "Eng:Copy type_" +
+         "Ru:Тип копирования_");
+
+        public string Label217 => OsLocalization.ConvertToLocString(
+         "Eng:Orders type_" +
+         "Ru:Тип ордеров_");
+
+        public string Label218 => OsLocalization.ConvertToLocString(
+         "Eng:Iceberg count_" +
+         "Ru:Кол-во айсбергов_");
+
+
+
+        
 
 
 
