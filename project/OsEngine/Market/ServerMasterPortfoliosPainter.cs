@@ -482,11 +482,18 @@ namespace OsEngine.Market
                             continue;
                         }
 
+                        string currentServerName = portfolios[i].ServerUniqueName;
+
+                        if(currentServerName.Split('_').Length == 3)
+                        {
+                            currentServerName = currentServerName.Split('_')[0] + "_" + currentServerName.Split('_')[1];
+                        }
+
                         Portfolio portf = _portfolios.Find(
                             portfolio => 
                             portfolio != null 
                             && portfolio.Number == portfolios[i].Number
-                            && portfolio.ServerUniqueName == portfolios[i].ServerUniqueName
+                            && portfolio.ServerUniqueName.Contains(portfolios[i].ServerUniqueName)
                             );
 
                         if (portf != null)
@@ -595,6 +602,14 @@ namespace OsEngine.Market
         {
             List<IServer> servers = ServerMaster.GetServers();
 
+            if(serverName.Split('_').Length == 3)
+            {
+                string newName = serverName.Split('_')[0] + "_" + serverName.Split('_')[1];
+
+                serverName = newName;
+            }
+
+
             IServer myServer = null;
 
             for (int i = 0; servers != null && i < servers.Count; i++)
@@ -610,7 +625,7 @@ namespace OsEngine.Market
                         continue;
                     }
 
-                    if (servers[i].ServerNameAndPrefix != serverName)
+                    if (servers[i].ServerNameAndPrefix.Contains(serverName) == false)
                     {
                         continue;
                     }

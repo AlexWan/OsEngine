@@ -325,7 +325,7 @@ namespace OsEngine.Market.Servers
         {
             List<ComparePositionsSecurity> result = new List<ComparePositionsSecurity>();
 
-            List<string> securities = GetSecuritiesWithPositions(portfolioName, Server.ServerNameAndPrefix);
+            List<string> securities = GetSecuritiesWithPositions(portfolioName, Server.ServerNameUnique);
 
             IServerPermission permission = ServerMaster.GetServerPermission(Server.ServerType);
 
@@ -400,7 +400,7 @@ namespace OsEngine.Market.Servers
                     string pName = curPositions[j].PortfolioName;
 
                     if (string.IsNullOrEmpty(curPositions[j].ServerName) == false
-                        && curPositions[j].ServerName != Server.ServerNameAndPrefix)
+                        && curPositions[j].ServerName.Contains(Server.ServerNameUnique) == false)
                     {
                         continue;
                     }
@@ -600,8 +600,12 @@ namespace OsEngine.Market.Servers
                         continue;
                     }
 
-                    if (string.IsNullOrEmpty(curPositions[j].ServerName) == false
-                        && curPositions[j].ServerName != serverName)
+                    if(string.IsNullOrEmpty(curPositions[j].ServerName) == true)
+                    {
+                        continue;
+                    }
+
+                    if (curPositions[j].ServerName.Contains(serverName) == false)
                     {
                         continue;
                     }

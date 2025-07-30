@@ -95,13 +95,6 @@ namespace OsEngine.Market.AutoFollow
             column2.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
             _grid.Columns.Add(column2);
 
-            DataGridViewColumn column3 = new DataGridViewColumn();
-            column3.CellTemplate = cell0;
-            column3.HeaderText = OsLocalization.Market.Label200; // Type
-            column3.ReadOnly = true;
-            column3.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-            _grid.Columns.Add(column3);
-
             DataGridViewColumn column4 = new DataGridViewColumn();
             column4.CellTemplate = cell0;
             column4.HeaderText = OsLocalization.Market.Label182; // Is On
@@ -164,7 +157,7 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
-        private DataGridViewRow GetTraderRow(CopyTrader proxy)
+        private DataGridViewRow GetTraderRow(CopyTrader trader)
         {
             // 0 num
             // 1 Name
@@ -176,23 +169,24 @@ namespace OsEngine.Market.AutoFollow
             DataGridViewRow nRow = new DataGridViewRow();
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.Number;
+            nRow.Cells[nRow.Cells.Count - 1].Value = trader.Number;
 
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.Name;
-
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells[nRow.Cells.Count - 1].Value = proxy.WorkType.ToString();
+            nRow.Cells[nRow.Cells.Count - 1].Value = trader.Name;
 
             DataGridViewComboBoxCell cellIsOn = new DataGridViewComboBoxCell();
             cellIsOn.Items.Add("True");
             cellIsOn.Items.Add("False");
-            cellIsOn.Value = proxy.IsOn.ToString();
+            cellIsOn.Value = trader.IsOn.ToString();
             cellIsOn.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             nRow.Cells.Add(cellIsOn);
-            if (proxy.IsOn == true)
+            if (trader.IsOn == true)
             {
                 nRow.Cells[nRow.Cells.Count - 1].Style.ForeColor = System.Drawing.Color.Green;
+            }
+            else
+            {
+                nRow.Cells[nRow.Cells.Count - 1].Style.ForeColor = System.Drawing.Color.Red;
             }
 
             DataGridViewButtonCell cell1 = new DataGridViewButtonCell();
@@ -224,7 +218,6 @@ namespace OsEngine.Market.AutoFollow
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
             nRow.Cells.Add(new DataGridViewTextBoxCell());
-            nRow.Cells.Add(new DataGridViewTextBoxCell());
            
             DataGridViewButtonCell cell = new DataGridViewButtonCell();
             cell.Value = OsLocalization.Market.Label48;
@@ -248,12 +241,12 @@ namespace OsEngine.Market.AutoFollow
                  }
 
                  if (row + 1 == _grid.Rows.Count
-                     && column == 5)
+                     && column == 4)
                  { // add new
                     _master.CreateNewCopyTrader();
                      UpdateGrid();
                  }
-                 else if (column == 5)
+                 else if (column == 4)
                  { // delete
 
                      AcceptDialogUi ui = new AcceptDialogUi(OsLocalization.Market.Label196);
@@ -270,7 +263,7 @@ namespace OsEngine.Market.AutoFollow
                      UpdateGrid();
                  }
                 else if (row + 1 < _grid.Rows.Count
-                    && column == 4)
+                    && column == 3)
                 { // show dialog
 
                     int number = Convert.ToInt32(_grid.Rows[row].Cells[0].Value.ToString());
@@ -317,9 +310,9 @@ namespace OsEngine.Market.AutoFollow
                     trader.Name = nRow.Cells[1].Value.ToString().RemoveExcessFromSecurityName();
                 }
 
-                if (nRow.Cells[3].Value != null)
+                if (nRow.Cells[2].Value != null)
                 {
-                    trader.IsOn = Convert.ToBoolean(nRow.Cells[3].Value.ToString());
+                    trader.IsOn = Convert.ToBoolean(nRow.Cells[2].Value.ToString());
                 }
                 else
                 {
@@ -328,16 +321,16 @@ namespace OsEngine.Market.AutoFollow
 
                 if(trader.IsOn == true)
                 {
-                    nRow.Cells[3].Style.ForeColor = System.Drawing.Color.Green;
+                    nRow.Cells[2].Style.ForeColor = System.Drawing.Color.Green;
                 }
                 else
                 {
-                    nRow.Cells[3].Style.ForeColor = nRow.Cells[0].Style.ForeColor;
+                    nRow.Cells[2].Style.ForeColor = nRow.Cells[0].Style.ForeColor;
                 }
             }
             catch (Exception ex)
             {
-                _master.SendLogMessage("Save proxy error. Proxy number: " + trader.Number + "\nError: " + ex.ToString(), Logging.LogMessageType.Error);
+                _master.SendLogMessage("Save copy trader error. Proxy number: " + trader.Number + "\nError: " + ex.ToString(), Logging.LogMessageType.Error);
             }
         }
 

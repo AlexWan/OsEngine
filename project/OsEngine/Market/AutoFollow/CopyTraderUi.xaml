@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OsEngine.Market.AutoFollow"
         mc:Ignorable="d"
-        Title="Copy trader " Height="900" Width="700" MinWidth="500" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
+        Title="Copy trader " Height="900" Width="700" MinWidth="700" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
         <Grid.RowDefinitions>
             <RowDefinition Height="129*"/>
@@ -13,9 +13,7 @@
         </Grid.RowDefinitions>
         <Grid Name="GridFollowSettings">
             <Grid.RowDefinitions>
-                <RowDefinition Height="105"/>
-                <RowDefinition Height="185*"/>
-                <RowDefinition Height="185*"/>
+                <RowDefinition Height="75"/>
                 <RowDefinition Height="185*"/>
                 <RowDefinition Height="185*"/>
             </Grid.RowDefinitions>
@@ -24,8 +22,6 @@
             <ComboBox Name="ComboBoxIsOn" HorizontalAlignment="Left" Margin="349,10,0,0" VerticalAlignment="Top" Width="120" Height="23"/>
             <Label Name="LabelName" Content="Name" HorizontalAlignment="Left" Margin="207,38,0,0" VerticalAlignment="Top" Height="23" Width="137"/>
             <TextBox Name="TextBoxName" HorizontalAlignment="Left" Margin="349,38,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Height="23"/>
-            <Label Name="LabelWorkType" Content="Work type" HorizontalAlignment="Left" Margin="207,66,0,0" VerticalAlignment="Top" Height="23" Width="137"/>
-            <ComboBox Name="ComboBoxWorkType" HorizontalAlignment="Left" Margin="349,66,0,0" VerticalAlignment="Top" Width="120" Height="23"/>
 
             <Rectangle Margin="2,2,2,2" Grid.Row="1" Stroke="Black"/>
             <Label Name="LabelRobotsGrid" Content="Master robots" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="1"/>
@@ -55,35 +51,6 @@
                 </Button.RenderTransform>
             </Button>
             <Button Name="ButtonSlaveGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="2" RenderTransformOrigin="0.5,0.5" Click="ButtonSlaveGridDown_Click" />
-            <Rectangle Margin="2,2,2,2" Grid.Row="3" Stroke="Black"/>
-            <Label Name="LabelSecuritiesGrid" Content="Securities for copy" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="3"/>
-            <WindowsFormsHost Name="HostSecurities" Margin="5,23,5,5" Grid.Row="3"/>
-            <Button Name="ButtonSecuritiesGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="3" Click="ButtonSecuritiesGridUp_Click" RenderTransformOrigin="0.5,0.5" >
-                <Button.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform/>
-                        <SkewTransform/>
-                        <RotateTransform Angle="-180"/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </Button.RenderTransform>
-            </Button>
-            <Button Name="ButtonSecuritiesGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="3" RenderTransformOrigin="0.5,0.5" Click="ButtonSecuritiesGridDown_Click" />
-            <Rectangle Margin="2,2,2,2" Grid.Row="4" Stroke="Black"/>
-            <Label Name="LabelJournal" Content="Journal" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="4"/>
-            <WindowsFormsHost Name="HostJournal" Margin="5,23,5,5" Grid.Row="4"/>
-            <Button Name="ButtonJournalGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="4" Click="ButtonJournalGridUp_Click" RenderTransformOrigin="0.5,0.5" >
-                <Button.RenderTransform>
-                    <TransformGroup>
-                        <ScaleTransform/>
-                        <SkewTransform/>
-                        <RotateTransform Angle="-180"/>
-                        <TranslateTransform/>
-                    </TransformGroup>
-                </Button.RenderTransform>
-            </Button>
-            <Button Name="ButtonJournalGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="4" RenderTransformOrigin="0.5,0.5" Click="ButtonJournalGridDown_Click" />
-
 
         </Grid>
         <Label Content="Log" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top"/>

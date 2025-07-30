@@ -13,13 +13,6 @@ using System.Linq;
 namespace OsEngine.Market.AutoFollow
 {
 
-    public enum CopyTraderType
-    {
-        None,
-        Portfolio,
-        Robot
-    }
-
     public class CopyTrader
     {
         public CopyTrader(string saveStr)
@@ -27,16 +20,15 @@ namespace OsEngine.Market.AutoFollow
             string[] save = saveStr.Split('%');
             Number = Convert.ToInt32(save[0]);
             Name = save[1];
-            Enum.TryParse(save[2], out WorkType);
-            IsOn = Convert.ToBoolean(save[3]);
-            PanelsPosition = save[4];
+            IsOn = Convert.ToBoolean(save[2]);
+            PanelsPosition = save[3];
 
-            if (save[5].Split('!').Length > 1)
+            if (save[4].Split('!').Length > 1)
             {
-                OnRobotsNames = save[5].Split('!').ToList();
+                OnRobotsNames = save[4].Split('!').ToList();
             }
 
-            LoadPortfolios(save[6]);
+            LoadPortfolios(save[5]);
 
             LogCopyTrader = new Log("CopyTrader" + Number, Entity.StartProgram.IsOsTrader);
             LogCopyTrader.Listen(this);
@@ -58,8 +50,6 @@ namespace OsEngine.Market.AutoFollow
 
         public string Name;
 
-        public CopyTraderType WorkType;
-
         public bool IsOn;
 
         public string PanelsPosition = "1,1,1,1,1";
@@ -68,7 +58,6 @@ namespace OsEngine.Market.AutoFollow
         {
             string result = Number + "%";
             result += Name + "%";
-            result += WorkType + "%";
             result += IsOn + "%";
             result += PanelsPosition + "%";
             result += OnRobotsNamesInString + "%";
@@ -198,9 +187,19 @@ namespace OsEngine.Market.AutoFollow
 
     public class PortfolioToCopy
     {
+        #region Settings
+
         public string ServerName;
 
         public string PortfolioName;
+
+        public string UniqueName
+        {
+            get 
+            { 
+                return ServerName + "~" + PortfolioName; 
+            }
+        }
 
         public bool IsOn = false;
 
@@ -252,6 +251,31 @@ namespace OsEngine.Market.AutoFollow
             Enum.TryParse(saveArray[8], out OrderType);
             IcebergCount = Convert.ToInt32(saveArray[9]);
         }
+
+        #endregion
+
+        #region Securities
+
+        public List<SecurityToCopy> SecurityToCopy = new List<SecurityToCopy>();
+
+
+
+        #endregion
+
+        #region Journal
+
+
+
+
+        #endregion
+
+        #region Copy position logic
+
+
+
+
+        #endregion
+
     }
 
     public enum CopyTraderVolumeType
@@ -270,6 +294,18 @@ namespace OsEngine.Market.AutoFollow
     {
         Market,
         Iceberg
+    }
+
+    public class SecurityToCopy
+    {
+        public string MasterSecurityName;
+
+        public string MasterSecurityClass;
+
+        public string SlaveSecurityName;
+
+        public string SlaveSecurityClass;
+
     }
 
 }
