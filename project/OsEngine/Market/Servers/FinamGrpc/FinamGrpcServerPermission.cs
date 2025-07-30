@@ -120,7 +120,7 @@ namespace OsEngine.Market.Servers.FinamGrpc
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 10; }
+            get { return 60; }
         }
 
         public bool IsCanChangeOrderPrice
