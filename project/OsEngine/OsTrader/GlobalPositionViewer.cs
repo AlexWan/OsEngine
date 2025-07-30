@@ -32,7 +32,7 @@ namespace OsEngine.OsTrader
 
         private CultureInfo _currentCulture;
 
-        public void SetJournal(Journal.Journal journal)
+        public void SetJournals(List<Journal.Journal> journals)
         {
             try
             {
@@ -41,32 +41,13 @@ namespace OsEngine.OsTrader
                     _journals = new List<Journal.Journal>();
                 }
 
-                if(journal == null)
+                if(journals == null
+                    || journals.Count == 0)
                 {
                     return;
                 }
 
-                for(int i = 0;i < _journals.Count;i++)
-                {
-                    if (_journals[i] == null)
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        if (_journals[i].Name == journal.Name)
-                        {
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        // ignore
-                        continue;
-                    }
-                }
-
-                _journals.Add(journal);
+                _journals.AddRange(journals);
             }
             catch (Exception error)
             {
@@ -74,41 +55,17 @@ namespace OsEngine.OsTrader
             }
         }
 
-        public void RemoveJournal(Journal.Journal journal)
+        public void ClearJournalsArray()
         {
             try
             {
-                if (journal == null)
+                if (_journals == null
+                    || _journals.Count == 0)
                 {
                     return;
                 }
 
-                if (_journals == null)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < _journals.Count; i++)
-                {
-                    if(_journals[i] == null)
-                    {
-                        continue;
-                    }
-
-                    try
-                    {
-                        if (_journals[i].Name == journal.Name)
-                        {
-                            _journals.RemoveAt(i);
-                            return;
-                        }
-                    }
-                    catch
-                    {
-                        // ignore
-                        continue;
-                    }
-                }
+                _journals?.Clear();
             }
             catch (Exception error)
             {

@@ -24,6 +24,7 @@ using OsEngine.Candles.Factory;
 using OsEngine.OsTrader.Panels.Tab.Internal;
 using System.Drawing;
 using OsEngine.Market.Servers.Tester;
+using OsEngine.Journal;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -1493,15 +1494,22 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
+                _positionViewer.ClearJournalsArray();
+
+                List<Journal.Journal> journals = new List<Journal.Journal>();
+
                 for (int i = 0; i < Tabs.Count; i++)
                 {
                     if (Tabs[i] != null)
                     {
                         Journal.Journal journal = Tabs[i].GetJournal();
-
-                        _positionViewer.RemoveJournal(journal);
-                        _positionViewer.SetJournal(journal);
+                        journals.Add(journal);
                     }
+                }
+
+                if(journals.Count > 0)
+                {
+                    _positionViewer.SetJournals(journals);
                 }
             }
             catch (Exception error)

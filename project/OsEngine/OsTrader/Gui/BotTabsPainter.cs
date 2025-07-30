@@ -45,11 +45,11 @@ namespace OsEngine.OsTrader.Gui
             RePaintTable();
         }
 
-        OsTraderMaster _master;
+        private OsTraderMaster _master;
 
-        WindowsFormsHost _host;
+        private WindowsFormsHost _host;
 
-        DataGridView _grid;
+        private DataGridView _grid;
 
         private void CreateTable(StartProgram startProgram)
         {
@@ -288,7 +288,7 @@ namespace OsEngine.OsTrader.Gui
                     if (_master._startProgram == StartProgram.IsOsTrader
                         && coluIndex == 7)
                     {
-                        //ServerMaster.ShowCopyMasterDialog();
+                        ServerMaster.ShowCopyMasterDialog();
                     }
                     else if (coluIndex == 8 &&
                        rowIndex == botsCount + 1)
@@ -324,7 +324,7 @@ namespace OsEngine.OsTrader.Gui
 
         private int _mouseYPos;
 
-        BotPanel _lastSelectedBot;
+        private BotPanel _lastSelectedBot;
 
         private void _grid_CellMouseClick(object sender, DataGridViewCellMouseEventArgs e)
         {
@@ -637,9 +637,9 @@ namespace OsEngine.OsTrader.Gui
 
         #region работа с чек-боксами включений и отключений
 
-        int _lastChangeRow;
+        private int _lastChangeRow;
 
-        int _lastChangeColumn;
+        private int _lastChangeColumn;
 
         private void _grid_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
         {
@@ -667,7 +667,7 @@ namespace OsEngine.OsTrader.Gui
             }
         }
 
-        DateTime _lastTimeClick = DateTime.MinValue;
+        private DateTime _lastTimeClick = DateTime.MinValue;
 
         private async void ChangeOnOffAwait()
         {
@@ -964,7 +964,7 @@ colum9.HeaderText = "Journal";
 
             if(_master._startProgram == StartProgram.IsOsTrader)
             {
-                //row.Cells[7].Value = OsLocalization.Trader.Label570; //"Copy trading";
+                row.Cells[7].Value = OsLocalization.Trader.Label570; //"Copy trading";
             }
 
             row.Cells.Add(new DataGridViewButtonCell());
@@ -1157,7 +1157,7 @@ colum9.HeaderText = "Journal";
             }
         }
 
-        int _rowToPaintInOpenPoses = -1;
+        private int _rowToPaintInOpenPoses = -1;
 
         System.Drawing.Color _lastBackColor;
 

@@ -41,45 +41,7 @@ namespace OsEngine.OsTrader
 
         public void LoadTabToWatch(List<BotTabSimple> tabs)
         {
-            DeleteDontActiveTabs(tabs);
-            CreateActiveTabs(tabs);
-        }
-
-        private void CreateActiveTabs(List<BotTabSimple> actualTabs)
-        {
-            if (actualTabs == null
-                || actualTabs.Count == 0)
-            {
-                return;
-            }
-
-            for (int i = 0; i < actualTabs.Count; i++)
-            {
-                if (_tabsToWatch.Find(t => t != null && t.TabName == actualTabs[i].TabName) == null)
-                {
-                    _tabsToWatch.Add(actualTabs[i]);
-                }
-            }
-        }
-
-        private void DeleteDontActiveTabs(List<BotTabSimple> actualTabs)
-        {
-            if (actualTabs == null
-                ||
-                actualTabs.Count == 0)
-            {
-                _tabsToWatch.Clear();
-                return;
-            }
-
-            for (int i = 0; i < _tabsToWatch.Count; i++)
-            {
-                if (actualTabs.Find(t => t != null && t.TabName == _tabsToWatch[i].TabName) == null)
-                {
-                    _tabsToWatch.RemoveAt(i);
-                    i--;
-                }
-            }
+            _tabsToWatch = tabs;
         }
 
         private List<BotTabSimple> _tabsToWatch = new List<BotTabSimple>();

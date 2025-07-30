@@ -537,22 +537,33 @@ namespace OsEngine.OsTrader
             {
                 _riskManager.ClearJournals();
 
+                if (_globalPositionViewer != null)
+                {
+                    _globalPositionViewer.ClearJournalsArray();
+                }
+
                 if (PanelsArray != null)
                 {
+                    List<Journal.Journal> journalsAll = new List<Journal.Journal>();
+
                     for (int i = 0; i < PanelsArray.Count; i++)
                     {
-                        List<Journal.Journal> journals = PanelsArray[i].GetJournals();
+                        List<Journal.Journal> journalsCurrent = PanelsArray[i].GetJournals();
 
-                        for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
+                        for (int i2 = 0; journalsCurrent != null && i2 < journalsCurrent.Count; i2++)
                         {
-                            _riskManager.SetNewJournal(journals[i2]);
+                            _riskManager.SetNewJournal(journalsCurrent[i2]);
 
                             if (_globalPositionViewer != null)
                             {
-                                _globalPositionViewer.RemoveJournal(journals[i2]);
-                                _globalPositionViewer.SetJournal(journals[i2]);
+                                journalsAll.AddRange(journalsCurrent[i2]);
                             }
                         }
+                    }
+
+                    if (_globalPositionViewer != null)
+                    {
+                        _globalPositionViewer.SetJournals(journalsAll);
                     }
 
                     if (_buyAtStopPosViewer != null)

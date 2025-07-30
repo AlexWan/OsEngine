@@ -15,6 +15,7 @@ using System.Windows.Forms.Integration;
 using System.Threading;
 using OsEngine.Market;
 using OsEngine.Alerts;
+using OsEngine.Journal;
 
 namespace OsEngine.OsTrader.Panels.Tab
 {
@@ -1253,6 +1254,11 @@ namespace OsEngine.OsTrader.Panels.Tab
 
             try
             {
+
+                _positionViewer.ClearJournalsArray();
+
+                List<Journal.Journal> journals = new List<Journal.Journal>();   
+
                 for (int i = 0; i < Pairs.Count; i++)
                 {
                     PairToTrade curPair = Pairs[i];
@@ -1260,17 +1266,18 @@ namespace OsEngine.OsTrader.Panels.Tab
                     if (curPair.Tab1 != null)
                     {
                         Journal.Journal journal = curPair.Tab1.GetJournal();
-
-                        _positionViewer.RemoveJournal(journal);
-                        _positionViewer.SetJournal(journal);
+                        journals.Add(journal);
                     }
                     if (curPair.Tab2 != null)
                     {
                         Journal.Journal journal = curPair.Tab2.GetJournal();
-
-                        _positionViewer.RemoveJournal(journal);
-                        _positionViewer.SetJournal(journal);
+                        journals.Add(journal);
                     }
+                }
+
+                if(journals.Count > 0)
+                {
+                    _positionViewer.SetJournals(journals);
                 }
             }
             catch (Exception error)
