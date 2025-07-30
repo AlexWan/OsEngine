@@ -1542,10 +1542,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                 OrderStateType stateType = GetOrderState(item.status, item.type);
 
-                if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Active)
-                {
-                    return;
-                }
+                //if (item.orderType != null && item.orderType.Equals("market") && stateType == OrderStateType.Active)
+                //{
+                //    return;
+                //}
 
                 Order newOrder = new Order();
                 newOrder.SecurityNameCode = item.symbol;
@@ -1567,7 +1567,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 newOrder.NumberMarket = item.orderId;
 
                 OrderPriceType.TryParse(item.orderType, true, out newOrder.TypeOrder);
-                Side.TryParse(item.side, true, out newOrder.Side);
+                newOrder.Side = item.side.Equals("buy") ? Side.Buy : Side.Sell;
 
                 newOrder.State = stateType;
                 newOrder.Volume = item.size == null ? item.filledSize.Replace('.', ',').ToDecimal() : item.size.Replace('.', ',').ToDecimal();
@@ -1601,14 +1601,19 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     break;
 
                 case ("match"):
-                    stateType = OrderStateType.Partial;
+                    stateType = OrderStateType.Active;
                     break;
 
                 case ("done"):
                     if (orderTypeResponse == "canceled")
+                    {
                         stateType = OrderStateType.Cancel;
+                    }
                     else //(orderTypeResponse == "filled")
+                    {
                         stateType = OrderStateType.Done;
+                    }
+
                     break;
 
                 default:
@@ -1682,7 +1687,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 data.type = order.TypeOrder.ToString().ToLower();
                 data.price = order.TypeOrder == OrderPriceType.Market ? null : order.Price.ToString().Replace(",", ".");
                 data.size = order.Volume.ToString().Replace(",", ".");
-                data.leverage = "10";
+                data.leverage = "1";
 
                 JsonSerializerSettings dataSerializerSettings = new JsonSerializerSettings();
                 dataSerializerSettings.NullValueHandling = NullValueHandling.Ignore;// if it's a market order, then we ignore the price parameter
@@ -1826,11 +1831,6 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             return false;
         }
 
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
-        }
-
         private void CreateOrderFail(Order order)
         {
             order.State = OrderStateType.Fail;
@@ -1843,7 +1843,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            List<Order> orders = GetAllOpenOrders();
 
             for (int i = 0; orders != null && i < orders.Count; i++)
             {
@@ -1866,7 +1866,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
             }
         }
 
-        private List<Order> GetAllOrdersFromExchange()
+        private List<Order> GetAllOpenOrders()
         {
             _rateGateSendOrder.WaitToProceed();
 
@@ -1933,8 +1933,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     }
                     else
                     {
-                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        SendLogMessage($"GetAllOpenOrders> Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
+                }
+                else
+                {
+                    SendLogMessage($"GetAllOpenOrders>: {responseMessage.StatusCode}\n" + $"Message: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2003,7 +2007,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 }
                 else
                 {
-                    path = $"/api/v1/orders/{numberUser}";
+                    path = $"/api/v1/orders/byClientOid?clientOid={numberUser}";
                 }
 
                 if (path == null)
@@ -2068,8 +2072,12 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                     }
                     else
                     {
-                        SendLogMessage($"Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
+                        SendLogMessage($"GetOrderFromExchange> Code: {stateResponse.code}\n" + $"Message: {stateResponse.msg}", LogMessageType.Error);
                     }
+                }
+                else
+                {
+                    SendLogMessage($"GetOrderFromExchange>: {responseMessage.StatusCode}\n" + $"Message: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
