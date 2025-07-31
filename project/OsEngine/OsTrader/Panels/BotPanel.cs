@@ -14,6 +14,7 @@ using System.Windows.Forms.Integration;
 using System.Windows.Shapes;
 using OsEngine.Alerts;
 using OsEngine.Entity;
+using OsEngine.Attributes;
 using OsEngine.Journal.Internal;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -90,6 +91,9 @@ namespace OsEngine.OsTrader.Panels
             ParamGuiSettings.LogMessageEvent += SendNewLogMessage;
 
             OsTraderMaster.CriticalErrorEvent += OsTraderMaster_CriticalErrorEvent;
+
+	    AttributeInitializer attributeInitializer = new(this);
+            attributeInitializer.InitAttributes();
         }
 
         private void OsTraderMaster_CriticalErrorEvent()
