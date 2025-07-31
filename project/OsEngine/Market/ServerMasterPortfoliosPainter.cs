@@ -484,6 +484,11 @@ namespace OsEngine.Market
 
                         string currentServerName = portfolios[i].ServerUniqueName;
 
+                        if(currentServerName == null)
+                        {
+                            currentServerName = "";
+                        }
+
                         if(currentServerName.Split('_').Length == 3)
                         {
                             currentServerName = currentServerName.Split('_')[0] + "_" + currentServerName.Split('_')[1];

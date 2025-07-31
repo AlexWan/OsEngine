@@ -1732,6 +1732,7 @@ namespace OsEngine.Market.Servers.Optimizer
             portfolio.ValueBegin = startValue;
             portfolio.ValueBlocked = 0;
             portfolio.ValueCurrent = startValue;
+            portfolio.ServerUniqueName = ServerNameAndPrefix;
 
             if (Portfolios == null)
             {

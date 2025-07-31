@@ -751,6 +751,7 @@ namespace OsEngine.Market.Servers.Tester
             portfolio.ValueBegin = 1000000;
             portfolio.ValueBlocked = 0;
             portfolio.ValueCurrent = 1000000;
+            portfolio.ServerUniqueName = ServerNameAndPrefix;
             ProfitArray = new List<decimal>();
 
             _portfolios = new List<Portfolio>();

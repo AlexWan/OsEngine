@@ -46,7 +46,7 @@ namespace OsEngine.Entity
         /// <summary>
         /// Connector unique name in multi-connection mode
         /// </summary>
-        public string ServerUniqueName;
+        public string ServerUniqueName = "";
 
         // then goes the storage of open positions in the system by portfolio
 
