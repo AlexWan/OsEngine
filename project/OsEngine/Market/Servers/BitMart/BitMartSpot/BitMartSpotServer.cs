@@ -5,22 +5,21 @@
 
 using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.BitMart.Json;
 using OsEngine.Market.Servers.Entity;
+using RestSharp;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO.Compression;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
-using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
-using RestSharp;
-using System.Security.Cryptography;
 
 
 namespace OsEngine.Market.Servers.BitMart
@@ -59,11 +58,6 @@ namespace OsEngine.Market.Servers.BitMart
 
         public void Connect(WebProxy proxy = null)
         {
-            _securities.Clear();
-            _myPortfolious.Clear();
-            //_securitiesSubscriptions.Clear();
-            //_orderSubcriptions.Clear();
-
             _publicKey = ((ServerParameterString)ServerParameters[0]).Value;
             _secretKey = ((ServerParameterPassword)ServerParameters[1]).Value;
             _memo = ((ServerParameterString)ServerParameters[2]).Value;
@@ -79,28 +73,19 @@ namespace OsEngine.Market.Servers.BitMart
 
             try
             {
-                _restClient = new BitMartRestClient(_publicKey, _secretKey, _memo);
-
                 RestRequest requestRest = new RestRequest("/system/time", Method.GET);
                 RestClient client = new RestClient(_baseUrl);
                 IRestResponse response = client.Execute(requestRest);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    
                     CreatePublicWebSocketConnect();
                     CreatePrivateWebSocketConnect();
-                    //CheckSocketsActivate();
                 }
                 else
                 {
                     SendLogMessage("Connection can be open. BitMartSpot. Error request", LogMessageType.Error);
-
-                    if (ServerStatus != ServerConnectStatus.Disconnect)
-                    {
-                        ServerStatus = ServerConnectStatus.Disconnect;
-                        DisconnectEvent();
-                    }
+                    Disconnect();
                 }
             }
             catch (Exception ex)
@@ -114,10 +99,9 @@ namespace OsEngine.Market.Servers.BitMart
             try
             {
                 UnsubscribeFromAllWebSockets();
-                _securities.Clear();
+                _securities = new List<Security>();
                 _myPortfolious.Clear();
                 _subscribedSecurities.Clear();
-                //_orderSubcriptions.Clear();
 
                 DeleteWebSocketConnection();
             }
@@ -165,17 +149,17 @@ namespace OsEngine.Market.Servers.BitMart
 
         public List<IServerParameter> ServerParameters { get; set; }
 
-        private BitMartRestClient _restClient;
-
         #endregion
 
         #region 3 Securities
 
         private List<Security> _securities = new List<Security>();
 
+        private RateGate _rateGateSecurity = new RateGate(12, TimeSpan.FromMilliseconds(2000));
+
         public void GetSecurities()
         {
-            UpdateSec();
+            UpdateSecurity();
 
             if (_securities.Count > 0)
             {
@@ -186,12 +170,11 @@ namespace OsEngine.Market.Servers.BitMart
                     SecurityEvent.Invoke(_securities);
                 }
             }
-
         }
 
-        private void UpdateSec()
+        private void UpdateSecurity()
         {
-            // https://api-cloud.bitmart.com/spot/v1/symbols/details
+            _rateGateSecurity.WaitToProceed();
 
             try
             {
@@ -201,113 +184,55 @@ namespace OsEngine.Market.Servers.BitMart
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    BitMartBaseMessage parsed =
-                    JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage());
+                    BitMartBaseMessage<SecurityData> symbolsResponse = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<SecurityData>());
 
-                    if (parsed != null && parsed.data != null
-                        && parsed.message == "OK")
+                    if (symbolsResponse.code == "1000")
                     {
-                        string symbols = parsed.data["symbols"].ToString();
+                        for (int i = 0; i < symbolsResponse.data.symbols.Count; i++)
+                        {
+                            BitMartSecurityRest item = symbolsResponse.data.symbols[i];
 
-                        List<BitMartSecurityRest> securities =
-                            JsonConvert.DeserializeAnonymousType(symbols, new List<BitMartSecurityRest>());
-                        UpdateSecuritiesFromServer(securities);
+                            if (item.trade_status != "trading")
+                            {
+                                continue;
+                            }
+
+                            Security newSecurity = new Security();
+
+                            newSecurity.Name = item.symbol;
+                            newSecurity.NameFull = item.symbol;
+                            newSecurity.NameClass = item.quote_currency;
+                            newSecurity.NameId = item.symbol_id;
+                            newSecurity.State = SecurityStateType.Activ;
+
+                            newSecurity.Decimals = Convert.ToInt32(item.price_max_precision);
+                            newSecurity.DecimalsVolume = item.quote_increment.DecimalsCount();
+                            newSecurity.PriceStep = newSecurity.Decimals.GetValueByDecimals();
+                            newSecurity.PriceStepCost = newSecurity.PriceStep;
+                            newSecurity.Lot = 1;
+                            newSecurity.SecurityType = SecurityType.CurrencyPair;
+                            newSecurity.Exchange = ServerType.BitMartSpot.ToString();
+                            newSecurity.MinTradeAmountType = MinTradeAmountType.C_Currency;
+                            newSecurity.MinTradeAmount = item.min_buy_amount.ToDecimal();
+                            newSecurity.VolumeStep = item.base_min_size.ToDecimal();
+
+                            _securities.Add(newSecurity);
+                        }
                     }
                     else
                     {
-                        string message = "";
-                        if (parsed != null)
-                        {
-                            message = parsed.message;
-                        }
+                        SendLogMessage($"Securities error. Code:{symbolsResponse.code} || msg: {symbolsResponse.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-
-                    SendLogMessage("Securities request error. Status: " +
-                        response.StatusCode + ", " + response.Content, LogMessageType.Error);
+                    SendLogMessage("Securities request error. " + response.StatusCode + ", " + response.Content, LogMessageType.Error);
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage("Securities request error: " + exception.ToString(), LogMessageType.Error);
+                SendLogMessage($"Securities error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
-        }
-
-        private void UpdateSecuritiesFromServer(List<BitMartSecurityRest> stocks)
-        {
-            try
-            {
-                if (stocks == null ||
-                    stocks.Count == 0)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < stocks.Count; i++)
-                {
-                    BitMartSecurityRest item = stocks[i];
-
-                    if (item.trade_status != "trading")
-                    {
-                        continue;
-                    }
-
-                    Security newSecurity = new Security();
-
-                    newSecurity.Name = item.symbol;
-                    newSecurity.NameFull = item.symbol;
-                    newSecurity.NameClass = item.quote_currency;
-                    newSecurity.NameId = item.symbol_id;
-                    newSecurity.State = SecurityStateType.Activ;
-
-                    newSecurity.Decimals = Convert.ToInt32(item.price_max_precision);
-                    newSecurity.DecimalsVolume = GetDecimalsVolume(item.quote_increment);
-                    newSecurity.PriceStep = GetPriceStep(newSecurity.Decimals);
-                    newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.Lot = 1;
-                    newSecurity.SecurityType = SecurityType.CurrencyPair;
-                    newSecurity.Exchange = ServerType.BitMartSpot.ToString();
-                    newSecurity.MinTradeAmount = item.min_buy_amount.ToDecimal();
-
-                    _securities.Add(newSecurity);
-                }
-            }
-            catch (Exception e)
-            {
-                SendLogMessage($"Error loading stocks: {e.Message}" + e.ToString(), LogMessageType.Error);
-            }
-        }
-
-        private static int GetDecimalsVolume(string str)
-        {
-            string[] s = str.Split('.');
-            if (s.Length > 1)
-            {
-                return s[1].Length;
-            }
-            else
-            {
-                return 0;
-            }
-        }
-
-        private decimal GetPriceStep(int ScalePrice)
-        {
-            if (ScalePrice == 0)
-            {
-                return 1;
-            }
-            string priceStep = "0,";
-            for (int i = 0; i < ScalePrice - 1; i++)
-            {
-                priceStep += "0";
-            }
-
-            priceStep += "1";
-
-            return priceStep.ToDecimal();
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -322,96 +247,67 @@ namespace OsEngine.Market.Servers.BitMart
 
         public void GetPortfolios()
         {
-            GetCurrentPortfolio();
-        }
-
-        private bool GetCurrentPortfolio()
-        {
             _rateGateSendOrder.WaitToProceed();
 
             try
             {
                 string endPoint = $"/spot/v1/wallet";
 
-                HttpResponseMessage response = _restClient.Get(endPoint, secured: true);
-
-                string content = response.Content.ReadAsStringAsync().Result;
-                BitMartBaseMessage parsed =
-                    JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.GET);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (parsed != null && parsed.data != null && parsed.data.ContainsKey("wallet"))
+                    BitMartBaseMessage<PortfolioData> portfolioResponse = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<PortfolioData>());
+
+                    if (portfolioResponse.code == "1000")
                     {
-                        string wallet = parsed.data["wallet"].ToString();
-                        BitMartSpotPortfolioItems portfolio =
-                            JsonConvert.DeserializeAnonymousType(wallet, new BitMartSpotPortfolioItems());
+                        Portfolio portfolio = new Portfolio();
+                        portfolio.Number = this.PortfolioName;
+                        portfolio.ValueBegin = 1;
+                        portfolio.ValueCurrent = 1;
 
-                        ConvertToPortfolio(portfolio);
+                        for (int i = 0; i < portfolioResponse.data.wallet.Count; i++)
+                        {
+                            BitMartSpotPortfolioItem item = portfolioResponse.data.wallet[i];
 
-                        return true;
+                            PositionOnBoard pos = new PositionOnBoard()
+                            {
+                                PortfolioName = this.PortfolioName,
+                                SecurityNameCode = item.id,
+                                ValueBlocked = item.frozen.ToDecimal(),
+                                ValueCurrent = item.available.ToDecimal()
+                            };
+
+                            portfolio.SetNewPosition(pos);
+                        }
+
+                        if (_myPortfolious.Count > 0)
+                        {
+                            _myPortfolious[0] = portfolio;
+                        }
+                        else
+                        {
+                            _myPortfolious.Add(portfolio);
+                        }
+
+                        if (PortfolioEvent != null)
+                        {
+                            PortfolioEvent(_myPortfolious);
+                        }
+                    }
+                    else
+                    {
+                        SendLogMessage($"Portfolio error. {portfolioResponse.code} || msg: {portfolioResponse.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    string message = "";
-                    if (parsed != null)
-                    {
-                        message = parsed.message;
-                    }
-                    SendLogMessage("Portfolio request error. Status: "
-                        + response.StatusCode + "  " + PortfolioName +
-                        ", " + message, LogMessageType.Error);
+                    SendLogMessage($"Portfolio error. Code: {response.StatusCode} || msg: {response.Content}", LogMessageType.Error);
                 }
             }
-            catch (Exception exception)
+            catch (Exception ex)
             {
-                SendLogMessage("Portfolio request error " + exception.ToString(), LogMessageType.Error);
-            }
-
-            return false;
-        }
-
-        private void ConvertToPortfolio(BitMartSpotPortfolioItems portfolioItems)
-        {
-            if (portfolioItems == null)
-            {
-                return;
-            }
-
-            Portfolio portfolio = new Portfolio();
-            portfolio.Number = this.PortfolioName;
-            portfolio.ValueBegin = 1;
-            portfolio.ValueCurrent = 1;
-
-            for (int i = 0; i < portfolioItems.Count; i++)
-            {
-                BitMartSpotPortfolioItem item = portfolioItems[i];
-
-                PositionOnBoard pos = new PositionOnBoard()
-                {
-                    PortfolioName = this.PortfolioName,
-                    SecurityNameCode = item.id,
-                    ValueBlocked = item.frozen.ToDecimal(),
-                    ValueCurrent = item.available.ToDecimal()
-                };
-
-                portfolio.SetNewPosition(pos);
-            }
-
-            if (_myPortfolious.Count > 0)
-            {
-                _myPortfolious[0] = portfolio;
-            }
-            else
-            {
-                _myPortfolious.Add(portfolio);
-            }
-
-
-            if (PortfolioEvent != null)
-            {
-                PortfolioEvent(_myPortfolious);
+                SendLogMessage($"Portfolio request error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
         }
 
@@ -545,8 +441,7 @@ namespace OsEngine.Market.Servers.BitMart
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    BitMartCandle symbols =
-                                JsonConvert.DeserializeAnonymousType(response.Content, new BitMartCandle());
+                    BitMartCandle symbols = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartCandle());
 
                     if (symbols.code == "1000")
                     {
@@ -714,9 +609,6 @@ namespace OsEngine.Market.Servers.BitMart
                 //}
 
                 _webSocketPrivate.EmitOnPing = true;
-                /* _webSocketPrivate.SslConfiguration.EnabledSslProtocols
-                     = System.Security.Authentication.SslProtocols.Tls12
-                    | System.Security.Authentication.SslProtocols.Tls13;*/
                 _webSocketPrivate.OnOpen += _webSocketPrivate_OnOpen;
                 _webSocketPrivate.OnClose += _webSocketPrivate_OnClose;
                 _webSocketPrivate.OnMessage += _webSocketPrivate_OnMessage;
@@ -1111,8 +1003,7 @@ namespace OsEngine.Market.Servers.BitMart
 
                     if (_webSocketPrivate != null &&
                         (_webSocketPrivate.ReadyState == WebSocketState.Open ||
-                        _webSocketPrivate.ReadyState == WebSocketState.Connecting)
-                        )
+                        _webSocketPrivate.ReadyState == WebSocketState.Connecting))
                     {
                         _webSocketPrivate.Send("ping");
                     }
@@ -1708,6 +1599,10 @@ namespace OsEngine.Market.Servers.BitMart
 
         public event Action<OptionMarketDataForConnector> AdditionalMarketDataEvent;
 
+        public event Action<Funding> FundingUpdateEvent;
+
+        public event Action<SecurityVolumes> Volume24hUpdateEvent;
+
         #endregion
 
         #region 11 Trade
@@ -1724,43 +1619,31 @@ namespace OsEngine.Market.Servers.BitMart
 
             try
             {
-                //SubcribeToOrderData(order.SecurityNameCode);
-
                 string endPoint = "/spot/v2/submit_order";
 
                 NewOrderBitMartRequest body = GetOrderRequestObj(order);
                 string bodyStr = JsonConvert.SerializeObject(body);
-                SendLogMessage("Order New: " + bodyStr, LogMessageType.Connect);
-                HttpResponseMessage response = _restClient.Post(endPoint, bodyStr, secured: true);
 
-                string content = response.Content.ReadAsStringAsync().Result;
-                BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, bodyStr);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (parsed != null && parsed.data != null && parsed.data.ContainsKey("order_id"))
+                    BitMartBaseMessage<NewOrderBitMartResponce> parsed = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<NewOrderBitMartResponce>());
+
+                    if (parsed.code == "1000")
                     {
                         //Everything is OK
-
                     }
                     else
                     {
+                        SendLogMessage("Order Fail. " + parsed.code + "  " + order.SecurityNameCode + ", " + parsed.message, LogMessageType.Error);
                         CreateOrderFail(order);
-                        SendLogMessage($"Order created, but answer is wrong: {content}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    string message = content;
-                    if (parsed != null && parsed.message != null)
-                    {
-                        message = parsed.message;
-                    }
 
-                    SendLogMessage("Order Fail. Status: "
-                        + response.StatusCode + "  " + order.SecurityNameCode + ", " + message, LogMessageType.Error);
-
+                    SendLogMessage("Order Fail. Status: " + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
                     CreateOrderFail(order);
                 }
             }
@@ -1822,7 +1705,6 @@ namespace OsEngine.Market.Servers.BitMart
 
             try
             {
-
                 string endPoint = "/spot/v3/cancel_order";
 
                 CancelOrderBitMartRequest body = new CancelOrderBitMartRequest();
@@ -1830,57 +1712,28 @@ namespace OsEngine.Market.Servers.BitMart
                 body.symbol = order.SecurityNameCode;
 
                 string bodyStr = JsonConvert.SerializeObject(body);
-                SendLogMessage("Order Cancel: " + bodyStr, LogMessageType.Connect);
-                HttpResponseMessage response = _restClient.Post(endPoint, bodyStr, secured: true);
 
-                string content = response.Content.ReadAsStringAsync().Result;
-                BitMartBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartBaseMessage());
-
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, bodyStr);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (parsed != null && parsed.data != null && parsed.data.ContainsKey("result"))
+                    BitMartBaseMessage<object> parsed = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<object>());
+
+                    if (parsed.code == "1000")
                     {
                         //Everything is OK - do nothing
                         return true;
                     }
                     else
                     {
-                        OrderStateType state = GetOrderStatus(order);
-
-                        if (state == OrderStateType.None)
-                        {
-                            SendLogMessage($"Cancel order, answer is wrong: {content}", LogMessageType.Error);
-                            return false;
-                        }
-                        else
-                        {
-                            return true;
-                        }
+                        GetOrderStatus(order);
+                        SendLogMessage($"Cancel order, answer is wrong: {parsed.code} || {parsed.message}", LogMessageType.Error);
                     }
                 }
                 else
                 {
-                    OrderStateType state = GetOrderStatus(order);
-
-                    if (state == OrderStateType.None)
-                    {
-                        string message = content;
-
-                        if (parsed != null && parsed.message != null)
-                        {
-                            message = parsed.message;
-                        }
-
-                        SendLogMessage("Cancel order failed. Status: "
-                            + response.StatusCode + "  " + order.SecurityNameCode + ", " + message, LogMessageType.Error);
-                        return false;
-                    }
-                    else
-                    {
-                        return true;
-                    }
+                    SendLogMessage("Cancel order failed. Status: " + response.StatusCode + "  " + order.SecurityNameCode + ", " + response.Content, LogMessageType.Error);
+                    GetOrderStatus(order);
                 }
             }
             catch (Exception exception)
@@ -1890,47 +1743,9 @@ namespace OsEngine.Market.Servers.BitMart
             return false;
         }
 
-        public void GetOrdersState(List<Order> orders)
-        {
-            if (orders == null && orders.Count == 0)
-            {
-                return;
-            }
-
-            List<Order> actualOrders = GetAllOrdersFromExchange();
-
-            for (int i = 0; i < orders.Count; i++)
-            {
-                Order order = orders[i];
-                bool found = false;
-                for (int j = 0; j < actualOrders.Count; j++)
-                {
-                    if (actualOrders[j].SecurityNameCode != order.SecurityNameCode)
-                    {
-                        continue;
-                    }
-
-                    order.State = actualOrders[j].State;
-                    found = true;
-                    break;
-                }
-
-                if (!found)
-                {
-                    order.State = OrderStateType.Cancel;
-                }
-            }
-
-        }
-
-        public void ResearchTradesToOrders(List<Order> orders)
-        {
-
-        }
-
         public void CancelAllOrders()
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            List<Order> orders = GetAllOpenOrders();
 
             for (int i = 0; i < orders.Count; i++)
             {
@@ -1945,7 +1760,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         public void CancelAllOrdersToSecurity(Security security)
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            List<Order> orders = GetAllOpenOrders();
 
             for (int i = 0; i < orders.Count; i++)
             {
@@ -1959,70 +1774,56 @@ namespace OsEngine.Market.Servers.BitMart
             }
         }
 
-        private List<Order> GetAllOrdersFromExchange()
+        private List<Order> GetAllOpenOrders()
         {
             _rateGateGetOrder.WaitToProceed();
 
-            //try
-            //{
-            //    string endPoint = "/spot/v4/query/open-orders";
+            try
+            {
+                string endPoint = "/spot/v4/query/open-orders";
 
-            //    HttpResponseMessage response = _restClient.Post(endPoint,
-            //                "{ \"orderMode\": \"spot\" }",
-            //                secured: true);
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, "{ \"orderMode\": \"spot\" }");
 
-            //    if (response.StatusCode == HttpStatusCode.OK)
-            //    {
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    BitMartBaseMessage<List<BitMartRestOrder>> parsed = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<List<BitMartRestOrder>>());
 
-            //        string content = response.Content.ReadAsStringAsync().Result;
-            //        BitMartRestOrdersBaseMessage parsed =
-            //            JsonConvert.DeserializeAnonymousType(content, new BitMartRestOrdersBaseMessage());
+                    if (parsed.code == "1000")
+                    {
+                        List<Order> osEngineOrders = new List<Order>();
 
-            //        if (parsed != null && parsed.data != null)
-            //        {
-            //            //Everything is OK
-            //            BitMartRestOrders orders = JsonConvert.DeserializeAnonymousType(parsed.data.ToString(), new BitMartRestOrders());
+                        for (int i = 0; i < parsed.data.Count; i++)
+                        {
+                            Order newOrd = ConvertRestOrdersToOsEngineOrder(parsed.data[i]);
 
-            //            List<Order> osEngineOrders = new List<Order>();
+                            if (newOrd == null)
+                            {
+                                continue;
+                            }
 
-            //            for (int i = 0; i < orders.Count; i++)
-            //            {
-            //                Order newOrd = ConvertRestOrdersToOsEngineOrder(orders[i]);
+                            osEngineOrders.Add(newOrd);
+                        }
 
-            //                if (newOrd == null)
-            //                {
-            //                    continue;
-            //                }
-
-            //                osEngineOrders.Add(newOrd);
-
-            //                //SubcribeToOrderData(newOrd.SecurityNameCode);
-            //            }
-
-            //            return osEngineOrders;
-
-            //        }
-
-            //    }
-            //    else if (response.StatusCode == HttpStatusCode.NotFound)
-            //    {
-            //        return null;
-            //    }
-            //    else
-            //    {
-            //        SendLogMessage("Get all orders request error. ", LogMessageType.Error);
-
-            //        if (response.Content != null)
-            //        {
-            //            SendLogMessage("Fail reasons: "
-            //          + response.Content, LogMessageType.Error);
-            //        }
-            //    }
-            //}
-            //catch (Exception exception)
-            //{
-            //    SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
-            //}
+                        return osEngineOrders;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get all orders error. {parsed.code} || {parsed.message}", LogMessageType.Error);
+                    }
+                }
+                else if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return null;
+                }
+                else
+                {
+                    SendLogMessage("Get all orders request error. " + response.StatusCode + ",  " + response.Content, LogMessageType.Error);
+                }
+            }
+            catch (Exception exception)
+            {
+                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+            }
 
             return null;
         }
@@ -2031,39 +1832,27 @@ namespace OsEngine.Market.Servers.BitMart
         {
             _rateGateGetOrder.WaitToProceed();
 
-            if (string.IsNullOrEmpty(userOrderId))
-            {
-                SendLogMessage("Order ID is empty", LogMessageType.Connect);
-                return null;
-            }
-
             try
             {
                 string endPoint = "/spot/v4/query/client-order";
-
                 string body = "{ \"clientOrderId\": \"" + userOrderId + "\", \"recvWindow\": 60000  }";
-                SendLogMessage("Request Order: " + body, LogMessageType.Connect);
 
-                HttpResponseMessage response = _restClient.Post(endPoint, body, secured: true);
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, body);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
+                    BitMartBaseMessage<BitMartRestOrder> parsed = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<BitMartRestOrder>());
 
-                    string content = response.Content.ReadAsStringAsync().Result;
-                    BitMartRestOrdersBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartRestOrdersBaseMessage());
-
-                    if (parsed != null && parsed.data != null)
+                    if (parsed.code == "1000")
                     {
-                        //Everything is OK
-                        BitMartRestOrder baseOrder = JsonConvert.DeserializeAnonymousType(parsed.data.ToString(), new BitMartRestOrder());
-
-                        Order order = ConvertRestOrdersToOsEngineOrder(baseOrder);
+                        Order order = ConvertRestOrdersToOsEngineOrder(parsed.data);
 
                         return order;
-
                     }
-
+                    else
+                    {
+                        SendLogMessage("Get order error: " + parsed.code + ",  " + parsed.message, LogMessageType.Error);
+                    }
                 }
                 else if (response.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -2072,13 +1861,7 @@ namespace OsEngine.Market.Servers.BitMart
                 }
                 else
                 {
-                    SendLogMessage("Get order request error. ", LogMessageType.Error);
-
-                    if (response.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: "
-                      + response.Content, LogMessageType.Error);
-                    }
+                    SendLogMessage("Get order request error: " + response.StatusCode + ",  " + response.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2091,7 +1874,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         public void GetAllActivOrders()
         {
-            List<Order> ordersOnBoard = GetAllOrdersFromExchange();
+            List<Order> ordersOnBoard = GetAllOpenOrders();
 
             if (ordersOnBoard == null)
             {
@@ -2215,7 +1998,6 @@ namespace OsEngine.Market.Servers.BitMart
                 }
             }
 
-
             return order;
         }
 
@@ -2232,45 +2014,35 @@ namespace OsEngine.Market.Servers.BitMart
                 body.recvWindow = 60000;
 
                 string bodyStr = JsonConvert.SerializeObject(body);
-                SendLogMessage("Order trades: " + bodyStr, LogMessageType.Connect);
-                HttpResponseMessage response = _restClient.Post(endPoint, bodyStr, secured: true);
-
-                string content = response.Content.ReadAsStringAsync().Result;
-
-                //SendLogMessage("Order trades resp: " + content, LogMessageType.Connect);
-
-                BitMartRestOrdersBaseMessage parsed =
-                        JsonConvert.DeserializeAnonymousType(content, new BitMartRestOrdersBaseMessage());
+                IRestResponse response = CreatePrivateQuery(endPoint, Method.POST, bodyStr);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    if (parsed != null && parsed.data != null && parsed.data != null)
+                    BitMartBaseMessage<List<BitMartTrade>> parsed = JsonConvert.DeserializeAnonymousType(response.Content, new BitMartBaseMessage<List<BitMartTrade>>());
+
+                    if (parsed.code == "1000")
                     {
-
-                        BitMartTrades baseTrades =
-                            JsonConvert.DeserializeAnonymousType(parsed.data.ToString(), new BitMartTrades());
-
                         List<MyTrade> trades = new List<MyTrade>();
 
-                        for (int i = 0; i < baseTrades.Count; i++)
+                        for (int i = 0; i < parsed.data.Count; i++)
                         {
-                            MyTrade trade = ConvertRestTradeToOsEngineTrade(baseTrades[i]);
+                            MyTrade trade = ConvertRestTradeToOsEngineTrade(parsed.data[i]);
                             trades.Add(trade);
                         }
 
                         return trades;
                     }
+                    else
+                    {
+                        SendLogMessage("Order trade error. Code: "
+                        + parsed.code + "  " + orderId + ",  " + parsed.message, LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    string message = "";
-                    if (parsed != null)
-                    {
-                        message = parsed.message;
-                    }
+
                     SendLogMessage("Order trade request error. Status: "
-                        + response.StatusCode + "  " + orderId +
-                        ", " + message, LogMessageType.Error);
+                        + response.StatusCode + "  " + orderId + ", " + response.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -2304,7 +2076,41 @@ namespace OsEngine.Market.Servers.BitMart
 
         #endregion
 
-        #region 12 Helpers
+        #region 12 Query
+
+        private IRestResponse CreatePrivateQuery(string path, Method method, string bodyStr = null)
+        {
+            try
+            {
+                string timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+
+                RestRequest requestRest = new RestRequest(path, method);
+                requestRest.AddHeader("X-BM-KEY", _publicKey);
+
+                if (bodyStr != null)
+                {
+                    requestRest.AddParameter("application/json", bodyStr, ParameterType.RequestBody);
+                }
+
+                if (method == Method.POST)
+                {
+                    string signature = GenerateSignature(timestamp, bodyStr);
+
+                    requestRest.AddHeader("X-BM-TIMESTAMP", timestamp);
+                    requestRest.AddHeader("X-BM-SIGN", signature);
+                }
+
+                IRestResponse response = new RestClient(_baseUrl).Execute(requestRest);
+
+                return response;
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.Message, LogMessageType.Error);
+                return null;
+            }
+        }
+
 
         public string GenerateSignature(string timestamp, string body)
         {
@@ -2347,10 +2153,6 @@ namespace OsEngine.Market.Servers.BitMart
         }
 
         public event Action<string, LogMessageType> LogMessageEvent;
-
-        public event Action<Funding> FundingUpdateEvent;
-
-        public event Action<SecurityVolumes> Volume24hUpdateEvent;
 
         #endregion
     }

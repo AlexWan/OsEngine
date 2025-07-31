@@ -30,6 +30,11 @@ namespace OsEngine.Market.Servers.BitMart.Json
         public long recvWindow; // default 5000 milliseconds
     }
 
+    public class NewOrderBitMartResponce
+    {
+        public string order_id { get; set; }
+    }
+
     public class BitMartTrade
     {
         public string tradeId { get; set; }
@@ -47,11 +52,6 @@ namespace OsEngine.Market.Servers.BitMart.Json
         public string tradeRole { get; set; }
         public long createTime { get; set; }
         public long updateTime { get; set; }
-    }
-
-    public class BitMartTrades : List<BitMartTrade>
-    {
-
     }
 
     public class BitMartOrder
@@ -104,11 +104,6 @@ namespace OsEngine.Market.Servers.BitMart.Json
         public string filledNotional { get; set; }
         public long createTime { get; set; }
         public long updateTime { get; set; }
-    }
-
-    public class BitMartRestOrders : List<BitMartRestOrder>
-    {
-
     }
 
     public class BitMartRestOrdersBaseMessage

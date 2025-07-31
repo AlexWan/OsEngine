@@ -7,23 +7,25 @@ using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.BitMart.Json
 {
-    public class BitMartBaseMessage
+    public class BitMartBaseMessage<T>
     {
-        public int code;
+        public string code;
         public string trace;
         public string message;
-        public Dictionary<string, object> data;
+        public T data;
+    }
+
+    public class SecurityData
+    {
+        public List<BitMartSecurityRest> symbols { get; set; }
     }
 
     public class BitMartSecurityRest
     {
         public string symbol { get; set; }
         public string symbol_id { get; set; }
-
         public string base_currency { get; set; }
-
         public string quote_currency { get; set; }
-
         public string quote_increment { get; set; }
         public string base_min_size { get; set; }
         public string price_min_precision { get; set; }
@@ -32,11 +34,6 @@ namespace OsEngine.Market.Servers.BitMart.Json
         public string min_buy_amount { get; set; }
         public string min_sell_amount { get; set; }
         public string trade_status { get; set; }
-
-    }
-
-    public class BitMartCandlesHistory : List<BitMartCandle>
-    {
 
     }
 
