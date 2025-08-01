@@ -1084,10 +1084,14 @@ namespace OsEngine.Journal
                 {
                     decimal chartHeigh = maxYVal - minYval;
 
-                    maxYVal = Math.Round(maxYVal + chartHeigh * 0.05m, 2);
-                    minYval = Math.Round(minYval - chartHeigh * 0.05m, 2);
-                    _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
-                    _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
+                    maxYVal = Math.Round(maxYVal + chartHeigh * 0.05m, 5);
+                    minYval = Math.Round(minYval - chartHeigh * 0.05m, 5);
+
+                    if (maxYVal != minYval)
+                    {
+                        _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
+                        _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
+                    }
                 }
 
                 if (minYvalBars != decimal.MaxValue &&
@@ -1095,14 +1099,17 @@ namespace OsEngine.Journal
                     minYvalBars != maxYValBars)
                 {
                     decimal chartHeigh = maxYValBars - minYvalBars;
-                    maxYValBars = Math.Round(maxYValBars + chartHeigh * 0.05m, 2);
-                    minYvalBars = Math.Round(minYvalBars - chartHeigh * 0.05m, 2);
-                    _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
-                    _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYvalBars;
+                    maxYValBars = Math.Round(maxYValBars + chartHeigh * 0.05m, 5);
+                    minYvalBars = Math.Round(minYvalBars - chartHeigh * 0.05m, 5);
+
+                    if (maxYValBars != minYvalBars)
+                    {
+                        _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
+                        _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYvalBars;
+                    }
                 }
 
                 PaintXLabelsOnEquityChart(positionsAll);
-
             }
             catch (Exception error)
             {
