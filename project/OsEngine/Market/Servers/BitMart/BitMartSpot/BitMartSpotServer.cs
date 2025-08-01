@@ -207,7 +207,7 @@ namespace OsEngine.Market.Servers.BitMart
 
                             newSecurity.Decimals = Convert.ToInt32(item.price_max_precision);
                             newSecurity.DecimalsVolume = item.quote_increment.DecimalsCount();
-                            newSecurity.PriceStep = newSecurity.Decimals.GetValueByDecimals();
+                            newSecurity.PriceStep = GetStep(Convert.ToInt32(item.price_max_precision));
                             newSecurity.PriceStepCost = newSecurity.PriceStep;
                             newSecurity.Lot = 1;
                             newSecurity.SecurityType = SecurityType.CurrencyPair;
@@ -233,6 +233,25 @@ namespace OsEngine.Market.Servers.BitMart
             {
                 SendLogMessage($"Securities error: {ex.Message} {ex.StackTrace}" + ex.ToString(), LogMessageType.Error);
             }
+        }
+
+        private decimal GetStep(int ScalePrice)
+        {
+            if (ScalePrice == 0)
+            {
+                return 1;
+            }
+
+            string priceStep = "0,";
+
+            for (int i = 0; i < ScalePrice - 1; i++)
+            {
+                priceStep += "0";
+            }
+
+            priceStep += "1";
+
+            return priceStep.ToDecimal();
         }
 
         public event Action<List<Security>> SecurityEvent;
@@ -320,7 +339,7 @@ namespace OsEngine.Market.Servers.BitMart
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.Now;
+            DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
@@ -338,9 +357,9 @@ namespace OsEngine.Market.Servers.BitMart
         public List<Candle> GetCandleDataToSecurity(Security security, TimeFrameBuilder timeFrameBuilder,
                         DateTime startTime, DateTime endTime, DateTime actualTime)
         {
-            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Local);
-            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Local);
-            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Local);
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
             if (!CheckTime(startTime, endTime, actualTime))
             {
@@ -350,88 +369,66 @@ namespace OsEngine.Market.Servers.BitMart
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
             if (!_allowedTf.Contains(tfTotalMinutes))
+            {
                 return null;
+            }
 
             List<Candle> candles = new List<Candle>();
 
-            int countNeedToLoad = GetCountCandlesFromSliceTime(startTime, endTime, timeFrameBuilder.TimeFrameTimeSpan);
+            // 100 - max candles at BitMart
+            TimeSpan additionTime = TimeSpan.FromMinutes(tfTotalMinutes * 100);
 
-            DateTime fromTime = endTime - TimeSpan.FromMinutes(tfTotalMinutes * countNeedToLoad);
+            DateTime endTimeReal = startTime.Add(additionTime);
 
-            int limitData = 100;
-
-            do
+            while (startTime < endTime)
             {
-                int limit = countNeedToLoad;
+                List<Candle> newCandles = GetHistoryCandle(security, tfTotalMinutes, startTime, endTimeReal);
 
-                if (countNeedToLoad > limitData)
+                if (newCandles != null &&
+                    newCandles.Count > 0)
                 {
-                    limit = limitData;
-
-                }
-                else
-                {
-                    limit = countNeedToLoad;
-                }
-
-                DateTime slidingFrom = endTime - TimeSpan.FromMinutes(tfTotalMinutes * limit);
-
-                BitMartCandle history = GetHistoryCandle(security, tfTotalMinutes, slidingFrom, endTime);
-                List<Candle> rangeCandles = ConvertToOsEngineCandles(history);
-
-                if (rangeCandles == null)
-                    return null;
-
-                if (rangeCandles != null && candles.Count != 0 && rangeCandles.Count != 0)
-                {
-                    for (int i = 0; i < rangeCandles.Count; i++)
+                    //It could be 2 same candles from different requests - check and fix
+                    DateTime lastTime = DateTime.MinValue;
+                    if (candles.Count > 0)
                     {
-                        if (candles[0].TimeStart <= rangeCandles[i].TimeStart)
+                        lastTime = candles[candles.Count - 1].TimeStart;
+                    }
+
+                    for (int i = 0; i < newCandles.Count; i++)
+                    {
+                        if (newCandles[i].TimeStart > lastTime)
                         {
-                            rangeCandles.RemoveAt(i);
-                            i--;
+                            candles.Add(newCandles[i]);
+                            lastTime = newCandles[i].TimeStart;
                         }
                     }
                 }
 
-                candles.InsertRange(0, rangeCandles);
+                startTime = endTimeReal;
+                endTimeReal = startTime.Add(additionTime);
+            }
 
-                if (candles.Count != 0)
-                {
-                    endTime = candles[0].TimeStart;
-                }
-
-                countNeedToLoad -= limit;
-
-            } while (countNeedToLoad > 0);
+            while (candles != null &&
+                candles.Count != 0 &&
+                candles[candles.Count - 1].TimeStart > endTime)
+            {
+                candles.RemoveAt(candles.Count - 1);
+            }
 
             return candles;
         }
 
-        private int GetCountCandlesFromSliceTime(DateTime startTime, DateTime endTime, TimeSpan tf)
-        {
-            if (tf.Hours != 0)
-            {
-                TimeSpan TimeSlice = endTime - startTime;
-
-                return Convert.ToInt32(TimeSlice.TotalHours / tf.TotalHours);
-            }
-            else
-            {
-                TimeSpan TimeSlice = endTime - startTime;
-                return Convert.ToInt32(TimeSlice.TotalMinutes / tf.Minutes);
-            }
-        }
-
-        private BitMartCandle GetHistoryCandle(Security security, int tfTotalMinutes,
+        private List<Candle> GetHistoryCandle(Security security, int tfTotalMinutes,
           DateTime startTime, DateTime endTime)
         {
             string endPoint = "/spot/quotation/v3/lite-klines?symbol=" + security.Name;
 
             endPoint += "&step=" + tfTotalMinutes;
-            endPoint += "&after=" + ConvertToUnixTimestamp(startTime);
-            endPoint += "&before=" + ConvertToUnixTimestamp(endTime);
-            //endPoint += "&limit =" + 200;
+            endPoint += "&after=" + TimeManager.GetTimeStampSecondsToDateTime(startTime);
+            endPoint += "&before=" + TimeManager.GetTimeStampSecondsToDateTime(endTime);
+            //endPoint += "&limit =" + 100;
+
+            _rateGateSendOrder.WaitToProceed();
 
             try
             {
@@ -445,14 +442,57 @@ namespace OsEngine.Market.Servers.BitMart
 
                     if (symbols.code == "1000")
                     {
-                        if (symbols != null && symbols.data != null)
+                        List<Candle> candles = new List<Candle>();
+
+                        if (symbols == null)
                         {
-                            return symbols;
+                            return null;
                         }
-                        else
+
+                        for (int i = 0; i < symbols.data.Count; i++)
                         {
-                            SendLogMessage("Empty Candles request error. Status: " + response.StatusCode, LogMessageType.Error);
+                            if (CheckCandlesToZeroData(symbols.data[i]))
+                            {
+                                continue;
+                            }
+
+                            List<string> item = symbols.data[i];
+
+                            Candle candle = new Candle();
+
+                            candle.State = CandleState.Finished;
+                            candle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(item[0]));
+                            candle.Volume = item[5].ToDecimal();
+                            candle.Close = item[4].ToDecimal();
+                            candle.High = item[2].ToDecimal();
+                            candle.Low = item[3].ToDecimal();
+                            candle.Open = item[1].ToDecimal();
+
+                            //fix candle
+                            if (candle.Open < candle.Low)
+                            {
+                                candle.Open = candle.Low;
+                            }
+
+                            if (candle.Open > candle.High)
+                            {
+                                candle.Open = candle.High;
+                            }
+
+                            if (candle.Close < candle.Low)
+                            {
+                                candle.Close = candle.Low;
+                            }
+
+                            if (candle.Close > candle.High)
+                            {
+                                candle.Close = candle.High;
+                            }
+
+                            candles.Add(candle);
                         }
+
+                        return candles;
                     }
                     else
                     {
@@ -471,40 +511,6 @@ namespace OsEngine.Market.Servers.BitMart
             return null;
         }
 
-        private List<Candle> ConvertToOsEngineCandles(BitMartCandle symbols)
-        {
-            List<Candle> candles = new List<Candle>();
-
-            if (symbols == null)
-            {
-                return null;
-            }
-
-            for (int i = 0; i < symbols.data.Count; i++)
-            {
-                if (CheckCandlesToZeroData(symbols.data[i]))
-                {
-                    continue;
-                }
-
-                List<string> item = symbols.data[i];
-
-                Candle candle = new Candle();
-
-                candle.State = CandleState.Finished;
-                candle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(item[0]);
-                candle.Volume = item[5].ToDecimal();
-                candle.Close = item[4].ToDecimal();
-                candle.High = item[2].ToDecimal();
-                candle.Low = item[3].ToDecimal();
-                candle.Open = item[1].ToDecimal();
-
-                candles.Add(candle);
-            }
-
-            return candles;
-        }
-
         private bool CheckCandlesToZeroData(List<string> item)
         {
             if (item[1].ToDecimal() == 0 ||
@@ -521,9 +527,9 @@ namespace OsEngine.Market.Servers.BitMart
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now)
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -714,7 +720,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         private void CreateAuthMessageWebSocekt()
         {
-            string timeStamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+            string timeStamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             string sign = GenerateSignature(timeStamp, "bitmart.WebSocket");
 
             _webSocketPrivate.Send($"{{\"op\": \"login\", \"args\": [\"{_publicKey}\", \"{timeStamp}\", \"{sign}\"]}}");
@@ -805,6 +811,12 @@ namespace OsEngine.Market.Servers.BitMart
 
                 if (e.IsText)
                 {
+                    if (e.Data.Contains("{\"errorMessage\""))
+                    {
+                        SendLogMessage(e.Data, LogMessageType.Error);
+                        return;
+                    }
+
                     if (e.Data.Contains("pong"))
                     { // pong message
                         return;
@@ -896,7 +908,7 @@ namespace OsEngine.Market.Servers.BitMart
 
                 if (e.IsText)
                 {
-                    if (e.Data.StartsWith("{\"errorMessage\""))
+                    if (e.Data.Contains("{\"errorMessage\""))
                     {
                         SendLogMessage(e.Data, LogMessageType.Error);
                         return;
@@ -1024,7 +1036,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         #region 9 WebSocket Security subscrible
 
-        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(50));
+        private RateGate _rateGateSubscrible = new RateGate(1, TimeSpan.FromMilliseconds(70));
 
         private List<string> _subscribedSecurities = new List<string>();
 
@@ -1054,11 +1066,17 @@ namespace OsEngine.Market.Servers.BitMart
                     return;
                 }
 
+                if (_webSocketPublic.Count >= 20)
+                {
+                    //SendLogMessage($"Limit 20 connections {_webSocketPublic.Count}", LogMessageType.Error);
+                    return;
+                }
+
                 WebSocket webSocketPublic = _webSocketPublic[_webSocketPublic.Count - 1];
 
                 if (webSocketPublic.ReadyState == WebSocketState.Open
                     && _subscribedSecurities.Count != 0
-                    && _subscribedSecurities.Count % 90 == 0)
+                    && _subscribedSecurities.Count % 50 == 0)
                 {
                     // creating a new socket
                     WebSocket newSocket = CreateNewPublicSocket();
@@ -1236,112 +1254,125 @@ namespace OsEngine.Market.Servers.BitMart
 
         private void UpdateTrade(string data)
         {
-            MarketQuotesMessage baseMessage =
+            try
+            {
+                MarketQuotesMessage baseMessage =
             JsonConvert.DeserializeAnonymousType(data, new MarketQuotesMessage());
 
-            if (baseMessage == null || baseMessage.data == null || baseMessage.data.Count == 0)
-            {
-                SendLogMessage("Wrong 'Trade' message:" + data, LogMessageType.Error);
-                return;
+                if (baseMessage == null || baseMessage.data == null || baseMessage.data.Count == 0)
+                {
+                    SendLogMessage("Wrong 'Trade' message:" + data, LogMessageType.Error);
+                    return;
+                }
+
+                for (int i = 0; i < baseMessage.data.Count; i++)
+                {
+                    QuotesBitMart quotes = baseMessage.data[i];
+
+                    if (string.IsNullOrEmpty(quotes.symbol))
+                    {
+                        continue;
+                    }
+
+                    Trade trade = new Trade();
+                    trade.SecurityNameCode = quotes.symbol;
+                    trade.Price = quotes.price.ToDecimal();
+                    trade.Time = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(quotes.s_t));
+                    trade.Id = quotes.s_t.ToString() + quotes.side + quotes.symbol;
+
+                    if (quotes.side == "buy")
+                    {
+                        trade.Side = Side.Buy;
+                    }
+                    else
+                    {
+                        trade.Side = Side.Sell;
+                    }
+
+                    trade.Volume = quotes.size.ToDecimal();
+
+                    if (NewTradesEvent != null)
+                    {
+                        NewTradesEvent(trade);
+                    }
+                }
             }
-
-            for (int i = 0; i < baseMessage.data.Count; i++)
+            catch (Exception ex)
             {
-                QuotesBitMart quotes = baseMessage.data[i];
-
-                if (string.IsNullOrEmpty(quotes.symbol))
-                {
-                    continue;
-                }
-
-                Trade trade = new Trade();
-                trade.SecurityNameCode = quotes.symbol;
-                trade.Price = quotes.price.ToDecimal();
-                trade.Time = ConvertToDateTimeFromUnixFromSeconds(quotes.s_t.ToString());
-                trade.Id = quotes.s_t.ToString() + quotes.side + quotes.symbol;
-
-                if (quotes.side == "buy")
-                {
-                    trade.Side = Side.Buy;
-                }
-                else
-                {
-                    trade.Side = Side.Sell;
-                }
-
-                trade.Volume = quotes.size.ToDecimal();
-
-                if (NewTradesEvent != null)
-                {
-                    NewTradesEvent(trade);
-                }
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
         private void UpdateMarketDepth(string data)
         {
-            MarketDepthFullMessage baseMessage =
-            JsonConvert.DeserializeAnonymousType(data, new MarketDepthFullMessage());
-
-            if (baseMessage.data.Count == 0)
+            try
             {
-                return;
-            }
+                MarketDepthFullMessage baseMessage = JsonConvert.DeserializeAnonymousType(data, new MarketDepthFullMessage());
 
-            for (int i = 0; i < baseMessage.data.Count; i++)
-            {
-                MarketDepthBitMart messDepth = baseMessage.data[i];
-
-                if (messDepth == null || String.IsNullOrEmpty(messDepth.symbol))
-                {
-                    continue;
-                }
-
-                if (messDepth.bids == null ||
-                    messDepth.asks == null)
-                {
-                    continue;
-                }
-
-                if (messDepth.bids.Count == 0 ||
-                    messDepth.asks.Count == 0)
+                if (baseMessage.data.Count == 0)
                 {
                     return;
                 }
 
-                MarketDepth depth = new MarketDepth();
-                depth.SecurityNameCode = messDepth.symbol;
-                depth.Time = ConvertToDateTimeFromUnixFromMilliseconds(messDepth.ms_t.ToString());
-
-                for (int k = 0; k < messDepth.bids.Count; k++)
+                for (int i = 0; i < baseMessage.data.Count; i++)
                 {
-                    MarketDepthLevel newBid = new MarketDepthLevel();
-                    newBid.Price = messDepth.bids[k][0].ToDecimal();
-                    newBid.Bid = messDepth.bids[k][1].ToDecimal();
-                    depth.Bids.Add(newBid);
-                }
+                    MarketDepthBitMart messDepth = baseMessage.data[i];
 
-                for (int k = 0; k < messDepth.asks.Count; k++)
-                {
-                    MarketDepthLevel newAsk = new MarketDepthLevel();
-                    newAsk.Price = messDepth.asks[k][0].ToDecimal();
-                    newAsk.Ask = messDepth.asks[k][1].ToDecimal();
-                    depth.Asks.Add(newAsk);
-                }
+                    if (messDepth == null || String.IsNullOrEmpty(messDepth.symbol))
+                    {
+                        continue;
+                    }
 
-                //TODO: Maybe error
-                if (_lastMdTime != DateTime.MinValue &&
-                    _lastMdTime >= depth.Time)
-                {
-                    depth.Time = _lastMdTime.AddTicks(1);
-                }
+                    if (messDepth.bids == null ||
+                        messDepth.asks == null)
+                    {
+                        continue;
+                    }
 
-                _lastMdTime = depth.Time;
+                    if (messDepth.bids.Count == 0 ||
+                        messDepth.asks.Count == 0)
+                    {
+                        return;
+                    }
 
-                if (MarketDepthEvent != null)
-                {
-                    MarketDepthEvent(depth);
+                    MarketDepth depth = new MarketDepth();
+                    depth.SecurityNameCode = messDepth.symbol;
+                    depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(messDepth.ms_t));
+
+                    for (int k = 0; k < messDepth.bids.Count; k++)
+                    {
+                        MarketDepthLevel newBid = new MarketDepthLevel();
+                        newBid.Price = messDepth.bids[k][0].ToDecimal();
+                        newBid.Bid = messDepth.bids[k][1].ToDecimal();
+                        depth.Bids.Add(newBid);
+                    }
+
+                    for (int k = 0; k < messDepth.asks.Count; k++)
+                    {
+                        MarketDepthLevel newAsk = new MarketDepthLevel();
+                        newAsk.Price = messDepth.asks[k][0].ToDecimal();
+                        newAsk.Ask = messDepth.asks[k][1].ToDecimal();
+                        depth.Asks.Add(newAsk);
+                    }
+
+                    //TODO: Maybe error
+                    if (_lastMdTime != DateTime.MinValue &&
+                        _lastMdTime >= depth.Time)
+                    {
+                        depth.Time = _lastMdTime.AddTicks(1);
+                    }
+
+                    _lastMdTime = depth.Time;
+
+                    if (MarketDepthEvent != null)
+                    {
+                        MarketDepthEvent(depth);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1433,32 +1464,38 @@ namespace OsEngine.Market.Servers.BitMart
 
         private void UpdateMyOrder(string data)
         {
-            BitMartOrders baseOrders =
-                JsonConvert.DeserializeAnonymousType(data, new BitMartOrders());
-
-            if (baseOrders == null || baseOrders.Count == 0)
+            try
             {
-                return;
-            }
+                BitMartOrders baseOrders = JsonConvert.DeserializeAnonymousType(data, new BitMartOrders());
 
-            for (int k = 0; k < baseOrders.Count; k++)
-            {
-                BitMartOrder baseOrder = baseOrders[k];
-
-                Order order = ConvertToOsEngineOrder(baseOrder);
-
-                if (order == null)
+                if (baseOrders == null || baseOrders.Count == 0)
                 {
                     return;
                 }
 
-                MyOrderEvent?.Invoke(order);
-
-                if (MyTradeEvent != null &&
-                    (order.State == OrderStateType.Done || order.State == OrderStateType.Partial))
+                for (int k = 0; k < baseOrders.Count; k++)
                 {
-                    UpdateTrades(order);
+                    BitMartOrder baseOrder = baseOrders[k];
+
+                    Order order = ConvertToOsEngineOrder(baseOrder);
+
+                    if (order == null)
+                    {
+                        return;
+                    }
+
+                    MyOrderEvent?.Invoke(order);
+
+                    if (MyTradeEvent != null &&
+                        (order.State == OrderStateType.Done || order.State == OrderStateType.Partial))
+                    {
+                        UpdateTrades(order);
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1499,9 +1536,8 @@ namespace OsEngine.Market.Servers.BitMart
             order.NumberMarket = baseOrder.order_id;
             order.ServerType = ServerType.BitMartSpot;
 
-            order.TimeCreate = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.create_time);
-            order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.update_time);
-
+            order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseOrder.create_time));
+            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseOrder.update_time));
 
             if (baseOrder.side == "buy")
             {
@@ -1555,41 +1591,45 @@ namespace OsEngine.Market.Servers.BitMart
 
         private void UpdateMyPortfolio(string data)
         {
-            //https://developer-pro.bitmart.com/en/spot/#private-balance-change
-
-            BitMartPortfolioSocket porfMessage =
-            JsonConvert.DeserializeAnonymousType(data, new BitMartPortfolioSocket());
-
-            Portfolio portf = null;
-            if (_myPortfolious != null && _myPortfolious.Count > 0)
+            try
             {
-                portf = _myPortfolious[0];
-            }
+                BitMartPortfolioSocket porfMessage = JsonConvert.DeserializeAnonymousType(data, new BitMartPortfolioSocket());
 
-            if (portf == null)
-            {
-                return;
-            }
-
-            if (porfMessage != null && porfMessage.Count > 0 && porfMessage[0].balance_details.Count > 0)
-            {
-                for (int i = 0; i < porfMessage[0].balance_details.Count; i++)
+                Portfolio portf = null;
+                if (_myPortfolious != null && _myPortfolious.Count > 0)
                 {
-                    BitMartBalanceDetail details = porfMessage[0].balance_details[i];
+                    portf = _myPortfolious[0];
+                }
 
-                    PositionOnBoard pos = new PositionOnBoard();
-                    pos.ValueCurrent = details.av_bal.ToDecimal();
-                    pos.ValueBlocked = details.fz_bal.ToDecimal();
-                    pos.PortfolioName = this.PortfolioName;
-                    pos.SecurityNameCode = details.ccy;
+                if (portf == null)
+                {
+                    return;
+                }
 
-                    portf.SetNewPosition(pos);
+                if (porfMessage != null && porfMessage.Count > 0 && porfMessage[0].balance_details.Count > 0)
+                {
+                    for (int i = 0; i < porfMessage[0].balance_details.Count; i++)
+                    {
+                        BitMartBalanceDetail details = porfMessage[0].balance_details[i];
+
+                        PositionOnBoard pos = new PositionOnBoard();
+                        pos.ValueCurrent = details.av_bal.ToDecimal();
+                        pos.ValueBlocked = details.fz_bal.ToDecimal();
+                        pos.PortfolioName = this.PortfolioName;
+                        pos.SecurityNameCode = details.ccy;
+
+                        portf.SetNewPosition(pos);
+                    }
+                }
+
+                if (PortfolioEvent != null)
+                {
+                    PortfolioEvent(_myPortfolious);
                 }
             }
-
-            if (PortfolioEvent != null)
+            catch (Exception ex)
             {
-                PortfolioEvent(_myPortfolious);
+                SendLogMessage($"{ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -1940,7 +1980,7 @@ namespace OsEngine.Market.Servers.BitMart
 
             order.NumberMarket = baseOrder.orderId;
 
-            order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.updateTime.ToString());
+            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseOrder.updateTime));
 
             if (baseOrder.side == "buy")
             {
@@ -2059,7 +2099,8 @@ namespace OsEngine.Market.Servers.BitMart
             trade.NumberOrderParent = baseTrade.orderId;
             trade.NumberTrade = baseTrade.tradeId;
             trade.SecurityNameCode = baseTrade.symbol;
-            trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseTrade.createTime.ToString());
+            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseTrade.createTime));
+
             if (baseTrade.side == "buy")
             {
                 trade.Side = Side.Buy;
@@ -2082,7 +2123,7 @@ namespace OsEngine.Market.Servers.BitMart
         {
             try
             {
-                string timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
                 RestRequest requestRest = new RestRequest(path, method);
                 requestRest.AddHeader("X-BM-KEY", _publicKey);
@@ -2118,29 +2159,6 @@ namespace OsEngine.Market.Servers.BitMart
             using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey));
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
-        }
-
-        public long ConvertToUnixTimestamp(DateTime date)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
-            TimeSpan diff = date.ToUniversalTime() - origin;
-            return Convert.ToInt64(diff.TotalSeconds);
-        }
-
-        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            DateTime result = origin.AddSeconds(seconds.ToDouble()).ToLocalTime();
-
-            return result;
-        }
-
-        private DateTime ConvertToDateTimeFromUnixFromMilliseconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            DateTime result = origin.AddMilliseconds(seconds.ToDouble());
-
-            return result.ToLocalTime();
         }
 
         #endregion
