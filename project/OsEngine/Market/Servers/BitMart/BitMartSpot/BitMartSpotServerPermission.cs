@@ -61,7 +61,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         public bool DataFeedTf1MinuteCanLoad
         {
-            get { return true; }
+            get { return false; }
         }
 
         public bool DataFeedTf2MinuteCanLoad
@@ -120,7 +120,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         public int WaitTimeSecondsAfterFirstStartToSendOrders
         {
-            get { return 15; }
+            get { return 5; }
         }
 
         public bool IsCanChangeOrderPrice
@@ -175,7 +175,7 @@ namespace OsEngine.Market.Servers.BitMart
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return true; }
+            get { return false; }
         }
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
