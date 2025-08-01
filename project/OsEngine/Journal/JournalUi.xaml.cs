@@ -1021,16 +1021,20 @@ namespace OsEngine.Journal
 
                 _chartEquity.Series.Add(nullLine);
 
-
                 if (minYval != decimal.MaxValue &&
-                    maxYVal != decimal.MinValue)
+                     maxYVal != decimal.MinValue)
                 {
                     decimal chartHeigh = maxYVal - minYval;
 
-                    maxYVal = Math.Round(maxYVal + chartHeigh * 0.05m, 2);
-                    minYval = Math.Round(minYval - chartHeigh * 0.05m, 2);
-                    _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
-                    _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
+                    maxYVal = Math.Round(maxYVal + chartHeigh * 0.05m, 5);
+                    minYval = Math.Round(minYval - chartHeigh * 0.05m, 5);
+
+                    if (maxYVal != minYval)
+                    {
+                        _chartEquity.ChartAreas[0].AxisY2.Maximum = (double)maxYVal;
+                        _chartEquity.ChartAreas[0].AxisY2.Minimum = (double)minYval;
+                    }
+
                 }
 
                 if (maxYValBars != 0 &&
@@ -1038,13 +1042,14 @@ namespace OsEngine.Journal
                     maxYValBars != minYValBars)
                 {
                     decimal chartHeigh = maxYValBars - minYValBars;
+                    maxYValBars = Math.Round(maxYValBars + chartHeigh * 0.05m, 5);
+                    minYValBars = Math.Round(minYValBars - chartHeigh * 0.05m, 5);
 
-                    maxYValBars = Math.Round(maxYValBars + chartHeigh * 0.05m, 2);
-                    minYValBars = Math.Round(minYValBars - chartHeigh * 0.05m, 2);
-
-                    _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
-                    _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYValBars;
-
+                    if (maxYValBars != minYValBars)
+                    {
+                        _chartEquity.ChartAreas[1].AxisY2.Maximum = (double)maxYValBars;
+                        _chartEquity.ChartAreas[1].AxisY2.Minimum = (double)minYValBars;
+                    }
                 }
             }
             catch (Exception error)
