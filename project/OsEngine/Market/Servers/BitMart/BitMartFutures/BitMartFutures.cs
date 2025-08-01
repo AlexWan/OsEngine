@@ -510,7 +510,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
-            DateTime endTime = DateTime.Now;
+            DateTime endTime = DateTime.UtcNow;
             DateTime startTime = endTime.AddMinutes(-tfTotalMinutes * candleCount);
 
             List<Candle> candles = GetCandleDataToSecurity(security, timeFrameBuilder, startTime, endTime, startTime);
@@ -530,12 +530,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
                         DateTime startTime, DateTime endTime, DateTime actualTime)
         {
 
-            //if (timeFrameBuilder.TimeFrame == TimeFrame.Day)
-            //{
-            //    startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
-            //    endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
-            //    actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
-            //}
+            startTime = DateTime.SpecifyKind(startTime, DateTimeKind.Utc);
+            endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
+            actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
             int tfTotalMinutes = (int)timeFrameBuilder.TimeFrameTimeSpan.TotalMinutes;
 
@@ -639,7 +636,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                             newCandle.Low = curCandle.low_price.ToDecimal();
                             newCandle.Close = curCandle.close_price.ToDecimal();
                             newCandle.Volume = curCandle.volume.ToDecimal();
-                            newCandle.TimeStart = ConvertToDateTimeFromUnixFromSeconds(curCandle.timestamp.ToString());
+                            newCandle.TimeStart = TimeManager.GetDateTimeFromTimeStampSeconds(Convert.ToInt64(curCandle.timestamp));
 
                             //fix candle
                             if (newCandle.Open < newCandle.Low)
@@ -687,9 +684,9 @@ namespace OsEngine.Market.Servers.BitMartFutures
         private bool CheckTime(DateTime startTime, DateTime endTime, DateTime actualTime)
         {
             if (startTime >= endTime ||
-                startTime >= DateTime.Now ||
+                startTime >= DateTime.UtcNow ||
                 actualTime > endTime ||
-                actualTime > DateTime.Now)
+                actualTime > DateTime.UtcNow)
             {
                 return false;
             }
@@ -885,7 +882,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
         private void CreateAuthMessageWebSocKet()
         {
-            string timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+            string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
             string sign = GenerateSignature(timestamp, "bitmart.WebSocket");
 
             _webSocketPrivate.Send($"{{\"action\": \"access\", \"args\": [\"{_publicKey}\", \"{timestamp}\", \"{sign}\",\"web\"]}}");
@@ -1657,7 +1654,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
                     trade.SecurityNameCode = baseTrade.symbol;
                     trade.Price = baseTrade.deal_price.ToDecimal();
                     trade.Volume = baseTrade.deal_vol.ToDecimal();
-                    trade.Time = DateTime.Parse(baseTrade.created_at);
+                    trade.Time = DateTimeOffset.Parse(baseTrade.created_at).UtcDateTime;
                     trade.Id = baseTrade.trade_id;
 
                     if (baseTrade.m == "true")
@@ -1719,7 +1716,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
                 MarketDepth depth = new MarketDepth();
                 depth.SecurityNameCode = baseDepth.symbol;
-                depth.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseDepth.ms_t.ToString());
+                depth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseDepth.ms_t));
 
                 decimal maxBid = 0;
                 decimal minAsk = decimal.MaxValue;
@@ -1996,8 +1993,8 @@ namespace OsEngine.Market.Servers.BitMartFutures
             order.NumberMarket = baseOrder.order_id;
             order.ServerType = ServerType.BitMartFutures;
 
-            order.TimeCreate = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.create_time.ToString());
-            order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.update_time.ToString());
+            order.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseOrder.create_time));
+            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseOrder.update_time));
 
             SetOrderSide(order, Convert.ToInt32(baseOrder.side));
 
@@ -2667,7 +2664,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
 
             order.NumberMarket = baseOrder.order_id;
 
-            order.TimeCallBack = ConvertToDateTimeFromUnixFromMilliseconds(baseOrder.update_time.ToString());
+            order.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseOrder.update_time));
 
             SetOrderSide(order, baseOrder.side);
 
@@ -2761,7 +2758,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
             trade.NumberOrderParent = baseTrade.order_id;
             trade.NumberTrade = baseTrade.trade_id;
             trade.SecurityNameCode = baseTrade.symbol;
-            trade.Time = ConvertToDateTimeFromUnixFromMilliseconds(baseTrade.create_time.ToString());
+            trade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(baseTrade.create_time));
             if (baseTrade.side <= 2)
             {
                 trade.Side = Side.Buy;
@@ -2784,7 +2781,7 @@ namespace OsEngine.Market.Servers.BitMartFutures
         {
             try
             {
-                string timestamp = DateTimeOffset.Now.ToUnixTimeMilliseconds().ToString();
+                string timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString();
 
                 RestRequest requestRest = new RestRequest(path, method);
                 requestRest.AddHeader("X-BM-KEY", _publicKey);
@@ -2819,22 +2816,6 @@ namespace OsEngine.Market.Servers.BitMartFutures
             using HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_secretKey));
             byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(message));
             return BitConverter.ToString(hash).Replace("-", "").ToLower();
-        }
-
-        private DateTime ConvertToDateTimeFromUnixFromSeconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            DateTime result = origin.AddSeconds(seconds.ToDouble()).ToLocalTime();
-
-            return result;
-        }
-
-        private DateTime ConvertToDateTimeFromUnixFromMilliseconds(string seconds)
-        {
-            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0);
-            DateTime result = origin.AddMilliseconds(seconds.ToDouble());
-
-            return result.ToLocalTime();
         }
 
         #endregion
