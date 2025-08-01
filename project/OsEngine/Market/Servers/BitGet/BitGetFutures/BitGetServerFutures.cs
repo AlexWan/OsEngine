@@ -983,7 +983,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             List<Trade> trades = new List<Trade>();
 
-            List<Trade> newTrades = GetTickHistoryToSecurity(security, endTime);
+            List<Trade> newTrades = GetTickHistoryToSecurity(security, endTime, startTime);
 
             if (newTrades == null ||
                     newTrades.Count == 0)
@@ -996,7 +996,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
 
             while (timeEnd > startTime)
             {
-                newTrades = GetTickHistoryToSecurity(security, timeEnd);
+                newTrades = GetTickHistoryToSecurity(security, timeEnd, startTime);
 
                 if (newTrades != null && trades.Count != 0 && newTrades.Count != 0)
                 {
@@ -1042,7 +1042,7 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
             return trades;
         }
 
-        private List<Trade> GetTickHistoryToSecurity(Security security, DateTime endTime)
+        private List<Trade> GetTickHistoryToSecurity(Security security, DateTime endTime, DateTime startTime)
         {
             _rgTickData.WaitToProceed();
 
@@ -1051,9 +1051,10 @@ namespace OsEngine.Market.Servers.BitGet.BitGetFutures
                 List<Trade> trades = new List<Trade>();
 
                 long timeEnd = TimeManager.GetTimeStampMilliSecondsToDateTime(endTime);
+                long timeStart = TimeManager.GetTimeStampMilliSecondsToDateTime(startTime);
 
                 string requestStr = $"/api/v2/mix/market/fills-history?symbol={security.Name}&productType={security.NameClass.ToLower()}&" +
-                    $"limit=1000&endTime={timeEnd}";
+                    $"limit=1000&endTime={timeEnd}&startTime={timeStart}";
 
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
                 RestClient client = new RestClient(BaseUrl);
