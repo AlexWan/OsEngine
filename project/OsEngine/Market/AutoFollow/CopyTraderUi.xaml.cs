@@ -1106,7 +1106,7 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            CopyPortfolioUi newGui = new CopyPortfolioUi(portfolioToCopy);
+            CopyPortfolioUi newGui = new CopyPortfolioUi(portfolioToCopy,CopyTraderInstance);
             _copyPortfolioUis.Add(newGui);
             newGui.Show();
             newGui.Closed += NewGui_Closed;

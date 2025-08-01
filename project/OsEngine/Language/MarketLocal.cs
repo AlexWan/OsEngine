@@ -913,6 +913,21 @@ namespace OsEngine.Language
          "Eng:Server_" +
          "Ru:Сервер_");
 
+        public string Label220 => OsLocalization.ConvertToLocString(
+         "Eng:Master. Name_" +
+         "Ru:Мастер. Имя_");
+
+        public string Label221 => OsLocalization.ConvertToLocString(
+         "Eng:Master. Class_" +
+         "Ru:Мастер. Класс_");
+
+        public string Label222 => OsLocalization.ConvertToLocString(
+         "Eng:Slave. Name_" +
+         "Ru:Slave. Имя_");
+
+        public string Label223 => OsLocalization.ConvertToLocString(
+         "Eng:Slave. Class_" +
+         "Ru:Slave. Класс_");
 
 
 

@@ -9,6 +9,7 @@ using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -74,6 +75,14 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
+        public void Save()
+        {
+            if(NeedToSaveEvent != null)
+            {
+                NeedToSaveEvent();
+            }
+        }
+
         public event Action DeleteEvent;
 
         public event Action NeedToSaveEvent;
@@ -130,9 +139,10 @@ namespace OsEngine.Market.AutoFollow
             PortfolioToCopy portfolio = new PortfolioToCopy();
             portfolio.ServerName = serverName;
             portfolio.PortfolioName = portfolioName;
+            portfolio.LogMessageEvent += SendLogMessage;
             PortfolioToCopy.Add(portfolio);
             
-            if(NeedToSaveEvent != null)
+            if (NeedToSaveEvent != null)
             {
                 NeedToSaveEvent();
             }
@@ -191,6 +201,23 @@ namespace OsEngine.Market.AutoFollow
 
         public string ServerName;
 
+        public ServerType ServerType
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ServerName))
+                {
+                    return ServerType.None;
+                }
+
+                ServerType serverType;
+
+                Enum.TryParse(ServerName.Split('_')[0], out serverType);
+
+                return serverType;
+            }
+        }
+
         public string PortfolioName;
 
         public string UniqueName
@@ -230,6 +257,7 @@ namespace OsEngine.Market.AutoFollow
             result += CopyType + "#";
             result += OrderType + "#";
             result += IcebergCount + "#";
+            result += GetSecuritiesSaveString() + "#";
 
             return result;       
         }
@@ -250,6 +278,7 @@ namespace OsEngine.Market.AutoFollow
             Enum.TryParse(saveArray[7], out CopyType);
             Enum.TryParse(saveArray[8], out OrderType);
             IcebergCount = Convert.ToInt32(saveArray[9]);
+            LoadSecuritiesFromString(saveArray[10]);
         }
 
         #endregion
@@ -258,7 +287,34 @@ namespace OsEngine.Market.AutoFollow
 
         public List<SecurityToCopy> SecurityToCopy = new List<SecurityToCopy>();
 
+        private string GetSecuritiesSaveString()
+        {
+            string result = "";
 
+            for(int i = 0;i < SecurityToCopy.Count;i++)
+            {
+                result += SecurityToCopy[i].GetSaveString() + "*";
+            }
+
+            return result;
+        }
+
+        private void LoadSecuritiesFromString(string str)
+        {
+            string[] array = str.Split('*');
+
+            for(int i = 0;i < array.Length;i++)
+            {
+                if (string.IsNullOrEmpty(array[i]))
+                {
+                    continue;
+                }
+
+                SecurityToCopy securityToCopy = new SecurityToCopy();
+                securityToCopy.SetSaveString(array[i]);
+                SecurityToCopy.Add(securityToCopy);
+            }
+        }
 
         #endregion
 
@@ -276,6 +332,19 @@ namespace OsEngine.Market.AutoFollow
 
         #endregion
 
+        #region Log
+
+        public Log LogCopyTrader;
+
+        public event Action<string, LogMessageType> LogMessageEvent;
+
+        public void SendLogMessage(string message, LogMessageType messageType)
+        {
+            message = "Copy portfolio.  server:" + ServerName + " portfolio: " + PortfolioName + " message: \n" + message;
+            LogMessageEvent?.Invoke(message, messageType);
+        }
+
+        #endregion
     }
 
     public enum CopyTraderVolumeType
@@ -305,6 +374,27 @@ namespace OsEngine.Market.AutoFollow
         public string SlaveSecurityName;
 
         public string SlaveSecurityClass;
+
+        public string GetSaveString()
+        {
+            string result = MasterSecurityName + "^";
+            result += MasterSecurityClass + "^";
+            result += SlaveSecurityName + "^";
+            result += SlaveSecurityClass + "^";
+
+            return result;
+        }
+
+        public void SetSaveString(string str)
+        {
+            string[] saveArray = str.Split('^');
+
+            MasterSecurityName = saveArray[0];
+            MasterSecurityClass = saveArray[1];
+            SlaveSecurityName = saveArray[2];
+            SlaveSecurityClass = saveArray[3];
+
+        }
 
     }
 
