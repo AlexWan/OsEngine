@@ -232,8 +232,8 @@ namespace OsEngine.Attributes
                     throw new ArgumentException($"Parameter attribute cannot be applied to interfaces, generics, or abstract classes: {type}");
 
                 object instance = RuntimeHelpers.GetUninitializedObject(type);
-                member.SetValue(instance);
                 initializer.InitBotAttribute(type, instance, type.Name);
+                member.SetValue(instance);
             }
 
             if (parameter != null)
