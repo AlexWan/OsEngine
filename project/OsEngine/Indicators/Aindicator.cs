@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using OsEngine.Entity;
+using OsEngine.Attributes;
 
 namespace OsEngine.Indicators
 {
@@ -32,6 +33,9 @@ namespace OsEngine.Indicators
             {
                 Load();
             }
+            
+            AttributeInitializer attributeInitializer = new(this);
+            attributeInitializer.InitAttributes();
 
             OnStateChange(IndicatorState.Configure);
         }
