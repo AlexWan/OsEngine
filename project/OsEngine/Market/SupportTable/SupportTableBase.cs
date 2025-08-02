@@ -406,16 +406,6 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(bitmex);
 
-            SupportConnection bitstamp = new SupportConnection()
-            {
-                ServerType = ServerType.BitStamp,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Bitstamp.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(bitstamp);
-
             SupportConnection exMo = new SupportConnection()
             {
                 ServerType = ServerType.Exmo,
@@ -436,19 +426,9 @@ namespace OsEngine.Market.SupportTable
             };
             supportList.Add(hitBtc);
 
-            SupportConnection kraken = new SupportConnection()
-            {
-                ServerType = ServerType.Kraken,
-                SupportType = SupportServerType.No,
-                LinqToLogo = "\\Images\\Connections\\Crypto\\Kraken.png",
-                LingSiteUrl = "",
-                Discount = 0
-            };
-            supportList.Add(kraken);
-
             SupportConnection zb = new SupportConnection()
             {
-                ServerType = ServerType.Kraken,
+                ServerType = ServerType.Zb,
                 SupportType = SupportServerType.No,
                 LinqToLogo = "\\Images\\Connections\\Crypto\\Zb.png",
                 LingSiteUrl = "",
