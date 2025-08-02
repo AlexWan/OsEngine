@@ -997,13 +997,11 @@ namespace OsEngine.Market.Servers.NinjaTrader
 
         /// <summary>
 		/// connection to API established
-        /// соединение с BitStamp API установлено
         /// </summary>
         public event Action Connected;
 
         /// <summary>
 		/// connection to API lost
-        /// соединение с BitStamp API разорвано
         /// </summary>
         public event Action Disconnected;
 

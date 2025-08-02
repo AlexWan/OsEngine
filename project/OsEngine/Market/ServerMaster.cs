@@ -18,11 +18,9 @@ using OsEngine.Market.Servers.Binance.Spot;
 using OsEngine.Market.Servers.Bitfinex;
 using OsEngine.Market.Servers.BitMax;
 using OsEngine.Market.Servers.BitMex;
-using OsEngine.Market.Servers.BitStamp;
 using OsEngine.Market.Servers.ExMo;
 using OsEngine.Market.Servers.Finam;
 using OsEngine.Market.Servers.InteractiveBrokers;
-using OsEngine.Market.Servers.Kraken;
 using OsEngine.Market.Servers.Lmax;
 using OsEngine.Market.Servers.NinjaTrader;
 using OsEngine.Market.Servers.Optimizer;
@@ -286,13 +284,11 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.MfdWeb);
                 serverTypes.Add(ServerType.MoexAlgopack);
                 serverTypes.Add(ServerType.MoexFixFastSpot);
-
                 serverTypes.Add(ServerType.Atp);
                 serverTypes.Add(ServerType.KiteConnect);
                 serverTypes.Add(ServerType.TraderNet);
                 serverTypes.Add(ServerType.InteractiveBrokers);
                 serverTypes.Add(ServerType.NinjaTrader);
-
                 serverTypes.Add(ServerType.GateIoSpot);
                 serverTypes.Add(ServerType.GateIoFutures);
                 serverTypes.Add(ServerType.AscendEx_BitMax);
@@ -300,10 +296,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.Binance);
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BitMex);
-                serverTypes.Add(ServerType.BitStamp);
                 serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.BitfinexFutures);
-                serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.KuCoinSpot);
                 serverTypes.Add(ServerType.KuCoinFutures);
                 serverTypes.Add(ServerType.Exmo);
@@ -322,7 +316,6 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.XTSpot);
                 serverTypes.Add(ServerType.PionexSpot);
                 serverTypes.Add(ServerType.Woo);
-
                 serverTypes.Add(ServerType.Lmax);
                 serverTypes.Add(ServerType.BitMartSpot);
                 serverTypes.Add(ServerType.BitMartFutures);
@@ -425,10 +418,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BinanceFutures);
                 serverTypes.Add(ServerType.BingXFutures);
                 serverTypes.Add(ServerType.BitMex);
-                serverTypes.Add(ServerType.BitStamp);
                 serverTypes.Add(ServerType.BitfinexSpot);
                 serverTypes.Add(ServerType.BitfinexFutures);
-                serverTypes.Add(ServerType.Kraken);
                 serverTypes.Add(ServerType.Exmo);
                 serverTypes.Add(ServerType.HTXFutures);
                 serverTypes.Add(ServerType.HTXSwap);
@@ -695,14 +686,6 @@ namespace OsEngine.Market
                 if (type == ServerType.NinjaTrader)
                 {
                     newServer = new NinjaTraderServer();
-                }
-                if (type == ServerType.BitStamp)
-                {
-                    newServer = new BitStampServer();
-                }
-                if (type == ServerType.Kraken)
-                {
-                    newServer = new KrakenServer();
                 }
                 if (type == ServerType.BitMex)
                 {
@@ -1417,10 +1400,6 @@ namespace OsEngine.Market
                 {
                     serverPermission = new BitfinexFuturesServerPermission();
                 }
-                else if (type == ServerType.Kraken)
-                {
-                    serverPermission = new KrakenServerPermission();
-                }
                 else if (type == ServerType.MoexDataServer)
                 {
                     serverPermission = new MoexIssPermission();
@@ -2055,22 +2034,10 @@ namespace OsEngine.Market
         NinjaTrader,
 
         /// <summary>
-        /// cryptocurrency exchange Kraken
-        /// биржа криптовалют Kraken
-        /// </summary>
-        Kraken,
-
-        /// <summary>
         /// cryptocurrency exchange BitMEX
         /// биржа криптовалют BitMEX
         /// </summary>
         BitMex,
-
-        /// <summary>
-        /// cryptocurrency exchange BitStamp
-        /// биржа криптовалют BitStamp
-        /// </summary>
-        BitStamp,
 
         /// <summary>
         /// optimizer
