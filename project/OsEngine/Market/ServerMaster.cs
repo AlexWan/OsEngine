@@ -84,6 +84,7 @@ using OsEngine.OsTrader.Panels;
 using OsEngine.OsTrader;
 using OsEngine.OsTrader.Panels.Tab;
 using System.Linq;
+using OsEngine.Market.Servers.AscendexSpot;
 
 namespace OsEngine.Market
 {
@@ -331,6 +332,8 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.BloFinFutures);
                 serverTypes.Add(ServerType.TelegramNews);
                 serverTypes.Add(ServerType.BinanceData);
+                serverTypes.Add(ServerType. AscendexSpot);
+               
 
                 // а теперь сортируем в зависимости от предпочтений пользователя
 
@@ -435,6 +438,7 @@ namespace OsEngine.Market
                 serverTypes.Add(ServerType.CoinExSpot);
                 serverTypes.Add(ServerType.CoinExFutures);
                 serverTypes.Add(ServerType.BinanceData);
+                serverTypes.Add(ServerType.AscendexSpot);
 
                 return serverTypes;
             }
@@ -786,6 +790,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.BloFinFutures)
                 {
                     newServer = new BloFinFuturesServer(uniqueNum);
+                }
+                else if (type == ServerType.AscendexSpot)
+                {
+                    newServer = new AscendexSpotServer(uniqueNum);
                 }
 
                 if (newServer == null)
@@ -1535,6 +1543,10 @@ namespace OsEngine.Market
                 else if (type == ServerType.BinanceData)
                 {
                     serverPermission = new BinanceDataServerPermission();
+                }
+                else if (type == ServerType.AscendexSpot)
+                {
+                    serverPermission = new AscendexSpotServerPermission();
                 }
 
                 if (serverPermission != null)
@@ -2296,6 +2308,11 @@ namespace OsEngine.Market
         /// downloading historical data from exchange Binance
         /// скачивание исторических данных с биржи Binance
         /// </summary>
-        BinanceData
+        BinanceData,
+
+        /// <summary>
+        ///  AscendexSpot exchange
+        /// </summary>
+        AscendexSpot
     }
 }
