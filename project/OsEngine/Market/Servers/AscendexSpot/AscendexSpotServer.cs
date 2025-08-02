@@ -1924,20 +1924,44 @@ namespace OsEngine.Market.Servers.AscendexSpot
             return 0;
         }
 
+        private string GetEngineDirectory()
+        {
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+
+            DirectoryInfo dir = new DirectoryInfo(baseDir);
+            while (dir != null)
+            {
+                string enginePath = Path.Combine(dir.FullName, "Engine");
+                if (Directory.Exists(enginePath))
+                {
+                    return enginePath;
+                }
+
+                dir = dir.Parent;
+            }
+
+            return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Engine");
+        }
+
         private void LoadOrderTrackers()
         {
             try
             {
-                if (File.Exists("marketToUserDict.json"))
+                string engineDir = GetEngineDirectory();
+
+                string marketToUserPath = Path.Combine(engineDir, "marketToUserDict.json");
+                string orderTrackerPath = Path.Combine(engineDir, "orderTrackerDict.json");
+
+                if (File.Exists(marketToUserPath))
                 {
-                    string json = File.ReadAllText("marketToUserDict.json");
-                    _marketToUserDict = JsonConvert.DeserializeObject<Dictionary<string, int>>(json);
+                    string marketToUserJson = File.ReadAllText(marketToUserPath);
+                    _marketToUserDict = JsonConvert.DeserializeObject<Dictionary<string, int>>(marketToUserJson);
                 }
 
-                if (File.Exists("orderTrackerDict.json"))
+                if (File.Exists(orderTrackerPath))
                 {
-                    string json1 = File.ReadAllText("orderTrackerDict.json");
-                    _orderTrackerDict = JsonConvert.DeserializeObject<Dictionary<int, string>>(json1);
+                    string orderTrackerJson = File.ReadAllText(orderTrackerPath);
+                    _orderTrackerDict = JsonConvert.DeserializeObject<Dictionary<int, string>>(orderTrackerJson);
                 }
             }
             catch (Exception exception)
@@ -1955,11 +1979,13 @@ namespace OsEngine.Market.Servers.AscendexSpot
                     return;
                 }
 
-                string json1 = JsonConvert.SerializeObject(_orderTrackerDict, Formatting.Indented);
-                File.WriteAllText("orderTrackerDict.json", json1);
+                string engineDir = GetEngineDirectory();
 
-                string json2 = JsonConvert.SerializeObject(_marketToUserDict, Formatting.Indented);
-                File.WriteAllText("marketToUserDict.json", json2);
+                string orderTrackerJson = JsonConvert.SerializeObject(_orderTrackerDict, Formatting.Indented);
+                File.WriteAllText(Path.Combine(engineDir, "orderTrackerDict.json"), orderTrackerJson);
+
+                string marketToUserJson = JsonConvert.SerializeObject(_marketToUserDict, Formatting.Indented);
+                File.WriteAllText(Path.Combine(engineDir, "marketToUserDict.json"), marketToUserJson);
             }
             catch (Exception exception)
             {
