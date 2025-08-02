@@ -594,6 +594,61 @@ namespace OsEngine.OsTrader.Panels.Tab
         }
 
         /// <summary>
+        /// Creates a new indicator of the specified type, configures its parameters and adds it to the chart in the specified area.<br/>
+        /// The method combines creation via a factory, setting parameters and binding to the chart area.
+        /// </summary>
+        /// <param name="bot">Current bot</param>
+        /// <param name="typeName">Indicator type (e.g. "Sma", "ATR"). Must match the indicator class name.</param>
+        /// <param name="area">The name of the area on which it will be placed. Default: "Prime" </param>
+        /// <param name="canDelete">Determines whether the user can remove the indicator from the chart.</param>
+        /// <param name="parameters">Array of indicator parameter values. The order should match the expected parameters.</param>
+        public Aindicator CreateIndicator(BotPanel bot, string typeName, string area, bool canDelete, params decimal[] parameters)
+        {
+            Aindicator indicator = IndicatorsFactory.CreateIndicatorByName(typeName, $"{bot.NameStrategyUniq}{typeName}", canDelete);
+            indicator = (Aindicator)CreateCandleIndicator(indicator, area);
+
+            int parametersDigitCount = indicator.ParametersDigit.Count;
+            var parameterDigits = indicator.ParametersDigit;
+
+            if (parametersDigitCount != parameters.Length)
+                MessageBox.Show($"Count of parameters ({parameters.Length}) must be equal to the count of indicator parameters ({parametersDigitCount})");
+            
+            for (int i = 0; i < parametersDigitCount; i++)
+                parameterDigits[i].Value = parameters[i];
+
+            return indicator;
+        }
+
+        /// <summary>
+        /// Creates a new indicator of the specified type, configures its parameters and adds it to the chart in the specified area.<br/>
+        /// The method combines creation via a factory, setting parameters and binding to the chart area.<br/><br/>
+        /// Can't be deleted from the chart.
+        /// </summary>
+        /// <param name="bot">Current bot</param>
+        /// <param name="typeName">Indicator type (e.g. "Sma", "ATR"). Must match the indicator class name.</param>
+        /// <param name="area">The name of the area on which it will be placed. Default: "Prime" </param>
+        /// <param name="parameters">Array of indicator parameter values. The order should match the expected parameters.</param>
+        public Aindicator CreateIndicator(BotPanel bot, string typeName, string area, params decimal[] parameters)
+        {
+            return CreateIndicator(bot, typeName, area, false, parameters);
+        }
+
+        /// <summary>
+        /// Creates a new indicator of the specified type in the Prime area, configures its parameters and adds it to the chart in the specified area.<br/>
+        /// The method combines creation via a factory, setting parameters and binding to the chart area.<br/><br/>
+        /// Can't be deleted from the chart.
+        /// </summary>
+        /// <param name="bot">Current bot</param>
+        /// <param name="typeName">Indicator type (e.g. "Sma", "ATR"). Must match the indicator class name.</param>
+        /// <param name="area">The name of the area on which it will be placed. Default: "Prime" </param>
+        /// <param name="parameters">Array of indicator parameter values. The order should match the expected parameters.</param>
+        public Aindicator CreateIndicator(BotPanel bot, string typeName, params decimal[] parameters)
+        {
+            return CreateIndicator(bot, typeName, "Prime", parameters);
+        }
+
+
+        /// <summary>
         /// Remove indicator
         /// </summary>
         public void DeleteCandleIndicator(IIndicator indicator)
