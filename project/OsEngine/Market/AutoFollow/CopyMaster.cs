@@ -21,6 +21,8 @@ namespace OsEngine.Market.AutoFollow
             LogCopyMaster.Listen(this);
 
             SendLogMessage("Copy master activated. Copy traders: " + CopyTraders.Count, LogMessageType.System);
+      
+            
         }
 
         public void ShowDialog()
@@ -55,13 +57,19 @@ namespace OsEngine.Market.AutoFollow
 
         private void LoadCopyTraders()
         {
-            if (!File.Exists(@"Engine\" + @"CopyTradersHub.txt"))
+            if(Directory.Exists(@"Engine\CopyTrader\") == false)
+            {
+                Directory.CreateDirectory(@"Engine\CopyTrader\");
+
+            }
+
+            if (!File.Exists(@"Engine\CopyTrader\" + @"CopyTradersHub.txt"))
             {
                 return;
             }
             try
             {
-                using (StreamReader reader = new StreamReader(@"Engine\" + @"CopyTradersHub.txt"))
+                using (StreamReader reader = new StreamReader(@"Engine\CopyTrader\" + @"CopyTradersHub.txt"))
                 {
                     while (reader.EndOfStream == false)
                     {
@@ -95,7 +103,7 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
-                using (StreamWriter writer = new StreamWriter(@"Engine\" + @"CopyTradersHub.txt", false))
+                using (StreamWriter writer = new StreamWriter(@"Engine\CopyTrader\" + @"CopyTradersHub.txt", false))
                 {
                     for (int i = 0; i < CopyTraders.Count; i++)
                     {

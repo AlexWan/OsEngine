@@ -215,7 +215,7 @@ namespace OsEngine.OsTrader.Gui
         {
             try
             {
-                System.Windows.Forms.MouseEventArgs mouse = (System.Windows.Forms.MouseEventArgs)e;
+                MouseEventArgs mouse = (MouseEventArgs)e;
 
                 if (mouse.Button == MouseButtons.Right)
                 {

@@ -957,6 +957,11 @@ namespace OsEngine.Market.Connectors
                                     millisecondsToDelay = 500;
                                 }
 
+                                if(millisecondsToDelay > 1000)
+                                {
+                                    millisecondsToDelay = 1000;
+                                }
+
                                 await Task.Delay(millisecondsToDelay);
                             }
                             else

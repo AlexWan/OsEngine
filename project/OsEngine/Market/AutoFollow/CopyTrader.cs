@@ -8,8 +8,9 @@ using OsEngine.Logging;
 using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Threading.Tasks;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -26,13 +27,15 @@ namespace OsEngine.Market.AutoFollow
 
             if (save[4].Split('!').Length > 1)
             {
-                OnRobotsNames = save[4].Split('!').ToList();
+                MasterRobotsNames = save[4].Split('!').ToList();
             }
 
             LoadPortfolios(save[5]);
 
             LogCopyTrader = new Log("CopyTrader" + Number, Entity.StartProgram.IsOsTrader);
             LogCopyTrader.Listen(this);
+
+            Task.Run(WorkThreadArea);
         }
 
         public CopyTrader(int number)
@@ -40,6 +43,8 @@ namespace OsEngine.Market.AutoFollow
             Number = number;
             LogCopyTrader = new Log("CopyTrader" + Number, Entity.StartProgram.IsOsTrader);
             LogCopyTrader.Listen(this);
+
+            Task.Run(WorkThreadArea);
         }
 
         private CopyTrader()
@@ -73,6 +78,11 @@ namespace OsEngine.Market.AutoFollow
             {
                 DeleteEvent();
             }
+
+            for(int i = 0;i < PortfolioToCopy.Count;i++)
+            {
+                PortfolioToCopy[i].Delete();
+            }
         }
 
         public void Save()
@@ -81,15 +91,51 @@ namespace OsEngine.Market.AutoFollow
             {
                 NeedToSaveEvent();
             }
+
+            for(int i = 0;i < PortfolioToCopy.Count;i++)
+            {
+                PortfolioToCopy[i].Save();
+            }
         }
 
         public event Action DeleteEvent;
 
         public event Action NeedToSaveEvent;
 
+        #region Work thead
+
+        private bool _objectIsDelete;
+
+        private async void WorkThreadArea()
+        {
+            while (true)
+            {
+                try
+                {
+                    await Task.Delay(1000);
+
+                    if (_objectIsDelete == true)
+                    {
+                        return;
+                    }
+
+                    for(int i = 0;i < PortfolioToCopy.Count;i++)
+                    {
+                        PortfolioToCopy[i].Process(MasterRobotsNames);
+                    }
+                }
+                catch(Exception ex)
+                {
+                    SendLogMessage(ex.ToString(), LogMessageType.Error);
+                }
+            }
+        }
+
+        #endregion
+
         #region Robots for auto follow
 
-        public List<string> OnRobotsNames = new List<string>();
+        public List<string> MasterRobotsNames = new List<string>();
 
         private string OnRobotsNamesInString
         {
@@ -97,9 +143,9 @@ namespace OsEngine.Market.AutoFollow
             {
                 string result = "";
 
-                for(int i = 0;i < OnRobotsNames.Count;i++)
+                for(int i = 0;i < MasterRobotsNames.Count;i++)
                 {
-                    result += OnRobotsNames[i] + "!";
+                    result += MasterRobotsNames[i] + "!";
                 }
 
                 return result;
@@ -108,9 +154,9 @@ namespace OsEngine.Market.AutoFollow
 
         public bool BotIsOnToCopy(BotPanel bot)
         {
-            for(int i = 0;i < OnRobotsNames.Count;i++)
+            for(int i = 0;i < MasterRobotsNames.Count;i++)
             {
-                if (OnRobotsNames[i] == bot.NameStrategyUniq)
+                if (MasterRobotsNames[i] == bot.NameStrategyUniq)
                 {
                     return true;
                 }
@@ -136,9 +182,13 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            PortfolioToCopy portfolio = new PortfolioToCopy();
+            PortfolioToCopy portfolio 
+                = new PortfolioToCopy(
+                    Number + "_PortfolioCopier_" + serverName + "_" + portfolioName);
+
             portfolio.ServerName = serverName;
             portfolio.PortfolioName = portfolioName;
+            portfolio.Save();
             portfolio.LogMessageEvent += SendLogMessage;
             PortfolioToCopy.Add(portfolio);
             
@@ -156,7 +206,7 @@ namespace OsEngine.Market.AutoFollow
 
             for(int i = 0;i < PortfolioToCopy.Count;i++)
             {
-                result += PortfolioToCopy[i].GetSaveString() + "&";
+                result += PortfolioToCopy[i].NameUnique + "&";
             }
 
             return result;
@@ -172,10 +222,21 @@ namespace OsEngine.Market.AutoFollow
                 {
                     continue;
                 }
-                PortfolioToCopy portfolio = new PortfolioToCopy();
-                portfolio.SetFromString(saveArray[i]);
+
+                PortfolioToCopy portfolio = new PortfolioToCopy(saveArray[i]);
                 PortfolioToCopy.Add(portfolio);
             }
+        }
+
+        public void RemovePortfolioAt(int number)
+        {
+            if(number >= PortfolioToCopy.Count)
+            {
+                return;
+            }
+            PortfolioToCopy[number].Delete();
+            PortfolioToCopy.RemoveAt(number);
+            Save();
         }
 
         #endregion
@@ -197,6 +258,98 @@ namespace OsEngine.Market.AutoFollow
 
     public class PortfolioToCopy
     {
+        public PortfolioToCopy(string name)
+        {
+            NameUnique = name;
+
+            Load();
+
+            _journal = new Journal.Journal(name, StartProgram.IsOsTrader);
+
+            //_journal.PositionStateChangeEvent += _journal_PositionStateChangeEvent;
+            //_journal.PositionNetVolumeChangeEvent += _journal_PositionNetVolumeChangeEvent;
+            //_journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
+            _journal.LogMessageEvent += SendLogMessage;
+        }
+
+        public string NameUnique;
+
+        public void Save()
+        {
+            try
+            {
+                using (StreamWriter writer = new StreamWriter(@"Engine\CopyTrader\" + NameUnique + ".txt", false))
+                {
+                    writer.WriteLine(ServerName);
+                    writer.WriteLine(PortfolioName);
+                    writer.WriteLine(IsOn);
+                    writer.WriteLine(VolumeType);
+                    writer.WriteLine(VolumeMult);
+                    writer.WriteLine(MasterAsset);
+                    writer.WriteLine(SlaveAsset);
+                    writer.WriteLine(CopyType);
+                    writer.WriteLine(OrderType);
+                    writer.WriteLine(IcebergCount);
+                    writer.WriteLine(GetSecuritiesSaveString());
+                    writer.Close();
+                }
+            }
+            catch (Exception error)
+            {
+                SendLogMessage(error.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void Load()
+        {
+            if (!File.Exists(@"Engine\CopyTrader\" + NameUnique + ".txt"))
+            {
+                return;
+            }
+            try
+            {
+                using (StreamReader reader = new StreamReader(@"Engine\CopyTrader\" + NameUnique + ".txt"))
+                {
+                    ServerName = reader.ReadLine();
+
+                    PortfolioName = reader.ReadLine();
+                    IsOn = Convert.ToBoolean(reader.ReadLine());
+                    Enum.TryParse(reader.ReadLine(), out VolumeType);
+
+                    VolumeMult = reader.ReadLine().ToDecimal();
+                    MasterAsset = reader.ReadLine();
+                    SlaveAsset = reader.ReadLine();
+
+                    Enum.TryParse(reader.ReadLine(), out CopyType);
+                    Enum.TryParse(reader.ReadLine(), out OrderType);
+                    IcebergCount = Convert.ToInt32(reader.ReadLine());
+                    LoadSecuritiesFromString(reader.ReadLine());
+
+                    reader.Close();
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+
+        }
+
+        public void Delete()
+        {
+            try
+            {
+                if (File.Exists(@"Engine\CopyTrader\" + NameUnique + ".txt"))
+                {
+                    File.Delete(@"Engine\CopyTrader\" + NameUnique + ".txt");
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+        }
+
         #region Settings
 
         public string ServerName;
@@ -220,14 +373,6 @@ namespace OsEngine.Market.AutoFollow
 
         public string PortfolioName;
 
-        public string UniqueName
-        {
-            get 
-            { 
-                return ServerName + "~" + PortfolioName; 
-            }
-        }
-
         public bool IsOn = false;
 
         public CopyTraderVolumeType VolumeType;
@@ -243,43 +388,6 @@ namespace OsEngine.Market.AutoFollow
         public CopyTraderOrdersType OrderType = CopyTraderOrdersType.Market;
 
         public int IcebergCount = 2;
-
-        public string GetSaveString()
-        {
-            string result = "";
-            result += ServerName + "#";
-            result += PortfolioName + "#";
-            result += IsOn + "#";
-            result += VolumeType + "#";
-            result += VolumeMult + "#";
-            result += MasterAsset + "#";
-            result += SlaveAsset + "#";
-            result += CopyType + "#";
-            result += OrderType + "#";
-            result += IcebergCount + "#";
-            result += GetSecuritiesSaveString() + "#";
-
-            return result;       
-        }
-
-        public void SetFromString(string str)
-        {
-            string[] saveArray = str.Split('#');
-            ServerName = saveArray[0];
-
-            PortfolioName = saveArray[1];
-            IsOn = Convert.ToBoolean(saveArray[2]);
-            Enum.TryParse(saveArray[3], out VolumeType);
-
-            VolumeMult = saveArray[4].ToDecimal();
-            MasterAsset = saveArray[5];
-            SlaveAsset = saveArray[6];
-
-            Enum.TryParse(saveArray[7], out CopyType);
-            Enum.TryParse(saveArray[8], out OrderType);
-            IcebergCount = Convert.ToInt32(saveArray[9]);
-            LoadSecuritiesFromString(saveArray[10]);
-        }
 
         #endregion
 
@@ -318,17 +426,31 @@ namespace OsEngine.Market.AutoFollow
 
         #endregion
 
-        #region Journal
+        #region Copy position logic
+
+        public void Process(List<string> masterRobots)
+        {
+            if(IsOn == false)
+            {
+                return;
+            }
+
+            if(masterRobots == null ||
+                masterRobots.Count == 0)
+            {
+                return;
+            }
 
 
 
+
+        }
 
         #endregion
 
-        #region Copy position logic
+        #region Journal
 
-
-
+        public Journal.Journal _journal;
 
         #endregion
 

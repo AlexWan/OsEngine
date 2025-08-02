@@ -30,7 +30,7 @@ namespace OsEngine.Market.AutoFollow
 
             _portfolioToCopy = portfolioToCopy;
             _copyTrader = copyTrader;
-            UniqueName = _portfolioToCopy.UniqueName;
+            UniqueName = _portfolioToCopy.NameUnique;
 
             ComboBoxIsOn.Items.Add(true.ToString());
             ComboBoxIsOn.Items.Add(false.ToString());
@@ -120,7 +120,7 @@ namespace OsEngine.Market.AutoFollow
             try
             {
                 _portfolioToCopy.SlaveAsset = TextBoxSlaveAsset.Text;
-                _copyTrader.Save();
+                _portfolioToCopy.Save();
 
             }
             catch (Exception ex)
@@ -134,7 +134,7 @@ namespace OsEngine.Market.AutoFollow
             try
             {
                 _portfolioToCopy.MasterAsset = TextBoxMasterAsset.Text;
-                _copyTrader.Save();
+                _portfolioToCopy.Save();
 
             }
             catch (Exception ex)
@@ -150,7 +150,7 @@ namespace OsEngine.Market.AutoFollow
                 decimal volumeMult = TextBoxVolumeMult.ToString().ToDecimal();
 
                 _portfolioToCopy.VolumeMult = volumeMult;
-                _copyTrader.Save();
+                _portfolioToCopy.Save();
 
             }
             catch (Exception ex)
@@ -168,7 +168,7 @@ namespace OsEngine.Market.AutoFollow
                 if (Enum.TryParse(ComboBoxVolumeType.SelectedItem.ToString(), out volumeType))
                 {
                     _portfolioToCopy.VolumeType = volumeType;
-                    _copyTrader.Save();
+                    _portfolioToCopy.Save();
                 }
             }
             catch (Exception ex)
@@ -184,8 +184,8 @@ namespace OsEngine.Market.AutoFollow
                 int ordersCount = Convert.ToInt32(ComboBoxOrderType.SelectedItem.ToString());
 
                 _portfolioToCopy.IcebergCount = ordersCount;
-                _copyTrader.Save();
-                
+                _portfolioToCopy.Save();
+
             }
             catch (Exception ex)
             {
@@ -202,7 +202,7 @@ namespace OsEngine.Market.AutoFollow
                 if (Enum.TryParse(ComboBoxOrderType.SelectedItem.ToString(), out orderType))
                 {
                     _portfolioToCopy.OrderType = orderType;
-                    _copyTrader.Save();
+                    _portfolioToCopy.Save();
                 }
             }
             catch (Exception ex)
@@ -220,7 +220,7 @@ namespace OsEngine.Market.AutoFollow
                 if(Enum.TryParse(ComboBoxCopyType.SelectedItem.ToString(), out copyType))
                 {
                     _portfolioToCopy.CopyType = copyType;
-                    _copyTrader.Save();
+                    _portfolioToCopy.Save();
                 }
             }
             catch (Exception ex)
@@ -235,7 +235,7 @@ namespace OsEngine.Market.AutoFollow
             {
                 bool value = Convert.ToBoolean(ComboBoxIsOn.SelectedItem.ToString());
                 _portfolioToCopy.IsOn = value;
-                _copyTrader.Save();
+                _portfolioToCopy.Save();
             }
             catch(Exception ex)
             {
@@ -561,7 +561,7 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            _copyTrader.Save();
+            _portfolioToCopy.Save();
             UpdateGridSecurities();
         }
 
@@ -577,7 +577,7 @@ namespace OsEngine.Market.AutoFollow
 
             _portfolioToCopy.SecurityToCopy.RemoveAt(index);
 
-            _copyTrader.Save();
+            _portfolioToCopy.Save();
             UpdateGridSecurities();
         }
 
@@ -621,7 +621,7 @@ namespace OsEngine.Market.AutoFollow
                     if(securityToCopy.Count >0)
                     {
                         _portfolioToCopy.SecurityToCopy = securityToCopy;
-                        _copyTrader.Save();
+                        _portfolioToCopy.Save();
                         UpdateGridSecurities();
                     }
                 }

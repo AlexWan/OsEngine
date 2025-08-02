@@ -819,7 +819,7 @@ namespace OsEngine.Language
 
         public string Label196 => OsLocalization.ConvertToLocString(
           "Eng:You're going to delete the item! Are you sure?_" +
-          "Ru:Вы собариатесь удалить элемент! Вы уверены?_");
+          "Ru:Вы собираетесь удалить элемент! Вы уверены?_");
 
         public string Label197 => OsLocalization.ConvertToLocString(
           "Eng:Copy trading_" +
@@ -928,6 +928,11 @@ namespace OsEngine.Language
         public string Label223 => OsLocalization.ConvertToLocString(
          "Eng:Slave. Class_" +
          "Ru:Slave. Класс_");
+
+        public string Label224 => OsLocalization.ConvertToLocString(
+         "Eng:Select_" +
+         "Ru:Выбрать_");
+
 
 
 
