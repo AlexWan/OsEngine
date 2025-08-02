@@ -1488,7 +1488,10 @@ namespace OsEngine.Market.Servers
 
                         if (_fundingToSend.TryDequeue(out data))
                         {
-                            NewFundingEvent(data);
+                            if (NewFundingEvent != null)
+                            {
+                                NewFundingEvent(data);
+                            }                            
                         }
                     }
 
@@ -1498,7 +1501,10 @@ namespace OsEngine.Market.Servers
 
                         if (_securityVolumesToSend.TryDequeue(out data))
                         {
-                            NewVolume24hUpdateEvent(data);
+                            if (NewVolume24hUpdateEvent != null)
+                            {
+                                NewVolume24hUpdateEvent(data);
+                            }                            
                         }
                     }
 

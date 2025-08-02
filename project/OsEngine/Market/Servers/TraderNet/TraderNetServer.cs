@@ -152,8 +152,6 @@ namespace OsEngine.Market.Servers.TraderNet
 
         private Dictionary<string, ListTrades> _listTrades = new Dictionary<string, ListTrades>();
 
-        private string _fileSecurities;
-
         #endregion
 
         #region 3 Securities
@@ -282,13 +280,15 @@ namespace OsEngine.Market.Servers.TraderNet
             }
         }
 
+        private List<Security> _securities;
+
         private void DeserializeDataSecurity(string jsonResponse)
         {
             try
             {
                 ResponseMessageSecurities result = JsonConvert.DeserializeObject<ResponseMessageSecurities>(jsonResponse);
 
-                List<Security> securities = new List<Security>();
+                _securities = new List<Security>();
 
                 if (result == null)
                 {
@@ -322,9 +322,9 @@ namespace OsEngine.Market.Servers.TraderNet
                     newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
                     newSecurity.VolumeStep = item.quotes.x_lot.ToDecimal();
 
-                    securities.Add(newSecurity);
+                    _securities.Add(newSecurity);
                 }
-                SecurityEvent(securities);
+                SecurityEvent(_securities);
             }
             catch (Exception ex)
             {
@@ -1470,8 +1470,8 @@ namespace OsEngine.Market.Servers.TraderNet
             Order newOrder = new Order();
 
             newOrder.SecurityNameCode = responseOrder.instr;
-            DateTime.TryParse(responseOrder.date, out newOrder.TimeCallBack);
-            
+            newOrder.SecurityClassCode = GetClassSecurity(newOrder.SecurityNameCode);
+            DateTime.TryParse(responseOrder.date, out newOrder.TimeCallBack);            
             newOrder.NumberMarket = responseOrder.id.ToString();
             newOrder.Side = GetOrderSide(responseOrder.oper);
             newOrder.State = GetOrderState(responseOrder.stat);
@@ -1490,7 +1490,25 @@ namespace OsEngine.Market.Servers.TraderNet
 
             return newOrder;
         }
-              
+
+        private string GetClassSecurity(string securityNameCode)
+        {
+            if (_securities == null)
+            {
+                return null;
+            }
+
+            for (int i = 0; i < _securities.Count; i++)
+            {
+                if (_securities[i].Name == securityNameCode)
+                {
+                    return _securities[i].NameClass;
+                }
+            }
+
+            return null;
+        }
+
         public void ChangeOrderPrice(Order order, decimal newPrice)
         {
         }
