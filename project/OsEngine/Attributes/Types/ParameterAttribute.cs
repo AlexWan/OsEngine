@@ -232,7 +232,7 @@ namespace OsEngine.Attributes
                     throw new ArgumentException($"Parameter attribute cannot be applied to interfaces, generics, or abstract classes: {type}");
 
                 object instance = RuntimeHelpers.GetUninitializedObject(type);
-                initializer.InitBotAttribute(type, instance, type.Name);
+                initializer.InitBotAttribute(type, instance, Name);
                 member.SetValue(instance);
             }
 
