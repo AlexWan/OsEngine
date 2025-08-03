@@ -161,6 +161,54 @@ namespace OsEngine.Indicators
             }
         }
 
+        /// <summary>
+        /// Creates a new indicator of the specified type and configures its parameters.<br/>
+        /// The method combines creation via a factory, setting parameters and include in built-in.
+        /// </summary>
+        /// <param name="typeName">Indicator type (e.g. "Sma", "ATR"). Must match the indicator class name.</param>
+        /// <param name="name">Indicator name in parameters</param>
+        /// <param name="parameters">Array of indicator parameters. The order should match the expected parameters.</param>
+        public Aindicator CreateIndicator(string typeName, string name, bool canDelete, params IndicatorParameter[] parameters)
+        {
+            var indicator = IndicatorsFactory.CreateIndicatorByName(typeName, $"{Name}{typeName}", canDelete);
+
+            var parametersLength = parameters.Length;
+
+            for (int i = 0; i < parametersLength; i++)
+            {
+                indicator.Parameters[i].Bind(parameters[i]);
+            }
+
+            ProcessIndicator(name, indicator);
+
+            return indicator;
+        }
+
+        /// <summary>
+        /// Creates a new indicator of the specified type and configures its parameters.<br/>
+        /// The method combines creation via a factory, setting parameters and include in built-in.<br/><br/>
+        /// Can't be deleted from the chart.
+        /// </summary>
+        /// <param name="typeName">Indicator type (e.g. "Sma", "ATR"). Must match the indicator class name.</param>
+        /// <param name="name">Indicator name in parameters</param>
+        /// <param name="parameters">Array of indicator parameters. The order should match the expected parameters.</param>
+        public Aindicator CreateIndicator(string typeName, string name, params IndicatorParameter[] parameters)
+        {
+            return CreateIndicator(typeName, name, false, parameters);
+        }
+
+        /// <summary>
+        /// Creates a new indicator of the specified type and configures its parameters.<br/>
+        /// The method combines creation via a factory, setting parameters and include in built-in.<br/><br/>
+        /// Can't be deleted from the chart.
+        /// </summary>
+        /// <param name="typeName">Indicator type (e.g. "Sma", "ATR"). Must match the indicator class name.</param>
+        /// <param name="parameters">Array of indicator parameters. The order should match the expected parameters.</param>
+        public Aindicator CreateIndicator(string typeName, params IndicatorParameter[] parameters)
+        {
+            return CreateIndicator(typeName, typeName, false, parameters);
+        }
+
         public StartProgram StartProgram;
 
         public IndicatorChartPaintType TypeIndicator { get; set; }
