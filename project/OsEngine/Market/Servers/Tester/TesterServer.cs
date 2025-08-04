@@ -1629,14 +1629,6 @@ namespace OsEngine.Market.Servers.Tester
                 return;
             }
 
-            if (order.Price <= 0
-                && order.TypeOrder != OrderPriceType.Market)
-            {
-                SendLogMessage(OsLocalization.Market.Message41 + order.Price, LogMessageType.Error);
-                FailedOperationOrder(order);
-                return;
-            }
-
             if (order.Volume <= 0)
             {
                 SendLogMessage(OsLocalization.Market.Message42 + order.Volume, LogMessageType.Error);

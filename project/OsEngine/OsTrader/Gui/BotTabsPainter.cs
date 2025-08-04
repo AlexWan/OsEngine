@@ -964,7 +964,7 @@ colum9.HeaderText = "Journal";
 
             if(_master._startProgram == StartProgram.IsOsTrader)
             {
-                //row.Cells[7].Value = OsLocalization.Trader.Label570; //"Copy trading";
+               // row.Cells[7].Value = OsLocalization.Trader.Label570; //"Copy trading";
             }
 
             row.Cells.Add(new DataGridViewButtonCell());

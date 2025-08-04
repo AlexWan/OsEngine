@@ -4,13 +4,16 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Journal;
 using OsEngine.Logging;
+using OsEngine.Market.Servers;
 using OsEngine.OsTrader.Panels;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms.Integration;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -28,6 +31,15 @@ namespace OsEngine.Market.AutoFollow
             if (save[4].Split('!').Length > 1)
             {
                 MasterRobotsNames = save[4].Split('!').ToList();
+
+                for(int i = 0;i < MasterRobotsNames.Count;i++)
+                {
+                    if (string.IsNullOrEmpty(MasterRobotsNames[i]))
+                    {
+                        MasterRobotsNames.RemoveAt(i);
+                        i--;
+                    }
+                }
             }
 
             LoadPortfolios(save[5]);
@@ -102,7 +114,7 @@ namespace OsEngine.Market.AutoFollow
 
         public event Action NeedToSaveEvent;
 
-        #region Work thead
+        #region Work thread
 
         private bool _objectIsDelete;
 
@@ -264,12 +276,12 @@ namespace OsEngine.Market.AutoFollow
 
             Load();
 
-            _journal = new Journal.Journal(name, StartProgram.IsOsTrader);
+            MyJournal = new Journal.Journal(name, StartProgram.IsOsTrader);
 
-            //_journal.PositionStateChangeEvent += _journal_PositionStateChangeEvent;
-            //_journal.PositionNetVolumeChangeEvent += _journal_PositionNetVolumeChangeEvent;
-            //_journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
-            _journal.LogMessageEvent += SendLogMessage;
+            // _journal.PositionStateChangeEvent += _journal_PositionStateChangeEvent;
+            // _journal.PositionNetVolumeChangeEvent += _journal_PositionNetVolumeChangeEvent;
+            // _journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
+            MyJournal.LogMessageEvent += SendLogMessage;
         }
 
         public string NameUnique;
@@ -339,9 +351,18 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
+                _isDelete = true;
+
                 if (File.Exists(@"Engine\CopyTrader\" + NameUnique + ".txt"))
                 {
                     File.Delete(@"Engine\CopyTrader\" + NameUnique + ".txt");
+                }
+
+                if(MyCopyServer != null)
+                {
+                    MyCopyServer.NewMyTradeEvent -= MyCopyServer_NewMyTradeEvent;
+                    MyCopyServer.NewOrderIncomeEvent -= MyCopyServer_NewOrderIncomeEvent;
+                    MyCopyServer = null;
                 }
             }
             catch
@@ -349,6 +370,8 @@ namespace OsEngine.Market.AutoFollow
                 // ignore
             }
         }
+
+        private bool _isDelete;
 
         #region Settings
 
@@ -426,12 +449,98 @@ namespace OsEngine.Market.AutoFollow
 
         #endregion
 
+        #region Server and Journal 
+
+        public Journal.Journal MyJournal;
+
+        public AServer MyCopyServer;
+
+        private void TryGetServer()
+        {
+            List<AServer> servers = ServerMaster.GetAServers();
+
+            if (servers == null
+                || servers.Count == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < servers.Count; i++)
+            {
+                if (servers[i].ServerNameAndPrefix.StartsWith(this.ServerName))
+                {
+                    MyCopyServer = servers[i];
+
+                    MyCopyServer.NewMyTradeEvent += MyCopyServer_NewMyTradeEvent;
+                    MyCopyServer.NewOrderIncomeEvent += MyCopyServer_NewOrderIncomeEvent;
+
+                    break;
+                }
+            }
+        }
+
+        private void MyCopyServer_NewOrderIncomeEvent(Order order)
+        {
+            try
+            {
+                if (_isDelete)
+                {
+                    return;
+                }
+
+                Order orderInJournal = MyJournal.IsMyOrder(order);
+
+                if (orderInJournal == null)
+                {
+                    return;
+                }
+                MyJournal.SetNewOrder(order);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(),LogMessageType.Error);
+            }
+        }
+
+        private void MyCopyServer_NewMyTradeEvent(MyTrade myTrade)
+        {
+            try
+            {
+                if (_isDelete)
+                {
+                    return;
+                }
+                if (MyJournal.SetNewMyTrade(myTrade) == false)
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        public void StartPaint(WindowsFormsHost hostOpenDeals, WindowsFormsHost hostCloseDeals)
+        {
+           // _journal?.StartPaint(hostOpenDeals, hostCloseDeals);
+        }
+
+        public void StopPaint()
+        {
+
+
+        }
+
+        #endregion
+
         #region Copy position logic
 
         public void Process(List<string> masterRobots)
         {
             if(IsOn == false)
             {
+                TryCloseMyPositionsRobots();
                 return;
             }
 
@@ -441,16 +550,161 @@ namespace OsEngine.Market.AutoFollow
                 return;
             }
 
+            // 1 пробуем взять коннектор
+
+            if(MyCopyServer == null)
+            {
+                TryGetServer();
+                if (MyCopyServer == null)
+                {
+                    return;
+                }
+            }
+
+            if(MyCopyServer.ServerStatus != ServerConnectStatus.Connect)
+            {
+                return;
+            }
+
+            if(MyCopyServer.LastStartServerTime.AddSeconds(MyCopyServer.WaitTimeToTradeAfterFirstStart) 
+                > DateTime.Now)
+            {
+                return;
+            }
+
+            ProcessCopyRobots(masterRobots);
+
+
 
 
 
         }
 
+
+
+
         #endregion
 
-        #region Journal
+        #region Robots copy logic
 
-        public Journal.Journal _journal;
+        private void ProcessCopyRobots(List<string> masterRobots)
+        {
+            // 1 обновляем список роботов
+
+            TrySyncRobots(masterRobots);
+
+            if (Robots == null
+                || Robots.Count == 0)
+            {
+                TryCloseMyPositionsRobots();
+                return;
+            }
+
+            // 2 берём позиции по роботам и по копи-портфелю
+
+            List<PositionToCopy> positionsInBots = GetPositionsFromBots();
+            List<PositionToCopy> myPositionsRobots = GetMyPositionsRobots();
+
+
+
+
+        }
+
+        private List<PositionToCopy> GetPositionsFromBots()
+        {
+
+            return null;
+        }
+
+        private List<PositionToCopy> GetMyPositionsRobots()
+        {
+
+            return null;
+        }
+
+        public List<BotPanel> Robots = new List<BotPanel>();
+
+        private void TrySyncRobots(List<string> robotsNames)
+        {
+            // 1 создаём не достающие
+
+            List<BotPanel> allRobots = ServerMaster.GetAllBotsFromBotStation();
+
+            for (int i = 0; i < robotsNames.Count; i++)
+            {
+                string currentBot = robotsNames[i];
+
+                bool botInArray = false;
+
+                for (int j = 0; j < Robots.Count; j++)
+                {
+                    if (Robots[j].NameStrategyUniq == currentBot)
+                    {
+                        botInArray = true;
+                        break;
+                    }
+                }
+
+                if (botInArray == false)
+                {
+                    BotPanel bot = allRobots.Find(b => b.NameStrategyUniq == currentBot);
+
+                    if (bot != null)
+                    {
+                        Robots.Add(bot);
+                    }
+                    else
+                    {
+                        robotsNames.RemoveAt(i);
+                        i--;
+                    }
+                }
+            }
+
+            // 2 убираем лишние
+
+            for (int i = 0; i < Robots.Count; i++)
+            {
+                bool isInArray = false;
+
+                for (int j = 0; j < robotsNames.Count; j++)
+                {
+                    if (robotsNames[j] == Robots[i].NameStrategyUniq)
+                    {
+                        isInArray = true;
+                        break;
+                    }
+                }
+
+                if (isInArray == false)
+                {
+                    Robots.RemoveAt(i);
+                    i--;
+                }
+            }
+        }
+
+        private void TryCloseMyPositionsRobots()
+        {
+            List<PositionToCopy> myPositionsRobots = GetMyPositionsRobots();
+
+            for(int i = 0;i < myPositionsRobots.Count;i++)
+            {
+
+            }
+
+        }
+
+        #endregion
+
+        #region Trade operations
+
+        private void ClosePositions(Position position)
+        {
+
+
+        }
+
 
         #endregion
 
@@ -518,6 +772,21 @@ namespace OsEngine.Market.AutoFollow
 
         }
 
+    }
+
+    public class PositionToCopy
+    {
+        public Security Security;
+
+        public List<Position> Positions;
+
+        public string SecurityName;
+
+        public decimal VolumeBuy;
+
+        public decimal VolumeSell;
+
+        public decimal VolumeAbs;
     }
 
 }

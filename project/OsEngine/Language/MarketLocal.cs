@@ -933,7 +933,13 @@ namespace OsEngine.Language
          "Eng:Select_" +
          "Ru:Выбрать_");
 
+        public string Label225 => OsLocalization.ConvertToLocString(
+         "Eng:Select new slave portfolio_" +
+         "Ru:Выберите новый копи-портфель_");
 
+        public string Label226 => OsLocalization.ConvertToLocString(
+         "Eng:To add a new slave portfolio, you need to connect at least one trade server_" +
+         "Ru:Для добавления нового копи-портфеля нужно подключить хотя бы один торговый коннектор_");
 
 
 

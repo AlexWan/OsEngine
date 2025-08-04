@@ -535,5 +535,9 @@ namespace OsEngine.Language
             "Eng:Save table in file_" +
             "Ru:Сохранить таблицу в файл_");
 
+        public string CustomMessageBoxTitle => OsLocalization.ConvertToLocString(
+            "Eng:Message box_" +
+            "Ru:Окно сообщений_");
+
     }
 }

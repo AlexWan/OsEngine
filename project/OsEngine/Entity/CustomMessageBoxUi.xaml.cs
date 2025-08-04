@@ -17,6 +17,7 @@ namespace OsEngine.Entity
             TextBoxMessage.Text = text;
 
             ButtonAccept.Content = OsLocalization.Entity.ButtonAccept;
+            Title = OsLocalization.Entity.CustomMessageBoxTitle;
 
             this.Activate();
             this.Focus();

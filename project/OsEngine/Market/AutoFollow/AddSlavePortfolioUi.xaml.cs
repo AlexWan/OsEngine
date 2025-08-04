@@ -16,9 +16,6 @@ using System.Drawing;
 
 namespace OsEngine.Market.AutoFollow
 {
-    /// <summary>
-    /// Interaction logic for AddSlavePortfolioUi.xaml
-    /// </summary>
     public partial class AddSlavePortfolioUi : Window
     {
         public CopyTrader CopyTraderInstance;
@@ -27,12 +24,20 @@ namespace OsEngine.Market.AutoFollow
         {
             InitializeComponent();
 
+            OsEngine.Layout.StickyBorders.Listen(this);
+            OsEngine.Layout.StartupLocation.Start_MouseInCentre(this);
+
             CopyTraderInstance = copyTrader;
 
             CreateSlaveGrid();
             UpdateGridSlave();
 
             this.Closed += AddSlavePortfolioUi_Closed;
+
+            Title = OsLocalization.Market.Label225;
+
+            Thread worker = new Thread(PainterThreadArea);
+            worker.Start();
         }
 
         private void AddSlavePortfolioUi_Closed(object sender, EventArgs e)
@@ -44,6 +49,8 @@ namespace OsEngine.Market.AutoFollow
             HostSlaves.Child = null;
             _gridSlave.Rows.Clear();
             DataGridFactory.ClearLinks(_gridSlave);
+
+            CopyTraderInstance = null;
         }
 
         #region Painter thread
@@ -164,14 +171,6 @@ namespace OsEngine.Market.AutoFollow
                     {
                         _gridSlave.Rows.Add(rowsNow[i]);
                     }
-                }
-                else
-                { // 2 перерисовываем по линиям
-                    /* for (int i = 0; i < _gridRobots.Rows.Count; i++)
-                     {
-                         TryRePaintRobotRow(_gridRobots.Rows[i], rowsNow[i]);
-
-                     }*/
                 }
             }
             catch (Exception ex)

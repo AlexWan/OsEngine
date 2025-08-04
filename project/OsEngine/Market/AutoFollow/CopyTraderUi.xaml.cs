@@ -14,8 +14,9 @@ using System.Windows.Controls;
 using System.Windows.Forms;
 using System.Collections.Generic;
 using System.Threading;
-using OsEngine.Market.Servers;
 using System.Drawing;
+using OsEngine.Market.Servers;
+using OsEngine.Market.Servers.ZB;
 
 namespace OsEngine.Market.AutoFollow
 {
@@ -773,16 +774,36 @@ namespace OsEngine.Market.AutoFollow
                 }
                 else
                 { // 2 перерисовываем по линиям
-                   /* for (int i = 0; i < _gridRobots.Rows.Count; i++)
+                    for (int i = 0; i < _gridSlave.Rows.Count; i++)
                     {
-                        TryRePaintRobotRow(_gridRobots.Rows[i], rowsNow[i]);
+                        TryRePaintPortfoliosRow(_gridSlave.Rows[i], rowsNow[i]);
 
-                    }*/
+                    }
                 }
             }
             catch (Exception ex)
             {
                 CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
+
+        private void TryRePaintPortfoliosRow(DataGridViewRow actualRow, DataGridViewRow virtualRow)
+        {
+            if (actualRow.Cells[3].Value != null 
+                && virtualRow.Cells[3].Value != null 
+                && virtualRow.Cells[3].Value.ToString() 
+                != actualRow.Cells[3].Value.ToString())
+            {
+                actualRow.Cells[3].Value = virtualRow.Cells[3].Value;
+            }
+
+            for(int i = 0;i < actualRow.Cells.Count;i++)
+            {
+                if (virtualRow.Cells[i].Style.ForeColor != 
+                    actualRow.Cells[i].Style.ForeColor)
+                {
+                    actualRow.Cells[i].Style.ForeColor = virtualRow.Cells[i].Style.ForeColor;
+                }
             }
         }
 
@@ -871,77 +892,40 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
-               /* string currentServerName = "";
+                int row = e.RowIndex;
+                int column = e.ColumnIndex;
 
-                for (int i = 0; i < _gridSlave.Rows.Count; i++)
+                if(column == 3)
                 {
-                    // 1 находим название сервера
-                    DataGridViewCell cell = _gridSlave.Rows[i].Cells[1];
+                    DataGridViewCell cellPortfolioName = _gridSlave.Rows[row].Cells[2];
 
-                    if (cell == null 
-                        || cell.Value == null)
+                    string portfolioName = cellPortfolioName.Value.ToString();
+
+                    PortfolioToCopy portfolioToCopy =
+                      CopyTraderInstance.GetPortfolioByName(
+                          _gridSlave.Rows[row].Cells[1].Value.ToString(), portfolioName);
+
+                    bool portfolioIsOn = Convert.ToBoolean(_gridSlave.Rows[row].Cells[3].Value.ToString());
+                    
+                    portfolioToCopy.IsOn = portfolioIsOn;
+
+                    if (portfolioToCopy.IsOn == true)
                     {
-                        continue;
+                        _gridSlave.Rows[row].Cells[column].Style.ForeColor = Color.Green;
+                    }
+                    else
+                    {
+                        _gridSlave.Rows[row].Cells[column].Style.ForeColor = Color.Red;
                     }
 
-                    currentServerName = cell.Value.ToString();
+                    ServerMaster.SaveCopyMaster();
 
-                    // 2 бежим вниз по таблице, внутри отдельного коннектора
-
-                    for(int j = i+1;j < _gridSlave.Rows.Count;j++)
-                    {
-                        // a) костыли для выхода из коннектора
-                        DataGridViewCell cellConnectorName = _gridSlave.Rows[j].Cells[1];
-
-                        if (cellConnectorName != null 
-                            && cellConnectorName.Value != null)
-                        {
-                            i = j - 1;
-                            break;
-                        }
-
-                        if(j + 1 == _gridSlave.Rows.Count)
-                        {
-                            i = j;
-                        }
-
-                        // b) вход в отдельный портфель
-
-                        DataGridViewCell cellPortfolioName = _gridSlave.Rows[j].Cells[2];
-
-                        if(cellPortfolioName == null 
-                            || cellPortfolioName.Value == null 
-                            || cellPortfolioName.Value.ToString() == OsLocalization.Market.Label140)
-                        {
-                            continue;
-                        }
-
-                        string portfolioName = cellPortfolioName.Value.ToString();
-       
-                        PortfolioToCopy portfolioToCopy =
-                          CopyTraderInstance.GetPortfolioByName(currentServerName, portfolioName);
-
-                        bool portfolioIsOn = Convert.ToBoolean(_gridSlave.Rows[j].Cells[3].Value.ToString());
-                        portfolioToCopy.IsOn = portfolioIsOn;
-
-                        if(portfolioToCopy.IsOn == true)
-                        {
-                            _gridSlave.Rows[j].Cells[3].Style.ForeColor = Color.Green;
-                        }
-                        else
-                        {
-                            _gridSlave.Rows[j].Cells[3].Style.ForeColor = Color.Red;
-                        }
-                    }
                 }
-
-                ServerMaster.SaveCopyMaster();*/
             }
             catch (Exception ex)
             {
                 CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
             }
-
         }
 
         private void _gridSlave_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -993,6 +977,17 @@ namespace OsEngine.Market.AutoFollow
                 else if(row == _gridSlave.Rows.Count - 1
                     && col == 5)
                 {// добавить новый
+
+                    List<AServer> connectors = ServerMaster.GetAServers();
+
+                    if(connectors == null || connectors.Count == 0)
+                    {
+                        CustomMessageBoxUi uiMessage = new CustomMessageBoxUi(OsLocalization.Market.Label226);
+                        uiMessage.ShowDialog();
+                        return;
+                    }
+
+
                     AddSlavePortfolioUi ui = new AddSlavePortfolioUi(CopyTraderInstance);
                     ui.ShowDialog();
                     CopyTraderInstance.Save();
