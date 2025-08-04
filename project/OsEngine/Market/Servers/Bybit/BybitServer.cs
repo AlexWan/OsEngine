@@ -529,7 +529,7 @@ namespace OsEngine.Market.Servers.Bybit
                         && responseSymbols.retCode == "0"
                         && responseSymbols.retMsg == "OK")
                     {
-                        ConvertSecuritis(responseSymbols, Category.spot);
+                        ConvertSecurities(responseSymbols, Category.spot);
                     }
                     else
                     {
@@ -550,7 +550,7 @@ namespace OsEngine.Market.Servers.Bybit
                         && responseSymbols.retCode == "0"
                         && responseSymbols.retMsg == "OK")
                     {
-                        ConvertSecuritis(responseSymbols, Category.linear);
+                        ConvertSecurities(responseSymbols, Category.linear);
                     }
                     else
                     {
@@ -571,7 +571,7 @@ namespace OsEngine.Market.Servers.Bybit
                         && responseSymbols.retCode == "0"
                         && responseSymbols.retMsg == "OK")
                     {
-                        ConvertSecuritis(responseSymbols, Category.inverse);
+                        ConvertSecurities(responseSymbols, Category.inverse);
                     }
                     else
                     {
@@ -588,7 +588,7 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
-        private void ConvertSecuritis(ResponseRestMessage<ArraySymbols> symbols, Category category)
+        private void ConvertSecurities(ResponseRestMessage<ArraySymbols> symbols, Category category)
         {
             try
             {
