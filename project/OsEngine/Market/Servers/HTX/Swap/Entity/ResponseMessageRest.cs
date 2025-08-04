@@ -1,11 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace OsEngine.Market.Servers.HTX.Swap.Entity
 {
     public class ResponseRestMessage<T>
     {
         public string status { get; set; }
+
+        [JsonProperty("err-code")]
         public string errcode { get; set; }
+        [JsonProperty("err-msg")]
         public string errmsg { get; set; }
         public T data { get; set; }
         public string ts { get; set; }

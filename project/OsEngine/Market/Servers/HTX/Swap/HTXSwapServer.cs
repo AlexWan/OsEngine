@@ -270,14 +270,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
                                 newSecurity.NameId = item.contract_code;
                                 newSecurity.SecurityType = SecurityType.Futures;
                                 newSecurity.DecimalsVolume = item.contract_size.DecimalsCount();
-                                newSecurity.Lot = 1;
+                                newSecurity.Lot = item.contract_size.ToDecimal();
                                 newSecurity.PriceStep = item.price_tick.ToDecimal();
                                 newSecurity.Decimals = item.price_tick.DecimalsCount();
                                 newSecurity.PriceStepCost = newSecurity.PriceStep;
                                 newSecurity.State = SecurityStateType.Activ;
-                                newSecurity.MinTradeAmount = item.contract_size.ToDecimal();
+                                newSecurity.MinTradeAmount = 1;//item.contract_size.ToDecimal();
                                 newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                                newSecurity.VolumeStep = newSecurity.DecimalsVolume.GetValueByDecimals();
+                                newSecurity.VolumeStep = 1; //newSecurity.DecimalsVolume.GetValueByDecimals();
 
                                 _listSecurities.Add(newSecurity);
                             }
@@ -632,13 +632,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
             endTime = DateTime.SpecifyKind(endTime, DateTimeKind.Utc);
             actualTime = DateTime.SpecifyKind(actualTime, DateTimeKind.Utc);
 
-            if (endTime.Hour == 0
-                && endTime.Minute == 0
-                && endTime.Second == 0)
-            {
-                endTime = endTime.Date.AddHours(23).AddMinutes(59).AddSeconds(59);
-            }
-
             if (!CheckTime(startTime, endTime, actualTime))
             {
                 return null;
@@ -822,7 +815,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                     else
                     {
-                        SendLogMessage($"Candle History error. Code: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                        SendLogMessage($"Candle History error. {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
                     }
                 }
                 else
@@ -2024,18 +2017,23 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 marketDepth.Asks = ascs;
                 marketDepth.Bids = bids;
-                marketDepth.Time
-                    = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
+                marketDepth.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(responseDepth.ts));
 
-                if (marketDepth.Time < _lastTimeMd)
+                if (_lastTimeMd != DateTime.MinValue &&
+                    _lastTimeMd >= marketDepth.Time)
                 {
-                    marketDepth.Time = _lastTimeMd;
+                    marketDepth.Time = _lastTimeMd.AddTicks(1);
                 }
-                else if (marketDepth.Time == _lastTimeMd)
-                {
-                    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
-                    marketDepth.Time = _lastTimeMd;
-                }
+
+                //if (marketDepth.Time < _lastTimeMd)
+                //{
+                //    marketDepth.Time = _lastTimeMd;
+                //}
+                //else if (marketDepth.Time == _lastTimeMd)
+                //{
+                //    _lastTimeMd = DateTime.FromBinary(_lastTimeMd.Ticks + 1);
+                //    marketDepth.Time = _lastTimeMd;
+                //}
 
                 _lastTimeMd = marketDepth.Time;
 
@@ -2321,7 +2319,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     jsonContent.Add("offset", "open");
                 }
 
-                jsonContent.Add("lever_rate", "10");
+                jsonContent.Add("lever_rate", "1");
                 jsonContent.Add("order_price_type", "limit");
 
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order");
