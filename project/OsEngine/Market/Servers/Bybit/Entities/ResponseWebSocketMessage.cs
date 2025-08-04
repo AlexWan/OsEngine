@@ -162,5 +162,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string gamma { get; set; }
         public string vega { get; set; }
         public string theta { get; set; }
+        public string askIv { get; set; }
+        public string bidIv { get; set; }
     }
 }

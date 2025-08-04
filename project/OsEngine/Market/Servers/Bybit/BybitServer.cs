@@ -276,18 +276,22 @@ namespace OsEngine.Market.Servers.Bybit
             SubscribeSecuritySpot.Clear();
             SubscribeSecurityLinear.Clear();
             SubscribeSecurityInverse.Clear();
+            SubscribedSecurityOption.Clear();
 
             concurrentQueueMessagePublicWebSocket = new ConcurrentQueue<string>();
             _concurrentQueueMessageOrderBookSpot = new ConcurrentQueue<string>();
             _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<string>();
             _concurrentQueueMessageOrderBookInverse = new ConcurrentQueue<string>();
+            _concurrentQueueMessageOrderBookOption = new ConcurrentQueue<string>();
             concurrentQueueMessagePrivateWebSocket = new ConcurrentQueue<string>();
             _concurrentQueueTickersLinear = new ConcurrentQueue<string>();
             _concurrentQueueTickersInverse = new ConcurrentQueue<string>();
+            _concurrentQueueTickersOption = new ConcurrentQueue<string>();
 
             _concurrentQueueTradesSpot = new ConcurrentQueue<string>();
             _concurrentQueueTradesLinear = new ConcurrentQueue<string>();
             _concurrentQueueTradesInverse = new ConcurrentQueue<string>();
+            _concurrentQueueTradesOption = new ConcurrentQueue<string>();
             portfolios = new List<Portfolio>();
 
             Disconnect();
@@ -2938,11 +2942,15 @@ namespace OsEngine.Market.Servers.Bybit
 
         private ConcurrentQueue<string> _concurrentQueueMessageOrderBookInverse;
 
+        private ConcurrentQueue<string> _concurrentQueueMessageOrderBookOption;
+
         private Dictionary<string, MarketDepth> _listMarketDepthSpot = new Dictionary<string, MarketDepth>();
 
         private Dictionary<string, MarketDepth> _listMarketDepthLinear = new Dictionary<string, MarketDepth>();
 
         private Dictionary<string, MarketDepth> _listMarketDepthInverse = new Dictionary<string, MarketDepth>();
+
+        private Dictionary<string, MarketDepth> _listMarketDepthOption = new Dictionary<string, MarketDepth>();
 
         private void UpdateOrderBook(string message, ResponseWebSocketMessage<object> response, Category category)
         {
@@ -2992,6 +3000,15 @@ namespace OsEngine.Market.Servers.Bybit
                         marketDepth = new MarketDepth();
                         marketDepth.SecurityNameCode = sec;
                         _listMarketDepthInverse.Add(sec, marketDepth);
+                    }
+                }
+                else if (category == Category.option)
+                {
+                    if (!_listMarketDepthOption.TryGetValue(sec, out marketDepth))
+                    {
+                        marketDepth = new MarketDepth();
+                        marketDepth.SecurityNameCode = sec;
+                        _listMarketDepthOption.Add(sec, marketDepth);
                     }
                 }
 
@@ -3115,7 +3132,8 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_concurrentQueueMessageOrderBookLinear?.Count < 500
                     && _concurrentQueueMessageOrderBookSpot?.Count < 500
-                    && _concurrentQueueMessageOrderBookInverse?.Count < 500)
+                    && _concurrentQueueMessageOrderBookInverse?.Count < 500 
+                    && _concurrentQueueMessageOrderBookOption?.Count < 500)
                 {
                     MarketDepthEvent?.Invoke(marketDepth.GetCopy());
                 }
@@ -3456,6 +3474,27 @@ namespace OsEngine.Market.Servers.Bybit
                 else if (category == Category.option)
                 {
                     tickers.SecurityName = responseTicker.data.symbol;
+
+                    Security sec = _securities.Find(sec => sec.Name == responseTicker.data.symbol);
+
+                    OptionMarketDataForConnector data = new OptionMarketDataForConnector();
+
+                    data.SecurityName = responseTicker.data.symbol;
+                    data.UnderlyingAsset = sec.UnderlyingAsset;
+
+                    data.Delta = responseTicker.data.delta;
+                    data.Gamma = responseTicker.data.gamma;
+                    data.Vega = responseTicker.data.vega;
+                    data.Theta = responseTicker.data.theta;
+                    data.TimeCreate = responseTicker.ts;
+                    data.BidIV = responseTicker.data.bidIv;
+                    data.AskIV = responseTicker.data.askIv;
+                    data.MarkIV = responseTicker.data.markPriceIv;
+                    data.OpenInterest = responseTicker.data.openInterest;
+                    data.MarkPrice = responseTicker.data.markPrice;
+                    data.UnderlyingPrice = responseTicker.data.underlyingPrice;
+
+                    AdditionalMarketDataEvent!(data);
                 }
 
                 if (responseTicker.data.openInterestValue != null)
