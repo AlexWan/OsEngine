@@ -580,6 +580,27 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }
 
+                parametrs["category"] = Category.option;
+
+                security = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
+
+                if (security != null)
+                {
+                    responseSymbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(security);
+
+                    if (responseSymbols != null
+                        && responseSymbols.retCode == "0"
+                        && responseSymbols.retMsg == "OK")
+                    {
+                        ConvertSecurities(responseSymbols, Category.option);
+                    }
+                    else
+                    {
+                        SendLogMessage($"Option securities error. Code: {responseSymbols.retCode}\n"
+                            + $"Message: {responseSymbols.retMsg}", LogMessageType.Error);
+                    }
+                }
+
                 SecurityEvent?.Invoke(_securities);
             }
             catch (Exception ex)
@@ -640,6 +661,29 @@ namespace OsEngine.Market.Servers.Bybit
                             security.NameId = oneSec.symbol + ".I";
                             security.NameClass = oneSec.contractType;
                             security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+                        }
+                        else if (category == Category.option)
+                        {
+                            security.SecurityType = SecurityType.Option;
+                            security.Name = oneSec.symbol;
+                            security.NameId = oneSec.symbol;
+                            security.NameClass = oneSec.quoteCoin + "_Options";
+                            security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
+                            security.OptionType = oneSec.optionsType == "Call" ? OptionType.Call : OptionType.Put;
+                            security.UnderlyingAsset = oneSec.baseCoin;
+
+                            // https://bybit-exchange.github.io/docs/api-explorer/v5/market/instrument
+                            // get strike price from symbol signature
+                            string[] tokens = oneSec.symbol.Split('-');
+
+                            // Strike price is always the 3rd token from the end
+                            string strikeStr = tokens[^3].Trim();
+                            security.Strike = strikeStr.ToDecimal();
+
+                            // set expiration/delivery
+                            DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+                            DateTime expiration = origin.AddMilliseconds(oneSec.deliveryTime.ToDouble());
+                            security.Expiration = expiration;
                         }
                         else
                         {
