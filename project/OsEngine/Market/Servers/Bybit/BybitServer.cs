@@ -605,13 +605,35 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }
 
-                parametrs["category"] = Category.option;
+                LoadOptionInstruments("BTC");
+                LoadOptionInstruments("ETH");
+                LoadOptionInstruments("SOL");
 
-                security = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
+                SecurityEvent?.Invoke(_securities);
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage($"Securities request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
+            }
+        }
+
+        private void LoadOptionInstruments(string baseCoin = "BTC")
+        {
+            Dictionary<string, object> parametrs = new Dictionary<string, object>();
+                parametrs.Add("limit", "1000");
+
+            parametrs["category"] = Category.option;
+            parametrs["baseCoin"] = baseCoin;
+            parametrs["cursor"] = "";
+            bool allLoaded = false;
+
+            while (!allLoaded)
+            {
+                string security = CreatePublicQuery(parametrs, HttpMethod.Get, "/v5/market/instruments-info");
 
                 if (security != null)
                 {
-                    responseSymbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(security);
+                    ResponseRestMessage<ArraySymbols> responseSymbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(security);
 
                     if (responseSymbols != null
                         && responseSymbols.retMsg == "success")
@@ -621,15 +643,19 @@ namespace OsEngine.Market.Servers.Bybit
                     else
                     {
                         SendLogMessage($"Option securities error. Code: {responseSymbols.retCode}\n"
-                            + $"Message: {responseSymbols.retMsg}", LogMessageType.Error);
+                                       + $"Message: {responseSymbols.retMsg}", LogMessageType.Error);
+                        allLoaded = true;
+                    }
+
+                    if (responseSymbols.result.nextPageCursor == "")
+                    {
+                        allLoaded = true;
+                    }
+                    else
+                    {
+                        parametrs["cursor"] = responseSymbols.result.nextPageCursor; // we need to get the next page
                     }
                 }
-
-                SecurityEvent?.Invoke(_securities);
-            }
-            catch (Exception ex)
-            {
-                SendLogMessage($"Securities request error. {ex.Message} {ex.StackTrace}", LogMessageType.Error);
             }
         }
 
@@ -2187,14 +2213,13 @@ namespace OsEngine.Market.Servers.Bybit
 
                     // Note: option uses baseCoin, e.g., publicTrade.BTC https://bybit-exchange.github.io/docs/v5/websocket/public/trade
                     string baseCoin = security.UnderlyingAsset;
-                    string[] parts = security.Name.Split('-');
-                    string secWsName = string.Join("-", parts.Take(4));
+
                     webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
-                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{secWsName}\" ] }}");
+                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.25.{security.NameId}\" ] }}"); // only 25 or 100 for options
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{secWsName}\" ] }}");
+                        webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.NameId}\" ] }}");
                     }
                 }
             }
@@ -2436,15 +2461,12 @@ namespace OsEngine.Market.Servers.Bybit
                                 string s = SubscribedSecurityOption[i2];
                                 string baseCoin = s.Split('.')[0];
 
-                                string[] parts = s.Split('-');
-                                string secWsName = string.Join("-", parts.Take(4));
-                   
                                 webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
-                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{secWsName}\" ] }}");
+                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.25.{s}\" ] }}");
 
                                 if (_extendedMarketData)
                                 {
-                                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{secWsName}\" ] }}");
+                                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
                                 }
                             }
                         }
@@ -2618,7 +2640,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                         continue;
                     }
-                    /*if (subscribleMessage.op == "pong")
+                    /*if (subscribeMessage.op == "pong")
                     {
                         continue;
                     }*/
@@ -2663,10 +2685,10 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    SubscribleMessage subscribleMessage =
-                      JsonConvert.DeserializeAnonymousType(message, new SubscribleMessage());
+                    SubscribeMessage subscribeMessage =
+                      JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
 
-                    if (subscribleMessage.op == "pong")
+                    if (subscribeMessage.op == "pong")
                     {
                         continue;
                     }
@@ -3016,7 +3038,6 @@ namespace OsEngine.Market.Servers.Bybit
                         Thread.Sleep(1);
                         continue;
                     }
-
 
                     ResponseWebSocketMessage<object> response =
                         JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
