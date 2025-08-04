@@ -3407,7 +3407,7 @@ namespace OsEngine.Market.Servers.Bybit
 
             for (int i = 0; i < _allTickers.Count; i++)
             {
-                if (_allTickers[i].SecutityName == securityNameCode)
+                if (_allTickers[i].SecurityName == securityNameCode)
                 {
                     return _allTickers[i].OpenInterest.ToDecimal();
                 }
@@ -3443,19 +3443,19 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (category == Category.linear)
                 {
-                    tickers.SecutityName = responseTicker.data.symbol + ".P";
+                    tickers.SecurityName = responseTicker.data.symbol + ".P";
                 }
                 else if (category == Category.inverse)
                 {
-                    tickers.SecutityName = responseTicker.data.symbol + ".I";
+                    tickers.SecurityName = responseTicker.data.symbol + ".I";
                 }
                 else if (category == Category.spot)
                 {
-                    tickers.SecutityName = responseTicker.data.symbol;
+                    tickers.SecurityName = responseTicker.data.symbol;
                 }
                 else if (category == Category.option)
                 {
-                    tickers.SecutityName = responseTicker.data.symbol;
+                    tickers.SecurityName = responseTicker.data.symbol;
                 }
 
                 if (responseTicker.data.openInterestValue != null)
@@ -3466,7 +3466,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     for (int i = 0; i < _allTickers.Count; i++)
                     {
-                        if (_allTickers[i].SecutityName == tickers.SecutityName)
+                        if (_allTickers[i].SecurityName == tickers.SecurityName)
                         {
                             _allTickers[i].OpenInterest = tickers.OpenInterest;
                             isInArray = true;
@@ -3484,7 +3484,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 ResponseTicker item = responseTicker.data;
 
-                funding.SecurityNameCode = tickers.SecutityName;
+                funding.SecurityNameCode = tickers.SecurityName;
                 funding.CurrentValue = item.fundingRate.ToDecimal() * 100;
                 funding.NextFundingTime = TimeManager.GetDateTimeFromTimeStamp((long)item.nextFundingTime.ToDecimal());
                 funding.TimeUpdate = TimeManager.GetDateTimeFromTimeStamp((long)responseTicker.ts.ToDecimal());
@@ -3493,7 +3493,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 SecurityVolumes volume = new SecurityVolumes();
 
-                volume.SecurityNameCode = tickers.SecutityName;
+                volume.SecurityNameCode = tickers.SecurityName;
                 volume.Volume24h = item.volume24h.ToDecimal();
                 volume.Volume24hUSDT = item.turnover24h.ToDecimal();
 
@@ -4626,7 +4626,7 @@ namespace OsEngine.Market.Servers.Bybit
 
     public class Tickers
     {
-        public string SecutityName { get; set; }
+        public string SecurityName { get; set; }
         public string OpenInterest { get; set; }
     }
 
