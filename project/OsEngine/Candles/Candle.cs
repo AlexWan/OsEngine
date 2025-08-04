@@ -413,15 +413,15 @@ namespace OsEngine.Entity
                 //20131001,100000,97.8000000,97.9900000,97.7500000,97.9000000,1,0.97
                 //<DATE>,<TIME>,<OPEN>,<HIGH>,<LOW>,<CLOSE>,<VOLUME>,<OPEN INTEREST>
 
-                string result = "";
-                result += TimeStart.ToString("yyyyMMdd,HHmmss") + ",";
+                string timeStart = TimeStart.ToString("yyyyMMdd,HHmmss");
+                string open = Open.ToString("G29", CultureInfo.InvariantCulture);
+                string high = High.ToString("G29", CultureInfo.InvariantCulture);
+                string low = Low.ToString("G29", CultureInfo.InvariantCulture);
+                string close = Close.ToString("G29", CultureInfo.InvariantCulture);
+                string volume = Volume.ToString("G29", CultureInfo.InvariantCulture);
+                string openInterest = OpenInterest.ToString("G29", CultureInfo.InvariantCulture);
 
-                result += Open.ToString(CultureInfo.InvariantCulture) + ",";
-                result += High.ToString(CultureInfo.InvariantCulture) + ",";
-                result += Low.ToString(CultureInfo.InvariantCulture) + ",";
-                result += Close.ToString(CultureInfo.InvariantCulture) + ",";
-                result += Volume.ToString(CultureInfo.InvariantCulture) + ",";
-                result += OpenInterest.ToString(CultureInfo.InvariantCulture);
+                string result = $"{timeStart},{open},{high},{low},{close},{volume},{openInterest}";
 
                 _stringToSave = result;
 
