@@ -603,8 +603,7 @@ namespace OsEngine.Market.Servers.Bybit
                     responseSymbols = JsonConvert.DeserializeObject<ResponseRestMessage<ArraySymbols>>(security);
 
                     if (responseSymbols != null
-                        && responseSymbols.retCode == "0"
-                        && responseSymbols.retMsg == "OK")
+                        && responseSymbols.retMsg == "success")
                     {
                         ConvertSecurities(responseSymbols, Category.option);
                     }
@@ -686,13 +685,16 @@ namespace OsEngine.Market.Servers.Bybit
                             security.OptionType = oneSec.optionsType == "Call" ? OptionType.Call : OptionType.Put;
                             security.UnderlyingAsset = oneSec.baseCoin;
 
+                            SendLogMessage($"Option security: {security.Name} {oneSec.ToString()}", LogMessageType.User);
+
                             // https://bybit-exchange.github.io/docs/api-explorer/v5/market/instrument
                             // get strike price from symbol signature
                             string[] tokens = oneSec.symbol.Split('-');
 
-                            // Strike price is always the 3rd token from the end
-                            string strikeStr = tokens[^3].Trim();
+                            // Strike price is always the 3rd token
+                            string strikeStr = tokens[2].Trim();
                             security.Strike = strikeStr.ToDecimal();
+
 
                             // set expiration/delivery
                             DateTime origin = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
@@ -1884,6 +1886,16 @@ namespace OsEngine.Market.Servers.Bybit
                         if (webSocketPublicInverse != null && webSocketPublicInverse?.ReadyState == WebSocketState.Open)
                         {
                             webSocketPublicInverse?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
+                        }
+                    }
+
+                    for (int i = 0; i < _webSocketPublicOption.Count; i++)
+                    {
+                        WebSocket webSocketPublicOption = _webSocketPublicOption[i];
+
+                        if (webSocketPublicOption != null && webSocketPublicOption?.ReadyState == WebSocketState.Open)
+                        {
+                            webSocketPublicOption?.Send("{\"req_id\": \"OsEngine\", \"op\": \"ping\"}");
                         }
                     }
 
