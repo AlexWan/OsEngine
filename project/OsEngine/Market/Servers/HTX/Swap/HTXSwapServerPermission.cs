@@ -122,7 +122,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public bool IsUseLotToCalculateProfit
         {
-            get { return false; }
+            get { return true; }
         }
 
         public TimeFramePermission TradeTimeFramePermission
