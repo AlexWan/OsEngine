@@ -1211,6 +1211,11 @@ namespace OsEngine.Market.Servers.Bybit
 
         public List<Candle> GetLastCandleHistory(Security security, TimeFrameBuilder timeFrameBuilder, int candleCount)
         {
+            if (security.SecurityType == SecurityType.Option)
+            {
+                return new List<Candle>(); // no option history
+            }
+
             _rateGateGetCandleHistory.WaitToProceed();
             return GetCandleHistory(security.Name, timeFrameBuilder.TimeFrameTimeSpan, false, DateTime.UtcNow, candleCount);
         }
@@ -1234,6 +1239,8 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     category = Category.inverse.ToString();
                 }
+
+                
 
                 if (!supported_intervals.ContainsKey(Convert.ToInt32(tf.TotalMinutes)))
                 {
@@ -2168,7 +2175,9 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                     }
 
-                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{security.Name}\" ] }}");
+                    // Note: option uses baseCoin, e.g., publicTrade.BTC https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+                    string baseCoin = security.Name.Split('.')[0];
+                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
                     webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name}\" ] }}");
 
                     if (_extendedMarketData)
@@ -2413,7 +2422,8 @@ namespace OsEngine.Market.Servers.Bybit
                             for (int i2 = 0; i2 < SubscribedSecurityOption.Count; i2++)
                             {
                                 string s = SubscribedSecurityOption[i2];
-                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{s}\" ] }}");
+                                string baseCoin = s.Split('.')[0];
+                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
                                 webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
 
                                 if (_extendedMarketData)
