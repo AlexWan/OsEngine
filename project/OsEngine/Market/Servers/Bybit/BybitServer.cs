@@ -5,6 +5,7 @@
 
 using Newtonsoft.Json;
 using OsEngine.Entity;
+using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
 using OsEngine.Logging;
 using OsEngine.Market.Servers.Bybit.Entities;
@@ -13,12 +14,12 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
-using OsEngine.Entity.WebSocketOsEngine;
 
 
 namespace OsEngine.Market.Servers.Bybit
@@ -191,7 +192,8 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_webSocketPublicSpot.Count == 0
                     || _webSocketPublicLinear.Count == 0
-                    || _webSocketPublicInverse.Count == 0)
+                    || _webSocketPublicInverse.Count == 0
+                    || _webSocketPublicOption.Count == 0)
                 {
                     Disconnect();
                     return;
@@ -219,6 +221,15 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (webSocketPublicInvers == null
                     || webSocketPublicInvers?.ReadyState != WebSocketState.Open)
+                {
+                    Disconnect();
+                    return;
+                }
+
+                WebSocket webSocketPublicOption = _webSocketPublicOption[0];
+
+                if (webSocketPublicOption == null
+                    || webSocketPublicOption?.ReadyState != WebSocketState.Open)
                 {
                     Disconnect();
                     return;
@@ -684,8 +695,6 @@ namespace OsEngine.Market.Servers.Bybit
                             security.MinTradeAmount = oneSec.lotSizeFilter.minOrderQty.ToDecimal();
                             security.OptionType = oneSec.optionsType == "Call" ? OptionType.Call : OptionType.Put;
                             security.UnderlyingAsset = oneSec.baseCoin;
-
-                            SendLogMessage($"Option security: {security.Name} {oneSec.ToString()}", LogMessageType.User);
 
                             // https://bybit-exchange.github.io/docs/api-explorer/v5/market/instrument
                             // get strike price from symbol signature
@@ -1518,6 +1527,7 @@ namespace OsEngine.Market.Servers.Bybit
                     _concurrentQueueMessageOrderBookSpot = new ConcurrentQueue<string>();
                     _concurrentQueueMessageOrderBookLinear = new ConcurrentQueue<string>();
                     _concurrentQueueMessageOrderBookInverse = new ConcurrentQueue<string>();
+                    _concurrentQueueMessageOrderBookOption = new ConcurrentQueue<string>();
                 }
 
                 _webSocketPublicSpot.Add(CreateNewSpotPublicSocket());
@@ -1944,7 +1954,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 if (!security.Name.EndsWith(".P")
-                    && !security.Name.EndsWith(".I"))
+                    && !security.Name.EndsWith(".I") && security.SecurityType != SecurityType.Option)
                 {
                     if (SubscribeSecuritySpot == null)
                     {
@@ -2004,7 +2014,7 @@ namespace OsEngine.Market.Servers.Bybit
                         }
                     }
                 }
-                else if (security.Name.EndsWith(".P"))
+                else if (security.Name.EndsWith(".P") && security.SecurityType != SecurityType.Option)
                 {
                     if (SubscribeSecurityLinear == null)
                     {
@@ -2067,7 +2077,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                     SetLeverage(security);
                 }
-                else if (security.Name.EndsWith(".I"))
+                else if (security.Name.EndsWith(".I") && security.SecurityType != SecurityType.Option)
                 {
                     if (SubscribeSecurityInverse == null)
                     {
@@ -2176,13 +2186,15 @@ namespace OsEngine.Market.Servers.Bybit
                     }
 
                     // Note: option uses baseCoin, e.g., publicTrade.BTC https://bybit-exchange.github.io/docs/v5/websocket/public/trade
-                    string baseCoin = security.Name.Split('.')[0];
+                    string baseCoin = security.UnderlyingAsset;
+                    string[] parts = security.Name.Split('-');
+                    string secWsName = string.Join("-", parts.Take(4));
                     webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
-                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{security.Name}\" ] }}");
+                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{secWsName}\" ] }}");
 
                     if (_extendedMarketData)
                     {
-                        webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{security.Name}\" ] }}");
+                        webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"subscribe\", \"args\": [\"tickers.{secWsName}\" ] }}");
                     }
                 }
             }
@@ -2423,12 +2435,16 @@ namespace OsEngine.Market.Servers.Bybit
                             {
                                 string s = SubscribedSecurityOption[i2];
                                 string baseCoin = s.Split('.')[0];
+
+                                string[] parts = s.Split('-');
+                                string secWsName = string.Join("-", parts.Take(4));
+                   
                                 webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"publicTrade.{baseCoin}\" ] }}");
-                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{s}\" ] }}");
+                                webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"orderbook.{marketDepthDeep}.{secWsName}\" ] }}");
 
                                 if (_extendedMarketData)
                                 {
-                                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{s}\" ] }}");
+                                    webSocketPublicOption.Send($"{{\"req_id\": \"trade0001\",  \"op\": \"unsubscribe\", \"args\": [\"tickers.{secWsName}\" ] }}");
                                 }
                             }
                         }
@@ -2554,6 +2570,10 @@ namespace OsEngine.Market.Servers.Bybit
                             {
                                 _concurrentQueueMessageOrderBookInverse.Enqueue(message);
                             }
+                            else if (category == Category.option)
+                            {
+                                _concurrentQueueMessageOrderBookOption.Enqueue(message);
+                            }
 
                             continue;
                         }
@@ -2571,6 +2591,10 @@ namespace OsEngine.Market.Servers.Bybit
                             {
                                 _concurrentQueueTickersSpot.Enqueue(message);
                             }
+                            else if (category == Category.option)
+                            {
+                                _concurrentQueueTickersOption.Enqueue(message);
+                            }
 
                             continue;
                         }
@@ -2578,18 +2602,18 @@ namespace OsEngine.Market.Servers.Bybit
                         continue;
                     }
 
-                    SubscribleMessage subscribleMessage =
-                       JsonConvert.DeserializeAnonymousType(message, new SubscribleMessage());
+                    SubscribeMessage subscribeMessage =
+                       JsonConvert.DeserializeAnonymousType(message, new SubscribeMessage());
 
-                    if (subscribleMessage.op != null)
+                    if (subscribeMessage.op != null)
                     {
-                        if (subscribleMessage.success == "false")
+                        if (subscribeMessage.success == "false")
                         {
-                            if (subscribleMessage.ret_msg.Contains("already"))
+                            if (subscribeMessage.ret_msg.Contains("already"))
                             {
                                 continue;
                             }
-                            SendLogMessage("WebSocket Error: " + subscribleMessage.ret_msg, LogMessageType.Error);
+                            SendLogMessage("WebSocket Error: " + subscribeMessage.ret_msg, LogMessageType.Error);
                         }
 
                         continue;
@@ -2992,6 +3016,7 @@ namespace OsEngine.Market.Servers.Bybit
                         Thread.Sleep(1);
                         continue;
                     }
+
 
                     ResponseWebSocketMessage<object> response =
                         JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());

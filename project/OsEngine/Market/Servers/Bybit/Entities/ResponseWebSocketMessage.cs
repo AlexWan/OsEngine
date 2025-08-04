@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string seq { get; set; }
     }
 
-    public class SubscribleMessage
+    public class SubscribeMessage
     {
         public string op;
         public string success;
