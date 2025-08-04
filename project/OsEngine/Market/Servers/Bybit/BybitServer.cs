@@ -99,6 +99,12 @@ namespace OsEngine.Market.Servers.Bybit
             Thread threadMessageReaderTradesOption = new Thread(() => ThreadMessageReaderTradesOption());
             threadMessageReaderTradesOption.Name = "ThreadBybitMessageReaderTradesOption";
             threadMessageReaderTradesOption.Start();
+
+            Thread threadMessageReaderOrderBookOption = new Thread(() => ThreadMessageReaderOrderBookOption());
+            threadMessageReaderOrderBookOption.Name = "ThreadBybitMessageReaderOrderBookOption";
+            threadMessageReaderOrderBookOption.Start();
+
+
         }
 
         private WebProxy _myProxy;
@@ -2936,6 +2942,54 @@ namespace OsEngine.Market.Servers.Bybit
             }
         }
 
+        private void ThreadMessageReaderOrderBookOption()
+        {
+            Category category = Category.option;
+
+            while (true)
+            {
+                if (ServerStatus != ServerConnectStatus.Connect)
+                {
+                    Thread.Sleep(3000);
+                }
+
+                try
+                {
+                    if (_concurrentQueueMessageOrderBookOption == null
+                        || _concurrentQueueMessageOrderBookOption.IsEmpty
+                        || _concurrentQueueMessageOrderBookOption.Count == 0)
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    string message;
+
+                    if (!_concurrentQueueMessageOrderBookOption.TryDequeue(out message))
+                    {
+                        Thread.Sleep(1);
+                        continue;
+                    }
+
+                    ResponseWebSocketMessage<object> response =
+                        JsonConvert.DeserializeAnonymousType(message, new ResponseWebSocketMessage<object>());
+
+                    UpdateOrderBook(message, response, category);
+
+                    while (_concurrentQueueMessageOrderBookOption.Count > 10000)
+                    {
+                        _concurrentQueueMessageOrderBookOption.TryDequeue(out message);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Thread.Sleep(5000);
+                    SendLogMessage(ex.Message, LogMessageType.Error);
+                }
+            }
+        }
+
+
         private ConcurrentQueue<string> _concurrentQueueMessageOrderBookSpot;
 
         private ConcurrentQueue<string> _concurrentQueueMessageOrderBookLinear;
@@ -3567,7 +3621,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 if (order.TypeOrder == OrderPriceType.Iceberg)
                 {
-                    SendLogMessage("Bybit does't support iceberg orders", LogMessageType.Error);
+                    SendLogMessage("Bybit doesn't support iceberg orders", LogMessageType.Error);
                     return;
                 }
 
@@ -3586,6 +3640,7 @@ namespace OsEngine.Market.Servers.Bybit
                 }
 
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
+                Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
 
                 if ((order.SecurityClassCode != null
                     && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
@@ -3598,6 +3653,10 @@ namespace OsEngine.Market.Servers.Bybit
                     || order.SecurityNameCode.EndsWith(".I"))
                 {
                     parameters["category"] = Category.inverse.ToString();
+                }
+                else if (sec.SecurityType == SecurityType.Option)
+                {
+                    parameters["category"] = Category.option;
                 }
                 else
                 {
@@ -3692,6 +3751,7 @@ namespace OsEngine.Market.Servers.Bybit
             try
             {
                 Dictionary<string, object> parameters = new Dictionary<string, object>();
+                Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
 
                 if ((order.SecurityClassCode != null
                    && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
@@ -3704,6 +3764,10 @@ namespace OsEngine.Market.Servers.Bybit
                     || order.SecurityNameCode.EndsWith(".I"))
                 {
                     parameters["category"] = Category.inverse.ToString();
+                }
+                else if (sec.SecurityType == SecurityType.Option)
+                {
+                    parameters["category"] = Category.option;
                 }
                 else
                 {
@@ -3748,6 +3812,7 @@ namespace OsEngine.Market.Servers.Bybit
         public bool CancelOrder(Order order)
         {
             Dictionary<string, object> parameters = new Dictionary<string, object>();
+            Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
 
             if ((order.SecurityClassCode != null
                   && order.SecurityClassCode.ToLower().Contains(Category.linear.ToString()))
@@ -3760,6 +3825,10 @@ namespace OsEngine.Market.Servers.Bybit
                 || order.SecurityNameCode.EndsWith(".I"))
             {
                 parameters["category"] = Category.inverse.ToString();
+            }
+            else if (sec.SecurityType == SecurityType.Option)
+            {
+                parameters["category"] = Category.option;
             }
             else
             {
@@ -3832,6 +3901,10 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     parametrs["category"] = Category.inverse.ToString();
                 }
+                else if (security.SecurityType == SecurityType.Option)
+                {
+                    parametrs["category"] = Category.option;
+                }
                 else
                 {
                     parametrs["category"] = Category.spot.ToString();
@@ -3897,6 +3970,7 @@ namespace OsEngine.Market.Servers.Bybit
             try
             {
                 Category category = Category.spot;
+                Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
 
                 if (order.SecurityNameCode.EndsWith(".P"))
                 {
@@ -3905,6 +3979,11 @@ namespace OsEngine.Market.Servers.Bybit
                 else if (order.SecurityNameCode.EndsWith(".I"))
                 {
                     category = Category.inverse;
+                }
+
+                if (sec.SecurityType == SecurityType.Option)
+                {
+                    category = Category.option;
                 }
 
                 Order newOrder = GetOrderFromHistory(order, category);
@@ -3929,6 +4008,10 @@ namespace OsEngine.Market.Servers.Bybit
                         openOrders = GetOpenOrders(category, null);
                     }
                     else if (category == Category.inverse)
+                    {
+                        openOrders = GetOpenOrders(category, null);
+                    }
+                    else if (category == Category.option)
                     {
                         openOrders = GetOpenOrders(category, null);
                     }
