@@ -265,7 +265,7 @@ namespace OsEngine.Entity
         public int Number;
 
         /// <summary>
-        /// Tool code for which the position is open
+        /// Security code for which the position is open
         /// </summary>
         public string SecurityName
         {

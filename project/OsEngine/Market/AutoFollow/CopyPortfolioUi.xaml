@@ -41,8 +41,8 @@
             <Rectangle Margin="2,2,2,2" Grid.Row="1" Stroke="Black"/>
             <Label Name="LabelSecuritiesGrid" Content="Securities" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="1"/>
             <WindowsFormsHost Name="HostSecurities" Margin="5,23,5,5" Grid.Row="1"/>
-            <Button Name="ButtonSecuritiesGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="1" RenderTransformOrigin="0.5,0.5"  />
-            <Button Name="ButtonSecuritiesGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="1" RenderTransformOrigin="0.5,0.5" >
+            <Button Name="ButtonSecuritiesGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="1" RenderTransformOrigin="0.5,0.5" Click="ButtonSecuritiesGridDown_Click"  />
+            <Button Name="ButtonSecuritiesGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="1" RenderTransformOrigin="0.5,0.5" Click="ButtonSecuritiesGridUp_Click" >
                 <Button.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>
@@ -55,8 +55,7 @@
            
             <Rectangle Margin="2,2,2,2" Grid.Row="2" Stroke="Black"/>
             <Label Name="LabelJournalGrid" Content="Journal" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="2"/>
-            <WindowsFormsHost Name="HostJournal" Margin="5,23,5,5" Grid.Row="2"/>
-            <Button Name="ButtonJournalGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="2"  RenderTransformOrigin="0.5,0.5" >
+            <Button Name="ButtonJournalGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="2"  RenderTransformOrigin="0.5,0.5" Click="ButtonJournalGridUp_Click" >
                 <Button.RenderTransform>
                     <TransformGroup>
                         <ScaleTransform/>
@@ -66,7 +65,19 @@
                     </TransformGroup>
                 </Button.RenderTransform>
             </Button>
-            <Button Name="ButtonJournalGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="2" RenderTransformOrigin="0.5,0.5" />
+            <Button Name="ButtonJournalGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="2" RenderTransformOrigin="0.5,0.5" Click="ButtonJournalGridDown_Click" />
+            <TabControl Grid.Row="2" Margin="0,24,0,0">
+                <TabItem Name="TabActivePos" Header="Active">
+                    <Grid >
+                        <WindowsFormsHost Name="HostActivePoses" Margin="0,0,0,0"/>
+                    </Grid>
+                </TabItem>
+                <TabItem Name="TabHistoricalPos" Header="Historical">
+                    <Grid >
+                        <WindowsFormsHost Name="HostHistoricalPoses" Margin="0,0,0,0"/>
+                    </Grid>
+                </TabItem>
+            </TabControl>
         </Grid>
     </Grid>
 </Window>

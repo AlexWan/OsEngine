@@ -4038,7 +4038,7 @@ namespace OsEngine.Market.Servers.Bybit
             try
             {
                 Category category = Category.spot;
-                Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
+                
 
                 if (order.SecurityNameCode.EndsWith(".P"))
                 {
@@ -4049,9 +4049,14 @@ namespace OsEngine.Market.Servers.Bybit
                     category = Category.inverse;
                 }
 
-                if (sec.SecurityType == SecurityType.Option)
+                if(_securities != null)
                 {
-                    category = Category.option;
+                    Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
+
+                    if (sec.SecurityType == SecurityType.Option)
+                    {
+                        category = Category.option;
+                    }
                 }
 
                 Order newOrder = GetOrderFromHistory(order, category);

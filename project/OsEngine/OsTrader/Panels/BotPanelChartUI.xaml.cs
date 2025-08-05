@@ -205,7 +205,7 @@ namespace OsEngine.OsTrader.Panels
             }
             catch (Exception ex)
             {
-                _panel.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
+                _panel?.SendNewLogMessage(ex.ToString(), LogMessageType.Error);
             }
         }
 

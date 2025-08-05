@@ -29,7 +29,9 @@ namespace OsEngine.Market.AutoFollow
             InitializeComponent();
 
             _portfolioToCopy = portfolioToCopy;
+            _portfolioToCopy.MyJournal.StartPaint(HostActivePoses, HostHistoricalPoses);
             _copyTrader = copyTrader;
+            
             UniqueName = _portfolioToCopy.NameUnique;
 
             ComboBoxIsOn.Items.Add(true.ToString());
@@ -83,6 +85,9 @@ namespace OsEngine.Market.AutoFollow
             LabelSecuritiesGrid.Content = OsLocalization.Market.Label210;
             LabelJournalGrid.Content = OsLocalization.Market.Label211;
 
+            TabActivePos.Header = OsLocalization.Trader.Label187;
+            TabHistoricalPos.Header = OsLocalization.Trader.Label188;
+
             Title = OsLocalization.Market.Label201 + " # " + _copyTrader.Number
                 + " " + OsLocalization.Market.Label219 +": " + portfolioToCopy.ServerName
                 + " " + OsLocalization.Market.Label140 + ": " + portfolioToCopy.PortfolioName;
@@ -92,10 +97,14 @@ namespace OsEngine.Market.AutoFollow
             CreateSecuritiesGrid();
             UpdateGridSecurities();
 
+            LoadPanelsPositions();
+
         }
 
         private void CopyPortfolioUi_Closed(object sender, EventArgs e)
         {
+
+
             ComboBoxIsOn.SelectionChanged -= ComboBoxIsOn_SelectionChanged;
             ComboBoxCopyType.SelectionChanged -= ComboBoxCopyType_SelectionChanged;
             ComboBoxOrderType.SelectionChanged -= ComboBoxOrderType_SelectionChanged;
@@ -111,6 +120,76 @@ namespace OsEngine.Market.AutoFollow
             HostSecurities.Child = null;
             _gridSecurities.Rows.Clear();
             DataGridFactory.ClearLinks(_gridSecurities);
+
+            _portfolioToCopy.MyJournal.StopPaint();
+            _portfolioToCopy = null;
+
+            _copyTrader = null;
+
+
+        }
+
+        private void SavePanelsPosition()
+        {
+            try
+            {
+                string result = "";
+
+                if (GridFollowSettings.RowDefinitions[1].Height.Value == 25)
+                {// securities
+                    result += "0,";
+                }
+                else
+                {
+                    result += "1,";
+                }
+
+                if (GridFollowSettings.RowDefinitions[2].Height.Value == 25)
+                {// journal
+                    result += "0,";
+                }
+                else
+                {
+                    result += "1,";
+                }
+
+                _portfolioToCopy.PanelsPosition = result;
+                _portfolioToCopy.Save();
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void LoadPanelsPositions()
+        {
+            if (string.IsNullOrEmpty(_portfolioToCopy.PanelsPosition))
+            {
+                return;
+            }
+
+            string[] save = _portfolioToCopy.PanelsPosition.Split(',');
+
+            if (save[0] == "0")
+            {
+                GridFollowSettings.RowDefinitions[1].Height = new GridLength(25, GridUnitType.Pixel);
+                ButtonSecuritiesGridDown.IsEnabled = false;
+            }
+            else
+            {
+                ButtonSecuritiesGridUp.IsEnabled = false;
+            }
+
+            if (save[1] == "0")
+            {
+                GridFollowSettings.RowDefinitions[2].Height = new GridLength(25, GridUnitType.Pixel);
+                ButtonJournalGridDown.IsEnabled = false;
+            }
+            else
+            {
+                ButtonJournalGridUp.IsEnabled = false;
+            }
         }
 
         #region Settings
@@ -459,7 +538,47 @@ namespace OsEngine.Market.AutoFollow
 
         private void _gridSecurities_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-            
+            try
+            {
+                for (int i = 0; i < _gridSecurities.Rows.Count - 1 
+                    && i < _portfolioToCopy.SecurityToCopy.Count; i++)
+                {
+                    SaveSecurityFromGrid(_gridSecurities.Rows[i], _portfolioToCopy.SecurityToCopy[i]);
+                }
+
+                _portfolioToCopy.Save();
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void SaveSecurityFromGrid(DataGridViewRow nRow, SecurityToCopy security)
+        {
+            // 0 num
+            // 1 Master Name
+            // 2 Master Class
+            // 3 Slave Name
+            // 4 Slave Class
+            // 5 Delete / Add
+
+            try
+            {
+                if (nRow.Cells[3].Value != null)
+                {
+                    security.SlaveSecurityName = nRow.Cells[3].Value.ToString();
+                }
+
+                if (nRow.Cells[4].Value != null)
+                {
+                    security.SlaveSecurityClass = nRow.Cells[4].Value.ToString();
+                }
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
         }
 
         private void _gridSecurities_CellClick(object sender, DataGridViewCellEventArgs e)
@@ -502,6 +621,8 @@ namespace OsEngine.Market.AutoFollow
         {
             if (ServerMaster.GetServers() == null)
             {
+                CustomMessageBoxUi uiNoConnections = new CustomMessageBoxUi(OsLocalization.Data.Label12);
+                uiNoConnections.ShowDialog();
                 return;
             }
 
@@ -510,7 +631,8 @@ namespace OsEngine.Market.AutoFollow
 
             if (myServer == null)
             {
-                _portfolioToCopy.SendLogMessage(OsLocalization.Data.Label12, Logging.LogMessageType.Error);
+                CustomMessageBoxUi uiNoConnections = new CustomMessageBoxUi(OsLocalization.Data.Label12);
+                uiNoConnections.ShowDialog();
                 return;
             }
 
@@ -519,7 +641,8 @@ namespace OsEngine.Market.AutoFollow
             if (securities == null
                 || securities.Count == 0)
             {
-                _portfolioToCopy.SendLogMessage(OsLocalization.Data.Label13, Logging.LogMessageType.Error);
+                CustomMessageBoxUi uiNoConnections = new CustomMessageBoxUi(OsLocalization.Data.Label13);
+                uiNoConnections.ShowDialog();
                 return;
             }
 
@@ -691,7 +814,73 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
+        private void ButtonSecuritiesGridDown_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ButtonSecuritiesGridUp.IsEnabled = true;
+                GridFollowSettings.RowDefinitions[1].Height = new GridLength(25, GridUnitType.Pixel);
+                ButtonSecuritiesGridDown.IsEnabled = false;
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+            SavePanelsPosition();
+        }
+
+        private void ButtonSecuritiesGridUp_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ButtonSecuritiesGridDown.IsEnabled = true;
+                GridFollowSettings.RowDefinitions[1].Height = new GridLength(185, GridUnitType.Star);
+                ButtonSecuritiesGridUp.IsEnabled = false;
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+            SavePanelsPosition();
+        }
+
         #endregion
+
+        #region Journal
+
+        private void ButtonJournalGridDown_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ButtonJournalGridUp.IsEnabled = true;
+                GridFollowSettings.RowDefinitions[2].Height = new GridLength(25, GridUnitType.Pixel);
+                ButtonJournalGridDown.IsEnabled = false;
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+            SavePanelsPosition();
+        }
+
+        private void ButtonJournalGridUp_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ButtonJournalGridDown.IsEnabled = true;
+                GridFollowSettings.RowDefinitions[2].Height = new GridLength(185, GridUnitType.Star);
+                ButtonJournalGridUp.IsEnabled = false;
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+            SavePanelsPosition();
+        }
+
+        #endregion
+
+
 
     }
 }
