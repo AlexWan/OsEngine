@@ -130,6 +130,11 @@ namespace OsEngine.Market.AutoFollow
                         return;
                     }
 
+                    if(IsOn == false)
+                    {
+                        continue;
+                    }
+
                     for(int i = 0;i < PortfolioToCopy.Count;i++)
                     {
                         PortfolioToCopy[i].Process(MasterRobotsNames);

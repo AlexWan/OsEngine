@@ -4053,7 +4053,8 @@ namespace OsEngine.Market.Servers.Bybit
                 {
                     Security sec = _securities.Find(sec => sec.Name == order.SecurityNameCode);
 
-                    if (sec.SecurityType == SecurityType.Option)
+                    if (sec != null 
+                        && sec.SecurityType == SecurityType.Option)
                     {
                         category = Category.option;
                     }
