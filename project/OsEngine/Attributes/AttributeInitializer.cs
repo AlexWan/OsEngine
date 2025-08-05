@@ -14,7 +14,8 @@ namespace OsEngine.Attributes
         private readonly BotPanel _bot;
         private readonly Aindicator _indicator;
 
-        private readonly BindingFlags _flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
+        private readonly BindingFlags _declaredFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly | BindingFlags.Instance;
+        private readonly BindingFlags _flags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
 
         private List<ParameterElementAttribute> _parametersAttributes = new();
 
@@ -29,9 +30,9 @@ namespace OsEngine.Attributes
 
         public void InitAttributes()
         {
-            if(_bot != null)
+            if (_bot != null)
                 InitBotAttribute(_bot.GetType(), _bot);
-            else if(_indicator != null)
+            else if (_indicator != null)
                 InitIndicatorAttributes(_indicator.GetType(), _indicator);
         }
 
@@ -75,14 +76,31 @@ namespace OsEngine.Attributes
         private List<AttributeMember> GetMembers(Type type, object instance, string tabControlName = null)
         {
             var fields = type.GetFields(_flags);
-            var properties = type.GetProperties(_flags).Where(IsAutoProperty);
+            var autoProperties = GetAutoPropertiesRecursively(type);
             var methods = type.GetMethods(_flags).Where(m => !m.Name.StartsWith("get_")
-                                                      && !m.Name.StartsWith("set_")
-                                                      && m.GetParameters().Length == 0);
+                                                         && !m.Name.StartsWith("set_")
+                                                         && m.GetParameters().Length == 0);
 
-            var members = fields.Concat<MemberInfo>(properties).Concat(methods);
+            var members = fields.Concat<MemberInfo>(autoProperties).Concat(methods);
 
             return CreateMany(members, instance, tabControlName);
+        }
+
+        private List<PropertyInfo> GetAutoPropertiesRecursively(Type type)
+        {
+            Type tempType = type;
+            Type parentBot = typeof(BotPanel);
+            Type parentIndicator = typeof(Aindicator);
+            List<PropertyInfo> autoProperties = new List<PropertyInfo>();
+
+            while (tempType != null && tempType != parentBot && tempType != parentIndicator)
+            {
+                var properties = tempType.GetProperties(_flags).Where(IsAutoProperty);
+                autoProperties.AddRange(properties);
+                tempType = tempType.BaseType;
+            }
+
+            return autoProperties;
         }
 
         private bool IsAutoProperty(PropertyInfo property)
@@ -91,7 +109,7 @@ namespace OsEngine.Attributes
                 return false;
 
             var name = $"<{property.Name}>k__BackingField";
-            var backingField = property.DeclaringType.GetField(name, _flags);
+            var backingField = property.DeclaringType.GetField(name, _declaredFlags);
             return backingField != null;
         }
 
@@ -251,7 +269,7 @@ namespace OsEngine.Attributes
 
             public void SetValue(object value)
             {
-                if(value == null)
+                if (value == null)
                     return;
 
                 _setValue?.Invoke(Instance, value);
