@@ -58,7 +58,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string seq { get; set; }
     }
 
-    public class SubscribleMessage
+    public class SubscribeMessage
     {
         public string op;
         public string success;
@@ -154,5 +154,15 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string bid1Size { get; set; }
         public string ask1Price { get; set; }
         public string ask1Size { get; set; }
+
+        // option data
+        public string markPriceIv { get; set; }
+        public string underlyingPrice { get; set; }
+        public string delta { get; set; }
+        public string gamma { get; set; }
+        public string vega { get; set; }
+        public string theta { get; set; }
+        public string askIv { get; set; }
+        public string bidIv { get; set; }
     }
 }
