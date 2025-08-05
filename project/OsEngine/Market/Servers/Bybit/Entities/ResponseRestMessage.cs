@@ -95,6 +95,7 @@ namespace OsEngine.Market.Servers.Bybit.Entities
         public string copyTrading { get; set; }
         public string upperFundingRate { get; set; }
         public string lowerFundingRate { get; set; }
+        public string optionsType { get; set; }
     }
 
     public class LotSizeFilter
