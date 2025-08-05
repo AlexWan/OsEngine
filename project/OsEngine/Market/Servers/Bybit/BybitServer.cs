@@ -14,7 +14,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -40,6 +39,7 @@ namespace OsEngine.Market.Servers.Bybit
             CreateParameterEnum("Hedge Mode", "On", new List<string> { "On", "Off" });
             CreateParameterString("Leverage", "");
             CreateParameterBoolean("Extended Data", false);
+            CreateParameterBoolean("Use Options", false);
         }
     }
 
@@ -144,6 +144,15 @@ namespace OsEngine.Market.Servers.Bybit
                     _extendedMarketData = false;
                 }
 
+                if (((ServerParameterBool)ServerParameters[7]).Value == true)
+                {
+                    _useOptions = true;
+                }
+                else
+                {
+                    _useOptions = false;
+                }
+
                 if (!CheckApiKeyInformation(PublicKey))
                 {
                     Disconnect();
@@ -192,8 +201,7 @@ namespace OsEngine.Market.Servers.Bybit
 
                 if (_webSocketPublicSpot.Count == 0
                     || _webSocketPublicLinear.Count == 0
-                    || _webSocketPublicInverse.Count == 0
-                    || _webSocketPublicOption.Count == 0)
+                    || _webSocketPublicInverse.Count == 0)
                 {
                     Disconnect();
                     return;
@@ -226,13 +234,22 @@ namespace OsEngine.Market.Servers.Bybit
                     return;
                 }
 
-                WebSocket webSocketPublicOption = _webSocketPublicOption[0];
-
-                if (webSocketPublicOption == null
-                    || webSocketPublicOption?.ReadyState != WebSocketState.Open)
+                if (_useOptions)
                 {
-                    Disconnect();
-                    return;
+                    if (_webSocketPublicOption.Count == 0)
+                    {
+                        Disconnect();
+                        return;
+                    }
+
+                    WebSocket webSocketPublicOption = _webSocketPublicOption[0];
+
+                    if (webSocketPublicOption == null
+                        || webSocketPublicOption?.ReadyState != WebSocketState.Open)
+                    {
+                        Disconnect();
+                        return;
+                    }
                 }
 
                 if (ServerStatus != ServerConnectStatus.Connect)
@@ -374,13 +391,15 @@ namespace OsEngine.Market.Servers.Bybit
 
         private bool _extendedMarketData;
 
+        private bool _useOptions;
+
         private List<string> _listLinearCurrency = new List<string>() { "USDC", "USDT" };
 
         private int marketDepthDeep
         {
             get
             {
-                if (((ServerParameterBool)ServerParameters[14]).Value)
+                if (((ServerParameterBool)ServerParameters[15]).Value)
                 {
                     return 50;
                 }
@@ -605,9 +624,12 @@ namespace OsEngine.Market.Servers.Bybit
                     }
                 }
 
-                LoadOptionInstruments("BTC");
-                LoadOptionInstruments("ETH");
-                LoadOptionInstruments("SOL");
+                if (_useOptions)
+                {
+                    LoadOptionInstruments("BTC");
+                    LoadOptionInstruments("ETH");
+                    LoadOptionInstruments("SOL");
+                }
 
                 SecurityEvent?.Invoke(_securities);
             }
@@ -1559,7 +1581,11 @@ namespace OsEngine.Market.Servers.Bybit
                 _webSocketPublicSpot.Add(CreateNewSpotPublicSocket());
                 _webSocketPublicLinear.Add(CreateNewLinearPublicSocket());
                 _webSocketPublicInverse.Add(CreateNewInversePublicSocket());
-                _webSocketPublicOption.Add(CreateNewOptionPublicSocket());
+
+                if (_useOptions)
+                {
+                    _webSocketPublicOption.Add(CreateNewOptionPublicSocket());
+                } 
             }
             catch (Exception ex)
             {
