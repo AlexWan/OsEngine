@@ -193,10 +193,10 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 RestRequest requestRest = new RestRequest(requestStr, Method.GET);
                 IRestResponse responseMessage = new RestClient(_baseUrl).Execute(requestRest);
 
-                ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
-
                 if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
+                    ResponseMessageRest<object> stateResponse = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseMessageRest<object>());
+
                     if (stateResponse.code.Equals("200000") == true)
                     {
                         UpdateSecurity(responseMessage.Content);
@@ -209,13 +209,7 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
                 }
                 else
                 {
-                    SendLogMessage($"GetSecurities> Http State Code: {responseMessage.StatusCode}", LogMessageType.Error);
-
-                    if (stateResponse != null && stateResponse.code != null)
-                    {
-                        SendLogMessage($"Code: {stateResponse.code}\n"
-                            + $"Message: {stateResponse.msg}", LogMessageType.Error);
-                    }
+                    SendLogMessage($"GetSecurities> Http State Code: {responseMessage.Content}", LogMessageType.Error);
                 }
             }
             catch (Exception exception)
@@ -257,13 +251,13 @@ namespace OsEngine.Market.Servers.KuCoin.KuCoinFutures
 
                     newSecurity.PriceStep = item.tickSize.ToDecimal();
                     newSecurity.PriceStepCost = newSecurity.PriceStep;
-                    newSecurity.Lot = item.lotSize.ToDecimal();
+                    newSecurity.Lot = item.lotSize.ToDecimal() * Math.Abs(item.multiplier.ToDecimal());
 
                     newSecurity.Decimals = item.tickSize.DecimalsCount();
                     newSecurity.DecimalsVolume = item.multiplier.DecimalsCount();
                     newSecurity.MinTradeAmountType = MinTradeAmountType.Contract;
-                    newSecurity.MinTradeAmount = Math.Abs(item.multiplier.ToDecimal());
-                    newSecurity.VolumeStep = Math.Abs(item.multiplier.ToDecimal());
+                    newSecurity.MinTradeAmount = 1; //Math.Abs(item.multiplier.ToDecimal());
+                    newSecurity.VolumeStep = 1; //Math.Abs(item.multiplier.ToDecimal());
 
                     securities.Add(newSecurity);
                 }
