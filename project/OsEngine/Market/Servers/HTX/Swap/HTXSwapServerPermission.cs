@@ -158,7 +158,16 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public string[] ManuallyClosePositionOnBoard_ValuesForTrimmingName
         {
-            get { return null; }
+            get
+            {
+                string[] values = new string[]
+                {
+                    "_LONG",
+                    "_SHORT"
+                };
+
+                return values;
+            }
         }
 
         public string[] ManuallyClosePositionOnBoard_ExceptionPositionNames
@@ -176,7 +185,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public bool ManuallyClosePositionOnBoard_IsOn
         {
-            get { return false; }
+            get { return true; }
         }
         public bool IsTradeServer
         {

@@ -117,34 +117,40 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
 
     public class ResponseChannelUpdateOrder
     {
-        public List<Trade> trade { get; set; }
         public string symbol { get; set; }
         public string contract_type { get; set; }
         public string contract_code { get; set; }
         public string volume { get; set; }
         public string price { get; set; }
+        public string order_price_type { get; set; }
         public string direction { get; set; }
         public string offset { get; set; }
         public string status { get; set; }
+        public string lever_rate { get; set; }
         public string order_id { get; set; }
         public string ts { get; set; }
         public string created_at { get; set; }
         public string client_order_id { get; set; }
-        public class Trade
-        {
-            public string id { get; set; }
-            public string created_at { get; set; }
-            public string trade_volume { get; set; }
-            public string trade_price { get; set; }
-            public string orderSource { get; set; }
-            public string eventType { get; set; }
-            public string symbol { get; set; }
-            public string clientOrderId { get; set; }
-            public string orderStatus { get; set; }
-            public string orderId { get; set; }
-            public string type { get; set; }
-            public string lastActTime { get; set; }
-        }
+        public string margin_mode { get; set; }
+        public string margin_account { get; set; }
+        public string reduce_only { get; set; }
+        public List<TradeItem> trade { get; set; }
+    }
+
+    public class TradeItem
+    {
+        public string id { get; set; }
+        public string created_at { get; set; }
+        public string trade_volume { get; set; }
+        public string trade_price { get; set; }
+        public string orderSource { get; set; }
+        public string eventType { get; set; }
+        public string symbol { get; set; }
+        public string clientOrderId { get; set; }
+        public string orderStatus { get; set; }
+        public string orderId { get; set; }
+        public string type { get; set; }
+        public string lastActTime { get; set; }
     }
 
     public class ResponsePingPrivate
