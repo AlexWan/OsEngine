@@ -1,4 +1,9 @@
-﻿using Newtonsoft.Json;
+﻿/*
+ *Your rights to use the code are governed by this license https://github.com/AlexWan/OsEngine/blob/master/LICENSE
+ *Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
+*/
+
+using Newtonsoft.Json;
 using OsEngine.Entity;
 using OsEngine.Entity.WebSocketOsEngine;
 using OsEngine.Language;
@@ -29,7 +34,14 @@ namespace OsEngine.Market.Servers.HTX.Swap
             CreateParameterString("Access Key", "");
             CreateParameterPassword("Secret Key", "");
             CreateParameterEnum("USDT/COIN", "USDT", new List<string>() { "COIN", "USDT" });
+            CreateParameterBoolean("Hedge Mode", true);
             CreateParameterBoolean("Extended Data", false);
+            ServerParameters[3].ValueChange += HTXSwapServer_ValueChange;
+        }
+
+        private void HTXSwapServer_ValueChange()
+        {
+            ((HTXSwapServerRealization)ServerRealization).HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
         }
     }
 
@@ -98,7 +110,9 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 _usdtSwapValue = false;
             }
 
-            if (((ServerParameterBool)ServerParameters[3]).Value == true)
+            HedgeMode = ((ServerParameterBool)ServerParameters[3]).Value;
+
+            if (((ServerParameterBool)ServerParameters[4]).Value == true)
             {
                 _extendedMarketData = true;
             }
@@ -123,8 +137,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                         _privateUriBuilder = new PrivateUrlBuilder(_accessKey, _secretKey, _baseUrl);
                         _signer = new Signer(_secretKey);
 
-                        _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
-                        _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
                         CreatePublicWebSocketConnect();
                         CreatePrivateWebSocketConnect();
                     }
@@ -160,8 +172,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
 
             _subscribledSecurities.Clear();
-            _arrayPrivateChannels.Clear();
-            _arrayPublicChannels.Clear();
+            _securitiesName.Clear();
             _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
             _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
 
@@ -206,10 +217,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private int _limitCandles = 1990;
 
-        private List<string> _arrayPrivateChannels = new List<string>();
-
-        private List<string> _arrayPublicChannels = new List<string>();
-
         private ConcurrentQueue<string> _FIFOListWebSocketPublicMessage = new ConcurrentQueue<string>();
 
         private ConcurrentQueue<string> _FIFOListWebSocketPrivateMessage = new ConcurrentQueue<string>();
@@ -228,7 +235,90 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         private bool _usdtSwapValue;
 
+        public bool HedgeMode
+        {
+            get { return _hedgeMode; }
+            set
+            {
+                if (value == _hedgeMode)
+                {
+                    return;
+                }
+                _hedgeMode = value;
+
+                _securitiesName.Clear();
+                //SetPositionMode();
+            }
+        }
+
+        private bool _hedgeMode;
+
         private bool _extendedMarketData;
+
+        private RateGate _rateGatePositionMode = new RateGate(1, TimeSpan.FromMilliseconds(200));
+
+        private List<string> _securitiesName = new List<string>();
+
+        public void SetPositionMode(string nameSecurity)
+        {
+            _rateGatePositionMode.WaitToProceed();
+
+            try
+            {
+                if (ServerStatus == ServerConnectStatus.Disconnect)
+                {
+                    return;
+                }
+
+                bool isInArraySecurity = false;
+
+                for (int j = 0; j < _securitiesName.Count; j++)
+                {
+                    if (nameSecurity == _securitiesName[j])
+                    {
+                        isInArraySecurity = true;
+                        break;
+                    }
+                }
+
+                if (isInArraySecurity == true)
+                {
+                    return;
+                }
+
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+                jsonContent.Add("margin_account", nameSecurity);
+
+                if (HedgeMode)
+                {
+                    jsonContent.Add("position_mode", "dual_side");
+                }
+                else
+                {
+                    jsonContent.Add("position_mode", "single_side");
+                }
+
+                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_switch_position_mode");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.POST);
+                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
+                IRestResponse responseMessage = client.Execute(request);
+
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    _securitiesName.Add(nameSecurity);
+                }
+                else
+                {
+                    SendLogMessage($"Position Mode error. Code: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                SendLogMessage(ex.ToString(), LogMessageType.Error);
+            }
+        }
 
         #endregion
 
@@ -482,7 +572,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                             Disconnect();
                         }
 
-                        SendLogMessage($"Portfolio error. Code: {response.code} || msg: {response.msg}", LogMessageType.Error);
+                        SendLogMessage($"Portfolio error. Code: {response.code} || msg: {responseMessage.Content}", LogMessageType.Error);
                     }
                 }
                 else
@@ -913,7 +1003,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 }
 
                 _webSocketPrivate = new WebSocket($"wss://{_baseUrl}{_pathWsPrivate}");
-                //_webSocketPrivate.SslConfiguration.EnabledSslProtocols = SslProtocols.Tls12;
                 _webSocketPrivate.OnOpen += webSocketPrivate_OnOpen;
                 _webSocketPrivate.OnMessage += webSocketPrivate_OnMessage;
                 _webSocketPrivate.OnError += webSocketPrivate_OnError;
@@ -1013,7 +1102,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     {
                         ConnectEvent();
                     }
-                    //SetPositionMode();
                 }
             }
         }
@@ -1311,6 +1399,8 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
 
             _subscribledSecurities.Add(security.Name);
+
+            //SetPositionMode();
 
             if (_webSocketPublic.Count == 0)
             {
@@ -2065,7 +2155,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 myTrade.Price = response.trade[i].trade_price.ToDecimal();
                 myTrade.SecurityNameCode = response.contract_code;
                 myTrade.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
-                myTrade.Volume = /*GetSecurityLot(response.contract_code) **/ response.trade[i].trade_volume.ToDecimal();
+                myTrade.Volume = response.trade[i].trade_volume.ToDecimal();
 
                 MyTradeEvent(myTrade);
             }
@@ -2093,18 +2183,38 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(response.created_at));
                 newOrder.ServerType = ServerType.HTXFutures;
                 newOrder.SecurityNameCode = response.contract_code;
-                newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
+
+                try
+                {
+                    newOrder.NumberUser = Convert.ToInt32(response.client_order_id);
+                }
+                catch
+                {
+                }
+
                 newOrder.NumberMarket = response.order_id.ToString();
                 newOrder.Side = response.direction.Equals("buy") ? Side.Buy : Side.Sell;
                 newOrder.State = GetOrderState(response.status);
                 newOrder.Price = response.price.ToDecimal();
+
+                if (response.order_price_type == "limit")
+                {
+                    newOrder.TypeOrder = OrderPriceType.Limit;
+                }
+                else if (response.order_price_type == "market")
+                {
+                    newOrder.TypeOrder = OrderPriceType.Market;
+                }
+
                 newOrder.PortfolioNumber = $"HTXSwapPortfolio";
-                newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
-                newOrder.Volume = /*GetSecurityLot(response.contract_code) **/ response.volume.ToDecimal();
+                //newOrder.PositionConditionType = response.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                newOrder.Volume = response.volume.ToDecimal();
 
                 MyOrderEvent(newOrder);
 
-                if (response.trade != null)
+                if (response.trade != null
+                    && (newOrder.State == OrderStateType.Done
+                    || newOrder.State == OrderStateType.Partial))
                 {
                     UpdateMyTrade(response);
                 }
@@ -2194,6 +2304,38 @@ namespace OsEngine.Market.Servers.HTX.Swap
                     }
                 }
 
+                if (!HedgeMode
+                    && "USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
+                {
+                    List<PositionOnBoard> positionInPortfolio = portfolio.GetPositionOnBoard();
+
+                    for (int j = 0; j < positionInPortfolio.Count; j++)
+                    {
+                        if (positionInPortfolio[j].SecurityNameCode == "USDT")
+                        {
+                            continue;
+                        }
+
+                        bool isInArray = false;
+
+                        for (int i = 0; i < item[0].isolated_swap.Count; i++)
+                        {
+                            string curNameSec = item[0].isolated_swap[i].contract_code;
+
+                            if (curNameSec == positionInPortfolio[j].SecurityNameCode)
+                            {
+                                isInArray = true;
+                                break;
+                            }
+                        }
+
+                        if (isInArray == false)
+                        {
+                            positionInPortfolio[j].ValueCurrent = 0;
+                        }
+                    }
+                }
+
                 PortfolioEvent(Portfolios);
             }
             catch (Exception ex)
@@ -2227,7 +2369,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                 Portfolio portfolio = Portfolios[0];
 
-                decimal resultPnL = 0;
+                // decimal resultPnL = 0;
 
                 for (int i = 0; i < item.Count; i++)
                 {
@@ -2235,35 +2377,89 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
                     pos.PortfolioName = "HTXSwapPortfolio";
 
+                    if (item[i].position_mode == "dual_side")
+                    {
+                        if (item[i].direction == "buy")
+                        {
+                            pos.SecurityNameCode = item[i].contract_code + "_" + "LONG";
+                        }
+                        else if (item[i].direction == "sell")
+                        {
+                            pos.SecurityNameCode = item[i].contract_code + "_" + "SHORT";
+                        }
+                    }
+                    else
+                    {
+                        pos.SecurityNameCode = item[i].contract_code;
+                    }
+
                     if (item[i].direction == "buy")
                     {
-                        pos.SecurityNameCode = item[i].contract_code + "_" + "LONG";
+                        pos.ValueCurrent = item[i].volume.ToDecimal();
                     }
                     else if (item[i].direction == "sell")
                     {
-                        pos.SecurityNameCode = item[i].contract_code + "_" + "SHORT";
+                        pos.ValueCurrent = -item[i].volume.ToDecimal();
                     }
 
-                    if (item[i].direction == "buy")
-                    {
-                        pos.ValueCurrent = /*GetSecurityLot(item[i].contract_code) **/ item[i].volume.ToDecimal();
-                    }
-                    else if (item[i].direction == "sell")
-                    {
-                        pos.ValueCurrent = /*GetSecurityLot(item[i].contract_code) **/ (-item[i].volume.ToDecimal());
-                    }
-
-                    pos.ValueBlocked = /*GetSecurityLot(item[i].contract_code) * */item[i].frozen.ToDecimal();
+                    pos.ValueBlocked = item[i].frozen.ToDecimal();
                     pos.UnrealizedPnl = Math.Round(item[i].profit_unreal.ToDecimal(), 5);
-                    resultPnL += pos.UnrealizedPnl;
+                    //resultPnL += pos.UnrealizedPnl;
 
                     portfolio.SetNewPosition(pos);
                 }
 
-                if (_usdtSwapValue)
+                //if (_usdtSwapValue)
+                //{
+                //    portfolio.UnrealizedPnl = resultPnL;
+                //}
+
+                List<PositionOnBoard> positionInPortfolio = portfolio.GetPositionOnBoard();
+
+                for (int j = 0; j < positionInPortfolio.Count; j++)
                 {
-                    portfolio.UnrealizedPnl = resultPnL;
+                    if (positionInPortfolio[j].SecurityNameCode == "USDT")
+                    {
+                        continue;
+                    }
+
+                    bool isInArray = false;
+
+                    for (int i = 0; i < item.Count; i++)
+                    {
+                        PositionsItem item2 = item[i];
+
+                        string curNameSec = item2.contract_code;
+
+                        if (item2.position_mode == "dual_side")
+                        {
+                            if (item[i].direction == "buy")
+                            {
+                                curNameSec = item2.contract_code + "_" + "LONG";
+                            }
+                            else if (item[i].direction == "sell")
+                            {
+                                curNameSec = item2.contract_code + "_" + "SHORT";
+                            }
+                        }
+                        else
+                        {
+                            curNameSec = item2.contract_code;
+                        }
+
+                        if (curNameSec == positionInPortfolio[j].SecurityNameCode)
+                        {
+                            isInArray = true;
+                            break;
+                        }
+                    }
+
+                    if (isInArray == false)
+                    {
+                        positionInPortfolio[j].ValueCurrent = 0;
+                    }
                 }
+
 
                 PortfolioEvent(Portfolios);
             }
@@ -2301,26 +2497,42 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
             try
             {
+                if ("USDT".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
+                {
+                    SetPositionMode(order.SecurityNameCode);
+                }
+
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
 
                 jsonContent.Add("contract_code", order.SecurityNameCode);
                 jsonContent.Add("client_order_id", order.NumberUser.ToString());
-                jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
-
                 jsonContent.Add("direction", order.Side == Side.Buy ? "buy" : "sell");
-                jsonContent.Add("volume", order.Volume /*/ GetSecurityLot(order.SecurityNameCode)*/.ToString().Replace(",", "."));
+                jsonContent.Add("volume", order.Volume.ToString("0.#####").Replace(",", "."));
 
-                if (order.PositionConditionType == OrderPositionConditionType.Close)
+                if (HedgeMode
+                    || "COIN".Equals(((ServerParameterEnum)ServerParameters[2]).Value))
                 {
-                    jsonContent.Add("offset", "close");
-                }
-                else
-                {
-                    jsonContent.Add("offset", "open");
+                    if (order.PositionConditionType == OrderPositionConditionType.Close)
+                    {
+                        jsonContent.Add("offset", "close");
+                    }
+                    else
+                    {
+                        jsonContent.Add("offset", "open");
+                    }
                 }
 
                 jsonContent.Add("lever_rate", "1");
-                jsonContent.Add("order_price_type", "limit");
+
+                if (order.TypeOrder == OrderPriceType.Limit)
+                {
+                    jsonContent.Add("order_price_type", "limit");
+                    jsonContent.Add("price", order.Price.ToString().Replace(",", "."));
+                }
+                else if (order.TypeOrder == OrderPriceType.Market)
+                {
+                    jsonContent.Add("order_price_type", "market");
+                }
 
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order");
 
@@ -2329,25 +2541,37 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
 
-                PlaceOrderResponse orderResponse = JsonConvert.DeserializeObject<PlaceOrderResponse>(responseMessage.Content);
-
-                if (responseMessage.Content.Contains("error"))
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    order.State = OrderStateType.Fail;
-                    MyOrderEvent(order);
-                    SendLogMessage($"SendOrder. Error: {responseMessage.Content}", LogMessageType.Error);
+                    ResponseRestMessage<PlaceOrderResponse> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<PlaceOrderResponse>());
+
+                    if (response.status == "ok")
+                    {
+                        //order.NumberMarket = response.data.order_id;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Order Fail.  {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                        CreateOrderFail(order);
+                    }
                 }
                 else
                 {
-                    order.NumberMarket = orderResponse.data.order_id;
-                    order.State = OrderStateType.Pending;
-                    MyOrderEvent(order);
+                    SendLogMessage("Order Fail. Status: " + responseMessage.StatusCode + "  " + order.SecurityNameCode + ", " + responseMessage.Content, LogMessageType.Error);
+                    CreateOrderFail(order);
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
+        }
+
+        private void CreateOrderFail(Order order)
+        {
+            order.State = OrderStateType.Fail;
+
+            MyOrderEvent?.Invoke(order);
         }
 
         public void ChangeOrderPrice(Order order, decimal newPrice)
@@ -2358,10 +2582,6 @@ namespace OsEngine.Market.Servers.HTX.Swap
         {
             _rateGateCancelOrder.WaitToProceed();
 
-            if (order.State == OrderStateType.Cancel)
-            {
-                return true;
-            }
             try
             {
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
@@ -2376,28 +2596,44 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
 
-                PlaceOrderResponse response = JsonConvert.DeserializeObject<PlaceOrderResponse>(responseMessage.Content);
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
+                {
+                    ResponseRestMessage<PlaceOrderResponse> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<PlaceOrderResponse>());
 
-                if (response.status != "ok")
+                    if (response.status == "ok")
+                    {
+                        //order.State = OrderStateType.Cancel;
+                        //MyOrderEvent(order);
+                        return true;
+                    }
+                    else
+                    {
+                        OrderStateType state = GetOrderStatus(order);
+
+                        if (state == OrderStateType.None)
+                        {
+                            SendLogMessage($"Cancel order failed: {responseMessage.StatusCode} || msg: {responseMessage.Content}", LogMessageType.Error);
+                            return false;
+                        }
+                        else
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else
                 {
                     OrderStateType state = GetOrderStatus(order);
 
                     if (state == OrderStateType.None)
                     {
-                        SendLogMessage($"CancelOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                        SendLogMessage("Cancel order failed. Status: " + responseMessage.StatusCode + "  " + order.SecurityNameCode + ", " + responseMessage.Content, LogMessageType.Error);
                         return false;
                     }
                     else
                     {
                         return true;
                     }
-
-                }
-                else
-                {
-                    order.State = OrderStateType.Cancel;
-                    MyOrderEvent(order);
-                    return true;
                 }
             }
             catch (Exception exception)
@@ -2413,11 +2649,30 @@ namespace OsEngine.Market.Servers.HTX.Swap
 
         public void CancelAllOrdersToSecurity(Security security)
         {
+            _rateGateCancelOrder.WaitToProceed();
+
+            try
+            {
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
+                jsonContent.Add("contract_code", security.Name);
+
+                string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_cancelall");
+
+                RestClient client = new RestClient(url);
+                RestRequest request = new RestRequest(Method.POST);
+                request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
+                IRestResponse responseMessage = client.Execute(request);
+
+            }
+            catch (Exception e)
+            {
+                SendLogMessage(e.Message, LogMessageType.Error);
+            }
         }
 
         public void GetAllActivOrders()
         {
-            List<Order> orders = GetAllOrdersFromExchange();
+            List<Order> orders = GetAllOpenOrders();
 
             for (int i = 0; orders != null && i < orders.Count; i++)
             {
@@ -2442,8 +2697,10 @@ namespace OsEngine.Market.Servers.HTX.Swap
             }
         }
 
-        private List<Order> GetAllOrdersFromExchange()
+        private List<Order> GetAllOpenOrders()
         {
+            _rateGateSendOrder.WaitToProceed();
+
             List<Order> orders = new List<Order>();
 
             try
@@ -2454,56 +2711,65 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 RestRequest request = new RestRequest(Method.POST);
                 IRestResponse responseMessage = client.Execute(request);
 
-                ResponseMessageAllOrders response = JsonConvert.DeserializeObject<ResponseMessageAllOrders>(responseMessage.Content);
-
-                if (response == null
-                    || response.data == null)
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    return null;
-                }
+                    ResponseRestMessage<ResponseAllOrders> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<ResponseAllOrders>());
 
-                List<ResponseMessageAllOrders.Orders> item = response.data.orders;
-
-                if (responseMessage.Content.Contains("error"))
-                {
-                    SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
-                }
-                else
-                {
-                    if (item != null && item.Count > 0)
+                    if (response.status == "ok")
                     {
-                        for (int i = 0; i < item.Count; i++)
+                        for (int i = 0; i < response.data.orders.Count; i++)
                         {
+                            OrdersItem item = response.data.orders[i];
+
                             Order newOrder = new Order();
 
-                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].update_time));
-                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[i].created_at));
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.update_time));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
                             newOrder.ServerType = ServerType.HTXSwap;
-                            newOrder.SecurityNameCode = item[i].contract_code;
-                            newOrder.NumberUser = Convert.ToInt32(item[i].client_order_id);
-                            newOrder.NumberMarket = item[i].order_id.ToString();
-                            newOrder.Side = item[i].direction.Equals("buy") ? Side.Buy : Side.Sell;
-                            newOrder.State = GetOrderState(item[i].status);
-                            newOrder.Volume = /*GetSecurityLot(item[i].contract_code) **/ item[i].volume.ToDecimal();
-                            newOrder.Price = item[i].price.ToDecimal();
+                            newOrder.SecurityNameCode = item.contract_code;
+                            newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+                            newOrder.NumberMarket = item.order_id.ToString();
+                            newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
+                            newOrder.State = GetOrderState(item.status);
+                            newOrder.Volume = item.volume.ToDecimal();
+                            newOrder.Price = item.price.ToDecimal();
                             newOrder.PortfolioNumber = $"HTXSwapPortfolio";
-                            newOrder.PositionConditionType = item[i].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+
+                            if (item.order_price_type == "limit")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+                            else if (item.order_price_type == "market")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+
+                            //newOrder.PositionConditionType = item.offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
 
                             orders.Add(newOrder);
                         }
+                        return orders;
                     }
+                    else
+                    {
+                        SendLogMessage($"Get all open orders failed: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                    }
+                }
+                else
+                {
+                    SendLogMessage("Get all open orders request error " + responseMessage.StatusCode + "  " + responseMessage.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
-            return orders;
+            return null;
         }
 
         public OrderStateType GetOrderStatus(Order order)
         {
-            Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket);
+            Order orderFromExchange = GetOrderFromExchange(order.SecurityNameCode, order.NumberMarket, order.NumberUser.ToString());
 
             if (orderFromExchange == null)
             {
@@ -2540,7 +2806,7 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 || orderOnMarket.State == OrderStateType.Partial)
             {
                 List<MyTrade> tradesBySecurity
-                    = GetMyTradesBySecurity(order.SecurityNameCode, order.NumberMarket, order.TimeCreate);
+                    = GetMyTradesBySecurity(orderOnMarket.SecurityNameCode, orderOnMarket.NumberMarket);
 
                 if (tradesBySecurity == null)
                 {
@@ -2569,16 +2835,25 @@ namespace OsEngine.Market.Servers.HTX.Swap
             return orderOnMarket.State;
         }
 
-        private Order GetOrderFromExchange(string securityNameCode, string numberMarket)
+        private Order GetOrderFromExchange(string securityNameCode, string numberMarket, string numberUser)
         {
+            _rateGateSendOrder.WaitToProceed();
+
             Order newOrder = new Order();
 
             try
             {
                 Dictionary<string, string> jsonContent = new Dictionary<string, string>();
-
-                jsonContent.Add("order_id", numberMarket);
                 jsonContent.Add("contract_code", securityNameCode);
+
+                if (numberMarket != "")
+                {
+                    jsonContent.Add("order_id", numberMarket);
+                }
+                else
+                {
+                    jsonContent.Add("client_order_id", numberUser);
+                }
 
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_info");
 
@@ -2587,49 +2862,78 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
 
-                ResponseMessageGetOrder response = JsonConvert.DeserializeObject<ResponseMessageGetOrder>(responseMessage.Content);
-
-                List<ResponseMessageGetOrder.Data> item = response.data;
-
-                if (responseMessage.Content.Contains("error"))
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    SendLogMessage($"GetAllOrder. Http State Code: {responseMessage.Content}", LogMessageType.Error);
+                    ResponseRestMessage<List<ResponseGetOrder>> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<List<ResponseGetOrder>>());
+
+                    if (response.status == "ok")
+                    {
+                        ResponseGetOrder item = response.data[0];
+
+                        if (item != null)
+                        {
+                            newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
+                            newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item.created_at));
+                            newOrder.ServerType = ServerType.HTXSwap;
+                            newOrder.SecurityNameCode = item.contract_code;
+
+                            try
+                            {
+                                newOrder.NumberUser = Convert.ToInt32(item.client_order_id);
+                            }
+                            catch
+                            {
+                            }
+
+                            newOrder.NumberMarket = item.order_id.ToString();
+                            newOrder.Side = item.direction.Equals("buy") ? Side.Buy : Side.Sell;
+                            newOrder.State = GetOrderState(item.status);
+                            newOrder.Volume = item.volume.ToDecimal();
+                            newOrder.Price = item.price.ToDecimal();
+                            newOrder.PortfolioNumber = $"HTXSwapPortfolio";
+
+                            if (item.order_price_type == "limit")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Limit;
+                            }
+                            else if (item.order_price_type == "market")
+                            {
+                                newOrder.TypeOrder = OrderPriceType.Market;
+                            }
+
+                            //newOrder.PositionConditionType = item[0].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
+                        }
+
+                        return newOrder;
+                    }
+                    else
+                    {
+                        SendLogMessage($"Get order from exchange failed: {response.errcode} || msg: {response.errmsg}", LogMessageType.Error);
+                    }
                 }
                 else
                 {
-                    if (item != null && item.Count > 0)
-                    {
-                        newOrder.TimeCallBack = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[0].created_at));
-                        newOrder.TimeCreate = TimeManager.GetDateTimeFromTimeStamp(long.Parse(item[0].created_at));
-                        newOrder.ServerType = ServerType.HTXSwap;
-                        newOrder.SecurityNameCode = item[0].contract_code;
-                        newOrder.NumberUser = Convert.ToInt32(item[0].client_order_id);
-                        newOrder.NumberMarket = item[0].order_id.ToString();
-                        newOrder.Side = item[0].direction.Equals("buy") ? Side.Buy : Side.Sell;
-                        newOrder.State = GetOrderState(item[0].status);
-                        newOrder.Volume = /*GetSecurityLot(item[0].contract_code) * */item[0].volume.ToDecimal();
-                        newOrder.Price = item[0].price.ToDecimal();
-                        newOrder.PortfolioNumber = $"HTXSwapPortfolio";
-                        newOrder.PositionConditionType = item[0].offset == "open" ? OrderPositionConditionType.Open : OrderPositionConditionType.Close;
-                    }
+                    SendLogMessage("Get order from exchange request error " + responseMessage.StatusCode + "  " + responseMessage.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
                 SendLogMessage(exception.ToString(), LogMessageType.Error);
             }
-            return newOrder;
+            return null;
         }
 
-        private List<MyTrade> GetMyTradesBySecurity(string security, string orderId, DateTime createdOrderTime)
+        private List<MyTrade> GetMyTradesBySecurity(string security, string orderId)
         {
+            _rateGateSendOrder.WaitToProceed();
+
             try
             {
-                Dictionary<string, dynamic> jsonContent = new Dictionary<string, dynamic>();
+                Dictionary<string, string> jsonContent = new Dictionary<string, string>();
 
                 jsonContent.Add("contract_code", security.Split('_')[0]);
-                jsonContent.Add("order_id", Convert.ToInt64(orderId));
-                jsonContent.Add("created_at", TimeManager.GetTimeStampMilliSecondsToDateTime(createdOrderTime));
+                jsonContent.Add("order_id", orderId);
+                //jsonContent.Add("created_at", TimeManager.GetTimeStampMilliSecondsToDateTime(createdOrderTime));
 
                 string url = _privateUriBuilder.Build("POST", $"{_pathRest}/v1/swap_order_detail");
 
@@ -2638,57 +2942,62 @@ namespace OsEngine.Market.Servers.HTX.Swap
                 request.AddParameter("application/json", JsonConvert.SerializeObject(jsonContent), ParameterType.RequestBody);
                 IRestResponse responseMessage = client.Execute(request);
 
-                string respString = responseMessage.Content;
-
-                if (!respString.Contains("error"))
+                if (responseMessage.StatusCode == HttpStatusCode.OK)
                 {
-                    ResponseMessageGetMyTradesBySecurity orderResponse = JsonConvert.DeserializeObject<ResponseMessageGetMyTradesBySecurity>(respString);
+                    ResponseRestMessage<ResponseMyTradesBySecurity> response = JsonConvert.DeserializeAnonymousType(responseMessage.Content, new ResponseRestMessage<ResponseMyTradesBySecurity>());
 
-                    List<MyTrade> osEngineOrders = new List<MyTrade>();
-
-                    if (orderResponse.data.trades != null && orderResponse.data.trades.Count > 0)
+                    if (response.status == "ok")
                     {
-                        for (int i = 0; i < orderResponse.data.trades.Count; i++)
-                        {
-                            MyTrade newTrade = new MyTrade();
-                            newTrade.SecurityNameCode = orderResponse.data.contract_code;
-                            newTrade.NumberTrade = orderResponse.data.trades[i].trade_id;
-                            newTrade.NumberOrderParent = orderResponse.data.order_id;
-                            newTrade.Volume = /*GetSecurityLot(orderResponse.data.contract_code) **/ orderResponse.data.trades[i].trade_volume.ToDecimal();
-                            newTrade.Price = orderResponse.data.trades[i].trade_price.ToDecimal();
-                            newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(orderResponse.data.trades[i].created_at));
+                        List<MyTrade> osEngineOrders = new List<MyTrade>();
 
-                            if (orderResponse.data.direction == "buy")
+                        if (response.data.trades != null && response.data.trades.Count > 0)
+                        {
+                            for (int i = 0; i < response.data.trades.Count; i++)
                             {
-                                newTrade.Side = Side.Buy;
+                                MyTrade newTrade = new MyTrade();
+                                newTrade.SecurityNameCode = response.data.contract_code;
+                                newTrade.NumberTrade = response.data.trades[i].trade_id;
+                                newTrade.NumberOrderParent = response.data.order_id;
+                                newTrade.Volume = response.data.trades[i].trade_volume.ToDecimal();
+                                newTrade.Price = response.data.trades[i].trade_price.ToDecimal();
+                                newTrade.Time = TimeManager.GetDateTimeFromTimeStamp(Convert.ToInt64(response.data.trades[i].created_at));
+
+                                if (response.data.direction == "buy")
+                                {
+                                    newTrade.Side = Side.Buy;
+                                }
+                                else
+                                {
+                                    newTrade.Side = Side.Sell;
+                                }
+                                osEngineOrders.Add(newTrade);
                             }
-                            else
-                            {
-                                newTrade.Side = Side.Sell;
-                            }
-                            osEngineOrders.Add(newTrade);
+                        }
+                        return osEngineOrders;
+                    }
+                    else if (responseMessage.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        SendLogMessage("Get my trades request error. ", LogMessageType.Error);
+
+                        if (responseMessage.Content != null)
+                        {
+                            SendLogMessage("Fail reasons: "
+                          + responseMessage.Content, LogMessageType.Error);
                         }
                     }
-                    return osEngineOrders;
-                }
-                else if (responseMessage.StatusCode == HttpStatusCode.NotFound)
-                {
-                    return null;
                 }
                 else
                 {
-                    SendLogMessage("Get all orders request error. ", LogMessageType.Error);
-
-                    if (responseMessage.Content != null)
-                    {
-                        SendLogMessage("Fail reasons: "
-                      + responseMessage.Content, LogMessageType.Error);
-                    }
+                    SendLogMessage("Get my trades by security error " + responseMessage.StatusCode + "  " + responseMessage.Content, LogMessageType.Error);
                 }
             }
             catch (Exception exception)
             {
-                SendLogMessage("Get all orders request error." + exception.ToString(), LogMessageType.Error);
+                SendLogMessage("Get my trades by security request error." + exception.ToString(), LogMessageType.Error);
             }
             return null;
         }

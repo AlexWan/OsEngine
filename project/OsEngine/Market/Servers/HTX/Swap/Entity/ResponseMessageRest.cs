@@ -139,77 +139,69 @@ namespace OsEngine.Market.Servers.HTX.Swap.Entity
 
     public class PlaceOrderResponse
     {
+        public string order_id { get; set; }
+        public string client_order_id { get; set; }
+        public string order_id_str { get; set; }
+    }
+
+    public class ResponseAllOrders
+    {
+        public List<OrdersItem> orders { get; set; }
+    }
+
+    public class OrdersItem
+    {
+        public string symbol { get; set; }
+        public string contract_code { get; set; }
+        public string volume { get; set; }
+        public string price { get; set; }
+        public string order_price_type { get; set; }
+        public string direction { get; set; }
+        public string offset { get; set; }
         public string status { get; set; }
-        public Data data { get; set; }
-
-        public class Data
-        {
-            public string order_id { get; set; }
-        }
+        public string order_id { get; set; }
+        public string created_at { get; set; }
+        public string update_time { get; set; }
+        public string client_order_id { get; set; }
     }
 
-    public class ResponseMessageAllOrders
+    public class ResponseGetOrder
     {
-        public Data data { get; set; }
-
-        public class Data
-        {
-            public List<Orders> orders { get; set; }
-        }
-
-        public class Orders
-        {
-            public string symbol { get; set; }
-            public string contract_code { get; set; }
-            public string volume { get; set; }
-            public string price { get; set; }
-            public string direction { get; set; }
-            public string offset { get; set; }
-            public string status { get; set; }
-            public string order_id { get; set; }
-            public string created_at { get; set; }
-            public string update_time { get; set; }
-            public string client_order_id { get; set; }
-        }
+        public string symbol { get; set; }
+        public string contract_code { get; set; }
+        public string volume { get; set; }
+        public string price { get; set; }
+        public string order_price_type { get; set; }
+        public string order_type { get; set; }
+        public string direction { get; set; }
+        public string offset { get; set; }
+        public string lever_rate { get; set; }
+        public string status { get; set; }
+        public string order_id { get; set; }
+        public string created_at { get; set; }
+        public string client_order_id { get; set; }
+        public string margin_account { get; set; }
+        public string margin_mode { get; set; }
     }
 
-    public class ResponseMessageGetOrder
+    public class ResponseMyTradesBySecurity
     {
-        public List<Data> data { get; set; }
-
-        public class Data
-        {
-            public string symbol { get; set; }
-            public string contract_code { get; set; }
-            public string volume { get; set; }
-            public string price { get; set; }
-            public string direction { get; set; }
-            public string offset { get; set; }
-            public string status { get; set; }
-            public string order_id { get; set; }
-            public string created_at { get; set; }
-            public string client_order_id { get; set; }
-        }
+        public string contract_code { get; set; }
+        public string order_id { get; set; }
+        public string direction { get; set; }
+        public string volume { get; set; }
+        public string price { get; set; }
+        public string offset { get; set; }
+        public List<TradesItemRest> trades { get; set; }
     }
 
-    public class ResponseMessageGetMyTradesBySecurity
+    public class TradesItemRest
     {
-        public Data data { get; set; }
-
-        public class Data
-        {
-            public List<Trades> trades { get; set; }
-            public string contract_code { get; set; }
-            public string order_id { get; set; }
-            public string direction { get; set; }
-        }
-        public class Trades
-        {
-            public string trade_id { get; set; }
-            public string trade_volume { get; set; }
-            public string trade_price { get; set; }
-            public string created_at { get; set; }
-        }
+        public string trade_id { get; set; }
+        public string trade_volume { get; set; }
+        public string trade_price { get; set; }
+        public string trade_turnover { get; set; }
+        public string created_at { get; set; }
     }
 
     public class ResponseTrades
