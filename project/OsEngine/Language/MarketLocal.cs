@@ -941,6 +941,11 @@ namespace OsEngine.Language
          "Eng:To add a new slave portfolio, you need to connect at least one trade server_" +
          "Ru:Для добавления нового копи-портфеля нужно подключить хотя бы один торговый коннектор_");
 
+        public string Label227 => OsLocalization.ConvertToLocString(
+         "Eng:Min currency qty_" +
+         "Ru:Мин объём в деньгах_");
+
+
 
 
 

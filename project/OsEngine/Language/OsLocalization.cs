@@ -144,7 +144,7 @@ namespace OsEngine.Language
                     Load();
                     if (_curLocalization == OsLocalType.None)
                     {
-                        _curLocalization = OsLocalType.Eng;
+                        _curLocalization = OsLocalType.Ru;
                     }
                 }
                 return _curLocalization;

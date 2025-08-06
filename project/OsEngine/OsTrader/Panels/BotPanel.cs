@@ -447,6 +447,70 @@ namespace OsEngine.OsTrader.Panels
             return result;
         }
 
+        public Portfolio GetFirstPortfolio()
+        {
+            Portfolio portfolio = null;
+
+            for(int i = 0;_botTabs != null && i < _botTabs.Count;i++)
+            {
+                IIBotTab tab = _botTabs[i];
+
+                if(tab.TabType == BotTabType.Simple)
+                {
+                    BotTabSimple simple = (BotTabSimple)tab;
+
+                    if(simple.Portfolio != null)
+                    {
+                        portfolio = simple.Portfolio;
+                        break;
+                    }
+                }
+                else if (tab.TabType == BotTabType.Screener)
+                {
+                    BotTabScreener screener = (BotTabScreener)tab;
+
+                    for(int j = 0;j < screener.Tabs.Count;j++)
+                    {
+                        if (screener.Tabs[j].Portfolio != null)
+                        {
+                            portfolio = screener.Tabs[j].Portfolio;
+                            break;
+                        }
+                    }
+
+                    if(portfolio != null)
+                    {
+                        break;
+                    }
+                }
+                else if (tab.TabType == BotTabType.Pair)
+                {
+                    BotTabPair pair = (BotTabPair)tab;
+
+                    for (int j = 0; j < pair.Pairs.Count; j++)
+                    {
+                        if (pair.Pairs[j].Tab1.Portfolio != null)
+                        {
+                            portfolio = pair.Pairs[j].Tab1.Portfolio;
+                            break;
+                        }
+                        if (pair.Pairs[j].Tab2.Portfolio != null)
+                        {
+                            portfolio = pair.Pairs[j].Tab2.Portfolio;
+                            break;
+                        }
+                    }
+
+                    if (portfolio != null)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return portfolio;
+        }
+
         #endregion
 
         #region Chart and GUI

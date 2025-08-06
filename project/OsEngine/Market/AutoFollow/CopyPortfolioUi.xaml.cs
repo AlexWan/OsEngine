@@ -10,6 +10,7 @@ using OsEngine.OsData;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -39,11 +40,6 @@ namespace OsEngine.Market.AutoFollow
             ComboBoxIsOn.SelectedItem = _portfolioToCopy.IsOn.ToString();
             ComboBoxIsOn.SelectionChanged += ComboBoxIsOn_SelectionChanged;
 
-            ComboBoxCopyType.Items.Add(CopyTraderCopyType.FullCopy.ToString());
-            ComboBoxCopyType.Items.Add(CopyTraderCopyType.Absolute.ToString());
-            ComboBoxCopyType.SelectedItem = _portfolioToCopy.CopyType.ToString();
-            ComboBoxCopyType.SelectionChanged += ComboBoxCopyType_SelectionChanged;
-
             ComboBoxOrderType.Items.Add(CopyTraderOrdersType.Market.ToString());
             ComboBoxOrderType.Items.Add(CopyTraderOrdersType.Iceberg.ToString());
             ComboBoxOrderType.SelectedItem = _portfolioToCopy.OrderType.ToString();
@@ -55,6 +51,9 @@ namespace OsEngine.Market.AutoFollow
             }
             ComboBoxIcebergCount.SelectedItem = _portfolioToCopy.IcebergCount.ToString();
             ComboBoxIcebergCount.SelectionChanged += ComboBoxIcebergCount_SelectionChanged;
+
+            TextBoxMinCurrencyQty.Text = _portfolioToCopy.MinCurrencyQty.ToString();
+            TextBoxMinCurrencyQty.TextChanged += TextBoxMinCurrencyQty_TextChanged;
 
             ComboBoxVolumeType.Items.Add(CopyTraderVolumeType.DepoProportional.ToString());
             ComboBoxVolumeType.Items.Add(CopyTraderVolumeType.QtyMultiplicator.ToString());
@@ -74,9 +73,9 @@ namespace OsEngine.Market.AutoFollow
             // localization
 
             LabelIsOn.Content = OsLocalization.Market.Label182;
-            LabelCopyType.Content = OsLocalization.Market.Label216;
             LabelOrderType.Content = OsLocalization.Market.Label217;
             LabelIcebergCount.Content = OsLocalization.Market.Label218;
+            LabelMinCurrencyQTY.Content = OsLocalization.Market.Label227;
             LabelVolumeType.Content = OsLocalization.Market.Label212;
             LabelVolumeMult.Content = OsLocalization.Market.Label213;
             LabelMasterAsset.Content = OsLocalization.Market.Label214;
@@ -99,14 +98,15 @@ namespace OsEngine.Market.AutoFollow
 
             LoadPanelsPositions();
 
+            Thread worker = new Thread(PaintFormThreadArea);
+            worker.Start();
         }
 
         private void CopyPortfolioUi_Closed(object sender, EventArgs e)
         {
-
+            _formIsClosed = true;
 
             ComboBoxIsOn.SelectionChanged -= ComboBoxIsOn_SelectionChanged;
-            ComboBoxCopyType.SelectionChanged -= ComboBoxCopyType_SelectionChanged;
             ComboBoxOrderType.SelectionChanged -= ComboBoxOrderType_SelectionChanged;
             ComboBoxIcebergCount.SelectionChanged -= ComboBoxIcebergCount_SelectionChanged;
             ComboBoxVolumeType.SelectionChanged -= ComboBoxVolumeType_SelectionChanged;
@@ -128,6 +128,8 @@ namespace OsEngine.Market.AutoFollow
 
 
         }
+
+        private bool _formIsClosed = false;
 
         private void SavePanelsPosition()
         {
@@ -192,7 +194,80 @@ namespace OsEngine.Market.AutoFollow
             }
         }
 
+        #region Painter thread
+
+        private void PaintFormThreadArea()
+        {
+            while(true)
+            {
+                try
+                {
+                    Thread.Sleep(3000);
+
+                    if (_formIsClosed == true)
+                    {
+                        return;
+                    }
+
+                    RePaintControls();
+                }
+                catch(Exception ex)
+                {
+                    _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+                }
+            }
+        }
+
+        private void RePaintControls()
+        {
+            try
+            {
+                if (_gridSecurities.InvokeRequired)
+                {
+                    _gridSecurities.Invoke(new Action(RePaintControls));
+                    return;
+                }
+
+                string masterValue = Math.Round(_portfolioToCopy.MasterAssetValue,3).ToString();
+                string slaveValue = Math.Round(_portfolioToCopy.SlaveAssetValue,3).ToString();
+
+                if(TextBoxMasterAssetValue.Text != masterValue)
+                {
+                    TextBoxMasterAssetValue.Text = masterValue;
+                }
+               
+                if(TextBoxSlaveAssetValue.Text != slaveValue)
+                {
+                    TextBoxSlaveAssetValue.Text = slaveValue;
+                }
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        #endregion
+
         #region Settings
+
+        private void TextBoxMinCurrencyQty_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(TextBoxMinCurrencyQty.Text))
+                {
+                    return;
+                }
+
+                _portfolioToCopy.MinCurrencyQty = TextBoxMinCurrencyQty.Text.ToDecimal();
+                _portfolioToCopy.Save();
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
 
         private void TextBoxSlaveAsset_TextChanged(object sender, TextChangedEventArgs e)
         {
@@ -226,7 +301,7 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
-                decimal volumeMult = TextBoxVolumeMult.ToString().ToDecimal();
+                decimal volumeMult = TextBoxVolumeMult.Text.ToString().ToDecimal();
 
                 _portfolioToCopy.VolumeMult = volumeMult;
                 _portfolioToCopy.Save();
@@ -281,24 +356,6 @@ namespace OsEngine.Market.AutoFollow
                 if (Enum.TryParse(ComboBoxOrderType.SelectedItem.ToString(), out orderType))
                 {
                     _portfolioToCopy.OrderType = orderType;
-                    _portfolioToCopy.Save();
-                }
-            }
-            catch (Exception ex)
-            {
-                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
-            }
-        }
-
-        private void ComboBoxCopyType_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            try
-            {
-                CopyTraderCopyType copyType;
-
-                if(Enum.TryParse(ComboBoxCopyType.SelectedItem.ToString(), out copyType))
-                {
-                    _portfolioToCopy.CopyType = copyType;
                     _portfolioToCopy.Save();
                 }
             }

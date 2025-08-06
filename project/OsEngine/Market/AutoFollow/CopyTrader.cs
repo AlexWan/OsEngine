@@ -303,11 +303,11 @@ namespace OsEngine.Market.AutoFollow
                     writer.WriteLine(VolumeMult);
                     writer.WriteLine(MasterAsset);
                     writer.WriteLine(SlaveAsset);
-                    writer.WriteLine(CopyType);
                     writer.WriteLine(OrderType);
                     writer.WriteLine(IcebergCount);
                     writer.WriteLine(GetSecuritiesSaveString());
                     writer.WriteLine(PanelsPosition);
+                    writer.WriteLine(MinCurrencyQty);
                     writer.Close();
                 }
             }
@@ -337,11 +337,11 @@ namespace OsEngine.Market.AutoFollow
                     MasterAsset = reader.ReadLine();
                     SlaveAsset = reader.ReadLine();
                     
-                    Enum.TryParse(reader.ReadLine(), out CopyType);
                     Enum.TryParse(reader.ReadLine(), out OrderType);
                     IcebergCount = Convert.ToInt32(reader.ReadLine());
                     LoadSecuritiesFromString(reader.ReadLine());
                     PanelsPosition = reader.ReadLine();
+                    MinCurrencyQty = reader.ReadLine().ToDecimal();
 
                     reader.Close();
                 }
@@ -411,8 +411,6 @@ namespace OsEngine.Market.AutoFollow
 
         public bool IsOn = false;
 
-        public CopyTraderCopyType CopyType;
-
         public CopyTraderVolumeType VolumeType;
 
         public decimal VolumeMult = 1;
@@ -426,6 +424,8 @@ namespace OsEngine.Market.AutoFollow
         public int IcebergCount = 2;
 
         public string PanelsPosition = "1,1";
+
+        public decimal MinCurrencyQty = 25;
 
         #endregion
 
@@ -476,6 +476,7 @@ namespace OsEngine.Market.AutoFollow
 
             positionToCopy.SlaveSecurityName = positionToCopy.SecurityNameMaster;
             
+
         }
 
         #endregion
@@ -485,6 +486,94 @@ namespace OsEngine.Market.AutoFollow
         public Journal.Journal MyJournal;
 
         public AServer MyCopyServer;
+
+        public decimal MasterAssetValue;
+
+        public decimal SlaveAssetValue;
+
+        private void TryGetAssets()
+        {
+            // 1 ищем мастер счёт
+
+            decimal masterAsset = 0;
+
+            Portfolio portfolioMaster = null;
+
+            for(int i = 0;i < Robots.Count;i++)
+            {
+                Portfolio firstPortfolio = Robots[i].GetFirstPortfolio();
+                
+                if(firstPortfolio != null)
+                {
+                    portfolioMaster = firstPortfolio;
+                    break;
+                }
+            }
+
+            if(portfolioMaster != null)
+            {
+                if(MasterAsset == "Prime")
+                {
+                    masterAsset = portfolioMaster.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> assets = portfolioMaster.GetPositionOnBoard();
+
+                    for (int i = 0;i < assets.Count;i++)
+                    {
+                        if(assets[i].SecurityNameCode == MasterAsset)
+                        {
+                            masterAsset = assets[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            MasterAssetValue = masterAsset;
+
+            // копи-счёт
+
+            decimal slaveAsset = 0;
+
+            Portfolio portfolioSlave = null;
+
+            for (int i = 0; MyCopyServer.Portfolios != null && i < MyCopyServer.Portfolios.Count; i++)
+            {
+                Portfolio currentPortfolio = MyCopyServer.Portfolios[i];
+
+                if(currentPortfolio.Number == PortfolioName)
+                {
+                    portfolioSlave = currentPortfolio;
+                    break;
+                }
+
+            }
+
+            if (portfolioSlave != null)
+            {
+                if (SlaveAsset == "Prime")
+                {
+                    slaveAsset = portfolioSlave.ValueCurrent;
+                }
+                else
+                {
+                    List<PositionOnBoard> assets = portfolioSlave.GetPositionOnBoard();
+
+                    for (int i = 0; i < assets.Count; i++)
+                    {
+                        if (assets[i].SecurityNameCode == SlaveAsset)
+                        {
+                            slaveAsset = assets[i].ValueCurrent;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            SlaveAssetValue = slaveAsset;
+        }
 
         private PositionCreator _dealCreator = new PositionCreator();
 
@@ -571,6 +660,11 @@ namespace OsEngine.Market.AutoFollow
                 return;
             }
 
+            if(_timeNoTrade > DateTime.Now)
+            {
+                return;
+            }
+
             // 1 пробуем взять коннектор
 
             if(MyCopyServer == null)
@@ -593,16 +687,7 @@ namespace OsEngine.Market.AutoFollow
                 return;
             }
 
-            ProcessCopyRobots(masterRobots);
-        }
-
-        #endregion
-
-        #region Robots copy logic
-
-        private void ProcessCopyRobots(List<string> masterRobots)
-        {
-            // 1 обновляем список роботов
+            // 2 обновляем список роботов
 
             TrySyncRobots(masterRobots);
 
@@ -613,11 +698,38 @@ namespace OsEngine.Market.AutoFollow
                 return;
             }
 
-            // 2 берём позиции по мастер-роботам
+            // 3 обновляем состояние портфелей
+
+            TryGetAssets();
+
+            if (VolumeType == CopyTraderVolumeType.DepoProportional)
+            {
+                if(MasterAssetValue == 0
+                    || SlaveAssetValue == 0)
+                {
+                    return;
+                }
+            }
+
+            // 4 идём в торговую логику
+
+            ProcessCopyRobots();
+        }
+
+        #endregion
+
+        #region Robots copy logic
+
+        private DateTime _timeNoTrade;
+
+        private void ProcessCopyRobots()
+        {
+
+            // 1 берём позиции по мастер-роботам
 
             List<PositionToCopy> copyPositions = GetPositionsFromBots();
 
-            // 3 берём позиции из журнала копировщика. Сортируем
+            // 2 берём позиции из журнала копировщика. Сортируем
 
             List<Position> positionsFromCopyTrader = MyJournal.OpenPositions;
 
@@ -637,7 +749,6 @@ namespace OsEngine.Market.AutoFollow
                         copyPositions[j].SetPositionCopyJournal(position);
                         break;
                     }
-
                 }
 
                 if (isInArray == false)
@@ -646,14 +757,14 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            // 4 закрываем позиции по инструментам которые были закрыты у робота
+            // 3 закрываем позиции по инструментам которые были закрыты у робота
 
             for(int i = 0;i < positionsToClose.Count;i++)
             {
                 ClosePosition(positionsToClose[i], positionsToClose[i].OpenVolume);
             }
 
-            // 5 открываем новые позиции если есть расбалансировка
+            // 4 открываем новые позиции если есть расбалансировка
 
             for(int i = 0;i < copyPositions.Count;i++)
             {
@@ -676,14 +787,7 @@ namespace OsEngine.Market.AutoFollow
                     continue;
                 }
 
-                if(CopyType == CopyTraderCopyType.Absolute)
-                {
-                    TrySyncPositionToCopyRobotsAbsMode(copyPositions[i]);
-                }
-                else if(CopyType == CopyTraderCopyType.FullCopy)
-                {
-                    TrySyncPositionToCopyRobotsFullMode(copyPositions[i]);
-                }
+                TrySyncPositionToCopyRobotsAbsMode(copyPositions[i]);
             }
         }
 
@@ -691,6 +795,13 @@ namespace OsEngine.Market.AutoFollow
         {
             // 1 уже синхронизировано. Ничего не делаем
             if (positionToCopy.RobotVolumeAbs == positionToCopy.SlaveVolumeAbs)
+            {
+                return;
+            }
+
+            Security security = GetSecurityByName(positionToCopy.SlaveSecurityName);
+
+            if (security == null)
             {
                 return;
             }
@@ -711,9 +822,22 @@ namespace OsEngine.Market.AutoFollow
             {
                 decimal difference = positionToCopy.RobotVolumeAbs - positionToCopy.SlaveVolumeAbs;
 
+                difference = Math.Round(difference, security.DecimalsVolume);
+
+                if (difference <= 0)
+                {
+                    return;
+                }
+
+                if(MinCurrencyQty != 0 &&
+                    CheckMinCurrencyQty(difference,positionToCopy) == false)
+                {
+                    return;
+                }
+
                 // 3.1. пытаемся закрыть шорты 
 
-                for(int i = 0;i < positionToCopy.PositionsCopyJournal.Count; i++)
+                for (int i = 0;i < positionToCopy.PositionsCopyJournal.Count; i++)
                 {
                     Position curPosition = positionToCopy.PositionsCopyJournal[i];
 
@@ -727,14 +851,15 @@ namespace OsEngine.Market.AutoFollow
                         {
                             ClosePosition(curPosition, difference);
                         }
-
+                        _timeNoTrade = DateTime.Now.AddSeconds(5);
                         return;
                     }
                 }
 
                 // 3.2. открываем лонги
 
-                BuyAtMarket(difference, positionToCopy.SlaveSecurityName);
+                BuyAtMarket(difference, security);
+                _timeNoTrade = DateTime.Now.AddSeconds(5);
             }
 
             // 4 надо продавать либо закрывать лонги
@@ -742,6 +867,19 @@ namespace OsEngine.Market.AutoFollow
             else if(positionToCopy.RobotVolumeAbs < positionToCopy.SlaveVolumeAbs)
             {
                 decimal difference = positionToCopy.SlaveVolumeAbs - positionToCopy.RobotVolumeAbs;
+
+                difference = Math.Round(difference, security.DecimalsVolume);
+
+                if(difference <= 0)
+                {
+                    return;
+                }
+
+                if (MinCurrencyQty != 0 && 
+                    CheckMinCurrencyQty(difference, positionToCopy) == false)
+                {
+                    return;
+                }
 
                 // 4.1. пытаемся закрыть лонги
 
@@ -759,54 +897,60 @@ namespace OsEngine.Market.AutoFollow
                         {
                             ClosePosition(curPosition, difference);
                         }
-
+                        _timeNoTrade = DateTime.Now.AddSeconds(5);
                         return;
                     }
                 }
 
                 // 4.2. открываем шорты
 
-                SellAtMarket(difference, positionToCopy.SlaveSecurityName);
+                SellAtMarket(difference, security);
+                _timeNoTrade = DateTime.Now.AddSeconds(5);
             }
         }
 
-        private void TrySyncPositionToCopyRobotsFullMode(PositionToCopy positionToCopy)
+        private bool CheckMinCurrencyQty(decimal qty, PositionToCopy positionToCopy)
         {
-            // 1 уже синхронизировано. Ничего не делаем
-           /* if (positionToCopy.RobotVolumeAbs == positionToCopy.SlaveVolumeAbs)
-            {
-                return;
-            }
+            // false - если нельзя открывать по такому объёму позицию
 
-            // 2 мастер в нулевом положении. Закрываем все позиции по копи-журналу
+            decimal price = 0;
 
-            else if (positionToCopy.RobotVolumeAbs == 0)
+            for(int i = 0;i < positionToCopy.PositionsRobots.Count;i++)
             {
-                for (int i = 0; i < positionToCopy.PositionsCopyJournal.Count; i++)
+                Position pos = positionToCopy.PositionsRobots[i];
+
+                if(pos.EntryPrice != 0)
                 {
-                    ClosePositions(positionToCopy.PositionsCopyJournal[i]);
+                    price = pos.EntryPrice;
+                    break;
                 }
             }
 
-            // 3 надо докупать либо закрывать шорты
-
-            else if (positionToCopy.RobotVolumeAbs > positionToCopy.SlaveVolumeAbs)
+            if (price == 0)
             {
+                for (int i = 0; i < positionToCopy.PositionsCopyJournal.Count; i++)
+                {
+                    Position pos = positionToCopy.PositionsCopyJournal[i];
 
-
-
-
+                    if (pos.EntryPrice != 0)
+                    {
+                        price = pos.EntryPrice;
+                        break;
+                    }
+                }
             }
 
-            // 4 надо продавать либо закрывать лонги
-
-            else if (positionToCopy.RobotVolumeAbs < positionToCopy.SlaveVolumeAbs)
+            if(price != 0)
             {
+                decimal currencyOnQty = qty * price;
 
+                if(currencyOnQty < MinCurrencyQty)
+                {
+                    return false;
+                }
+            }
 
-
-
-            }*/
+            return true;
         }
 
         private List<PositionToCopy> GetPositionsFromBots()
@@ -832,12 +976,15 @@ namespace OsEngine.Market.AutoFollow
 
                 bool isInArray = false;
 
-                for(int j = 0;j < resultPositions.Count;j++)
+                string sec = currenPos.SecurityName.Replace(" TestPaper", "");
+
+                for (int j = 0;j < resultPositions.Count;j++)
                 {
-                    if (resultPositions[j].SecurityNameMaster == currenPos.SecurityName)
+                    if (resultPositions[j].SecurityNameMaster == sec)
                     {
                         isInArray = true;
-                        resultPositions[j].SetPositionRobot(currenPos);
+                        resultPositions[j].SetPositionRobot(
+                            currenPos, this.VolumeType, VolumeMult, MasterAssetValue,SlaveAssetValue);
                         break;
                     }
                 }
@@ -845,8 +992,9 @@ namespace OsEngine.Market.AutoFollow
                 if(isInArray == false)
                 {
                     PositionToCopy positionToCopy = new PositionToCopy();
-                    positionToCopy.SecurityNameMaster = currenPos.SecurityName.Replace(" TestPaper","");
-                    positionToCopy.SetPositionRobot(currenPos);
+                    positionToCopy.SecurityNameMaster = sec;
+                    positionToCopy.SetPositionRobot(
+                        currenPos, this.VolumeType, VolumeMult, MasterAssetValue, SlaveAssetValue);
                     ModifySecurityPositionToCopy(positionToCopy);
                     resultPositions.Add(positionToCopy);
                 }
@@ -935,19 +1083,12 @@ namespace OsEngine.Market.AutoFollow
 
         #region Trade operations
 
-        public Position BuyAtMarket(decimal volume , string securityName)
+        public Position BuyAtMarket(decimal volume , Security security)
         {
             try
             {
                 Side direction = Side.Buy;
                 OrderPriceType priceType = OrderPriceType.Market;
-
-                Security security = GetSecurityByName(securityName);
-
-                if(security == null)
-                {
-                    return null;
-                }
 
                 Portfolio portfolio = GetPortfolioByName(this.PortfolioName);
 
@@ -979,19 +1120,12 @@ namespace OsEngine.Market.AutoFollow
             return null;
         }
 
-        private Position SellAtMarket(decimal volume, string securityName)
+        private Position SellAtMarket(decimal volume, Security security)
         {
             try
             {
-                Side direction = Side.Buy;
+                Side direction = Side.Sell;
                 OrderPriceType priceType = OrderPriceType.Market;
-
-                Security security = GetSecurityByName(securityName);
-
-                if (security == null)
-                {
-                    return null;
-                }
 
                 Portfolio portfolio = GetPortfolioByName(this.PortfolioName);
 
@@ -1117,7 +1251,6 @@ namespace OsEngine.Market.AutoFollow
             return null;
         }
 
-
         #endregion
 
         #region Log
@@ -1133,12 +1266,6 @@ namespace OsEngine.Market.AutoFollow
         }
 
         #endregion
-    }
-
-    public enum CopyTraderCopyType
-    {
-        FullCopy,
-        Absolute
     }
     
     public enum CopyTraderVolumeType
@@ -1188,7 +1315,8 @@ namespace OsEngine.Market.AutoFollow
 
     public class PositionToCopy
     {
-        public void SetPositionRobot(Position pos)
+        public void SetPositionRobot(Position pos, 
+            CopyTraderVolumeType copyType, decimal mult, decimal masterAsset, decimal slaveAsset)
         {
             PositionsRobots.Add(pos);
 
@@ -1197,15 +1325,28 @@ namespace OsEngine.Market.AutoFollow
                 return;
             }
 
-            if(pos.Direction == Side.Buy)
+            decimal volume = 0;
+
+            if(copyType == CopyTraderVolumeType.QtyMultiplicator)
             {
-                RobotVolumeBuy += pos.OpenVolume;
-                RobotVolumeAbs += pos.OpenVolume;
+                volume = pos.OpenVolume * mult;
+            }
+            else if(copyType == CopyTraderVolumeType.DepoProportional)
+            {
+                decimal proportion = masterAsset / slaveAsset;
+
+                volume = (pos.OpenVolume / proportion) * mult;
+            }
+
+            if (pos.Direction == Side.Buy)
+            {
+                RobotVolumeBuy += volume;
+                RobotVolumeAbs += volume;
             }
             else
             {
-                RobotVolumeSell -= pos.OpenVolume;
-                RobotVolumeAbs -= pos.OpenVolume;
+                RobotVolumeSell -= volume;
+                RobotVolumeAbs -= volume;
             }
         }
 

@@ -16,13 +16,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Drawing;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.ZB;
 
 namespace OsEngine.Market.AutoFollow
 {
-    /// <summary>
-    /// Interaction logic for CopyTraderUi.xaml
-    /// </summary>
     public partial class CopyTraderUi : Window
     {
         public CopyTrader CopyTraderInstance;
@@ -254,13 +250,6 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
         }
-
-        #endregion
-
-        #region Master portfolios grid
-
-
-
 
         #endregion
 
