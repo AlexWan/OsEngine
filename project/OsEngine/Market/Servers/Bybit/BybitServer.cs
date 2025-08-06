@@ -2191,6 +2191,11 @@ namespace OsEngine.Market.Servers.Bybit
                 }
                 else if (security.SecurityType == SecurityType.Option)
                 {
+                    if (_useOptions == false)
+                    {
+                        return;
+                    }
+
                     if (SubscribedSecurityOption == null)
                     {
                         return;
@@ -2211,7 +2216,7 @@ namespace OsEngine.Market.Servers.Bybit
                         return;
                     }
 
-                    WebSocket webSocketPublicOption = _webSocketPublicOption[_webSocketPublicOption.Count - 1];
+                    WebSocket webSocketPublicOption = _webSocketPublicOption[^1];
 
                     if (webSocketPublicOption.ReadyState == WebSocketState.Open
                         && SubscribedSecurityOption.Count != 0
