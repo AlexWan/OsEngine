@@ -1667,6 +1667,8 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (Tab.CanTradeThisVolume(pos.OpenVolume) == false)
                     {
+                        line.Position = null;
+                        line.PositionNum = -1;
                         continue;
                     }
 
