@@ -4,7 +4,9 @@
 */
 
 using OsEngine.Entity;
+using OsEngine.Journal;
 using OsEngine.Language;
+using OsEngine.Layout;
 using OsEngine.Market.Servers;
 using OsEngine.OsData;
 using System;
@@ -29,9 +31,14 @@ namespace OsEngine.Market.AutoFollow
         {
             InitializeComponent();
 
+            OsEngine.Layout.StickyBorders.Listen(this);
+            GlobalGUILayout.Listen(this, "copyPortfolioUi " + portfolioToCopy.NameUnique);
+
             _portfolioToCopy = portfolioToCopy;
             _portfolioToCopy.MyJournal.StartPaint(HostActivePoses, HostHistoricalPoses);
             _copyTrader = copyTrader;
+
+            _portfolioToCopy.LogCopyTrader.StartPaint(HostLog);
             
             UniqueName = _portfolioToCopy.NameUnique;
 
@@ -56,19 +63,25 @@ namespace OsEngine.Market.AutoFollow
             TextBoxMinCurrencyQty.TextChanged += TextBoxMinCurrencyQty_TextChanged;
 
             ComboBoxVolumeType.Items.Add(CopyTraderVolumeType.DepoProportional.ToString());
-            ComboBoxVolumeType.Items.Add(CopyTraderVolumeType.QtyMultiplicator.ToString());
+            ComboBoxVolumeType.Items.Add(CopyTraderVolumeType.Simple.ToString());
             ComboBoxVolumeType.SelectedItem = _portfolioToCopy.VolumeType.ToString();
             ComboBoxVolumeType.SelectionChanged += ComboBoxVolumeType_SelectionChanged;
 
             TextBoxVolumeMult.Text = _portfolioToCopy.VolumeMult.ToString();
             TextBoxVolumeMult.TextChanged += TextBoxVolumeMult_TextChanged;
 
-            
             TextBoxMasterAsset.Text = _portfolioToCopy.MasterAsset.ToString();
             TextBoxMasterAsset.TextChanged += TextBoxMasterAsset_TextChanged;
 
             TextBoxSlaveAsset.Text = _portfolioToCopy.SlaveAsset.ToString();
             TextBoxSlaveAsset.TextChanged += TextBoxSlaveAsset_TextChanged;
+
+            CheckBoxFailOpenOrdersReactionIsOn.IsChecked = _portfolioToCopy.FailOpenOrdersReactionIsOn;
+            CheckBoxFailOpenOrdersReactionIsOn.Checked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
+            CheckBoxFailOpenOrdersReactionIsOn.Unchecked += CheckBoxFailOpenOrdersReactionIsOn_Checked;
+
+            TextBoxFailOpenOrdersCountToReaction.Text = _portfolioToCopy.FailOpenOrdersCountToReaction.ToString();
+            TextBoxFailOpenOrdersCountToReaction.TextChanged += TextBoxFailOpenOrdersCountToReaction_TextChanged;
 
             // localization
 
@@ -80,12 +93,21 @@ namespace OsEngine.Market.AutoFollow
             LabelVolumeMult.Content = OsLocalization.Market.Label213;
             LabelMasterAsset.Content = OsLocalization.Market.Label214;
             LabelSlaveAsset.Content = OsLocalization.Market.Label215;
+            LabelLog.Content = OsLocalization.Market.Label23;
+            LabelSecurities.Content = OsLocalization.Market.Label210;
+            ButtonShowJournal.Content = OsLocalization.Market.Label229;
+            ((TabItem)TabControlVolumeSettings.Items[0]).Header = OsLocalization.Market.Label230;
+            ((TabItem)TabControlVolumeSettings.Items[1]).Header = OsLocalization.Market.Label231;
 
-            LabelSecuritiesGrid.Content = OsLocalization.Market.Label210;
+            CheckBoxFailOpenOrdersReactionIsOn.Content = OsLocalization.Market.Label234;
+            LabelFailOpenOrdersCountToReaction.Content = OsLocalization.Market.Label232;
+            LabelFailOpenOrdersCountFact.Content = OsLocalization.Market.Label233;
+
             LabelJournalGrid.Content = OsLocalization.Market.Label211;
 
             TabActivePos.Header = OsLocalization.Trader.Label187;
             TabHistoricalPos.Header = OsLocalization.Trader.Label188;
+
 
             Title = OsLocalization.Market.Label201 + " # " + _copyTrader.Number
                 + " " + OsLocalization.Market.Label219 +": " + portfolioToCopy.ServerName
@@ -113,6 +135,9 @@ namespace OsEngine.Market.AutoFollow
             TextBoxVolumeMult.TextChanged -= TextBoxVolumeMult_TextChanged;
             TextBoxMasterAsset.TextChanged -= TextBoxMasterAsset_TextChanged;
             TextBoxSlaveAsset.TextChanged -= TextBoxSlaveAsset_TextChanged;
+            CheckBoxFailOpenOrdersReactionIsOn.Checked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
+            CheckBoxFailOpenOrdersReactionIsOn.Unchecked -= CheckBoxFailOpenOrdersReactionIsOn_Checked;
+            TextBoxFailOpenOrdersCountToReaction.TextChanged -= TextBoxFailOpenOrdersCountToReaction_TextChanged;
 
             _gridSecurities.CellValueChanged -= _gridSecurities_CellValueChanged;
             _gridSecurities.CellClick -= _gridSecurities_CellClick;
@@ -121,12 +146,11 @@ namespace OsEngine.Market.AutoFollow
             _gridSecurities.Rows.Clear();
             DataGridFactory.ClearLinks(_gridSecurities);
 
+            _portfolioToCopy.LogCopyTrader.StopPaint();
             _portfolioToCopy.MyJournal.StopPaint();
             _portfolioToCopy = null;
 
             _copyTrader = null;
-
-
         }
 
         private bool _formIsClosed = false;
@@ -153,6 +177,19 @@ namespace OsEngine.Market.AutoFollow
                 else
                 {
                     result += "1,";
+                }
+
+                if (GridPrime.RowDefinitions[1].Height.Value == 25)
+                {// log
+                    result += "0,";
+                }
+                else if (GridPrime.RowDefinitions[1].Height.Value == 83)
+                {// log
+                    result += "1,";
+                }
+                else
+                {
+                    result += "2,";
                 }
 
                 _portfolioToCopy.PanelsPosition = result;
@@ -187,10 +224,30 @@ namespace OsEngine.Market.AutoFollow
             {
                 GridFollowSettings.RowDefinitions[2].Height = new GridLength(25, GridUnitType.Pixel);
                 ButtonJournalGridDown.IsEnabled = false;
+                ButtonShowJournal.Visibility = Visibility.Collapsed;
             }
             else
             {
                 ButtonJournalGridUp.IsEnabled = false;
+            }
+
+            if(save.Length > 2)
+            {
+                if (save[2] == "0")
+                {
+                    GridPrime.RowDefinitions[1].Height = new GridLength(25, GridUnitType.Pixel);
+                    ButtonLogDown.IsEnabled = false;
+                }
+                else if(save[2] == "1")
+                {
+                    GridPrime.RowDefinitions[1].Height = new GridLength(83, GridUnitType.Star);
+
+                }
+                else
+                {
+                    GridPrime.RowDefinitions[1].Height = new GridLength(250, GridUnitType.Star);
+                    ButtonLogUp.IsEnabled = false;
+                }
             }
         }
 
@@ -239,6 +296,12 @@ namespace OsEngine.Market.AutoFollow
                 if(TextBoxSlaveAssetValue.Text != slaveValue)
                 {
                     TextBoxSlaveAssetValue.Text = slaveValue;
+                }
+
+                if(_portfolioToCopy.FailOpenOrdersCountFact.ToString() !=
+                    TextBoxFailOpenOrdersCountFact.Text)
+                {
+                    TextBoxFailOpenOrdersCountFact.Text = _portfolioToCopy.FailOpenOrdersCountFact.ToString();
                 }
             }
             catch (Exception ex)
@@ -301,6 +364,11 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
+                if(string.IsNullOrEmpty(TextBoxVolumeMult.Text))
+                {
+                    return;
+                }
+
                 decimal volumeMult = TextBoxVolumeMult.Text.ToString().ToDecimal();
 
                 _portfolioToCopy.VolumeMult = volumeMult;
@@ -335,7 +403,7 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
-                int ordersCount = Convert.ToInt32(ComboBoxOrderType.SelectedItem.ToString());
+                int ordersCount = Convert.ToInt32(ComboBoxIcebergCount.SelectedItem.ToString());
 
                 _portfolioToCopy.IcebergCount = ordersCount;
                 _portfolioToCopy.Save();
@@ -376,6 +444,37 @@ namespace OsEngine.Market.AutoFollow
             catch(Exception ex)
             {
                 _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void TextBoxFailOpenOrdersCountToReaction_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            try
+            {
+                if(string.IsNullOrEmpty(TextBoxFailOpenOrdersCountToReaction.Text))
+                {
+                    return;
+                }
+
+                _portfolioToCopy.FailOpenOrdersCountToReaction = Convert.ToInt32(TextBoxFailOpenOrdersCountToReaction.Text);
+                _portfolioToCopy.Save();
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void CheckBoxFailOpenOrdersReactionIsOn_Checked(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                _portfolioToCopy.FailOpenOrdersReactionIsOn = CheckBoxFailOpenOrdersReactionIsOn.IsChecked.Value;
+                _portfolioToCopy.Save();
+            }
+            catch
+            {
+                // ignore
             }
         }
 
@@ -905,6 +1004,70 @@ namespace OsEngine.Market.AutoFollow
 
         #region Journal
 
+        private JournalUi2 _journalUi;
+
+        private void ButtonShowJournal_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if (_journalUi != null)
+                {
+                    if (_journalUi.WindowState == WindowState.Minimized)
+                    {
+                        _journalUi.WindowState = WindowState.Normal;
+                    }
+
+                    _journalUi.Activate();
+                    return;
+                }
+
+                List<BotPanelJournal> panelsJournal = new List<BotPanelJournal>();
+
+                List<Journal.Journal> journals = new List<Journal.Journal>();
+                journals.Add(_portfolioToCopy.MyJournal);
+
+                BotPanelJournal botPanel = new BotPanelJournal();
+                botPanel.BotName = journals[0].Name;
+                botPanel.BotClass = "CopyJournal";
+
+                botPanel._Tabs = new List<BotTabJournal>();
+
+                for (int i2 = 0; journals != null && i2 < journals.Count; i2++)
+                {
+                    BotTabJournal botTabJournal = new BotTabJournal();
+                    botTabJournal.TabNum = i2;
+                    botTabJournal.Journal = journals[i2];
+                    botPanel._Tabs.Add(botTabJournal);
+                }
+
+                panelsJournal.Add(botPanel);
+
+                _journalUi = new JournalUi2(panelsJournal, StartProgram.IsOsTrader);
+                _journalUi.Closed += _journalUi_Closed;
+                _journalUi.LogMessageEvent += _portfolioToCopy.SendLogMessage;
+                _journalUi.Show();
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
+        private void _journalUi_Closed(object sender, EventArgs e)
+        {
+            try
+            {
+                _journalUi.Closed -= _journalUi_Closed;
+                _journalUi.LogMessageEvent -= _portfolioToCopy.SendLogMessage;
+                _journalUi.IsErase = true;
+                _journalUi = null;
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+        }
+
         private void ButtonJournalGridDown_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -912,6 +1075,7 @@ namespace OsEngine.Market.AutoFollow
                 ButtonJournalGridUp.IsEnabled = true;
                 GridFollowSettings.RowDefinitions[2].Height = new GridLength(25, GridUnitType.Pixel);
                 ButtonJournalGridDown.IsEnabled = false;
+                ButtonShowJournal.Visibility = Visibility.Collapsed;
             }
             catch (Exception ex)
             {
@@ -927,6 +1091,7 @@ namespace OsEngine.Market.AutoFollow
                 ButtonJournalGridDown.IsEnabled = true;
                 GridFollowSettings.RowDefinitions[2].Height = new GridLength(185, GridUnitType.Star);
                 ButtonJournalGridUp.IsEnabled = false;
+                ButtonShowJournal.Visibility = Visibility.Visible;
             }
             catch (Exception ex)
             {
@@ -937,7 +1102,56 @@ namespace OsEngine.Market.AutoFollow
 
         #endregion
 
+        #region Log
 
+        private void ButtonLogDown_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ButtonLogUp.IsEnabled = true;
+
+                if (GridPrime.RowDefinitions[1].Height.Value == 250)
+                {
+                    GridPrime.RowDefinitions[1].Height = new GridLength(83, GridUnitType.Star);
+                }
+                else // if (GridPrime.RowDefinitions[1].Height.Value == 500)
+                {
+                    GridPrime.RowDefinitions[1].Height = new GridLength(25, GridUnitType.Pixel);
+
+                    ButtonLogDown.IsEnabled = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+            SavePanelsPosition();
+        }
+
+        private void ButtonLogUp_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                ButtonLogDown.IsEnabled = true;
+
+                if (GridPrime.RowDefinitions[1].Height.Value == 83)
+                {
+                    GridPrime.RowDefinitions[1].Height = new GridLength(250, GridUnitType.Star);
+                    ButtonLogUp.IsEnabled = false;
+                }
+                else //if (GridPrime.RowDefinitions[1].Height.Value != 800)
+                {
+                    GridPrime.RowDefinitions[1].Height = new GridLength(83, GridUnitType.Star);
+                }
+            }
+            catch (Exception ex)
+            {
+                _portfolioToCopy.SendLogMessage(ex.ToString(), Logging.LogMessageType.Error);
+            }
+            SavePanelsPosition();
+        }
+
+        #endregion
 
     }
 }

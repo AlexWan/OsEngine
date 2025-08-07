@@ -942,11 +942,36 @@ namespace OsEngine.Language
          "Ru:Для добавления нового копи-портфеля нужно подключить хотя бы один торговый коннектор_");
 
         public string Label227 => OsLocalization.ConvertToLocString(
-         "Eng:Min currency qty_" +
-         "Ru:Мин объём в деньгах_");
+         "Eng:Min qty in currency_" +
+         "Ru:Мин объём в валюте_");
 
+        public string Label228 => OsLocalization.ConvertToLocString(
+          "Eng:Additional settings_" +
+          "Ru:Дополнительные настройки_");
 
+        public string Label229 => OsLocalization.ConvertToLocString(
+         "Eng:Show journal_" +
+         "Ru:Открыть журнал_");
 
+        public string Label230 => OsLocalization.ConvertToLocString(
+         "Eng:Volume settings_" +
+         "Ru:Объёмы дублирования_");
+
+        public string Label231 => OsLocalization.ConvertToLocString(
+         "Eng:Errors reaction_" +
+         "Ru:Реакция на ошибки_");
+
+        public string Label232 => OsLocalization.ConvertToLocString(
+         "Eng:Max fail orders_" +
+         "Ru:Макс. ошибок ордеров_");
+
+        public string Label233 => OsLocalization.ConvertToLocString(
+         "Eng:Fail orders now_" +
+         "Ru:Ошибок ордеров сейчас_");
+
+        public string Label234 => OsLocalization.ConvertToLocString(
+         "Eng:Stop module after N orders errors_" +
+         "Ru:Остановить копировщик после N ошибок_");
 
 
 

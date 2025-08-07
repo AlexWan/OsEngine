@@ -1367,6 +1367,8 @@ namespace OsEngine.Journal.Internal
 
         private DataGridView _gridCloseDeal;
 
+        public bool CanShowToolStripMenu = true;
+
         public void StartPaint(WindowsFormsHost dataGridOpenDeal, WindowsFormsHost dataGridCloseDeal)
         {
             _hostCloseDeal = dataGridCloseDeal;
@@ -1830,6 +1832,11 @@ namespace OsEngine.Journal.Internal
                 return;
             }
 
+            if(CanShowToolStripMenu == false)
+            {
+                return;
+            }
+
             try
             {
                 ToolStripMenuItem[] items = new ToolStripMenuItem[6];
@@ -1869,6 +1876,11 @@ namespace OsEngine.Journal.Internal
             {
                 MouseEventArgs mouse = (MouseEventArgs)e;
                 if (mouse.Button != MouseButtons.Right)
+                {
+                    return;
+                }
+
+                if (CanShowToolStripMenu == false)
                 {
                     return;
                 }

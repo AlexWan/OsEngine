@@ -41,10 +41,9 @@ namespace OsEngine.Market.AutoFollow
                 }
             }
 
-            LoadPortfolios(save[5]);
+            SendLogMessage("CopyTrader Activate. Name: " + Number + " " + Name, LogMessageType.System);
 
-            LogCopyTrader = new Log("CopyTrader" + Number, Entity.StartProgram.IsOsTrader);
-            LogCopyTrader.Listen(this);
+            LoadPortfolios(save[5]);
 
             Task.Run(WorkThreadArea);
         }
@@ -52,8 +51,6 @@ namespace OsEngine.Market.AutoFollow
         public CopyTrader(int number)
         {
             Number = number;
-            LogCopyTrader = new Log("CopyTrader" + Number, Entity.StartProgram.IsOsTrader);
-            LogCopyTrader.Listen(this);
 
             Task.Run(WorkThreadArea);
         }
@@ -259,8 +256,6 @@ namespace OsEngine.Market.AutoFollow
 
         #region Log
 
-        public Log LogCopyTrader;
-
         public event Action<string, LogMessageType> LogMessageEvent;
 
         public void SendLogMessage(string message, LogMessageType messageType)
@@ -278,14 +273,16 @@ namespace OsEngine.Market.AutoFollow
         {
             NameUnique = name;
 
+            LogCopyTrader = new Log("CopyPortfolio" + name, Entity.StartProgram.IsOsTrader);
+            LogCopyTrader.Listen(this);
+
             Load();
 
             MyJournal = new Journal.Journal(name, StartProgram.IsOsTrader);
-
-            // _journal.PositionStateChangeEvent += _journal_PositionStateChangeEvent;
-            // _journal.PositionNetVolumeChangeEvent += _journal_PositionNetVolumeChangeEvent;
-            // _journal.UserSelectActionEvent += _journal_UserSelectActionEvent;
             MyJournal.LogMessageEvent += SendLogMessage;
+            MyJournal.CanShowToolStripMenu = false;
+
+            SendLogMessage("Copy Portfolio Activate.", LogMessageType.System);
         }
 
         public string NameUnique;
@@ -308,6 +305,8 @@ namespace OsEngine.Market.AutoFollow
                     writer.WriteLine(GetSecuritiesSaveString());
                     writer.WriteLine(PanelsPosition);
                     writer.WriteLine(MinCurrencyQty);
+                    writer.WriteLine(FailOpenOrdersReactionIsOn);
+                    writer.WriteLine(FailOpenOrdersCountToReaction);
                     writer.Close();
                 }
             }
@@ -342,6 +341,9 @@ namespace OsEngine.Market.AutoFollow
                     LoadSecuritiesFromString(reader.ReadLine());
                     PanelsPosition = reader.ReadLine();
                     MinCurrencyQty = reader.ReadLine().ToDecimal();
+
+                    FailOpenOrdersReactionIsOn = Convert.ToBoolean(reader.ReadLine());
+                    FailOpenOrdersCountToReaction = Convert.ToInt32(reader.ReadLine());
 
                     reader.Close();
                 }
@@ -423,9 +425,15 @@ namespace OsEngine.Market.AutoFollow
 
         public int IcebergCount = 2;
 
-        public string PanelsPosition = "1,1";
+        public string PanelsPosition = "1,1,1";
 
         public decimal MinCurrencyQty = 25;
+
+        public bool FailOpenOrdersReactionIsOn = true;
+
+        public int FailOpenOrdersCountToReaction = 10;
+
+        public int FailOpenOrdersCountFact;
 
         #endregion
 
@@ -595,6 +603,8 @@ namespace OsEngine.Market.AutoFollow
 
                     MyCopyServer.NewMyTradeEvent += MyCopyServer_NewMyTradeEvent;
                     MyCopyServer.NewOrderIncomeEvent += MyCopyServer_NewOrderIncomeEvent;
+                    
+                    SendLogMessage("Server connected.", LogMessageType.System);
 
                     break;
                 }
@@ -616,6 +626,25 @@ namespace OsEngine.Market.AutoFollow
                 {
                     return;
                 }
+
+                if(order.State == OrderStateType.Fail)
+                {
+                    SendLogMessage("Order fail state!!! \n" 
+                        + "Number: " + order.NumberUser + "\n"
+                        + "Sec name: " + order.SecurityNameCode, LogMessageType.Error);
+
+                    FailOpenOrdersCountFact++;
+
+                    if (IsOn == true 
+                        && FailOpenOrdersReactionIsOn == true
+                        && FailOpenOrdersCountFact >= FailOpenOrdersCountToReaction)
+                    {
+                        SendLogMessage("STOP WORK MODULE!!! To much orders error \n", LogMessageType.Error);
+                        IsOn = false;
+                        Save();
+                    }
+                }
+
                 MyJournal.SetNewOrder(order);
             }
             catch (Exception ex)
@@ -651,6 +680,10 @@ namespace OsEngine.Market.AutoFollow
         {
             if(IsOn == false)
             {
+                if (FailOpenOrdersCountFact != 0)
+                {
+                    FailOpenOrdersCountFact = 0;
+                }
                 return;
             }
 
@@ -715,10 +748,6 @@ namespace OsEngine.Market.AutoFollow
 
             ProcessCopyRobots();
         }
-
-        #endregion
-
-        #region Robots copy logic
 
         private DateTime _timeNoTrade;
 
@@ -922,7 +951,6 @@ namespace OsEngine.Market.AutoFollow
                 if(pos.EntryPrice != 0)
                 {
                     price = pos.EntryPrice;
-                    break;
                 }
             }
 
@@ -935,7 +963,6 @@ namespace OsEngine.Market.AutoFollow
                     if (pos.EntryPrice != 0)
                     {
                         price = pos.EntryPrice;
-                        break;
                     }
                 }
             }
@@ -944,7 +971,7 @@ namespace OsEngine.Market.AutoFollow
             {
                 decimal currencyOnQty = qty * price;
 
-                if(currencyOnQty < MinCurrencyQty)
+                if(currencyOnQty < MinCurrencyQty * 1.15m)
                 {
                     return false;
                 }
@@ -1083,10 +1110,22 @@ namespace OsEngine.Market.AutoFollow
 
         #region Trade operations
 
-        public Position BuyAtMarket(decimal volume , Security security)
+        private Position BuyAtMarket(decimal volume , Security security)
         {
             try
             {
+                if (volume <= 0)
+                {
+                    SendLogMessage("Buy at market Error. \n"
+                    + "Volume: " + volume + "\n"
+                    + "Security: " + security.Name, LogMessageType.Error);
+                    return null;
+                }
+
+                SendLogMessage("Buy at market. \n" 
+                    + "Volume: " + volume + "\n"
+                    + "Security: " + security.Name , LogMessageType.Trade);
+
                 Side direction = Side.Buy;
                 OrderPriceType priceType = OrderPriceType.Market;
 
@@ -1124,6 +1163,18 @@ namespace OsEngine.Market.AutoFollow
         {
             try
             {
+                if (volume <= 0)
+                {
+                    SendLogMessage("Buy at market Error. \n"
+                    + "Volume: " + volume + "\n"
+                    + "Security: " + security.Name, LogMessageType.Error);
+                    return null;
+                }
+
+                SendLogMessage("Buy at market. \n"
+                + "Volume: " + volume + "\n"
+                + "Security: " + security.Name, LogMessageType.Trade);
+
                 Side direction = Side.Sell;
                 OrderPriceType priceType = OrderPriceType.Market;
 
@@ -1170,6 +1221,8 @@ namespace OsEngine.Market.AutoFollow
 
                 if (security == null)
                 {
+                    SendLogMessage("Close positions number: " + position.Number
+                    + "No security error. Sec in position: " + position.SecurityName, LogMessageType.Error);
                     return;
                 }
 
@@ -1178,6 +1231,17 @@ namespace OsEngine.Market.AutoFollow
                 {
                     return;
                 }
+
+                if (volume <= 0)
+                {
+                    SendLogMessage("Close positions number: " + position.Number
+                    + "No volume error. Volume: " + volume, LogMessageType.Error);
+                    return;
+                }
+
+                SendLogMessage("Close positions number: " + position.Number + "\n"
+                + "Volume: " + volume + "\n"
+                + "Security: " + security.Name, LogMessageType.Trade);
 
                 position.State = PositionStateType.Closing;
 
@@ -1261,7 +1325,7 @@ namespace OsEngine.Market.AutoFollow
 
         public void SendLogMessage(string message, LogMessageType messageType)
         {
-            message = "Copy portfolio.  server:" + ServerName + " portfolio: " + PortfolioName + " message: \n" + message;
+            message = "Copy portfolio. Name: " + NameUnique + "\n" + message;
             LogMessageEvent?.Invoke(message, messageType);
         }
 
@@ -1270,7 +1334,7 @@ namespace OsEngine.Market.AutoFollow
     
     public enum CopyTraderVolumeType
     {
-        QtyMultiplicator,
+        Simple,
         DepoProportional
     }
 
@@ -1327,7 +1391,7 @@ namespace OsEngine.Market.AutoFollow
 
             decimal volume = 0;
 
-            if(copyType == CopyTraderVolumeType.QtyMultiplicator)
+            if(copyType == CopyTraderVolumeType.Simple)
             {
                 volume = pos.OpenVolume * mult;
             }

@@ -66,8 +66,6 @@ namespace OsEngine.Market.AutoFollow
             LabelRobotsGrid.Content = OsLocalization.Market.Label208;
             LabelSlaveGrid.Content = OsLocalization.Market.Label209;
 
-            CopyTraderInstance.LogCopyTrader.StartPaint(HostLog);
-
             LoadPanelsPositions();
 
             Thread painterThread = new Thread(PainterThreadArea);
@@ -78,7 +76,6 @@ namespace OsEngine.Market.AutoFollow
         {
             _windowIsClosed = true;
 
-            CopyTraderInstance.LogCopyTrader.StopPaint();
             CopyTraderInstance.DeleteEvent -= CopyTraderClass_DeleteEvent;
             CopyTraderInstance = null;
 
@@ -1071,53 +1068,6 @@ namespace OsEngine.Market.AutoFollow
         #endregion
 
         #region Log
-
-        private void ButtonLogDown_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ButtonLogUp.IsEnabled = true;
-
-                if (GridPrime.RowDefinitions[1].Height.Value == 250)
-                {
-                    GridPrime.RowDefinitions[1].Height = new GridLength(83, GridUnitType.Star);
-                }
-                else // if (GridPrime.RowDefinitions[1].Height.Value == 500)
-                {
-                    GridPrime.RowDefinitions[1].Height = new GridLength(25, GridUnitType.Pixel);
-
-                    ButtonLogDown.IsEnabled = false;
-                }
-            }
-            catch (Exception ex)
-            {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-            SavePanelsPosition();
-        }
-
-        private void ButtonLogUp_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                ButtonLogDown.IsEnabled = true;
-
-                if (GridPrime.RowDefinitions[1].Height.Value == 83)
-                {
-                    GridPrime.RowDefinitions[1].Height = new GridLength(250, GridUnitType.Star);
-                    ButtonLogUp.IsEnabled = false;
-                }
-                else //if (GridPrime.RowDefinitions[1].Height.Value != 800)
-                {
-                    GridPrime.RowDefinitions[1].Height = new GridLength(83, GridUnitType.Star);
-                }
-            }
-            catch (Exception ex)
-            {
-                CopyTraderInstance.SendLogMessage(ex.ToString(), LogMessageType.Error);
-            }
-            SavePanelsPosition();
-        }
 
         public event Action<string, LogMessageType> LogMessageEvent;
 

@@ -1281,6 +1281,11 @@ namespace OsEngine.OsTrader.Panels.Tab
                     break;
                 }
             }
+
+            if(NeedToReloadTabs == true)
+            {
+                SaveSettings();
+            }
         }
 
         public BotManualControl ManualPositionSupportFromOptimizer;

@@ -7,42 +7,62 @@
         mc:Ignorable="d"
                Title="Copy trader portfolo" Height="900" Width="700" MinWidth="700" MinHeight="400" WindowStartupLocation="CenterScreen" Style="{StaticResource WindowStyleCanResize}" Icon="/Images/OsLogo.ico">
     <Grid Name="GridPrime">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="129*"/>
+            <RowDefinition Height="25"/>
+        </Grid.RowDefinitions>
         <Grid Name="GridFollowSettings">
             <Grid.RowDefinitions>
-                <RowDefinition Height="115"/>
-                <RowDefinition Height="185*"/>
-                <RowDefinition Height="185*"/>
+                <RowDefinition Height="176"/>
+                <RowDefinition Height="318*"/>
+                <RowDefinition Height="379*"/>
             </Grid.RowDefinitions>
 
-            <Label Name="LabelIsOn" Content="Is On" HorizontalAlignment="Left" Margin="41,10,0,0" VerticalAlignment="Top" Height="23" Width="137"/>
-            <ComboBox Name="ComboBoxIsOn" HorizontalAlignment="Left" Margin="183,10,0,0" VerticalAlignment="Top" Width="120" Height="23"/>
+            <Grid Name="GridUpSettings">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="100*"/>
+                    <ColumnDefinition Width="100*"/>
+                </Grid.ColumnDefinitions>
 
-            <Label Name="LabelOrderType" Content="Order type" HorizontalAlignment="Left" Margin="41,35,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
-            <ComboBox Name="ComboBoxOrderType" HorizontalAlignment="Left" Margin="183,34,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
+                <Label Name="LabelIsOn" Content="Is On" HorizontalAlignment="Center" Margin="-120,45,0,0" VerticalAlignment="Top" Height="23" Width="137"/>
+                <ComboBox Name="ComboBoxIsOn" HorizontalAlignment="Center" Margin="145,45,0,0" VerticalAlignment="Top" Width="120" Height="23"/>
+                <Label Name="LabelOrderType" Content="Order type" HorizontalAlignment="Center" Margin="-120,68,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
+                <ComboBox Name="ComboBoxOrderType" HorizontalAlignment="Center" Margin="145,68,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
+                <Label Name="LabelIcebergCount" Content="Iceberg count" HorizontalAlignment="Center" Margin="-120,90,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
+                <ComboBox Name="ComboBoxIcebergCount" HorizontalAlignment="Center" Margin="145,90,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
+                <TabControl Name="TabControlVolumeSettings" Grid.Column="1">
+                    <TabItem Header="Volume settings">
+                        <Grid >
+                            <Label Name="LabelVolumeType" Content="Volume type" HorizontalAlignment="Center" Margin="-150,9,0,0" VerticalAlignment="Top" Height="23" Width="133"/>
+                            <ComboBox Name="ComboBoxVolumeType" HorizontalAlignment="Center" Margin="140,10,0,0" VerticalAlignment="Top" Width="155" Height="22"/>
+                            <Label Name="LabelVolumeMult" Content="Volume mult" HorizontalAlignment="Center" Margin="-150,34,0,0" VerticalAlignment="Top" Height="24" Width="133"/>
+                            <TextBox Name="TextBoxVolumeMult" HorizontalAlignment="Center" Margin="140,33,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="155" Height="24"/>
+                            <Label Name="LabelMasterAsset" Content="Master asset" HorizontalAlignment="Center" Margin="-150,57,0,0" VerticalAlignment="Top" Height="24" Width="133"/>
+                            <TextBox Name="TextBoxMasterAsset" HorizontalAlignment="Center" Margin="60,57,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
+                            <TextBox Name="TextBoxMasterAssetValue" HorizontalAlignment="Center" Margin="220,57,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
+                            <Label Name="LabelSlaveAsset" Content="Slave asset" HorizontalAlignment="Center" Margin="-150,81,0,0" VerticalAlignment="Top" Height="24" Width="133"/>
+                            <TextBox Name="TextBoxSlaveAsset" HorizontalAlignment="Center" Margin="60,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
+                            <TextBox Name="TextBoxSlaveAssetValue" HorizontalAlignment="Center" Margin="220,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
+                            <Label Name="LabelMinCurrencyQTY" Content="Min currency qty" HorizontalAlignment="Center" Margin="-150,106,0,0" VerticalAlignment="Top" Width="133"/>
+                            <TextBox Name="TextBoxMinCurrencyQty" HorizontalAlignment="Center" Margin="140,106,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="155"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Order errors">
+                        <Grid >
+                            <CheckBox Name="CheckBoxFailOpenOrdersReactionIsOn" Content="Stop module after N orders errors" HorizontalAlignment="Center" Margin="0,9,0,0" VerticalAlignment="Top" Width="261"/>
+                            <Label Name="LabelFailOpenOrdersCountToReaction" Content="Max fail orders" HorizontalAlignment="Center" Margin="-120,42,0,0" Width="160" VerticalAlignment="Top"/>
+                            <TextBox Name="TextBoxFailOpenOrdersCountToReaction" HorizontalAlignment="Center" Margin="190,42,11,0" TextWrapping="Wrap"  Width="129" VerticalAlignment="Top"/>
+                            <Label Name="LabelFailOpenOrdersCountFact" Content="Current fail orders" HorizontalAlignment="Center" Margin="-120,70,0,0" Width="160" VerticalAlignment="Top"/>
+                            <TextBox Name="TextBoxFailOpenOrdersCountFact" HorizontalAlignment="Center" Margin="190,70,11,0" TextWrapping="Wrap"  Width="129" VerticalAlignment="Top"/>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
 
-            <Label Name="LabelIcebergCount" Content="Iceberg count" HorizontalAlignment="Left" Margin="41,57,0,0" VerticalAlignment="Top" Height="22" Width="137"/>
-            <ComboBox Name="ComboBoxIcebergCount" HorizontalAlignment="Left" Margin="183,57,0,0" VerticalAlignment="Top" Width="120" Height="22"/>
-
-            <Label Name="LabelMinCurrencyQTY" Content="Min currency qty" HorizontalAlignment="Left" Margin="41,81,0,0" VerticalAlignment="Top"/>
-            <TextBox Name="TextBoxMinCurrencyQty" HorizontalAlignment="Left" Margin="183,81,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-
-            <Label Name="LabelVolumeType" Content="Volume type" HorizontalAlignment="Right" Margin="0,9,195,0" VerticalAlignment="Top" Height="23" Width="133"/>
-            <ComboBox Name="ComboBoxVolumeType" HorizontalAlignment="Right" Margin="0,10,35,0" VerticalAlignment="Top" Width="155" Height="22"/>
-
-            <Label Name="LabelVolumeMult" Content="Volume mult" HorizontalAlignment="Right" Margin="0,33,195,0" VerticalAlignment="Top" Height="23" Width="133"/>
-            <TextBox Name="TextBoxVolumeMult" HorizontalAlignment="Right" Margin="0,33,35,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="155" Height="24"/>
-
-            <Label Name="LabelMasterAsset" Content="Master asset" HorizontalAlignment="Right" Margin="0,57,195,0" VerticalAlignment="Top" Height="24" Width="133"/>
-            <TextBox Name="TextBoxMasterAsset" HorizontalAlignment="Right" Margin="0,57,115,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
-            <TextBox Name="TextBoxMasterAssetValue" HorizontalAlignment="Right" Margin="0,57,35,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
-
-            <Label Name="LabelSlaveAsset" Content="Slave asset" HorizontalAlignment="Right" Margin="0,81,195,0" VerticalAlignment="Top" Height="24" Width="133"/>
-            <TextBox Name="TextBoxSlaveAsset" HorizontalAlignment="Right" Margin="0,81,115,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
-            <TextBox Name="TextBoxSlaveAssetValue" HorizontalAlignment="Right" Margin="0,81,35,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="75" Height="24"/>
+            </Grid>
 
             <Rectangle Margin="2,2,2,2" Grid.Row="1" Stroke="Black"/>
-            <Label Name="LabelSecuritiesGrid" Content="Securities" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="1"/>
-            <WindowsFormsHost Name="HostSecurities" Margin="5,23,5,5" Grid.Row="1"/>
+            <Label Name="LabelSecurities" Content="Securities" HorizontalAlignment="Left" Margin="10,4,0,0" VerticalAlignment="Top" Grid.Row="1" Height="23" Width="116"/>
+            <WindowsFormsHost Name="HostSecurities" Margin="0,28,0,0" Grid.Row="1"/>
             <Button Name="ButtonSecuritiesGridDown" Content="^" HorizontalAlignment="Right" Margin="0,5,40,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="1" RenderTransformOrigin="0.5,0.5" Click="ButtonSecuritiesGridDown_Click"  />
             <Button Name="ButtonSecuritiesGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="1" RenderTransformOrigin="0.5,0.5" Click="ButtonSecuritiesGridUp_Click" >
                 <Button.RenderTransform>
@@ -55,8 +75,9 @@
                 </Button.RenderTransform>
             </Button>
 
+
             <Rectangle Margin="2,2,2,2" Grid.Row="2" Stroke="Black"/>
-            <Label Name="LabelJournalGrid" Content="Journal" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="2"/>
+            <Label Name="LabelJournalGrid" Content="Journal" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Top" Grid.Row="2" Height="23" Width="116"/>
             <Button Name="ButtonJournalGridUp" Content="^" HorizontalAlignment="Right" Margin="0,5,10,0" VerticalAlignment="Top" Height="18" Width="25" Grid.Row="2"  RenderTransformOrigin="0.5,0.5" Click="ButtonJournalGridUp_Click" >
                 <Button.RenderTransform>
                     <TransformGroup>
@@ -80,7 +101,20 @@
                     </Grid>
                 </TabItem>
             </TabControl>
-
+            <Button Name="ButtonShowJournal" Content="Show journal" HorizontalAlignment="Left" Margin="253,26,0,0" VerticalAlignment="Top" Height="22" Width="105" Grid.Row="2" Click="ButtonShowJournal_Click"/>
         </Grid>
+        <Label Name="LabelLog" Content="Log" HorizontalAlignment="Left" Grid.Row="1" VerticalAlignment="Top"/>
+        <WindowsFormsHost Name="HostLog" Margin="0,23,0,0" Grid.Row="1"/>
+        <Button Name="ButtonLogUp" Content="^" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,3,10,0"  Height="18" Width="25" Grid.Row="1" Click="ButtonLogUp_Click" />
+        <Button Name="ButtonLogDown" Content="^" HorizontalAlignment="Right" VerticalAlignment="Top" Width="25" Margin="633,3,40,0" Height="18" Grid.Row="1" RenderTransformOrigin="0.5,0.5" Click="ButtonLogDown_Click"  >
+            <Button.RenderTransform>
+                <TransformGroup>
+                    <ScaleTransform/>
+                    <SkewTransform/>
+                    <RotateTransform Angle="-180"/>
+                    <TranslateTransform/>
+                </TransformGroup>
+            </Button.RenderTransform>
+        </Button>
     </Grid>
 </Window>

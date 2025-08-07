@@ -467,7 +467,7 @@ namespace OsEngine.Logging
         List<IServer> _serversToListen = new List<IServer>();
         List<PolygonToTrade> _polygonsToTrade = new List<PolygonToTrade>();
         List<CopyMaster> _copyMasters = new List<CopyMaster>();
-        List<CopyTrader> _copyTraders = new List<CopyTrader>();
+        List<PortfolioToCopy> _copyTraders = new List<PortfolioToCopy>();
 
         /// <summary>
         /// start listening to the server
@@ -486,7 +486,7 @@ namespace OsEngine.Logging
             _copyMasters.Add(copyMaster);
         }
 
-        public void Listen(CopyTrader copyTrader)
+        public void Listen(PortfolioToCopy copyTrader)
         {
             copyTrader.LogMessageEvent += ProcessMessage;
             _copyTraders.Add(copyTrader);

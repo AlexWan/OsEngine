@@ -670,6 +670,19 @@ namespace OsEngine.Journal
             }
         }
 
+        public bool CanShowToolStripMenu
+        {
+            get
+            {
+                return _positionController.CanShowToolStripMenu;
+            }
+            set
+            {
+                _positionController.CanShowToolStripMenu = value;
+            }
+        }
+
+
         #endregion
 
         #region Log 
