@@ -1667,6 +1667,11 @@ namespace OsEngine.OsTrader.Grids
                 {
                     if (Tab.CanTradeThisVolume(pos.OpenVolume) == false)
                     {
+                        string message = "Micro volume detected. Position deleted \n";
+                        message += "Position volume: " + pos.OpenVolume + "\n";
+                        message += "Security name: " + pos.SecurityName;
+                        SendNewLogMessage(message, LogMessageType.Error);
+
                         line.Position = null;
                         line.PositionNum = -1;
                         continue;
