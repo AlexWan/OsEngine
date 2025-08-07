@@ -5323,6 +5323,14 @@ namespace OsEngine.OsTrader.Panels.Tab
                 return false;
             }
 
+            if(sec.VolumeStep != 0)
+            {
+                if(volume <  sec.VolumeStep)
+                {
+                    return false;
+                }
+            }
+
             if(sec.MinTradeAmount != 0)
             {
                 if (sec.MinTradeAmountType == MinTradeAmountType.Contract)
