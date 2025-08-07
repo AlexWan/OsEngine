@@ -3,6 +3,7 @@
  * Ваши права на использование кода регулируются данной лицензией http://o-s-a.net/doc/license_simple_engine.pdf
 */
 
+using OsEngine.Charts.CandleChart.Indicators;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Logging;
@@ -1362,7 +1363,14 @@ namespace OsEngine.OsTrader.Grids
                     continue;
                 }
 
-                Tab.CloseAtLimit(pos, line.PriceExit, pos.OpenVolume);
+                decimal volume = pos.OpenVolume;
+
+                if (Tab.CanTradeThisVolume(volume) == false)
+                {
+                    continue;
+                }
+
+                Tab.CloseAtLimit(pos, line.PriceExit, volume);
             }
         }
 
@@ -1657,6 +1665,11 @@ namespace OsEngine.OsTrader.Grids
                 if (pos.State != PositionStateType.Done
                     || pos.OpenVolume >= 0)
                 {
+                    if (Tab.CanTradeThisVolume(pos.OpenVolume) == false)
+                    {
+                        continue;
+                    }
+
                     Tab.CloseAtMarket(pos, pos.OpenVolume);
                     havePositions = true;
                 }

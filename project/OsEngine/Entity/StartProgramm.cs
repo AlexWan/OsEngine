@@ -34,10 +34,5 @@ namespace OsEngine.Entity
         /// ticks to candles converter
         /// </summary>
         IsOsConverter,
-
-        /// <summary>
-        /// pattern miner
-        /// </summary>
-        IsOsMiner
     }
 }

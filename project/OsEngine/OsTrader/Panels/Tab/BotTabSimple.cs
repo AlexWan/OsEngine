@@ -5299,6 +5299,81 @@ namespace OsEngine.OsTrader.Panels.Tab
             return 0;
         }
 
+        /// <summary>
+        /// Is it possible to make a trade with such a volume?
+        /// </summary>
+        /// <param name="volume">QTY for trade</param>
+        /// <returns></returns>
+        public bool CanTradeThisVolume(decimal volume)
+        {
+            if(this.StartProgram != StartProgram.IsOsTrader)
+            {
+                return true;
+            }
+
+            if(volume <= 0)
+            {
+                return false;
+            }
+
+            Security sec = this.Security;
+
+            if (sec == null)
+            {
+                return false;
+            }
+
+            if(sec.MinTradeAmount != 0)
+            {
+                if (sec.MinTradeAmountType == MinTradeAmountType.Contract)
+                { // внутри бумаги минимальный объём одного ордера указан в контрактах
+
+                    if (sec.MinTradeAmount > volume)
+                    {
+                        return false;
+                    }
+                }
+                else if(sec.MinTradeAmountType == MinTradeAmountType.C_Currency)
+                { // внутри бумаги минимальный объём для одного ордера указан в валюте контракта
+
+                    // 1 пытаемся взять текущую цену из стакана
+                    decimal lastPrice = this.PriceBestAsk;
+
+                    if(lastPrice == 0)
+                    {
+                        lastPrice = this.PriceBestBid;
+                    }
+
+                    // 2 пытаемся взять текущую цену из свечей
+                    
+                    if(lastPrice == 0)
+                    {
+                        List<Candle> candles = this.CandlesAll;
+
+                        if(candles != null 
+                            && candles.Count > 0)
+                        {
+                            lastPrice = candles[^1].Close;
+                        }
+                    }
+
+                    if(lastPrice != 0)
+                    {
+                        decimal qtyInContractCurrency = volume * lastPrice;
+                        
+                        if(qtyInContractCurrency < sec.MinTradeAmount)
+                        {
+                            return false;
+                        }
+
+                    }
+                }
+
+            }
+
+            return true;
+        }
+
         // handling alerts and stop maintenance
 
         private object _lockerManualReload = new object();

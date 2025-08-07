@@ -13,13 +13,11 @@ using System.Media;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using OsEngine.Charts.CandleChart;
 using OsEngine.Entity;
 using OsEngine.Language;
 using OsEngine.Market;
 using OsEngine.Market.AutoFollow;
 using OsEngine.Market.Servers;
-using OsEngine.Market.Servers.Miner;
 using OsEngine.Market.Servers.Optimizer;
 using OsEngine.OsConverter;
 using OsEngine.OsData;
@@ -334,11 +332,6 @@ namespace OsEngine.Logging
                 _optimizers[i].LogMessageEvent -= ProcessMessage;
             }
 
-            for (int i = 0; i < _miners.Count; i++)
-            {
-                _miners[i].LogMessageEvent -= ProcessMessage;
-            }
-
             for (int i = 0; i < _copyMasters.Count; i++)
             {
                 _copyMasters[i].LogMessageEvent -= ProcessMessage;
@@ -363,7 +356,6 @@ namespace OsEngine.Logging
             _optimizerDataStorages.Clear();
             _osDataMasters.Clear();
             _optimizers.Clear();
-            _miners.Clear();
             _serversToListen.Clear();
 
             _candleConverters = null;
@@ -373,7 +365,6 @@ namespace OsEngine.Logging
             _optimizerDataStorages = null;
             _osDataMasters = null;
             _optimizers = null;
-            _miners = null;
             _serversToListen = null;
         }
 
@@ -463,7 +454,6 @@ namespace OsEngine.Logging
         List<OptimizerDataStorage> _optimizerDataStorages = new List<OptimizerDataStorage>();
         List<OsDataMasterPainter> _osDataMasters = new List<OsDataMasterPainter>();
         List<OptimizerMaster> _optimizers = new List<OptimizerMaster>();
-        List<OsMinerServer> _miners = new List<OsMinerServer>();
         List<IServer> _serversToListen = new List<IServer>();
         List<PolygonToTrade> _polygonsToTrade = new List<PolygonToTrade>();
         List<CopyMaster> _copyMasters = new List<CopyMaster>();
@@ -490,16 +480,6 @@ namespace OsEngine.Logging
         {
             copyTrader.LogMessageEvent += ProcessMessage;
             _copyTraders.Add(copyTrader);
-        }
-
-        /// <summary>
-        /// start listening to the Server Miner
-        /// начать прослушку сервера майнера
-        /// </summary>
-        public void Listen(OsMinerServer miner)
-        {
-            miner.LogMessageEvent += ProcessMessage;
-            _miners.Add(miner);
         }
 
         /// <summary>

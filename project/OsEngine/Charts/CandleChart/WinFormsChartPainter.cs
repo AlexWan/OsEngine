@@ -1466,8 +1466,7 @@ ContextMenuStrip menu)
         /// <param name="history">candles/свечи</param>
         public void ProcessCandles(List<Candle> history)
         {
-            if ((_startProgram == StartProgram.IsTester ||
-                 _startProgram == StartProgram.IsOsMiner) &&
+            if ((_startProgram == StartProgram.IsTester) &&
                 _host != null)
             {
                 PaintCandles(history);
@@ -3711,8 +3710,7 @@ ContextMenuStrip menu)
                 return;
             }
 
-            if ((_startProgram == StartProgram.IsTester
-                || _startProgram == StartProgram.IsOsMiner)
+            if ((_startProgram == StartProgram.IsTester)
                 || needToWait == false)
             {
                 PaintAlert(alert);
@@ -4081,7 +4079,7 @@ ContextMenuStrip menu)
         public void ProcessIndicator(IIndicator indicator)
         {
             if ((_startProgram == StartProgram.IsTester
-                || _startProgram == StartProgram.IsOsMiner ||
+                 ||
                 IsPatternChart)
             &&
                 _host != null)
@@ -7800,9 +7798,8 @@ ContextMenuStrip menu)
 
         public void MoveChartToTheRight(int scaleSize)
         {
-            if ((_startProgram == StartProgram.IsTester ||
-      _startProgram == StartProgram.IsOsMiner) &&
-     _host != null)
+            if ((_startProgram == StartProgram.IsTester) &&
+                _host != null)
             {
                 MoveChartToTheRightLogic(scaleSize);
             }

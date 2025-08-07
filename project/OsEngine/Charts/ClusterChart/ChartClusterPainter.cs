@@ -569,8 +569,7 @@ namespace OsEngine.Charts.ClusterChart
         /// <param name="history">свечи</param>
         public void ProcessCluster(List<HorizontalVolumeLine> history)
         {
-            if ((_startProgram == StartProgram.IsTester ||
-                 _startProgram == StartProgram.IsOsMiner) &&
+            if ((_startProgram == StartProgram.IsTester) &&
                 _host != null)
             {
                 PaintCluster(history);

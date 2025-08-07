@@ -84,8 +84,7 @@ namespace OsEngine.Journal.Internal
 
             Activate();
 
-            if (_startProgram != StartProgram.IsOsOptimizer
-                && _startProgram != StartProgram.IsOsMiner)
+            if (_startProgram != StartProgram.IsOsOptimizer)
             {
                 ControllersToCheck.Add(this);
                 Load();
@@ -346,7 +345,6 @@ namespace OsEngine.Journal.Internal
             }
 
             if (_startProgram == StartProgram.IsOsOptimizer
-                || _startProgram == StartProgram.IsOsMiner
                 || _startProgram == StartProgram.IsTester)
             {
                 return;
@@ -376,8 +374,7 @@ namespace OsEngine.Journal.Internal
             result.Append(_commissionType + "\r\n");
             result.Append(_commissionValue + "\r\n");
 
-            if (_startProgram == StartProgram.IsOsTrader ||
-                _startProgram == StartProgram.IsOsMiner)
+            if (_startProgram == StartProgram.IsOsTrader)
             {
                 List<Position> deals = _deals;
 
@@ -804,8 +801,7 @@ namespace OsEngine.Journal.Internal
 
         private void TrySaveStopLimits()
         {
-            if (_startProgram == StartProgram.IsOsOptimizer
-           || _startProgram == StartProgram.IsOsMiner)
+            if (_startProgram == StartProgram.IsOsOptimizer)
             {
                 return;
             }
