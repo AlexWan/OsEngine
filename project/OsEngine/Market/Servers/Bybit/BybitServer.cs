@@ -1916,7 +1916,7 @@ namespace OsEngine.Market.Servers.Bybit
             {
                 try
                 {
-                    Thread.Sleep(30000);
+                    Thread.Sleep(19000); // https://bybit-exchange.github.io/docs/v5/ws/connect#ip-limits To avoid network or program issues, we recommend that you send the ping heartbeat packet every 20 seconds to maintain the WebSocket connection.
 
                     if (ServerStatus != ServerConnectStatus.Connect)
                     {
