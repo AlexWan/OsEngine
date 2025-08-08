@@ -53,7 +53,7 @@ namespace OsEngine.Entity
         }
 
         public ACandlesSeriesRealization CandleSeriesRealization;
-
+         
         private string _name;
 
         private StartProgram _startProgram;

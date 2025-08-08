@@ -225,7 +225,6 @@ namespace OsEngine.Market.Connectors
 
             if(TimeFrameBuilder != null)
             {
-                TimeFrameBuilder.Delete();
                 TimeFrameBuilder = null;
             }
 
